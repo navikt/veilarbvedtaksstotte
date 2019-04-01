@@ -1,16 +1,16 @@
-package no.nav.fo.veilarbvedtaksstotte;
+package no.nav.fo.veilarbvedtaksstotte.config;
 
 import no.nav.apiapp.ApiApplication;
 import no.nav.apiapp.config.ApiAppConfigurator;
+import no.nav.fo.veilarbvedtaksstotte.resources.ControlledSelfTestResource;
+import no.nav.fo.veilarbvedtaksstotte.resources.HelloWorldResource;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import({
-        DemoRessurs.class,
-        SelfdestructRessurs.class,
-        DebugRessurs.class,
-        ControlledSelfTestResource.class
+        ControlledSelfTestResource.class,
+        HelloWorldResource.class
 })
 public class ApplicationConfig implements ApiApplication {
 
@@ -20,7 +20,6 @@ public class ApplicationConfig implements ApiApplication {
     }
 
     @Override
-    public void configure(ApiAppConfigurator apiAppConfigurator) {
-    }
+    public void configure(ApiAppConfigurator apiAppConfigurator) { }
 
 }

@@ -1,4 +1,4 @@
-package no.nav.fo.veilarbvedtaksstotte;
+package no.nav.fo.veilarbvedtaksstotte.resources;
 
 import lombok.Setter;
 import lombok.experimental.Accessors;
