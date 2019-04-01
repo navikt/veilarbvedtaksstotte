@@ -1,0 +1,43 @@
+# ref https://raw.githubusercontent.com/nais/naisd/master/nais_example.yaml
+image: docker.adeo.no:5000/fo/veilarbvedtaksstotte
+team: biff
+replicas:
+  min: 2
+  max: 4
+  cpuThresholdPercentage: 50
+port: 8080
+webproxy: true
+leaderElection: true
+healthcheck:
+  liveness:
+    path: veilarbvedtaksstotte/internal/isAlive
+    initialDelay: 20
+  readiness:
+    path: veilarbvedtaksstotte/internal/isReady
+    initialDelay: 20
+prometheus:
+  enabled: true
+  path: veilarbvedtaksstotte/internal/metrics
+resources:
+  limits:
+    cpu: 3
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+fasitResources:
+  used:
+  - alias: loadbalancer:veilarbvedtaksstotte
+    resourceType: loadbalancerconfigl
+  - alias: appdynamics
+    resourceType: applicationproperties
+  - alias: aad_b2c_discovery # brukes ikke av appen, kun for testing
+    resourceType: baseurl
+  - alias: loadbalancer:veilarbvedtaksstotte-nais-io
+    resourceType: loadbalancerconfig
+  exposed:
+  - alias: veilarbvedtaksstottefsAPI
+    resourceType: restservice
+    path: /veilarbvedtaksstotte/api
+alertProfiles:
+  - common-java-modules
