@@ -1,6 +1,6 @@
 # ref https://raw.githubusercontent.com/nais/naisd/master/nais_example.yaml
 image: docker.adeo.no:5000/fo/veilarbvedtaksstotte
-team: pus
+team: biff
 replicas:
   min: 2
   max: 4
@@ -35,8 +35,6 @@ fasitResources:
     resourceType: applicationproperties
   - alias: aad_b2c_discovery # brukes ikke av appen, kun for testing
     resourceType: baseurl
-  - alias: loadbalancer:veilarbvedtaksstotte-nais-io
-    resourceType: loadbalancerconfig
   exposed:
   - alias: veilarbvedtaksstotteAPI
     resourceType: restservice
