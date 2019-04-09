@@ -20,16 +20,22 @@ import javax.servlet.ServletContext;
 })
 public class ApplicationConfig implements ApiApplication {
 
+    public static final String APPLICATION_NAME = "veilarbvedtaksstotte";
+
     @Inject
     private JdbcTemplate jdbcTemplate;
 
     @Override
     public String getContextPath() {
-        return "/veilarbvedtaksstotte";
+        return "/" + APPLICATION_NAME;
     }
 
     @Override
-    public void configure(ApiAppConfigurator apiAppConfigurator) {}
+    public void configure(ApiAppConfigurator apiAppConfigurator) {
+        apiAppConfigurator
+                .issoLogin()
+                .sts();
+    }
 
     @Transactional
     @Override
