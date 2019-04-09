@@ -1,6 +1,4 @@
-import no.nav.apiapp.ApiApp;
 import no.nav.fo.veilarbvedtaksstotte.TestContext;
-import no.nav.fo.veilarbvedtaksstotte.config.ApplicationTestConfig;
 import no.nav.fo.veilarbvedtaksstotte.db.DatabaseTestContext;
 import no.nav.testconfig.ApiAppTest;
 
@@ -14,8 +12,9 @@ public class MainTest {
     public static void main(String[] args) {
         ApiAppTest.setupTestContext(ApiAppTest.Config.builder().applicationName(APPLICATION_NAME).build());
         TestContext.setup();
-        DatabaseTestContext.setup(null);
-        ApiApp.runApp(ApplicationTestConfig.class, ARGUMENTS);
+        DatabaseTestContext.setup("Q6");
+        Main.main(ARGUMENTS);
+        //ApiApp.runApp(ApplicationTestConfig.class, ARGUMENTS);
     }
 
 }

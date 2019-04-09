@@ -47,6 +47,8 @@ fasitResources:
     resourceType: baseurl
   - alias: isso-rp-user
     resourceType: credential
+  - alias: veilarblogin.redirect-url
+    resourceType: restservice
   exposed:
   - alias: veilarbvedtaksstotteAPI
     resourceType: restservice
