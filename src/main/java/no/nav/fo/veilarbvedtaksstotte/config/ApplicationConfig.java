@@ -2,9 +2,10 @@ package no.nav.fo.veilarbvedtaksstotte.config;
 
 import no.nav.apiapp.ApiApplication;
 import no.nav.apiapp.config.ApiAppConfigurator;
+import no.nav.dialogarena.aktor.AktorConfig;
 import no.nav.fo.veilarbvedtaksstotte.db.MigrationUtils;
 import no.nav.fo.veilarbvedtaksstotte.db.VedtaksstotteRepository;
-import no.nav.fo.veilarbvedtaksstotte.resources.HelloWorldResource;
+import no.nav.fo.veilarbvedtaksstotte.resources.VedtakResource;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,8 +16,10 @@ import javax.servlet.ServletContext;
 
 @Configuration
 @Import({
-        HelloWorldResource.class,
+        VedtakResource.class,
         DatabaseConfig.class,
+        PepConfig.class,
+        AktorConfig.class,
         VedtaksstotteRepository.class
 })
 public class ApplicationConfig implements ApiApplication {

@@ -1,16 +1,14 @@
-CREATE SEQUENCE VEDTAK_SEQ;
-
 CREATE TABLE VEDTAK (
-  VEDTAK_ID               NUMBER,
+  VEDTAK_ID               NUMBER NOT NULL,
   AKTOR_ID                VARCHAR(20) NOT NULL,
-  VEKTLAGT_OPPLYSNINGER   CLOB,
-  HOVEDMAL_TYPE           varchar(30),
-  KONKLUSJON_TYPE         varchar(40),
+  HOVEDMAL                varchar(30),
+  INNSATSGRUPPE           varchar(40),
   VEILEDER_IDENT          VARCHAR(20) NOT NULL,
   VEILEDER_ENHET_ID       VARCHAR(4) NOT NULL,
   SIST_OPPDATERT          TIMESTAMP NOT NULL,
+  SENDT                   TIMESTAMP,
   BEGRUNNELSE             CLOB,
-  STATUS                  varchar(10),
+  STATUS                  varchar(10) NOT NULL,
   CONSTRAINT "VEDTAK_PK" PRIMARY KEY ("VEDTAK_ID")
 );
 

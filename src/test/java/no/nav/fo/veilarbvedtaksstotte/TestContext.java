@@ -4,14 +4,14 @@ import no.nav.brukerdialog.security.Constants;
 import no.nav.brukerdialog.tools.SecurityConstants;
 import no.nav.fasit.FasitUtils;
 import no.nav.fasit.ServiceUser;
+import no.nav.fasit.WebServiceEndpoint;
 import no.nav.sbl.dialogarena.common.abac.pep.CredentialConstants;
 import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 
 import static java.lang.System.setProperty;
+import static no.nav.dialogarena.aktor.AktorConfig.AKTOER_ENDPOINT_URL;
 import static no.nav.fasit.FasitUtils.Zone.FSS;
-import static no.nav.fasit.FasitUtils.getDefaultEnvironment;
-import static no.nav.fasit.FasitUtils.getRestService;
-import static no.nav.fasit.FasitUtils.getServiceUser;
+import static no.nav.fasit.FasitUtils.*;
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 import static no.nav.sbl.dialogarena.common.abac.pep.service.AbacServiceConfig.ABAC_ENDPOINT_URL_PROPERTY_NAME;
 
@@ -34,7 +34,8 @@ public class TestContext {
         setProperty(CredentialConstants.SYSTEMUSER_PASSWORD, srvVeilarbvedtaksstotte.getPassword());
         setProperty(ABAC_ENDPOINT_URL_PROPERTY_NAME, "https://wasapp-" + getDefaultEnvironment() + ".adeo.no/asm-pdp/authorize");
 
-        //setProperty(AKTOER_ENDPOINT_URL, "https://app-" + getDefaultEnvironment() + ".adeo.no/aktoerid/AktoerService/v2");
+        WebServiceEndpoint aktorEndpoint = getWebServiceEndpoint("Aktoer_v2", getDefaultEnvironment());
+        setProperty(AKTOER_ENDPOINT_URL, aktorEndpoint.getUrl());
 
         String issoHost = FasitUtils.getBaseUrl("isso-host");
         String issoJWS = FasitUtils.getBaseUrl("isso-jwks");
@@ -49,9 +50,9 @@ public class TestContext {
         setProperty(Constants.ISSO_JWKS_URL_PROPERTY_NAME, issoJWS);
         setProperty(Constants.ISSO_ISSUER_URL_PROPERTY_NAME, issoISSUER);
         setProperty(Constants.ISSO_ISALIVE_URL_PROPERTY_NAME, issoIsAlive);
+        setProperty(Constants.OIDC_REDIRECT_URL_PROPERTY_NAME, loginUrl);
         setProperty(SecurityConstants.SYSTEMUSER_USERNAME, srvVeilarbvedtaksstotte.getUsername());
         setProperty(SecurityConstants.SYSTEMUSER_PASSWORD, srvVeilarbvedtaksstotte.getPassword());
-        setProperty(Constants.OIDC_REDIRECT_URL_PROPERTY_NAME, loginUrl);
 
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.fo.veilarbvedtaksstotte.db;
 
+import no.nav.fo.veilarbvedtaksstotte.domain.VedtakUtkast;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,5 +16,10 @@ public class VedtaksstotteRepository {
     public VedtaksstotteRepository(JdbcTemplate db) {
         this.db = db;
     }
+
+    public VedtakUtkast hentVedtakUtakst(String aktorId) {
+        return null;
+    }
+
 
 }

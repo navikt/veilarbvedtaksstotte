@@ -7,6 +7,7 @@ public class MigrationUtils {
     public static void migrate(JdbcTemplate jdbcTemplate) {
         Flyway flyway = new Flyway();
         flyway.setDataSource(jdbcTemplate.getDataSource());
+        flyway.setBaselineOnMigrate(true);
         flyway.migrate();
     }
 }
