@@ -27,14 +27,28 @@ resources:
     memory: 256Mi
 fasitResources:
   used:
+  - alias: veilarbvedtaksstotteDB
+    resourceType: datasource
   - alias: loadbalancer:veilarbvedtaksstotte
     resourceType: loadbalancerconfig
   - alias: srvveilarbvedtaksstotte
     resourceType: credential
   - alias: appdynamics
     resourceType: applicationproperties
-  - alias: aad_b2c_discovery # brukes ikke av appen, kun for testing
+
+  # ISSO
+  - alias: isso-host
     resourceType: baseurl
+  - alias: isso-jwks
+    resourceType: baseurl
+  - alias: isso-issuer
+    resourceType: baseurl
+  - alias: isso.isalive
+    resourceType: baseurl
+  - alias: isso-rp-user
+    resourceType: credential
+  - alias: veilarblogin.redirect-url
+    resourceType: restservice
   exposed:
   - alias: veilarbvedtaksstotteAPI
     resourceType: restservice
