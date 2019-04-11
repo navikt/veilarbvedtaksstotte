@@ -1,5 +1,5 @@
 package no.nav.fo.veilarbvedtaksstotte.domain.enums;
 
-public enum Status {
+public enum VedtakStatus {
     UTKAST, SENDT
 }

@@ -2,6 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import no.nav.fo.veilarbvedtaksstotte.db.VedtaksstotteRepository;
 import no.nav.sbl.jdbc.Database;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +48,11 @@ public class DatabaseConfig {
     @Bean
     public Database database(JdbcTemplate jdbcTemplate) {
         return new Database(jdbcTemplate);
+    }
+
+    @Bean
+    public VedtaksstotteRepository vedtaksstotteRepository(JdbcTemplate jdbcTemplate) {
+        return new VedtaksstotteRepository(jdbcTemplate);
     }
 
 }
