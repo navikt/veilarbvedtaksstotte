@@ -13,7 +13,9 @@ import static no.nav.dialogarena.aktor.AktorConfig.AKTOER_ENDPOINT_URL;
 import static no.nav.fasit.FasitUtils.Zone.FSS;
 import static no.nav.fasit.FasitUtils.*;
 import static no.nav.fo.veilarbvedtaksstotte.client.DokumentClient.DOKUMENT_API_PROPERTY_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.client.DokumentClient.VEILARBDOKUMENT;
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.utils.TestUtils.lagFssUrl;
 import static no.nav.sbl.dialogarena.common.abac.pep.service.AbacServiceConfig.ABAC_ENDPOINT_URL_PROPERTY_NAME;
 
 
@@ -24,8 +26,7 @@ public class TestContext {
         ServiceUser srvVeilarbvedtaksstotte = getServiceUser("srvveilarbvedtaksstotte", APPLICATION_NAME);
 
         setProperty("APP_NAME", APPLICATION_NAME);
-
-        setProperty(DOKUMENT_API_PROPERTY_NAME, "TODO");
+        setProperty(DOKUMENT_API_PROPERTY_NAME, lagFssUrl(VEILARBDOKUMENT));
 
         //sts
         setProperty(StsSecurityConstants.STS_URL_KEY, securityTokenService);

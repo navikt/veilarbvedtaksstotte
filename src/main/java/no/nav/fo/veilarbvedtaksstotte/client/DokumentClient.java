@@ -8,12 +8,14 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 
+import static no.nav.apiapp.util.UrlUtils.joinPaths;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
 @Slf4j
 public class DokumentClient extends BaseClient {
 
     public static final String DOKUMENT_API_PROPERTY_NAME = "VEILARBDOKUMENTAPI_URL";
+    public static final String VEILARBDOKUMENT = "veilarbdokument";
 
     @Inject
     public DokumentClient(Provider<HttpServletRequest> httpServletRequestProvider) {
@@ -21,7 +23,7 @@ public class DokumentClient extends BaseClient {
     }
 
     public DokumentSendtDTO sendDokument(SendDokumentDTO sendDokumentDTO) {
-        return postWithClient(baseUrl + "/bestilldokument", sendDokumentDTO, DokumentSendtDTO.class);
+        return postWithClient(joinPaths(baseUrl, "api", "bestilldokument"), sendDokumentDTO, DokumentSendtDTO.class);
     }
 
 }
