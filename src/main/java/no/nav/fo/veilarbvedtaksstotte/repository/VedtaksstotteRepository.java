@@ -1,4 +1,4 @@
-package no.nav.fo.veilarbvedtaksstotte.db;
+package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
@@ -16,9 +16,9 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.sql.ResultSet;
 
-import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.nesteFraSekvens;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
+import static no.nav.sbl.sql.SqlUtils.nextFromSeq;
 
 @Component
 public class VedtaksstotteRepository {
@@ -45,6 +45,16 @@ public class VedtaksstotteRepository {
         this.db = db;
     }
 
+
+    public void markerVedtakSomSendt(long vedtakId){
+        SqlUtils.update(db, VEDTAK)
+                .whereEquals(VEDTAK_ID, vedtakId)
+                .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
+                .set(SENDT, DbConstants.CURRENT_TIMESTAMP)
+                .set(STATUS, getName(VedtakStatus.SENDT))
+                .execute();
+    }
+
     public void upsertUtkast(String aktorId, Vedtak vedtak) {
         long id = hentVedtakUtkastId(aktorId);
 
@@ -55,10 +65,15 @@ public class VedtaksstotteRepository {
         }
     }
 
-    public Vedtak hentVedtakUtkast(String aktorId) {
+    public Vedtak hentVedtak(String aktorId, boolean kunUtkast) {
+        WhereClause where = WhereClause.equals(AKTOR_ID, aktorId);
+
+        if (kunUtkast) {
+            where = where.and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)));
+        }
+
         return SqlUtils.select(db, VEDTAK, VedtaksstotteRepository::mapVedtakUtkast)
-                .where(WhereClause.equals(AKTOR_ID, aktorId)
-                        .and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))))
+                .where(where)
                 .orderBy(OrderClause.desc(SIST_OPPDATERT))
                 .limit(1)
                 .column("*")
@@ -66,7 +81,7 @@ public class VedtaksstotteRepository {
     }
 
     private long hentVedtakUtkastId(String aktorId) {
-        Vedtak utkast = hentVedtakUtkast(aktorId);
+        Vedtak utkast = hentVedtak(aktorId, true);
         return utkast != null ? utkast.getId() : NO_ID;
     }
 
@@ -84,7 +99,7 @@ public class VedtaksstotteRepository {
 
     private long lagVedtakUtkast(String aktorId, Vedtak vedtak) {
         return SqlUtils.insert(db, VEDTAK)
-                .value(VEDTAK_ID, nesteFraSekvens(VEDTAK_SEQ, db))
+                .value(VEDTAK_ID, nextFromSeq(db, VEDTAK_SEQ))
                 .value(AKTOR_ID, aktorId)
                 .value(HOVEDMAL, getName(vedtak.getHovedmal()))
                 .value(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))

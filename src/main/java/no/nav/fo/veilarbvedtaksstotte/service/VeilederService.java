@@ -1,4 +1,4 @@
-package no.nav.fo.veilarbvedtaksstotte.services;
+package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.fo.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.fo.veilarbvedtaksstotte.utils.AutentiseringUtils;

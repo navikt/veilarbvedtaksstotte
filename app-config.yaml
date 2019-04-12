@@ -35,6 +35,8 @@ fasitResources:
     resourceType: credential
   - alias: appdynamics
     resourceType: applicationproperties
+  - alias: veilarbdokumentAPI
+    resourceType: restservice
 
   # ISSO
   - alias: isso-host
