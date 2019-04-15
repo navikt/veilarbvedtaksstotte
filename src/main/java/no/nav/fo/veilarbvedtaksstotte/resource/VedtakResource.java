@@ -39,5 +39,12 @@ public class VedtakResource {
         vedtakService.upsertVedtak(fnr, vedtakDTO);
     }
 
+
+    @POST
+    @Path("/send-kafka")
+    public void sendKafkaTest() {
+        vedtakService.testSendVedtakMedKafka();
+    }
+
 }
 

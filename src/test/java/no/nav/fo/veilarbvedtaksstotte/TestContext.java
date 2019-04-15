@@ -19,6 +19,7 @@ import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CON
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.config.KafkaConfig.KAFKA_BROKERS_URL_PROPERTY;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestUtils.lagFssUrl;
 import static no.nav.sbl.dialogarena.common.abac.pep.service.AbacServiceConfig.ABAC_ENDPOINT_URL_PROPERTY_NAME;
 
@@ -33,6 +34,8 @@ public class TestContext {
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagFssUrl(VEILARBDOKUMENT));
         setProperty(PERSON_API_PROPERTY_NAME, lagFssUrl(VEILARBPERSON));
         setProperty(MODIA_CONTEXT_API_PROPERTY_NAME, lagFssUrl(MODIA_CONTEXT_HOLDER));
+
+        setProperty(KAFKA_BROKERS_URL_PROPERTY, "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443");
 
         //sts
         setProperty(StsSecurityConstants.STS_URL_KEY, securityTokenService);
