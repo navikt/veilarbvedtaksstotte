@@ -53,6 +53,8 @@ fasitResources:
     resourceType: credential
   - alias: veilarblogin.redirect-url
     resourceType: restservice
+    propertyMap:
+      url: OIDC_REDIRECT_URL
 
   exposed:
   - alias: veilarbvedtaksstotteAPI
