@@ -11,7 +11,6 @@ import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.client.Entity.json;
 import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
-import static javax.ws.rs.core.HttpHeaders.COOKIE;
 import static no.nav.sbl.rest.RestUtils.RestConfig.builder;
 import static no.nav.sbl.rest.RestUtils.withClient;
 
@@ -52,13 +51,9 @@ public class BaseClient {
 
 
     private <T> T get(Client client, String url, Class<T> returnedDataClass) {
-        String cookies = httpServletRequestProvider.get().getHeader(COOKIE);
-        String token = "Bearer " + SubjectHandler.getSsoToken().map(SsoToken::getToken).orElse(null);
-
         Response response = client.target(url)
                 .request()
-                .header(COOKIE, cookies)
-                .header(AUTHORIZATION, token)
+                .header(AUTHORIZATION, createBearerToken())
                 .get();
 
         sjekkHttpResponse(response, url);
@@ -67,16 +62,18 @@ public class BaseClient {
     }
 
     private <T> T post(Client client, String url, Object postData, Class<T> returnedDataClass) {
-        String cookies = httpServletRequestProvider.get().getHeader(COOKIE);
-
         Response response = client.target(url)
                 .request()
-                .header(COOKIE, cookies)
+                .header(AUTHORIZATION, createBearerToken())
                 .post(json(postData));
 
         sjekkHttpResponse(response, url);
 
         return response.readEntity(returnedDataClass);
+    }
+
+    private String createBearerToken() {
+        return "Bearer " + SubjectHandler.getSsoToken().map(SsoToken::getToken).orElse("");
     }
 
 }
