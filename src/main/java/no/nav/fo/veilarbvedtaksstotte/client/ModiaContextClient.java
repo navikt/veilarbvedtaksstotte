@@ -6,7 +6,6 @@ import no.nav.fo.veilarbvedtaksstotte.domain.AktivEnhetDTO;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Optional;
 
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
@@ -21,11 +20,12 @@ public class ModiaContextClient extends BaseClient {
     public ModiaContextClient(Provider<HttpServletRequest> httpServletRequestProvider) {
         super(getRequiredProperty(MODIA_CONTEXT_API_PROPERTY_NAME), httpServletRequestProvider);
     }
-    public Optional<String> aktivEnhet() {
-        String aktivEnhet = getWithClient(joinPaths(baseUrl, "api", "context", "aktivenhet"), AktivEnhetDTO.class)
+    public String aktivEnhet() {
+        return get(joinPaths(baseUrl, "api", "context", "aktivenhet"), AktivEnhetDTO.class)
+                .withStatusCheck()
+                .getData()
+                .orElseThrow(() -> new IllegalStateException("Feil ved kall mot modiacontextholder/aktivenhet"))
                 .getAktivEnhet();
-
-        return Optional.of(aktivEnhet);
     }
 
 }

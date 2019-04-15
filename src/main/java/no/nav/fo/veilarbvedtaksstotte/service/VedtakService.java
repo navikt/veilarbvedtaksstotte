@@ -104,8 +104,7 @@ public class VedtakService {
 
         String aktorId = getAktorIdOrThrow(aktorService, fnr);
         Veileder veileder = veilederService.hentVeilederFraToken();
-        veileder.setEnhetId(modiaContextClient.aktivEnhet()
-                .orElseThrow(() -> new RuntimeException("Fant ikke enhet i kontekst")));
+        veileder.setEnhetId(modiaContextClient.aktivEnhet());
 
         Vedtak vedtak = vedtakDTO.tilVedtak()
                 .setVeileder(veileder);

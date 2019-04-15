@@ -22,7 +22,10 @@ public class PersonClient extends BaseClient {
     }
 
     public PersonNavn hentNavn(String fnr) {
-        return getWithClient(joinPaths(baseUrl, "api", "person", "navn?fnr=" + fnr), PersonNavn.class);
+        return get(joinPaths(baseUrl, "api", "person", "navn?fnr=" + fnr), PersonNavn.class)
+                .withStatusCheck()
+                .getData()
+                .orElseThrow(() -> new IllegalStateException("Feil ved kall mot veilarbperson/navn"));
     }
 
 }
