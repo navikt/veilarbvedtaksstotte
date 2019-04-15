@@ -6,6 +6,8 @@ import java.util.Optional;
 
 public class AutentiseringUtils {
 
+    private AutentiseringUtils(){}
+
     public static Optional<String> hentIdent() {
         return SubjectHandler.getIdent();
     }
