@@ -2,9 +2,9 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.fo.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.fo.veilarbvedtaksstotte.utils.AutentiseringUtils;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class VeilederService {
 
     public Veileder hentVeilederFraToken() {

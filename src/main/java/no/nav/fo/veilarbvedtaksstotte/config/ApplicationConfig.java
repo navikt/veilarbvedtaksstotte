@@ -3,7 +3,7 @@ package no.nav.fo.veilarbvedtaksstotte.config;
 import no.nav.apiapp.ApiApplication;
 import no.nav.apiapp.config.ApiAppConfigurator;
 import no.nav.dialogarena.aktor.AktorConfig;
-import no.nav.fo.veilarbvedtaksstotte.utils.MigrationUtils;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -39,7 +39,7 @@ public class ApplicationConfig implements ApiApplication {
     @Transactional
     @Override
     public void startup(ServletContext servletContext) {
-        MigrationUtils.migrate(jdbcTemplate);
+        DbUtils.migrate(jdbcTemplate);
     }
 
 }

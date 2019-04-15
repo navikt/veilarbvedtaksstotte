@@ -11,16 +11,16 @@ import no.nav.sbl.sql.SqlUtils;
 import no.nav.sbl.sql.order.OrderClause;
 import no.nav.sbl.sql.where.WhereClause;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.sql.ResultSet;
 
+import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.nesteFraSekvens;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
-import static no.nav.sbl.sql.SqlUtils.nextFromSeq;
 
-@Component
+@Repository
 public class VedtaksstotteRepository {
 
     private final static long NO_ID =  -1;
@@ -99,7 +99,7 @@ public class VedtaksstotteRepository {
 
     private long lagVedtakUtkast(String aktorId, Vedtak vedtak) {
         return SqlUtils.insert(db, VEDTAK)
-                .value(VEDTAK_ID, nextFromSeq(db, VEDTAK_SEQ))
+                .value(VEDTAK_ID, nesteFraSekvens(db, VEDTAK_SEQ))
                 .value(AKTOR_ID, aktorId)
                 .value(HOVEDMAL, getName(vedtak.getHovedmal()))
                 .value(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
