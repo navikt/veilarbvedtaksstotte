@@ -18,6 +18,7 @@ import javax.servlet.ServletContext;
         DatabaseConfig.class,
         PepConfig.class,
         AktorConfig.class,
+        KafkaConfig.class,
         ServiceConfig.class,
         ClientConfig.class,
         RepositoryConfig.class

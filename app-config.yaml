@@ -35,6 +35,8 @@ fasitResources:
     resourceType: credential
   - alias: appdynamics
     resourceType: applicationproperties
+  - alias: kafka-brokers
+    resourceType: baseurl
 
   # ISSO
   - alias: isso-host
@@ -49,9 +51,11 @@ fasitResources:
     resourceType: credential
   - alias: veilarblogin.redirect-url
     resourceType: restservice
+
   exposed:
   - alias: veilarbvedtaksstotteAPI
     resourceType: restservice
     path: /veilarbvedtaksstotte/api
+
 alertProfiles:
   - common-java-modules
