@@ -35,6 +35,8 @@ fasitResources:
     resourceType: credential
   - alias: appdynamics
     resourceType: applicationproperties
+  - alias: Aktoer_v2
+    resourceType: webserviceendpoint
   - alias: kafka-brokers
     resourceType: baseurl
 
