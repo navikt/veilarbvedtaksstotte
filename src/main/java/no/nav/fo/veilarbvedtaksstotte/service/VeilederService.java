@@ -12,10 +12,7 @@ public class VeilederService {
         String ident = AutentiseringUtils.hentIdent()
                 .orElseThrow(() -> new RuntimeException("Fant ikke ident for veileder"));
 
-        // TODO: Gjøre oppslag for å finne enhetId?
-        return new Veileder()
-                .setIdent(ident)
-                .setEnhetId("0000");
+        return new Veileder().setIdent(ident);
     }
 
 }

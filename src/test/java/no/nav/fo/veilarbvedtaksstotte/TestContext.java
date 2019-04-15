@@ -14,6 +14,8 @@ import static no.nav.fasit.FasitUtils.Zone.FSS;
 import static no.nav.fasit.FasitUtils.*;
 import static no.nav.fo.veilarbvedtaksstotte.client.DokumentClient.DOKUMENT_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.DokumentClient.VEILARBDOKUMENT;
+import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CONTEXT_API_PROPERTY_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CONTEXT_HOLDER;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
@@ -30,6 +32,7 @@ public class TestContext {
         setProperty("APP_NAME", APPLICATION_NAME);
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagFssUrl(VEILARBDOKUMENT));
         setProperty(PERSON_API_PROPERTY_NAME, lagFssUrl(VEILARBPERSON));
+        setProperty(MODIA_CONTEXT_API_PROPERTY_NAME, lagFssUrl(MODIA_CONTEXT_HOLDER));
 
         //sts
         setProperty(StsSecurityConstants.STS_URL_KEY, securityTokenService);

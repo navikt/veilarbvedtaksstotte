@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.apiapp.security.PepClient;
 import no.nav.dialogarena.aktor.AktorService;
 import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
+import no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient;
 import no.nav.fo.veilarbvedtaksstotte.client.PersonClient;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.fo.veilarbvedtaksstotte.service.MalTypeService;
@@ -30,11 +31,12 @@ public class ServiceConfig {
                                        AktorService aktorService,
                                        DokumentClient dokumentClient,
                                        PersonClient personClient,
+                                       ModiaContextClient modiaContextClient,
                                        VeilederService veilederService,
                                        MalTypeService malTypeService) {
         return new VedtakService(vedtaksstotteRepository, pepClient,
-                aktorService, dokumentClient, personClient, veilederService,
-                malTypeService);
+                aktorService, dokumentClient, personClient, modiaContextClient,
+                veilederService, malTypeService);
     }
 
 }

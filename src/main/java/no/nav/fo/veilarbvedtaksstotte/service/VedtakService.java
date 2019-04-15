@@ -3,6 +3,7 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 import no.nav.apiapp.security.PepClient;
 import no.nav.dialogarena.aktor.AktorService;
 import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
+import no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient;
 import no.nav.fo.veilarbvedtaksstotte.client.PersonClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -23,6 +24,7 @@ public class VedtakService {
     private AktorService aktorService;
     private DokumentClient dokumentClient;
     private PersonClient personClient;
+    private ModiaContextClient modiaContextClient;
     private VeilederService veilederService;
     private MalTypeService malTypeService;
 
@@ -32,12 +34,14 @@ public class VedtakService {
                          AktorService aktorService,
                          DokumentClient dokumentClient,
                          PersonClient personClient,
+                         ModiaContextClient modiaContextClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.pepClient = pepClient;
         this.aktorService = aktorService;
         this.dokumentClient = dokumentClient;
+        this.modiaContextClient = modiaContextClient;
         this.personClient = personClient;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
@@ -99,9 +103,12 @@ public class VedtakService {
         pepClient.sjekkLeseTilgangTilFnr(fnr);
 
         String aktorId = getAktorIdOrThrow(aktorService, fnr);
+        Veileder veileder = veilederService.hentVeilederFraToken();
+        veileder.setEnhetId(modiaContextClient.aktivEnhet()
+                .orElseThrow(() -> new RuntimeException("Fant ikke enhet i kontekst")));
 
         Vedtak vedtak = vedtakDTO.tilVedtak()
-                .setVeileder(veilederService.hentVeilederFraToken());
+                .setVeileder(veileder);
 
         vedtaksstotteRepository.upsertUtkast(aktorId, vedtak);
     }
