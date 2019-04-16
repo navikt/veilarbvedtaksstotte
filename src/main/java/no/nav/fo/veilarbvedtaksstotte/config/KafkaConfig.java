@@ -2,7 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.config;
 
 import no.nav.fo.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakSendtTemplate;
-import no.nav.sbl.dialogarena.common.abac.pep.CredentialConstants;
+import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
@@ -26,8 +26,8 @@ public class KafkaConfig {
 
     public static final String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
-    private static final String USERNAME = getRequiredProperty(CredentialConstants.SYSTEMUSER_USERNAME);
-    private static final String PASSWORD = getRequiredProperty(CredentialConstants.SYSTEMUSER_PASSWORD);
+    private static final String USERNAME = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_USERNAME);
+    private static final String PASSWORD = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_PASSWORD);
 
     @Bean
     public static Map<String, Object> producerConfigs() {
