@@ -25,7 +25,7 @@ public class VedtakSendtTemplate {
     }
 
     public void send(KafkaVedtakSendt vedtakSendt) {
-       send(vedtakSendt, false);
+        send(vedtakSendt, false);
     }
 
     public void sendTidligereFeilet(KafkaVedtakSendt vedtakSendt) {

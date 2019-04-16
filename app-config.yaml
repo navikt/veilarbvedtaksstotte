@@ -43,6 +43,8 @@ fasitResources:
     resourceType: baseUrl
   - alias: abac.pdp.endpoint
     resourceType: restservice
+  - alias: modiacontextholder
+    resourceType: baseurl
 
   # ISSO
   - alias: isso-host

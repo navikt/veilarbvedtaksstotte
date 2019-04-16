@@ -1,6 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
+import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
@@ -37,6 +38,8 @@ public class VedtaksstotteRepository {
     private final static String SENDT               = "SENDT";
     private final static String BEGRUNNELSE         = "BEGRUNNELSE";
     private final static String STATUS              = "STATUS";
+    private final static String DOKUMENT_ID         = "DOKUMENT_ID";
+    private final static String JOURNALPOST_ID      = "JOURNALPOST_ID";
 
     private final JdbcTemplate db;
 
@@ -46,12 +49,14 @@ public class VedtaksstotteRepository {
     }
 
 
-    public void markerVedtakSomSendt(long vedtakId){
+    public void markerVedtakSomSendt(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
         SqlUtils.update(db, VEDTAK_TABLE)
                 .whereEquals(VEDTAK_ID, vedtakId)
                 .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
                 .set(SENDT, DbConstants.CURRENT_TIMESTAMP)
                 .set(STATUS, getName(VedtakStatus.SENDT))
+                .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
+                .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
                 .execute();
     }
 

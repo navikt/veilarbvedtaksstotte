@@ -77,9 +77,9 @@ public class VedtakService {
                 .setBruker(dokumentPerson)
                 .setMottaker(dokumentPerson);
 
-        dokumentClient.sendDokument(sendDokumentDTO);
+        DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
 
-        vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId());
+        vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId(), dokumentSendt);
 
         kafkaService.sendVedtak(vedtak, aktorId);
 
