@@ -1,12 +1,12 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakSendtTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @Service
 public class KafkaService {
@@ -18,13 +18,11 @@ public class KafkaService {
         this.vedtakSendtTemplate = vedtakSendtTemplate;
     }
 
-    public void sendTestVedtak() {
-        System.out.println("SEND VEDTAK");
-
+    public void sendVedtak(Vedtak vedtak, String aktorId) {
         KafkaVedtakSendt vedtakSendt = new KafkaVedtakSendt()
-            .setAktorId("1284181123913")
-            .setInnsatsgruppe(Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS)
-            .setVedtakSendt(LocalDateTime.now());
+                .setAktorId(aktorId)
+                .setInnsatsgruppe(vedtak.getInnsatsgruppe())
+                .setVedtakSendt(new Timestamp(System.currentTimeMillis()));
 
         vedtakSendtTemplate.send(vedtakSendt);
     }

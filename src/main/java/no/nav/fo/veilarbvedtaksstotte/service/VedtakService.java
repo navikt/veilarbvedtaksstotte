@@ -81,6 +81,8 @@ public class VedtakService {
 
         vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId());
 
+        kafkaService.sendVedtak(vedtak, aktorId);
+
     }
 
     public Vedtak hentVedtak(String fnr) {
@@ -112,10 +114,6 @@ public class VedtakService {
                 .setVeileder(veileder);
 
         vedtaksstotteRepository.upsertUtkast(aktorId, vedtak);
-    }
-
-    public void testSendVedtakMedKafka() {
-        kafkaService.sendTestVedtak();
     }
 
 }

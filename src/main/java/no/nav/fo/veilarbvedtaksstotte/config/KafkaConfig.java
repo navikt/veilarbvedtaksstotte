@@ -2,6 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.config;
 
 import no.nav.fo.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakSendtTemplate;
+import no.nav.fo.veilarbvedtaksstotte.repository.KafkaRepository;
 import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -24,7 +25,9 @@ import static no.nav.sbl.util.EnvironmentUtils.requireEnvironmentName;
 @Import({ KafkaHelsesjekk.class })
 public class KafkaConfig {
 
+    public static final String KAFKA_TOPIC = "aapen-fo-vedtakSendt-v1";
     public static final String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
+
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
     private static final String USERNAME = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_USERNAME);
     private static final String PASSWORD = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_PASSWORD);
@@ -55,9 +58,9 @@ public class KafkaConfig {
     }
 
     @Bean
-    public VedtakSendtTemplate vedtakSendtTemplate() {
-        String topic = "aapen-fo-vedtakSendt-v1-" + requireEnvironmentName();
-        return new VedtakSendtTemplate(kafkaTemplate(), topic);
+    public VedtakSendtTemplate vedtakSendtTemplate(KafkaRepository kafkaRepository) {
+        String topic = KAFKA_TOPIC + "-" + requireEnvironmentName();
+        return new VedtakSendtTemplate(kafkaTemplate(), topic, kafkaRepository);
     }
 
 }

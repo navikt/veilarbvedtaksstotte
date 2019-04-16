@@ -25,7 +25,7 @@ public class VedtaksstotteRepository {
 
     private final static long NO_ID =  -1;
 
-    private final static String VEDTAK              = "VEDTAK";
+    private final static String VEDTAK_TABLE        = "VEDTAK";
     private final static String VEDTAK_SEQ          = "VEDTAK_SEQ";
     private final static String VEDTAK_ID           = "VEDTAK_ID";
     private final static String AKTOR_ID            = "AKTOR_ID";
@@ -47,7 +47,7 @@ public class VedtaksstotteRepository {
 
 
     public void markerVedtakSomSendt(long vedtakId){
-        SqlUtils.update(db, VEDTAK)
+        SqlUtils.update(db, VEDTAK_TABLE)
                 .whereEquals(VEDTAK_ID, vedtakId)
                 .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
                 .set(SENDT, DbConstants.CURRENT_TIMESTAMP)
@@ -72,7 +72,7 @@ public class VedtaksstotteRepository {
             where = where.and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)));
         }
 
-        return SqlUtils.select(db, VEDTAK, VedtaksstotteRepository::mapVedtakUtkast)
+        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtakUtkast)
                 .where(where)
                 .orderBy(OrderClause.desc(SIST_OPPDATERT))
                 .limit(1)
@@ -86,7 +86,7 @@ public class VedtaksstotteRepository {
     }
 
     private void oppdaterVedtakUtkast(long vedtakId, Vedtak vedtak) {
-        SqlUtils.update(db, VEDTAK)
+        SqlUtils.update(db, VEDTAK_TABLE)
                 .whereEquals(VEDTAK_ID, vedtakId)
                 .set(HOVEDMAL, getName(vedtak.getHovedmal()))
                 .set(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
@@ -98,7 +98,7 @@ public class VedtaksstotteRepository {
     }
 
     private long lagVedtakUtkast(String aktorId, Vedtak vedtak) {
-        return SqlUtils.insert(db, VEDTAK)
+        return SqlUtils.insert(db, VEDTAK_TABLE)
                 .value(VEDTAK_ID, nesteFraSekvens(db, VEDTAK_SEQ))
                 .value(AKTOR_ID, aktorId)
                 .value(HOVEDMAL, getName(vedtak.getHovedmal()))
