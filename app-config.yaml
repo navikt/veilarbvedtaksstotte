@@ -41,6 +41,8 @@ fasitResources:
     resourceType: baseurl
   - alias: securityTokenService
     resourceType: baseUrl
+  - alias: abac.pdp.endpoint
+    resourceType: restservice
 
   # ISSO
   - alias: isso-host
