@@ -27,4 +27,8 @@ public class KafkaService {
         vedtakSendtTemplate.send(vedtakSendt);
     }
 
+    public void sendTidligereFeiletVedtak(KafkaVedtakSendt kafkaVedtakSendt) {
+        vedtakSendtTemplate.sendTidligereFeilet(kafkaVedtakSendt);
+    }
+
 }

@@ -25,7 +25,7 @@ import static no.nav.sbl.util.EnvironmentUtils.requireEnvironmentName;
 @Import({ KafkaHelsesjekk.class })
 public class KafkaConfig {
 
-    public static final String KAFKA_TOPIC = "aapen-fo-vedtakSendt-v1";
+    public static final String KAFKA_TOPIC = "aapen-fo-vedtakSendt-v1" + "-" + requireEnvironmentName();
     public static final String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
 
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
@@ -59,8 +59,7 @@ public class KafkaConfig {
 
     @Bean
     public VedtakSendtTemplate vedtakSendtTemplate(KafkaRepository kafkaRepository) {
-        String topic = KAFKA_TOPIC + "-" + requireEnvironmentName();
-        return new VedtakSendtTemplate(kafkaTemplate(), topic, kafkaRepository);
+        return new VedtakSendtTemplate(kafkaTemplate(), KAFKA_TOPIC, kafkaRepository);
     }
 
 }
