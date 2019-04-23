@@ -25,7 +25,7 @@ public class PersonClient extends BaseClient {
         return get(joinPaths(baseUrl, "api", "person", "navn?fnr=" + fnr), PersonNavn.class)
                 .withStatusCheck()
                 .getData()
-                .orElseThrow(() -> new IllegalStateException("Feil ved kall mot veilarbperson/navn"));
+                .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbperson/navn"));
     }
 
 }

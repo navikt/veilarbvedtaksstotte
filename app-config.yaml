@@ -35,6 +35,16 @@ fasitResources:
     resourceType: credential
   - alias: appdynamics
     resourceType: applicationproperties
+  - alias: Aktoer_v2
+    resourceType: webserviceendpoint
+  - alias: kafka-brokers
+    resourceType: baseurl
+  - alias: securityTokenService
+    resourceType: baseUrl
+  - alias: abac.pdp.endpoint
+    resourceType: restservice
+  - alias: modiacontextholder
+    resourceType: baseurl
 
   # ISSO
   - alias: isso-host
@@ -49,9 +59,13 @@ fasitResources:
     resourceType: credential
   - alias: veilarblogin.redirect-url
     resourceType: restservice
+    propertyMap:
+      url: OIDC_REDIRECT_URL
+
   exposed:
   - alias: veilarbvedtaksstotteAPI
     resourceType: restservice
     path: /veilarbvedtaksstotte/api
+
 alertProfiles:
   - common-java-modules

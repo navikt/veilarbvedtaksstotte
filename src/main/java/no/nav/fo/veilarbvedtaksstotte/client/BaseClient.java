@@ -8,6 +8,7 @@ import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+
 import java.util.Optional;
 
 import static java.lang.String.format;
@@ -68,14 +69,14 @@ public class BaseClient {
 
         private final Response response;
 
-        private final Class<T> dataClass;
-
         private final String url;
+
+        private final T data;
 
         public RestResponse(Response response, Class<T> dataClass, String url){
             this.response = response;
-            this.dataClass = dataClass;
             this.url = url;
+            data = getData(response, dataClass);
         }
 
         public RestResponse<T> withStatusCheck() {
@@ -89,15 +90,15 @@ public class BaseClient {
         }
 
         public Optional<T> getData() {
-            T data;
-
-            try {
-                data = response.readEntity(dataClass);
-            }catch (Exception e) {
-                data = null;
-            }
-
             return Optional.ofNullable(data);
+        }
+
+        private T getData(Response response, Class<T> responseDataClass) {
+            try {
+                return response.readEntity(responseDataClass);
+            }catch (Exception e) {
+                return null;
+            }
         }
 
     }

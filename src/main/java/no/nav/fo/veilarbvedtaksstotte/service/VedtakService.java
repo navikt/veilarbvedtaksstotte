@@ -27,6 +27,7 @@ public class VedtakService {
     private ModiaContextClient modiaContextClient;
     private VeilederService veilederService;
     private MalTypeService malTypeService;
+    private KafkaService kafkaService;
 
     @Inject
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
@@ -36,7 +37,7 @@ public class VedtakService {
                          PersonClient personClient,
                          ModiaContextClient modiaContextClient,
                          VeilederService veilederService,
-                         MalTypeService malTypeService) {
+                         MalTypeService malTypeService, KafkaService kafkaService) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.pepClient = pepClient;
         this.aktorService = aktorService;
@@ -45,6 +46,7 @@ public class VedtakService {
         this.personClient = personClient;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
+        this.kafkaService = kafkaService;
     }
 
     public void sendVedtak(String fnr) {
@@ -75,9 +77,11 @@ public class VedtakService {
                 .setBruker(dokumentPerson)
                 .setMottaker(dokumentPerson);
 
-        dokumentClient.sendDokument(sendDokumentDTO);
+        DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
 
-        vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId());
+        vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId(), dokumentSendt);
+
+        kafkaService.sendVedtak(vedtak, aktorId);
 
     }
 

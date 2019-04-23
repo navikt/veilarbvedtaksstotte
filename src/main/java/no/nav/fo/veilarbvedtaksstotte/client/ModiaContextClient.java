@@ -24,7 +24,7 @@ public class ModiaContextClient extends BaseClient {
         return get(joinPaths(baseUrl, "api", "context", "aktivenhet"), AktivEnhetDTO.class)
                 .withStatusCheck()
                 .getData()
-                .orElseThrow(() -> new IllegalStateException("Feil ved kall mot modiacontextholder/aktivenhet"))
+                .orElseThrow(() -> new RuntimeException("Feil ved kall mot modiacontextholder/aktivenhet"))
                 .getAktivEnhet();
     }
 

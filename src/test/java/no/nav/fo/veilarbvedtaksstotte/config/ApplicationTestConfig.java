@@ -9,10 +9,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
+import javax.servlet.ServletContext;
+
 @Configuration
 public class ApplicationTestConfig extends ApplicationConfig {
 
     public static final boolean RUN_WITH_MOCKS = false;
+
+    @Override
+    public void startup(ServletContext servletContext) {
+        // NO-OP
+    }
 
     @Bean
     @Conditional(Mock.class)

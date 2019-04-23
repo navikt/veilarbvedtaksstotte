@@ -26,7 +26,7 @@ public class DokumentClient extends BaseClient {
         return post(joinPaths(baseUrl, "api", "bestilldokument"), sendDokumentDTO, DokumentSendtDTO.class)
                 .withStatusCheck()
                 .getData()
-                .orElseThrow(() -> new IllegalStateException("Feil ved kall mot veilarbdokument/bestilldokument"));
+                .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbdokument/bestilldokument"));
     }
 
 }
