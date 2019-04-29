@@ -36,4 +36,8 @@ public class DatabaseTestContext {
         System.setProperty(VEILARBVEDTAKSSTOTTE_DB_USERNAME, "sa");
         System.setProperty(VEILARBVEDTAKSSTOTTE_DB_PASSWORD, "password");
     }
+
+    public static boolean isInMemoryDatabase() {
+        return System.getProperty(VEILARBVEDTAKSSTOTTE_DB_URL).startsWith("jdbc:h2:mem:");
+    }
 }

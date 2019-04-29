@@ -31,7 +31,7 @@ public class ApplicationConfig implements ApiApplication {
     public static final String APPLICATION_NAME = "veilarbvedtaksstotte";
 
     @Inject
-    private JdbcTemplate jdbcTemplate;
+    protected JdbcTemplate jdbcTemplate;
 
     @Override
     public void configure(ApiAppConfigurator apiAppConfigurator) {
