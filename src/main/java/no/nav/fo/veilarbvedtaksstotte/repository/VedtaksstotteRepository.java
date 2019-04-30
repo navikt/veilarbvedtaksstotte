@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.sql.ResultSet;
+import java.util.List;
 
 import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.nesteFraSekvens;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
@@ -35,11 +36,11 @@ public class VedtaksstotteRepository {
     private final static String VEILEDER_IDENT      = "VEILEDER_IDENT";
     private final static String VEILEDER_ENHET_ID   = "VEILEDER_ENHET_ID";
     private final static String SIST_OPPDATERT      = "SIST_OPPDATERT";
-    private final static String SENDT               = "SENDT";
     private final static String BEGRUNNELSE         = "BEGRUNNELSE";
     private final static String STATUS              = "STATUS";
     private final static String DOKUMENT_ID         = "DOKUMENT_ID";
     private final static String JOURNALPOST_ID      = "JOURNALPOST_ID";
+    private final static String GJELDENDE           = "GJELDENDE";
 
     private final JdbcTemplate db;
 
@@ -48,15 +49,21 @@ public class VedtaksstotteRepository {
         this.db = db;
     }
 
+    public void settGjeldendeVedtakTilHistorisk(String aktorId) {
+        SqlUtils.update(db, VEDTAK_TABLE)
+                .whereEquals(AKTOR_ID, aktorId)
+                .set(GJELDENDE, 0)
+                .execute();
+    }
 
     public void markerVedtakSomSendt(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
         SqlUtils.update(db, VEDTAK_TABLE)
                 .whereEquals(VEDTAK_ID, vedtakId)
                 .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-                .set(SENDT, DbConstants.CURRENT_TIMESTAMP)
                 .set(STATUS, getName(VedtakStatus.SENDT))
                 .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
                 .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
+                .set(GJELDENDE, 1)
                 .execute();
     }
 
@@ -70,23 +77,37 @@ public class VedtaksstotteRepository {
         }
     }
 
-    public Vedtak hentVedtak(String aktorId, boolean kunUtkast) {
-        WhereClause where = WhereClause.equals(AKTOR_ID, aktorId);
+    public Vedtak hentUtkast(String aktorId) {
+        WhereClause where = WhereClause
+                .equals(AKTOR_ID, aktorId)
+                .and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)));
 
-        if (kunUtkast) {
-            where = where.and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)));
-        }
-
-        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtakUtkast)
+        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(where)
-                .orderBy(OrderClause.desc(SIST_OPPDATERT))
-                .limit(1)
                 .column("*")
                 .execute();
     }
 
+    public boolean slettVedtakUtkast(String aktorId) {
+        return SqlUtils
+                .delete(db, VEDTAK_TABLE)
+                .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)).and(WhereClause.equals(AKTOR_ID,aktorId)))
+                .execute() > 0;
+    }
+
+    public List<Vedtak> hentVedtak(String aktorId) {
+        WhereClause where = WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, VedtakStatus.SENDT));
+
+        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
+                .where(where)
+                .orderBy(OrderClause.desc(SIST_OPPDATERT))
+                .column("*")
+                .executeToList();
+    }
+
+
     private long hentVedtakUtkastId(String aktorId) {
-        Vedtak utkast = hentVedtak(aktorId, true);
+        Vedtak utkast = hentUtkast(aktorId);
         return utkast != null ? utkast.getId() : NO_ID;
     }
 
@@ -117,7 +138,7 @@ public class VedtaksstotteRepository {
     }
 
     @SneakyThrows
-    private static Vedtak mapVedtakUtkast(ResultSet rs) {
+    private static Vedtak mapVedtak(ResultSet rs) {
         return new Vedtak()
                 .setId(rs.getLong(VEDTAK_ID))
                 .setHovedmal(valueOf(Hovedmal.class, rs.getString(HOVEDMAL)))
@@ -125,11 +146,11 @@ public class VedtaksstotteRepository {
                 .setVedtakStatus(valueOf(VedtakStatus.class, rs.getString(STATUS)))
                 .setBegrunnelse(rs.getString(BEGRUNNELSE))
                 .setSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
+                .setGjeldende(rs.getInt(GJELDENDE) == 1)
                 .setVeileder(
                         new Veileder()
                         .setEnhetId(rs.getString(VEILEDER_ENHET_ID))
                         .setIdent(rs.getString(VEILEDER_IDENT))
                 );
     }
-
 }

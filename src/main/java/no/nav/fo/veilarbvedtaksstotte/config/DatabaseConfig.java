@@ -3,6 +3,7 @@ package no.nav.fo.veilarbvedtaksstotte.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import no.nav.sbl.jdbc.Database;
+import no.nav.sbl.jdbc.Transactor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -48,5 +49,11 @@ public class DatabaseConfig {
     public Database database(JdbcTemplate jdbcTemplate) {
         return new Database(jdbcTemplate);
     }
+
+    @Bean
+    public Transactor transactor(PlatformTransactionManager platformTransactionManager) {
+        return new Transactor(platformTransactionManager);
+    }
+
 
 }

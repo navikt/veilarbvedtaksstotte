@@ -29,4 +29,11 @@ public class DokumentClient extends BaseClient {
                 .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbdokument/bestilldokument"));
     }
 
+    public byte[] produserDokumentUtkast(SendDokumentDTO sendDokumentDTO) {
+        return post(joinPaths(baseUrl, "api", "dokumentutkast"), sendDokumentDTO,  byte[].class)
+                .withStatusCheck()
+                .getData()
+                .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbdokument/bestilldokument"));
+    }
+
 }

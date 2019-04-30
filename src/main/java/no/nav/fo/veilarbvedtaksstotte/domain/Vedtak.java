@@ -18,4 +18,5 @@ public class Vedtak {
     LocalDateTime sistOppdatert;
     String begrunnelse;
     Veileder veileder;
+    boolean gjeldende;
 }
