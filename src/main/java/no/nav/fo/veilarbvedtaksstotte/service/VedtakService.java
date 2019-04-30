@@ -49,7 +49,7 @@ public class VedtakService {
         this.kafkaService = kafkaService;
     }
 
-    public void sendVedtak(String fnr) {
+    public DokumentSendtDTO sendVedtak(String fnr) {
 
         validerFnr(fnr);
 
@@ -83,6 +83,7 @@ public class VedtakService {
 
         kafkaService.sendVedtak(vedtak, aktorId);
 
+        return dokumentSendt;
     }
 
     public Vedtak hentVedtak(String fnr) {

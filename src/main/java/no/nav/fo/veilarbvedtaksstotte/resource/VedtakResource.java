@@ -1,6 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.resource;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.VedtakDTO;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
@@ -23,8 +24,8 @@ public class VedtakResource {
 
     @POST
     @Path("/send/{fnr}")
-    public void sendVedtak(@PathParam("fnr") String fnr) {
-        vedtakService.sendVedtak(fnr);
+    public DokumentSendtDTO sendVedtak(@PathParam("fnr") String fnr) {
+        return vedtakService.sendVedtak(fnr);
     }
 
     @GET
