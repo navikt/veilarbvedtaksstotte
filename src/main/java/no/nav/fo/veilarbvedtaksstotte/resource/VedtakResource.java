@@ -39,14 +39,14 @@ public class VedtakResource {
     public List<Vedtak> hentVedtak(@PathParam("fnr") String fnr) { return vedtakService.hentVedtak(fnr); }
 
     @PUT
-    @Path("/vedtak")
+    @Path("/utkast")
     public void upsertVedtak(@PathParam("fnr") String fnr, VedtakDTO vedtakDTO) {
         vedtakService.upsertVedtak(fnr, vedtakDTO);
     }
 
-    @POST
+    @GET
     @Produces("application/pdf")
-    @Path("/dokumentutkast")
+    @Path("/utkast/pdf")
     public byte[] hentForhandsvisning(@PathParam("fnr") String fnr) {
         return  vedtakService.produserDokumentUtkast(fnr);
     }

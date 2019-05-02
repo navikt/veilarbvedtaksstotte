@@ -33,7 +33,7 @@ public class DokumentClient extends BaseClient {
         return post(joinPaths(baseUrl, "api", "dokumentutkast"), sendDokumentDTO,  byte[].class)
                 .withStatusCheck()
                 .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbdokument/bestilldokument"));
+                .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbdokument/dokumentutkast"));
     }
 
 }
