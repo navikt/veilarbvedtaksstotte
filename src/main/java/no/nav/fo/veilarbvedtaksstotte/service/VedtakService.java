@@ -6,6 +6,7 @@ import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient;
 import no.nav.fo.veilarbvedtaksstotte.client.PersonClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.sbl.jdbc.Transactor;
 import org.springframework.stereotype.Service;
@@ -92,6 +93,15 @@ public class VedtakService {
 
         return vedtaksstotteRepository.hentUtkast(aktorId);
 
+    }
+
+    public void kafkaTest(String fnr, Innsatsgruppe innsatsgruppe) {
+        pepClient.sjekkLeseTilgangTilFnr(fnr);
+
+        String aktorId = getAktorIdOrThrow(aktorService, fnr);
+
+        Vedtak vedtak = new Vedtak().setInnsatsgruppe(innsatsgruppe);
+        kafkaService.sendVedtak(vedtak, aktorId);
     }
 
     public void upsertVedtak(String fnr, VedtakDTO vedtakDTO) {

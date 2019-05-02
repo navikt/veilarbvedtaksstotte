@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.VedtakDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.stereotype.Controller;
 
@@ -53,6 +54,13 @@ public class VedtakResource {
     @DELETE
     @Path("/utkast")
     public void deleteUtkast(@PathParam("fnr") String fnr) { vedtakService.slettUtkast(fnr); }
+
+
+    @POST
+    @Path("/kafkatest/{innsatsgruppe}")
+    public void kafkaTest(@PathParam("fnr") String fnr, @PathParam("innsatsgruppe")Innsatsgruppe innsatsgruppe) {
+        vedtakService.kafkaTest(fnr, innsatsgruppe);
+    }
 
 }
 
