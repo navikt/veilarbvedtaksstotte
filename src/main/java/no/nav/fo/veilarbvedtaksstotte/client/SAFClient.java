@@ -21,7 +21,7 @@ public class SAFClient extends BaseClient {
     }
 
     public byte[] hentVedtakPdf(String journalpostId, String dokumentInfoId) {
-        return get(joinPaths(baseUrl, "rest", "hentdokument", journalpostId,dokumentInfoId, "ARKIV"), byte[].class)
+        return get(joinPaths(baseUrl, "rest", "hentdokument", journalpostId, dokumentInfoId, "ARKIV"), byte[].class)
                 .withStatusCheck()
                 .getData()
                 .orElseThrow(() -> new RuntimeException("Feil ved kall mot saf/hentdokument"));
