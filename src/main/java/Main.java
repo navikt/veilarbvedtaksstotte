@@ -9,6 +9,8 @@ import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CON
 import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CONTEXT_HOLDER;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
+import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF;
+import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.utils.UrlUtils.lagClusterUrl;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
@@ -19,6 +21,7 @@ public class Main {
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagClusterUrl(VEILARBDOKUMENT));
         setProperty(PERSON_API_PROPERTY_NAME, lagClusterUrl(VEILARBPERSON));
         setProperty(MODIA_CONTEXT_API_PROPERTY_NAME, lagClusterUrl(MODIA_CONTEXT_HOLDER));
+        setProperty(SAF_API_PROPERTY_NAME, lagClusterUrl(SAF,false));
         ApiApp.startApiApp(ApplicationConfig.class, args);
     }
 

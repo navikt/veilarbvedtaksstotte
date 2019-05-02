@@ -18,6 +18,8 @@ import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CON
 import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CONTEXT_HOLDER;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
+import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF;
+import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.KafkaConfig.KAFKA_BROKERS_URL_PROPERTY;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestUtils.lagFssUrl;
@@ -32,6 +34,7 @@ public class TestContext {
 
         setProperty("APP_NAME", APPLICATION_NAME);
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagFssUrl(VEILARBDOKUMENT));
+        setProperty(SAF_API_PROPERTY_NAME, lagFssUrl(SAF,false));
         setProperty(PERSON_API_PROPERTY_NAME, lagFssUrl(VEILARBPERSON));
         setProperty(MODIA_CONTEXT_API_PROPERTY_NAME, lagFssUrl(MODIA_CONTEXT_HOLDER));
 

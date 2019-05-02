@@ -43,6 +43,10 @@ fasitResources:
     resourceType: baseUrl
   - alias: abac.pdp.endpoint
     resourceType: restservice
+  - alias: saf.hentdokument
+    resourceType: restservice
+    propertyMap:
+      url: SAF_HENTDOKUMENT_URL
 
   # ISSO
   - alias: isso-host

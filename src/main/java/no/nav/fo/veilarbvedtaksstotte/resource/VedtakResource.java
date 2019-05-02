@@ -6,10 +6,15 @@ import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.VedtakDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 @Slf4j
@@ -31,6 +36,19 @@ public class VedtakResource {
     }
 
     @GET
+    @Produces("application/pdf")
+    @Path("/vedtak/pdf")
+    public Response hentVedtakPdf(@PathParam("fnr") String fnr,
+                                  @QueryParam("dokumentInfoId") String dokumentInfoId,
+                                  @QueryParam("journalpostId") String journalpostId) {
+        byte[] vedtakPdf = vedtakService.hentVedtakPdf(fnr, dokumentInfoId, journalpostId);
+
+        return Response.ok(vedtakPdf)
+                .header("Content-Disposition",  "filename=vedtaksbrev.pdf")
+                .build();
+    }
+
+    @GET
     @Path("/utkast")
     public Vedtak hentUtkast(@PathParam("fnr") String fnr) { return vedtakService.hentUtkast(fnr); }
 
@@ -47,8 +65,11 @@ public class VedtakResource {
     @GET
     @Produces("application/pdf")
     @Path("/utkast/pdf")
-    public byte[] hentForhandsvisning(@PathParam("fnr") String fnr) {
-        return  vedtakService.produserDokumentUtkast(fnr);
+    public Response hentForhandsvisning(@PathParam("fnr") String fnr) {
+        byte[] utkastPdf = vedtakService.produserDokumentUtkast(fnr);
+        return Response.ok(utkastPdf)
+                .header("Content-Disposition", "filename=vedtaksbrev-utkast.pdf")
+                .build();
     }
 
     @DELETE
