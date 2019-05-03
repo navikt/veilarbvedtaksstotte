@@ -5,6 +5,7 @@ import no.nav.dialogarena.aktor.AktorService;
 import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient;
 import no.nav.fo.veilarbvedtaksstotte.client.PersonClient;
+import no.nav.fo.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +29,7 @@ public class VedtakService {
     private PepClient pepClient;
     private AktorService aktorService;
     private DokumentClient dokumentClient;
+    private SAFClient safClient;
     private PersonClient personClient;
     private ModiaContextClient modiaContextClient;
     private VeilederService veilederService;
@@ -39,7 +42,7 @@ public class VedtakService {
                          PepClient pepClient,
                          AktorService aktorService,
                          DokumentClient dokumentClient,
-                         PersonClient personClient,
+                         SAFClient safClient, PersonClient personClient,
                          ModiaContextClient modiaContextClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
@@ -49,6 +52,7 @@ public class VedtakService {
         this.pepClient = pepClient;
         this.aktorService = aktorService;
         this.dokumentClient = dokumentClient;
+        this.safClient = safClient;
         this.modiaContextClient = modiaContextClient;
         this.personClient = personClient;
         this.veilederService = veilederService;
@@ -171,5 +175,11 @@ public class VedtakService {
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak))
                 .setBruker(dokumentPerson)
                 .setMottaker(dokumentPerson);
+    }
+
+    public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
+        pepClient.sjekkLeseTilgangTilFnr(fnr);
+
+        return safClient.hentVedtakPdf(journalpostId,dokumentInfoId);
     }
 }
