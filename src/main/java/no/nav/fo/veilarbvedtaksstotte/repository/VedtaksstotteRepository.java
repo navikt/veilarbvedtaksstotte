@@ -27,20 +27,34 @@ public class VedtaksstotteRepository {
 
     private final static long NO_ID =  -1;
 
-    private final static String VEDTAK_TABLE        = "VEDTAK";
-    private final static String VEDTAK_SEQ          = "VEDTAK_SEQ";
-    private final static String VEDTAK_ID           = "VEDTAK_ID";
-    private final static String AKTOR_ID            = "AKTOR_ID";
-    private final static String HOVEDMAL            = "HOVEDMAL";
-    private final static String INNSATSGRUPPE       = "INNSATSGRUPPE";
-    private final static String VEILEDER_IDENT      = "VEILEDER_IDENT";
-    private final static String VEILEDER_ENHET_ID   = "VEILEDER_ENHET_ID";
-    private final static String SIST_OPPDATERT      = "SIST_OPPDATERT";
-    private final static String BEGRUNNELSE         = "BEGRUNNELSE";
-    private final static String STATUS              = "STATUS";
-    private final static String DOKUMENT_ID         = "DOKUMENT_ID";
-    private final static String JOURNALPOST_ID      = "JOURNALPOST_ID";
-    private final static String GJELDENDE           = "GJELDENDE";
+    private final static String VEDTAK_TABLE                = "VEDTAK";
+    private final static String VEDTAK_SEQ                  = "VEDTAK_SEQ";
+    private final static String VEDTAK_ID                   = "VEDTAK_ID";
+    private final static String AKTOR_ID                    = "AKTOR_ID";
+    private final static String HOVEDMAL                    = "HOVEDMAL";
+    private final static String INNSATSGRUPPE               = "INNSATSGRUPPE";
+    private final static String VEILEDER_IDENT              = "VEILEDER_IDENT";
+    private final static String VEILEDER_ENHET_ID           = "VEILEDER_ENHET_ID";
+    private final static String SIST_OPPDATERT              = "SIST_OPPDATERT";
+    private final static String BEGRUNNELSE                 = "BEGRUNNELSE";
+    private final static String STATUS                      = "STATUS";
+    private final static String DOKUMENT_ID                 = "DOKUMENT_ID";
+    private final static String JOURNALPOST_ID              = "JOURNALPOST_ID";
+    private final static String GJELDENDE                   = "GJELDENDE";
+
+    private final static String KILDE_TYPE_TABLE            = "KILDE_TYPE";
+    private final static String VERDI                       = "VERDI";
+
+    private final static String OPPLYSNING_TABLE            = "OPPLYSNING";
+    private final static String OPPLYSNING_SEQ              = "OPPLYSNING_SEQ";
+    private final static String OPPLYSNING_ID               = "OPPLYSNING_ID";
+    private final static String KILDE                       = "KILDE";
+    private final static String JSON                        = "JSON";
+
+    private final static String ANDRE_OPPLYSNINGER_TABLE    = "ANDRE_OPPLYSNINGER";
+    private final static String ANDRE_OPPLYSNINGER_ID       = "ANDRE_OPPLYSNINGER_ID";
+    private final static String TEKST                       = "TEKST";
+
 
     private final JdbcTemplate db;
 
