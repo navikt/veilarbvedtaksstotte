@@ -96,7 +96,9 @@ public class VedtaksstotteRepository {
     }
 
     public List<Vedtak> hentVedtak(String aktorId) {
-        WhereClause where = WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, VedtakStatus.SENDT));
+        WhereClause where = WhereClause.
+                equals(AKTOR_ID, aktorId)
+                .and(WhereClause.equals(STATUS, getName(VedtakStatus.SENDT)));
 
         return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(where)
