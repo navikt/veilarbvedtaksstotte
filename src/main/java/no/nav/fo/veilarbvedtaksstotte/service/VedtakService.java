@@ -3,7 +3,7 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 import no.nav.apiapp.security.PepClient;
 import no.nav.dialogarena.aktor.AktorService;
 import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
-import no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient;
+import no.nav.fo.veilarbvedtaksstotte.client.ArenaClient;
 import no.nav.fo.veilarbvedtaksstotte.client.PersonClient;
 import no.nav.fo.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
@@ -31,7 +31,7 @@ public class VedtakService {
     private DokumentClient dokumentClient;
     private SAFClient safClient;
     private PersonClient personClient;
-    private ModiaContextClient modiaContextClient;
+    private ArenaClient arenaClient;
     private VeilederService veilederService;
     private MalTypeService malTypeService;
     private KafkaService kafkaService;
@@ -43,7 +43,7 @@ public class VedtakService {
                          AktorService aktorService,
                          DokumentClient dokumentClient,
                          SAFClient safClient, PersonClient personClient,
-                         ModiaContextClient modiaContextClient,
+                         ArenaClient arenaClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
                          KafkaService kafkaService,
@@ -53,7 +53,7 @@ public class VedtakService {
         this.aktorService = aktorService;
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
-        this.modiaContextClient = modiaContextClient;
+        this.arenaClient = arenaClient;
         this.personClient = personClient;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
@@ -78,10 +78,10 @@ public class VedtakService {
         SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, dokumentPerson(fnr));
         DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
 
-        transactor.inTransaction(()-> {
-                    vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
-                    vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId(), dokumentSendt);
-                });
+        transactor.inTransaction(() -> {
+            vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
+            vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId(), dokumentSendt);
+        });
 
         kafkaService.sendVedtak(vedtak, aktorId);
 
@@ -103,8 +103,8 @@ public class VedtakService {
         pepClient.sjekkLeseTilgangTilFnr(fnr);
 
         String aktorId = getAktorIdOrThrow(aktorService, fnr);
-        Veileder veileder = veilederService.hentVeilederFraToken();
-        veileder.setEnhetId(modiaContextClient.aktivEnhet());
+        String veilederIdent = veilederService.hentVeilederIdentFraToken();
+        String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
@@ -112,7 +112,7 @@ public class VedtakService {
             throw new RuntimeException(format("Kan ikke lage nytt utkast, brukeren(%s) har allerede et aktivt utkast", aktorId));
         }
 
-        vedtaksstotteRepository.insertUtkast(aktorId, veileder);
+        vedtaksstotteRepository.insertUtkast(aktorId, veilederIdent, oppfolgingsenhetId);
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
@@ -121,11 +121,13 @@ public class VedtakService {
         pepClient.sjekkLeseTilgangTilFnr(fnr);
 
         String aktorId = getAktorIdOrThrow(aktorService, fnr);
-        Veileder veileder = veilederService.hentVeilederFraToken();
-        veileder.setEnhetId(modiaContextClient.aktivEnhet());
+        String veilederIdent = veilederService.hentVeilederIdentFraToken();
+        String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
-        Vedtak nyttUtkast = vedtakDTO.tilVedtak().setVeileder(veileder);
+        Vedtak nyttUtkast = vedtakDTO.tilVedtak()
+                .setVeilederIdent(veilederIdent)
+                .setVeilederEnhetId(oppfolgingsenhetId);
 
         if (utkast == null) {
             throw new NotFoundException(format("Fante ikke utkast å oppdatere for bruker med aktorId: %s", aktorId));
@@ -141,7 +143,7 @@ public class VedtakService {
 
         // TODO KAN VEM SOM HELST SOM HAR TILGANG TIL BRUKEREN SLETTE UTKAST?
 
-        if(!vedtaksstotteRepository.slettUtkast(aktorId)){
+        if(!vedtaksstotteRepository.slettUtkast(aktorId)) {
             throw new NotFoundException(format("Fante ikke utkast for bruker med aktorId: %s", aktorId));
         }
     }
@@ -163,13 +165,13 @@ public class VedtakService {
 
         SendDokumentDTO sendDokumentDTO =
                 Optional.ofNullable(vedtaksstotteRepository.hentUtkast(aktorId))
-                .map(vedtak -> lagDokumentDTO(vedtak, dokumentPerson(fnr)))
-                .orElseThrow(()-> new NotFoundException("Fant ikke vedtak å forhandsvise for bruker"));
+                        .map(vedtak -> lagDokumentDTO(vedtak, dokumentPerson(fnr)))
+                        .orElseThrow(() -> new NotFoundException("Fant ikke vedtak å forhandsvise for bruker"));
 
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
     }
 
-    private DokumentPerson dokumentPerson(String fnr){
+    private DokumentPerson dokumentPerson(String fnr) {
         PersonNavn navn = personClient.hentNavn(fnr);
 
         return new DokumentPerson()
@@ -180,7 +182,7 @@ public class VedtakService {
     private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, DokumentPerson dokumentPerson) {
         return new SendDokumentDTO()
                 .setBegrunnelse(vedtak.getBegrunnelse())
-                .setVeilederEnhet(vedtak.getVeileder().getEnhetId())
+                .setVeilederEnhet(vedtak.getVeilederEnhetId())
                 .setKilder(Arrays.asList("Kilde 1", "Kilde 2"))
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak))
                 .setBruker(dokumentPerson)
@@ -189,6 +191,6 @@ public class VedtakService {
 
     public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
         pepClient.sjekkLeseTilgangTilFnr(fnr);
-        return safClient.hentVedtakPdf(journalpostId,dokumentInfoId);
+        return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
     }
 }

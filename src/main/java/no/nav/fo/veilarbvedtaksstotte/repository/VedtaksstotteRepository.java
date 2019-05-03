@@ -3,7 +3,6 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.fo.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.VedtakStatus;
@@ -90,19 +89,19 @@ public class VedtaksstotteRepository {
             .whereEquals(VEDTAK_ID, vedtakId)
             .set(HOVEDMAL, getName(vedtak.getHovedmal()))
             .set(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
-            .set(VEILEDER_IDENT, vedtak.getVeileder().getIdent())
-            .set(VEILEDER_ENHET_ID, vedtak.getVeileder().getEnhetId())
+            .set(VEILEDER_IDENT, vedtak.getVeilederIdent())
+            .set(VEILEDER_ENHET_ID, vedtak.getVeilederEnhetId())
             .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .set(BEGRUNNELSE, vedtak.getBegrunnelse())
             .execute();
     }
 
-    public void insertUtkast(String aktorId, Veileder veileder) {
+    public void insertUtkast(String aktorId, String veilederIdent, String veilederEnhetId) {
         SqlUtils.insert(db, VEDTAK_TABLE)
             .value(VEDTAK_ID, nesteFraSekvens(db, VEDTAK_SEQ))
             .value(AKTOR_ID, aktorId)
-            .value(VEILEDER_IDENT, veileder.getIdent())
-            .value(VEILEDER_ENHET_ID, veileder.getEnhetId())
+                .value(VEILEDER_IDENT, veilederIdent)
+                .value(VEILEDER_ENHET_ID, veilederEnhetId)
             .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .value(STATUS, getName(VedtakStatus.UTKAST))
             .execute();
@@ -118,10 +117,7 @@ public class VedtaksstotteRepository {
                 .setBegrunnelse(rs.getString(BEGRUNNELSE))
                 .setSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
                 .setGjeldende(rs.getInt(GJELDENDE) == 1)
-                .setVeileder(
-                        new Veileder()
-                        .setEnhetId(rs.getString(VEILEDER_ENHET_ID))
-                        .setIdent(rs.getString(VEILEDER_IDENT))
-                );
+                .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
+                .setVeilederIdent(rs.getString(VEILEDER_IDENT));
     }
 }
