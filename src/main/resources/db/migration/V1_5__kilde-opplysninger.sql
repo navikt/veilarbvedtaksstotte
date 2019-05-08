@@ -1,3 +1,4 @@
+-- TODO: rename til V1_6 eller noe
 CREATE TABLE KILDE_TYPE (
   VERDI                   VARCHAR(20) NOT NULL
 );
