@@ -88,16 +88,6 @@ public class VedtakService {
         return dokumentSendt;
     }
 
-    public Vedtak hentUtkast(String fnr) {
-        validerFnr(fnr);
-
-        pepClient.sjekkLeseTilgangTilFnr(fnr);
-
-        String aktorId = getAktorIdOrThrow(aktorService, fnr);
-
-        return vedtaksstotteRepository.hentUtkast(aktorId);
-    }
-
     public void kafkaTest(String fnr, Innsatsgruppe innsatsgruppe) {
         pepClient.sjekkLeseTilgangTilFnr(fnr);
 

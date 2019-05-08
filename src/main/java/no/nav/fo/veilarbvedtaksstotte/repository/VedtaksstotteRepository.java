@@ -9,7 +9,6 @@ import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 import no.nav.sbl.sql.DbConstants;
 import no.nav.sbl.sql.SqlUtils;
-import no.nav.sbl.sql.order.OrderClause;
 import no.nav.sbl.sql.where.WhereClause;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -62,13 +61,8 @@ public class VedtaksstotteRepository {
     }
 
     public List<Vedtak> hentVedtak(String aktorId) {
-        WhereClause where = WhereClause.
-                equals(AKTOR_ID, aktorId)
-                .and(WhereClause.equals(STATUS, getName(VedtakStatus.SENDT)));
-
         return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
-                .where(where)
-                .orderBy(OrderClause.desc(SIST_OPPDATERT))
+                .where(WhereClause.equals(AKTOR_ID, aktorId))
                 .column("*")
                 .executeToList();
     }
