@@ -7,6 +7,6 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class AndreOpplysninger {
     long id;
-    long vedtak_id;
+    long vedtakId;
     String tekst;
 }

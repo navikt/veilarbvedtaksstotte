@@ -1,6 +1,6 @@
 package no.nav.fo.veilarbvedtaksstotte.domain.enums;
 
-public enum KildeType {
+public enum OpplysningsType {
     CV,
     JOBBPROFIL,
     REGISTRERINGSINFO,

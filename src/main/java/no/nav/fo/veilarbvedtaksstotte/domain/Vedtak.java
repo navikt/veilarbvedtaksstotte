@@ -4,9 +4,11 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.OpplysningsType;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Accessors(chain = true)
@@ -19,4 +21,6 @@ public class Vedtak {
     String begrunnelse;
     Veileder veileder;
     boolean gjeldende;
+    List<OpplysningsType> opplysningsTyper;
+    List<AndreOpplysninger> andreOpplysninger;
 }

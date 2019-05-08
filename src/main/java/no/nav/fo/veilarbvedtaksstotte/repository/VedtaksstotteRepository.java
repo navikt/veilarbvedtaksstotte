@@ -42,20 +42,6 @@ public class VedtaksstotteRepository {
     private final static String JOURNALPOST_ID              = "JOURNALPOST_ID";
     private final static String GJELDENDE                   = "GJELDENDE";
 
-    private final static String KILDE_TYPE_TABLE            = "KILDE_TYPE";
-    private final static String VERDI                       = "VERDI";
-
-    private final static String OPPLYSNING_TABLE            = "OPPLYSNING";
-    private final static String OPPLYSNING_SEQ              = "OPPLYSNING_SEQ";
-    private final static String OPPLYSNING_ID               = "OPPLYSNING_ID";
-    private final static String KILDE                       = "KILDE";
-    private final static String JSON                        = "JSON";
-
-    private final static String ANDRE_OPPLYSNINGER_TABLE    = "ANDRE_OPPLYSNINGER";
-    private final static String ANDRE_OPPLYSNINGER_ID       = "ANDRE_OPPLYSNINGER_ID";
-    private final static String TEKST                       = "TEKST";
-
-
     private final JdbcTemplate db;
 
     @Inject

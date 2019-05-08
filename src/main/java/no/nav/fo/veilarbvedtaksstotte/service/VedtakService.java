@@ -2,21 +2,22 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.apiapp.security.PepClient;
 import no.nav.dialogarena.aktor.AktorService;
-import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
-import no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient;
-import no.nav.fo.veilarbvedtaksstotte.client.PersonClient;
+import no.nav.fo.veilarbvedtaksstotte.client.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.OpplysningsType;
+import no.nav.fo.veilarbvedtaksstotte.repository.OpplysningerRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.sbl.jdbc.Transactor;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OpplysningsType.*;
 import static no.nav.fo.veilarbvedtaksstotte.utils.AktorIdUtils.getAktorIdOrThrow;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
@@ -24,11 +25,15 @@ import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 public class VedtakService {
 
     private VedtaksstotteRepository vedtaksstotteRepository;
+    private OpplysningerRepository opplysningerRepository;
     private PepClient pepClient;
     private AktorService aktorService;
     private DokumentClient dokumentClient;
     private PersonClient personClient;
     private ModiaContextClient modiaContextClient;
+    private CVClient cvClient;
+    private RegistreringClient registreringClient;
+    private EgenvurderingClient egenvurderingClient;
     private VeilederService veilederService;
     private MalTypeService malTypeService;
     private KafkaService kafkaService;
@@ -36,20 +41,28 @@ public class VedtakService {
 
     @Inject
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
+                         OpplysningerRepository opplysningerRepository,
                          PepClient pepClient,
                          AktorService aktorService,
                          DokumentClient dokumentClient,
                          PersonClient personClient,
                          ModiaContextClient modiaContextClient,
+                         CVClient cvClient,
+                         RegistreringClient registreringClient,
+                         EgenvurderingClient egenvurderingClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
                          KafkaService kafkaService,
                          Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
+        this.opplysningerRepository = opplysningerRepository;
         this.pepClient = pepClient;
         this.aktorService = aktorService;
         this.dokumentClient = dokumentClient;
         this.modiaContextClient = modiaContextClient;
+        this.cvClient = cvClient;
+        this.registreringClient = registreringClient;
+        this.egenvurderingClient = egenvurderingClient;
         this.personClient = personClient;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
@@ -70,6 +83,8 @@ public class VedtakService {
         if (vedtak == null) {
             throw new NotFoundException("Fant ikke vedtak å sende for bruker");
         }
+
+        lagreOyeblikksbildeForOpplysninger(fnr, vedtak);
 
         SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, dokumentPerson(fnr));
         DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
@@ -164,12 +179,56 @@ public class VedtakService {
     }
 
     private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, DokumentPerson dokumentPerson) {
+        List<String> oyeblikksbilde = hentOyeblikksbilde(vedtak.getId());
+
         return new SendDokumentDTO()
                 .setBegrunnelse(vedtak.getBegrunnelse())
                 .setVeilederEnhet(vedtak.getVeileder().getEnhetId())
-                .setKilder(Arrays.asList("Kilde 1", "Kilde 2"))
+                .setOpplysninger(oyeblikksbilde)
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak))
                 .setBruker(dokumentPerson)
                 .setMottaker(dokumentPerson);
+    }
+
+    private void lagreOyeblikksbildeForOpplysninger(String fnr, Vedtak vedtak) {
+        List<OpplysningsType> opplysningsTyper = vedtak.getOpplysningsTyper();
+
+        if (opplysningsTyper.contains(REGISTRERINGSINFO)) {
+            lagreOpplysning(vedtak.getId(), REGISTRERINGSINFO, registreringClient.hentRegistrering(fnr));
+        }
+
+        if (opplysningsTyper.contains(OpplysningsType.CV)) {
+            lagreOpplysning(vedtak.getId(), CV, cvClient.hentCV(fnr));
+        }
+
+        if (opplysningsTyper.contains(OpplysningsType.JOBBPROFIL)) {
+            lagreOpplysning(vedtak.getId(), JOBBPROFIL, cvClient.hentCV(fnr));
+        }
+
+        if (opplysningsTyper.contains(OpplysningsType.EGENVURDERING)) {
+            lagreOpplysning(vedtak.getId(), EGENVURDERING, egenvurderingClient.hentEgenvurdering(fnr));
+        }
+    }
+
+    private void lagreOpplysning(long vedtakId, OpplysningsType opplysningsType, String opplysningData) {
+        final Opplysning opplysning = new Opplysning()
+                .setVedtakId(vedtakId)
+                .setOpplysningsType(opplysningsType)
+                .setJson(opplysningData);
+
+        opplysningerRepository.lagOpplysning(opplysning);
+    }
+
+    private List<String> hentOyeblikksbilde(long vedtakId) {
+        List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForVedtak(vedtakId);
+        List<AndreOpplysninger> andreOpplysninger = opplysningerRepository.hentAndreOpplysningerForVedtak(vedtakId);
+        List<String> oyeblikksbilde = new ArrayList<>();
+
+        opplysninger
+                .forEach(opplysning -> oyeblikksbilde.add(opplysning.getJson()));
+        andreOpplysninger
+                .forEach(opplysning -> oyeblikksbilde.add(opplysning.getTekst()));
+
+        return oyeblikksbilde;
     }
 }

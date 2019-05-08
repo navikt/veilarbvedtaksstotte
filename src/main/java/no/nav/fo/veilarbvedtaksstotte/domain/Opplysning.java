@@ -2,13 +2,13 @@ package no.nav.fo.veilarbvedtaksstotte.domain;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.OpplysningsType;
 
 @Data
 @Accessors(chain = true)
 public class Opplysning {
     long id;
-    long vedtak_id;
-    KildeType kilde;
-    String json; //BLOB
+    long vedtakId;
+    OpplysningsType opplysningsType;
+    String json;
 }
