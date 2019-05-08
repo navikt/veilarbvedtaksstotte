@@ -44,10 +44,6 @@ public class VedtakResource {
     }
 
     @GET
-    @Path("/utkast")
-    public Vedtak hentUtkast(@PathParam("fnr") String fnr) { return vedtakService.hentUtkast(fnr); }
-
-    @GET
     @Path("/vedtak")
     public List<Vedtak> hentVedtak(@PathParam("fnr") String fnr) { return vedtakService.hentVedtak(fnr); }
 
