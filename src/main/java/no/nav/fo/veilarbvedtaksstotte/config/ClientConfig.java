@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Import;
         DokumentClient.class,
         PersonClient.class,
         ModiaContextClient.class,
+        SAFClient.class,
         CVClient.class,
         RegistreringClient.class,
         EgenvurderingClient.class,

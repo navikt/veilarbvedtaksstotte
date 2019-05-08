@@ -14,6 +14,7 @@ import java.util.Optional;
 import static java.lang.String.format;
 import static javax.ws.rs.client.Entity.json;
 import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static no.nav.fo.veilarbvedtaksstotte.utils.AutentiseringUtils.createBearerToken;
 import static no.nav.sbl.rest.RestUtils.RestConfig.builder;
 import static no.nav.sbl.rest.RestUtils.withClient;
 
@@ -61,9 +62,6 @@ public class BaseClient {
         return new RestResponse<>(response, returnedDataClass, url);
     }
 
-    private String createBearerToken() {
-        return "Bearer " + SubjectHandler.getSsoToken().map(SsoToken::getToken).orElse("");
-    }
 
     public class RestResponse<T> {
 

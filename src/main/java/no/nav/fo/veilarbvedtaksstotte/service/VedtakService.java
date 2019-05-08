@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +31,7 @@ public class VedtakService {
     private PepClient pepClient;
     private AktorService aktorService;
     private DokumentClient dokumentClient;
+    private SAFClient safClient;
     private PersonClient personClient;
     private ModiaContextClient modiaContextClient;
     private CVClient cvClient;
@@ -45,7 +48,7 @@ public class VedtakService {
                          PepClient pepClient,
                          AktorService aktorService,
                          DokumentClient dokumentClient,
-                         PersonClient personClient,
+                         SAFClient safClient, PersonClient personClient,
                          ModiaContextClient modiaContextClient,
                          CVClient cvClient,
                          RegistreringClient registreringClient,
@@ -59,6 +62,7 @@ public class VedtakService {
         this.pepClient = pepClient;
         this.aktorService = aktorService;
         this.dokumentClient = dokumentClient;
+        this.safClient = safClient;
         this.modiaContextClient = modiaContextClient;
         this.cvClient = cvClient;
         this.registreringClient = registreringClient;
@@ -231,5 +235,11 @@ public class VedtakService {
                 .forEach(opplysning -> oyeblikksbilde.add(opplysning.getTekst()));
 
         return oyeblikksbilde;
+    }
+
+    public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
+        pepClient.sjekkLeseTilgangTilFnr(fnr);
+
+        return safClient.hentVedtakPdf(journalpostId,dokumentInfoId);
     }
 }

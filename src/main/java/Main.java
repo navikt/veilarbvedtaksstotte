@@ -15,6 +15,8 @@ import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROP
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
 import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.VEILARBREGISTRERING;
 import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.REGISTRERING_API_PROPERTY_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF;
+import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.utils.UrlUtils.lagClusterUrl;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
@@ -28,6 +30,7 @@ public class Main {
         setProperty(CV_API_PROPERTY_NAME, lagClusterUrl(PAM_CV_API));
         setProperty(REGISTRERING_API_PROPERTY_NAME, lagClusterUrl(VEILARBREGISTRERING));
         setProperty(EGENVURDERING_API_PROPERTY_NAME, lagClusterUrl(VEILARBVEDTAKINFO));
+        setProperty(SAF_API_PROPERTY_NAME, lagClusterUrl(SAF,false));
         ApiApp.startApiApp(ApplicationConfig.class, args);
     }
 
