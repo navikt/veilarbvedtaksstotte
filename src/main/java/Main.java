@@ -3,12 +3,18 @@ import no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig;
 
 import static java.lang.System.setProperty;
 import static no.nav.dialogarena.aktor.AktorConfig.AKTOER_ENDPOINT_URL;
+import static no.nav.fo.veilarbvedtaksstotte.client.CVClient.PAM_CV_API;
+import static no.nav.fo.veilarbvedtaksstotte.client.CVClient.CV_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.DokumentClient.DOKUMENT_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.DokumentClient.VEILARBDOKUMENT;
+import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.VEILARBVEDTAKINFO;
+import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.EGENVURDERING_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CONTEXT_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CONTEXT_HOLDER;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
+import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.VEILARBREGISTRERING;
+import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.REGISTRERING_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.utils.UrlUtils.lagClusterUrl;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
@@ -19,6 +25,9 @@ public class Main {
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagClusterUrl(VEILARBDOKUMENT));
         setProperty(PERSON_API_PROPERTY_NAME, lagClusterUrl(VEILARBPERSON));
         setProperty(MODIA_CONTEXT_API_PROPERTY_NAME, lagClusterUrl(MODIA_CONTEXT_HOLDER));
+        setProperty(CV_API_PROPERTY_NAME, lagClusterUrl(PAM_CV_API));
+        setProperty(REGISTRERING_API_PROPERTY_NAME, lagClusterUrl(VEILARBREGISTRERING));
+        setProperty(EGENVURDERING_API_PROPERTY_NAME, lagClusterUrl(VEILARBVEDTAKINFO));
         ApiApp.startApiApp(ApplicationConfig.class, args);
     }
 
