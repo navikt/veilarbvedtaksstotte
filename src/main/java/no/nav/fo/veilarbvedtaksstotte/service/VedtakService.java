@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.String.format;
 import static no.nav.fo.veilarbvedtaksstotte.utils.AktorIdUtils.getAktorIdOrThrow;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
@@ -96,7 +96,6 @@ public class VedtakService {
         String aktorId = getAktorIdOrThrow(aktorService, fnr);
 
         return vedtaksstotteRepository.hentUtkast(aktorId);
-
     }
 
     public void kafkaTest(String fnr, Innsatsgruppe innsatsgruppe) {
@@ -108,7 +107,7 @@ public class VedtakService {
         kafkaService.sendVedtak(vedtak, aktorId);
     }
 
-    public void upsertVedtak(String fnr, VedtakDTO vedtakDTO) {
+    public void lagUtkast(String fnr) {
         validerFnr(fnr);
 
         pepClient.sjekkLeseTilgangTilFnr(fnr);
@@ -117,10 +116,32 @@ public class VedtakService {
         Veileder veileder = veilederService.hentVeilederFraToken();
         veileder.setEnhetId(modiaContextClient.aktivEnhet());
 
-        Vedtak vedtak = vedtakDTO.tilVedtak()
-                .setVeileder(veileder);
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
-        vedtaksstotteRepository.upsertUtkast(aktorId, vedtak);
+        if(utkast != null){
+            throw new RuntimeException(format("Kan ikke lage nytt utkast, brukeren(%s) har allerede et aktivt utkast", aktorId));
+        }
+
+        vedtaksstotteRepository.insertUtkast(aktorId, veileder);
+    }
+
+    public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
+        validerFnr(fnr);
+
+        pepClient.sjekkLeseTilgangTilFnr(fnr);
+
+        String aktorId = getAktorIdOrThrow(aktorService, fnr);
+        Veileder veileder = veilederService.hentVeilederFraToken();
+        veileder.setEnhetId(modiaContextClient.aktivEnhet());
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
+        Vedtak nyttUtkast = vedtakDTO.tilVedtak().setVeileder(veileder);
+
+        if (utkast == null) {
+            throw new NotFoundException(format("Fante ikke utkast å oppdatere for bruker med aktorId: %s", aktorId));
+        }
+
+        vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), nyttUtkast);
     }
 
     public void slettUtkast(String fnr) {
@@ -130,10 +151,9 @@ public class VedtakService {
 
         // TODO KAN VEM SOM HELST SOM HAR TILGANG TIL BRUKEREN SLETTE UTKAST?
 
-        if(!vedtaksstotteRepository.slettVedtakUtkast(aktorId)){
-            throw new NotFoundException("Fante ikke utkast for bruker med aktorId" + aktorId);
+        if(!vedtaksstotteRepository.slettUtkast(aktorId)){
+            throw new NotFoundException(format("Fante ikke utkast for bruker med aktorId: %s", aktorId));
         }
-
     }
 
     public List<Vedtak> hentVedtak(String fnr) {
@@ -179,7 +199,6 @@ public class VedtakService {
 
     public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
         pepClient.sjekkLeseTilgangTilFnr(fnr);
-
         return safClient.hentVedtakPdf(journalpostId,dokumentInfoId);
     }
 }
