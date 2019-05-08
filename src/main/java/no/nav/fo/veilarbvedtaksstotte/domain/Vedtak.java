@@ -17,6 +17,7 @@ public class Vedtak {
     VedtakStatus vedtakStatus;
     LocalDateTime sistOppdatert;
     String begrunnelse;
-    Veileder veileder;
+    String veilederIdent;
+    String veilederEnhetId;
     boolean gjeldende;
 }

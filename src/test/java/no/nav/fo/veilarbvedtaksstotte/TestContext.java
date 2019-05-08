@@ -14,8 +14,8 @@ import static no.nav.fasit.FasitUtils.Zone.FSS;
 import static no.nav.fasit.FasitUtils.*;
 import static no.nav.fo.veilarbvedtaksstotte.client.DokumentClient.DOKUMENT_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.DokumentClient.VEILARBDOKUMENT;
-import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CONTEXT_API_PROPERTY_NAME;
-import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CONTEXT_HOLDER;
+import static no.nav.fo.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA_API_PROPERTY_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
 import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF;
@@ -36,7 +36,7 @@ public class TestContext {
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagFssUrl(VEILARBDOKUMENT));
         setProperty(SAF_API_PROPERTY_NAME, lagFssUrl(SAF,false));
         setProperty(PERSON_API_PROPERTY_NAME, lagFssUrl(VEILARBPERSON));
-        setProperty(MODIA_CONTEXT_API_PROPERTY_NAME, lagFssUrl(MODIA_CONTEXT_HOLDER));
+        setProperty(VEILARBARENA_API_PROPERTY_NAME, lagFssUrl(VEILARBARENA));
 
         setProperty(KAFKA_BROKERS_URL_PROPERTY, "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443");
 
