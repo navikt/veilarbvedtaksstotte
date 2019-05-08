@@ -6,14 +6,10 @@ import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.VedtakDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -42,7 +38,6 @@ public class VedtakResource {
                                   @QueryParam("dokumentInfoId") String dokumentInfoId,
                                   @QueryParam("journalpostId") String journalpostId) {
         byte[] vedtakPdf = vedtakService.hentVedtakPdf(fnr, dokumentInfoId, journalpostId);
-
         return Response.ok(vedtakPdf)
                 .header("Content-Disposition",  "filename=vedtaksbrev.pdf")
                 .build();
@@ -56,10 +51,16 @@ public class VedtakResource {
     @Path("/vedtak")
     public List<Vedtak> hentVedtak(@PathParam("fnr") String fnr) { return vedtakService.hentVedtak(fnr); }
 
+    @POST
+    @Path("/utkast")
+    public void lagUtkast(@PathParam("fnr") String fnr) {
+        vedtakService.lagUtkast(fnr);
+    }
+
     @PUT
     @Path("/utkast")
-    public void upsertVedtak(@PathParam("fnr") String fnr, VedtakDTO vedtakDTO) {
-        vedtakService.upsertVedtak(fnr, vedtakDTO);
+    public void oppdaterUtkast(@PathParam("fnr") String fnr, VedtakDTO vedtakDTO) {
+        vedtakService.oppdaterUtkast(fnr, vedtakDTO);
     }
 
     @GET

@@ -25,8 +25,6 @@ import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 @Repository
 public class VedtaksstotteRepository {
 
-    private final static long NO_ID =  -1;
-
     private final static String VEDTAK_TABLE        = "VEDTAK";
     private final static String VEDTAK_SEQ          = "VEDTAK_SEQ";
     private final static String VEDTAK_ID           = "VEDTAK_ID";
@@ -49,46 +47,14 @@ public class VedtaksstotteRepository {
         this.db = db;
     }
 
-    public void settGjeldendeVedtakTilHistorisk(String aktorId) {
-        SqlUtils.update(db, VEDTAK_TABLE)
-                .whereEquals(AKTOR_ID, aktorId)
-                .set(GJELDENDE, 0)
-                .execute();
-    }
-
-    public void markerVedtakSomSendt(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
-        SqlUtils.update(db, VEDTAK_TABLE)
-                .whereEquals(VEDTAK_ID, vedtakId)
-                .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-                .set(STATUS, getName(VedtakStatus.SENDT))
-                .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
-                .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
-                .set(GJELDENDE, 1)
-                .execute();
-    }
-
-    public void upsertUtkast(String aktorId, Vedtak vedtak) {
-        long id = hentVedtakUtkastId(aktorId);
-
-        if (id != NO_ID) {
-            oppdaterVedtakUtkast(id, vedtak);
-        } else {
-            lagVedtakUtkast(aktorId, vedtak);
-        }
-    }
-
     public Vedtak hentUtkast(String aktorId) {
-        WhereClause where = WhereClause
-                .equals(AKTOR_ID, aktorId)
-                .and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)));
-
         return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
-                .where(where)
+                .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))))
                 .column("*")
                 .execute();
     }
 
-    public boolean slettVedtakUtkast(String aktorId) {
+    public boolean slettUtkast(String aktorId) {
         return SqlUtils
                 .delete(db, VEDTAK_TABLE)
                 .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)).and(WhereClause.equals(AKTOR_ID,aktorId)))
@@ -107,36 +73,45 @@ public class VedtaksstotteRepository {
                 .executeToList();
     }
 
-
-    private long hentVedtakUtkastId(String aktorId) {
-        Vedtak utkast = hentUtkast(aktorId);
-        return utkast != null ? utkast.getId() : NO_ID;
-    }
-
-    private void oppdaterVedtakUtkast(long vedtakId, Vedtak vedtak) {
+    public void settGjeldendeVedtakTilHistorisk(String aktorId) {
         SqlUtils.update(db, VEDTAK_TABLE)
-                .whereEquals(VEDTAK_ID, vedtakId)
-                .set(HOVEDMAL, getName(vedtak.getHovedmal()))
-                .set(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
-                .set(VEILEDER_IDENT, vedtak.getVeileder().getIdent())
-                .set(VEILEDER_ENHET_ID, vedtak.getVeileder().getEnhetId())
-                .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-                .set(BEGRUNNELSE, vedtak.getBegrunnelse())
-                .execute();
+            .whereEquals(AKTOR_ID, aktorId)
+            .set(GJELDENDE, 0)
+            .execute();
     }
 
-    private long lagVedtakUtkast(String aktorId, Vedtak vedtak) {
-        return SqlUtils.insert(db, VEDTAK_TABLE)
-                .value(VEDTAK_ID, nesteFraSekvens(db, VEDTAK_SEQ))
-                .value(AKTOR_ID, aktorId)
-                .value(HOVEDMAL, getName(vedtak.getHovedmal()))
-                .value(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
-                .value(VEILEDER_IDENT, vedtak.getVeileder().getIdent())
-                .value(VEILEDER_ENHET_ID, vedtak.getVeileder().getEnhetId())
-                .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-                .value(STATUS, getName(VedtakStatus.UTKAST))
-                .value(BEGRUNNELSE, vedtak.getBegrunnelse())
-                .execute();
+    public void markerVedtakSomSendt(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
+        SqlUtils.update(db, VEDTAK_TABLE)
+            .whereEquals(VEDTAK_ID, vedtakId)
+            .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
+            .set(STATUS, getName(VedtakStatus.SENDT))
+            .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
+            .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
+            .set(GJELDENDE, 1)
+            .execute();
+    }
+
+    public void oppdaterUtkast(long vedtakId, Vedtak vedtak) {
+        SqlUtils.update(db, VEDTAK_TABLE)
+            .whereEquals(VEDTAK_ID, vedtakId)
+            .set(HOVEDMAL, getName(vedtak.getHovedmal()))
+            .set(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
+            .set(VEILEDER_IDENT, vedtak.getVeileder().getIdent())
+            .set(VEILEDER_ENHET_ID, vedtak.getVeileder().getEnhetId())
+            .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
+            .set(BEGRUNNELSE, vedtak.getBegrunnelse())
+            .execute();
+    }
+
+    public void insertUtkast(String aktorId, Veileder veileder) {
+        SqlUtils.insert(db, VEDTAK_TABLE)
+            .value(VEDTAK_ID, nesteFraSekvens(db, VEDTAK_SEQ))
+            .value(AKTOR_ID, aktorId)
+            .value(VEILEDER_IDENT, veileder.getIdent())
+            .value(VEILEDER_ENHET_ID, veileder.getEnhetId())
+            .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
+            .value(STATUS, getName(VedtakStatus.UTKAST))
+            .execute();
     }
 
     @SneakyThrows
