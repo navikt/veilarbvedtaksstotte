@@ -71,9 +71,9 @@ public class VedtaksstotteRepository {
         long id = hentVedtakUtkastId(aktorId);
 
         if (id != NO_ID) {
-            oppdaterVedtakUtkast(id, vedtak);
+            oppdaterVedtakUtkast(id, vedtak); //TODO: oppdatere opplysninger
         } else {
-            lagVedtakUtkast(aktorId, vedtak);
+            lagVedtakUtkast(aktorId, vedtak); //TODO: lagre opplysninger
         }
     }
 
