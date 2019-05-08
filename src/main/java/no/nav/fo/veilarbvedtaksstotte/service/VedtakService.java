@@ -106,7 +106,7 @@ public class VedtakService {
 
         String aktorId = getAktorIdOrThrow(aktorService, fnr);
 
-        return vedtaksstotteRepository.hentUtkast(aktorId);
+        return vedtaksstotteRepository.hentUtkast(aktorId); //TODO: hente opplysninger
 
     }
 
@@ -131,7 +131,7 @@ public class VedtakService {
         Vedtak vedtak = vedtakDTO.tilVedtak()
                 .setVeileder(veileder);
 
-        vedtaksstotteRepository.upsertUtkast(aktorId, vedtak);
+        vedtaksstotteRepository.upsertUtkast(aktorId, vedtak); //TODO: upserte opplysninger
     }
 
     public void slettUtkast(String fnr) {
@@ -144,6 +144,7 @@ public class VedtakService {
         if(!vedtaksstotteRepository.slettVedtakUtkast(aktorId)){
             throw new NotFoundException("Fante ikke utkast for bruker med aktorId" + aktorId);
         }
+        //TODO: slette opplysninger
 
     }
 
@@ -152,7 +153,7 @@ public class VedtakService {
 
         pepClient.sjekkLeseTilgangTilFnr(fnr);
         String aktorId = getAktorIdOrThrow(aktorService, fnr);
-        return vedtaksstotteRepository.hentVedtak(aktorId);
+        return vedtaksstotteRepository.hentVedtak(aktorId); //TODO: hente opplysninger
     }
 
     public byte[] produserDokumentUtkast(String fnr) {
@@ -167,7 +168,7 @@ public class VedtakService {
                 .map(vedtak -> lagDokumentDTO(vedtak, dokumentPerson(fnr)))
                 .orElseThrow(()-> new NotFoundException("Fant ikke vedtak å forhandsvise for bruker"));
 
-        return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
+        return dokumentClient.produserDokumentUtkast(sendDokumentDTO); //TODO: her må det vel gjøres noe med opplysninger?
     }
 
     private DokumentPerson dokumentPerson(String fnr){

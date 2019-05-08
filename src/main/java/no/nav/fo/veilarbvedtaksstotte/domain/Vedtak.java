@@ -21,6 +21,7 @@ public class Vedtak {
     String begrunnelse;
     Veileder veileder;
     boolean gjeldende;
+    //TODO: skal disse to være med her?
     List<OpplysningsType> opplysningsTyper;
     List<AndreOpplysninger> andreOpplysninger;
 }

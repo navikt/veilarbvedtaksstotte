@@ -15,15 +15,16 @@ public class VedtakDTO {
     Hovedmal hovedmal;
     Innsatsgruppe innsatsgruppe;
     String begrunnelse;
-    List<OpplysningsType> opplysninger;
-    List<String> andreOpplysninger;
+    //TODO: skal disse to være med her?
+    //List<OpplysningsType> opplysninger;
+    //List<String> andreOpplysninger;
 
     public Vedtak tilVedtak() {
         return new Vedtak()
                 .setHovedmal(hovedmal)
                 .setInnsatsgruppe(innsatsgruppe)
-                .setBegrunnelse(begrunnelse)
-                .setOpplysningsTyper(opplysninger);
+                .setBegrunnelse(begrunnelse);
+                //.setOpplysningsTyper(opplysninger)
                 //.setAndreOpplysninger(); TODO: må fikse noe her
     }
 
