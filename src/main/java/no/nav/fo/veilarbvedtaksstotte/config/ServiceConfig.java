@@ -1,10 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.config;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.fo.veilarbvedtaksstotte.service.KafkaService;
-import no.nav.fo.veilarbvedtaksstotte.service.MalTypeService;
-import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
-import no.nav.fo.veilarbvedtaksstotte.service.VeilederService;
+import no.nav.fo.veilarbvedtaksstotte.service.*;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -14,6 +11,7 @@ import org.springframework.context.annotation.Import;
         VeilederService.class,
         MalTypeService.class,
         VedtakService.class,
-        KafkaService.class
+        KafkaService.class,
+        AuthService.class
 })
 public class ServiceConfig {}
