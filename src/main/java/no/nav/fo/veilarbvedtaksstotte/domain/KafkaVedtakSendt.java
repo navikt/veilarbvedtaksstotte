@@ -12,4 +12,5 @@ public class KafkaVedtakSendt {
     Timestamp vedtakSendt;
     Innsatsgruppe innsatsgruppe;
     String aktorId;
+    String enhetId;
 }
