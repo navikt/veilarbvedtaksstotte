@@ -66,6 +66,13 @@ public class VedtaksstotteRepository {
                 .executeToList();
     }
 
+    public Vedtak hentVedtak(long vedtakId) {
+        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
+                .where(WhereClause.equals(VEDTAK_ID, vedtakId))
+                .column("*")
+                .execute();
+    }
+
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
         SqlUtils.update(db, VEDTAK_TABLE)
             .whereEquals(AKTOR_ID, aktorId)
@@ -118,6 +125,7 @@ public class VedtaksstotteRepository {
                 .setSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
                 .setGjeldende(rs.getInt(GJELDENDE) == 1)
                 .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
-                .setVeilederIdent(rs.getString(VEILEDER_IDENT));
+                .setVeilederIdent(rs.getString(VEILEDER_IDENT))
+                .setAktorId(rs.getString(AKTOR_ID));
     }
 }

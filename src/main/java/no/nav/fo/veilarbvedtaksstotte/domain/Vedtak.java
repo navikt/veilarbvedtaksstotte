@@ -19,5 +19,6 @@ public class Vedtak {
     String begrunnelse;
     String veilederIdent;
     String veilederEnhetId;
+    String aktorId;
     boolean gjeldende;
 }

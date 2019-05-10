@@ -59,7 +59,7 @@ public class KafkaRepository {
     @SneakyThrows
     private static KafkaVedtakSendt mapKafkaVedtakSendt(ResultSet rs) {
         return new KafkaVedtakSendt()
-                .setVedtakSendt(rs.getTimestamp(VEDTAK_SENDT))
+                .setVedtakSendt(rs.getTimestamp(VEDTAK_SENDT).toLocalDateTime())
                 .setInnsatsgruppe(valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setEnhetId(rs.getString(ENHET_ID));
