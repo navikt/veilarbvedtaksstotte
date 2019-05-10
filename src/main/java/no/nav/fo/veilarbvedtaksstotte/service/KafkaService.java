@@ -22,7 +22,8 @@ public class KafkaService {
         KafkaVedtakSendt vedtakSendt = new KafkaVedtakSendt()
                 .setAktorId(aktorId)
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setVedtakSendt(new Timestamp(System.currentTimeMillis()));
+                .setVedtakSendt(new Timestamp(System.currentTimeMillis()))
+                .setEnhetId(vedtak.getVeilederEnhetId());
 
         vedtakSendtTemplate.send(vedtakSendt);
     }
