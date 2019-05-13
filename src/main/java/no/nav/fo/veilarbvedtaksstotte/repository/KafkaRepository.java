@@ -22,6 +22,7 @@ public class KafkaRepository {
     private final static String VEDTAK_SENDT_KAFKA_FEIL_TABLE       = "VEDTAK_SENDT_KAFKA_FEIL";
     private final static String VEDTAK_SENDT_SEQ                    = "VEDTAK_SENDT_SEQ";
     private final static String VEDTAK_SENDT_ID                     = "VEDTAK_SENDT_ID";
+    private final static String VEDTAK_ID                           = "VEDTAK_ID";
     private final static String VEDTAK_SENDT                        = "VEDTAK_SENDT";
     private final static String INNSATSGRUPPE                       = "INNSATSGRUPPE";
     private final static String AKTOR_ID                            = "AKTOR_ID";
@@ -37,6 +38,7 @@ public class KafkaRepository {
     public void lagreVedtakSendtKafkaFeil(KafkaVedtakSendt vedtakSendt) {
         SqlUtils.insert(db, VEDTAK_SENDT_KAFKA_FEIL_TABLE)
                 .value(VEDTAK_SENDT_ID, nesteFraSekvens(db, VEDTAK_SENDT_SEQ))
+                .value(VEDTAK_ID, vedtakSendt.getId())
                 .value(INNSATSGRUPPE, getName(vedtakSendt.getInnsatsgruppe()))
                 .value(AKTOR_ID, vedtakSendt.getAktorId())
                 .value(VEDTAK_SENDT, vedtakSendt.getVedtakSendt())
@@ -59,6 +61,7 @@ public class KafkaRepository {
     @SneakyThrows
     private static KafkaVedtakSendt mapKafkaVedtakSendt(ResultSet rs) {
         return new KafkaVedtakSendt()
+                .setId(rs.getLong(VEDTAK_ID))
                 .setVedtakSendt(rs.getTimestamp(VEDTAK_SENDT).toLocalDateTime())
                 .setInnsatsgruppe(valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
                 .setAktorId(rs.getString(AKTOR_ID))

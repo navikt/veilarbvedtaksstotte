@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @Accessors(chain = true)
 public class KafkaVedtakSendt {
+    long id;
     LocalDateTime vedtakSendt;
     Innsatsgruppe innsatsgruppe;
     String aktorId;
