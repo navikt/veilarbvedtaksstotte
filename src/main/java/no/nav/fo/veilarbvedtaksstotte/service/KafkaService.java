@@ -3,26 +3,32 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakSendtTemplate;
+import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.sql.Timestamp;
 
 @Service
 public class KafkaService {
 
     private VedtakSendtTemplate vedtakSendtTemplate;
+    private VedtaksstotteRepository vedtaksstotteRepository;
 
     @Inject
-    public KafkaService(VedtakSendtTemplate vedtakSendtTemplate) {
+    public KafkaService(VedtakSendtTemplate vedtakSendtTemplate,
+                        VedtaksstotteRepository vedtaksstotteRepository) {
         this.vedtakSendtTemplate = vedtakSendtTemplate;
+        this.vedtaksstotteRepository = vedtaksstotteRepository;
     }
 
-    public void sendVedtak(Vedtak vedtak, String aktorId) {
+    public void sendVedtak(long vedtakId) {
+
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+
         KafkaVedtakSendt vedtakSendt = new KafkaVedtakSendt()
-                .setAktorId(aktorId)
+                .setAktorId(vedtak.getAktorId())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setVedtakSendt(new Timestamp(System.currentTimeMillis()))
+                .setVedtakSendt(vedtak.getSistOppdatert())
                 .setEnhetId(vedtak.getVeilederEnhetId());
 
         vedtakSendtTemplate.send(vedtakSendt);

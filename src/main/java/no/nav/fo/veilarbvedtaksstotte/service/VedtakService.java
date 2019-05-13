@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static no.nav.fo.veilarbvedtaksstotte.utils.AktorIdUtils.getAktorIdOrThrow;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
@@ -96,7 +95,7 @@ public class VedtakService {
             vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId(), dokumentSendt);
         });
 
-        kafkaService.sendVedtak(vedtak, aktorId);
+        kafkaService.sendVedtak(vedtak.getId());
 
         return dokumentSendt;
     }
@@ -198,8 +197,7 @@ public class VedtakService {
 
     public void kafkaTest(String fnr, Innsatsgruppe innsatsgruppe) {
         Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
-
-        Vedtak vedtak = new Vedtak().setInnsatsgruppe(innsatsgruppe);
-        kafkaService.sendVedtak(vedtak, bruker.getAktoerId());
+        Vedtak vedtak = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
+        kafkaService.sendVedtak(vedtak.getId());
     }
 }
