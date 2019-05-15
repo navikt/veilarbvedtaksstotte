@@ -186,7 +186,8 @@ public class VedtakService {
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO); //TODO: her må det vel gjøres noe med opplysninger?
     }
 
-    public List<Opplysning> hentOpplysningerForVedtak(long vedtakId) {
+    public List<Opplysning> hentOpplysningerForVedtak(String fnr, long vedtakId) {
+        authService.sjekkSkrivetilgangTilBruker(fnr);
         return opplysningerRepository.hentOpplysningerForVedtak(vedtakId);
     }
 

@@ -2,6 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.resource;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.Opplysning;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.VedtakDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Slf4j
 @Controller
+@Produces("application/json")
 @Path("/{fnr}")
 public class VedtakResource {
 
@@ -81,11 +83,9 @@ public class VedtakResource {
     }
 
     @GET
-    @Produces("application/json")
     @Path("/opplysninger/{vedtakid}")
-    public Response hentOpplysninger(@PathParam("vedtakid") long vedtakId) {
-        return Response.ok(vedtakService.hentOpplysningerForVedtak(vedtakId))
-                .build();
+    public List<Opplysning> hentOpplysninger(@PathParam("fnr") String fnr, @PathParam("vedtakid") long vedtakId) {
+        return vedtakService.hentOpplysningerForVedtak(fnr, vedtakId);
     }
 }
 
