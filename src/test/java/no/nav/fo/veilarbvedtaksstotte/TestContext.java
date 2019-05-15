@@ -16,10 +16,10 @@ import static no.nav.fo.veilarbvedtaksstotte.client.CVClient.PAM_CV_API;
 import static no.nav.fo.veilarbvedtaksstotte.client.CVClient.CV_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.DokumentClient.DOKUMENT_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.DokumentClient.VEILARBDOKUMENT;
+import static no.nav.fo.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA_API_PROPERTY_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA;
 import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.VEILARBVEDTAKINFO;
 import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.EGENVURDERING_API_PROPERTY_NAME;
-import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CONTEXT_API_PROPERTY_NAME;
-import static no.nav.fo.veilarbvedtaksstotte.client.ModiaContextClient.MODIA_CONTEXT_HOLDER;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
 import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.VEILARBREGISTRERING;
@@ -28,6 +28,8 @@ import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF;
 import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.KafkaConfig.KAFKA_BROKERS_URL_PROPERTY;
+import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC;
+import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC_API_URL_PROPERTY;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestUtils.lagFssUrl;
 import static no.nav.sbl.dialogarena.common.abac.pep.service.AbacServiceConfig.ABAC_ENDPOINT_URL_PROPERTY_NAME;
 
@@ -42,11 +44,12 @@ public class TestContext {
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagFssUrl(VEILARBDOKUMENT));
         setProperty(SAF_API_PROPERTY_NAME, lagFssUrl(SAF,false));
         setProperty(PERSON_API_PROPERTY_NAME, lagFssUrl(VEILARBPERSON));
-        setProperty(MODIA_CONTEXT_API_PROPERTY_NAME, lagFssUrl(MODIA_CONTEXT_HOLDER));
+
         setProperty(CV_API_PROPERTY_NAME, lagFssUrl(PAM_CV_API));
         setProperty(REGISTRERING_API_PROPERTY_NAME, lagFssUrl(VEILARBREGISTRERING));
         setProperty(EGENVURDERING_API_PROPERTY_NAME, lagFssUrl(VEILARBVEDTAKINFO));
-
+        setProperty(VEILARBARENA_API_PROPERTY_NAME, lagFssUrl(VEILARBARENA));
+        setProperty(VEILARBABAC_API_URL_PROPERTY, lagFssUrl(VEILARBABAC, false));
         setProperty(KAFKA_BROKERS_URL_PROPERTY, "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443");
 
         //sts
@@ -67,7 +70,7 @@ public class TestContext {
         String issoISSUER = FasitUtils.getBaseUrl("isso-issuer");
         String issoIsAlive = FasitUtils.getBaseUrl("isso.isalive", FSS);
         ServiceUser isso_rp_user = getServiceUser("isso-rp-user", APPLICATION_NAME);
-        String loginUrl = getRestService("veilarblogin.redirect-url", getDefaultEnvironment()).getUrl();
+        String loginUrl = getRestService("veilarblogin.redirect-url", getDefaultEnvironment(), "fss").getUrl();
 
         setProperty(Constants.ISSO_HOST_URL_PROPERTY_NAME, issoHost);
         setProperty(Constants.ISSO_RP_USER_USERNAME_PROPERTY_NAME, isso_rp_user.getUsername());

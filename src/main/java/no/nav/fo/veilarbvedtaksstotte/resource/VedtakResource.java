@@ -38,24 +38,25 @@ public class VedtakResource {
                                   @QueryParam("dokumentInfoId") String dokumentInfoId,
                                   @QueryParam("journalpostId") String journalpostId) {
         byte[] vedtakPdf = vedtakService.hentVedtakPdf(fnr, dokumentInfoId, journalpostId);
-
         return Response.ok(vedtakPdf)
                 .header("Content-Disposition",  "filename=vedtaksbrev.pdf")
                 .build();
     }
 
     @GET
-    @Path("/utkast")
-    public Vedtak hentUtkast(@PathParam("fnr") String fnr) { return vedtakService.hentUtkast(fnr); }
-
-    @GET
     @Path("/vedtak")
     public List<Vedtak> hentVedtak(@PathParam("fnr") String fnr) { return vedtakService.hentVedtak(fnr); }
 
+    @POST
+    @Path("/utkast")
+    public void lagUtkast(@PathParam("fnr") String fnr) {
+        vedtakService.lagUtkast(fnr);
+    }
+
     @PUT
     @Path("/utkast")
-    public void upsertVedtak(@PathParam("fnr") String fnr, VedtakDTO vedtakDTO) {
-        vedtakService.upsertVedtak(fnr, vedtakDTO);
+    public void oppdaterUtkast(@PathParam("fnr") String fnr, VedtakDTO vedtakDTO) {
+        vedtakService.oppdaterUtkast(fnr, vedtakDTO);
     }
 
     @GET

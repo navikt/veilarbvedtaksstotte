@@ -25,6 +25,7 @@ public class KafkaRepository {
     private final static String VEDTAK_SENDT                        = "VEDTAK_SENDT";
     private final static String INNSATSGRUPPE                       = "INNSATSGRUPPE";
     private final static String AKTOR_ID                            = "AKTOR_ID";
+    private final static String ENHET_ID                            = "ENHET_ID";
 
     private final JdbcTemplate db;
 
@@ -39,6 +40,7 @@ public class KafkaRepository {
                 .value(INNSATSGRUPPE, getName(vedtakSendt.getInnsatsgruppe()))
                 .value(AKTOR_ID, vedtakSendt.getAktorId())
                 .value(VEDTAK_SENDT, vedtakSendt.getVedtakSendt())
+                .value(ENHET_ID, vedtakSendt.getEnhetId())
                 .execute();
     }
 
@@ -57,9 +59,10 @@ public class KafkaRepository {
     @SneakyThrows
     private static KafkaVedtakSendt mapKafkaVedtakSendt(ResultSet rs) {
         return new KafkaVedtakSendt()
-                .setVedtakSendt(rs.getTimestamp(VEDTAK_SENDT))
+                .setVedtakSendt(rs.getTimestamp(VEDTAK_SENDT).toLocalDateTime())
                 .setInnsatsgruppe(valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
-                .setAktorId(rs.getString(AKTOR_ID));
+                .setAktorId(rs.getString(AKTOR_ID))
+                .setEnhetId(rs.getString(ENHET_ID));
     }
 
 }

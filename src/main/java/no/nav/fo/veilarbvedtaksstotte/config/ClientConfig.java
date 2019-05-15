@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Import;
 @Import({
         DokumentClient.class,
         PersonClient.class,
-        ModiaContextClient.class,
+        SAFClient.class,
+        ArenaClient.class,
         SAFClient.class,
         CVClient.class,
         RegistreringClient.class,

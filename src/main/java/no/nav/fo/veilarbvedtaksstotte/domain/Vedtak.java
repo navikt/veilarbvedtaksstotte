@@ -19,7 +19,9 @@ public class Vedtak {
     VedtakStatus vedtakStatus;
     LocalDateTime sistOppdatert;
     String begrunnelse;
-    Veileder veileder;
+    String veilederIdent;
+    String veilederEnhetId;
+    String aktorId;
     boolean gjeldende;
     //TODO: skal disse to være med her?
     List<OpplysningsType> opplysningsTyper;

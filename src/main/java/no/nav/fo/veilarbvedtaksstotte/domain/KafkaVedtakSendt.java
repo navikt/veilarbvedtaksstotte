@@ -4,12 +4,13 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Data
 @Accessors(chain = true)
 public class KafkaVedtakSendt {
-    Timestamp vedtakSendt;
+    LocalDateTime vedtakSendt;
     Innsatsgruppe innsatsgruppe;
     String aktorId;
+    String enhetId;
 }

@@ -1,6 +1,6 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
-import no.nav.apiapp.security.PepClient;
+import no.nav.apiapp.security.veilarbabac.Bruker;
 import no.nav.dialogarena.aktor.AktorService;
 import no.nav.fo.veilarbvedtaksstotte.client.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
@@ -14,13 +14,11 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
-import javax.ws.rs.core.Response;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.String.format;
 import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OpplysningsType.*;
-import static no.nav.fo.veilarbvedtaksstotte.utils.AktorIdUtils.getAktorIdOrThrow;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
@@ -28,15 +26,15 @@ public class VedtakService {
 
     private VedtaksstotteRepository vedtaksstotteRepository;
     private OpplysningerRepository opplysningerRepository;
-    private PepClient pepClient;
+    private AuthService authService;
     private AktorService aktorService;
     private DokumentClient dokumentClient;
     private SAFClient safClient;
     private PersonClient personClient;
-    private ModiaContextClient modiaContextClient;
     private CVClient cvClient;
     private RegistreringClient registreringClient;
     private EgenvurderingClient egenvurderingClient;
+    private ArenaClient arenaClient;
     private VeilederService veilederService;
     private MalTypeService malTypeService;
     private KafkaService kafkaService;
@@ -44,30 +42,30 @@ public class VedtakService {
 
     @Inject
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
-                         OpplysningerRepository opplysningerRepository,
-                         PepClient pepClient,
                          AktorService aktorService,
+                         OpplysningerRepository opplysningerRepository,
+                         AuthService authService,
                          DokumentClient dokumentClient,
                          SAFClient safClient, PersonClient personClient,
-                         ModiaContextClient modiaContextClient,
                          CVClient cvClient,
                          RegistreringClient registreringClient,
                          EgenvurderingClient egenvurderingClient,
+                         ArenaClient arenaClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
                          KafkaService kafkaService,
                          Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
-        this.opplysningerRepository = opplysningerRepository;
-        this.pepClient = pepClient;
         this.aktorService = aktorService;
+        this.authService = authService;
+        this.opplysningerRepository = opplysningerRepository;
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
-        this.modiaContextClient = modiaContextClient;
+        this.personClient = personClient;
+        this.arenaClient = arenaClient;
         this.cvClient = cvClient;
         this.registreringClient = registreringClient;
         this.egenvurderingClient = egenvurderingClient;
-        this.personClient = personClient;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
         this.kafkaService = kafkaService;
@@ -78,9 +76,8 @@ public class VedtakService {
 
         validerFnr(fnr);
 
-        pepClient.sjekkLeseTilgangTilFnr(fnr);
-
-        String aktorId = getAktorIdOrThrow(aktorService, fnr);
+        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
+        String aktorId = bruker.getAktoerId();
 
         Vedtak vedtak = vedtaksstotteRepository.hentUtkast(aktorId);
 
@@ -90,87 +87,101 @@ public class VedtakService {
 
         lagreOyeblikksbildeForOpplysninger(fnr, vedtak);
 
+        String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
+
+        if (!vedtak.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
+            vedtak.setVeilederEnhetId(oppfolgingsenhetId);
+        }
+
+        if (!veilederService.hentVeilederIdentFraToken().equals(vedtak.getVeilederIdent())) {
+            vedtak.setVeilederIdent(veilederService.hentVeilederIdentFraToken());
+        }
+
+        // TODO oppdater til ny status for "sender" + optimistic lock? Unngå potensielt å sende flere ganger
+
+        vedtaksstotteRepository.oppdaterUtkast(vedtak.getId(), vedtak);
+
         SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, dokumentPerson(fnr));
         DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
 
-        transactor.inTransaction(()-> {
-                    vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
-                    vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId(), dokumentSendt);
-                });
+        transactor.inTransaction(() -> {
+            vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
+            vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId(), dokumentSendt);
+        });
 
-        kafkaService.sendVedtak(vedtak, aktorId);
+        kafkaService.sendVedtak(vedtak.getId());
 
         return dokumentSendt;
     }
 
-    public Vedtak hentUtkast(String fnr) {
+    public void lagUtkast(String fnr) {
         validerFnr(fnr);
 
-        pepClient.sjekkLeseTilgangTilFnr(fnr);
+        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
+        String aktorId = bruker.getAktoerId();
+        String veilederIdent = veilederService.hentVeilederIdentFraToken();
+        String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
 
-        String aktorId = getAktorIdOrThrow(aktorService, fnr);
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId); //TODO: hente opplysninger
 
-        return vedtaksstotteRepository.hentUtkast(aktorId); //TODO: hente opplysninger
+        if (utkast != null) {
+            throw new RuntimeException(format("Kan ikke lage nytt utkast, brukeren(%s) har allerede et aktivt utkast", aktorId));
+        }
 
+        vedtaksstotteRepository.insertUtkast(aktorId, veilederIdent, oppfolgingsenhetId);
     }
 
-    public void kafkaTest(String fnr, Innsatsgruppe innsatsgruppe) {
-        pepClient.sjekkLeseTilgangTilFnr(fnr);
-
-        String aktorId = getAktorIdOrThrow(aktorService, fnr);
-
-        Vedtak vedtak = new Vedtak().setInnsatsgruppe(innsatsgruppe);
-        kafkaService.sendVedtak(vedtak, aktorId);
-    }
-
-    public void upsertVedtak(String fnr, VedtakDTO vedtakDTO) {
+    public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
         validerFnr(fnr);
 
-        pepClient.sjekkLeseTilgangTilFnr(fnr);
+        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
 
-        String aktorId = getAktorIdOrThrow(aktorService, fnr);
-        Veileder veileder = veilederService.hentVeilederFraToken();
-        veileder.setEnhetId(modiaContextClient.aktivEnhet());
+        String veilederIdent = veilederService.hentVeilederIdentFraToken();
 
-        Vedtak vedtak = vedtakDTO.tilVedtak()
-                .setVeileder(veileder);
+        String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
 
-        vedtaksstotteRepository.upsertUtkast(aktorId, vedtak); //TODO: upserte opplysninger
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
+        Vedtak nyttUtkast = vedtakDTO.tilVedtak()
+                .setVeilederIdent(veilederIdent)
+                .setVeilederEnhetId(oppfolgingsenhetId);
+
+        if (utkast == null) {
+            throw new NotFoundException(format("Fante ikke utkast å oppdatere for bruker med aktorId: %s", bruker.getAktoerId()));
+        }
+
+        vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), nyttUtkast); //TODO: oppdater opplysninger
     }
 
     public void slettUtkast(String fnr) {
         validerFnr(fnr);
-        pepClient.sjekkLeseTilgangTilFnr(fnr);
-        String aktorId = getAktorIdOrThrow(aktorService, fnr);
+
+        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
 
         // TODO KAN VEM SOM HELST SOM HAR TILGANG TIL BRUKEREN SLETTE UTKAST?
 
-        if(!vedtaksstotteRepository.slettVedtakUtkast(aktorId)){
-            throw new NotFoundException("Fante ikke utkast for bruker med aktorId" + aktorId);
+        if (!vedtaksstotteRepository.slettUtkast(bruker.getAktoerId())) {
+            throw new NotFoundException(format("Fante ikke utkast for bruker med aktorId: %s", bruker.getAktoerId()));
         }
         //TODO: slette opplysninger
-
     }
 
     public List<Vedtak> hentVedtak(String fnr) {
         validerFnr(fnr);
 
-        pepClient.sjekkLeseTilgangTilFnr(fnr);
-        String aktorId = getAktorIdOrThrow(aktorService, fnr);
-        return vedtaksstotteRepository.hentVedtak(aktorId); //TODO: hente opplysninger
+        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
+
+        return vedtaksstotteRepository.hentVedtak(bruker.getAktoerId()); //TODO: hente opplysninger
     }
 
     public byte[] produserDokumentUtkast(String fnr) {
         validerFnr(fnr);
 
-        pepClient.sjekkLeseTilgangTilFnr(fnr);
-
-        String aktorId = getAktorIdOrThrow(aktorService, fnr);
+        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
 
         SendDokumentDTO sendDokumentDTO =
-                Optional.ofNullable(vedtaksstotteRepository.hentUtkast(aktorId))
-                .map(vedtak -> lagDokumentDTO(vedtak, dokumentPerson(fnr)))
-                .orElseThrow(()-> new NotFoundException("Fant ikke vedtak å forhandsvise for bruker"));
+                Optional.ofNullable(vedtaksstotteRepository.hentUtkast(bruker.getAktoerId()))
+                        .map(vedtak -> lagDokumentDTO(vedtak, dokumentPerson(fnr)))
+                        .orElseThrow(() -> new NotFoundException("Fant ikke vedtak å forhandsvise for bruker"));
 
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO); //TODO: her må det vel gjøres noe med opplysninger?
     }
@@ -179,7 +190,7 @@ public class VedtakService {
         return opplysningerRepository.hentOpplysningerForVedtak(vedtakId);
     }
 
-    private DokumentPerson dokumentPerson(String fnr){
+    private DokumentPerson dokumentPerson(String fnr) {
         PersonNavn navn = personClient.hentNavn(fnr);
 
         return new DokumentPerson()
@@ -192,7 +203,7 @@ public class VedtakService {
 
         return new SendDokumentDTO()
                 .setBegrunnelse(vedtak.getBegrunnelse())
-                .setVeilederEnhet(vedtak.getVeileder().getEnhetId())
+                .setVeilederEnhet(vedtak.getVeilederEnhetId())
                 .setOpplysninger(oyeblikksbilde)
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak))
                 .setBruker(dokumentPerson)
@@ -242,8 +253,14 @@ public class VedtakService {
     }
 
     public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
-        pepClient.sjekkLeseTilgangTilFnr(fnr);
+        authService.sjekkSkrivetilgangTilBruker(fnr);
 
-        return safClient.hentVedtakPdf(journalpostId,dokumentInfoId);
+        return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
+    }
+
+    public void kafkaTest(String fnr, Innsatsgruppe innsatsgruppe) {
+        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
+        Vedtak vedtak = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
+        kafkaService.sendVedtak(vedtak.getId());
     }
 }

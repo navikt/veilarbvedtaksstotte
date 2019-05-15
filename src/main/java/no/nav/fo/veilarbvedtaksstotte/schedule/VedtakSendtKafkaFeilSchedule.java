@@ -26,7 +26,7 @@ public class VedtakSendtKafkaFeilSchedule {
         this.kafkaService = kafkaService;
     }
 
-    @Scheduled(fixedDelay = SCHEDULE_DELAY)
+    @Scheduled(fixedDelay = SCHEDULE_DELAY, initialDelay = 60 * 1000)
     public void sendFeiledeKafkaMeldinger() {
         List<KafkaVedtakSendt> feiledeMeldinger = kafkaRepository.hentFeiledeVedtakSendt();
         feiledeMeldinger.forEach(feiletMelding -> {
