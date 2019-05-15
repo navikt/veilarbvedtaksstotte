@@ -210,24 +210,34 @@ public class VedtakService {
                 .setMottaker(dokumentPerson);
     }
 
-    private void lagreOyeblikksbildeForOpplysninger(String fnr, Vedtak vedtak) {
+    private boolean lagreOyeblikksbildeForOpplysninger(String fnr, Vedtak vedtak) {
+        final String registreringData = registreringClient.hentRegistrering(fnr);
+        final String cvData = cvClient.hentCV(fnr);
+        final String egenvurderingData = egenvurderingClient.hentEgenvurdering(fnr);
+
         List<OpplysningsType> opplysningsTyper = vedtak.getOpplysningsTyper();
-        //TODO: Lagre alle uansett
-        if (opplysningsTyper.contains(REGISTRERINGSINFO)) {
-            lagreOpplysning(vedtak.getId(), REGISTRERINGSINFO, registreringClient.hentRegistrering(fnr));
+
+        if (opplysningsTyper.contains(REGISTRERINGSINFO) && registreringData.isEmpty()) {
+            return false;
         }
 
-        if (opplysningsTyper.contains(OpplysningsType.CV)) {
-            lagreOpplysning(vedtak.getId(), CV, cvClient.hentCV(fnr));
+        if (opplysningsTyper.contains(CV) && cvData.isEmpty()) {
+            return false;
         }
 
-        if (opplysningsTyper.contains(OpplysningsType.JOBBPROFIL)) {
-            lagreOpplysning(vedtak.getId(), JOBBPROFIL, cvClient.hentCV(fnr));
+        if (opplysningsTyper.contains(JOBBPROFIL) && cvData.isEmpty()) {
+            return false;
         }
 
-        if (opplysningsTyper.contains(OpplysningsType.EGENVURDERING)) {
-            lagreOpplysning(vedtak.getId(), EGENVURDERING, egenvurderingClient.hentEgenvurdering(fnr));
+        if (opplysningsTyper.contains(EGENVURDERING) && egenvurderingData.isEmpty()) {
+            return false;
         }
+
+        lagreOpplysning(vedtak.getId(), REGISTRERINGSINFO, registreringData);
+        lagreOpplysning(vedtak.getId(), CV, cvData);
+        lagreOpplysning(vedtak.getId(), JOBBPROFIL, cvData);
+        lagreOpplysning(vedtak.getId(), EGENVURDERING, egenvurderingData);
+        return true;
     }
 
     private void lagreOpplysning(long vedtakId, OpplysningsType opplysningsType, String opplysningData) {
