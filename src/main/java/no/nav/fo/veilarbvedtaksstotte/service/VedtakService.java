@@ -175,6 +175,10 @@ public class VedtakService {
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO); //TODO: her må det vel gjøres noe med opplysninger?
     }
 
+    public List<Opplysning> hentOpplysningerForVedtak(long vedtakId) {
+        return opplysningerRepository.hentOpplysningerForVedtak(vedtakId);
+    }
+
     private DokumentPerson dokumentPerson(String fnr){
         PersonNavn navn = personClient.hentNavn(fnr);
 
@@ -197,7 +201,7 @@ public class VedtakService {
 
     private void lagreOyeblikksbildeForOpplysninger(String fnr, Vedtak vedtak) {
         List<OpplysningsType> opplysningsTyper = vedtak.getOpplysningsTyper();
-
+        //TODO: Lagre alle uansett
         if (opplysningsTyper.contains(REGISTRERINGSINFO)) {
             lagreOpplysning(vedtak.getId(), REGISTRERINGSINFO, registreringClient.hentRegistrering(fnr));
         }

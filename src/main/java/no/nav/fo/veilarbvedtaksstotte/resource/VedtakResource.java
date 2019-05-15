@@ -6,14 +6,10 @@ import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.VedtakDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -83,5 +79,12 @@ public class VedtakResource {
         vedtakService.kafkaTest(fnr, innsatsgruppe);
     }
 
+    @GET
+    @Produces("application/json")
+    @Path("/opplysninger/{vedtakid}")
+    public Response hentOpplysninger(@PathParam("vedtakid") long vedtakId) {
+        return Response.ok(vedtakService.hentOpplysningerForVedtak(vedtakId))
+                .build();
+    }
 }
 
