@@ -12,6 +12,7 @@ import no.nav.sbl.jdbc.Transactor;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +86,9 @@ public class VedtakService {
             throw new NotFoundException("Fant ikke vedtak å sende for bruker");
         }
 
-        lagreOyeblikksbildeForOpplysninger(fnr, vedtak);
+        if (!lagreOyeblikksbildeForOpplysninger(fnr, vedtak)) {
+            throw new ForbiddenException("Kunne ikke hente øyeblikksbilde for vedtak, kan ikke sende inn vedtak uten øyeblikksbilde");
+        }
 
         String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
 
@@ -239,6 +242,13 @@ public class VedtakService {
         lagreOpplysning(vedtak.getId(), JOBBPROFIL, cvData);
         lagreOpplysning(vedtak.getId(), EGENVURDERING, egenvurderingData);
         return true;
+    }
+
+    private boolean inneholderOyeblikksbildelFeil(String registreringData, String cvData, String egenvurderingData, List<OpplysningsType> opplysningsTyper) {
+        return (opplysningsTyper.contains(REGISTRERINGSINFO) && registreringData.isEmpty())
+                || (opplysningsTyper.contains(CV) && cvData.isEmpty())
+                || (opplysningsTyper.contains(JOBBPROFIL) && cvData.isEmpty())
+                || (opplysningsTyper.contains(EGENVURDERING) && egenvurderingData.isEmpty());
     }
 
     private void lagreOpplysning(long vedtakId, OpplysningsType opplysningsType, String opplysningData) {
