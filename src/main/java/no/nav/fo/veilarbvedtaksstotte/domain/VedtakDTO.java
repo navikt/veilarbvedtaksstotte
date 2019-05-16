@@ -15,17 +15,23 @@ public class VedtakDTO {
     Hovedmal hovedmal;
     Innsatsgruppe innsatsgruppe;
     String begrunnelse;
-    //TODO: skal disse to være med her?
-    //List<OpplysningsType> opplysninger;
-    //List<String> andreOpplysninger;
+    List<OpplysningsType> opplysninger;
+    List<String> andreOpplysninger;
 
-    public Vedtak tilVedtak() {
+    public Vedtak tilVedtakFraUtkast() {
+        List<Opplysning> opplysninger = this.opplysninger.stream()
+                // setter valgt fordi vi kun oppdaterer de opplysningene som er valgt, men til slutt lagrer alle kilder
+                .map(opplysning -> new Opplysning().setOpplysningsType(opplysning).setValgt(true))
+                .collect(Collectors.toList());
+        List<AnnenOpplysning> annenOpplysning = this.andreOpplysninger.stream()
+                .map(opplysning -> new AnnenOpplysning().setTekst(opplysning))
+                .collect(Collectors.toList());
+
         return new Vedtak()
                 .setHovedmal(hovedmal)
                 .setInnsatsgruppe(innsatsgruppe)
-                .setBegrunnelse(begrunnelse);
-                //.setOpplysningsTyper(opplysninger)
-                //.setAndreOpplysninger(); TODO: må fikse noe her
+                .setBegrunnelse(begrunnelse)
+                .setOpplysninger(opplysninger)
+                .setAnnenOpplysning(annenOpplysning);
     }
-
 }

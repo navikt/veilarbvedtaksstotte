@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.OpplysningsType;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 
 import java.time.LocalDateTime;
@@ -23,7 +22,6 @@ public class Vedtak {
     String veilederEnhetId;
     String aktorId;
     boolean gjeldende;
-    //TODO: skal disse to være med her?
-    List<OpplysningsType> opplysningsTyper;
-    List<AndreOpplysninger> andreOpplysninger;
+    List<Opplysning> opplysninger;
+    List<AnnenOpplysning> annenOpplysning;
 }

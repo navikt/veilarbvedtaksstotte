@@ -5,8 +5,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class AndreOpplysninger {
-    long id;
+public class AnnenOpplysning {
     long vedtakId;
     String tekst;
 }

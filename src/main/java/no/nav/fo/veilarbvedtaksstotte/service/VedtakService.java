@@ -12,11 +12,9 @@ import no.nav.sbl.jdbc.Transactor;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OpplysningsType.*;
@@ -86,33 +84,31 @@ public class VedtakService {
             throw new NotFoundException("Fant ikke vedtak å sende for bruker");
         }
 
-        if (!lagreOyeblikksbildeForOpplysninger(fnr, vedtak)) {
-            throw new ForbiddenException("Kunne ikke hente øyeblikksbilde for vedtak, kan ikke sende inn vedtak uten øyeblikksbilde");
-        }
+        Vedtak oppdaterVedtak = hentOgOppdaterOpplysninger(fnr, vedtak);
 
         String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
 
-        if (!vedtak.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
-            vedtak.setVeilederEnhetId(oppfolgingsenhetId);
+        if (!oppdaterVedtak.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
+            oppdaterVedtak.setVeilederEnhetId(oppfolgingsenhetId);
         }
 
-        if (!veilederService.hentVeilederIdentFraToken().equals(vedtak.getVeilederIdent())) {
-            vedtak.setVeilederIdent(veilederService.hentVeilederIdentFraToken());
+        if (!veilederService.hentVeilederIdentFraToken().equals(oppdaterVedtak.getVeilederIdent())) {
+            oppdaterVedtak.setVeilederIdent(veilederService.hentVeilederIdentFraToken());
         }
 
         // TODO oppdater til ny status for "sender" + optimistic lock? Unngå potensielt å sende flere ganger
 
-        vedtaksstotteRepository.oppdaterUtkast(vedtak.getId(), vedtak);
+        vedtaksstotteRepository.oppdaterUtkast(oppdaterVedtak.getId(), oppdaterVedtak);
 
-        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, dokumentPerson(fnr));
+        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(oppdaterVedtak, dokumentPerson(fnr));
         DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
-            vedtaksstotteRepository.markerVedtakSomSendt(vedtak.getId(), dokumentSendt);
+            vedtaksstotteRepository.markerVedtakSomSendt(oppdaterVedtak.getId(), dokumentSendt);
         });
 
-        kafkaService.sendVedtak(vedtak.getId());
+        kafkaService.sendVedtak(oppdaterVedtak.getId());
 
         return dokumentSendt;
     }
@@ -125,7 +121,7 @@ public class VedtakService {
         String veilederIdent = veilederService.hentVeilederIdentFraToken();
         String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
 
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId); //TODO: hente opplysninger
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
         if (utkast != null) {
             throw new RuntimeException(format("Kan ikke lage nytt utkast, brukeren(%s) har allerede et aktivt utkast", aktorId));
@@ -144,7 +140,7 @@ public class VedtakService {
         String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
-        Vedtak nyttUtkast = vedtakDTO.tilVedtak()
+        Vedtak nyttUtkast = vedtakDTO.tilVedtakFraUtkast()
                 .setVeilederIdent(veilederIdent)
                 .setVeilederEnhetId(oppfolgingsenhetId);
 
@@ -152,7 +148,14 @@ public class VedtakService {
             throw new NotFoundException(format("Fante ikke utkast å oppdatere for bruker med aktorId: %s", bruker.getAktoerId()));
         }
 
-        vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), nyttUtkast); //TODO: oppdater opplysninger
+        transactor.inTransaction(() -> {
+            vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), nyttUtkast);
+            opplysningerRepository.slettOpplysninger(utkast.getId());
+            opplysningerRepository.slettAndreOpplysninger(utkast.getId());
+            opplysningerRepository.lagOpplysning(utkast.getOpplysninger());
+            opplysningerRepository.lagAnnenOpplysning(utkast.getAnnenOpplysning());
+        }
+        );
     }
 
     public void slettUtkast(String fnr) {
@@ -160,20 +163,20 @@ public class VedtakService {
 
         Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
 
-        // TODO KAN VEM SOM HELST SOM HAR TILGANG TIL BRUKEREN SLETTE UTKAST?
-
-        if (!vedtaksstotteRepository.slettUtkast(bruker.getAktoerId())) {
-            throw new NotFoundException(format("Fante ikke utkast for bruker med aktorId: %s", bruker.getAktoerId()));
-        }
-        //TODO: slette opplysninger
+        Vedtak vedtak = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
+        transactor.inTransaction(() -> {
+            vedtaksstotteRepository.slettUtkast(bruker.getAktoerId());
+            opplysningerRepository.slettOpplysninger(vedtak.getId());
+            opplysningerRepository.slettAndreOpplysninger(vedtak.getId());
+        });
     }
 
-    public List<Vedtak> hentVedtak(String fnr) {
+    public List<Vedtak> hentVedtak(String fnr) { //TODO: Lag en egen VedtakListeDTO
         validerFnr(fnr);
 
         Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
 
-        return vedtaksstotteRepository.hentVedtak(bruker.getAktoerId()); //TODO: hente opplysninger
+        return vedtaksstotteRepository.hentVedtak(bruker.getAktoerId()); //TODO: lag public Vedtak hentVedtak(long vedtakId)
     }
 
     public byte[] produserDokumentUtkast(String fnr) {
@@ -192,6 +195,18 @@ public class VedtakService {
     public List<Opplysning> hentOpplysningerForVedtak(String fnr, long vedtakId) {
         authService.sjekkSkrivetilgangTilBruker(fnr);
         return opplysningerRepository.hentOpplysningerForVedtak(vedtakId);
+    }
+
+    public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
+        authService.sjekkSkrivetilgangTilBruker(fnr);
+
+        return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
+    }
+
+    public void kafkaTest(String fnr, Innsatsgruppe innsatsgruppe) {
+        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
+        Vedtak vedtak = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
+        kafkaService.sendVedtak(vedtak.getId());
     }
 
     private DokumentPerson dokumentPerson(String fnr) {
@@ -214,74 +229,44 @@ public class VedtakService {
                 .setMottaker(dokumentPerson);
     }
 
-    private boolean lagreOyeblikksbildeForOpplysninger(String fnr, Vedtak vedtak) {
+    private Vedtak hentOgOppdaterOpplysninger(String fnr, Vedtak vedtak) {
+        // TODO Vi må få OK repsons på _alle_ kilder helst 204 for ikke eksisterende, 200 for ok slik at vi kan feile når utilgjengelig
+        // Det skal være OK at data mangler så lenge de ikke finnes, så lenge kall mot tjenestene ikke feiler
         final String registreringData = registreringClient.hentRegistrering(fnr);
         final String cvData = cvClient.hentCV(fnr);
         final String egenvurderingData = egenvurderingClient.hentEgenvurdering(fnr);
 
-        List<OpplysningsType> opplysningsTyper = vedtak.getOpplysningsTyper();
+        List<Opplysning> opplysninger = vedtak.getOpplysninger();
+        Map<OpplysningsType, String> kilder = new HashMap<>();
+        kilder.put(CV, cvData);
+        kilder.put(JOBBPROFIL, cvData); // TODO
+        kilder.put(REGISTRERINGSINFO, registreringData);
+        kilder.put(EGENVURDERING, egenvurderingData);
 
-        if (opplysningsTyper.contains(REGISTRERINGSINFO) && registreringData.isEmpty()) {
-            return false;
-        }
+        final List<Opplysning> oppdaterte = Arrays.stream(OpplysningsType.values()).map(opplysningsType ->
+                opplysninger.stream()
+                        .filter(opplysning -> opplysning.getOpplysningsType().equals(opplysningsType))
+                        .findFirst()
+                        .map(opplysning -> opplysning.setJson(kilder.get(opplysning.getOpplysningsType())))
+                        .orElseGet(() -> new Opplysning()
+                                .setOpplysningsType(opplysningsType)
+                                .setValgt(false)
+                                .setJson(kilder.get(opplysningsType)))
+        ).collect(Collectors.toList());
 
-        if (opplysningsTyper.contains(CV) && cvData.isEmpty()) {
-            return false;
-        }
-
-        if (opplysningsTyper.contains(JOBBPROFIL) && cvData.isEmpty()) {
-            return false;
-        }
-
-        if (opplysningsTyper.contains(EGENVURDERING) && egenvurderingData.isEmpty()) {
-            return false;
-        }
-
-        lagreOpplysning(vedtak.getId(), REGISTRERINGSINFO, registreringData);
-        lagreOpplysning(vedtak.getId(), CV, cvData);
-        lagreOpplysning(vedtak.getId(), JOBBPROFIL, cvData);
-        lagreOpplysning(vedtak.getId(), EGENVURDERING, egenvurderingData);
-        return true;
-    }
-
-    private boolean inneholderOyeblikksbildelFeil(String registreringData, String cvData, String egenvurderingData, List<OpplysningsType> opplysningsTyper) {
-        return (opplysningsTyper.contains(REGISTRERINGSINFO) && registreringData.isEmpty())
-                || (opplysningsTyper.contains(CV) && cvData.isEmpty())
-                || (opplysningsTyper.contains(JOBBPROFIL) && cvData.isEmpty())
-                || (opplysningsTyper.contains(EGENVURDERING) && egenvurderingData.isEmpty());
-    }
-
-    private void lagreOpplysning(long vedtakId, OpplysningsType opplysningsType, String opplysningData) {
-        final Opplysning opplysning = new Opplysning()
-                .setVedtakId(vedtakId)
-                .setOpplysningsType(opplysningsType)
-                .setJson(opplysningData);
-
-        opplysningerRepository.lagOpplysning(opplysning);
+        return vedtak.setOpplysninger(oppdaterte);
     }
 
     private List<String> hentOyeblikksbilde(long vedtakId) {
         List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForVedtak(vedtakId);
-        List<AndreOpplysninger> andreOpplysninger = opplysningerRepository.hentAndreOpplysningerForVedtak(vedtakId);
+        List<AnnenOpplysning> annenOpplysning = opplysningerRepository.hentAndreOpplysningerForVedtak(vedtakId);
         List<String> oyeblikksbilde = new ArrayList<>();
 
         opplysninger
                 .forEach(opplysning -> oyeblikksbilde.add(opplysning.getJson()));
-        andreOpplysninger
+        annenOpplysning
                 .forEach(opplysning -> oyeblikksbilde.add(opplysning.getTekst()));
 
         return oyeblikksbilde;
-    }
-
-    public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
-        authService.sjekkSkrivetilgangTilBruker(fnr);
-
-        return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
-    }
-
-    public void kafkaTest(String fnr, Innsatsgruppe innsatsgruppe) {
-        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
-        Vedtak vedtak = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
-        kafkaService.sendVedtak(vedtak.getId());
     }
 }

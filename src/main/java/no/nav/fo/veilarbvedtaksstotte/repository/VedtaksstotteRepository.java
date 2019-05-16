@@ -1,7 +1,9 @@
 package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
+import no.nav.fo.veilarbvedtaksstotte.domain.AnnenOpplysning;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.Opplysning;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
@@ -39,17 +41,31 @@ public class VedtaksstotteRepository {
     private final static String GJELDENDE           = "GJELDENDE";
 
     private final JdbcTemplate db;
+    private OpplysningerRepository opplysningerRepository;
 
     @Inject
-    public VedtaksstotteRepository(JdbcTemplate db) {
+    public VedtaksstotteRepository(JdbcTemplate db, OpplysningerRepository opplysningerRepository) {
         this.db = db;
+        this.opplysningerRepository = opplysningerRepository;
     }
 
+
     public Vedtak hentUtkast(String aktorId) {
-        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
+        Vedtak vedtakUtenOpplysninger = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))))
                 .column("*")
                 .execute();
+
+        if (vedtakUtenOpplysninger == null) {
+            return null;
+        }
+
+        final List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForVedtak(vedtakUtenOpplysninger.getId());
+        final List<AnnenOpplysning> andreOpplysninger = opplysningerRepository.hentAndreOpplysningerForVedtak(vedtakUtenOpplysninger.getId());
+
+        return vedtakUtenOpplysninger
+                .setOpplysninger(opplysninger)
+                .setAnnenOpplysning(andreOpplysninger);
     }
 
     public boolean slettUtkast(String aktorId) {
@@ -100,7 +116,7 @@ public class VedtaksstotteRepository {
             .set(VEILEDER_ENHET_ID, vedtak.getVeilederEnhetId())
             .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .set(BEGRUNNELSE, vedtak.getBegrunnelse())
-            .execute();  //TODO: oppdatere opplysninger
+            .execute();
     }
 
     public void insertUtkast(String aktorId, String veilederIdent, String veilederEnhetId) {
@@ -111,7 +127,7 @@ public class VedtaksstotteRepository {
                 .value(VEILEDER_ENHET_ID, veilederEnhetId)
             .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .value(STATUS, getName(VedtakStatus.UTKAST))
-            .execute(); //TODO: lagre opplysninger
+            .execute();
     }
 
     @SneakyThrows

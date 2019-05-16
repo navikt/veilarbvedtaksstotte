@@ -7,8 +7,8 @@ import no.nav.fo.veilarbvedtaksstotte.domain.enums.OpplysningsType;
 @Data
 @Accessors(chain = true)
 public class Opplysning {
-    long id;
     long vedtakId;
+    boolean valgt;
     OpplysningsType opplysningsType;
     String json;
 }

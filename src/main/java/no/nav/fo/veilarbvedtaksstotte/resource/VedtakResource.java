@@ -47,7 +47,7 @@ public class VedtakResource {
 
     @GET
     @Path("/vedtak")
-    public List<Vedtak> hentVedtak(@PathParam("fnr") String fnr) { return vedtakService.hentVedtak(fnr); }
+    public List<Vedtak> hentVedtak(@PathParam("fnr") String fnr) { return vedtakService.hentVedtak(fnr); } //TODO: lag endepunkt for å hente ett vedtak med vedtakId
 
     @POST
     @Path("/utkast")
