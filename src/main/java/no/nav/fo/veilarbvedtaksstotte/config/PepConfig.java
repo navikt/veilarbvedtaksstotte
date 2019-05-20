@@ -22,14 +22,22 @@ public class PepConfig {
     @Bean
     public VeilarbAbacPepClient pepClient(Pep pep) {
 
-        return VeilarbAbacPepClient.ny()
+        String overrideUrl = getProperty(VEILARBABAC_API_URL_PROPERTY);
+
+        VeilarbAbacPepClient.Builder builder = VeilarbAbacPepClient.ny()
                 .medPep(pep)
                 .medSystemUserTokenProvider(() -> systemUserTokenProvider.getToken())
                 .brukAktoerId(() -> true)
                 .sammenlikneTilgang(() -> false)
-                .foretrekkVeilarbAbacResultat(() -> true)
-                .medVeilarbAbacUrl(getProperty(VEILARBABAC_API_URL_PROPERTY))
-                .bygg();
+                .foretrekkVeilarbAbacResultat(() -> true);
+
+        if (overrideUrl != null) {
+            return builder
+                    .medVeilarbAbacUrl(overrideUrl)
+                    .bygg();
+        } else {
+            return builder.bygg();
+        }
     }
 
 }
