@@ -26,6 +26,7 @@ public class KafkaService {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
 
         KafkaVedtakSendt vedtakSendt = new KafkaVedtakSendt()
+                .setId(vedtak.getId())
                 .setAktorId(vedtak.getAktorId())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
                 .setVedtakSendt(vedtak.getSistOppdatert())
