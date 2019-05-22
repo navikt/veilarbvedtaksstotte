@@ -2,6 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.Opplysning;
+import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.sbl.sql.SqlUtils;
 import no.nav.sbl.sql.where.WhereClause;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import javax.inject.Inject;
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class OpplysningerRepository {
@@ -32,6 +34,14 @@ public class OpplysningerRepository {
     public List<Opplysning> hentOpplysningerForVedtak(long vedtakId) {
         return SqlUtils.select(db, OPPLYSNINGER_TABLE, OpplysningerRepository::mapOpplysninger)
                 .where(WhereClause.equals(VEDTAK_ID, vedtakId))
+                .column("*")
+                .executeToList();
+    }
+
+    public List<Opplysning> hentOpplysningerForAlleVedtak(List<Vedtak> vedtakListe) {
+        List<Long> vedtakIder = vedtakListe.stream().map(Vedtak::getId).collect(Collectors.toList());
+        return SqlUtils.select(db, OPPLYSNINGER_TABLE, OpplysningerRepository::mapOpplysninger)
+                .where(WhereClause.in(VEDTAK_ID, vedtakIder))
                 .column("*")
                 .executeToList();
     }
