@@ -1,32 +1,32 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.apiapp.security.veilarbabac.Bruker;
-import no.nav.dialogarena.aktor.AktorService;
 import no.nav.fo.veilarbvedtaksstotte.client.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.OpplysningsType;
 import no.nav.fo.veilarbvedtaksstotte.repository.OpplysningerRepository;
+import no.nav.fo.veilarbvedtaksstotte.repository.OyblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.sbl.jdbc.Transactor;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OpplysningsType.*;
+import static no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType.*;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
 public class VedtakService {
 
     private VedtaksstotteRepository vedtaksstotteRepository;
+    private OyblikksbildeRepository oyblikksbildeRepository;
     private OpplysningerRepository opplysningerRepository;
     private AuthService authService;
-    private AktorService aktorService;
     private DokumentClient dokumentClient;
     private SAFClient safClient;
     private PersonClient personClient;
@@ -41,8 +41,8 @@ public class VedtakService {
 
     @Inject
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
-                         AktorService aktorService,
                          OpplysningerRepository opplysningerRepository,
+                         OyblikksbildeRepository oyblikksbildeRepository,
                          AuthService authService,
                          DokumentClient dokumentClient,
                          SAFClient safClient, PersonClient personClient,
@@ -55,9 +55,9 @@ public class VedtakService {
                          KafkaService kafkaService,
                          Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
-        this.aktorService = aktorService;
-        this.authService = authService;
         this.opplysningerRepository = opplysningerRepository;
+        this.oyblikksbildeRepository = oyblikksbildeRepository;
+        this.authService = authService;
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
         this.personClient = personClient;
@@ -84,31 +84,27 @@ public class VedtakService {
             throw new NotFoundException("Fant ikke vedtak å sende for bruker");
         }
 
-        Vedtak oppdaterVedtak = hentOgOppdaterOpplysninger(fnr, vedtak);
+        long vedtakId = vedtak.getId();
+
+        lagreOyblikksbilde(fnr, vedtakId);
 
         String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
-
-        if (!oppdaterVedtak.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
-            oppdaterVedtak.setVeilederEnhetId(oppfolgingsenhetId);
-        }
-
-        if (!veilederService.hentVeilederIdentFraToken().equals(oppdaterVedtak.getVeilederIdent())) {
-            oppdaterVedtak.setVeilederIdent(veilederService.hentVeilederIdentFraToken());
-        }
+        vedtak.setVeilederEnhetId(oppfolgingsenhetId);
+        vedtak.setVeilederIdent(veilederService.hentVeilederIdentFraToken());
 
         // TODO oppdater til ny status for "sender" + optimistic lock? Unngå potensielt å sende flere ganger
 
-        vedtaksstotteRepository.oppdaterUtkast(oppdaterVedtak.getId(), oppdaterVedtak);
+        vedtaksstotteRepository.oppdaterUtkast(vedtakId, vedtak);
 
-        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(oppdaterVedtak, dokumentPerson(fnr));
+        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, dokumentPerson(fnr));
         DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
-            vedtaksstotteRepository.markerVedtakSomSendt(oppdaterVedtak.getId(), dokumentSendt);
+            vedtaksstotteRepository.markerVedtakSomSendt(vedtakId, dokumentSendt);
         });
 
-        kafkaService.sendVedtak(oppdaterVedtak.getId());
+        kafkaService.sendVedtak(vedtakId);
 
         return dokumentSendt;
     }
@@ -151,11 +147,8 @@ public class VedtakService {
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), nyttUtkast);
             opplysningerRepository.slettOpplysninger(utkast.getId());
-            opplysningerRepository.slettAndreOpplysninger(utkast.getId());
-            opplysningerRepository.lagOpplysning(utkast.getOpplysninger());
-            opplysningerRepository.lagAnnenOpplysning(utkast.getAnnenOpplysning());
-        }
-        );
+            opplysningerRepository.lagOpplysninger(vedtakDTO.getOpplysninger(), utkast.getId());
+        });
     }
 
     public void slettUtkast(String fnr) {
@@ -167,16 +160,15 @@ public class VedtakService {
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.slettUtkast(bruker.getAktoerId());
             opplysningerRepository.slettOpplysninger(vedtak.getId());
-            opplysningerRepository.slettAndreOpplysninger(vedtak.getId());
         });
     }
 
-    public List<Vedtak> hentVedtak(String fnr) { //TODO: Lag en egen VedtakListeDTO
+    public List<Vedtak> hentVedtak(String fnr) {
         validerFnr(fnr);
 
         Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
 
-        return vedtaksstotteRepository.hentVedtak(bruker.getAktoerId()); //TODO: lag public Vedtak hentVedtak(long vedtakId)
+        return vedtaksstotteRepository.hentVedtak(bruker.getAktoerId());
     }
 
     public byte[] produserDokumentUtkast(String fnr) {
@@ -189,24 +181,17 @@ public class VedtakService {
                         .map(vedtak -> lagDokumentDTO(vedtak, dokumentPerson(fnr)))
                         .orElseThrow(() -> new NotFoundException("Fant ikke vedtak å forhandsvise for bruker"));
 
-        return dokumentClient.produserDokumentUtkast(sendDokumentDTO); //TODO: her må det vel gjøres noe med opplysninger?
+        return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
     }
 
-    public List<Opplysning> hentOpplysningerForVedtak(String fnr, long vedtakId) {
+    public List<Oyblikksbilde> hentOyblikksbildeForVedtak(String fnr, long vedtakId) {
         authService.sjekkSkrivetilgangTilBruker(fnr);
-        return opplysningerRepository.hentOpplysningerForVedtak(vedtakId);
+        return oyblikksbildeRepository.hentOyblikksbildeForVedtak(vedtakId);
     }
 
     public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
         authService.sjekkSkrivetilgangTilBruker(fnr);
-
         return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
-    }
-
-    public void kafkaTest(String fnr, Innsatsgruppe innsatsgruppe) {
-        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
-        Vedtak vedtak = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
-        kafkaService.sendVedtak(vedtak.getId());
     }
 
     private DokumentPerson dokumentPerson(String fnr) {
@@ -218,55 +203,30 @@ public class VedtakService {
     }
 
     private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, DokumentPerson dokumentPerson) {
-        List<String> oyeblikksbilde = hentOyeblikksbilde(vedtak.getId());
+        List<String> opplysninger = vedtak.getOpplysninger().stream()
+                .map(Opplysning::getTekst).collect(Collectors.toList());
 
         return new SendDokumentDTO()
                 .setBegrunnelse(vedtak.getBegrunnelse())
                 .setVeilederEnhet(vedtak.getVeilederEnhetId())
-                .setOpplysninger(oyeblikksbilde)
+                .setOpplysninger(opplysninger)
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak))
                 .setBruker(dokumentPerson)
                 .setMottaker(dokumentPerson);
     }
 
-    private Vedtak hentOgOppdaterOpplysninger(String fnr, Vedtak vedtak) {
-        // TODO Vi må få OK repsons på _alle_ kilder helst 204 for ikke eksisterende, 200 for ok slik at vi kan feile når utilgjengelig
-        // Det skal være OK at data mangler så lenge de ikke finnes, så lenge kall mot tjenestene ikke feiler
-        final String registreringData = registreringClient.hentRegistrering(fnr);
+    private void lagreOyblikksbilde(String fnr, long vedtakId) {
         final String cvData = cvClient.hentCV(fnr);
+        final String registreringData = registreringClient.hentRegistrering(fnr);
         final String egenvurderingData = egenvurderingClient.hentEgenvurdering(fnr);
 
-        List<Opplysning> opplysninger = vedtak.getOpplysninger();
-        Map<OpplysningsType, String> kilder = new HashMap<>();
-        kilder.put(CV, cvData);
-        kilder.put(JOBBPROFIL, cvData); // TODO
-        kilder.put(REGISTRERINGSINFO, registreringData);
-        kilder.put(EGENVURDERING, egenvurderingData);
+        List<Oyblikksbilde> oyblikksbilde = Arrays.asList(
+                new Oyblikksbilde(vedtakId, CV_OG_JOBBPROFIL, cvData),
+                new Oyblikksbilde(vedtakId, REGISTRERINGSINFO, registreringData),
+                new Oyblikksbilde(vedtakId, EGENVURDERING, egenvurderingData)
+        );
 
-        final List<Opplysning> oppdaterte = Arrays.stream(OpplysningsType.values()).map(opplysningsType ->
-                opplysninger.stream()
-                        .filter(opplysning -> opplysning.getOpplysningsType().equals(opplysningsType))
-                        .findFirst()
-                        .map(opplysning -> opplysning.setJson(kilder.get(opplysning.getOpplysningsType())))
-                        .orElseGet(() -> new Opplysning()
-                                .setOpplysningsType(opplysningsType)
-                                .setValgt(false)
-                                .setJson(kilder.get(opplysningsType)))
-        ).collect(Collectors.toList());
-
-        return vedtak.setOpplysninger(oppdaterte);
+        oyblikksbildeRepository.lagOyblikksbilde(oyblikksbilde);
     }
 
-    private List<String> hentOyeblikksbilde(long vedtakId) {
-        List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForVedtak(vedtakId);
-        List<AnnenOpplysning> annenOpplysning = opplysningerRepository.hentAndreOpplysningerForVedtak(vedtakId);
-        List<String> oyeblikksbilde = new ArrayList<>();
-
-        opplysninger
-                .forEach(opplysning -> oyeblikksbilde.add(opplysning.getJson()));
-        annenOpplysning
-                .forEach(opplysning -> oyeblikksbilde.add(opplysning.getTekst()));
-
-        return oyeblikksbilde;
-    }
 }

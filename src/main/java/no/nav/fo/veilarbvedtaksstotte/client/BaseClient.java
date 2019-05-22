@@ -1,14 +1,11 @@
 package no.nav.fo.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.common.auth.SsoToken;
-import no.nav.common.auth.SubjectHandler;
 
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
-
 import java.util.Optional;
 
 import static java.lang.String.format;
@@ -75,6 +72,10 @@ public class BaseClient {
             this.response = response;
             this.url = url;
             data = getData(response, dataClass);
+        }
+
+        public boolean hasStatus (int status) {
+            return response.getStatus() == status;
         }
 
         public RestResponse<T> withStatusCheck() {

@@ -1,6 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.fo.veilarbvedtaksstotte.utils.JsonUtils;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -21,8 +22,17 @@ public class CVClient extends BaseClient {
     }
 
     public String hentCV(String fnr) {
-        return get(joinPaths(baseUrl, "rest", "v1", "arbeidssoker", fnr), String.class)
-                .withStatusCheck()
+        RestResponse<String> response = get(joinPaths(baseUrl, "rest", "v1", "arbeidssoker", fnr), String.class);
+
+        if (response.hasStatus(403)) {
+            return JsonUtils.createErrorStr("Bruker har ikke delt CV/jobbprofil med NAV");
+        }
+
+        if (response.hasStatus(204)) {
+            return JsonUtils.createNoDataStr("Bruker har ikke fylt ut CV/jobbprofil");
+        }
+
+        return response.withStatusCheck()
                 .getData()
                 .orElseThrow(() -> new RuntimeException("Feil ved kall mot pam-cv-api/rest/v1/arbeidssoker/{fnr}"));
     }

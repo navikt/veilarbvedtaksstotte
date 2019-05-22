@@ -1,6 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.fo.veilarbvedtaksstotte.utils.JsonUtils;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -21,9 +22,14 @@ public class EgenvurderingClient extends BaseClient {
     }
 
     public String hentEgenvurdering(String fnr) {
-        return get(joinPaths(baseUrl, "api", "behovsvurdering", "besvarelse?fnr=", fnr), String.class)
-                .withStatusCheck()
+        RestResponse<String> response = get(joinPaths(baseUrl, "api", "behovsvurdering", "besvarelse?fnr=", fnr), String.class);
+
+        if (response.hasStatus(204)) {
+            return JsonUtils.createNoDataStr("Bruker har ikke fylt ut egenvurdering");
+        }
+
+        return response.withStatusCheck()
                 .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbvedtakinfo/api/behovsvurdering/besvarelse?fnr="));
+                .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbvedtakinfo/api/behovsvurdering/besvarelse"));
     }
 }

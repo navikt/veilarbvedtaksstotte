@@ -1,7 +1,6 @@
 package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
-import no.nav.fo.veilarbvedtaksstotte.domain.AnnenOpplysning;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.Opplysning;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
@@ -61,11 +60,8 @@ public class VedtaksstotteRepository {
         }
 
         final List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForVedtak(vedtakUtenOpplysninger.getId());
-        final List<AnnenOpplysning> andreOpplysninger = opplysningerRepository.hentAndreOpplysningerForVedtak(vedtakUtenOpplysninger.getId());
 
-        return vedtakUtenOpplysninger
-                .setOpplysninger(opplysninger)
-                .setAnnenOpplysning(andreOpplysninger);
+        return vedtakUtenOpplysninger.setOpplysninger(opplysninger);
     }
 
     public boolean slettUtkast(String aktorId) {
@@ -76,6 +72,7 @@ public class VedtaksstotteRepository {
     }
 
     public List<Vedtak> hentVedtak(String aktorId) {
+         //TODO: Legg med opplysninger
         return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(AKTOR_ID, aktorId))
                 .column("*")

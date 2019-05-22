@@ -23,5 +23,4 @@ public class Vedtak {
     String aktorId;
     boolean gjeldende;
     List<Opplysning> opplysninger;
-    List<AnnenOpplysning> annenOpplysning;
 }
