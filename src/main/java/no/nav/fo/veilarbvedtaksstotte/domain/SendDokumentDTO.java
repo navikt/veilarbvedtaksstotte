@@ -14,5 +14,5 @@ public class SendDokumentDTO {
     MalType malType;
     String veilederEnhet;
     String begrunnelse;
-    List<String> kilder;
+    List<String> opplysninger;
 }

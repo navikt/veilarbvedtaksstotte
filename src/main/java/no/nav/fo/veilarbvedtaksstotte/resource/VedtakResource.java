@@ -2,9 +2,9 @@ package no.nav.fo.veilarbvedtaksstotte.resource;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.Oyblikksbilde;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.VedtakDTO;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.stereotype.Controller;
 
@@ -15,6 +15,7 @@ import java.util.List;
 
 @Slf4j
 @Controller
+@Produces("application/json")
 @Path("/{fnr}")
 public class VedtakResource {
 
@@ -45,7 +46,9 @@ public class VedtakResource {
 
     @GET
     @Path("/vedtak")
-    public List<Vedtak> hentVedtak(@PathParam("fnr") String fnr) { return vedtakService.hentVedtak(fnr); }
+    public List<Vedtak> hentVedtak(@PathParam("fnr") String fnr) {
+        return vedtakService.hentVedtak(fnr);
+    }
 
     @POST
     @Path("/utkast")
@@ -73,12 +76,10 @@ public class VedtakResource {
     @Path("/utkast")
     public void deleteUtkast(@PathParam("fnr") String fnr) { vedtakService.slettUtkast(fnr); }
 
-
-    @POST
-    @Path("/kafkatest/{innsatsgruppe}")
-    public void kafkaTest(@PathParam("fnr") String fnr, @PathParam("innsatsgruppe")Innsatsgruppe innsatsgruppe) {
-        vedtakService.kafkaTest(fnr, innsatsgruppe);
+    @GET
+    @Path("/oyblikksbilde/{vedtakid}")
+    public List<Oyblikksbilde> hentOyblikksbilde(@PathParam("fnr") String fnr, @PathParam("vedtakid") long vedtakId) {
+        return vedtakService.hentOyblikksbildeForVedtak(fnr, vedtakId);
     }
-
 }
 

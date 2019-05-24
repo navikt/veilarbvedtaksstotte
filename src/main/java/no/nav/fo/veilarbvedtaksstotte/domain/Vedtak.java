@@ -7,6 +7,7 @@ import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Accessors(chain = true)
@@ -21,4 +22,5 @@ public class Vedtak {
     String veilederEnhetId;
     String aktorId;
     boolean gjeldende;
+    List<Opplysning> opplysninger;
 }

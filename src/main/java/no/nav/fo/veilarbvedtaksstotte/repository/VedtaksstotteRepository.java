@@ -2,6 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.Opplysning;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import javax.inject.Inject;
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.nesteFraSekvens;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
@@ -39,17 +41,28 @@ public class VedtaksstotteRepository {
     private final static String GJELDENDE           = "GJELDENDE";
 
     private final JdbcTemplate db;
+    private OpplysningerRepository opplysningerRepository;
 
     @Inject
-    public VedtaksstotteRepository(JdbcTemplate db) {
+    public VedtaksstotteRepository(JdbcTemplate db, OpplysningerRepository opplysningerRepository) {
         this.db = db;
+        this.opplysningerRepository = opplysningerRepository;
     }
 
+
     public Vedtak hentUtkast(String aktorId) {
-        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
+        Vedtak vedtakUtenOpplysninger = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))))
                 .column("*")
                 .execute();
+
+        if (vedtakUtenOpplysninger == null) {
+            return null;
+        }
+
+        final List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForVedtak(vedtakUtenOpplysninger.getId());
+
+        return vedtakUtenOpplysninger.setOpplysninger(opplysninger);
     }
 
     public boolean slettUtkast(String aktorId) {
@@ -60,10 +73,20 @@ public class VedtaksstotteRepository {
     }
 
     public List<Vedtak> hentVedtak(String aktorId) {
-        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
+        List<Vedtak> vedtakListe = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(AKTOR_ID, aktorId))
                 .column("*")
                 .executeToList();
+
+        List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForAlleVedtak(vedtakListe);
+
+        vedtakListe.forEach(vedtak -> {
+            List<Opplysning> vedtakOpplysninger = opplysninger.stream()
+                    .filter(o -> o.getVedtakId() == vedtak.getId()).collect(Collectors.toList());
+            vedtak.setOpplysninger(vedtakOpplysninger);
+        });
+
+        return vedtakListe;
     }
 
     public Vedtak hentVedtak(long vedtakId) {
