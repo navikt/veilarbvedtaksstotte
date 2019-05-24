@@ -25,7 +25,7 @@ import static no.nav.sbl.util.EnvironmentUtils.requireEnvironmentName;
 @Import({ KafkaHelsesjekk.class })
 public class KafkaConfig {
 
-    public static final String KAFKA_TOPIC = "aapen-fo-vedtakSendt-v1" + "-" + requireEnvironmentName();
+    public static final String KAFKA_TOPIC = "aapen-oppfolging-vedtakSendt-v1" + "-" + requireEnvironmentName();
     public static final String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
 
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
