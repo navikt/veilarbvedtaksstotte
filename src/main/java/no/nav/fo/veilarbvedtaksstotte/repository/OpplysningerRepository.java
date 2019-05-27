@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,11 @@ public class OpplysningerRepository {
     }
 
     public List<Opplysning> hentOpplysningerForAlleVedtak(List<Vedtak> vedtakListe) {
+
+        if (vedtakListe.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         List<Long> vedtakIder = vedtakListe.stream().map(Vedtak::getId).collect(Collectors.toList());
         return SqlUtils.select(db, OPPLYSNING_TABLE, OpplysningerRepository::mapOpplysninger)
                 .where(WhereClause.in(VEDTAK_ID, vedtakIder))
