@@ -14,7 +14,7 @@ public class MainTest {
     public static void main(String[] args) {
         ApiAppTest.setupTestContext(ApiAppTest.Config.builder().applicationName(APPLICATION_NAME).build());
         TestContext.setup();
-        DatabaseTestContext.setup("Q6");
+        DatabaseTestContext.setup("Q1");
         ApiApp.startApiApp(ApplicationTestConfig.class, ARGUMENTS);
     }
 
