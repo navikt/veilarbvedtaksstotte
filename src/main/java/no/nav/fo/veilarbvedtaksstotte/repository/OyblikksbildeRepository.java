@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import java.sql.ResultSet;
 import java.util.List;
 
+import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 
 @Repository
@@ -43,7 +44,7 @@ public class OyblikksbildeRepository {
     private void lagOyblikksbilde(Oyblikksbilde oyblikksbilde) {
         SqlUtils.insert(db, OYBLIKKSBILDE_TABLE)
                 .value(VEDTAK_ID, oyblikksbilde.getVedtakId())
-                .value(KILDE, oyblikksbilde.getKildeType())
+                .value(KILDE, getName(oyblikksbilde.getKildeType()))
                 .value(JSON, oyblikksbilde.getJson())
                 .execute();
     }
