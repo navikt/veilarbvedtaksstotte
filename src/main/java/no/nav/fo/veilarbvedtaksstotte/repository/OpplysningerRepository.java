@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Repository
 public class OpplysningerRepository {
 
-    private final static String OPPLYSNINGER_TABLE          = "OPPLYSNINGER";
+    private final static String OPPLYSNING_TABLE            = "OPPLYSNING";
     private final static String VEDTAK_ID                   = "VEDTAK_ID";
     private final static String TEKST                       = "TEKST";
 
@@ -32,7 +32,7 @@ public class OpplysningerRepository {
     }
 
     public List<Opplysning> hentOpplysningerForVedtak(long vedtakId) {
-        return SqlUtils.select(db, OPPLYSNINGER_TABLE, OpplysningerRepository::mapOpplysninger)
+        return SqlUtils.select(db, OPPLYSNING_TABLE, OpplysningerRepository::mapOpplysninger)
                 .where(WhereClause.equals(VEDTAK_ID, vedtakId))
                 .column("*")
                 .executeToList();
@@ -40,20 +40,20 @@ public class OpplysningerRepository {
 
     public List<Opplysning> hentOpplysningerForAlleVedtak(List<Vedtak> vedtakListe) {
         List<Long> vedtakIder = vedtakListe.stream().map(Vedtak::getId).collect(Collectors.toList());
-        return SqlUtils.select(db, OPPLYSNINGER_TABLE, OpplysningerRepository::mapOpplysninger)
+        return SqlUtils.select(db, OPPLYSNING_TABLE, OpplysningerRepository::mapOpplysninger)
                 .where(WhereClause.in(VEDTAK_ID, vedtakIder))
                 .column("*")
                 .executeToList();
     }
 
     public void slettOpplysninger(long vedtakId) {
-        SqlUtils.delete(db, OPPLYSNINGER_TABLE)
+        SqlUtils.delete(db, OPPLYSNING_TABLE)
                 .where(WhereClause.equals(VEDTAK_ID, vedtakId))
                 .execute();
     }
 
     private void insertOpplysning(String tekst, long vedtakId) {
-        SqlUtils.insert(db, OPPLYSNINGER_TABLE)
+        SqlUtils.insert(db, OPPLYSNING_TABLE)
                 .value(VEDTAK_ID, vedtakId)
                 .value(TEKST, tekst)
                 .execute();
