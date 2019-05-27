@@ -14,7 +14,6 @@ import javax.ws.rs.NotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType.*;
@@ -203,13 +202,10 @@ public class VedtakService {
     }
 
     private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, DokumentPerson dokumentPerson) {
-        List<String> opplysninger = vedtak.getOpplysninger().stream()
-                .map(Opplysning::getTekst).collect(Collectors.toList());
-
         return new SendDokumentDTO()
                 .setBegrunnelse(vedtak.getBegrunnelse())
                 .setVeilederEnhet(vedtak.getVeilederEnhetId())
-                .setOpplysninger(opplysninger)
+                .setOpplysninger(vedtak.getOpplysninger())
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak))
                 .setBruker(dokumentPerson)
                 .setMottaker(dokumentPerson);
