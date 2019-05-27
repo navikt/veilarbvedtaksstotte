@@ -60,7 +60,11 @@ public class VedtaksstotteRepository {
             return null;
         }
 
-        final List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForVedtak(vedtakUtenOpplysninger.getId());
+        final List<String> opplysninger = opplysningerRepository
+                .hentOpplysningerForVedtak(vedtakUtenOpplysninger.getId())
+                .stream()
+                .map(Opplysning::getTekst)
+                .collect(Collectors.toList());
 
         return vedtakUtenOpplysninger.setOpplysninger(opplysninger);
     }
@@ -81,8 +85,10 @@ public class VedtaksstotteRepository {
         List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForAlleVedtak(vedtakListe);
 
         vedtakListe.forEach(vedtak -> {
-            List<Opplysning> vedtakOpplysninger = opplysninger.stream()
-                    .filter(o -> o.getVedtakId() == vedtak.getId()).collect(Collectors.toList());
+            List<String> vedtakOpplysninger = opplysninger.stream()
+                    .filter(o -> o.getVedtakId() == vedtak.getId())
+                    .map(Opplysning::getTekst)
+                    .collect(Collectors.toList());
             vedtak.setOpplysninger(vedtakOpplysninger);
         });
 
