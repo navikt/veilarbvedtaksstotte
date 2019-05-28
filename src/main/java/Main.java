@@ -36,6 +36,8 @@ public class Main {
         if (EnvironmentUtils.requireEnvironmentName().equalsIgnoreCase("q1")) {
             String pamCVUrl = lagClusterUrl(PAM_CV_API).replace("q1", "q6");
             setProperty(CV_API_PROPERTY_NAME, pamCVUrl);
+        } else {
+            setProperty(CV_API_PROPERTY_NAME, lagClusterUrl(PAM_CV_API));
         }
 
         ApiApp.startApiApp(ApplicationConfig.class, args);
