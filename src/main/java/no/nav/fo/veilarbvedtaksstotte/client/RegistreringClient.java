@@ -21,7 +21,7 @@ public class RegistreringClient extends BaseClient {
     }
 
     public String hentRegistrering(String fnr) {
-        return get(joinPaths(baseUrl, "api", "registrering?fnr=", fnr), String.class)
+        return get(joinPaths(baseUrl, "api", "registrering?fnr=") + fnr, String.class)
                 .withStatusCheck()
                 .getData()
                 .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbregistrering/api/registrering?fnr="));
