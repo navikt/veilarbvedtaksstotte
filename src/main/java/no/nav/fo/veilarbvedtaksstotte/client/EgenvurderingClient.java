@@ -22,7 +22,7 @@ public class EgenvurderingClient extends BaseClient {
     }
 
     public String hentEgenvurdering(String fnr) {
-        RestResponse<String> response = get(joinPaths(baseUrl, "api", "behovsvurdering", "besvarelse?fnr=", fnr), String.class);
+        RestResponse<String> response = get(joinPaths(baseUrl, "api", "behovsvurdering", "besvarelse?fnr=") + fnr, String.class);
 
         if (response.hasStatus(204)) {
             return JsonUtils.createNoDataStr("Bruker har ikke fylt ut egenvurdering");

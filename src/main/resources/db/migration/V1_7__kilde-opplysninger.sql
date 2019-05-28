@@ -1,7 +1,7 @@
 CREATE TABLE OYBLIKKSBILDE (
   VEDTAK_ID               NUMBER NOT NULL,
   KILDE                   VARCHAR(20),
-  JSON                    BLOB,
+  JSON                    CLOB,
   CONSTRAINT ensure_json CHECK (JSON IS JSON)
 );
 
