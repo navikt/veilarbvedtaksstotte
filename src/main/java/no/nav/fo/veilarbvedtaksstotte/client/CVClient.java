@@ -28,7 +28,7 @@ public class CVClient extends BaseClient {
             return JsonUtils.createErrorStr("Bruker har ikke delt CV/jobbprofil med NAV");
         }
 
-        if (response.hasStatus(204)) {
+        if (response.hasStatus(204) || response.hasStatus(404)) {
             return JsonUtils.createNoDataStr("Bruker har ikke fylt ut CV/jobbprofil");
         }
 
