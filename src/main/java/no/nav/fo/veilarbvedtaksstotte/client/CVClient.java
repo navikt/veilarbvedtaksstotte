@@ -24,7 +24,7 @@ public class CVClient extends BaseClient {
     public String hentCV(String fnr) {
         RestResponse<String> response = get(joinPaths(baseUrl, "rest", "v1", "arbeidssoker", fnr), String.class);
 
-        if (response.hasStatus(403)) {
+        if (response.hasStatus(403) || response.hasStatus(401)) {
             return JsonUtils.createErrorStr("Bruker har ikke delt CV/jobbprofil med NAV");
         }
 
