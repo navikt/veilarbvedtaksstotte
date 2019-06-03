@@ -8,7 +8,7 @@ public class JsonUtils {
     private JsonUtils(){}
 
     public static String createErrorStr(String errorMsg) {
-        return createJsonStr("feilMelding", errorMsg);
+        return createJsonStr("feilmelding", errorMsg);
     }
 
     public static String createNoDataStr(String noDataMsg) {
