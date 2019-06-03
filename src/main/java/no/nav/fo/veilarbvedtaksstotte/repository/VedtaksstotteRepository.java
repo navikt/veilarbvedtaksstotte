@@ -155,6 +155,9 @@ public class VedtaksstotteRepository {
                 .setGjeldende(rs.getInt(GJELDENDE) == 1)
                 .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
-                .setAktorId(rs.getString(AKTOR_ID));
+                .setAktorId(rs.getString(AKTOR_ID))
+                .setJournalpostId(rs.getString(JOURNALPOST_ID))
+                .setDokumentInfoId(rs.getString(DOKUMENT_ID));
+
     }
 }

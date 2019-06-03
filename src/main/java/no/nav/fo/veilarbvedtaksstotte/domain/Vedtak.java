@@ -23,4 +23,6 @@ public class Vedtak {
     String aktorId;
     boolean gjeldende;
     List<String> opplysninger;
+    String journalpostId;
+    String dokumentInfoId;
 }
