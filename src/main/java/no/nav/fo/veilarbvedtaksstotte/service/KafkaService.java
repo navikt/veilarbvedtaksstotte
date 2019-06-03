@@ -28,6 +28,7 @@ public class KafkaService {
         KafkaVedtakSendt vedtakSendt = new KafkaVedtakSendt()
                 .setId(vedtak.getId())
                 .setAktorId(vedtak.getAktorId())
+                .setHovedmaal(vedtak.getHovedmal())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
                 .setVedtakSendt(vedtak.getSistOppdatert())
                 .setEnhetId(vedtak.getVeilederEnhetId());
