@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
 
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
@@ -16,9 +15,8 @@ public class MetricsService {
 
     private final static String APP_NAME = "veilarbvedtaksstotte";
 
-    private static Event createEvent(String... tagSegments) {
-        final String tagName = Arrays.stream(tagSegments).reduce(APP_NAME, (acc, str) -> acc + "." + str);
-        return MetricsFactory.createEvent(tagName);
+    private static Event createMetricEvent(String tagName) {
+        return MetricsFactory.createEvent(APP_NAME + ".metrikker." + tagName);
     }
 
     private static long localDateTimeToMillis(LocalDateTime ldt) {
@@ -26,10 +24,10 @@ public class MetricsService {
     }
 
     public void rapporterVedtakSendt(Vedtak vedtak) {
-        Event event = createEvent("vedtak", "sendt");
+        Event event = createMetricEvent("vedtak-sendt");
         long utkastOpprettetMillis = localDateTimeToMillis(vedtak.getUtkastOpprettet());
-        long minutesUsed = (System.currentTimeMillis() - utkastOpprettetMillis) / 60;
-        event.addFieldToReport("minutterBrukt", minutesUsed);
+        long secondsUsed = (System.currentTimeMillis() - utkastOpprettetMillis) / 1000;
+        event.addFieldToReport("sekunderBrukt", secondsUsed);
         event.addFieldToReport("innsatsgruppe", getName(vedtak.getInnsatsgruppe()));
         event.addFieldToReport("hovedmaal", vedtak.getHovedmal());
         event.addFieldToReport("enhetsId", vedtak.getVeilederEnhetId());
@@ -37,7 +35,7 @@ public class MetricsService {
     }
 
     public void rapporterUtkastSlettet() {
-        createEvent("utkast", "slettet").report();
+        createMetricEvent("utkast-slettet").report();
     }
 
 }
