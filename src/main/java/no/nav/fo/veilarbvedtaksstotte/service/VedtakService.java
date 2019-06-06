@@ -37,6 +37,7 @@ public class VedtakService {
     private VeilederService veilederService;
     private MalTypeService malTypeService;
     private KafkaService kafkaService;
+    private MetricsService metricsService;
     private Transactor transactor;
 
     @Inject
@@ -53,7 +54,7 @@ public class VedtakService {
                          VeilederService veilederService,
                          MalTypeService malTypeService,
                          KafkaService kafkaService,
-                         Transactor transactor) {
+                         MetricsService metricsService, Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.opplysningerRepository = opplysningerRepository;
         this.oyblikksbildeRepository = oyblikksbildeRepository;
@@ -68,6 +69,7 @@ public class VedtakService {
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
         this.kafkaService = kafkaService;
+        this.metricsService = metricsService;
         this.transactor = transactor;
     }
 
@@ -105,6 +107,8 @@ public class VedtakService {
         });
 
         kafkaService.sendVedtak(vedtakId);
+
+        metricsService.rapporterVedtakSendt(vedtak);
 
         return dokumentSendt;
     }
@@ -145,7 +149,7 @@ public class VedtakService {
         }
 
         if (utkast == null) {
-            throw new NotFoundException(format("Fante ikke utkast å oppdatere for bruker med aktorId: %s", bruker.getAktoerId()));
+            throw new NotFoundException(format("Fant ikke utkast å oppdatere for bruker med aktorId: %s", bruker.getAktoerId()));
         }
 
         transactor.inTransaction(() -> {
@@ -159,12 +163,14 @@ public class VedtakService {
         validerFnr(fnr);
 
         Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
-
         Vedtak vedtak = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
+
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.slettUtkast(bruker.getAktoerId());
             opplysningerRepository.slettOpplysninger(vedtak.getId());
         });
+
+        metricsService.rapporterUtkastSlettet();
     }
 
     public List<Vedtak> hentVedtak(String fnr) {
