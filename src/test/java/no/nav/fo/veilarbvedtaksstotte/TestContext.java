@@ -27,7 +27,7 @@ import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.REGISTRER
 import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF;
 import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
-import static no.nav.fo.veilarbvedtaksstotte.config.KafkaConfig.KAFKA_BROKERS_URL_PROPERTY;
+import static no.nav.fo.veilarbvedtaksstotte.config.KafkaProperties.KAFKA_BROKERS_URL_PROPERTY;
 import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC;
 import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC_API_URL_PROPERTY;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestUtils.lagFssUrl;

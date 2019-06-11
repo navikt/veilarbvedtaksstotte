@@ -2,11 +2,13 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.fo.veilarbvedtaksstotte.domain.Opplysning;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.VedtakStatus;
+import no.nav.fo.veilarbvedtaksstotte.kafka.AvsluttOpfolgingTemplate;
 import no.nav.sbl.sql.DbConstants;
 import no.nav.sbl.sql.SqlUtils;
 import no.nav.sbl.sql.where.WhereClause;
@@ -76,6 +78,14 @@ public class VedtaksstotteRepository {
                 .execute() > 0;
     }
 
+    public boolean slettUtkast(KafkaAvsluttOppfolging kafkaMelding) {
+        return SqlUtils
+                .delete(db, VEDTAK_TABLE)
+                .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))
+                        .and(WhereClause.equals(AKTOR_ID,kafkaMelding.getAktoerId())))
+                .execute() > 0;
+    }
+
     public List<Vedtak> hentVedtak(String aktorId) {
         List<Vedtak> vedtakListe = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(AKTOR_ID, aktorId))
@@ -109,6 +119,12 @@ public class VedtaksstotteRepository {
             .execute();
     }
 
+    public void settGjeldendeVedtakTilHistorisk(KafkaAvsluttOppfolging kafkaMelding) {
+        String sqlQuery = String.format("UPDATE %s SET %s = 0 WHERE %s = %s AND = %s <= %s",
+                VEDTAK_TABLE, GJELDENDE, AKTOR_ID, kafkaMelding.getAktoerId(), SIST_OPPDATERT, kafkaMelding.getSluttdato());
+        db.update(sqlQuery);
+    }
+
     public void markerVedtakSomSendt(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
         SqlUtils.update(db, VEDTAK_TABLE)
             .whereEquals(VEDTAK_ID, vedtakId)
@@ -134,13 +150,13 @@ public class VedtaksstotteRepository {
 
     public void insertUtkast(String aktorId, String veilederIdent, String veilederEnhetId) {
         SqlUtils.insert(db, VEDTAK_TABLE)
-            .value(VEDTAK_ID, nesteFraSekvens(db, VEDTAK_SEQ))
-            .value(AKTOR_ID, aktorId)
+                .value(VEDTAK_ID, nesteFraSekvens(db, VEDTAK_SEQ))
+                .value(AKTOR_ID, aktorId)
                 .value(VEILEDER_IDENT, veilederIdent)
                 .value(VEILEDER_ENHET_ID, veilederEnhetId)
-            .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-            .value(STATUS, getName(VedtakStatus.UTKAST))
-            .execute();
+                .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
+                .value(STATUS, getName(VedtakStatus.UTKAST))
+                .execute();
     }
 
     @SneakyThrows

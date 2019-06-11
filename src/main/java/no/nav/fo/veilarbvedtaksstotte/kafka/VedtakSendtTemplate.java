@@ -7,7 +7,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 import javax.inject.Inject;
 
-import static no.nav.fo.veilarbvedtaksstotte.config.KafkaConfig.KAFKA_TOPIC;
+import static no.nav.fo.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC;
 import static no.nav.json.JsonUtils.toJson;
 
 @Slf4j
