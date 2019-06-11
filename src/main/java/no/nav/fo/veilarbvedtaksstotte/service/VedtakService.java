@@ -198,6 +198,18 @@ public class VedtakService {
         return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
     }
 
+    public boolean harUtkast(String fnr) {
+        authService.sjekkSkrivetilgangTilBruker(fnr);
+
+        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
+        return vedtaksstotteRepository.hentUtkast(bruker.getAktoerId()) != null;
+    }
+
+    public void behandleAvsluttOppfolging (KafkaAvsluttOppfolging melding ) {
+        vedtaksstotteRepository.slettUtkast(melding);
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding);
+    }
+
     private DokumentPerson dokumentPerson(String fnr) {
         PersonNavn navn = personClient.hentNavn(fnr);
 
