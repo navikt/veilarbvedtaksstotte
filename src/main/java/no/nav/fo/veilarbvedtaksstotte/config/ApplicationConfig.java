@@ -4,6 +4,7 @@ import no.nav.apiapp.ApiApplication;
 import no.nav.apiapp.config.ApiAppConfigurator;
 import no.nav.dialogarena.aktor.AktorConfig;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
+import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 
+import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
+
 @Configuration
 @EnableScheduling
 @Import({
@@ -20,7 +23,7 @@ import javax.servlet.ServletContext;
         DatabaseConfig.class,
         PepConfig.class,
         AktorConfig.class,
-        KafkaConfig.class,
+        KafkaProducerConfig.class,
         ServiceConfig.class,
         ClientConfig.class,
         RepositoryConfig.class,
