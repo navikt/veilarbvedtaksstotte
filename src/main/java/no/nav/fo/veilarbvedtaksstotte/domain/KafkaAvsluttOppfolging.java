@@ -8,6 +8,6 @@ import java.util.Date;
 @Accessors(chain = true)
 
 public class KafkaAvsluttOppfolging {
-   String aktoerId;
+   String aktorId;
    Date sluttdato;
 }
