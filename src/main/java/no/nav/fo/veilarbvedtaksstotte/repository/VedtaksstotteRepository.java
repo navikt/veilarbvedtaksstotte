@@ -81,8 +81,7 @@ public class VedtaksstotteRepository {
     public boolean slettUtkast(KafkaAvsluttOppfolging kafkaMelding) {
         return SqlUtils
                 .delete(db, VEDTAK_TABLE)
-                .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))
-                        .and(WhereClause.equals(AKTOR_ID,kafkaMelding.getAktoerId())))
+                .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)).and(WhereClause.equals(AKTOR_ID,kafkaMelding.getAktorId())))
                 .execute() > 0;
     }
 
@@ -120,8 +119,8 @@ public class VedtaksstotteRepository {
     }
 
     public void settGjeldendeVedtakTilHistorisk(KafkaAvsluttOppfolging kafkaMelding) {
-        String sqlQuery = String.format("UPDATE %s SET %s = 0 WHERE %s = %s AND = %s <= %s",
-                VEDTAK_TABLE, GJELDENDE, AKTOR_ID, kafkaMelding.getAktoerId(), SIST_OPPDATERT, kafkaMelding.getSluttdato());
+        String sqlQuery = String.format("UPDATE %s SET %s = 0 WHERE %s = %s AND %s <= %s",
+                VEDTAK_TABLE, GJELDENDE, AKTOR_ID, kafkaMelding.getAktorId(), SIST_OPPDATERT, kafkaMelding.getSluttdato());
         db.update(sqlQuery);
     }
 

@@ -53,6 +53,11 @@ public class KafkaConsumerConfig {
         return new DefaultKafkaConsumerFactory<>(kafkaProperties());
     }
 
+    @Bean
+    public AvsluttOpfolgingTemplate avsluttOpfolgingTemplate() {
+        return new AvsluttOpfolgingTemplate();
+    }
+
 
     private static HashMap<String, Object> kafkaProperties () {
         HashMap<String, Object>  props = new HashMap<> ();
