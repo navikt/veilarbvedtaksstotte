@@ -10,9 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 
 import static no.nav.json.JsonUtils.fromJson;
-import static no.nav.sbl.util.EnvironmentUtils.Type.PUBLIC;
 import static no.nav.sbl.util.EnvironmentUtils.getOptionalProperty;
-import static no.nav.sbl.util.EnvironmentUtils.setProperty;
 
 @Component
 @Slf4j
@@ -20,15 +18,10 @@ public class AvsluttOpfolgingTemplate {
 
     public static final String ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME = "ENDRING_PAA_AVSLUTTOPPFOLGING_TOPIC";
 
-    private final VedtakService vedtakService;
-
     @Inject
-    public AvsluttOpfolgingTemplate(VedtakService vedtakService, ConsumerParameters consumerParameters) {
-        this.vedtakService = vedtakService;
-        setProperty(ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME, consumerParameters.topic, PUBLIC);
-    }
+    private VedtakService vedtakService;
 
-    @KafkaListener(topics = "${" + ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME + "}", groupId = "veilarbvedtaksstotte-consumer" )
+    @KafkaListener(topics = "aapen-fo-endringPaaAvsluttOppfolging-v1-q0", groupId = "veilarbvedtaksstotte-consumer" )
     public void consume(@Payload String kafkaMelding) {
         try {
             KafkaAvsluttOppfolging melding = fromJson(kafkaMelding, KafkaAvsluttOppfolging.class);
