@@ -81,7 +81,9 @@ public class VedtaksstotteRepository {
     public boolean slettUtkast(KafkaAvsluttOppfolging kafkaMelding) {
         return SqlUtils
                 .delete(db, VEDTAK_TABLE)
-                .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)).and(WhereClause.equals(AKTOR_ID,kafkaMelding.getAktorId())))
+                .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))
+                        .and(WhereClause.equals(AKTOR_ID,kafkaMelding.getAktorId())
+                        .and(WhereClause.lteq(SIST_OPPDATERT, kafkaMelding.getSluttdato()))))
                 .execute() > 0;
     }
 
@@ -113,9 +115,9 @@ public class VedtaksstotteRepository {
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
         SqlUtils.update(db, VEDTAK_TABLE)
-            .whereEquals(AKTOR_ID, aktorId)
-            .set(GJELDENDE, 0)
-            .execute();
+                .whereEquals(AKTOR_ID, aktorId)
+                .set(GJELDENDE, 0)
+                .execute();
     }
 
     public void settGjeldendeVedtakTilHistorisk(KafkaAvsluttOppfolging kafkaMelding) {
@@ -126,25 +128,25 @@ public class VedtaksstotteRepository {
 
     public void markerVedtakSomSendt(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
         SqlUtils.update(db, VEDTAK_TABLE)
-            .whereEquals(VEDTAK_ID, vedtakId)
-            .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-            .set(STATUS, getName(VedtakStatus.SENDT))
-            .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
-            .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
-            .set(GJELDENDE, 1)
-            .execute();
+                .whereEquals(VEDTAK_ID, vedtakId)
+                .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
+                .set(STATUS, getName(VedtakStatus.SENDT))
+                .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
+                .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
+                .set(GJELDENDE, 1)
+                .execute();
     }
 
     public void oppdaterUtkast(long vedtakId, Vedtak vedtak) {
         SqlUtils.update(db, VEDTAK_TABLE)
-            .whereEquals(VEDTAK_ID, vedtakId)
-            .set(HOVEDMAL, getName(vedtak.getHovedmal()))
-            .set(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
-            .set(VEILEDER_IDENT, vedtak.getVeilederIdent())
-            .set(VEILEDER_ENHET_ID, vedtak.getVeilederEnhetId())
-            .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-            .set(BEGRUNNELSE, vedtak.getBegrunnelse())
-            .execute();
+                .whereEquals(VEDTAK_ID, vedtakId)
+                .set(HOVEDMAL, getName(vedtak.getHovedmal()))
+                .set(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
+                .set(VEILEDER_IDENT, vedtak.getVeilederIdent())
+                .set(VEILEDER_ENHET_ID, vedtak.getVeilederEnhetId())
+                .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
+                .set(BEGRUNNELSE, vedtak.getBegrunnelse())
+                .execute();
     }
 
     public void insertUtkast(String aktorId, String veilederIdent, String veilederEnhetId) {

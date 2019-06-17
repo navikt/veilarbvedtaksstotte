@@ -33,6 +33,7 @@ import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 public class ApplicationConfig implements ApiApplication {
 
     public static final String APPLICATION_NAME = "veilarbvedtaksstotte";
+    public static final String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
 
     @Inject
     protected JdbcTemplate jdbcTemplate;

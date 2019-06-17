@@ -3,6 +3,7 @@ package no.nav.fo.veilarbvedtaksstotte.config;
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.fo.veilarbvedtaksstotte.kafka.AvsluttOpfolgingTemplate;
 import no.nav.fo.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
+import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
 import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.config.SaslConfigs;
@@ -19,6 +20,7 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 
 import java.util.HashMap;
 
+import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.KAFKA_BROKERS_URL_PROPERTY;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 import static no.nav.sbl.util.EnvironmentUtils.requireEnvironmentName;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
@@ -29,8 +31,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZE
 @Configuration
 @Import({ KafkaHelsesjekk.class })
 public class KafkaConsumerConfig {
-    public static final String KAFKA_CONSUMER_TOPIC = "aapen-fo-endringPaaAvsluttOppfolging-v1-" + requireEnvironmentName();
-    public static final String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
+    private static final String KAFKA_CONSUMER_TOPIC = "aapen-fo-endringPaaAvsluttOppfolging-v1-" + requireEnvironmentName();
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
     private static final String USERNAME = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_USERNAME);
     private static final String PASSWORD = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_PASSWORD);
@@ -54,10 +55,9 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public AvsluttOpfolgingTemplate avsluttOpfolgingTemplate() {
-        return new AvsluttOpfolgingTemplate();
+    public AvsluttOpfolgingTemplate avsluttOpfolgingTemplate(VedtakService vedtakService) {
+        return new AvsluttOpfolgingTemplate(vedtakService, consumerParameters());
     }
-
 
     private static HashMap<String, Object> kafkaProperties () {
         HashMap<String, Object>  props = new HashMap<> ();
