@@ -36,6 +36,7 @@ public class VedtaksstotteRepository {
     private final static String VEILEDER_IDENT      = "VEILEDER_IDENT";
     private final static String VEILEDER_ENHET_ID   = "VEILEDER_ENHET_ID";
     private final static String SIST_OPPDATERT      = "SIST_OPPDATERT";
+    private final static String UTKAST_OPPRETTET    = "UTKAST_OPPRETTET";
     private final static String BEGRUNNELSE         = "BEGRUNNELSE";
     private final static String STATUS              = "STATUS";
     private final static String DOKUMENT_ID         = "DOKUMENT_ID";
@@ -167,6 +168,7 @@ public class VedtaksstotteRepository {
                 .setVedtakStatus(valueOf(VedtakStatus.class, rs.getString(STATUS)))
                 .setBegrunnelse(rs.getString(BEGRUNNELSE))
                 .setSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
+                .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
                 .setGjeldende(rs.getInt(GJELDENDE) == 1)
                 .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))

@@ -17,6 +17,7 @@ public class Vedtak {
     Innsatsgruppe innsatsgruppe;
     VedtakStatus vedtakStatus;
     LocalDateTime sistOppdatert;
+    LocalDateTime utkastOpprettet;
     String begrunnelse;
     String veilederIdent;
     String veilederEnhetId;
