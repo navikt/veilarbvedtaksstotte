@@ -75,7 +75,7 @@ public class VedtakService {
         this.transactor = transactor;
     }
 
-    public DokumentSendtDTO sendVedtak(String fnr) {
+    public DokumentSendtDTO sendVedtak(String fnr, String beslutter) {
 
         validerFnr(fnr);
 
@@ -111,7 +111,7 @@ public class VedtakService {
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
-            vedtaksstotteRepository.markerVedtakSomSendt(vedtakId, dokumentSendt);
+            vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendt, beslutter);
         });
 
         kafkaService.sendVedtak(vedtakId);
