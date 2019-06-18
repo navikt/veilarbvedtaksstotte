@@ -21,6 +21,7 @@ public class Vedtak {
     String begrunnelse;
     String veilederIdent;
     String veilederEnhetId;
+    String veilederEnhetNavn;
     String aktorId;
     boolean gjeldende;
     List<String> opplysninger;
