@@ -33,6 +33,7 @@ public class VedtaksstotteRepository {
     private final static String INNSATSGRUPPE       = "INNSATSGRUPPE";
     private final static String VEILEDER_IDENT      = "VEILEDER_IDENT";
     private final static String VEILEDER_ENHET_ID   = "VEILEDER_ENHET_ID";
+    private final static String VEILEDER_ENHET_NAVN = "VEILEDER_ENHET_NAVN";
     private final static String SIST_OPPDATERT      = "SIST_OPPDATERT";
     private final static String UTKAST_OPPRETTET    = "UTKAST_OPPRETTET";
     private final static String BEGRUNNELSE         = "BEGRUNNELSE";
@@ -133,12 +134,13 @@ public class VedtaksstotteRepository {
             .execute();
     }
 
-    public void insertUtkast(String aktorId, String veilederIdent, String veilederEnhetId) {
+    public void insertUtkast(String aktorId, String veilederIdent, String veilederEnhetId, String veilederEnhetNavn) {
         SqlUtils.insert(db, VEDTAK_TABLE)
             .value(VEDTAK_ID, nesteFraSekvens(db, VEDTAK_SEQ))
             .value(AKTOR_ID, aktorId)
-                .value(VEILEDER_IDENT, veilederIdent)
-                .value(VEILEDER_ENHET_ID, veilederEnhetId)
+            .value(VEILEDER_IDENT, veilederIdent)
+            .value(VEILEDER_ENHET_ID, veilederEnhetId)
+            .value(VEILEDER_ENHET_NAVN, veilederEnhetNavn)
             .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .value(STATUS, getName(VedtakStatus.UTKAST))
             .execute();
@@ -157,6 +159,7 @@ public class VedtaksstotteRepository {
                 .setGjeldende(rs.getInt(GJELDENDE) == 1)
                 .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
+                .setVeilederEnhetNavn(rs.getString(VEILEDER_ENHET_NAVN))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
                 .setDokumentInfoId(rs.getString(DOKUMENT_ID));
