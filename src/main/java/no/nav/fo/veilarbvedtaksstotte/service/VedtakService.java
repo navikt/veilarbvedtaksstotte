@@ -88,6 +88,10 @@ public class VedtakService {
             throw new NotFoundException("Fant ikke vedtak å sende for bruker");
         }
 
+        if (skalHaBeslutter(vedtak.getInnsatsgruppe()) && (beslutter == null || beslutter.isEmpty())) {
+            throw new IllegalArgumentException("Vedtak kan ikke bli sendt uten beslutter");
+        }
+
         long vedtakId = vedtak.getId();
 
         lagreOyblikksbilde(fnr, vedtakId);
@@ -231,6 +235,11 @@ public class VedtakService {
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak))
                 .setBruker(dokumentPerson)
                 .setMottaker(dokumentPerson);
+    }
+
+    private boolean skalHaBeslutter(Innsatsgruppe innsatsgruppe) {
+        return Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS == innsatsgruppe
+                || Innsatsgruppe.VARIG_TILPASSET_INNSATS == innsatsgruppe;
     }
 
     private void lagreOyblikksbilde(String fnr, long vedtakId) {
