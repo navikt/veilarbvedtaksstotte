@@ -75,7 +75,7 @@ public class VedtakService {
         this.transactor = transactor;
     }
 
-    public DokumentSendtDTO sendVedtak(String fnr) {
+    public DokumentSendtDTO sendVedtak(String fnr, String beslutter) {
 
         validerFnr(fnr);
 
@@ -86,6 +86,10 @@ public class VedtakService {
 
         if (vedtak == null) {
             throw new NotFoundException("Fant ikke vedtak å sende for bruker");
+        }
+
+        if (skalHaBeslutter(vedtak.getInnsatsgruppe()) && (beslutter == null || beslutter.isEmpty())) {
+            throw new IllegalArgumentException("Vedtak kan ikke bli sendt uten beslutter");
         }
 
         long vedtakId = vedtak.getId();
@@ -111,7 +115,7 @@ public class VedtakService {
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
-            vedtaksstotteRepository.markerVedtakSomSendt(vedtakId, dokumentSendt);
+            vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendt, beslutter);
         });
 
         kafkaService.sendVedtak(vedtakId);
@@ -231,6 +235,11 @@ public class VedtakService {
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak))
                 .setBruker(dokumentPerson)
                 .setMottaker(dokumentPerson);
+    }
+
+    private boolean skalHaBeslutter(Innsatsgruppe innsatsgruppe) {
+        return Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS == innsatsgruppe
+                || Innsatsgruppe.VARIG_TILPASSET_INNSATS == innsatsgruppe;
     }
 
     private void lagreOyblikksbilde(String fnr, long vedtakId) {

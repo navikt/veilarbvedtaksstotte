@@ -35,6 +35,7 @@ public class VedtaksstotteRepository {
     private final static String VEILEDER_ENHET_ID   = "VEILEDER_ENHET_ID";
     private final static String VEILEDER_ENHET_NAVN = "VEILEDER_ENHET_NAVN";
     private final static String SIST_OPPDATERT      = "SIST_OPPDATERT";
+    private final static String BESLUTTER           = "BESLUTTER";
     private final static String UTKAST_OPPRETTET    = "UTKAST_OPPRETTET";
     private final static String BEGRUNNELSE         = "BEGRUNNELSE";
     private final static String STATUS              = "STATUS";
@@ -111,13 +112,14 @@ public class VedtaksstotteRepository {
             .execute();
     }
 
-    public void markerVedtakSomSendt(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
+    public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO, String beslutter){
         SqlUtils.update(db, VEDTAK_TABLE)
             .whereEquals(VEDTAK_ID, vedtakId)
             .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .set(STATUS, getName(VedtakStatus.SENDT))
             .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
             .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
+            .set(BESLUTTER, beslutter)
             .set(GJELDENDE, 1)
             .execute();
     }
@@ -159,6 +161,7 @@ public class VedtaksstotteRepository {
                 .setGjeldende(rs.getInt(GJELDENDE) == 1)
                 .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
+                .setBeslutter(rs.getString(BESLUTTER))
                 .setVeilederEnhetNavn(rs.getString(VEILEDER_ENHET_NAVN))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
