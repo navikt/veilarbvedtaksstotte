@@ -47,6 +47,8 @@ fasitResources:
     resourceType: restservice
     propertyMap:
       url: SAF_HENTDOKUMENT_URL
+  - alias: unleash-api
+    resourceType: restservice
 
   # ISSO
   - alias: isso-host

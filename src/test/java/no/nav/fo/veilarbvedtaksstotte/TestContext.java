@@ -7,6 +7,7 @@ import no.nav.fasit.ServiceUser;
 import no.nav.fasit.WebServiceEndpoint;
 import no.nav.sbl.dialogarena.common.abac.pep.CredentialConstants;
 import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
+import no.nav.sbl.util.EnvironmentUtils;
 
 import static java.lang.System.setProperty;
 import static no.nav.dialogarena.aktor.AktorConfig.AKTOER_ENDPOINT_URL;
@@ -32,6 +33,8 @@ import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC;
 import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC_API_URL_PROPERTY;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestUtils.lagFssUrl;
 import static no.nav.sbl.dialogarena.common.abac.pep.service.AbacServiceConfig.ABAC_ENDPOINT_URL_PROPERTY_NAME;
+import static no.nav.sbl.featuretoggle.unleash.UnleashServiceConfig.UNLEASH_API_URL_PROPERTY_NAME;
+import static no.nav.sbl.util.EnvironmentUtils.Type.PUBLIC;
 
 
 public class TestContext {
@@ -51,6 +54,7 @@ public class TestContext {
         setProperty(VEILARBARENA_API_PROPERTY_NAME, lagFssUrl(VEILARBARENA));
         setProperty(VEILARBABAC_API_URL_PROPERTY, lagFssUrl(VEILARBABAC, false));
         setProperty(KAFKA_BROKERS_URL_PROPERTY, "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443");
+        EnvironmentUtils.setProperty(UNLEASH_API_URL_PROPERTY_NAME, "https://unleash.nais.adeo.no/api/", PUBLIC);
 
         //sts
         setProperty(StsSecurityConstants.STS_URL_KEY, securityTokenService);
