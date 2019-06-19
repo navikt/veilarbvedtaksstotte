@@ -12,6 +12,8 @@ import static no.nav.fo.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA_API
 import static no.nav.fo.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA;
 import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.VEILARBVEDTAKINFO;
 import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.EGENVURDERING_API_PROPERTY_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.client.EnhetNavnClient.VEILARBVEILEDER;
+import static no.nav.fo.veilarbvedtaksstotte.client.EnhetNavnClient.VEILARBVEILEDER_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
 import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.VEILARBREGISTRERING;
@@ -27,6 +29,7 @@ public class Main {
         setProperty(AKTOER_ENDPOINT_URL, getRequiredProperty("AKTOER_V2_ENDPOINTURL"));
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagClusterUrl(VEILARBDOKUMENT));
         setProperty(PERSON_API_PROPERTY_NAME, lagClusterUrl(VEILARBPERSON));
+        setProperty(VEILARBVEILEDER_API_PROPERTY_NAME, lagClusterUrl(VEILARBVEILEDER));
         setProperty(REGISTRERING_API_PROPERTY_NAME, lagClusterUrl(VEILARBREGISTRERING));
         setProperty(EGENVURDERING_API_PROPERTY_NAME, lagClusterUrl(VEILARBVEDTAKINFO));
         setProperty(VEILARBARENA_API_PROPERTY_NAME, lagClusterUrl(VEILARBARENA));

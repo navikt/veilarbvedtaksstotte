@@ -17,10 +17,13 @@ public class Vedtak {
     Innsatsgruppe innsatsgruppe;
     VedtakStatus vedtakStatus;
     LocalDateTime sistOppdatert;
+    LocalDateTime utkastOpprettet;
     String begrunnelse;
     String veilederIdent;
     String veilederEnhetId;
+    String veilederEnhetNavn;
     String aktorId;
+    String beslutter;
     boolean gjeldende;
     List<String> opplysninger;
     String journalpostId;

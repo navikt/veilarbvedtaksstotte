@@ -30,6 +30,7 @@ public class VedtakService {
     private DokumentClient dokumentClient;
     private SAFClient safClient;
     private PersonClient personClient;
+    private EnhetNavnClient enhetNavnClient;
     private CVClient cvClient;
     private RegistreringClient registreringClient;
     private EgenvurderingClient egenvurderingClient;
@@ -37,6 +38,7 @@ public class VedtakService {
     private VeilederService veilederService;
     private MalTypeService malTypeService;
     private KafkaService kafkaService;
+    private MetricsService metricsService;
     private Transactor transactor;
 
     @Inject
@@ -46,14 +48,14 @@ public class VedtakService {
                          AuthService authService,
                          DokumentClient dokumentClient,
                          SAFClient safClient, PersonClient personClient,
-                         CVClient cvClient,
+                         EnhetNavnClient enhetNavnClient, CVClient cvClient,
                          RegistreringClient registreringClient,
                          EgenvurderingClient egenvurderingClient,
                          ArenaClient arenaClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
                          KafkaService kafkaService,
-                         Transactor transactor) {
+                         MetricsService metricsService, Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.opplysningerRepository = opplysningerRepository;
         this.oyblikksbildeRepository = oyblikksbildeRepository;
@@ -61,6 +63,7 @@ public class VedtakService {
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
         this.personClient = personClient;
+        this.enhetNavnClient = enhetNavnClient;
         this.arenaClient = arenaClient;
         this.cvClient = cvClient;
         this.registreringClient = registreringClient;
@@ -68,10 +71,11 @@ public class VedtakService {
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
         this.kafkaService = kafkaService;
+        this.metricsService = metricsService;
         this.transactor = transactor;
     }
 
-    public DokumentSendtDTO sendVedtak(String fnr) {
+    public DokumentSendtDTO sendVedtak(String fnr, String beslutter) {
 
         validerFnr(fnr);
 
@@ -84,11 +88,21 @@ public class VedtakService {
             throw new NotFoundException("Fant ikke vedtak å sende for bruker");
         }
 
+        if (skalHaBeslutter(vedtak.getInnsatsgruppe()) && (beslutter == null || beslutter.isEmpty())) {
+            throw new IllegalArgumentException("Vedtak kan ikke bli sendt uten beslutter");
+        }
+
         long vedtakId = vedtak.getId();
 
         lagreOyblikksbilde(fnr, vedtakId);
 
         String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
+
+        if (!vedtak.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
+            String enhetNavn = enhetNavnClient.hentEnhetNavn(oppfolgingsenhetId);
+            vedtak.setVeilederEnhetNavn(enhetNavn);
+        }
+
         vedtak.setVeilederEnhetId(oppfolgingsenhetId);
         vedtak.setVeilederIdent(veilederService.hentVeilederIdentFraToken());
 
@@ -101,10 +115,12 @@ public class VedtakService {
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
-            vedtaksstotteRepository.markerVedtakSomSendt(vedtakId, dokumentSendt);
+            vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendt, beslutter);
         });
 
         kafkaService.sendVedtak(vedtakId);
+
+        metricsService.rapporterVedtakSendt(vedtak);
 
         return dokumentSendt;
     }
@@ -114,38 +130,41 @@ public class VedtakService {
 
         Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
         String aktorId = bruker.getAktoerId();
-        String veilederIdent = veilederService.hentVeilederIdentFraToken();
-        String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
         if (utkast != null) {
             throw new RuntimeException(format("Kan ikke lage nytt utkast, brukeren(%s) har allerede et aktivt utkast", aktorId));
         }
 
-        vedtaksstotteRepository.insertUtkast(aktorId, veilederIdent, oppfolgingsenhetId);
+        String veilederIdent = veilederService.hentVeilederIdentFraToken();
+        String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
+        String enhetNavn = enhetNavnClient.hentEnhetNavn(oppfolgingsenhetId);
+
+        vedtaksstotteRepository.insertUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
         validerFnr(fnr);
 
         Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
-
         String veilederIdent = veilederService.hentVeilederIdentFraToken();
-
         String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
         Vedtak nyttUtkast = vedtakDTO.tilVedtakFraUtkast()
                 .setVeilederIdent(veilederIdent)
                 .setVeilederEnhetId(oppfolgingsenhetId);
 
-        if (nyttUtkast.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
-            nyttUtkast.setHovedmal(null);
+        if (utkast == null) {
+            throw new NotFoundException(format("Fant ikke utkast å oppdatere for bruker med aktorId: %s", bruker.getAktoerId()));
         }
 
-        if (utkast == null) {
-            throw new NotFoundException(format("Fante ikke utkast å oppdatere for bruker med aktorId: %s", bruker.getAktoerId()));
+        if (!utkast.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
+            String enhetNavn = enhetNavnClient.hentEnhetNavn(oppfolgingsenhetId);
+            nyttUtkast.setVeilederEnhetNavn(enhetNavn);
+        }
+
+        if (nyttUtkast.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
+            nyttUtkast.setHovedmal(null);
         }
 
         transactor.inTransaction(() -> {
@@ -159,12 +178,14 @@ public class VedtakService {
         validerFnr(fnr);
 
         Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
-
         Vedtak vedtak = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
+
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.slettUtkast(bruker.getAktoerId());
             opplysningerRepository.slettOpplysninger(vedtak.getId());
         });
+
+        metricsService.rapporterUtkastSlettet();
     }
 
     public List<Vedtak> hentVedtak(String fnr) {
@@ -226,6 +247,11 @@ public class VedtakService {
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak))
                 .setBruker(dokumentPerson)
                 .setMottaker(dokumentPerson);
+    }
+
+    private boolean skalHaBeslutter(Innsatsgruppe innsatsgruppe) {
+        return Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS == innsatsgruppe
+                || Innsatsgruppe.VARIG_TILPASSET_INNSATS == innsatsgruppe;
     }
 
     private void lagreOyblikksbilde(String fnr, long vedtakId) {

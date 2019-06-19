@@ -1,10 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.resource;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
-import no.nav.fo.veilarbvedtaksstotte.domain.Oyblikksbilde;
-import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.fo.veilarbvedtaksstotte.domain.VedtakDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.stereotype.Controller;
 
@@ -28,8 +25,8 @@ public class VedtakResource {
 
     @POST
     @Path("/vedtak/send")
-    public DokumentSendtDTO sendVedtak(@PathParam("fnr") String fnr) {
-        return vedtakService.sendVedtak(fnr);
+    public DokumentSendtDTO sendVedtak(@PathParam("fnr") String fnr, SendVedtakDTO sendVedtakDTO) {
+        return vedtakService.sendVedtak(fnr, sendVedtakDTO.getBeslutter());
     }
 
     @GET
