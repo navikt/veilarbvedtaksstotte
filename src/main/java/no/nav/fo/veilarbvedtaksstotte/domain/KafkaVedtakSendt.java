@@ -13,7 +13,7 @@ public class KafkaVedtakSendt {
     long id;
     LocalDateTime vedtakSendt;
     Innsatsgruppe innsatsgruppe;
-    Hovedmal hovedmaal;
+    Hovedmal hovedmal;
     String aktorId;
     String enhetId;
 }
