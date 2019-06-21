@@ -123,7 +123,7 @@ public class VedtaksstotteRepository {
     }
 
     public void settGjeldendeVedtakTilHistorisk(KafkaAvsluttOppfolging kafkaMelding) {
-        String sqlQuery = String.format("UPDATE %s SET %s = 0 WHERE %s = %s AND %s <= %s",
+        String sqlQuery = String.format("UPDATE %s SET %s = 0 WHERE %s = %s AND %s <= %s;",
                 VEDTAK_TABLE, GJELDENDE, AKTOR_ID, kafkaMelding.getAktorId(), SIST_OPPDATERT, kafkaMelding.getSluttdato());
         db.update(sqlQuery);
     }
