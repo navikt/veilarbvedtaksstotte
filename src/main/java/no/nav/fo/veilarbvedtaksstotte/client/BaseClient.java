@@ -74,8 +74,12 @@ public class BaseClient {
             data = getData(response, dataClass);
         }
 
+        public int getStatus() {
+            return response.getStatus();
+        }
+
         public boolean hasStatus (int status) {
-            return response.getStatus() == status;
+            return getStatus() == status;
         }
 
         public RestResponse<T> withStatusCheck() {
