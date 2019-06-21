@@ -229,7 +229,7 @@ public class VedtakService {
                 .setBegrunnelse(vedtak.getBegrunnelse())
                 .setVeilederEnhet(vedtak.getVeilederEnhetId())
                 .setOpplysninger(vedtak.getOpplysninger())
-                .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak))
+                .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak, dokumentPerson.getFnr()))
                 .setBruker(dokumentPerson)
                 .setMottaker(dokumentPerson);
     }
@@ -241,7 +241,7 @@ public class VedtakService {
 
     private void lagreOyblikksbilde(String fnr, long vedtakId) {
         final String cvData = cvClient.hentCV(fnr);
-        final String registreringData = registreringClient.hentRegistrering(fnr);
+        final String registreringData = registreringClient.hentRegistreringJson(fnr);
         final String egenvurderingData = egenvurderingClient.hentEgenvurdering(fnr);
 
         List<Oyblikksbilde> oyblikksbilde = Arrays.asList(
