@@ -123,21 +123,19 @@ public class VedtaksstotteRepository {
     }
 
     public void settGjeldendeVedtakTilHistorisk(KafkaAvsluttOppfolging kafkaMelding) {
-        String sqlQuery = String.format("UPDATE %s SET %s = 0 WHERE %s = %s AND %s <= %s",
-                VEDTAK_TABLE, GJELDENDE, AKTOR_ID, kafkaMelding.getAktorId(), SIST_OPPDATERT, kafkaMelding.getSluttdato());
-        db.update(sqlQuery);
+        db.update("UPDATE VEDTAK SET GJELDENDE= ? WHERE AKTOR_ID= ? AND SIST_OPPDATERT<= ?", 0, kafkaMelding.getAktorId(), kafkaMelding.getSluttdato());
     }
 
     public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO, String beslutter){
         SqlUtils.update(db, VEDTAK_TABLE)
-                .whereEquals(VEDTAK_ID, vedtakId)
-                .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-                .set(STATUS, getName(VedtakStatus.SENDT))
-                .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
-                .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
-                .set(BESLUTTER, beslutter)
-                .set(GJELDENDE, 1)
-                .execute();
+            .whereEquals(VEDTAK_ID, vedtakId)
+            .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
+            .set(STATUS, getName(VedtakStatus.SENDT))
+            .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
+            .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
+            .set(BESLUTTER, beslutter)
+            .set(GJELDENDE, 1)
+            .execute();
     }
 
     public void oppdaterUtkast(long vedtakId, Vedtak vedtak) {
