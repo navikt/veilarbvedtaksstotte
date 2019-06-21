@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
-import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 
@@ -39,19 +38,13 @@ public class KafkaConsumerConfig {
     @Bean
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaAvsluttOppfolging>> kafkaListenerContainerFactory(KafkaHelsesjekk kafkaHelsesjekk) {
         ConcurrentKafkaListenerContainerFactory<String, KafkaAvsluttOppfolging> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaProperties()));
         factory.getContainerProperties().setErrorHandler(kafkaHelsesjekk);
         return factory;
     }
 
-    @Bean
     public AvsluttOpfolgingTemplate.ConsumerParameters consumerParameters() {
         return new AvsluttOpfolgingTemplate.ConsumerParameters(KAFKA_CONSUMER_TOPIC);
-    }
-
-    @Bean
-    public ConsumerFactory<String, KafkaAvsluttOppfolging> consumerFactory() {
-        return new DefaultKafkaConsumerFactory<>(kafkaProperties());
     }
 
     @Bean

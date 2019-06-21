@@ -3,10 +3,8 @@ package no.nav.fo.veilarbvedtaksstotte.kafka;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.stereotype.Component;
 
 
 import static no.nav.json.JsonUtils.fromJson;
@@ -14,7 +12,6 @@ import static no.nav.sbl.util.EnvironmentUtils.Type.PUBLIC;
 import static no.nav.sbl.util.EnvironmentUtils.getOptionalProperty;
 import static no.nav.sbl.util.EnvironmentUtils.setProperty;
 
-@Component
 @Slf4j
 public class AvsluttOpfolgingTemplate {
 
@@ -22,7 +19,6 @@ public class AvsluttOpfolgingTemplate {
 
     private final VedtakService vedtakService;
 
-    @Autowired
     public AvsluttOpfolgingTemplate(VedtakService vedtakService, ConsumerParameters consumerParameters) {
         this.vedtakService = vedtakService;
         setProperty(ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME, consumerParameters.topic, PUBLIC);
