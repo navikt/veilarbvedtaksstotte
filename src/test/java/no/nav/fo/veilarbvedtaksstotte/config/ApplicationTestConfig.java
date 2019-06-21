@@ -6,12 +6,9 @@ import no.nav.fo.veilarbvedtaksstotte.db.DatabaseTestContext;
 import no.nav.fo.veilarbvedtaksstotte.mock.AktorServiceMock;
 import no.nav.fo.veilarbvedtaksstotte.mock.Mock;
 import no.nav.fo.veilarbvedtaksstotte.mock.PepClientMock;
-import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-
-import javax.servlet.ServletContext;
 
 @Configuration
 public class ApplicationTestConfig extends ApplicationConfig {
@@ -19,10 +16,8 @@ public class ApplicationTestConfig extends ApplicationConfig {
     public static final boolean RUN_WITH_MOCKS = false;
 
     @Override
-    public void startup(ServletContext servletContext) {
-        if (DatabaseTestContext.isInMemoryDatabase()) {
-            DbUtils.migrate(jdbcTemplate);
-        }
+    public boolean doDatabaseMigration() {
+        return DatabaseTestContext.isInMemoryDatabase();
     }
 
     @Bean
