@@ -123,9 +123,9 @@ public class VedtaksstotteRepository {
     }
 
     public void settGjeldendeVedtakTilHistorisk(KafkaAvsluttOppfolging kafkaMelding) {
-        String sqlQuery = String.format("UPDATE %s SET %s = 0 WHERE %s = %s AND %s <= %s",
-                VEDTAK_TABLE, GJELDENDE, AKTOR_ID, kafkaMelding.getAktorId(), SIST_OPPDATERT, kafkaMelding.getSluttdato());
-        db.update(sqlQuery);
+        db.update( "UPDATE " + VEDTAK_TABLE +
+                " SET " + GJELDENDE +"= ?" +
+                " WHERE " + AKTOR_ID + "= ?" +  " AND " +  SIST_OPPDATERT + "<= ?", 0, kafkaMelding.getAktorId(), kafkaMelding.getSluttdato());
     }
 
     public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO, String beslutter){
