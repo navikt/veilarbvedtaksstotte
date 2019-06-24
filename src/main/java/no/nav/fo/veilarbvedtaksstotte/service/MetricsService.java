@@ -1,18 +1,32 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
+import no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient;
+import no.nav.fo.veilarbvedtaksstotte.domain.OppfolgingPeriodeDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.fo.veilarbvedtaksstotte.utils.OppfolgingUtils;
 import no.nav.metrics.Event;
 import no.nav.metrics.MetricsFactory;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Date;
+import java.util.List;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
 @Service
 public class MetricsService {
+
+    private OppfolgingClient oppfolgingClient;
+    public static final int MILLISEC_IN_A_DAY = 24* 60 * 60 * 1000;
+
+    @Inject
+    public MetricsService (OppfolgingClient oppfolgingClient)  {
+        this.oppfolgingClient = oppfolgingClient;
+    }
 
     private static Event createMetricEvent(String tagName) {
         return MetricsFactory.createEvent(APPLICATION_NAME + ".metrikker." + tagName);
@@ -36,6 +50,23 @@ public class MetricsService {
         }
 
         event.report();
+    }
+
+    public void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, String fnr) {
+        String servicegruppe = oppfolgingClient.hentServicegruppe(fnr);
+        if(OppfolgingUtils.erSykmeldtUtenArbeidsgiver(servicegruppe)){
+            List<OppfolgingPeriodeDTO> oppfolgingPerioder = oppfolgingClient.hentOppfolgingsPerioder(fnr);
+            Date startDato = OppfolgingUtils.getOppfolgingStartDato(oppfolgingPerioder);
+            Date vedtakSendtDato = new Date();
+            String diff = Long.toString((vedtakSendtDato.getTime() - startDato.getTime())/MILLISEC_IN_A_DAY);
+
+            Event event = createMetricEvent("sykmeldt-uten-arbeidsgiver-vedtak-sendt");
+            event.addFieldToReport("dagerBrukt", diff);
+            event.addFieldToReport("oppfolgingStartDato", startDato.toString());
+            event.addFieldToReport("vedtakSendtDato", vedtakSendtDato.toString());
+            event.addFieldToReport("enhetsId", vedtak.getVeilederEnhetId());
+            event.report();
+        }
     }
 
     public void rapporterUtkastSlettet() {
