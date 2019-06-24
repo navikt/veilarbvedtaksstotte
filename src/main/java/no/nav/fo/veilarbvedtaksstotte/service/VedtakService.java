@@ -34,7 +34,6 @@ public class VedtakService {
     private CVClient cvClient;
     private RegistreringClient registreringClient;
     private EgenvurderingClient egenvurderingClient;
-    private ArenaClient arenaClient;
     private VeilederService veilederService;
     private MalTypeService malTypeService;
     private KafkaService kafkaService;
@@ -51,7 +50,6 @@ public class VedtakService {
                          EnhetNavnClient enhetNavnClient, CVClient cvClient,
                          RegistreringClient registreringClient,
                          EgenvurderingClient egenvurderingClient,
-                         ArenaClient arenaClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
                          KafkaService kafkaService,
@@ -64,7 +62,6 @@ public class VedtakService {
         this.safClient = safClient;
         this.personClient = personClient;
         this.enhetNavnClient = enhetNavnClient;
-        this.arenaClient = arenaClient;
         this.cvClient = cvClient;
         this.registreringClient = registreringClient;
         this.egenvurderingClient = egenvurderingClient;
@@ -79,8 +76,8 @@ public class VedtakService {
 
         validerFnr(fnr);
 
-        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
-        String aktorId = bruker.getAktoerId();
+        AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
+        String aktorId = authKontekst.getBruker().getAktoerId();
 
         Vedtak vedtak = vedtaksstotteRepository.hentUtkast(aktorId);
 
@@ -96,8 +93,7 @@ public class VedtakService {
 
         lagreOyblikksbilde(fnr, vedtakId);
 
-        String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
-
+        String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
         if (!vedtak.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
             String enhetNavn = enhetNavnClient.hentEnhetNavn(oppfolgingsenhetId);
             vedtak.setVeilederEnhetNavn(enhetNavn);
@@ -128,8 +124,8 @@ public class VedtakService {
     public void lagUtkast(String fnr) {
         validerFnr(fnr);
 
-        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
-        String aktorId = bruker.getAktoerId();
+        AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
+        String aktorId = authKontekst.getBruker().getAktoerId();
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
         if (utkast != null) {
@@ -137,7 +133,7 @@ public class VedtakService {
         }
 
         String veilederIdent = veilederService.hentVeilederIdentFraToken();
-        String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
+        String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
         String enhetNavn = enhetNavnClient.hentEnhetNavn(oppfolgingsenhetId);
 
         vedtaksstotteRepository.insertUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
@@ -146,9 +142,10 @@ public class VedtakService {
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
         validerFnr(fnr);
 
-        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
+        AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
+        Bruker bruker = authKontekst.getBruker();
         String veilederIdent = veilederService.hentVeilederIdentFraToken();
-        String oppfolgingsenhetId = arenaClient.oppfolgingsenhet(fnr);
+        String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
         Vedtak nyttUtkast = vedtakDTO.tilVedtakFraUtkast()
                 .setVeilederIdent(veilederIdent)
@@ -177,7 +174,7 @@ public class VedtakService {
     public void slettUtkast(String fnr) {
         validerFnr(fnr);
 
-        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
+        Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
         Vedtak vedtak = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
 
         transactor.inTransaction(() -> {
@@ -191,7 +188,7 @@ public class VedtakService {
     public List<Vedtak> hentVedtak(String fnr) {
         validerFnr(fnr);
 
-        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
+        Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
 
         return vedtaksstotteRepository.hentVedtak(bruker.getAktoerId());
     }
@@ -199,7 +196,7 @@ public class VedtakService {
     public byte[] produserDokumentUtkast(String fnr) {
         validerFnr(fnr);
 
-        Bruker bruker = authService.sjekkSkrivetilgangTilBruker(fnr);
+        Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
 
         SendDokumentDTO sendDokumentDTO =
                 Optional.ofNullable(vedtaksstotteRepository.hentUtkast(bruker.getAktoerId()))
@@ -210,12 +207,12 @@ public class VedtakService {
     }
 
     public List<Oyblikksbilde> hentOyblikksbildeForVedtak(String fnr, long vedtakId) {
-        authService.sjekkSkrivetilgangTilBruker(fnr);
+        authService.sjekkTilgang(fnr);
         return oyblikksbildeRepository.hentOyblikksbildeForVedtak(vedtakId);
     }
 
     public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
-        authService.sjekkSkrivetilgangTilBruker(fnr);
+        authService.sjekkTilgang(fnr);
         return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
     }
 
