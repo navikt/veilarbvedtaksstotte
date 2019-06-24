@@ -117,6 +117,7 @@ public class VedtakService {
         kafkaService.sendVedtak(vedtakId);
 
         metricsService.rapporterVedtakSendt(vedtak);
+        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(fnr);
 
         return dokumentSendt;
     }
