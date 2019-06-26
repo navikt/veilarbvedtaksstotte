@@ -1,18 +1,49 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
+import no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient;
+import no.nav.fo.veilarbvedtaksstotte.domain.RegistreringData;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.MalType;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
+
 @Service
 public class MalTypeService {
 
-    public MalType utledMalTypeFraVedtak(Vedtak vedtak) {
+    private RegistreringClient registreringClient;
+
+    @Inject
+    public MalTypeService(RegistreringClient registreringClient){
+        this.registreringClient = registreringClient;
+    }
+
+    public MalType utledMalTypeFraVedtak(Vedtak vedtak, String fnr) {
 
         Innsatsgruppe innsatsgruppe = vedtak.getInnsatsgruppe();
         Hovedmal hovedmal = vedtak.getHovedmal();
+
+        if (Innsatsgruppe.STANDARD_INNSATS.equals(innsatsgruppe) && Hovedmal.SKAFFE_ARBEID.equals(hovedmal)) {
+
+            RegistreringData registreringData = registreringClient.hentRegistreringData(fnr);
+
+            if (registreringData != null) {
+                RegistreringData.Profilering profilering = registreringClient.hentRegistreringData(fnr).registrering.profilering;
+
+                // Sykmeldte brukere har ikke profilering
+                if (profilering != null && profilering.innsatsgruppe == RegistreringData.ProfilertInnsatsgruppe.STANDARD_INNSATS) {
+                    return MalType.STANDARD_INNSATS_SKAFFE_ARBEID_PROFILERING;
+                }
+            }
+
+        }
+
+        return utledMalType(innsatsgruppe, hovedmal);
+    }
+
+    private MalType utledMalType(Innsatsgruppe innsatsgruppe, Hovedmal hovedmal) {
 
         switch (innsatsgruppe) {
             case STANDARD_INNSATS:

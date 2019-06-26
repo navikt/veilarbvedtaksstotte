@@ -1,6 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.fo.veilarbvedtaksstotte.domain.RegistreringData;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -20,10 +21,29 @@ public class RegistreringClient extends BaseClient {
         super(getRequiredProperty(REGISTRERING_API_PROPERTY_NAME), httpServletRequestProvider);
     }
 
-    public String hentRegistrering(String fnr) {
-        return get(joinPaths(baseUrl, "api", "registrering?fnr=") + fnr, String.class)
-                .withStatusCheck()
-                .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbregistrering/api/registrering?fnr="));
+    public String hentRegistreringJson(String fnr) {
+      return hentRegistrering(fnr, String.class);
     }
+
+    public RegistreringData hentRegistreringData(String fnr) {
+        return hentRegistrering(fnr, RegistreringData.class);
+    }
+
+    private <T> T hentRegistrering(String fnr, Class<T> responseType) {
+        String hentRegistreringUrl = joinPaths(baseUrl, "api", "registrering?fnr=") + fnr;
+        RestResponse<T> response = get(hentRegistreringUrl, responseType);
+
+        if (response.hasStatus(404) || response.hasStatus(204)) {
+            return null;
+        }
+
+        if (response.getStatus() >= 400) {
+            throw new RuntimeException("Feil ved kall mot " + hentRegistreringUrl);
+        }
+
+        return response
+                .getData()
+                .orElseThrow(() -> new RuntimeException("Feil ved kall mot " + hentRegistreringUrl));
+    }
+
 }
