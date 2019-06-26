@@ -21,7 +21,6 @@ import java.util.HashMap;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.KAFKA_BROKERS_URL_PROPERTY;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
-import static no.nav.sbl.util.EnvironmentUtils.requireEnvironmentName;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
@@ -30,7 +29,6 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZE
 @Configuration
 @Import({ KafkaHelsesjekk.class })
 public class KafkaConsumerConfig {
-    private static final String KAFKA_CONSUMER_TOPIC = "aapen-fo-endringPaaAvsluttOppfolging-v1-" + requireEnvironmentName();
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
     private static final String USERNAME = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_USERNAME);
     private static final String PASSWORD = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_PASSWORD);
@@ -43,13 +41,9 @@ public class KafkaConsumerConfig {
         return factory;
     }
 
-    public AvsluttOpfolgingTemplate.ConsumerParameters consumerParameters() {
-        return new AvsluttOpfolgingTemplate.ConsumerParameters(KAFKA_CONSUMER_TOPIC);
-    }
-
     @Bean
     public AvsluttOpfolgingTemplate avsluttOpfolgingTemplate(VedtakService vedtakService) {
-        return new AvsluttOpfolgingTemplate(vedtakService, consumerParameters());
+        return new AvsluttOpfolgingTemplate(vedtakService);
     }
 
     private static HashMap<String, Object> kafkaProperties () {

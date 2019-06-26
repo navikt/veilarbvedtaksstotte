@@ -16,18 +16,12 @@ import java.util.List;
 @Component
 public class KafkaHelsesjekk implements Helsesjekk, ContainerAwareErrorHandler {
     private long lastThrownExceptionTime;
+    private static final long EN_MINUTT = 60_000L;
     private Exception e;
-
-//    @Inject
-//    private JdbcTemplate db;
 
     @Override
     public void helsesjekk() throws Throwable {
-//        if (db.queryForObject("SELECT COUNT(*) FROM FEILEDE_KAFKA_BRUKERE", Long.class) > 0) {
-//            throw new IllegalStateException();
-//        }
-
-        if ((lastThrownExceptionTime + 60_000L) > System.currentTimeMillis()) {
+        if ((lastThrownExceptionTime + EN_MINUTT) > System.currentTimeMillis()) {
             throw new IllegalArgumentException("Kafka consumer feilet " + new Date(lastThrownExceptionTime), e);
         }
     }

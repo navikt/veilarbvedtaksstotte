@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.sql.ResultSet;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,12 +81,12 @@ public class VedtaksstotteRepository {
                 .execute() > 0;
     }
 
-    public boolean slettUtkast(KafkaAvsluttOppfolging kafkaMelding) {
+    public boolean slettUtkast(String aktorId, Date avsluttOppfolgingDato) {
         return SqlUtils
                 .delete(db, VEDTAK_TABLE)
                 .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))
-                        .and(WhereClause.equals(AKTOR_ID,kafkaMelding.getAktorId())
-                        .and(WhereClause.lteq(SIST_OPPDATERT, kafkaMelding.getSluttdato()))))
+                        .and(WhereClause.equals(AKTOR_ID, aktorId)
+                        .and(WhereClause.lteq(SIST_OPPDATERT, avsluttOppfolgingDato))))
                 .execute() > 0;
     }
 
@@ -122,8 +123,8 @@ public class VedtaksstotteRepository {
             .execute();
     }
 
-    public void settGjeldendeVedtakTilHistorisk(KafkaAvsluttOppfolging kafkaMelding) {
-        db.update("UPDATE VEDTAK SET GJELDENDE= ? WHERE AKTOR_ID= ? AND SIST_OPPDATERT<= ?", 0, kafkaMelding.getAktorId(), kafkaMelding.getSluttdato());
+    public void settGjeldendeVedtakTilHistorisk(String aktorId, Date avsluttOppfogingDato) {
+        db.update("UPDATE VEDTAK SET GJELDENDE = ? WHERE AKTOR_ID = ? AND SIST_OPPDATERT <= ?", 0, aktorId, avsluttOppfogingDato);
     }
 
     public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO, String beslutter){

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -227,8 +228,10 @@ public class VedtakService {
     }
 
     public void behandleAvsluttOppfolging (KafkaAvsluttOppfolging melding ) {
-        vedtaksstotteRepository.slettUtkast(melding);
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding);
+        String aktorId = melding.getAktorId();
+        Date sluttDato = melding.getSluttdato();
+        vedtaksstotteRepository.slettUtkast(aktorId, sluttDato);
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId, sluttDato);
     }
 
     private DokumentPerson dokumentPerson(String fnr) {

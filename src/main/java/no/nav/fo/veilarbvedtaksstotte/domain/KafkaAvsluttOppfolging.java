@@ -1,12 +1,9 @@
 package no.nav.fo.veilarbvedtaksstotte.domain;
 
-import lombok.Data;
-import lombok.experimental.Accessors;
-
+import lombok.Value;
 import java.util.Date;
-@Data
-@Accessors(chain = true)
 
+@Value
 public class KafkaAvsluttOppfolging {
    String aktorId;
    Date sluttdato;
