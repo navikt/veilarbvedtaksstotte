@@ -2,6 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.fo.veilarbvedtaksstotte.domain.Opplysning;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.sql.ResultSet;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,6 +81,15 @@ public class VedtaksstotteRepository {
                 .execute() > 0;
     }
 
+    public boolean slettUtkast(String aktorId, Date avsluttOppfolgingDato) {
+        return SqlUtils
+                .delete(db, VEDTAK_TABLE)
+                .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))
+                        .and(WhereClause.equals(AKTOR_ID, aktorId)
+                        .and(WhereClause.lteq(SIST_OPPDATERT, avsluttOppfolgingDato))))
+                .execute() > 0;
+    }
+
     public List<Vedtak> hentVedtak(String aktorId) {
         List<Vedtak> vedtakListe = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(AKTOR_ID, aktorId))
@@ -110,6 +121,10 @@ public class VedtaksstotteRepository {
             .whereEquals(AKTOR_ID, aktorId)
             .set(GJELDENDE, 0)
             .execute();
+    }
+
+    public void settGjeldendeVedtakTilHistorisk(String aktorId, Date avsluttOppfogingDato) {
+        db.update("UPDATE VEDTAK SET GJELDENDE = ? WHERE AKTOR_ID = ? AND SIST_OPPDATERT <= ?", 0, aktorId, avsluttOppfogingDato);
     }
 
     public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO, String beslutter){
