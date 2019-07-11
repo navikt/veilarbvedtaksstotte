@@ -1,7 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
+import io.vavr.control.Try;
 import no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient;
-import no.nav.fo.veilarbvedtaksstotte.domain.OppfolgingPeriodeDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.utils.OppfolgingUtils;
 import no.nav.metrics.Event;
@@ -9,10 +9,11 @@ import no.nav.metrics.MetricsFactory;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
+import java.util.Optional;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
@@ -21,7 +22,6 @@ import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 public class MetricsService {
 
     private OppfolgingClient oppfolgingClient;
-    public static final int MILLISEC_IN_A_DAY = 24* 60 * 60 * 1000;
 
     @Inject
     public MetricsService (OppfolgingClient oppfolgingClient)  {
@@ -52,21 +52,31 @@ public class MetricsService {
         event.report();
     }
 
-    public void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, String fnr) {
-        String servicegruppe = oppfolgingClient.hentServicegruppe(fnr);
-        if(OppfolgingUtils.erSykmeldtUtenArbeidsgiver(servicegruppe)){
-            List<OppfolgingPeriodeDTO> oppfolgingPerioder = oppfolgingClient.hentOppfolgingsPerioder(fnr);
-            Date startDato = OppfolgingUtils.getOppfolgingStartDato(oppfolgingPerioder);
-            Date vedtakSendtDato = new Date();
-            String diff = Long.toString((vedtakSendtDato.getTime() - startDato.getTime())/MILLISEC_IN_A_DAY);
 
-            Event event = createMetricEvent("sykmeldt-uten-arbeidsgiver-vedtak-sendt");
-            event.addFieldToReport("dagerBrukt", diff);
-            event.addFieldToReport("oppfolgingStartDato", startDato.toString());
-            event.addFieldToReport("vedtakSendtDato", vedtakSendtDato.toString());
-            event.addFieldToReport("enhetsId", vedtak.getVeilederEnhetId());
-            event.report();
+    public void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, String fnr) {
+        boolean erSykmeldtMedArbeidsgiver = Try.of(() -> oppfolgingClient.hentServicegruppe(fnr))
+                .map(OppfolgingUtils::erSykmeldtUtenArbeidsgiver)
+                .getOrElse(false);
+
+        if (erSykmeldtMedArbeidsgiver) {
+            Try.of(() -> oppfolgingClient.hentOppfolgingsPerioder(fnr))
+                    .map(OppfolgingUtils::getOppfolgingStartDato)
+                    .map(startDato ->
+                            Optional.ofNullable(startDato)
+                                    .map(dato -> {
+                                        LocalDate vedtakSendtDato = LocalDate.now();
+                                        Long diff = Duration.between(vedtakSendtDato.atStartOfDay(), dato.atStartOfDay()).toDays();
+                                        Event event = createMetricEvent("sykmeldt-uten-arbeidsgiver-vedtak-sendt");
+                                        event.addFieldToReport("dagerBrukt", diff);
+                                        event.addFieldToReport("oppfolgingStartDato", dato.toString());
+                                        event.addFieldToReport("vedtakSendtDato", vedtakSendtDato.toString());
+                                        event.addFieldToReport("enhetsId", vedtak.getVeilederEnhetId());
+                                        event.report();
+                                        return true;
+                                    })
+                    );
         }
+
     }
 
     public void rapporterUtkastSlettet() {
