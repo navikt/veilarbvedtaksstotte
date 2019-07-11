@@ -60,6 +60,12 @@ public class VedtakResource {
     }
 
     @GET
+    @Path("/harUtkast")
+    public boolean harUtkast(@PathParam("fnr") String fnr) {
+       return vedtakService.harUtkast(fnr);
+    }
+
+    @GET
     @Produces("application/pdf")
     @Path("/utkast/pdf")
     public Response hentForhandsvisning(@PathParam("fnr") String fnr) {
