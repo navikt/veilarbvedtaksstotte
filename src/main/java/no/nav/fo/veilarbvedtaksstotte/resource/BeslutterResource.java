@@ -1,7 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.resource;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.fo.veilarbvedtaksstotte.domain.oppgave.SendBeslutterOppgaveDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.SendBeslutterOppgaveDTO;
 import no.nav.fo.veilarbvedtaksstotte.service.BeslutterOppgaveService;
 import org.springframework.stereotype.Controller;
 

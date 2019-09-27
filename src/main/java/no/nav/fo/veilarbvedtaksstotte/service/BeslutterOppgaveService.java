@@ -2,8 +2,8 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.fo.veilarbvedtaksstotte.client.OppgaveClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.AuthKontekst;
-import no.nav.fo.veilarbvedtaksstotte.domain.oppgave.OpprettOppgaveDTO;
-import no.nav.fo.veilarbvedtaksstotte.domain.oppgave.SendBeslutterOppgaveDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.OpprettOppgaveDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.SendBeslutterOppgaveDTO;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -13,12 +13,13 @@ import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 @Service
 public class BeslutterOppgaveService {
 
-	private AuthService authService;
-	private OppgaveClient oppgaveClient;
-
 	private final static String PRIORITET_NORMAL = "NORM";
 	private final static String TEMA_OPPFOLGING = "OPP";
+	private final static String BEHANDLINGSTYPE_TIL_BESLUTTER = "ae0229";
 	private final static String OPPGAVETYPE_VURDER_HENDVENDELSE = "VURD_HENV";
+
+	private AuthService authService;
+	private OppgaveClient oppgaveClient;
 
 	@Inject
 	public BeslutterOppgaveService(AuthService authService, OppgaveClient oppgaveClient) {
@@ -32,11 +33,12 @@ public class BeslutterOppgaveService {
 		AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 		String aktorId = authKontekst.getBruker().getAktoerId();
 
-		OpprettOppgaveDTO opprettOppgaveDTO = mapTilOpprettOppgaveDTO(sendBeslutterOppgaveDTO);
-		opprettOppgaveDTO.setAktoerId(aktorId);
-		opprettOppgaveDTO.setPrioritet(PRIORITET_NORMAL);
-		opprettOppgaveDTO.setTema(TEMA_OPPFOLGING);
-		opprettOppgaveDTO.setOppgavetype(OPPGAVETYPE_VURDER_HENDVENDELSE);
+		OpprettOppgaveDTO opprettOppgaveDTO = mapTilOpprettOppgaveDTO(sendBeslutterOppgaveDTO)
+				.setAktoerId(aktorId)
+				.setPrioritet(PRIORITET_NORMAL)
+				.setTema(TEMA_OPPFOLGING)
+				.setBehandlingstype(BEHANDLINGSTYPE_TIL_BESLUTTER)
+				.setOppgavetype(OPPGAVETYPE_VURDER_HENDVENDELSE);
 
 		oppgaveClient.opprettOppgave(opprettOppgaveDTO);
 	}
