@@ -23,6 +23,10 @@ import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.VEILARBV
 import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.EGENVURDERING_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.EnhetNavnClient.VEILARBVEILEDER;
 import static no.nav.fo.veilarbvedtaksstotte.client.EnhetNavnClient.VEILARBVEILEDER_API_PROPERTY_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING;
+import static no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING_API_PROPERTY_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.client.OppgaveClient.OPPGAVE;
+import static no.nav.fo.veilarbvedtaksstotte.client.OppgaveClient.OPPGAVE_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
 import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.VEILARBREGISTRERING;
@@ -50,6 +54,8 @@ public class TestContext {
         setProperty(SAF_API_PROPERTY_NAME, lagFssUrl(SAF,false));
         setProperty(PERSON_API_PROPERTY_NAME, lagFssUrl(VEILARBPERSON));
         setProperty(VEILARBVEILEDER_API_PROPERTY_NAME, lagFssUrl(VEILARBVEILEDER));
+        setProperty(VEILARBOPPFOLGING_API_PROPERTY_NAME, lagFssUrl(VEILARBOPPFOLGING));
+        setProperty(OPPGAVE_API_PROPERTY_NAME, lagFssUrl(OPPGAVE, false));
 
         setProperty(CV_API_PROPERTY_NAME, lagFssUrl(PAM_CV_API));
         setProperty(REGISTRERING_API_PROPERTY_NAME, lagFssUrl(VEILARBREGISTRERING));

@@ -2,7 +2,6 @@ package no.nav.fo.veilarbvedtaksstotte.config;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.client.*;
-import no.nav.fo.veilarbvedtaksstotte.domain.OppfolgingDTO;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -18,7 +17,8 @@ import org.springframework.context.annotation.Import;
         RegistreringClient.class,
         EgenvurderingClient.class,
         EnhetNavnClient.class,
-        OppfolgingClient.class
+        OppfolgingClient.class,
+		OppgaveClient.class
 })
 
 public class ClientConfig {}
