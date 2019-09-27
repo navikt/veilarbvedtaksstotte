@@ -1,7 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.fo.veilarbvedtaksstotte.domain.oppgave.OpprettOppgaveDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.OpprettOppgaveDTO;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -22,7 +22,7 @@ public class OppgaveClient extends BaseClient {
 	}
 
 	public void opprettOppgave(OpprettOppgaveDTO opprettOppgaveDTO) {
-		post(joinPaths(baseUrl, "api", "v1", "oppgaver"), opprettOppgaveDTO, String.class)
+		post(joinPaths(baseUrl, "api", "v1", "oppgaver"), opprettOppgaveDTO, Void.class)
 				.withStatusCheck();
 	}
 
