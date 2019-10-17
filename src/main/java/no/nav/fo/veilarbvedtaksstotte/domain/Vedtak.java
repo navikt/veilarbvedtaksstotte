@@ -25,6 +25,7 @@ public class Vedtak {
     String aktorId;
     String beslutter;
     boolean gjeldende;
+    boolean sendtTilBeslutter;
     List<String> opplysninger;
     String journalpostId;
     String dokumentInfoId;
