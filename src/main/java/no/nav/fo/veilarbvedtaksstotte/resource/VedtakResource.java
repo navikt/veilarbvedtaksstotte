@@ -26,7 +26,7 @@ public class VedtakResource {
     @POST
     @Path("/vedtak/send")
     public DokumentSendtDTO sendVedtak(@PathParam("fnr") String fnr, SendVedtakDTO sendVedtakDTO) {
-        return vedtakService.sendVedtak(fnr, sendVedtakDTO.getBeslutter());
+        return vedtakService.sendVedtak(fnr, sendVedtakDTO.getBeslutterNavn());
     }
 
     @GET

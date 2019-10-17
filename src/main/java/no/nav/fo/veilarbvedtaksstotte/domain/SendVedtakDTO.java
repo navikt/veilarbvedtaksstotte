@@ -4,5 +4,5 @@ import lombok.Value;
 
 @Value
 public class SendVedtakDTO {
-    String beslutter;
+    String beslutterNavn;
 }

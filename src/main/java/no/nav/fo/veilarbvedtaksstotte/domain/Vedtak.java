@@ -23,7 +23,7 @@ public class Vedtak {
     String veilederEnhetId;
     String veilederEnhetNavn;
     String aktorId;
-    String beslutter;
+    String beslutterNavn;
     boolean gjeldende;
     boolean sendtTilBeslutter;
     List<String> opplysninger;
