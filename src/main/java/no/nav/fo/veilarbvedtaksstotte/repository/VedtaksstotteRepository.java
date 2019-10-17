@@ -190,7 +190,7 @@ public class VedtaksstotteRepository {
                 .setSendtTilBeslutter(rs.getInt(SENDT_TIL_BESLUTTER) == 1)
                 .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
-                .setBeslutter(rs.getString(BESLUTTER_NAVN))
+                .setBeslutterNavn(rs.getString(BESLUTTER_NAVN))
                 .setVeilederEnhetNavn(rs.getString(VEILEDER_ENHET_NAVN))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
