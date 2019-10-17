@@ -31,7 +31,7 @@ public class VedtakService {
     private DokumentClient dokumentClient;
     private SAFClient safClient;
     private PersonClient personClient;
-    private EnhetNavnClient enhetNavnClient;
+    private VeiledereOgEnhetClient veiledereOgEnhetClient;
     private CVClient cvClient;
     private RegistreringClient registreringClient;
     private EgenvurderingClient egenvurderingClient;
@@ -48,7 +48,7 @@ public class VedtakService {
                          AuthService authService,
                          DokumentClient dokumentClient,
                          SAFClient safClient, PersonClient personClient,
-                         EnhetNavnClient enhetNavnClient, CVClient cvClient,
+                         VeiledereOgEnhetClient veiledereOgEnhetClient, CVClient cvClient,
                          RegistreringClient registreringClient,
                          EgenvurderingClient egenvurderingClient,
                          VeilederService veilederService,
@@ -62,7 +62,7 @@ public class VedtakService {
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
         this.personClient = personClient;
-        this.enhetNavnClient = enhetNavnClient;
+        this.veiledereOgEnhetClient = veiledereOgEnhetClient;
         this.cvClient = cvClient;
         this.registreringClient = registreringClient;
         this.egenvurderingClient = egenvurderingClient;
@@ -96,7 +96,7 @@ public class VedtakService {
 
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
         if (!vedtak.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
-            String enhetNavn = enhetNavnClient.hentEnhetNavn(oppfolgingsenhetId);
+            String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
             vedtak.setVeilederEnhetNavn(enhetNavn);
         }
 
@@ -136,7 +136,7 @@ public class VedtakService {
 
         String veilederIdent = veilederService.hentVeilederIdentFraToken();
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
-        String enhetNavn = enhetNavnClient.hentEnhetNavn(oppfolgingsenhetId);
+        String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
 
         vedtaksstotteRepository.insertUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
     }
@@ -158,7 +158,7 @@ public class VedtakService {
         }
 
         if (!utkast.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
-            String enhetNavn = enhetNavnClient.hentEnhetNavn(oppfolgingsenhetId);
+            String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
             nyttUtkast.setVeilederEnhetNavn(enhetNavn);
         }
 

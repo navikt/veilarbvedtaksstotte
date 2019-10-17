@@ -109,10 +109,6 @@ public class VedtaksstotteRepository {
         return vedtakListe;
     }
 
-    public boolean harSendtUtkastTilBeslutter(String aktorId) {
-        return hentUtkast(aktorId).isSendtTilBeslutter();
-    }
-
     public void markerUtkastSomSendtTilBeslutter(String aktorId, String beslutterNavn) {
         String sql = "UPDATE VEDTAK SET BESLUTTER_NAVN = ?, SENDT_TIL_BESLUTTER = 1 WHERE AKTOR_ID = ? AND STATUS = ?";
         long itemsUpdated = db.update(sql, beslutterNavn, aktorId, getName(VedtakStatus.UTKAST));
