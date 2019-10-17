@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import;
         CVClient.class,
         RegistreringClient.class,
         EgenvurderingClient.class,
-        EnhetNavnClient.class,
+        VeiledereOgEnhetClient.class,
         OppfolgingClient.class,
 		OppgaveClient.class
 })
