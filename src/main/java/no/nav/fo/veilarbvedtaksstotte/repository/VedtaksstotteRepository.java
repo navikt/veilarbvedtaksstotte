@@ -2,7 +2,6 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
-import no.nav.fo.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.fo.veilarbvedtaksstotte.domain.Opplysning;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
@@ -37,13 +36,14 @@ public class VedtaksstotteRepository {
     private final static String VEILEDER_ENHET_ID   = "VEILEDER_ENHET_ID";
     private final static String VEILEDER_ENHET_NAVN = "VEILEDER_ENHET_NAVN";
     private final static String SIST_OPPDATERT      = "SIST_OPPDATERT";
-    private final static String BESLUTTER           = "BESLUTTER";
+    private final static String BESLUTTER_NAVN      = "BESLUTTER_NAVN";
     private final static String UTKAST_OPPRETTET    = "UTKAST_OPPRETTET";
     private final static String BEGRUNNELSE         = "BEGRUNNELSE";
     private final static String STATUS              = "STATUS";
     private final static String DOKUMENT_ID         = "DOKUMENT_ID";
     private final static String JOURNALPOST_ID      = "JOURNALPOST_ID";
     private final static String GJELDENDE           = "GJELDENDE";
+    private final static String SENDT_TIL_BESLUTTER = "SENDT_TIL_BESLUTTER";
 
     private final JdbcTemplate db;
     private OpplysningerRepository opplysningerRepository;
@@ -109,6 +109,19 @@ public class VedtaksstotteRepository {
         return vedtakListe;
     }
 
+    public boolean harSendtUtkastTilBeslutter(String aktorId) {
+        return hentUtkast(aktorId).isSendtTilBeslutter();
+    }
+
+    public void markerUtkastSomSendtTilBeslutter(String aktorId, String beslutterNavn) {
+        String sql = "UPDATE VEDTAK SET BESLUTTER_NAVN = ?, SENDT_TIL_BESLUTTER = 1 WHERE AKTOR_ID = ? AND STATUS = ?";
+        long itemsUpdated = db.update(sql, beslutterNavn, aktorId, getName(VedtakStatus.UTKAST));
+
+        if (itemsUpdated == 0) {
+            throw new RuntimeException("Fant ikke utkast å markere som sendt til beslutter for bruker med akørId " + aktorId);
+        }
+    }
+
     public Vedtak hentVedtak(long vedtakId) {
         return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(VEDTAK_ID, vedtakId))
@@ -134,7 +147,7 @@ public class VedtaksstotteRepository {
             .set(STATUS, getName(VedtakStatus.SENDT))
             .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
             .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
-            .set(BESLUTTER, beslutter)
+            .set(BESLUTTER_NAVN, beslutter)
             .set(GJELDENDE, 1)
             .execute();
     }
@@ -174,9 +187,10 @@ public class VedtaksstotteRepository {
                 .setSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
                 .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
                 .setGjeldende(rs.getInt(GJELDENDE) == 1)
+                .setSendtTilBeslutter(rs.getInt(SENDT_TIL_BESLUTTER) == 1)
                 .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
-                .setBeslutter(rs.getString(BESLUTTER))
+                .setBeslutter(rs.getString(BESLUTTER_NAVN))
                 .setVeilederEnhetNavn(rs.getString(VEILEDER_ENHET_NAVN))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
