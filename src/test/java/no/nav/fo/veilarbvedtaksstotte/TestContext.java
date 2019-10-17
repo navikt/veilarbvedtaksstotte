@@ -21,8 +21,8 @@ import static no.nav.fo.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA_API
 import static no.nav.fo.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA;
 import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.VEILARBVEDTAKINFO;
 import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.EGENVURDERING_API_PROPERTY_NAME;
-import static no.nav.fo.veilarbvedtaksstotte.client.EnhetNavnClient.VEILARBVEILEDER;
-import static no.nav.fo.veilarbvedtaksstotte.client.EnhetNavnClient.VEILARBVEILEDER_API_PROPERTY_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER;
+import static no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING;
 import static no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.OppgaveClient.OPPGAVE;
