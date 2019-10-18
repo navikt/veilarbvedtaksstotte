@@ -12,6 +12,8 @@ import static no.nav.fo.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA_API
 import static no.nav.fo.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA;
 import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.VEILARBVEDTAKINFO;
 import static no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient.EGENVURDERING_API_PROPERTY_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.client.OppgaveClient.OPPGAVE;
+import static no.nav.fo.veilarbvedtaksstotte.client.OppgaveClient.OPPGAVE_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER;
 import static no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING;
@@ -37,6 +39,7 @@ public class Main {
         setProperty(VEILARBARENA_API_PROPERTY_NAME, lagClusterUrl(VEILARBARENA));
         setProperty(SAF_API_PROPERTY_NAME, lagClusterUrl(SAF,false));
         setProperty(VEILARBOPPFOLGING_API_PROPERTY_NAME, lagClusterUrl(VEILARBOPPFOLGING));
+        setProperty(OPPGAVE_API_PROPERTY_NAME, lagClusterUrl(OPPGAVE, false));
 
         // PAM CV finnes ikke i Q1, gå mot Q6 istedenfor
         if (EnvironmentUtils.requireEnvironmentName().equalsIgnoreCase("q1")) {
