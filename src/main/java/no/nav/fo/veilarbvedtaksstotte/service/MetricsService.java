@@ -42,10 +42,12 @@ public class MetricsService {
         Event event = createMetricEvent("vedtak-sendt");
         long utkastOpprettetMillis = localDateTimeToMillis(vedtak.getUtkastOpprettet());
         long secondsUsed = (System.currentTimeMillis() - utkastOpprettetMillis) / 1000;
+        int begrunnelseLengde = vedtak.getBegrunnelse() != null ? vedtak.getBegrunnelse().length() : 0;
 
         event.addFieldToReport("sekunderBrukt", secondsUsed);
         event.addFieldToReport("innsatsgruppe", getName(vedtak.getInnsatsgruppe()));
         event.addFieldToReport("enhetsId", vedtak.getVeilederEnhetId());
+        event.addFieldToReport("begrunnelseLengde", begrunnelseLengde);
 
         if (vedtak.getHovedmal() != null) {
             event.addFieldToReport("hovedmal", vedtak.getHovedmal());
