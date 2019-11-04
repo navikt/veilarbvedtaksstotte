@@ -7,7 +7,6 @@ public class TestUtils {
     private TestUtils(){}
 
     public static String lagFssUrl(String appName){
-
         return String.format("https://%s-%s.nais.preprod.local/%s/",
                 appName, FasitUtils.getDefaultEnvironment(), appName);
     }

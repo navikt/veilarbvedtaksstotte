@@ -2,13 +2,16 @@ package no.nav.fo.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.domain.EnhetNavn;
+import no.nav.fo.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.fo.veilarbvedtaksstotte.domain.VeilederePaEnhetDTO;
+import org.springframework.cache.annotation.Cacheable;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
+import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.VEILEDER;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
 @Slf4j
@@ -35,6 +38,14 @@ public class VeiledereOgEnhetClient extends BaseClient {
                 .withStatusCheck()
                 .getData()
                 .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarbveileder/api/enhet/{enhetId}/veiledere"));
+    }
+
+    @Cacheable(VEILEDER)
+    public Veileder hentVeileder(String veilederIdent) {
+        return get(joinPaths(baseUrl, "api", "veileder", veilederIdent), Veileder.class)
+                .withStatusCheck()
+                .getData()
+                .orElse(null);
     }
 
 }

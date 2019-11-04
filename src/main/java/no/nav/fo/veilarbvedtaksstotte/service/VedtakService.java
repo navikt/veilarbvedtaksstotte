@@ -192,7 +192,11 @@ public class VedtakService {
 
         Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
 
-        return vedtaksstotteRepository.hentVedtak(bruker.getAktoerId());
+        List<Vedtak> vedtak = vedtaksstotteRepository.hentVedtak(bruker.getAktoerId());
+
+        flettInnVeilederNavn(vedtak);
+
+        return vedtak;
     }
 
     public byte[] produserDokumentUtkast(String fnr) {
@@ -228,6 +232,13 @@ public class VedtakService {
         Date sluttDato = melding.getSluttdato();
         vedtaksstotteRepository.slettUtkast(aktorId, sluttDato);
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId, sluttDato);
+    }
+
+    private void flettInnVeilederNavn(List<Vedtak> vedtak) {
+        vedtak.forEach(v -> {
+            Veileder veileder = veiledereOgEnhetClient.hentVeileder(v.getVeilederIdent());
+            v.setVeilederNavn(veileder != null ? veileder.getNavn() : null);
+        });
     }
 
     private DokumentPerson dokumentPerson(String fnr) {

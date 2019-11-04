@@ -20,6 +20,7 @@ public class Vedtak {
     LocalDateTime utkastOpprettet;
     String begrunnelse;
     String veilederIdent;
+    String veilederNavn;
     String veilederEnhetId;
     String veilederEnhetNavn;
     String aktorId;
