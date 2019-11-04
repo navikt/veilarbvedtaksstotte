@@ -28,6 +28,7 @@ import javax.servlet.ServletContext;
         KafkaConsumerConfig.class,
         ServiceConfig.class,
         ClientConfig.class,
+        CacheConfig.class,
         RepositoryConfig.class,
         ScheduleConfig.class,
         FeatureToggleConfig.class
