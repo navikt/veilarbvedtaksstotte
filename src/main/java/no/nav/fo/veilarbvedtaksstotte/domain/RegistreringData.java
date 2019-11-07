@@ -2,6 +2,8 @@ package no.nav.fo.veilarbvedtaksstotte.domain;
 
 import lombok.Value;
 
+import java.time.LocalDateTime;
+
 @Value
 public class RegistreringData {
 
@@ -13,6 +15,7 @@ public class RegistreringData {
 
     @Value
     public static class BrukerRegistrering {
+        public LocalDateTime opprettetDato;
         public Profilering profilering;
     }
 

@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 import static no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType.*;
+import static no.nav.fo.veilarbvedtaksstotte.utils.JsonUtils.toJson;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
@@ -118,6 +119,7 @@ public class VedtakService {
         kafkaService.sendVedtak(vedtakId);
 
         metricsService.rapporterVedtakSendt(vedtak);
+        metricsService.rapporterTidFraRegistrering(vedtak, aktorId, fnr);
         metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr);
 
         return dokumentSendt;
@@ -266,7 +268,7 @@ public class VedtakService {
 
     private void lagreOyblikksbilde(String fnr, long vedtakId) {
         final String cvData = cvClient.hentCV(fnr);
-        final String registreringData = registreringClient.hentRegistreringJson(fnr);
+        final String registreringData = toJson(registreringClient.hentRegistreringData(fnr));
         final String egenvurderingData = egenvurderingClient.hentEgenvurdering(fnr);
 
         List<Oyblikksbilde> oyblikksbilde = Arrays.asList(

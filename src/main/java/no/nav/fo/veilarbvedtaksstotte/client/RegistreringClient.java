@@ -2,12 +2,14 @@ package no.nav.fo.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.domain.RegistreringData;
+import org.springframework.cache.annotation.Cacheable;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
+import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.REGISTRERING_CACHE_NAME;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
 @Slf4j
@@ -21,17 +23,10 @@ public class RegistreringClient extends BaseClient {
         super(getRequiredProperty(REGISTRERING_API_PROPERTY_NAME), httpServletRequestProvider);
     }
 
-    public String hentRegistreringJson(String fnr) {
-      return hentRegistrering(fnr, String.class);
-    }
-
+    @Cacheable(REGISTRERING_CACHE_NAME)
     public RegistreringData hentRegistreringData(String fnr) {
-        return hentRegistrering(fnr, RegistreringData.class);
-    }
-
-    private <T> T hentRegistrering(String fnr, Class<T> responseType) {
         String hentRegistreringUrl = joinPaths(baseUrl, "api", "registrering?fnr=") + fnr;
-        RestResponse<T> response = get(hentRegistreringUrl, responseType);
+        RestResponse<RegistreringData> response = get(hentRegistreringUrl, RegistreringData.class);
 
         if (response.hasStatus(404) || response.hasStatus(204)) {
             return null;
@@ -41,8 +36,7 @@ public class RegistreringClient extends BaseClient {
             throw new RuntimeException("Feil ved kall mot " + hentRegistreringUrl);
         }
 
-        return response
-                .getData()
+        return response.getData()
                 .orElseThrow(() -> new RuntimeException("Feil ved kall mot " + hentRegistreringUrl));
     }
 
