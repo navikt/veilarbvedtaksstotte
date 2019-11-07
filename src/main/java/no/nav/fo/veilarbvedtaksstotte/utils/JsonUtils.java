@@ -1,7 +1,9 @@
 package no.nav.fo.veilarbvedtaksstotte.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.SneakyThrows;
 
 public class JsonUtils {
 
@@ -15,10 +17,15 @@ public class JsonUtils {
         return createJsonStr("ingenData", noDataMsg);
     }
 
-    public static String createJsonStr (String fieldName, String value) {
+    public static String createJsonStr(String fieldName, String value) {
         ObjectNode error = JsonNodeFactory.instance.objectNode();
         error.put(fieldName, value);
         return error.toString();
+    }
+
+    @SneakyThrows
+    public static String toJson(Object object) {
+        return new ObjectMapper().writeValueAsString(object);
     }
 
 }

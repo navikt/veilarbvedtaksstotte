@@ -11,7 +11,7 @@ import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
-import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.VEILEDER;
+import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.VEILEDER_CACHE_NAME;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
 @Slf4j
@@ -40,7 +40,7 @@ public class VeiledereOgEnhetClient extends BaseClient {
                 .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarbveileder/api/enhet/{enhetId}/veiledere"));
     }
 
-    @Cacheable(VEILEDER)
+    @Cacheable(VEILEDER_CACHE_NAME)
     public Veileder hentVeileder(String veilederIdent) {
         return get(joinPaths(baseUrl, "api", "veileder", veilederIdent), Veileder.class)
                 .withStatusCheck()

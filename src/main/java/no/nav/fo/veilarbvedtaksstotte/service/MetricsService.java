@@ -1,9 +1,13 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
 import io.vavr.control.Try;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient;
+import no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.OppfolgingPeriodeDTO;
+import no.nav.fo.veilarbvedtaksstotte.domain.RegistreringData;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.fo.veilarbvedtaksstotte.utils.OppfolgingUtils;
 import no.nav.metrics.Event;
 import no.nav.metrics.MetricsFactory;
@@ -16,18 +20,27 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
+import static no.nav.fo.veilarbvedtaksstotte.utils.VedtakUtils.tellVedtakEtterDato;
 
 @Service
+@Slf4j
 public class MetricsService {
 
     private OppfolgingClient oppfolgingClient;
 
+    private RegistreringClient registreringClient;
+
+    private VedtaksstotteRepository vedtaksstotteRepository;
+
     @Inject
-    public MetricsService (OppfolgingClient oppfolgingClient)  {
+    public MetricsService(OppfolgingClient oppfolgingClient, RegistreringClient registreringClient, VedtaksstotteRepository vedtaksstotteRepository)  {
         this.oppfolgingClient = oppfolgingClient;
+        this.registreringClient = registreringClient;
+        this.vedtaksstotteRepository = vedtaksstotteRepository;
     }
 
     private static Event createMetricEvent(String tagName) {
@@ -56,6 +69,46 @@ public class MetricsService {
         event.report();
     }
 
+    public void rapporterTidFraRegistrering(Vedtak vedtak, String aktorId, String fnr) {
+        long tidFraRegistrering = finnTidFraRegistreringStartet(aktorId, fnr);
+
+        if (tidFraRegistrering < 0) return;
+
+        long dagerFraRegistrering = TimeUnit.MILLISECONDS.toDays(tidFraRegistrering);
+
+        Event event = createMetricEvent("tid-fra-registrering");
+        event.addFieldToReport("innsatsgruppe", getName(vedtak.getInnsatsgruppe()));
+        event.addFieldToReport("dager", dagerFraRegistrering);
+        event.report();
+    }
+
+    /**
+     * Henter tid fra registrering startet fram til nå hvis brukeren kun har ett vedtak (det som nettopp ble sendt)
+     * @param aktorId brukers aktør id
+     * @param fnr brukers fødselsnummer
+     * @return tid i millisekunder, -1 hvis det mangler data eller brukeren har mer enn ett vedtak i nåværende oppfølgingsperiode
+     */
+    private long finnTidFraRegistreringStartet(String aktorId, String fnr) {
+        try {
+            List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentVedtak(aktorId);
+            RegistreringData registreringData = registreringClient.hentRegistreringData(fnr);
+            List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingsPerioder(fnr);
+            Optional<LocalDate> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);
+
+            if (!startDato.isPresent() || registreringData == null) {
+                return -1;
+            }
+
+            if (tellVedtakEtterDato(vedtakTilBruker, startDato.get()) <= 1) {
+                long registreringStart = localDateTimeToMillis(registreringData.registrering.opprettetDato);
+                return localDateTimeToMillis(LocalDateTime.now()) - registreringStart;
+            }
+        } catch (Exception e) {
+            log.error("Feil fra finnTidFraRegistreringStartet", e);
+        }
+
+        return -1;
+    }
 
     public void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, String fnr) {
         boolean erSykmeldtMedArbeidsgiver = Try.of(() -> oppfolgingClient.hentServicegruppe(fnr))
