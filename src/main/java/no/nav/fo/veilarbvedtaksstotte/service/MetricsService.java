@@ -99,7 +99,7 @@ public class MetricsService {
                 return -1;
             }
 
-            if (tellVedtakEtterDato(vedtakTilBruker, startDato.get()) <= 1) {
+            if (tellVedtakEtterDato(vedtakTilBruker, startDato.get()) == 1) {
                 long registreringStart = localDateTimeToMillis(registreringData.registrering.opprettetDato);
                 return localDateTimeToMillis(LocalDateTime.now()) - registreringStart;
             }
