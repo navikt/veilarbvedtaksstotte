@@ -37,6 +37,7 @@ public class ApplicationConfig implements ApiApplication {
 
     public static final String APPLICATION_NAME = "veilarbvedtaksstotte";
     public static final String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
+    public static final String SECURITYTOKENSERVICE_URL = "SECURITYTOKENSERVICE_URL";
 
     @Inject
     protected JdbcTemplate jdbcTemplate;
