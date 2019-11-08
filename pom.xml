@@ -7,7 +7,7 @@
     <parent>
         <groupId>no.nav.common</groupId>
         <artifactId>mor-pom</artifactId>
-        <version>1.2019.04.30-17.04-3d8bebacf430</version>
+        <version>1.2019.11.06-15.14-6ca860e6cead</version>
     </parent>
 
     <groupId>no.nav.fo</groupId>
@@ -23,6 +23,12 @@
                 <version>${project.parent.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.oracle.ojdbc</groupId>
+                <artifactId>ojdbc8</artifactId>
+                <version>19.3.0.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -47,9 +53,8 @@
             <artifactId>jdbc</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.oracle</groupId>
-            <artifactId>ojdbc6</artifactId>
-            <scope>runtime</scope>
+            <groupId>com.oracle.ojdbc</groupId>
+            <artifactId>ojdbc8</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
