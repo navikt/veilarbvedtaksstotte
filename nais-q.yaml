@@ -1,0 +1,55 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: veilarbvedtaksstotte
+  namespace: {{namespace}}
+  labels:
+    team: pto
+  cluster: dev-fss
+spec:
+  image: docker.pkg.github.com/navikt/veilarbvedtaksstotte/veilarbvedtaksstotte:{{version}}
+  port: 8080
+  webproxy: true
+  ingresses:
+    - https://app-{{namespace}}.adeo.no/veilarbvedtaksstotte
+    - https://veilarbvedtaksstotte-{{namespace}}.nais.preprod.local
+  prometheus:
+    enabled: true
+    path: veilarbvedtaksstotte/internal/metrics
+  readiness:
+    path: veilarbvedtaksstotte/internal/isReady
+    port: 8080
+    initialDelay: 60
+  liveness:
+    path: veilarbvedtaksstotte/internal/isAlive
+    port: 8080
+    initialDelay: 120
+  replicas:
+    min: 1
+    max: 2
+    cpuThresholdPercentage: 75
+  resources:
+    limits:
+      cpu: "2"
+      memory: 1024Mi
+    requests:
+      memory: 512Mi
+  vault:
+    enabled: true
+    paths:
+      - kvPath: /serviceuser/data/dev/srvveilarbvedtaksstotte
+        mountPath: /var/run/secrets/nais.io/service_user
+      - kvPath: /oracle/data/dev/creds/veilarbvedtaksstotte_{{namespace}}-user
+        mountPath: /var/run/secrets/nais.io/oracle_creds
+      - kvPath: /kv/preprod/fss/veilarbvedtaksstotte/{{namespace}}
+        mountPath: /var/run/secrets/nais.io/vault
+  configMaps:
+    files:
+      - pto-config
+  env:
+    - APPDYNAMICS_CONTROLLER_HOST_NAME
+    - APPDYNAMICS_AGENT_ACCOUNT_NAME
+    - APPDYNAMICS_CONTROLLER_PORT
+    - APPDYNAMICS_CONTROLLER_SSL_ENABLED
+    - name: "APP_ENVIRONMENT_NAME"
+      value: {{namespace}}
