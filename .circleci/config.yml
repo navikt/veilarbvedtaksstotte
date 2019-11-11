@@ -17,10 +17,10 @@ workflows:
           filepath: nais-q.yaml
           filters:
             branches:
-              only: kaizen-0-naiserator
+              only: dev
       - pus/bygg-og-deploy-backend:
           context: pus
-          filepath: nais-q.yaml
+          filepath: nais.yaml
           filters:
             branches:
               only: master

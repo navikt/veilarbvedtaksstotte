@@ -10,6 +10,7 @@ spec:
   image: docker.pkg.github.com/navikt/veilarbvedtaksstotte/veilarbvedtaksstotte:{{version}}
   port: 8080
   webproxy: true
+  leaderElection: true
   ingresses:
     - https://app-{{namespace}}.adeo.no/veilarbvedtaksstotte
     - https://veilarbvedtaksstotte-{{namespace}}.nais.preprod.local
@@ -18,12 +19,10 @@ spec:
     path: veilarbvedtaksstotte/internal/metrics
   readiness:
     path: veilarbvedtaksstotte/internal/isReady
-    port: 8080
-    initialDelay: 60
+    initialDelay: 30
   liveness:
     path: veilarbvedtaksstotte/internal/isAlive
-    port: 8080
-    initialDelay: 120
+    initialDelay: 30
   replicas:
     min: 1
     max: 2
