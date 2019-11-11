@@ -17,7 +17,7 @@ workflows:
           filepath: nais-q.yaml
           filters:
             branches:
-              only: dev
+              only: kaizen-0-naiserator
       - pus/bygg-og-deploy-backend:
           context: pus
           filepath: nais.yaml
