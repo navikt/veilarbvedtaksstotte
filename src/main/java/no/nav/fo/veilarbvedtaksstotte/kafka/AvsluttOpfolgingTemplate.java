@@ -28,10 +28,10 @@ public class AvsluttOpfolgingTemplate {
     public void consume(@Payload String kafkaMelding) {
         try {
             KafkaAvsluttOppfolging melding = fromJson(kafkaMelding, KafkaAvsluttOppfolging.class);
-            log.info("Leser melding :" + melding + " på topic: " + getOptionalProperty(ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME));
+            log.info("Leser melding for aktorId:" + melding.getAktorId() + " på topic: " + getOptionalProperty(ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME));
             vedtakService.behandleAvsluttOppfolging(melding);
         } catch (Throwable t) {
-            log.error("Feilet ved behandling av kafka-melding: {}\n{}", kafkaMelding, t.getMessage(), t);
+            log.error("Feilet ved behandling av kafka-melding", t);
         }
     }
 }
