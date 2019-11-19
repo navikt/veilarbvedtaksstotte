@@ -25,7 +25,8 @@ public class JsonUtils {
 
     @SneakyThrows
     public static String toJson(Object object) {
-        return new ObjectMapper().writeValueAsString(object);
+        String jsonStr = new ObjectMapper().writeValueAsString(object);
+        return "null".equals(jsonStr) ? null : jsonStr;
     }
 
 }

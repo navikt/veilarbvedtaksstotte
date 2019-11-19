@@ -36,8 +36,7 @@ public class RegistreringClient extends BaseClient {
             throw new RuntimeException("Feil ved kall mot " + hentRegistreringUrl);
         }
 
-        return response.getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot " + hentRegistreringUrl));
+        return response.getData().orElseThrow(() -> new RuntimeException("Feil ved kall mot " + hentRegistreringUrl));
     }
 
 }
