@@ -67,14 +67,16 @@ public class Main {
         setProperty(VEILARBARENA_API_PROPERTY_NAME, lagClusterUrl(VEILARBARENA));
         setProperty(SAF_API_PROPERTY_NAME, lagClusterUrl(SAF,false));
         setProperty(VEILARBOPPFOLGING_API_PROPERTY_NAME, lagClusterUrl(VEILARBOPPFOLGING));
-        setProperty(OPPGAVE_API_PROPERTY_NAME, lagClusterUrl(OPPGAVE, false));
 
         // PAM CV finnes ikke i Q1, gå mot Q6 istedenfor
+        // Oppgave i Q1 ligger på default namespace
         if (EnvironmentUtils.requireEnvironmentName().equalsIgnoreCase("q1")) {
             String pamCVUrl = lagClusterUrl(PAM_CV_API).replace("q1", "q6");
             setProperty(CV_API_PROPERTY_NAME, pamCVUrl);
+            setProperty(OPPGAVE_API_PROPERTY_NAME, "https://oppgave.nais.preprod.local");
         } else {
             setProperty(CV_API_PROPERTY_NAME, lagClusterUrl(PAM_CV_API));
+            setProperty(OPPGAVE_API_PROPERTY_NAME, lagClusterUrl(OPPGAVE, false));
         }
 
         NaisUtils.Credentials oracleCreds = getCredentials("oracle_creds");
