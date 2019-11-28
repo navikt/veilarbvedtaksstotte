@@ -1,7 +1,9 @@
 import no.nav.apiapp.ApiApp;
 import no.nav.fo.veilarbvedtaksstotte.TestContext;
 import no.nav.fo.veilarbvedtaksstotte.config.ApplicationTestConfig;
-import no.nav.fo.veilarbvedtaksstotte.db.DatabaseTestContext;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbRole;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.testconfig.ApiAppTest;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
@@ -12,10 +14,11 @@ public class MainTest {
     private static final String[] ARGUMENTS = {TEST_PORT};
 
     public static void main(String[] args) {
-        ApiAppTest.setupTestContext(ApiAppTest.Config.builder().applicationName(APPLICATION_NAME).build());
-        TestContext.setup();
-        DatabaseTestContext.setup("Q0");
-        ApiApp.startApiApp(ApplicationTestConfig.class, ARGUMENTS);
+//        TODO: Make it possible to run this
+//        ApiAppTest.setupTestContext(ApiAppTest.Config.builder().applicationName(APPLICATION_NAME).build());
+//        TestContext.setup();
+//        DbUtils.migrate(DbTestUtils.createTestDataSource());
+//        ApiApp.startApiApp(ApplicationTestConfig.class, ARGUMENTS);
     }
 
 }
