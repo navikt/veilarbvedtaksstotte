@@ -30,8 +30,6 @@ import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.REGISTRER
 import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF;
 import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.SECURITYTOKENSERVICE_URL;
-import static no.nav.fo.veilarbvedtaksstotte.config.DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_PASSWORD;
-import static no.nav.fo.veilarbvedtaksstotte.config.DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_USERNAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC;
 import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC_API_URL_PROPERTY;
 import static no.nav.fo.veilarbvedtaksstotte.utils.UrlUtils.lagClusterUrl;
@@ -78,10 +76,6 @@ public class Main {
             setProperty(CV_API_PROPERTY_NAME, lagClusterUrl(PAM_CV_API));
             setProperty(OPPGAVE_API_PROPERTY_NAME, lagClusterUrl(OPPGAVE, false));
         }
-
-        NaisUtils.Credentials oracleCreds = getCredentials("oracle_creds");
-        System.setProperty(VEILARBVEDTAKSSTOTTE_DB_USERNAME, oracleCreds.username);
-        System.setProperty(VEILARBVEDTAKSSTOTTE_DB_PASSWORD, oracleCreds.password);
 
         ApiApp.startApiApp(ApplicationConfig.class, args);
     }

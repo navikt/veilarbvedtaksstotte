@@ -7,14 +7,22 @@ workflows:
     jobs:
       - pus/test-backend:
           context: pus
-      - pus/bygg-og-deploy-backend:
-          requires:
-            - pus/test-backend
-          context: pus
-          filepath: nais-q.yaml
-          filters:
-            branches:
-              only: master
+#      - pus/bygg-og-deploy-backend:
+#          requires:
+#            - pus/test-backend
+#          context: pus
+#          filepath: nais-q0.yaml
+#          filters:
+#            branches:
+#              only: FO-2607
+#      - pus/bygg-og-deploy-backend:
+#          requires:
+#            - pus/test-backend
+#          context: pus
+#          filepath: nais-q.yaml
+#          filters:
+#            branches:
+#              only: master
       - prodsett:
           requires:
             - pus/bygg-og-deploy-backend

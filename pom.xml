@@ -24,11 +24,10 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
             <dependency>
-                <groupId>com.oracle.ojdbc</groupId>
-                <artifactId>ojdbc8</artifactId>
-                <version>19.3.0.0</version>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>5.2.4</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -41,8 +40,19 @@
             <version>2.7.3</version>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
+            <groupId>no.nav</groupId>
+            <artifactId>vault-jdbc</artifactId>
+            <version>1.2.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>net.sf.ehcache</groupId>
@@ -53,8 +63,9 @@
             <artifactId>jdbc</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.oracle.ojdbc</groupId>
-            <artifactId>ojdbc8</artifactId>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.5</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -133,6 +144,10 @@
         </dependency>
 
         <!-- test -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
         <dependency>
             <groupId>no.nav.common</groupId>
             <artifactId>test-config</artifactId>

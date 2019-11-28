@@ -1,43 +1,25 @@
 package no.nav.fo.veilarbvedtaksstotte.db;
 
-import lombok.val;
-import no.nav.fasit.DbCredentials;
-import no.nav.fasit.FasitUtils;
-import no.nav.fasit.TestEnvironment;
-
-import java.util.Optional;
-
-import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
-import static no.nav.fo.veilarbvedtaksstotte.config.DatabaseConfig.*;
+import static no.nav.fo.veilarbvedtaksstotte.config.DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY;
 
 public class DatabaseTestContext {
 
-    public static void setup(String miljo) {
-        val dbCredential = Optional.ofNullable(miljo)
-                .map(TestEnvironment::valueOf)
-                .map(testEnvironment -> FasitUtils.getDbCredentials(testEnvironment, APPLICATION_NAME));
+    private final static String DB_USER = "postgres";
+    private final static String DB_PASSWORD = "password";
 
-        if (dbCredential.isPresent()) {
-            setDataSourceProperties(dbCredential.get());
-        } else {
-            setInMemoryDataSourceProperties();
-        }
+    public static void setup() {
+        System.setProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY, createTestDbUrl());
     }
 
-    private static void setDataSourceProperties(DbCredentials dbCredentials) {
-        System.setProperty(VEILARBVEDTAKSSTOTTE_DB_URL, dbCredentials.url);
-        System.setProperty(VEILARBVEDTAKSSTOTTE_DB_USERNAME, dbCredentials.getUsername());
-        System.setProperty(VEILARBVEDTAKSSTOTTE_DB_PASSWORD, dbCredentials.getPassword());
-    }
+    private static String createTestDbUrl() {
+        String baseUrl = "jdbc:h2:mem:veilarbvedtaksstotte";
+        String[] urlOptions = new String[]{
+                "DB_CLOSE_DELAY=-1",
+                "MODE=PostgreSQL",
+                "USER=" + DB_USER,
+                "PASSWORD=" + DB_PASSWORD
+        };
 
-    private static void setInMemoryDataSourceProperties() {
-        System.setProperty(VEILARBVEDTAKSSTOTTE_DB_URL,
-                "jdbc:h2:mem:veilarbvedtaksstotte;DB_CLOSE_DELAY=-1;MODE=Oracle");
-        System.setProperty(VEILARBVEDTAKSSTOTTE_DB_USERNAME, "sa");
-        System.setProperty(VEILARBVEDTAKSSTOTTE_DB_PASSWORD, "password");
-    }
-
-    public static boolean isInMemoryDatabase() {
-        return System.getProperty(VEILARBVEDTAKSSTOTTE_DB_URL).startsWith("jdbc:h2:mem:");
+        return baseUrl + ";" + String.join(";", urlOptions);
     }
 }
