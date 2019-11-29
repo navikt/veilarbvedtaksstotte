@@ -28,7 +28,6 @@ public class DbUtils {
     public static void migrate(DataSource dataSource, DbRole dbRole) {
         Flyway.configure()
                 .dataSource(dataSource)
-                .baselineOnMigrate(true)
                 .initSql(String.format("SET ROLE \"%s\"", toDbRoleStr(dbRole)))
                 .load()
                 .migrate();
