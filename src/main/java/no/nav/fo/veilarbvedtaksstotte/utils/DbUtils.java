@@ -44,11 +44,13 @@ public class DbUtils {
 
     @SneakyThrows
     public static DataSource createVaultRefreshDataSource(HikariConfig config, DbRole dbRole) {
+        System.out.println("createVaultRefreshDataSource " + config.getJdbcUrl() + " " + getMountPath() + " " + toDbRoleStr(dbRole));
         return HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(config, getMountPath(), toDbRoleStr(dbRole));
     }
 
     private static String getMountPath() {
-        return "postgresql/" + getClusterName().orElseThrow(() -> new RuntimeException("Klarte ikke å hente cluster name"));
+        boolean isProd = getEnvironmentClass() == EnviromentClass.P;
+        return "postgresql/" + (isProd ? "prod-fss" : "preprod-fss");
     }
 
     public static String toDbRoleStr(DbRole dbRole) {
