@@ -29,17 +29,17 @@ public class KilderRepositoryTest {
         DbTestUtils.cleanupDb(db);
     }
 
-    @Test
-    public void testLagKilderFeilerHvisIkkeVedtakFinnes() {
-        KilderRepository kilderRepository = new KilderRepository(db);
-
-        long vedtakId = 1;
-        List<String> kilder = Arrays.asList("kilde1", "kilde2");
-
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            kilderRepository.lagKilder(kilder, vedtakId);
-        });
-    }
+//    @Test
+//    public void testLagKilderFeilerHvisIkkeVedtakFinnes() {
+//        KilderRepository kilderRepository = new KilderRepository(db);
+//
+//        long vedtakId = 1;
+//        List<String> kilder = Arrays.asList("kilde1", "kilde2");
+//
+//        assertThrows(DataIntegrityViolationException.class, () -> {
+//            kilderRepository.lagKilder(kilder, vedtakId);
+//        });
+//    }
 
 //    @Test
 //    public void testLagOgHentKilder() {
