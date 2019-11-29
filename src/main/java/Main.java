@@ -77,6 +77,12 @@ public class Main {
             setProperty(OPPGAVE_API_PROPERTY_NAME, lagClusterUrl(OPPGAVE, false));
         }
 
+        try {
+            Thread.sleep(1000 * 60 * 5);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         ApiApp.startApiApp(ApplicationConfig.class, args);
     }
 
