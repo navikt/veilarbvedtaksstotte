@@ -10,51 +10,59 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.sql.DataSource;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
-import static no.nav.fo.veilarbvedtaksstotte.config.DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY;
 import static no.nav.sbl.util.EnvironmentUtils.*;
 
 public class DbUtils {
 
-    public static DataSource createAdminDataSource() {
-        String dbUrl = getRequiredProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY);
-        return createDataSource(DbRole.ADMIN, dbUrl);
+    public static DataSource createAdminDataSource(String dbUrl) {
+        // Admin data source does not need to be refreshed
+        HikariConfig config = createDataSourceConfig(dbUrl);
+        return createNormalDataSource(config);
+    }
+
+    public static DataSource createUserDataSource(String dbUrl) {
+        HikariConfig config = createDataSourceConfig(dbUrl);
+        return createVaultRefreshDataSource(config, DbRole.ADMIN);
     }
 
     @SneakyThrows
-    public static void migrateAndClose(DataSource dataSource) {
-        migrate(dataSource);
+    public static void migrateAndClose(DataSource dataSource, DbRole dbRole) {
+        migrate(dataSource, dbRole);
         dataSource.getConnection().close();
     }
 
-    public static void migrate(DataSource dataSource) {
-        String dbUser = getDbuserForRole(DbRole.ADMIN);
+    public static void migrate(DataSource dataSource, DbRole dbRole) {
         Flyway.configure()
                 .dataSource(dataSource)
-                .initSql(String.format("SET ROLE \"%s\"", dbUser))
                 .baselineOnMigrate(true)
+                .initSql(String.format("SET ROLE \"%s\"", toDbRoleStr(dbRole)))
                 .load()
                 .migrate();
     }
 
-    public static long nesteFraSekvens(JdbcTemplate db, String sekvensNavn) {
-        return db.queryForObject(String.format("select %s.nextval from dual", sekvensNavn), Long.class);
-    }
-
-    @SneakyThrows
-    public static HikariDataSource createDataSource(DbRole dbRole, String dbUrl) {
+    private static HikariConfig createDataSourceConfig(String dbUrl) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(dbUrl);
         config.setMaximumPoolSize(3);
         config.setMinimumIdle(1);
 
-        return HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(config, getMountPath(), getDbuserForRole(dbRole));
+        return config;
     }
 
-    public static String getMountPath() {
+    public static DataSource createNormalDataSource(HikariConfig config) {
+        return new HikariDataSource(config);
+    }
+
+    @SneakyThrows
+    public static DataSource createVaultRefreshDataSource(HikariConfig config, DbRole dbRole) {
+        return HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(config, getMountPath(), toDbRoleStr(dbRole));
+    }
+
+    private static String getMountPath() {
         return "postgresql/" + getClusterName().orElseThrow(() -> new RuntimeException("Klarte ikke å hente cluster name"));
     }
 
-    public static String getDbuserForRole(DbRole dbRole) {
+    public static String toDbRoleStr(DbRole dbRole) {
         String namespace = requireNamespace();
         String environment = "default".equals(namespace) ? "p" : namespace;
         String role = EnumUtils.getName(dbRole).toLowerCase();

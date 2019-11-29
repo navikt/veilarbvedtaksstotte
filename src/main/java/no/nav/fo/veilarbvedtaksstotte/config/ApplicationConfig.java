@@ -4,6 +4,7 @@ import no.nav.apiapp.ApiApplication;
 import no.nav.apiapp.ServletUtil;
 import no.nav.apiapp.config.ApiAppConfigurator;
 import no.nav.dialogarena.aktor.AktorConfig;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbRole;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.sbl.featuretoggle.unleash.UnleashService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.ServletContext;
-import javax.sql.DataSource;
+
+import static no.nav.fo.veilarbvedtaksstotte.config.DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY;
+import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.toDbRoleStr;
+import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
 
 @Configuration
@@ -38,6 +42,9 @@ public class ApplicationConfig implements ApiApplication {
     public static final String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
     public static final String SECURITYTOKENSERVICE_URL = "SECURITYTOKENSERVICE_URL";
 
+    @Autowired
+    UnleashService unleashService;
+
     @Override
     public void configure(ApiAppConfigurator apiAppConfigurator) {
         apiAppConfigurator
@@ -46,13 +53,11 @@ public class ApplicationConfig implements ApiApplication {
 
     }
 
-    @Autowired
-    UnleashService unleashService;
-
     @Transactional
     @Override
     public void startup(ServletContext servletContext) {
-        DbUtils.migrateAndClose(DbUtils.createAdminDataSource());
+        String dbUrl = getRequiredProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY);
+        DbUtils.migrateAndClose(DbUtils.createAdminDataSource(dbUrl), DbRole.ADMIN);
         ServletUtil.filterBuilder(new ToggleFilter(unleashService)).register(servletContext);
     }
 

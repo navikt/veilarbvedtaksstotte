@@ -1,7 +1,8 @@
 import no.nav.apiapp.ApiApp;
 import no.nav.fo.veilarbvedtaksstotte.TestContext;
 import no.nav.fo.veilarbvedtaksstotte.config.ApplicationTestConfig;
-import no.nav.fo.veilarbvedtaksstotte.db.DatabaseTestContext;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.testconfig.ApiAppTest;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
@@ -14,7 +15,7 @@ public class MainTest {
     public static void main(String[] args) {
         ApiAppTest.setupTestContext(ApiAppTest.Config.builder().applicationName(APPLICATION_NAME).build());
         TestContext.setup();
-        DatabaseTestContext.setup();
+//        DbUtils.migrate(DbTestUtils.createTestDataSource());
         ApiApp.startApiApp(ApplicationTestConfig.class, ARGUMENTS);
     }
 

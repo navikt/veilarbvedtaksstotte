@@ -6,6 +6,7 @@ import no.nav.dialogarena.aktor.AktorService;
 import no.nav.fo.veilarbvedtaksstotte.mock.AktorServiceMock;
 import no.nav.fo.veilarbvedtaksstotte.mock.Mock;
 import no.nav.fo.veilarbvedtaksstotte.mock.PepClientMock;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbRole;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -13,6 +14,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.ServletContext;
+
+import static no.nav.fo.veilarbvedtaksstotte.config.DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY;
+import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
 @Configuration
 public class ApplicationTestConfig extends ApplicationConfig {
@@ -22,7 +26,8 @@ public class ApplicationTestConfig extends ApplicationConfig {
     @Transactional
     @Override
     public void startup(ServletContext servletContext) {
-        DbUtils.migrateAndClose(DbUtils.createAdminDataSource());
+        String dbUrl = getRequiredProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY);
+        DbUtils.migrateAndClose(DbUtils.createAdminDataSource(dbUrl), DbRole.ADMIN);
         ServletUtil.filterBuilder(new ToggleFilter(unleashService)).register(servletContext);
     }
 

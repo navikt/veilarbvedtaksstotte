@@ -1,6 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.config;
 
-import no.nav.fo.veilarbvedtaksstotte.utils.DbRole;
+import no.nav.apiapp.selftest.HelsesjekkMetadata;
+import no.nav.sbl.dialogarena.types.Pingable;
 import no.nav.sbl.jdbc.Database;
 import no.nav.sbl.jdbc.Transactor;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +12,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.createDataSource;
+import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.createUserDataSource;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
 @Configuration
@@ -21,7 +22,7 @@ public class DatabaseConfig {
     @Bean
     public DataSource dataSource() {
         String dbUrl = getRequiredProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY);
-        return createDataSource(DbRole.USER, dbUrl);
+        return createUserDataSource(dbUrl);
     }
 
     @Bean(name = "transactionManager")
@@ -44,24 +45,20 @@ public class DatabaseConfig {
         return new Transactor(platformTransactionManager);
     }
 
+    @Bean
+    public Pingable dbPinger(JdbcTemplate db) {
+        HelsesjekkMetadata metadata = new HelsesjekkMetadata("db",
+                "Database: " + getRequiredProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY),
+                "Database for veilarbvedtaksstotte",
+                true);
 
-// TODO: Legg til helsesjekk for postgres
-
-//    @Bean
-//    public Pingable dbPinger(final DSLContext dslContext) {
-//        HelsesjekkMetadata metadata = new HelsesjekkMetadata("db",
-//                "Database: " + getRequiredProperty(VEILARBLEST_DB_URL_PROPERTY),
-//                "Database for veilarblest",
-//                true);
-//
-//        return () -> {
-//            try {
-//                dslContext.selectOne().fetch();
-//                return Pingable.Ping.lyktes(metadata);
-//            } catch (Exception e) {
-//                return Pingable.Ping.feilet(metadata, e);
-//            }
-//        };
-//    }
-
+        return () -> {
+            try {
+                db.execute("SELECT 1");
+                return Pingable.Ping.lyktes(metadata);
+            } catch (Exception e) {
+                return Pingable.Ping.feilet(metadata, e);
+            }
+        };
+    }
 }

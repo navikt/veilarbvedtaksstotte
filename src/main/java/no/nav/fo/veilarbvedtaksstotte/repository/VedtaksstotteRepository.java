@@ -2,7 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
-import no.nav.fo.veilarbvedtaksstotte.domain.Opplysning;
+import no.nav.fo.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
@@ -19,16 +19,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.nesteFraSekvens;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 
 @Repository
 public class VedtaksstotteRepository {
 
-    private final static String VEDTAK_TABLE        = "VEDTAK";
-    private final static String VEDTAK_SEQ          = "VEDTAK_SEQ";
-    private final static String VEDTAK_ID           = "VEDTAK_ID";
+    public final static String VEDTAK_TABLE         = "VEDTAK";
+    private final static String VEDTAK_ID           = "ID";
     private final static String AKTOR_ID            = "AKTOR_ID";
     private final static String HOVEDMAL            = "HOVEDMAL";
     private final static String INNSATSGRUPPE       = "INNSATSGRUPPE";
@@ -46,12 +44,12 @@ public class VedtaksstotteRepository {
     private final static String SENDT_TIL_BESLUTTER = "SENDT_TIL_BESLUTTER";
 
     private final JdbcTemplate db;
-    private OpplysningerRepository opplysningerRepository;
+    private KilderRepository kilderRepository;
 
     @Inject
-    public VedtaksstotteRepository(JdbcTemplate db, OpplysningerRepository opplysningerRepository) {
+    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository) {
         this.db = db;
-        this.opplysningerRepository = opplysningerRepository;
+        this.kilderRepository = kilderRepository;
     }
 
 
@@ -65,10 +63,10 @@ public class VedtaksstotteRepository {
             return null;
         }
 
-        final List<String> opplysninger = opplysningerRepository
-                .hentOpplysningerForVedtak(vedtakUtenOpplysninger.getId())
+        final List<String> opplysninger = kilderRepository
+                .hentKilderForVedtak(vedtakUtenOpplysninger.getId())
                 .stream()
-                .map(Opplysning::getTekst)
+                .map(Kilde::getTekst)
                 .collect(Collectors.toList());
 
         return vedtakUtenOpplysninger.setOpplysninger(opplysninger);
@@ -96,12 +94,12 @@ public class VedtaksstotteRepository {
                 .column("*")
                 .executeToList();
 
-        List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForAlleVedtak(vedtakListe);
+        List<Kilde> opplysninger = kilderRepository.hentKilderForAlleVedtak(vedtakListe);
 
         vedtakListe.forEach(vedtak -> {
             List<String> vedtakOpplysninger = opplysninger.stream()
                     .filter(o -> o.getVedtakId() == vedtak.getId())
-                    .map(Opplysning::getTekst)
+                    .map(Kilde::getTekst)
                     .collect(Collectors.toList());
             vedtak.setOpplysninger(vedtakOpplysninger);
         });
@@ -162,7 +160,6 @@ public class VedtaksstotteRepository {
 
     public void insertUtkast(String aktorId, String veilederIdent, String veilederEnhetId, String veilederEnhetNavn) {
         SqlUtils.insert(db, VEDTAK_TABLE)
-            .value(VEDTAK_ID, nesteFraSekvens(db, VEDTAK_SEQ))
             .value(AKTOR_ID, aktorId)
             .value(VEILEDER_IDENT, veilederIdent)
             .value(VEILEDER_ENHET_ID, veilederEnhetId)

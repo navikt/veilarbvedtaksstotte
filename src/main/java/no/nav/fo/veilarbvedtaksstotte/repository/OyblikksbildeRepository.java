@@ -18,7 +18,7 @@ import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 @Repository
 public class OyblikksbildeRepository {
 
-    private final static String OYBLIKKSBILDE_TABLE         = "OYBLIKKSBILDE";
+    public final static String OYBLIKKSBILDE_TABLE          = "OYBLIKKSBILDE";
     private final static String VEDTAK_ID                   = "VEDTAK_ID";
     private final static String KILDE                       = "KILDE";
     private final static String JSON                        = "JSON";

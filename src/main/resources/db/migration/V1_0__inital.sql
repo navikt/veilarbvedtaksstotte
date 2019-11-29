@@ -38,7 +38,7 @@ CREATE TYPE KILDE_TYPE AS enum (
 CREATE TABLE OYBLIKKSBILDE (
     VEDTAK_ID               NUMBER NOT NULL,
     KILDE_TYPE              KILDE_TYPE NOT NULL,
-    JSON                    JSON,
+    JSON                    TEXT, -- TODO: H2 does not support JSON, so use this for now
     FOREIGN KEY (VEDTAK_ID) REFERENCES VEDTAK(ID)
 );
 

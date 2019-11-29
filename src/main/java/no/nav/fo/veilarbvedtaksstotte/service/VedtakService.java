@@ -4,7 +4,7 @@ import no.nav.apiapp.security.veilarbabac.Bruker;
 import no.nav.fo.veilarbvedtaksstotte.client.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.fo.veilarbvedtaksstotte.repository.OpplysningerRepository;
+import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.OyblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.sbl.jdbc.Transactor;
@@ -27,7 +27,7 @@ public class VedtakService {
 
     private VedtaksstotteRepository vedtaksstotteRepository;
     private OyblikksbildeRepository oyblikksbildeRepository;
-    private OpplysningerRepository opplysningerRepository;
+    private KilderRepository kilderRepository;
     private AuthService authService;
     private DokumentClient dokumentClient;
     private SAFClient safClient;
@@ -44,7 +44,7 @@ public class VedtakService {
 
     @Inject
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
-                         OpplysningerRepository opplysningerRepository,
+                         KilderRepository kilderRepository,
                          OyblikksbildeRepository oyblikksbildeRepository,
                          AuthService authService,
                          DokumentClient dokumentClient,
@@ -57,7 +57,7 @@ public class VedtakService {
                          KafkaService kafkaService,
                          MetricsService metricsService, Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
-        this.opplysningerRepository = opplysningerRepository;
+        this.kilderRepository = kilderRepository;
         this.oyblikksbildeRepository = oyblikksbildeRepository;
         this.authService = authService;
         this.dokumentClient = dokumentClient;
@@ -170,8 +170,8 @@ public class VedtakService {
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), nyttUtkast);
-            opplysningerRepository.slettOpplysninger(utkast.getId());
-            opplysningerRepository.lagOpplysninger(vedtakDTO.getOpplysninger(), utkast.getId());
+            kilderRepository.slettKilder(utkast.getId());
+            kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
         });
     }
 
@@ -183,7 +183,7 @@ public class VedtakService {
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.slettUtkast(bruker.getAktoerId());
-            opplysningerRepository.slettOpplysninger(vedtak.getId());
+            kilderRepository.slettKilder(vedtak.getId());
         });
 
         metricsService.rapporterUtkastSlettet();
