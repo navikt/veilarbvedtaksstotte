@@ -40,7 +40,7 @@ public class DbUtils {
                 .migrate();
     }
 
-    private static HikariConfig createDataSourceConfig(String dbUrl) {
+    public static HikariConfig createDataSourceConfig(String dbUrl) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(dbUrl);
         config.setMaximumPoolSize(3);

@@ -1,7 +1,5 @@
 package no.nav.fo.veilarbvedtaksstotte.utils;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -44,12 +42,7 @@ public class DbTestUtils {
     }
 
     public static DataSource createTestDataSource() {
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(createTestDbUrl());
-        config.setMaximumPoolSize(3);
-        config.setMinimumIdle(1);
-
-        return new HikariDataSource(config);
+        return DbUtils.createNormalDataSource(DbUtils.createDataSourceConfig(createTestDbUrl()));
     }
 
     private static String createTestDbUrl() {
