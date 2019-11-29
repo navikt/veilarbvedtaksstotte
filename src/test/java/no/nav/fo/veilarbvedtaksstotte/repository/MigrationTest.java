@@ -1,4 +1,4 @@
-package no.nav.fo.veilarbvedtaksstotte.db;
+package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.Test;

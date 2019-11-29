@@ -15,7 +15,7 @@ CREATE TABLE VEDTAK (
     UTKAST_OPPRETTET        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     VEILEDER_ENHET_NAVN     VARCHAR(256),
     BESLUTTER_NAVN          VARCHAR(256),
-    SENDT_TIL_BESLUTTER     BOOLEAN NOT NULL DEFAULT false,
+    SENDT_TIL_BESLUTTER     BOOLEAN NOT NULL DEFAULT false
 );
 
 
@@ -35,10 +35,11 @@ CREATE TYPE KILDE_TYPE AS enum (
     'EGENVURDERING'
 );
 
+-- TODO: H2 does not support JSON, so use this for now
 CREATE TABLE OYBLIKKSBILDE (
     VEDTAK_ID               NUMBER NOT NULL,
     KILDE_TYPE              KILDE_TYPE NOT NULL,
-    JSON                    TEXT, -- TODO: H2 does not support JSON, so use this for now
+    JSON                    TEXT,
     FOREIGN KEY (VEDTAK_ID) REFERENCES VEDTAK(ID)
 );
 

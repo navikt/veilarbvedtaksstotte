@@ -1,8 +1,6 @@
-package no.nav.fo.veilarbvedtaksstotte.db;
+package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
-import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;

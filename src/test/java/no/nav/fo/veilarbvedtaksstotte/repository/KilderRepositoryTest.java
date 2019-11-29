@@ -1,16 +1,11 @@
-package no.nav.fo.veilarbvedtaksstotte.db;
+package no.nav.fo.veilarbvedtaksstotte.repository;
 
-import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.jupiter.api.AfterEach;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
