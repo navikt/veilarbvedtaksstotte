@@ -14,15 +14,9 @@ import static no.nav.sbl.util.EnvironmentUtils.*;
 
 public class DbUtils {
 
-    public static DataSource createAdminDataSource(String dbUrl) {
-        // Admin data source does not need to be refreshed
+    public static DataSource createDataSource(String dbUrl, DbRole dbRole) {
         HikariConfig config = createDataSourceConfig(dbUrl);
-        return createNormalDataSource(config);
-    }
-
-    public static DataSource createUserDataSource(String dbUrl) {
-        HikariConfig config = createDataSourceConfig(dbUrl);
-        return createVaultRefreshDataSource(config, DbRole.ADMIN);
+        return createVaultRefreshDataSource(config, dbRole);
     }
 
     @SneakyThrows
@@ -45,12 +39,7 @@ public class DbUtils {
         config.setJdbcUrl(dbUrl);
         config.setMaximumPoolSize(3);
         config.setMinimumIdle(1);
-
         return config;
-    }
-
-    public static DataSource createNormalDataSource(HikariConfig config) {
-        return new HikariDataSource(config);
     }
 
     @SneakyThrows

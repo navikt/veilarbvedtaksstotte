@@ -1,5 +1,6 @@
 package no.nav.fo.veilarbvedtaksstotte.utils;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -42,7 +43,7 @@ public class DbTestUtils {
     }
 
     public static DataSource createTestDataSource() {
-        return DbUtils.createNormalDataSource(DbUtils.createDataSourceConfig(createTestDbUrl()));
+        return new HikariDataSource(DbUtils.createDataSourceConfig(createTestDbUrl()));
     }
 
     private static String createTestDbUrl() {
