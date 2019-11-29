@@ -28,7 +28,9 @@ public class DbUtils {
     public static void migrate(DataSource dataSource, DbRole dbRole) {
         Flyway.configure()
                 .dataSource(dataSource)
+                .table("vedtaksstotte_flyway_schema_history")
                 .initSql(String.format("SET ROLE \"%s\"", toDbRoleStr(dbRole)))
+                .baselineOnMigrate(true)
                 .load()
                 .migrate();
     }
@@ -42,7 +44,7 @@ public class DbUtils {
     }
 
     @SneakyThrows
-    public static DataSource createVaultRefreshDataSource(HikariConfig config, DbRole dbRole) {
+    private static DataSource createVaultRefreshDataSource(HikariConfig config, DbRole dbRole) {
         System.out.println("createVaultRefreshDataSource " + config.getJdbcUrl() + " " + getMountPath() + " " + toDbRoleStr(dbRole));
         return HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(config, getMountPath(), toDbRoleStr(dbRole));
     }
