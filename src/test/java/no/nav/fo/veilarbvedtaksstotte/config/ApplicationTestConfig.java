@@ -27,7 +27,7 @@ public class ApplicationTestConfig extends ApplicationConfig {
     @Override
     public void startup(ServletContext servletContext) {
         String dbUrl = getRequiredProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY);
-        DbUtils.migrateAndClose(DbUtils.createAdminDataSource(dbUrl), DbRole.ADMIN);
+        DbUtils.migrateAndClose(DbUtils.createDataSource(dbUrl, DbRole.ADMIN), DbRole.ADMIN);
         ServletUtil.filterBuilder(new ToggleFilter(unleashService)).register(servletContext);
     }
 
