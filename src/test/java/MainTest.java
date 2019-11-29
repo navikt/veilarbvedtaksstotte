@@ -14,14 +14,11 @@ public class MainTest {
     private static final String[] ARGUMENTS = {TEST_PORT};
 
     public static void main(String[] args) {
-        String dbUrl = "";
-
-        DbUtils.migrateAndClose(DbUtils.createDataSource(dbUrl, DbRole.ADMIN), DbRole.ADMIN);
-
-        ApiAppTest.setupTestContext(ApiAppTest.Config.builder().applicationName(APPLICATION_NAME).build());
-        TestContext.setup();
+//        TODO: Make it possible to run this
+//        ApiAppTest.setupTestContext(ApiAppTest.Config.builder().applicationName(APPLICATION_NAME).build());
+//        TestContext.setup();
 //        DbUtils.migrate(DbTestUtils.createTestDataSource());
-        ApiApp.startApiApp(ApplicationTestConfig.class, ARGUMENTS);
+//        ApiApp.startApiApp(ApplicationTestConfig.class, ARGUMENTS);
     }
 
 }
