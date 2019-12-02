@@ -1,6 +1,5 @@
 package no.nav.fo.veilarbvedtaksstotte.repository;
 
-import no.nav.fo.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.fo.veilarbvedtaksstotte.domain.Oyblikksbilde;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;

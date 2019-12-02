@@ -1,0 +1,15 @@
+version: '3.7'
+services:
+  postgres:
+    image: "postgres:11.5"
+    volumes:
+      - "veilarbvedtaksstotte-data:/var/lib/postgresql/data"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "veilarbvedtaksstotte"
+
+volumes:
+  veilarbvedtaksstotte-data:
