@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 
+import static no.nav.fo.veilarbvedtaksstotte.repository.TestData.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
@@ -19,11 +20,6 @@ public class VedtaksstotteRepositoryTest {
     private static DataSource testDataSource = DbTestUtils.createTestDataSource();
     private JdbcTemplate db = new JdbcTemplate(testDataSource);
     private KilderRepository kilderRepositoryMock = mock(KilderRepository.class);
-
-    private final String aktorId = "123";
-    private final String veilederIdent = "Z12345";
-    private final String veilederEnhetId = "1234";
-    private final String veilederEnhetNavn = "NAV Testheim";
 
     @BeforeClass
     public static void setup() {
@@ -39,14 +35,14 @@ public class VedtaksstotteRepositoryTest {
     public void testHentUtkast() {
         VedtaksstotteRepository repo = new VedtaksstotteRepository(db, kilderRepositoryMock);
 
-        repo.insertUtkast(aktorId, veilederIdent, veilederEnhetId, veilederEnhetNavn);
+        repo.opprettUtakst(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
 
-        Vedtak utkast = repo.hentUtkast(aktorId);
+        Vedtak utkast = repo.hentUtkast(TEST_AKTOR_ID);
 
-        assertEquals(aktorId, utkast.getAktorId());
-        assertEquals(veilederIdent, utkast.getVeilederIdent());
-        assertEquals(veilederEnhetId, utkast.getVeilederEnhetId());
-        assertEquals(veilederEnhetNavn, utkast.getVeilederEnhetNavn());
+        assertEquals(TEST_AKTOR_ID, utkast.getAktorId());
+        assertEquals(TEST_VEILEDER_IDENT, utkast.getVeilederIdent());
+        assertEquals(TEST_VEILEDER_ENHET_ID, utkast.getVeilederEnhetId());
+        assertEquals(TEST_VEILEDER_ENHET_NAVN, utkast.getVeilederEnhetNavn());
     }
 
     @Test
@@ -55,11 +51,9 @@ public class VedtaksstotteRepositoryTest {
         assertNull(repo.hentUtkast("54385638405"));
     }
 
-    @Test
-    public void testHentUtkastMedOpplysninger() {
-        // TODO
-    }
-
-
+//    @Test
+//    public void testHentUtkastMedOpplysninger() {
+//        // TODO
+//    }
 
 }

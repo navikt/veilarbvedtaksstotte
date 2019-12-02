@@ -45,7 +45,6 @@ public class DbUtils {
 
     @SneakyThrows
     private static DataSource createVaultRefreshDataSource(HikariConfig config, DbRole dbRole) {
-        System.out.println("createVaultRefreshDataSource " + config.getJdbcUrl() + " " + getMountPath() + " " + toDbRoleStr(dbRole));
         return HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(config, getMountPath(), toDbRoleStr(dbRole));
     }
 

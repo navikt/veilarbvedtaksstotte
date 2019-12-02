@@ -158,7 +158,7 @@ public class VedtaksstotteRepository {
             .execute();
     }
 
-    public void insertUtkast(String aktorId, String veilederIdent, String veilederEnhetId, String veilederEnhetNavn) {
+    public void opprettUtakst(String aktorId, String veilederIdent, String veilederEnhetId, String veilederEnhetNavn) {
         SqlUtils.insert(db, VEDTAK_TABLE)
             .value(AKTOR_ID, aktorId)
             .value(VEILEDER_IDENT, veilederIdent)

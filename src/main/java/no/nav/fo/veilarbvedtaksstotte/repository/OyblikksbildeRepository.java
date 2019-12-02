@@ -20,7 +20,7 @@ public class OyblikksbildeRepository {
 
     public final static String OYBLIKKSBILDE_TABLE          = "OYBLIKKSBILDE";
     private final static String VEDTAK_ID                   = "VEDTAK_ID";
-    private final static String KILDE                       = "KILDE";
+    private final static String KILDE_TYPE                  = "KILDE_TYPE";
     private final static String JSON                        = "JSON";
 
     private final JdbcTemplate db;
@@ -44,7 +44,7 @@ public class OyblikksbildeRepository {
     private void lagOyblikksbilde(Oyblikksbilde oyblikksbilde) {
         SqlUtils.insert(db, OYBLIKKSBILDE_TABLE)
                 .value(VEDTAK_ID, oyblikksbilde.getVedtakId())
-                .value(KILDE, getName(oyblikksbilde.getKildeType()))
+                .value(KILDE_TYPE, getName(oyblikksbilde.getKildeType()))
                 .value(JSON, oyblikksbilde.getJson())
                 .execute();
     }
@@ -53,7 +53,7 @@ public class OyblikksbildeRepository {
     private static Oyblikksbilde mapOyblikksbilde(ResultSet rs) {
         return new Oyblikksbilde()
                 .setVedtakId(rs.getLong(VEDTAK_ID))
-                .setKildeType(valueOf(KildeType.class, rs.getString(KILDE)))
+                .setKildeType(valueOf(KildeType.class, rs.getString(KILDE_TYPE)))
                 .setJson(rs.getString(JSON));
     }
 
