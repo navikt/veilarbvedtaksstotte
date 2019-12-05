@@ -2,34 +2,32 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import no.nav.fo.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.jupiter.api.AfterEach;
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
+import org.junit.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import javax.sql.DataSource;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static no.nav.fo.veilarbvedtaksstotte.repository.TestData.*;
-import static no.nav.fo.veilarbvedtaksstotte.repository.TestData.TEST_VEILEDER_ENHET_NAVN;
+import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
+import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_ENHET_NAVN;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class KilderRepositoryTest {
 
-    private static DataSource testDataSource = DbTestUtils.createTestDataSource();
-    private JdbcTemplate db = new JdbcTemplate(testDataSource);
-    private KilderRepository kilderRepository = new KilderRepository(db);
-    private VedtaksstotteRepository vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
+    private static JdbcTemplate db;
+    private static KilderRepository kilderRepository;
+    private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
-        DbTestUtils.testMigrate(testDataSource);
+        db = SingletonPostgresContainer.init().getDb();
+        kilderRepository = new KilderRepository(db);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }
 
-    @AfterEach
+    @After
     public void cleanup() {
         DbTestUtils.cleanupDb(db);
     }

@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType;
 
 @Data
 @Accessors(chain = true)
@@ -12,6 +12,6 @@ import no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType;
 @AllArgsConstructor
 public class Oyblikksbilde {
     long vedtakId;
-    KildeType kildeType;
+    OyblikksbildeType oyblikksbildeType;
     String json;
 }

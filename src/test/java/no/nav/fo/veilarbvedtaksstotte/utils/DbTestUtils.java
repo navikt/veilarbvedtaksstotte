@@ -1,7 +1,5 @@
 package no.nav.fo.veilarbvedtaksstotte.utils;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -17,16 +15,12 @@ import static no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository.
 
 public class DbTestUtils {
 
-    private final static String DB_USER = "postgres";
-    private final static String DB_PASSWORD = "password";
-
-    private final static boolean USE_LOCAL_POSTGRES = false;
-
+    // Rekkefølgen er viktig pga foreign key constraints
     private final static List<String> ALL_TABLES = Arrays.asList(
-            VEDTAK_TABLE,
+            KILDE_TABLE,
             VEDTAK_SENDT_KAFKA_FEIL_TABLE,
             OYBLIKKSBILDE_TABLE,
-            KILDE_TABLE
+            VEDTAK_TABLE
     );
 
     public static void testMigrate(DataSource dataSource) {
@@ -41,40 +35,21 @@ public class DbTestUtils {
         ALL_TABLES.forEach((table) -> deleteAllFromTable(db, table));
     }
 
+    public static JdbcTemplate startAndMigratePostgresContainer(PostgresContainer container) {
+        container.getContainer().start();
+
+//        try {
+//            Thread.sleep(5000);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
+        DataSource dataSource = container.getDataSource();
+        DbTestUtils.testMigrate(dataSource);
+        return new JdbcTemplate(dataSource);
+    }
+
     private static void deleteAllFromTable(JdbcTemplate db, String tableName) {
         db.execute("DELETE FROM " + tableName);
-    }
-
-    public static DataSource createTestDataSource() {
-        return USE_LOCAL_POSTGRES
-                ? createLocalPostgresTestDataSource()
-                : createInMemoryTestDataSource();
-    }
-
-    private static DataSource createInMemoryTestDataSource() {
-        return new HikariDataSource(DbUtils.createDataSourceConfig(createInMemoryTestDbUrl()));
-    }
-
-    private static DataSource createLocalPostgresTestDataSource() {
-        HikariConfig config = DbUtils.createDataSourceConfig(createLocalPostgresTestDbUrl());
-        config.setUsername(DB_USER);
-        config.setPassword(DB_PASSWORD);
-        return new HikariDataSource(config);
-    }
-
-    private static String createLocalPostgresTestDbUrl() {
-        return "jdbc:postgresql://localhost:5432/veilarbvedtaksstotte";
-    }
-
-    private static String createInMemoryTestDbUrl() {
-        String baseUrl = "jdbc:h2:mem:veilarbvedtaksstotte";
-        String[] urlOptions = new String[]{
-                "DB_CLOSE_DELAY=-1",
-                "MODE=PostgreSQL",
-                "USER=" + DB_USER,
-                "PASSWORD=" + DB_PASSWORD
-        };
-
-        return baseUrl + ";" + String.join(";", urlOptions);
     }
 }

@@ -5,11 +5,18 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.SneakyThrows;
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil;
 import org.flywaydb.core.Flyway;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
 import javax.sql.DataSource;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
+import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.sbl.util.EnvironmentUtils.*;
 
 public class DbUtils {
@@ -41,6 +48,20 @@ public class DbUtils {
         config.setMaximumPoolSize(3);
         config.setMinimumIdle(1);
         return config;
+    }
+
+    public static <T> ResultSetExtractor<T> singleResult(ResultSetExtractor<T> rse) {
+        return rs -> {
+            if (rs.next()) {
+                return rse.extractData(rs);
+            }
+            return null;
+        };
+    }
+
+    @SneakyThrows
+    public static PreparedStatement createPreparedStatement(JdbcTemplate db, String sql) {
+        return db.getDataSource().getConnection().prepareStatement(sql);
     }
 
     @SneakyThrows

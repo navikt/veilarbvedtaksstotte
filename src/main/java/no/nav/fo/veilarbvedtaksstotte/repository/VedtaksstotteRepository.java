@@ -7,6 +7,7 @@ import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.VedtakStatus;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.sbl.sql.DbConstants;
 import no.nav.sbl.sql.SqlUtils;
 import no.nav.sbl.sql.where.WhereClause;
@@ -14,11 +15,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.singleResult;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 
@@ -52,7 +55,7 @@ public class VedtaksstotteRepository {
         this.kilderRepository = kilderRepository;
     }
 
-
+    @SneakyThrows
     public Vedtak hentUtkast(String aktorId) {
         Vedtak vedtakUtenOpplysninger = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))))
@@ -172,15 +175,15 @@ public class VedtaksstotteRepository {
     @SneakyThrows
     private static Vedtak mapVedtak(ResultSet rs) {
         return new Vedtak()
-                .setId(rs.getLong(VEDTAK_ID))
+                .setId(rs.getInt(VEDTAK_ID))
                 .setHovedmal(valueOf(Hovedmal.class, rs.getString(HOVEDMAL)))
                 .setInnsatsgruppe(valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
                 .setVedtakStatus(valueOf(VedtakStatus.class, rs.getString(STATUS)))
                 .setBegrunnelse(rs.getString(BEGRUNNELSE))
                 .setSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
                 .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
-                .setGjeldende(rs.getInt(GJELDENDE) == 1)
-                .setSendtTilBeslutter(rs.getInt(SENDT_TIL_BESLUTTER) == 1)
+                .setGjeldende(rs.getBoolean(GJELDENDE))
+                .setSendtTilBeslutter(rs.getBoolean(SENDT_TIL_BESLUTTER))
                 .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
                 .setBeslutterNavn(rs.getString(BESLUTTER_NAVN))

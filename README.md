@@ -13,3 +13,6 @@ mvn test
 # For lokal test kjøring kjør MainTest.java
 ```
 
+## Stopp alle docker containers
+docker container stop $(docker container ls -aq)
+

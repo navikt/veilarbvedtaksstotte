@@ -4,33 +4,33 @@ import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.jupiter.api.AfterEach;
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
+import org.junit.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static no.nav.fo.veilarbvedtaksstotte.repository.TestData.*;
+import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class KafkaRepositoryTest {
 
-    private static DataSource testDataSource = DbTestUtils.createTestDataSource();
-    private JdbcTemplate db = new JdbcTemplate(testDataSource);
-    private KafkaRepository kafkaRepository = new KafkaRepository(db);
-    private KilderRepository kilderRepository = new KilderRepository(db);
-    private VedtaksstotteRepository vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
+    private static JdbcTemplate db;
+    private static KafkaRepository kafkaRepository;
+    private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
-        DbTestUtils.testMigrate(testDataSource);
+        db = SingletonPostgresContainer.init().getDb();
+
+        KilderRepository kilderRepository = new KilderRepository(db);
+        kafkaRepository = new KafkaRepository(db);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }
 
-    @AfterEach
+    @After
     public void cleanup() {
         DbTestUtils.cleanupDb(db);
     }
@@ -61,6 +61,8 @@ public class KafkaRepositoryTest {
                 TEST_VEILEDER_ENHET_NAVN
         );
 
+        System.out.println(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId());
+
         KafkaVedtakSendt vedtakSendt = new KafkaVedtakSendt()
                 .setId(vedtakId)
                 .setVedtakSendt(LocalDateTime.now())
@@ -87,6 +89,8 @@ public class KafkaRepositoryTest {
                 TEST_VEILEDER_ENHET_ID,
                 TEST_VEILEDER_ENHET_NAVN
         );
+
+        System.out.println(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
 
         KafkaVedtakSendt vedtakSendt = new KafkaVedtakSendt()
                 .setId(vedtakId)

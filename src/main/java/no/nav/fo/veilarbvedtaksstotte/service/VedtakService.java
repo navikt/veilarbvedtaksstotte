@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType.*;
+import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType.*;
 import static no.nav.fo.veilarbvedtaksstotte.utils.JsonUtils.toJson;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 

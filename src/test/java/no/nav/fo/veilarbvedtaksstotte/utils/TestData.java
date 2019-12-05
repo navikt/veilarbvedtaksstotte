@@ -1,4 +1,4 @@
-package no.nav.fo.veilarbvedtaksstotte.repository;
+package no.nav.fo.veilarbvedtaksstotte.utils;
 
 public class TestData {
 

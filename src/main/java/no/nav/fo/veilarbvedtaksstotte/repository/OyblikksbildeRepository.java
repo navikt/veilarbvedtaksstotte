@@ -2,13 +2,15 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.Oyblikksbilde;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.sbl.sql.SqlUtils;
 import no.nav.sbl.sql.where.WhereClause;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
 
@@ -41,19 +43,25 @@ public class OyblikksbildeRepository {
         oyblikksbildeList.forEach(this::lagOyblikksbilde);
     }
 
+    @SneakyThrows
     private void lagOyblikksbilde(Oyblikksbilde oyblikksbilde) {
-        SqlUtils.insert(db, OYBLIKKSBILDE_TABLE)
-                .value(VEDTAK_ID, oyblikksbilde.getVedtakId())
-                .value(KILDE_TYPE, getName(oyblikksbilde.getKildeType()))
-                .value(JSON, oyblikksbilde.getJson())
-                .execute();
+        PreparedStatement stmt = DbUtils.createPreparedStatement(
+                db, "INSERT INTO OYBLIKKSBILDE (VEDTAK_ID, OYBLIKKSBILDE_TYPE, JSON) VALUES (?,?::OYBLIKKSBILDE_TYPE,?::json)"
+        );
+
+        stmt.setLong(1, oyblikksbilde.getVedtakId());
+        stmt.setString(2, getName(oyblikksbilde.getOyblikksbildeType()));
+        stmt.setString(3, oyblikksbilde.getJson());
+
+        stmt.executeUpdate();
+        stmt.close();
     }
 
     @SneakyThrows
     private static Oyblikksbilde mapOyblikksbilde(ResultSet rs) {
         return new Oyblikksbilde()
                 .setVedtakId(rs.getLong(VEDTAK_ID))
-                .setKildeType(valueOf(KildeType.class, rs.getString(KILDE_TYPE)))
+                .setOyblikksbildeType(valueOf(OyblikksbildeType.class, rs.getString(KILDE_TYPE)))
                 .setJson(rs.getString(JSON));
     }
 
