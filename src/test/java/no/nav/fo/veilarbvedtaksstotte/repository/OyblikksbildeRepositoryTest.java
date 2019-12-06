@@ -1,9 +1,20 @@
 package no.nav.fo.veilarbvedtaksstotte.repository;
 
+import no.nav.fo.veilarbvedtaksstotte.domain.Oyblikksbilde;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.Collections;
+import java.util.List;
+
+import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class OyblikksbildeRepositoryTest {
 
@@ -27,41 +38,36 @@ public class OyblikksbildeRepositoryTest {
         DbTestUtils.cleanupDb(db);
     }
 
+    @Test
+    public void testLagOyblikksbildeFeilerHvisIkkeVedtakFinnes() {
+        Oyblikksbilde oyblikksbilde = new Oyblikksbilde(
+                VEDTAK_ID_THAT_DOES_NOT_EXIST,
+                OyblikksbildeType.REGISTRERINGSINFO,
+                REGISTRERINGSINFO_JSON
+        );
 
-//    @Test
-//    public void testLagOyblikksbildeFeilerHvisIkkeVedtakFinnes() {
-//        Oyblikksbilde oyblikksbilde = new Oyblikksbilde(
-//                VEDTAK_ID_THAT_DOES_NOT_EXIST,
-//                KildeType.REGISTRERINGSINFO,
-//                REGISTRERINGSINFO_JSON
-//        );
-//
-//        List<Oyblikksbilde> oyblikksbilder = Collections.singletonList(oyblikksbilde);
-//
-//        assertThrows(PSQLException.class, () -> oyblikksbildeRepository.lagOyblikksbilde(oyblikksbilder));
-//    }
+        List<Oyblikksbilde> oyblikksbilder = Collections.singletonList(oyblikksbilde);
 
-//    @Test
-//    public void testLagOgHentOyblikksbilde() {
-//        final long vedtakId = 1;
-//
-//        // Kan ikke opprette kilder hvis det ikke finnes et utkast
-//        vedtaksstotteRepository.opprettUtakst(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
-//
-//        Oyblikksbilde oyblikksbilde = new Oyblikksbilde(
-//                vedtakId,
-//                KildeType.REGISTRERINGSINFO,
-//                REGISTRERINGSINFO_JSON
-//        );
-//
-//        List<Oyblikksbilde> oyblikksbilder = Collections.singletonList(oyblikksbilde);
-//
-//        oyblikksbildeRepository.lagOyblikksbilde(oyblikksbilder);
-//
-//        List<Oyblikksbilde> hentetOyblikksbilder = oyblikksbildeRepository.hentOyblikksbildeForVedtak(vedtakId);
-//
-//        assertTrue(hentetOyblikksbilder.size() > 0);
-//        assertEquals(oyblikksbilde.getJson(), hentetOyblikksbilder.get(0).getJson());
-//    }
+        assertThrows(DataIntegrityViolationException.class, () -> oyblikksbildeRepository.lagOyblikksbilde(oyblikksbilder));
+    }
+
+    @Test
+    public void testLagOgHentOyblikksbilde() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+
+        Oyblikksbilde oyblikksbilde = new Oyblikksbilde(
+                vedtakId,
+                OyblikksbildeType.REGISTRERINGSINFO,
+                REGISTRERINGSINFO_JSON
+        );
+
+        oyblikksbildeRepository.lagOyblikksbilde(Collections.singletonList(oyblikksbilde));
+
+        List<Oyblikksbilde> hentetOyblikksbilder = oyblikksbildeRepository.hentOyblikksbildeForVedtak(vedtakId);
+
+        assertTrue(hentetOyblikksbilder.size() > 0);
+        assertEquals(oyblikksbilde.getJson(), hentetOyblikksbilder.get(0).getJson());
+    }
 
 }

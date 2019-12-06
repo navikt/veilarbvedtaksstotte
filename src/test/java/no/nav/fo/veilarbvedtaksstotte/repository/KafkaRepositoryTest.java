@@ -1,6 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
+import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
@@ -52,16 +53,15 @@ public class KafkaRepositoryTest {
 
     @Test
     public void testLagOgHentVedtakSendtKafkaFeil() {
-        long vedtakId = 1;
 
-        vedtaksstotteRepository.opprettUtakst(
+        vedtaksstotteRepository.opprettUtkast(
                 TEST_AKTOR_ID,
                 TEST_VEILEDER_IDENT,
                 TEST_VEILEDER_ENHET_ID,
                 TEST_VEILEDER_ENHET_NAVN
         );
 
-        System.out.println(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId());
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
         KafkaVedtakSendt vedtakSendt = new KafkaVedtakSendt()
                 .setId(vedtakId)
@@ -81,16 +81,14 @@ public class KafkaRepositoryTest {
 
     @Test
     public void testVedtakSendtKafkaFeilSlettes() {
-        long vedtakId = 1;
-
-        vedtaksstotteRepository.opprettUtakst(
+       vedtaksstotteRepository.opprettUtkast(
                 TEST_AKTOR_ID,
                 TEST_VEILEDER_IDENT,
                 TEST_VEILEDER_ENHET_ID,
                 TEST_VEILEDER_ENHET_NAVN
         );
 
-        System.out.println(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
         KafkaVedtakSendt vedtakSendt = new KafkaVedtakSendt()
                 .setId(vedtakId)

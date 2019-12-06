@@ -43,10 +43,10 @@ public class KilderRepositoryTest {
 
     @Test
     public void testLagOgHentKilder() {
-        final long vedtakId = 1;
 
-        // Kan ikke opprette kilder hvis det ikke finnes et utkast
-        vedtaksstotteRepository.opprettUtakst(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
         List<String> kilder = Arrays.asList("kilde1", "kilde2");
         kilderRepository.lagKilder(kilder, vedtakId);

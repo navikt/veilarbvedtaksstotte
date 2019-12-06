@@ -140,7 +140,7 @@ public class VedtakService {
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
         String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
 
-        vedtaksstotteRepository.opprettUtakst(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
+        vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {

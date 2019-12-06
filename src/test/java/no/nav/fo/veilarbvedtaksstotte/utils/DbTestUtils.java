@@ -35,20 +35,6 @@ public class DbTestUtils {
         ALL_TABLES.forEach((table) -> deleteAllFromTable(db, table));
     }
 
-    public static JdbcTemplate startAndMigratePostgresContainer(PostgresContainer container) {
-        container.getContainer().start();
-
-//        try {
-//            Thread.sleep(5000);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-
-        DataSource dataSource = container.getDataSource();
-        DbTestUtils.testMigrate(dataSource);
-        return new JdbcTemplate(dataSource);
-    }
-
     private static void deleteAllFromTable(JdbcTemplate db, String tableName) {
         db.execute("DELETE FROM " + tableName);
     }

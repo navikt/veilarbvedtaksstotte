@@ -32,6 +32,7 @@ spec:
       cpu: "2"
       memory: 1024Mi
     requests:
+      cpu: 500m
       memory: 512Mi
   vault:
     enabled: true
@@ -41,6 +42,8 @@ spec:
       - kvPath: /oracle/data/dev/creds/veilarbvedtaksstotte_{{namespace}}-user
         mountPath: /var/run/secrets/nais.io/oracle_creds
       - kvPath: /kv/preprod/fss/veilarbvedtaksstotte/{{namespace}}
+        mountPath: /var/run/secrets/nais.io/vault
+      - kvPath: /apikey/appdynamics/dev
         mountPath: /var/run/secrets/nais.io/vault
   configMaps:
     files:

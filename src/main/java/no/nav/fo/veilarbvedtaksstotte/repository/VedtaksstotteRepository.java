@@ -7,7 +7,6 @@ import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.VedtakStatus;
-import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.sbl.sql.DbConstants;
 import no.nav.sbl.sql.SqlUtils;
 import no.nav.sbl.sql.where.WhereClause;
@@ -15,13 +14,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.singleResult;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 
@@ -161,7 +158,7 @@ public class VedtaksstotteRepository {
             .execute();
     }
 
-    public void opprettUtakst(String aktorId, String veilederIdent, String veilederEnhetId, String veilederEnhetNavn) {
+    public void opprettUtkast(String aktorId, String veilederIdent, String veilederEnhetId, String veilederEnhetNavn) {
         SqlUtils.insert(db, VEDTAK_TABLE)
             .value(AKTOR_ID, aktorId)
             .value(VEILEDER_IDENT, veilederIdent)

@@ -32,7 +32,7 @@ public class VedtaksstotteRepositoryTest {
 
     @Test
     public void testHentUtkast() {
-        vedtaksstotteRepository.opprettUtakst(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
