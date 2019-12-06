@@ -12,7 +12,7 @@ import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-
+@Ignore
 public class VedtaksstotteRepositoryTest {
 
     @ClassRule
