@@ -52,12 +52,8 @@ public class VedtaksstotteRepository {
         this.kilderRepository = kilderRepository;
     }
 
-    @SneakyThrows
     public Vedtak hentUtkast(String aktorId) {
-        Vedtak vedtakUtenOpplysninger = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
-                .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))))
-                .column("*")
-                .execute();
+        Vedtak vedtakUtenOpplysninger = hentUtkastUtenOpplysninger(aktorId);
 
         if (vedtakUtenOpplysninger == null) {
             return null;
@@ -73,18 +69,17 @@ public class VedtaksstotteRepository {
     }
 
     public boolean slettUtkast(String aktorId) {
+        Vedtak vedtakUtenOpplysninger = hentUtkastUtenOpplysninger(aktorId);
+
+        if (vedtakUtenOpplysninger == null) {
+            return false;
+        }
+
+        kilderRepository.slettKilder(vedtakUtenOpplysninger.getId());
+
         return SqlUtils
                 .delete(db, VEDTAK_TABLE)
                 .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)).and(WhereClause.equals(AKTOR_ID,aktorId)))
-                .execute() > 0;
-    }
-
-    public boolean slettUtkast(String aktorId, Date avsluttOppfolgingDato) {
-        return SqlUtils
-                .delete(db, VEDTAK_TABLE)
-                .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))
-                        .and(WhereClause.equals(AKTOR_ID, aktorId)
-                        .and(WhereClause.lteq(SIST_OPPDATERT, avsluttOppfolgingDato))))
                 .execute() > 0;
     }
 
@@ -168,6 +163,13 @@ public class VedtaksstotteRepository {
             .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .value(STATUS, getName(VedtakStatus.UTKAST))
             .execute();
+    }
+
+    private Vedtak hentUtkastUtenOpplysninger(String aktorId) {
+        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
+                .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))))
+                .column("*")
+                .execute();
     }
 
     @SneakyThrows

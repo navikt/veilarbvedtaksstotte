@@ -232,7 +232,7 @@ public class VedtakService {
     public void behandleAvsluttOppfolging (KafkaAvsluttOppfolging melding ) {
         String aktorId = melding.getAktorId();
         Date sluttDato = melding.getSluttdato();
-        vedtaksstotteRepository.slettUtkast(aktorId, sluttDato);
+        vedtaksstotteRepository.slettUtkast(aktorId);
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId, sluttDato);
     }
 
