@@ -1,15 +1,16 @@
 package no.nav.fo.veilarbvedtaksstotte.repository;
 
+import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
+import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
-import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,14 +19,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class KafkaRepositoryTest {
 
+    @ClassRule
+    public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance();
+
     private static JdbcTemplate db;
     private static KafkaRepository kafkaRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
-        db = SingletonPostgresContainer.init().getDb();
-
+        db = DbTestUtils.setupDb(pg.getEmbeddedPostgres());
         KilderRepository kilderRepository = new KilderRepository(db);
         kafkaRepository = new KafkaRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
