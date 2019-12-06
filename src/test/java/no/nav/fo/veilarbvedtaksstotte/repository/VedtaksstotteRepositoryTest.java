@@ -9,8 +9,7 @@ import org.junit.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 @Ignore
 public class VedtaksstotteRepositoryTest {

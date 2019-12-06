@@ -108,7 +108,7 @@ public class VedtaksstotteRepository {
     }
 
     public void markerUtkastSomSendtTilBeslutter(String aktorId, String beslutterNavn) {
-        String sql = "UPDATE VEDTAK SET BESLUTTER_NAVN = ?, SENDT_TIL_BESLUTTER = 1 WHERE AKTOR_ID = ? AND STATUS = ?";
+        String sql = "UPDATE VEDTAK SET BESLUTTER_NAVN = ?, SENDT_TIL_BESLUTTER = true WHERE AKTOR_ID = ? AND STATUS = ?";
         long itemsUpdated = db.update(sql, beslutterNavn, aktorId, getName(VedtakStatus.UTKAST));
 
         if (itemsUpdated == 0) {
@@ -126,12 +126,13 @@ public class VedtaksstotteRepository {
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
         SqlUtils.update(db, VEDTAK_TABLE)
             .whereEquals(AKTOR_ID, aktorId)
-            .set(GJELDENDE, 0)
+            .set(GJELDENDE, true)
             .execute();
     }
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId, Date avsluttOppfogingDato) {
-        db.update("UPDATE VEDTAK SET GJELDENDE = ? WHERE AKTOR_ID = ? AND SIST_OPPDATERT <= ?", 0, aktorId, avsluttOppfogingDato);
+        // TODO: Er det riktig å sette SIST_OPPDATERT?
+        db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND SIST_OPPDATERT <= ?", aktorId, avsluttOppfogingDato);
     }
 
     public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO, String beslutter){
@@ -142,7 +143,7 @@ public class VedtaksstotteRepository {
             .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
             .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
             .set(BESLUTTER_NAVN, beslutter)
-            .set(GJELDENDE, 1)
+            .set(GJELDENDE, true)
             .execute();
     }
 
