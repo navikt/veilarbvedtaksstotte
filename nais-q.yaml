@@ -43,8 +43,6 @@ spec:
         mountPath: /var/run/secrets/nais.io/oracle_creds
       - kvPath: /kv/preprod/fss/veilarbvedtaksstotte/{{namespace}}
         mountPath: /var/run/secrets/nais.io/vault
-      - kvPath: /apikey/appdynamics/dev
-        mountPath: /var/run/secrets/nais.io/vault
   configMaps:
     files:
       - pto-config

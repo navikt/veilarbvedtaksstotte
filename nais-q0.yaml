@@ -40,12 +40,14 @@ spec:
         mountPath: /var/run/secrets/nais.io/service_user
       - kvPath: /kv/preprod/fss/veilarbvedtaksstotte/q0
         mountPath: /var/run/secrets/nais.io/vault
-      - kvPath: /apikey/appdynamics/dev
-        mountPath: /var/run/secrets/nais.io/vault
   configMaps:
     files:
       - pto-config
   env:
+    - APPDYNAMICS_CONTROLLER_HOST_NAME
+    - APPDYNAMICS_AGENT_ACCOUNT_NAME
+    - APPDYNAMICS_CONTROLLER_PORT
+    - APPDYNAMICS_CONTROLLER_SSL_ENABLED
     - name: VEILARBVEDTAKSSTOTTE_DB_URL
       value: jdbc:postgresql://b27dbvl008.preprod.local:5432/veilarbvedtaksstotte-q0
     - name: "APP_ENVIRONMENT_NAME"
