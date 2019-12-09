@@ -32,7 +32,7 @@ public class KilderRepositoryTest {
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }
 
-    @After
+    @Before
     public void cleanup() {
         DbTestUtils.cleanupDb(db);
     }

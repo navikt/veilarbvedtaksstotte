@@ -35,7 +35,6 @@ public class DbUtils {
     public static void migrate(DataSource dataSource, DbRole dbRole) {
         Flyway.configure()
                 .dataSource(dataSource)
-                .table("vedtaksstotte_flyway_schema_history")
                 .initSql(String.format("SET ROLE \"%s\"", toDbRoleStr(dbRole)))
                 .baselineOnMigrate(true)
                 .load()

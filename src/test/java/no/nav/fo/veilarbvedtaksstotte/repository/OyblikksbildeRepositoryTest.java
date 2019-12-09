@@ -37,7 +37,7 @@ public class OyblikksbildeRepositoryTest {
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }
 
-    @After
+    @Before
     public void cleanup() {
         DbTestUtils.cleanupDb(db);
     }
