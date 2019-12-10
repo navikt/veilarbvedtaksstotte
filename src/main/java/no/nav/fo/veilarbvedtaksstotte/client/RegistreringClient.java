@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
 import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.REGISTRERING_CACHE_NAME;
+import static no.nav.json.JsonUtils.fromJson;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
 @Slf4j
@@ -24,9 +25,9 @@ public class RegistreringClient extends BaseClient {
     }
 
     @Cacheable(REGISTRERING_CACHE_NAME)
-    public RegistreringData hentRegistreringData(String fnr) {
+    public String hentRegistreringDataJson(String fnr) {
         String hentRegistreringUrl = joinPaths(baseUrl, "api", "registrering?fnr=") + fnr;
-        RestResponse<RegistreringData> response = get(hentRegistreringUrl, RegistreringData.class);
+        RestResponse<String> response = get(hentRegistreringUrl, String.class);
 
         if (response.hasStatus(404) || response.hasStatus(204)) {
             return null;
@@ -37,6 +38,10 @@ public class RegistreringClient extends BaseClient {
         }
 
         return response.getData().orElseThrow(() -> new RuntimeException("Feil ved kall mot " + hentRegistreringUrl));
+    }
+
+    public RegistreringData hentRegistreringData(String fnr) {
+        return fromJson(hentRegistreringDataJson(fnr), RegistreringData.class);
     }
 
 }
