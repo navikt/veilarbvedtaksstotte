@@ -2,7 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.Oyblikksbilde;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType;
 import no.nav.sbl.sql.SqlUtils;
 import no.nav.sbl.sql.where.WhereClause;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,9 +18,9 @@ import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 @Repository
 public class OyblikksbildeRepository {
 
-    private final static String OYBLIKKSBILDE_TABLE         = "OYBLIKKSBILDE";
+    public final static String OYBLIKKSBILDE_TABLE          = "OYBLIKKSBILDE";
     private final static String VEDTAK_ID                   = "VEDTAK_ID";
-    private final static String KILDE                       = "KILDE";
+    private final static String OYBLIKKSBILDE_TYPE          = "OYBLIKKSBILDE_TYPE";
     private final static String JSON                        = "JSON";
 
     private final JdbcTemplate db;
@@ -42,18 +42,17 @@ public class OyblikksbildeRepository {
     }
 
     private void lagOyblikksbilde(Oyblikksbilde oyblikksbilde) {
-        SqlUtils.insert(db, OYBLIKKSBILDE_TABLE)
-                .value(VEDTAK_ID, oyblikksbilde.getVedtakId())
-                .value(KILDE, getName(oyblikksbilde.getKildeType()))
-                .value(JSON, oyblikksbilde.getJson())
-                .execute();
+        db.update(
+        "INSERT INTO OYBLIKKSBILDE (VEDTAK_ID, OYBLIKKSBILDE_TYPE, JSON) VALUES (?,?::OYBLIKKSBILDE_TYPE,?::json)",
+            oyblikksbilde.getVedtakId(), getName(oyblikksbilde.getOyblikksbildeType()), oyblikksbilde.getJson()
+        );
     }
 
     @SneakyThrows
     private static Oyblikksbilde mapOyblikksbilde(ResultSet rs) {
         return new Oyblikksbilde()
                 .setVedtakId(rs.getLong(VEDTAK_ID))
-                .setKildeType(valueOf(KildeType.class, rs.getString(KILDE)))
+                .setOyblikksbildeType(valueOf(OyblikksbildeType.class, rs.getString(OYBLIKKSBILDE_TYPE)))
                 .setJson(rs.getString(JSON));
     }
 

@@ -32,6 +32,7 @@ spec:
       cpu: "2"
       memory: 1024Mi
     requests:
+      cpu: 500m
       memory: 512Mi
   vault:
     enabled: true

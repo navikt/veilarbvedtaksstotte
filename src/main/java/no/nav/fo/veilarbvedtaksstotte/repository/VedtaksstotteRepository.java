@@ -2,7 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
-import no.nav.fo.veilarbvedtaksstotte.domain.Opplysning;
+import no.nav.fo.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
@@ -19,16 +19,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static no.nav.fo.veilarbvedtaksstotte.utils.DbUtils.nesteFraSekvens;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 
 @Repository
 public class VedtaksstotteRepository {
 
-    private final static String VEDTAK_TABLE        = "VEDTAK";
-    private final static String VEDTAK_SEQ          = "VEDTAK_SEQ";
-    private final static String VEDTAK_ID           = "VEDTAK_ID";
+    public final static String VEDTAK_TABLE         = "VEDTAK";
+    private final static String VEDTAK_ID           = "ID";
     private final static String AKTOR_ID            = "AKTOR_ID";
     private final static String HOVEDMAL            = "HOVEDMAL";
     private final static String INNSATSGRUPPE       = "INNSATSGRUPPE";
@@ -46,47 +44,42 @@ public class VedtaksstotteRepository {
     private final static String SENDT_TIL_BESLUTTER = "SENDT_TIL_BESLUTTER";
 
     private final JdbcTemplate db;
-    private OpplysningerRepository opplysningerRepository;
+    private KilderRepository kilderRepository;
 
     @Inject
-    public VedtaksstotteRepository(JdbcTemplate db, OpplysningerRepository opplysningerRepository) {
+    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository) {
         this.db = db;
-        this.opplysningerRepository = opplysningerRepository;
+        this.kilderRepository = kilderRepository;
     }
 
-
     public Vedtak hentUtkast(String aktorId) {
-        Vedtak vedtakUtenOpplysninger = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
-                .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))))
-                .column("*")
-                .execute();
+        Vedtak vedtakUtenOpplysninger = hentUtkastUtenOpplysninger(aktorId);
 
         if (vedtakUtenOpplysninger == null) {
             return null;
         }
 
-        final List<String> opplysninger = opplysningerRepository
-                .hentOpplysningerForVedtak(vedtakUtenOpplysninger.getId())
+        final List<String> opplysninger = kilderRepository
+                .hentKilderForVedtak(vedtakUtenOpplysninger.getId())
                 .stream()
-                .map(Opplysning::getTekst)
+                .map(Kilde::getTekst)
                 .collect(Collectors.toList());
 
         return vedtakUtenOpplysninger.setOpplysninger(opplysninger);
     }
 
     public boolean slettUtkast(String aktorId) {
+        Vedtak vedtakUtenOpplysninger = hentUtkastUtenOpplysninger(aktorId);
+
+        if (vedtakUtenOpplysninger == null) {
+            return false;
+        }
+
+        kilderRepository.slettKilder(vedtakUtenOpplysninger.getId());
+
         return SqlUtils
                 .delete(db, VEDTAK_TABLE)
                 .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST)).and(WhereClause.equals(AKTOR_ID,aktorId)))
-                .execute() > 0;
-    }
-
-    public boolean slettUtkast(String aktorId, Date avsluttOppfolgingDato) {
-        return SqlUtils
-                .delete(db, VEDTAK_TABLE)
-                .where(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))
-                        .and(WhereClause.equals(AKTOR_ID, aktorId)
-                        .and(WhereClause.lteq(SIST_OPPDATERT, avsluttOppfolgingDato))))
                 .execute() > 0;
     }
 
@@ -96,12 +89,12 @@ public class VedtaksstotteRepository {
                 .column("*")
                 .executeToList();
 
-        List<Opplysning> opplysninger = opplysningerRepository.hentOpplysningerForAlleVedtak(vedtakListe);
+        List<Kilde> opplysninger = kilderRepository.hentKilderForAlleVedtak(vedtakListe);
 
         vedtakListe.forEach(vedtak -> {
             List<String> vedtakOpplysninger = opplysninger.stream()
                     .filter(o -> o.getVedtakId() == vedtak.getId())
-                    .map(Opplysning::getTekst)
+                    .map(Kilde::getTekst)
                     .collect(Collectors.toList());
             vedtak.setOpplysninger(vedtakOpplysninger);
         });
@@ -110,7 +103,7 @@ public class VedtaksstotteRepository {
     }
 
     public void markerUtkastSomSendtTilBeslutter(String aktorId, String beslutterNavn) {
-        String sql = "UPDATE VEDTAK SET BESLUTTER_NAVN = ?, SENDT_TIL_BESLUTTER = 1 WHERE AKTOR_ID = ? AND STATUS = ?";
+        String sql = "UPDATE VEDTAK SET BESLUTTER_NAVN = ?, SENDT_TIL_BESLUTTER = true WHERE AKTOR_ID = ? AND STATUS = ?";
         long itemsUpdated = db.update(sql, beslutterNavn, aktorId, getName(VedtakStatus.UTKAST));
 
         if (itemsUpdated == 0) {
@@ -126,14 +119,7 @@ public class VedtaksstotteRepository {
     }
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
-        SqlUtils.update(db, VEDTAK_TABLE)
-            .whereEquals(AKTOR_ID, aktorId)
-            .set(GJELDENDE, 0)
-            .execute();
-    }
-
-    public void settGjeldendeVedtakTilHistorisk(String aktorId, Date avsluttOppfogingDato) {
-        db.update("UPDATE VEDTAK SET GJELDENDE = ? WHERE AKTOR_ID = ? AND SIST_OPPDATERT <= ?", 0, aktorId, avsluttOppfogingDato);
+       db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
     }
 
     public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO, String beslutter){
@@ -144,7 +130,7 @@ public class VedtaksstotteRepository {
             .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
             .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
             .set(BESLUTTER_NAVN, beslutter)
-            .set(GJELDENDE, 1)
+            .set(GJELDENDE, true)
             .execute();
     }
 
@@ -160,9 +146,8 @@ public class VedtaksstotteRepository {
             .execute();
     }
 
-    public void insertUtkast(String aktorId, String veilederIdent, String veilederEnhetId, String veilederEnhetNavn) {
+    public void opprettUtkast(String aktorId, String veilederIdent, String veilederEnhetId, String veilederEnhetNavn) {
         SqlUtils.insert(db, VEDTAK_TABLE)
-            .value(VEDTAK_ID, nesteFraSekvens(db, VEDTAK_SEQ))
             .value(AKTOR_ID, aktorId)
             .value(VEILEDER_IDENT, veilederIdent)
             .value(VEILEDER_ENHET_ID, veilederEnhetId)
@@ -172,18 +157,25 @@ public class VedtaksstotteRepository {
             .execute();
     }
 
+    private Vedtak hentUtkastUtenOpplysninger(String aktorId) {
+        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
+                .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, getName(VedtakStatus.UTKAST))))
+                .column("*")
+                .execute();
+    }
+
     @SneakyThrows
     private static Vedtak mapVedtak(ResultSet rs) {
         return new Vedtak()
-                .setId(rs.getLong(VEDTAK_ID))
+                .setId(rs.getInt(VEDTAK_ID))
                 .setHovedmal(valueOf(Hovedmal.class, rs.getString(HOVEDMAL)))
                 .setInnsatsgruppe(valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
                 .setVedtakStatus(valueOf(VedtakStatus.class, rs.getString(STATUS)))
                 .setBegrunnelse(rs.getString(BEGRUNNELSE))
                 .setSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
                 .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
-                .setGjeldende(rs.getInt(GJELDENDE) == 1)
-                .setSendtTilBeslutter(rs.getInt(SENDT_TIL_BESLUTTER) == 1)
+                .setGjeldende(rs.getBoolean(GJELDENDE))
+                .setSendtTilBeslutter(rs.getBoolean(SENDT_TIL_BESLUTTER))
                 .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
                 .setBeslutterNavn(rs.getString(BESLUTTER_NAVN))

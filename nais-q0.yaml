@@ -2,7 +2,7 @@ kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
   name: veilarbvedtaksstotte
-  namespace: {{namespace}}
+  namespace: q0
   labels:
     team: pto
   cluster: dev-fss
@@ -12,8 +12,8 @@ spec:
   webproxy: true
   leaderElection: true
   ingresses:
-    - https://app-{{namespace}}.adeo.no/veilarbvedtaksstotte
-    - https://veilarbvedtaksstotte-{{namespace}}.nais.preprod.local
+    - https://app-q0.adeo.no/veilarbvedtaksstotte
+    - https://veilarbvedtaksstotte-q0.nais.preprod.local
   prometheus:
     enabled: true
     path: veilarbvedtaksstotte/internal/metrics
@@ -32,16 +32,13 @@ spec:
       cpu: "2"
       memory: 1024Mi
     requests:
-      cpu: 500m
       memory: 512Mi
   vault:
     enabled: true
     paths:
       - kvPath: /serviceuser/data/dev/srvveilarbvedtaksstotte
         mountPath: /var/run/secrets/nais.io/service_user
-      - kvPath: /oracle/data/dev/creds/veilarbvedtaksstotte_{{namespace}}-user
-        mountPath: /var/run/secrets/nais.io/oracle_creds
-      - kvPath: /kv/preprod/fss/veilarbvedtaksstotte/{{namespace}}
+      - kvPath: /kv/preprod/fss/veilarbvedtaksstotte/q0
         mountPath: /var/run/secrets/nais.io/vault
   configMaps:
     files:
@@ -51,5 +48,7 @@ spec:
     - APPDYNAMICS_AGENT_ACCOUNT_NAME
     - APPDYNAMICS_CONTROLLER_PORT
     - APPDYNAMICS_CONTROLLER_SSL_ENABLED
+    - name: VEILARBVEDTAKSSTOTTE_DB_URL
+      value: jdbc:postgresql://b27dbvl008.preprod.local:5432/veilarbvedtaksstotte-q0
     - name: "APP_ENVIRONMENT_NAME"
-      value: {{namespace}}
+      value: q0

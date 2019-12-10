@@ -4,7 +4,7 @@ import no.nav.apiapp.security.veilarbabac.Bruker;
 import no.nav.fo.veilarbvedtaksstotte.client.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.fo.veilarbvedtaksstotte.repository.OpplysningerRepository;
+import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.OyblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.sbl.jdbc.Transactor;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static no.nav.fo.veilarbvedtaksstotte.domain.enums.KildeType.*;
+import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType.*;
 import static no.nav.fo.veilarbvedtaksstotte.utils.JsonUtils.toJson;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
@@ -27,7 +27,7 @@ public class VedtakService {
 
     private VedtaksstotteRepository vedtaksstotteRepository;
     private OyblikksbildeRepository oyblikksbildeRepository;
-    private OpplysningerRepository opplysningerRepository;
+    private KilderRepository kilderRepository;
     private AuthService authService;
     private DokumentClient dokumentClient;
     private SAFClient safClient;
@@ -44,7 +44,7 @@ public class VedtakService {
 
     @Inject
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
-                         OpplysningerRepository opplysningerRepository,
+                         KilderRepository kilderRepository,
                          OyblikksbildeRepository oyblikksbildeRepository,
                          AuthService authService,
                          DokumentClient dokumentClient,
@@ -57,7 +57,7 @@ public class VedtakService {
                          KafkaService kafkaService,
                          MetricsService metricsService, Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
-        this.opplysningerRepository = opplysningerRepository;
+        this.kilderRepository = kilderRepository;
         this.oyblikksbildeRepository = oyblikksbildeRepository;
         this.authService = authService;
         this.dokumentClient = dokumentClient;
@@ -140,7 +140,7 @@ public class VedtakService {
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
         String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
 
-        vedtaksstotteRepository.insertUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
+        vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
@@ -170,8 +170,8 @@ public class VedtakService {
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), nyttUtkast);
-            opplysningerRepository.slettOpplysninger(utkast.getId());
-            opplysningerRepository.lagOpplysninger(vedtakDTO.getOpplysninger(), utkast.getId());
+            kilderRepository.slettKilder(utkast.getId());
+            kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
         });
     }
 
@@ -183,7 +183,7 @@ public class VedtakService {
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.slettUtkast(bruker.getAktoerId());
-            opplysningerRepository.slettOpplysninger(vedtak.getId());
+            kilderRepository.slettKilder(vedtak.getId());
         });
 
         metricsService.rapporterUtkastSlettet();
@@ -231,9 +231,8 @@ public class VedtakService {
 
     public void behandleAvsluttOppfolging (KafkaAvsluttOppfolging melding ) {
         String aktorId = melding.getAktorId();
-        Date sluttDato = melding.getSluttdato();
-        vedtaksstotteRepository.slettUtkast(aktorId, sluttDato);
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId, sluttDato);
+        vedtaksstotteRepository.slettUtkast(aktorId);
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
     }
 
     private void flettInnVeilederNavn(List<Vedtak> vedtak) {
