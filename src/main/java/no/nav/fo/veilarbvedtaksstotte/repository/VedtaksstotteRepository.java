@@ -119,15 +119,7 @@ public class VedtaksstotteRepository {
     }
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
-       db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ?", aktorId);
-    }
-
-    public void settGjeldendeVedtakTilHistorisk(String aktorId, Date avsluttOppfogingDato) {
-        // TODO: Er det riktig å sette SIST_OPPDATERT?
-        db.update(
-        "UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND SIST_OPPDATERT <= ?",
-            aktorId, avsluttOppfogingDato
-        );
+       db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
     }
 
     public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO, String beslutter){
