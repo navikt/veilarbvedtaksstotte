@@ -26,18 +26,16 @@ public class MalTypeService {
         Hovedmal hovedmal = vedtak.getHovedmal();
 
         if (Innsatsgruppe.STANDARD_INNSATS.equals(innsatsgruppe) && Hovedmal.SKAFFE_ARBEID.equals(hovedmal)) {
-
             RegistreringData registreringData = registreringClient.hentRegistreringData(fnr);
 
             if (registreringData != null) {
-                RegistreringData.Profilering profilering = registreringClient.hentRegistreringData(fnr).registrering.profilering;
+                RegistreringData.Profilering profilering = registreringData.registrering.profilering;
 
                 // Sykmeldte brukere har ikke profilering
                 if (profilering != null && profilering.innsatsgruppe == RegistreringData.ProfilertInnsatsgruppe.STANDARD_INNSATS) {
                     return MalType.STANDARD_INNSATS_SKAFFE_ARBEID_PROFILERING;
                 }
             }
-
         }
 
         return utledMalType(innsatsgruppe, hovedmal);

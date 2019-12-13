@@ -41,7 +41,10 @@ public class RegistreringClient extends BaseClient {
     }
 
     public RegistreringData hentRegistreringData(String fnr) {
-        return fromJson(hentRegistreringDataJson(fnr), RegistreringData.class);
+        String registreringData = hentRegistreringDataJson(fnr);
+        return registreringData != null
+                ? fromJson(registreringData, RegistreringData.class)
+                : null;
     }
 
 }
