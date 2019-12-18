@@ -41,7 +41,7 @@ spec:
         mountPath: /var/run/secrets/nais.io/service_user
       - kvPath: /kv/prod/fss/veilarbvedtaksstotte/default
         mountPath: /var/run/secrets/nais.io/vault
-  fromFiles:
+  filesFrom:
     - configmap: pto-config
   env:
     - APPDYNAMICS_CONTROLLER_HOST_NAME
