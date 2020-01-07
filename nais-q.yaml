@@ -42,7 +42,7 @@ spec:
       - kvPath: /kv/preprod/fss/veilarbvedtaksstotte/{{namespace}}
         mountPath: /var/run/secrets/nais.io/vault
   filesFrom:
-    - configmaps: pto-config
+    - configmap: pto-config
   env:
     - APPDYNAMICS_CONTROLLER_HOST_NAME
     - APPDYNAMICS_AGENT_ACCOUNT_NAME
