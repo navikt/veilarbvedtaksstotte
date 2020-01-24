@@ -38,8 +38,6 @@ import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 public class Main {
 
     public static void main(String... args) {
-        readFromConfigMap();
-
         NaisUtils.Credentials serviceUser = getCredentials("service_user");
 
         //STS
@@ -78,23 +76,6 @@ public class Main {
         }
 
         ApiApp.startApiApp(ApplicationConfig.class, args);
-    }
-
-    private static void readFromConfigMap() {
-        NaisUtils.addConfigMapToEnv("pto-config",
-                "KAFKA_BROKERS_URL",
-                "AKTOER_V2_SECURITYTOKEN",
-                "AKTOER_V2_ENDPOINTURL",
-                "AKTOER_V2_WSDLURL",
-                "ABAC_PDP_ENDPOINT_URL",
-                "ISSO_HOST_URL",
-                "ISSO_JWKS_URL",
-                "ISSO_ISSUER_URL",
-                "ISSO_ISALIVE_URL",
-                "SECURITYTOKENSERVICE_URL",
-                "UNLEASH_API_URL",
-                "OIDC_REDIRECT_URL"
-        );
     }
 
 }
