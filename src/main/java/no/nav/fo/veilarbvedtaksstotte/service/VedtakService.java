@@ -4,6 +4,7 @@ import no.nav.apiapp.security.veilarbabac.Bruker;
 import no.nav.fo.veilarbvedtaksstotte.client.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatusType;
 import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.OyblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -13,13 +14,11 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
 import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType.*;
-import static no.nav.fo.veilarbvedtaksstotte.utils.JsonUtils.toJson;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
@@ -117,6 +116,7 @@ public class VedtakService {
         });
 
         kafkaService.sendVedtak(vedtakId);
+        kafkaService.sendVedtakStatus(vedtak, fnr, KafkaVedtakStatusType.SENDT_TIL_BRUKER);
 
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, aktorId, fnr);
@@ -141,6 +141,9 @@ public class VedtakService {
         String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
 
         vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
+
+        Vedtak opprettetUtkast = vedtaksstotteRepository.hentUtkast(aktorId);
+        kafkaService.sendVedtakStatus(opprettetUtkast, fnr, KafkaVedtakStatusType.UTKAST_OPPRETTET);
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
