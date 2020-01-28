@@ -4,21 +4,19 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatusType;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
 
 import java.time.LocalDateTime;
 
 @Data
 @Accessors(chain = true)
-public class KafkaVedtakStatus {
+public class KafkaVedtakStatusEndring {
 
     long id;
 
-    String brukerFnr;
+    String aktorId;
 
-    String brukerAktorId;
-
-    KafkaVedtakStatusType vedtakStatus;
+    KafkaVedtakStatus vedtakStatus;
 
     Innsatsgruppe innsatsgruppe;
 

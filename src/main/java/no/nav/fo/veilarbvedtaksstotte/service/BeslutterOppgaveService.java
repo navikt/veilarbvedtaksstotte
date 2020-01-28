@@ -3,7 +3,6 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 import no.nav.fo.veilarbvedtaksstotte.client.OppgaveClient;
 import no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatusType;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.stereotype.Service;
 
@@ -76,7 +75,7 @@ public class BeslutterOppgaveService {
 		oppgaveClient.opprettOppgave(opprettOppgaveDTO);
 		vedtaksstotteRepository.markerUtkastSomSendtTilBeslutter(aktorId, beslutterNavn);
 
-		kafkaService.sendVedtakStatus(utkast, fnr, KafkaVedtakStatusType.SENDT_TIL_BESLUTTER);
+		kafkaService.sendVedtakStatusEndring(utkast.getId());
 	}
 
 	private static OpprettOppgaveDTO mapTilOpprettOppgaveDTO(SendBeslutterOppgaveDTO beslutterOppgaveDTO) {

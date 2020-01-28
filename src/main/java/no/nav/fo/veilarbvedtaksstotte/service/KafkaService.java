@@ -1,11 +1,12 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
-import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakStatus;
+import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatusType;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakSendtTemplate;
-import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakStatusTemplate;
+import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakStatusEndringTemplate;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,16 +18,16 @@ public class KafkaService {
 
     private VedtakSendtTemplate vedtakSendtTemplate;
 
-    private VedtakStatusTemplate vedtakStatusTemplate;
+    private VedtakStatusEndringTemplate vedtakStatusEndringTemplate;
 
     private VedtaksstotteRepository vedtaksstotteRepository;
 
     @Inject
     public KafkaService(VedtakSendtTemplate vedtakSendtTemplate,
-                        VedtakStatusTemplate vedtakStatusTemplate,
+                        VedtakStatusEndringTemplate vedtakStatusEndringTemplate,
                         VedtaksstotteRepository vedtaksstotteRepository) {
         this.vedtakSendtTemplate = vedtakSendtTemplate;
-        this.vedtakStatusTemplate = vedtakStatusTemplate;
+        this.vedtakStatusEndringTemplate = vedtakStatusEndringTemplate;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
     }
 
@@ -49,24 +50,32 @@ public class KafkaService {
         vedtakSendtTemplate.sendTidligereFeilet(kafkaVedtakSendt);
     }
 
-    // TODO: Litt teit å sende med fnr. Enten drop eller brukt aktor id service?
-    public void sendVedtakStatus(Vedtak vedtak, String fnr, KafkaVedtakStatusType statusType) {
+    public void sendVedtakStatusEndring(long vedtakId) {
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
 
-        KafkaVedtakStatus vedtakStatus = new KafkaVedtakStatus()
-                .setId(vedtak.getId())
-                .setBrukerAktorId(vedtak.getAktorId())
-                .setBrukerFnr(fnr)
+        KafkaVedtakStatusEndring vedtakStatus = new KafkaVedtakStatusEndring()
+                .setAktorId(vedtak.getAktorId())
                 .setHovedmal(vedtak.getHovedmal())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setVedtakStatus(statusType)
+                .setSistRedigertTidspunkt(vedtak.getSistOppdatert())
                 .setStatusEndretTidspunkt(LocalDateTime.now())
-                .setSistRedigertTidspunkt(vedtak.getSistOppdatert());
+                .setVedtakStatus(utledVedtakStatus(vedtak));
 
-        vedtakStatusTemplate.send(vedtakStatus);
+        vedtakStatusEndringTemplate.send(vedtakStatus);
     }
 
-    public void sendTidligereFeiletVedtakStatus(KafkaVedtakStatus kafkaVedtakStatus) {
-        vedtakStatusTemplate.sendTidligereFeilet(kafkaVedtakStatus);
+    public void sendTidligereFeiletVedtakStatusEndring(KafkaVedtakStatusEndring kafkaVedtakStatusEndring) {
+        vedtakStatusEndringTemplate.sendTidligereFeilet(kafkaVedtakStatusEndring);
+    }
+
+    private KafkaVedtakStatus utledVedtakStatus(Vedtak vedtak) {
+        if (vedtak.isSendtTilBeslutter()) {
+            return KafkaVedtakStatus.SENDT_TIL_BESLUTTER;
+        } else if (vedtak.getVedtakStatus() == VedtakStatus.SENDT) {
+            return KafkaVedtakStatus.SENDT_TIL_BRUKER;
+        } else {
+            return KafkaVedtakStatus.UTKAST_OPPRETTET;
+        }
     }
 
 }

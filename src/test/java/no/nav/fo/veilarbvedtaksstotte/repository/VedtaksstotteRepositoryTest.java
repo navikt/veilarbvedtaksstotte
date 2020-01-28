@@ -17,7 +17,6 @@ import java.util.List;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.Assert.*;
 
-@Ignore
 public class VedtaksstotteRepositoryTest {
 
     @ClassRule

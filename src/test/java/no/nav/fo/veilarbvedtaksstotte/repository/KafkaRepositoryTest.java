@@ -3,8 +3,10 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
 import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
+import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.*;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -16,7 +18,6 @@ import java.util.List;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Ignore
 public class KafkaRepositoryTest {
 
     @ClassRule
@@ -103,6 +104,66 @@ public class KafkaRepositoryTest {
 
         kafkaRepository.lagreVedtakSendtKafkaFeil(vedtakSendt);
         kafkaRepository.slettVedtakSendtKafkaFeil(TEST_AKTOR_ID);
+
+        assertTrue(kafkaRepository.hentFeiledeVedtakSendt().isEmpty());
+    }
+
+    @Test
+    public void testLagOgHentVedtakStatusEndringKafkaFeil() {
+
+        LocalDateTime now = LocalDateTime.now();
+        KafkaVedtakStatus status = KafkaVedtakStatus.UTKAST_OPPRETTET;
+
+        vedtaksstotteRepository.opprettUtkast(
+                TEST_AKTOR_ID,
+                TEST_VEILEDER_IDENT,
+                TEST_VEILEDER_ENHET_ID,
+                TEST_VEILEDER_ENHET_NAVN
+        );
+
+        KafkaVedtakStatusEndring vedtakStatusEndring = new KafkaVedtakStatusEndring()
+                .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                .setHovedmal(Hovedmal.SKAFFE_ARBEID)
+                .setAktorId(TEST_AKTOR_ID)
+                .setStatusEndretTidspunkt(now)
+                .setSistRedigertTidspunkt(now)
+                .setVedtakStatus(status);
+
+        kafkaRepository.lagreVedtakStatusEndringKafkaFeil(vedtakStatusEndring);
+
+        List<KafkaVedtakStatusEndring> feiledeVedtakStatusEndringer = kafkaRepository.hentFeiledeVedtakStatusEndringer();
+
+        assertEquals(1, feiledeVedtakStatusEndringer.size());
+        assertEquals(feiledeVedtakStatusEndringer.get(0).getAktorId(), vedtakStatusEndring.getAktorId());
+        assertEquals(feiledeVedtakStatusEndringer.get(0).getVedtakStatus(), status);
+    }
+
+    @Test
+    public void testVedtakStatusEndringKafkaFeilSlettes() {
+        LocalDateTime now = LocalDateTime.now();
+        KafkaVedtakStatus status = KafkaVedtakStatus.UTKAST_OPPRETTET;
+
+        vedtaksstotteRepository.opprettUtkast(
+                TEST_AKTOR_ID,
+                TEST_VEILEDER_IDENT,
+                TEST_VEILEDER_ENHET_ID,
+                TEST_VEILEDER_ENHET_NAVN
+        );
+
+        KafkaVedtakStatusEndring vedtakStatusEndring = new KafkaVedtakStatusEndring()
+                .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                .setHovedmal(Hovedmal.SKAFFE_ARBEID)
+                .setAktorId(TEST_AKTOR_ID)
+                .setStatusEndretTidspunkt(now)
+                .setSistRedigertTidspunkt(now)
+                .setVedtakStatus(status);
+
+        kafkaRepository.lagreVedtakStatusEndringKafkaFeil(vedtakStatusEndring);
+
+        List<KafkaVedtakStatusEndring> feiledeVedtakStatusEndringer = kafkaRepository.hentFeiledeVedtakStatusEndringer();
+
+        assertFalse(feiledeVedtakStatusEndringer.isEmpty());
+        kafkaRepository.slettVedtakStatusEndringKafkaFeil(feiledeVedtakStatusEndringer.get(0).getId());
 
         assertTrue(kafkaRepository.hentFeiledeVedtakSendt().isEmpty());
     }

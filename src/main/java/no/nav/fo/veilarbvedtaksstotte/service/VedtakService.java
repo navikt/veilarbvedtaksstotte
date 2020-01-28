@@ -4,7 +4,6 @@ import no.nav.apiapp.security.veilarbabac.Bruker;
 import no.nav.fo.veilarbvedtaksstotte.client.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatusType;
 import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.OyblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -116,7 +115,7 @@ public class VedtakService {
         });
 
         kafkaService.sendVedtak(vedtakId);
-        kafkaService.sendVedtakStatus(vedtak, fnr, KafkaVedtakStatusType.SENDT_TIL_BRUKER);
+        kafkaService.sendVedtakStatusEndring(vedtakId);
 
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, aktorId, fnr);
@@ -143,7 +142,7 @@ public class VedtakService {
         vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
 
         Vedtak opprettetUtkast = vedtaksstotteRepository.hentUtkast(aktorId);
-        kafkaService.sendVedtakStatus(opprettetUtkast, fnr, KafkaVedtakStatusType.UTKAST_OPPRETTET);
+        kafkaService.sendVedtakStatusEndring(opprettetUtkast.getId());
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {

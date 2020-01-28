@@ -2,7 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.config;
 
 import no.nav.fo.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakSendtTemplate;
-import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakStatusTemplate;
+import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakStatusEndringTemplate;
 import no.nav.fo.veilarbvedtaksstotte.repository.KafkaRepository;
 import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -31,7 +31,7 @@ import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_
 public class KafkaProducerConfig {
 
     public static final String KAFKA_TOPIC_VEDTAK_SENDT = "aapen-oppfolging-vedtakSendt-v1" + "-" + requireEnvironmentName();
-    public static final String KAFKA_TOPIC_VEDTAK_STATUS = "aapen-oppfolging-vedtakStatus-v1" + "-" + requireEnvironmentName();
+    public static final String KAFKA_TOPIC_VEDTAK_STATUS_ENDRING = "aapen-oppfolging-vedtakStatusEndring-v1" + "-" + requireEnvironmentName();
 
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
     private static final String USERNAME = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_USERNAME);
@@ -56,8 +56,8 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public VedtakStatusTemplate vedtakStatusTemplate(KafkaRepository kafkaRepository) {
-        return new VedtakStatusTemplate(kafkaTemplate(), KAFKA_TOPIC_VEDTAK_STATUS, kafkaRepository);
+    public VedtakStatusEndringTemplate vedtakStatusTemplate(KafkaRepository kafkaRepository) {
+        return new VedtakStatusEndringTemplate(kafkaTemplate(), KAFKA_TOPIC_VEDTAK_STATUS_ENDRING, kafkaRepository);
     }
 
     static HashMap<String, Object> producerProperties () {
