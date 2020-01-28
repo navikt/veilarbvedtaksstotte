@@ -23,17 +23,19 @@ public class BeslutterOppgaveService {
 	private OppgaveClient oppgaveClient;
 	private VeiledereOgEnhetClient veiledereOgEnhetClient;
 	private VedtaksstotteRepository vedtaksstotteRepository;
+	private KafkaService kafkaService;
 
 	@Inject
 	public BeslutterOppgaveService(
 			AuthService authService,
 			OppgaveClient oppgaveClient,
-			VeiledereOgEnhetClient veiledereOgEnhetClient, VedtaksstotteRepository vedtaksstotteRepository
-	) {
+			VeiledereOgEnhetClient veiledereOgEnhetClient, VedtaksstotteRepository vedtaksstotteRepository,
+			KafkaService kafkaService) {
 		this.authService = authService;
 		this.oppgaveClient = oppgaveClient;
 		this.veiledereOgEnhetClient = veiledereOgEnhetClient;
 		this.vedtaksstotteRepository = vedtaksstotteRepository;
+		this.kafkaService = kafkaService;
 	}
 
 	public void sendBeslutterOppgave(SendBeslutterOppgaveDTO sendBeslutterOppgaveDTO, String fnr) {
@@ -72,6 +74,8 @@ public class BeslutterOppgaveService {
 
 		oppgaveClient.opprettOppgave(opprettOppgaveDTO);
 		vedtaksstotteRepository.markerUtkastSomSendtTilBeslutter(aktorId, beslutterNavn);
+
+		kafkaService.sendVedtakStatusEndring(utkast.getId());
 	}
 
 	private static OpprettOppgaveDTO mapTilOpprettOppgaveDTO(SendBeslutterOppgaveDTO beslutterOppgaveDTO) {

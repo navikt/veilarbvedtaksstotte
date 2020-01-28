@@ -13,13 +13,11 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
 import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType.*;
-import static no.nav.fo.veilarbvedtaksstotte.utils.JsonUtils.toJson;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
@@ -117,6 +115,7 @@ public class VedtakService {
         });
 
         kafkaService.sendVedtak(vedtakId);
+        kafkaService.sendVedtakStatusEndring(vedtakId);
 
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, aktorId, fnr);
@@ -141,6 +140,9 @@ public class VedtakService {
         String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
 
         vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
+
+        Vedtak opprettetUtkast = vedtaksstotteRepository.hentUtkast(aktorId);
+        kafkaService.sendVedtakStatusEndring(opprettetUtkast.getId());
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
