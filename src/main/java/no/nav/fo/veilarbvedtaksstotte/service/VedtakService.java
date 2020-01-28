@@ -29,7 +29,6 @@ public class VedtakService {
     private AuthService authService;
     private DokumentClient dokumentClient;
     private SAFClient safClient;
-    private PersonClient personClient;
     private VeiledereOgEnhetClient veiledereOgEnhetClient;
     private CVClient cvClient;
     private RegistreringClient registreringClient;
@@ -46,8 +45,9 @@ public class VedtakService {
                          OyblikksbildeRepository oyblikksbildeRepository,
                          AuthService authService,
                          DokumentClient dokumentClient,
-                         SAFClient safClient, PersonClient personClient,
-                         VeiledereOgEnhetClient veiledereOgEnhetClient, CVClient cvClient,
+                         SAFClient safClient,
+                         VeiledereOgEnhetClient veiledereOgEnhetClient,
+                         CVClient cvClient,
                          RegistreringClient registreringClient,
                          EgenvurderingClient egenvurderingClient,
                          VeilederService veilederService,
@@ -60,7 +60,6 @@ public class VedtakService {
         this.authService = authService;
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
-        this.personClient = personClient;
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
         this.cvClient = cvClient;
         this.registreringClient = registreringClient;
@@ -106,7 +105,7 @@ public class VedtakService {
 
         vedtaksstotteRepository.oppdaterUtkast(vedtakId, vedtak);
 
-        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, dokumentPerson(fnr));
+        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, fnr);
         DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
 
         transactor.inTransaction(() -> {
@@ -210,7 +209,7 @@ public class VedtakService {
 
         SendDokumentDTO sendDokumentDTO =
                 Optional.ofNullable(vedtaksstotteRepository.hentUtkast(bruker.getAktoerId()))
-                        .map(vedtak -> lagDokumentDTO(vedtak, dokumentPerson(fnr)))
+                        .map(vedtak -> lagDokumentDTO(vedtak, fnr))
                         .orElseThrow(() -> new NotFoundException("Fant ikke vedtak å forhandsvise for bruker"));
 
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
@@ -244,22 +243,13 @@ public class VedtakService {
         });
     }
 
-    private DokumentPerson dokumentPerson(String fnr) {
-        PersonNavn navn = personClient.hentNavn(fnr);
-
-        return new DokumentPerson()
-                .setFnr(fnr)
-                .setNavn(navn.getSammensattNavn());
-    }
-
-    private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, DokumentPerson dokumentPerson) {
+    private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, String fnr) {
         return new SendDokumentDTO()
                 .setBegrunnelse(vedtak.getBegrunnelse())
                 .setVeilederEnhet(vedtak.getVeilederEnhetId())
                 .setOpplysninger(vedtak.getOpplysninger())
-                .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak, dokumentPerson.getFnr()))
-                .setBruker(dokumentPerson)
-                .setMottaker(dokumentPerson);
+                .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak, fnr))
+                .setBrukerFnr(fnr);
     }
 
     private boolean skalHaBeslutter(Innsatsgruppe innsatsgruppe) {

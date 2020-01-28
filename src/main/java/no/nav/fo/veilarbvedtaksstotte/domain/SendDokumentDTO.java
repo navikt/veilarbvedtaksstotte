@@ -9,8 +9,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class SendDokumentDTO {
-    DokumentPerson bruker;
-    DokumentPerson mottaker;
+    String brukerFnr;
     MalType malType;
     String veilederEnhet;
     String begrunnelse;
