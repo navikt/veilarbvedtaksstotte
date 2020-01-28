@@ -54,6 +54,7 @@ public class KafkaService {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
 
         KafkaVedtakStatusEndring vedtakStatus = new KafkaVedtakStatusEndring()
+                .setId(vedtakId)
                 .setAktorId(vedtak.getAktorId())
                 .setHovedmal(vedtak.getHovedmal())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())

@@ -85,10 +85,13 @@ public class KafkaRepository {
                 .executeToList();
     }
 
-    public void slettVedtakStatusEndringKafkaFeil(long id) {
-        SqlUtils.delete(db, VEDTAK_STATUS_ENDRING_KAFKA_FEIL_TABLE)
-                .where(WhereClause.equals(ID, id))
-                .execute();
+    public void slettVedtakStatusEndringKafkaFeil(long id, KafkaVedtakStatus vedtakStatus) {
+        String sql = String.format(
+                "DELETE FROM %s WHERE %s = ? AND %s = ?::KAFKA_VEDTAK_STATUS_TYPE",
+                VEDTAK_STATUS_ENDRING_KAFKA_FEIL_TABLE, ID, KAFKA_VEDTAK_STATUS
+        );
+
+        db.update(sql, id, getName(vedtakStatus));
     }
 
 

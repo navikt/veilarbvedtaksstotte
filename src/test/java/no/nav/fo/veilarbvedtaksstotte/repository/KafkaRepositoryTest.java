@@ -163,7 +163,8 @@ public class KafkaRepositoryTest {
         List<KafkaVedtakStatusEndring> feiledeVedtakStatusEndringer = kafkaRepository.hentFeiledeVedtakStatusEndringer();
 
         assertFalse(feiledeVedtakStatusEndringer.isEmpty());
-        kafkaRepository.slettVedtakStatusEndringKafkaFeil(feiledeVedtakStatusEndringer.get(0).getId());
+        KafkaVedtakStatusEndring statusEndring = feiledeVedtakStatusEndringer.get(0);
+        kafkaRepository.slettVedtakStatusEndringKafkaFeil(statusEndring.getId(), statusEndring.getVedtakStatus());
 
         assertTrue(kafkaRepository.hentFeiledeVedtakSendt().isEmpty());
     }

@@ -46,7 +46,10 @@ public class VedtakStatusEndringTemplate {
         log.info("Publiserte melding for aktorId:" + kafkaVedtakStatusEndring.getAktorId() + " på topic: " + KAFKA_TOPIC_VEDTAK_STATUS_ENDRING);
 
         if (harFeiletTidligere) {
-            kafkaRepository.slettVedtakStatusEndringKafkaFeil(kafkaVedtakStatusEndring.getId());
+            kafkaRepository.slettVedtakStatusEndringKafkaFeil(
+                    kafkaVedtakStatusEndring.getId(),
+                    kafkaVedtakStatusEndring.getVedtakStatus()
+            );
         }
     }
 
