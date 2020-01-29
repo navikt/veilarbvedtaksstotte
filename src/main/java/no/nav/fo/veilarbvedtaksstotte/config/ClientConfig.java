@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import({
         DokumentClient.class,
-        PersonClient.class,
         SAFClient.class,
         ArenaClient.class,
         SAFClient.class,
