@@ -50,33 +50,21 @@ public class KafkaService {
         vedtakSendtTemplate.sendTidligereFeilet(kafkaVedtakSendt);
     }
 
-    public void sendVedtakStatusEndring(long vedtakId) {
-        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-
+    public void sendVedtakStatusEndring(Vedtak vedtak, KafkaVedtakStatus status) {
         KafkaVedtakStatusEndring vedtakStatus = new KafkaVedtakStatusEndring()
-                .setId(vedtakId)
+                .setId(vedtak.getId())
                 .setAktorId(vedtak.getAktorId())
                 .setHovedmal(vedtak.getHovedmal())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
                 .setSistRedigertTidspunkt(vedtak.getSistOppdatert())
                 .setStatusEndretTidspunkt(LocalDateTime.now())
-                .setVedtakStatus(utledVedtakStatus(vedtak));
+                .setVedtakStatus(status);
 
         vedtakStatusEndringTemplate.send(vedtakStatus);
     }
 
     public void sendTidligereFeiletVedtakStatusEndring(KafkaVedtakStatusEndring kafkaVedtakStatusEndring) {
         vedtakStatusEndringTemplate.sendTidligereFeilet(kafkaVedtakStatusEndring);
-    }
-
-    private KafkaVedtakStatus utledVedtakStatus(Vedtak vedtak) {
-        if (vedtak.isSendtTilBeslutter()) {
-            return KafkaVedtakStatus.SENDT_TIL_BESLUTTER;
-        } else if (vedtak.getVedtakStatus() == VedtakStatus.SENDT) {
-            return KafkaVedtakStatus.SENDT_TIL_BRUKER;
-        } else {
-            return KafkaVedtakStatus.UTKAST_OPPRETTET;
-        }
     }
 
 }
