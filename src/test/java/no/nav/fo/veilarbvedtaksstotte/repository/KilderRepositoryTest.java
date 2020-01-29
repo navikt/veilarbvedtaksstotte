@@ -15,7 +15,6 @@ import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_ENHET_NAVN;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Ignore
 public class KilderRepositoryTest {
 
     @ClassRule

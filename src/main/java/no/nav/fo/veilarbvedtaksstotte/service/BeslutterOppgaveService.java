@@ -3,6 +3,7 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 import no.nav.fo.veilarbvedtaksstotte.client.OppgaveClient;
 import no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.stereotype.Service;
 
@@ -23,17 +24,19 @@ public class BeslutterOppgaveService {
 	private OppgaveClient oppgaveClient;
 	private VeiledereOgEnhetClient veiledereOgEnhetClient;
 	private VedtaksstotteRepository vedtaksstotteRepository;
+	private KafkaService kafkaService;
 
 	@Inject
 	public BeslutterOppgaveService(
 			AuthService authService,
 			OppgaveClient oppgaveClient,
-			VeiledereOgEnhetClient veiledereOgEnhetClient, VedtaksstotteRepository vedtaksstotteRepository
-	) {
+			VeiledereOgEnhetClient veiledereOgEnhetClient, VedtaksstotteRepository vedtaksstotteRepository,
+			KafkaService kafkaService) {
 		this.authService = authService;
 		this.oppgaveClient = oppgaveClient;
 		this.veiledereOgEnhetClient = veiledereOgEnhetClient;
 		this.vedtaksstotteRepository = vedtaksstotteRepository;
+		this.kafkaService = kafkaService;
 	}
 
 	public void sendBeslutterOppgave(SendBeslutterOppgaveDTO sendBeslutterOppgaveDTO, String fnr) {
@@ -72,6 +75,8 @@ public class BeslutterOppgaveService {
 
 		oppgaveClient.opprettOppgave(opprettOppgaveDTO);
 		vedtaksstotteRepository.markerUtkastSomSendtTilBeslutter(aktorId, beslutterNavn);
+
+		kafkaService.sendVedtakStatusEndring(utkast, KafkaVedtakStatus.SENDT_TIL_BESLUTTER);
 	}
 
 	private static OpprettOppgaveDTO mapTilOpprettOppgaveDTO(SendBeslutterOppgaveDTO beslutterOppgaveDTO) {

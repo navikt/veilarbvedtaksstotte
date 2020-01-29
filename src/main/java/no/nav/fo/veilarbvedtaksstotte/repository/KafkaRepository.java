@@ -2,7 +2,10 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
+import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
 import no.nav.sbl.sql.SqlUtils;
 import no.nav.sbl.sql.where.WhereClause;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,12 +21,19 @@ import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 @Repository
 public class KafkaRepository {
 
-    public final static String VEDTAK_SENDT_KAFKA_FEIL_TABLE        = "VEDTAK_SENDT_KAFKA_FEIL";
-    private final static String VEDTAK_ID                           = "VEDTAK_ID";
-    private final static String VEDTAK_SENDT                        = "VEDTAK_SENDT";
-    private final static String INNSATSGRUPPE                       = "INNSATSGRUPPE";
-    private final static String AKTOR_ID                            = "AKTOR_ID";
-    private final static String ENHET_ID                            = "ENHET_ID";
+    public final static String VEDTAK_SENDT_KAFKA_FEIL_TABLE            = "VEDTAK_SENDT_KAFKA_FEIL";
+    public final static String VEDTAK_STATUS_ENDRING_KAFKA_FEIL_TABLE   = "VEDTAK_STATUS_ENDRING_KAFKA_FEIL";
+
+    private final static String ID                                      = "ID";
+    private final static String VEDTAK_ID                               = "VEDTAK_ID";
+    private final static String VEDTAK_SENDT                            = "VEDTAK_SENDT";
+    private final static String INNSATSGRUPPE                           = "INNSATSGRUPPE";
+    private final static String AKTOR_ID                                = "AKTOR_ID";
+    private final static String ENHET_ID                                = "ENHET_ID";
+    private final static String HOVEDMAL                                = "HOVEDMAL";
+    private final static String SIST_REDIGERT_TIDSPUNKT                 = "SIST_REDIGERT_TIDSPUNKT";
+    private final static String STATUS_ENDRET_TIDSPUNKT                 = "STATUS_ENDRET_TIDSPUNKT";
+    private final static String KAFKA_VEDTAK_STATUS                     = "KAFKA_VEDTAK_STATUS";
 
     private final JdbcTemplate db;
 
@@ -54,6 +64,37 @@ public class KafkaRepository {
                 .execute();
     }
 
+
+    public void lagreVedtakStatusEndringKafkaFeil(KafkaVedtakStatusEndring vedtakStatusEndring) {
+        String sql = String.format(
+            "INSERT INTO %s (%s, %s, %s, %s, %s, %s) VALUES (?::KAFKA_VEDTAK_STATUS_TYPE,?,?,?,?,?)",
+                VEDTAK_STATUS_ENDRING_KAFKA_FEIL_TABLE, KAFKA_VEDTAK_STATUS, AKTOR_ID, HOVEDMAL,
+                INNSATSGRUPPE, SIST_REDIGERT_TIDSPUNKT, STATUS_ENDRET_TIDSPUNKT
+        );
+
+        db.update(
+                sql, getName(vedtakStatusEndring.getVedtakStatus()), vedtakStatusEndring.getAktorId(),
+                getName(vedtakStatusEndring.getHovedmal()), getName(vedtakStatusEndring.getInnsatsgruppe()),
+                vedtakStatusEndring.getSistRedigertTidspunkt(), vedtakStatusEndring.getStatusEndretTidspunkt()
+        );
+    }
+
+    public List<KafkaVedtakStatusEndring> hentFeiledeVedtakStatusEndringer() {
+        return SqlUtils.select(db, VEDTAK_STATUS_ENDRING_KAFKA_FEIL_TABLE, KafkaRepository::mapKafkaVedtakStatusEndring)
+                .column("*")
+                .executeToList();
+    }
+
+    public void slettVedtakStatusEndringKafkaFeil(long id, KafkaVedtakStatus vedtakStatus) {
+        String sql = String.format(
+                "DELETE FROM %s WHERE %s = ? AND %s = ?::KAFKA_VEDTAK_STATUS_TYPE",
+                VEDTAK_STATUS_ENDRING_KAFKA_FEIL_TABLE, ID, KAFKA_VEDTAK_STATUS
+        );
+
+        db.update(sql, id, getName(vedtakStatus));
+    }
+
+
     @SneakyThrows
     private static KafkaVedtakSendt mapKafkaVedtakSendt(ResultSet rs) {
         return new KafkaVedtakSendt()
@@ -62,6 +103,18 @@ public class KafkaRepository {
                 .setInnsatsgruppe(valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setEnhetId(rs.getString(ENHET_ID));
+    }
+
+    @SneakyThrows
+    private static KafkaVedtakStatusEndring mapKafkaVedtakStatusEndring(ResultSet rs) {
+        return new KafkaVedtakStatusEndring()
+                .setId(rs.getLong(ID))
+                .setAktorId(rs.getString(AKTOR_ID))
+                .setHovedmal(valueOf(Hovedmal.class, rs.getString(HOVEDMAL)))
+                .setInnsatsgruppe(valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
+                .setSistRedigertTidspunkt(rs.getTimestamp(SIST_REDIGERT_TIDSPUNKT).toLocalDateTime())
+                .setStatusEndretTidspunkt(rs.getTimestamp(STATUS_ENDRET_TIDSPUNKT).toLocalDateTime())
+                .setVedtakStatus(valueOf(KafkaVedtakStatus.class, rs.getString(KAFKA_VEDTAK_STATUS)));
     }
 
 }

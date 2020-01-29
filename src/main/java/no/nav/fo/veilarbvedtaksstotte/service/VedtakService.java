@@ -4,6 +4,7 @@ import no.nav.apiapp.security.veilarbabac.Bruker;
 import no.nav.fo.veilarbvedtaksstotte.client.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
 import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.OyblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -13,13 +14,11 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
 import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType.*;
-import static no.nav.fo.veilarbvedtaksstotte.utils.JsonUtils.toJson;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
@@ -31,7 +30,6 @@ public class VedtakService {
     private AuthService authService;
     private DokumentClient dokumentClient;
     private SAFClient safClient;
-    private PersonClient personClient;
     private VeiledereOgEnhetClient veiledereOgEnhetClient;
     private CVClient cvClient;
     private RegistreringClient registreringClient;
@@ -48,8 +46,9 @@ public class VedtakService {
                          OyblikksbildeRepository oyblikksbildeRepository,
                          AuthService authService,
                          DokumentClient dokumentClient,
-                         SAFClient safClient, PersonClient personClient,
-                         VeiledereOgEnhetClient veiledereOgEnhetClient, CVClient cvClient,
+                         SAFClient safClient,
+                         VeiledereOgEnhetClient veiledereOgEnhetClient,
+                         CVClient cvClient,
                          RegistreringClient registreringClient,
                          EgenvurderingClient egenvurderingClient,
                          VeilederService veilederService,
@@ -62,7 +61,6 @@ public class VedtakService {
         this.authService = authService;
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
-        this.personClient = personClient;
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
         this.cvClient = cvClient;
         this.registreringClient = registreringClient;
@@ -108,7 +106,7 @@ public class VedtakService {
 
         vedtaksstotteRepository.oppdaterUtkast(vedtakId, vedtak);
 
-        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, dokumentPerson(fnr));
+        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, fnr);
         DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
 
         transactor.inTransaction(() -> {
@@ -117,6 +115,7 @@ public class VedtakService {
         });
 
         kafkaService.sendVedtak(vedtakId);
+        kafkaService.sendVedtakStatusEndring(vedtak, KafkaVedtakStatus.SENDT_TIL_BRUKER);
 
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, aktorId, fnr);
@@ -141,6 +140,9 @@ public class VedtakService {
         String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
 
         vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
+
+        Vedtak opprettetUtkast = vedtaksstotteRepository.hentUtkast(aktorId);
+        kafkaService.sendVedtakStatusEndring(opprettetUtkast, KafkaVedtakStatus.UTKAST_OPPRETTET);
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
@@ -186,6 +188,7 @@ public class VedtakService {
             kilderRepository.slettKilder(vedtak.getId());
         });
 
+        kafkaService.sendVedtakStatusEndring(vedtak, KafkaVedtakStatus.UTKAST_SLETTET);
         metricsService.rapporterUtkastSlettet();
     }
 
@@ -208,7 +211,7 @@ public class VedtakService {
 
         SendDokumentDTO sendDokumentDTO =
                 Optional.ofNullable(vedtaksstotteRepository.hentUtkast(bruker.getAktoerId()))
-                        .map(vedtak -> lagDokumentDTO(vedtak, dokumentPerson(fnr)))
+                        .map(vedtak -> lagDokumentDTO(vedtak, fnr))
                         .orElseThrow(() -> new NotFoundException("Fant ikke vedtak å forhandsvise for bruker"));
 
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
@@ -242,22 +245,13 @@ public class VedtakService {
         });
     }
 
-    private DokumentPerson dokumentPerson(String fnr) {
-        PersonNavn navn = personClient.hentNavn(fnr);
-
-        return new DokumentPerson()
-                .setFnr(fnr)
-                .setNavn(navn.getSammensattNavn());
-    }
-
-    private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, DokumentPerson dokumentPerson) {
+    private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, String fnr) {
         return new SendDokumentDTO()
                 .setBegrunnelse(vedtak.getBegrunnelse())
                 .setVeilederEnhet(vedtak.getVeilederEnhetId())
                 .setOpplysninger(vedtak.getOpplysninger())
-                .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak, dokumentPerson.getFnr()))
-                .setBruker(dokumentPerson)
-                .setMottaker(dokumentPerson);
+                .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak, fnr))
+                .setBrukerFnr(fnr);
     }
 
     private boolean skalHaBeslutter(Innsatsgruppe innsatsgruppe) {

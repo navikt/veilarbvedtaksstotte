@@ -7,7 +7,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 import javax.inject.Inject;
 
-import static no.nav.fo.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC;
+import static no.nav.fo.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC_VEDTAK_SENDT;
 import static no.nav.json.JsonUtils.toJson;
 
 @Slf4j
@@ -42,7 +42,7 @@ public class VedtakSendtTemplate {
     }
 
     private void onSuccess(KafkaVedtakSendt vedtakSendt, boolean harFeiletTidligere) {
-        log.info("Publiserte melding for aktorId:" + vedtakSendt.getAktorId() + " på topic: " + KAFKA_TOPIC);
+        log.info("Publiserte melding for aktorId:" + vedtakSendt.getAktorId() + " på topic: " + KAFKA_TOPIC_VEDTAK_SENDT);
 
         if (harFeiletTidligere) {
             kafkaRepository.slettVedtakSendtKafkaFeil(vedtakSendt.getAktorId());
@@ -51,7 +51,7 @@ public class VedtakSendtTemplate {
 
     private void onError(Throwable throwable, KafkaVedtakSendt vedtakSendt, boolean harFeiletTidligere) {
         log.error("Kunne ikke publisere melding for aktorId: " + vedtakSendt.getAktorId() +
-                " på topic: " + KAFKA_TOPIC + "\nERROR: " + throwable);
+                " på topic: " + KAFKA_TOPIC_VEDTAK_SENDT + "\nERROR: " + throwable);
 
         if (!harFeiletTidligere) {
             kafkaRepository.lagreVedtakSendtKafkaFeil(vedtakSendt);

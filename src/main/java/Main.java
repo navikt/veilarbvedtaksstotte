@@ -23,8 +23,6 @@ import static no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILA
 import static no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING;
 import static no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING_API_PROPERTY_NAME;
-import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.PERSON_API_PROPERTY_NAME;
-import static no.nav.fo.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
 import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.VEILARBREGISTRERING;
 import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.REGISTRERING_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF;
@@ -38,8 +36,6 @@ import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 public class Main {
 
     public static void main(String... args) {
-        readFromConfigMap();
-
         NaisUtils.Credentials serviceUser = getCredentials("service_user");
 
         //STS
@@ -57,7 +53,6 @@ public class Main {
 
         setProperty(AKTOER_ENDPOINT_URL, getRequiredProperty("AKTOER_V2_ENDPOINTURL"));
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagClusterUrl(VEILARBDOKUMENT));
-        setProperty(PERSON_API_PROPERTY_NAME, lagClusterUrl(VEILARBPERSON));
         setProperty(VEILARBABAC_API_URL_PROPERTY, lagClusterUrl(VEILARBABAC, false));
         setProperty(VEILARBVEILEDER_API_PROPERTY_NAME, lagClusterUrl(VEILARBVEILEDER));
         setProperty(REGISTRERING_API_PROPERTY_NAME, lagClusterUrl(VEILARBREGISTRERING));
@@ -78,23 +73,6 @@ public class Main {
         }
 
         ApiApp.startApiApp(ApplicationConfig.class, args);
-    }
-
-    private static void readFromConfigMap() {
-        NaisUtils.addConfigMapToEnv("pto-config",
-                "KAFKA_BROKERS_URL",
-                "AKTOER_V2_SECURITYTOKEN",
-                "AKTOER_V2_ENDPOINTURL",
-                "AKTOER_V2_WSDLURL",
-                "ABAC_PDP_ENDPOINT_URL",
-                "ISSO_HOST_URL",
-                "ISSO_JWKS_URL",
-                "ISSO_ISSUER_URL",
-                "ISSO_ISALIVE_URL",
-                "SECURITYTOKENSERVICE_URL",
-                "UNLEASH_API_URL",
-                "OIDC_REDIRECT_URL"
-        );
     }
 
 }
