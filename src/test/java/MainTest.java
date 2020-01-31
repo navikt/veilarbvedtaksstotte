@@ -14,11 +14,9 @@ public class MainTest {
     private static final String[] ARGUMENTS = {TEST_PORT};
 
     public static void main(String[] args) {
-//        TODO: Make it possible to run this
-//        ApiAppTest.setupTestContext(ApiAppTest.Config.builder().applicationName(APPLICATION_NAME).build());
-//        TestContext.setup();
-//        DbUtils.migrate(DbTestUtils.createTestDataSource());
-//        ApiApp.startApiApp(ApplicationTestConfig.class, ARGUMENTS);
+         ApiAppTest.setupTestContext(ApiAppTest.Config.builder().applicationName(APPLICATION_NAME).build());
+         TestContext.setup();
+         ApiApp.startApiApp(ApplicationTestConfig.class, ARGUMENTS);
     }
 
 }

@@ -49,20 +49,6 @@ public class DbUtils {
         return config;
     }
 
-    public static <T> ResultSetExtractor<T> singleResult(ResultSetExtractor<T> rse) {
-        return rs -> {
-            if (rs.next()) {
-                return rse.extractData(rs);
-            }
-            return null;
-        };
-    }
-
-    @SneakyThrows
-    public static PreparedStatement createPreparedStatement(JdbcTemplate db, String sql) {
-        return db.getDataSource().getConnection().prepareStatement(sql);
-    }
-
     @SneakyThrows
     private static DataSource createVaultRefreshDataSource(HikariConfig config, DbRole dbRole) {
         return HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(config, getMountPath(), toDbRoleStr(dbRole));

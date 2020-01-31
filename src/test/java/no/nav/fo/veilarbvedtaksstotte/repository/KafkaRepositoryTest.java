@@ -29,7 +29,7 @@ public class KafkaRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = DbTestUtils.setupDb(pg.getEmbeddedPostgres());
+        db = DbTestUtils.setupEmbeddedDb(pg.getEmbeddedPostgres());
         KilderRepository kilderRepository = new KilderRepository(db);
         kafkaRepository = new KafkaRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);

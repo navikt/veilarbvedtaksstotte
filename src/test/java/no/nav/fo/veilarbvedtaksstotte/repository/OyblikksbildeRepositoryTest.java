@@ -30,7 +30,7 @@ public class OyblikksbildeRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = DbTestUtils.setupDb(pg.getEmbeddedPostgres());
+        db = DbTestUtils.setupEmbeddedDb(pg.getEmbeddedPostgres());
         KilderRepository kilderRepository = new KilderRepository(db);
         oyblikksbildeRepository = new OyblikksbildeRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);

@@ -24,10 +24,13 @@ public class DbTestUtils {
             VEDTAK_TABLE
     );
 
-    public static JdbcTemplate setupDb(EmbeddedPostgres postgres) {
-        DataSource source = postgres.getPostgresDatabase();
-        DbTestUtils.testMigrate(source);
-        return new JdbcTemplate(source);
+    public static JdbcTemplate setupEmbeddedDb(EmbeddedPostgres postgres) {
+        return setupDb(postgres.getPostgresDatabase());
+    }
+
+    public static JdbcTemplate setupDb(DataSource dataSource) {
+        DbTestUtils.testMigrate(dataSource);
+        return new JdbcTemplate(dataSource);
     }
 
     public static void cleanupDb(JdbcTemplate db) {
