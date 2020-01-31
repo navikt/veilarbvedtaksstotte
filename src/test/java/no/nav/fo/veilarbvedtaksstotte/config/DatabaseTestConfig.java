@@ -2,7 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import no.nav.fo.veilarbvedtaksstotte.utils.DbRole;
+import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.sbl.jdbc.Database;
 import no.nav.sbl.jdbc.Transactor;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +26,11 @@ public class DatabaseTestConfig {
         HikariConfig config = createDataSourceConfig(dbUrl);
         config.setUsername("postgres");
         config.setPassword("qwerty");
-        return new HikariDataSource(config);
+
+        DataSource source = new HikariDataSource(config);
+        DbTestUtils.testMigrate(source);
+
+        return source;
     }
 
     @Bean(name = "transactionManager")

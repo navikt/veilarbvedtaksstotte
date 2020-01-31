@@ -126,7 +126,6 @@ public class KafkaRepositoryTest {
                 .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                 .setAktorId(TEST_AKTOR_ID)
                 .setStatusEndretTidspunkt(now)
-                .setSistRedigertTidspunkt(now)
                 .setVedtakStatus(status);
 
         kafkaRepository.lagreVedtakStatusEndringKafkaFeil(vedtakStatusEndring);
@@ -155,7 +154,6 @@ public class KafkaRepositoryTest {
                 .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                 .setAktorId(TEST_AKTOR_ID)
                 .setStatusEndretTidspunkt(now)
-                .setSistRedigertTidspunkt(now)
                 .setVedtakStatus(status);
 
         kafkaRepository.lagreVedtakStatusEndringKafkaFeil(vedtakStatusEndring);
@@ -164,7 +162,7 @@ public class KafkaRepositoryTest {
 
         assertFalse(feiledeVedtakStatusEndringer.isEmpty());
         KafkaVedtakStatusEndring statusEndring = feiledeVedtakStatusEndringer.get(0);
-        kafkaRepository.slettVedtakStatusEndringKafkaFeil(statusEndring.getId(), statusEndring.getVedtakStatus());
+        kafkaRepository.slettVedtakStatusEndringKafkaFeil(statusEndring.getVedtakId(), statusEndring.getVedtakStatus());
 
         assertTrue(kafkaRepository.hentFeiledeVedtakSendt().isEmpty());
     }

@@ -1,6 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.utils;
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
+import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -14,6 +15,7 @@ import static no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository.KILDE_T
 import static no.nav.fo.veilarbvedtaksstotte.repository.OyblikksbildeRepository.OYBLIKKSBILDE_TABLE;
 import static no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository.VEDTAK_TABLE;
 
+@Slf4j
 public class DbTestUtils {
 
     // Rekkefølgen er viktig pga foreign key constraints
@@ -25,19 +27,17 @@ public class DbTestUtils {
     );
 
     public static JdbcTemplate setupEmbeddedDb(EmbeddedPostgres postgres) {
-        return setupDb(postgres.getPostgresDatabase());
-    }
-
-    public static JdbcTemplate setupDb(DataSource dataSource) {
-        DbTestUtils.testMigrate(dataSource);
-        return new JdbcTemplate(dataSource);
+        DataSource source = postgres.getPostgresDatabase();
+        DbTestUtils.testMigrate(source);
+        return new JdbcTemplate(source);
     }
 
     public static void cleanupDb(JdbcTemplate db) {
         ALL_TABLES.forEach((table) -> deleteAllFromTable(db, table));
     }
 
-    private static void testMigrate(DataSource dataSource) {
+    public static void testMigrate(DataSource dataSource) {
+        log.info("Starting test migration...");
         Flyway.configure()
                 .dataSource(dataSource)
                 .baselineOnMigrate(true)
