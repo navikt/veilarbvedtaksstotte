@@ -1,9 +1,6 @@
 import no.nav.apiapp.ApiApp;
 import no.nav.fo.veilarbvedtaksstotte.TestContext;
 import no.nav.fo.veilarbvedtaksstotte.config.ApplicationTestConfig;
-import no.nav.fo.veilarbvedtaksstotte.utils.DbRole;
-import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.fo.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.testconfig.ApiAppTest;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;

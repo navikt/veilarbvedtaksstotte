@@ -1,5 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte;
 
+import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
+
 import static java.lang.System.setProperty;
 import static no.nav.fo.veilarbvedtaksstotte.client.CVClient.PAM_CV_API;
 import static no.nav.fo.veilarbvedtaksstotte.client.CVClient.CV_API_PROPERTY_NAME;
@@ -50,7 +52,19 @@ public class TestContext {
 
         setProperty(SECURITYTOKENSERVICE_URL, "DUMMY_URL");
         setProperty("SRVVEILARBVEDTAKSSTOTTE_USERNAME", "DUMMY_USERNAME");
-        setProperty("SRVVEILARBVEDTAKSSTOTTE_PASSWORD", "DUMMY_PASSWORD");
+        setProperty("SRVVEILARBVEDTAKSSTOTTE_PASSWORD", "DUMMY_USERNAME");
+
+        setProperty("ABAC_PDP_ENDPOINT_URL", "DUMMY_URL");
+
+        setProperty(StsSecurityConstants.SYSTEMUSER_USERNAME, "DUMMY_USERNAME");
+        setProperty(StsSecurityConstants.SYSTEMUSER_PASSWORD, "DUMMY_PASSWORD");
+
+        setProperty("ISSO_HOST_URL", "DUMMY_URL");
+        setProperty("ISSO_RP_USER_USERNAME", "DUMMY_USERNAME");
+        setProperty("ISSO_RP_USER_PASSWORD", "DUMMY_PASSWORD");
+        setProperty("ISSO_JWKS_URL", "DUMMY_URL");
+        setProperty("ISSO_ISSUER_URL", "DUMMY_URL");
+        setProperty("OIDC_REDIRECT_URL", "DUMMY_URL");
 
         setProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY, "jdbc:postgresql://localhost:5432/veilarbvedtaksstotte");
     }
