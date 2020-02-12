@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.ServletContext;
 
 import static no.nav.brukerdialog.security.Constants.ID_TOKEN_COOKIE_NAME;
+import static no.nav.brukerdialog.security.Constants.REFRESH_TOKEN_COOKIE_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
@@ -50,10 +51,13 @@ public class ApplicationConfig implements ApiApplication {
     private OidcAuthenticatorConfig createOpenAmAuthenticatorConfig() {
         String discoveryUrl = getRequiredProperty("OPENAM_DISCOVERY_URL");
         String clientId = getRequiredProperty("VEILARBLOGIN_OPENAM_CLIENT_ID");
+        String refreshTokenUrl = getRequiredProperty("VEILARBLOGIN_OPENAM_REFRESH_URL");
 
         return new OidcAuthenticatorConfig()
                 .withDiscoveryUrl(discoveryUrl)
                 .withClientId(clientId)
+                .withRefreshUrl(refreshTokenUrl)
+                .withRefreshTokenCookieName(REFRESH_TOKEN_COOKIE_NAME)
                 .withIdTokenCookieName(ID_TOKEN_COOKIE_NAME)
                 .withIdentType(IdentType.InternBruker);
     }
