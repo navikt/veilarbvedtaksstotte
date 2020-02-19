@@ -15,7 +15,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.sql.ResultSet;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -141,6 +140,7 @@ public class VedtaksstotteRepository {
             .set(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
             .set(VEILEDER_IDENT, vedtak.getVeilederIdent())
             .set(VEILEDER_ENHET_ID, vedtak.getVeilederEnhetId())
+            .set(VEILEDER_ENHET_NAVN, vedtak.getVeilederEnhetNavn())
             .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .set(BEGRUNNELSE, vedtak.getBegrunnelse())
             .execute();

@@ -84,5 +84,11 @@ public class VedtakResource {
     public List<Oyblikksbilde> hentOyblikksbilde(@PathParam("fnr") String fnr, @PathParam("vedtakid") long vedtakId) {
         return vedtakService.hentOyblikksbildeForVedtak(fnr, vedtakId);
     }
+
+    @POST
+    @Path("/utkast/overta")
+    public void oppdaterUtkast(@PathParam("fnr") String fnr) {
+        vedtakService.taOverUtkast(fnr);
+    }
 }
 

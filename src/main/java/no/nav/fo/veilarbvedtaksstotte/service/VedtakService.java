@@ -1,5 +1,6 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
+import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.apiapp.security.veilarbabac.Bruker;
 import no.nav.fo.veilarbvedtaksstotte.client.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
@@ -79,32 +80,22 @@ public class VedtakService {
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
         String aktorId = authKontekst.getBruker().getAktoerId();
 
-        Vedtak vedtak = vedtaksstotteRepository.hentUtkast(aktorId);
+        Vedtak vedtak = hentUtkastEllerFeil(aktorId);
 
-        if (vedtak == null) {
-            throw new NotFoundException("Fant ikke vedtak å sende for bruker");
-        }
+        sjekkAnsvarligSaksbehandler(vedtak);
 
         if (skalHaBeslutter(vedtak.getInnsatsgruppe()) && (beslutter == null || beslutter.isEmpty())) {
-            throw new IllegalArgumentException("Vedtak kan ikke bli sendt uten beslutter");
+            throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
         }
 
         long vedtakId = vedtak.getId();
 
         lagreOyblikksbilde(fnr, vedtakId);
 
-        String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
-        if (!vedtak.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
-            String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
-            vedtak.setVeilederEnhetNavn(enhetNavn);
-        }
-
-        vedtak.setVeilederEnhetId(oppfolgingsenhetId);
-        vedtak.setVeilederIdent(veilederService.hentVeilederIdentFraToken());
-
+        sjekkOgOppdaterEnhet(vedtak, authKontekst.getOppfolgingsenhet());
         // TODO oppdater til ny status for "sender" + optimistic lock? Unngå potensielt å sende flere ganger
-
         vedtaksstotteRepository.oppdaterUtkast(vedtakId, vedtak);
+
 
         SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, fnr);
         DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
@@ -124,6 +115,30 @@ public class VedtakService {
         return dokumentSendt;
     }
 
+    private Vedtak hentUtkastEllerFeil(String aktorId) {
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
+
+        if (utkast == null) {
+            throw new NotFoundException("Fant ikke utkast");
+        }
+
+        return utkast;
+    }
+
+    private void sjekkAnsvarligSaksbehandler(Vedtak vedtak) {
+        if (!vedtak.getVeilederIdent().equals(veilederService.hentVeilederIdentFraToken())) {
+            throw new IngenTilgang("Ikke ansvarlig saksbehandler.");
+        }
+    }
+
+    private void sjekkOgOppdaterEnhet(Vedtak vedtak, String oppfolgingsenhetId) {
+        if (!oppfolgingsenhetId.equals(vedtak.getVeilederEnhetId())) {
+            String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
+            vedtak.setVeilederEnhetId(oppfolgingsenhetId);
+            vedtak.setVeilederEnhetNavn(enhetNavn);
+        }
+    }
+
     public void lagUtkast(String fnr) {
         validerFnr(fnr);
 
@@ -132,7 +147,7 @@ public class VedtakService {
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
         if (utkast != null) {
-            throw new RuntimeException(format("Kan ikke lage nytt utkast, brukeren(%s) har allerede et aktivt utkast", aktorId));
+            throw new IllegalStateException(format("Kan ikke lage nytt utkast, bruker med aktorId %s har allerede et aktivt utkast", aktorId));
         }
 
         String veilederIdent = veilederService.hentVeilederIdentFraToken();
@@ -149,32 +164,31 @@ public class VedtakService {
         validerFnr(fnr);
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
-        Bruker bruker = authKontekst.getBruker();
-        String veilederIdent = veilederService.hentVeilederIdentFraToken();
-        String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
-        Vedtak nyttUtkast = vedtakDTO.tilVedtakFraUtkast()
-                .setVeilederIdent(veilederIdent)
-                .setVeilederEnhetId(oppfolgingsenhetId);
 
-        if (utkast == null) {
-            throw new NotFoundException(format("Fant ikke utkast å oppdatere for bruker med aktorId: %s", bruker.getAktoerId()));
-        }
+        Vedtak utkast = hentUtkastEllerFeil(authKontekst.getBruker().getAktoerId());
 
-        if (!utkast.getVeilederEnhetId().equals(oppfolgingsenhetId)) {
-            String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
-            nyttUtkast.setVeilederEnhetNavn(enhetNavn);
-        }
+        sjekkAnsvarligSaksbehandler(utkast);
 
-        if (nyttUtkast.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
-            nyttUtkast.setHovedmal(null);
-        }
+        sjekkOgOppdaterEnhet(utkast, authKontekst.getOppfolgingsenhet());
+
+        oppdaterUtkastFraDto(utkast, vedtakDTO);
 
         transactor.inTransaction(() -> {
-            vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), nyttUtkast);
+            vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
             kilderRepository.slettKilder(utkast.getId());
             kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
         });
+    }
+
+    private void oppdaterUtkastFraDto(Vedtak utkast, VedtakDTO dto) {
+        utkast.setInnsatsgruppe(dto.getInnsatsgruppe());
+        utkast.setBegrunnelse(dto.getBegrunnelse());
+        utkast.setOpplysninger(dto.getOpplysninger());
+        if (dto.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
+            utkast.setHovedmal(null);
+        } else {
+            utkast.setHovedmal(dto.getHovedmal());
+        }
     }
 
     public void slettUtkast(String fnr) {
@@ -238,11 +252,29 @@ public class VedtakService {
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
     }
 
+    public void taOverUtkast(String fnr) {
+        AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
+
+        Vedtak utkast = hentUtkastEllerFeil(authKontekst.getBruker().getAktoerId());
+
+        Veileder veileder = hentVeileder(veilederService.hentVeilederIdentFraToken());
+
+        utkast.setVeilederIdent(veileder.getIdent());
+        sjekkOgOppdaterEnhet(utkast, authKontekst.getOppfolgingsenhet());
+
+        vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
+
+    }
+
     private void flettInnVeilederNavn(List<Vedtak> vedtak) {
         vedtak.forEach(v -> {
-            Veileder veileder = veiledereOgEnhetClient.hentVeileder(v.getVeilederIdent());
+            Veileder veileder = hentVeileder(v.getVeilederIdent());
             v.setVeilederNavn(veileder != null ? veileder.getNavn() : null);
         });
+    }
+
+    private Veileder hentVeileder(String veilederId) {
+        return veiledereOgEnhetClient.hentVeileder(veilederId);
     }
 
     private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, String fnr) {
