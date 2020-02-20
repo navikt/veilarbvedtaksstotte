@@ -2,39 +2,35 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.apiapp.security.veilarbabac.Bruker;
-import no.nav.fo.veilarbvedtaksstotte.client.*;
+import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
+import no.nav.fo.veilarbvedtaksstotte.client.SAFClient;
+import no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
 import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
-import no.nav.fo.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.sbl.jdbc.Transactor;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType.*;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
 public class VedtakService {
 
     private VedtaksstotteRepository vedtaksstotteRepository;
-    private OyeblikksbildeRepository oyeblikksbildeRepository;
+    private OyeblikksbildeService oyeblikksbildeService;
     private KilderRepository kilderRepository;
     private AuthService authService;
     private DokumentClient dokumentClient;
     private SAFClient safClient;
     private VeiledereOgEnhetClient veiledereOgEnhetClient;
-    private CVClient cvClient;
-    private RegistreringClient registreringClient;
-    private EgenvurderingClient egenvurderingClient;
     private VeilederService veilederService;
     private MalTypeService malTypeService;
     private KafkaService kafkaService;
@@ -44,28 +40,22 @@ public class VedtakService {
     @Inject
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
                          KilderRepository kilderRepository,
-                         OyeblikksbildeRepository oyeblikksbildeRepository,
+                         OyeblikksbildeService oyeblikksbildeService,
                          AuthService authService,
                          DokumentClient dokumentClient,
                          SAFClient safClient,
                          VeiledereOgEnhetClient veiledereOgEnhetClient,
-                         CVClient cvClient,
-                         RegistreringClient registreringClient,
-                         EgenvurderingClient egenvurderingClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
                          KafkaService kafkaService,
                          MetricsService metricsService, Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.kilderRepository = kilderRepository;
-        this.oyeblikksbildeRepository = oyeblikksbildeRepository;
+        this.oyeblikksbildeService = oyeblikksbildeService;
         this.authService = authService;
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
-        this.cvClient = cvClient;
-        this.registreringClient = registreringClient;
-        this.egenvurderingClient = egenvurderingClient;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
         this.kafkaService = kafkaService;
@@ -90,7 +80,7 @@ public class VedtakService {
 
         long vedtakId = vedtak.getId();
 
-        lagreOyeblikksbilde(fnr, vedtakId);
+        oyeblikksbildeService.lagreOyeblikksbilde(fnr, vedtakId);
 
         sjekkOgOppdaterEnhet(vedtak, authKontekst.getOppfolgingsenhet());
         // TODO oppdater til ny status for "sender" + optimistic lock? Unngå potensielt å sende flere ganger
@@ -231,11 +221,6 @@ public class VedtakService {
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
     }
 
-    public List<Oyeblikksbilde> hentOyeblikksbildeForVedtak(String fnr, long vedtakId) {
-        authService.sjekkTilgang(fnr);
-        return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
-    }
-
     public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
         authService.sjekkTilgang(fnr);
         return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
@@ -289,20 +274,6 @@ public class VedtakService {
     private boolean skalHaBeslutter(Innsatsgruppe innsatsgruppe) {
         return Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS == innsatsgruppe
                 || Innsatsgruppe.VARIG_TILPASSET_INNSATS == innsatsgruppe;
-    }
-
-    private void lagreOyeblikksbilde(String fnr, long vedtakId) {
-        final String cvData = cvClient.hentCV(fnr);
-        final String registreringData = registreringClient.hentRegistreringDataJson(fnr);
-        final String egenvurderingData = egenvurderingClient.hentEgenvurdering(fnr);
-
-        List<Oyeblikksbilde> oyeblikksbilde = Arrays.asList(
-                new Oyeblikksbilde(vedtakId, CV_OG_JOBBPROFIL, cvData),
-                new Oyeblikksbilde(vedtakId, REGISTRERINGSINFO, registreringData),
-                new Oyeblikksbilde(vedtakId, EGENVURDERING, egenvurderingData)
-        );
-
-        oyeblikksbildeRepository.lagOyeblikksbilde(oyeblikksbilde);
     }
 
 }

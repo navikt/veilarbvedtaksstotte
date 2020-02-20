@@ -2,6 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.resource;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
+import no.nav.fo.veilarbvedtaksstotte.service.OyeblikksbildeService;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.stereotype.Controller;
 
@@ -17,10 +18,12 @@ import java.util.List;
 public class VedtakResource {
 
     private VedtakService vedtakService;
+    private OyeblikksbildeService oyeblikksbildeService;
 
     @Inject
-    public VedtakResource(VedtakService vedtakService) {
+    public VedtakResource(VedtakService vedtakService, OyeblikksbildeService oyeblikksbildeService) {
         this.vedtakService = vedtakService;
+        this.oyeblikksbildeService = oyeblikksbildeService;
     }
 
     @POST
@@ -79,17 +82,10 @@ public class VedtakResource {
     @Path("/utkast")
     public void deleteUtkast(@PathParam("fnr") String fnr) { vedtakService.slettUtkast(fnr); }
 
-    // TODO: slett når frontend bruker /oyeblikksbilde/{vedtakid}:
-    @GET
-    @Path("/oyblikksbilde/{vedtakid}")
-    public List<Oyeblikksbilde> hentOyblikksbilde(@PathParam("fnr") String fnr, @PathParam("vedtakid") long vedtakId) {
-        return vedtakService.hentOyeblikksbildeForVedtak(fnr, vedtakId);
-    }
-
     @GET
     @Path("/oyeblikksbilde/{vedtakid}")
     public List<Oyeblikksbilde> hentOyeblikksbilde(@PathParam("fnr") String fnr, @PathParam("vedtakid") long vedtakId) {
-        return vedtakService.hentOyeblikksbildeForVedtak(fnr, vedtakId);
+        return oyeblikksbildeService.hentOyeblikksbildeForVedtak(fnr, vedtakId);
     }
 
     @POST
