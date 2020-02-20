@@ -21,8 +21,8 @@ public class Vedtak {
     String begrunnelse;
     String veilederIdent;
     String veilederNavn;
-    String veilederEnhetId;
-    String veilederEnhetNavn;
+    String oppfolgingsenhetId;
+    String oppfolgingsenhetNavn;
     String aktorId;
     String beslutterNavn;
     boolean gjeldende;

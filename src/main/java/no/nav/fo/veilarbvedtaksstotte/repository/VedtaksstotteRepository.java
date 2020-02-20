@@ -24,23 +24,23 @@ import static no.nav.fo.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 @Repository
 public class VedtaksstotteRepository {
 
-    public final static String VEDTAK_TABLE         = "VEDTAK";
-    private final static String VEDTAK_ID           = "ID";
-    private final static String AKTOR_ID            = "AKTOR_ID";
-    private final static String HOVEDMAL            = "HOVEDMAL";
-    private final static String INNSATSGRUPPE       = "INNSATSGRUPPE";
-    private final static String VEILEDER_IDENT      = "VEILEDER_IDENT";
-    private final static String VEILEDER_ENHET_ID   = "VEILEDER_ENHET_ID";
-    private final static String VEILEDER_ENHET_NAVN = "VEILEDER_ENHET_NAVN";
-    private final static String SIST_OPPDATERT      = "SIST_OPPDATERT";
-    private final static String BESLUTTER_NAVN      = "BESLUTTER_NAVN";
-    private final static String UTKAST_OPPRETTET    = "UTKAST_OPPRETTET";
-    private final static String BEGRUNNELSE         = "BEGRUNNELSE";
-    private final static String STATUS              = "STATUS";
-    private final static String DOKUMENT_ID         = "DOKUMENT_ID";
-    private final static String JOURNALPOST_ID      = "JOURNALPOST_ID";
-    private final static String GJELDENDE           = "GJELDENDE";
-    private final static String SENDT_TIL_BESLUTTER = "SENDT_TIL_BESLUTTER";
+    public final static String VEDTAK_TABLE           = "VEDTAK";
+    private final static String VEDTAK_ID             = "ID";
+    private final static String AKTOR_ID              = "AKTOR_ID";
+    private final static String HOVEDMAL              = "HOVEDMAL";
+    private final static String INNSATSGRUPPE         = "INNSATSGRUPPE";
+    private final static String VEILEDER_IDENT        = "VEILEDER_IDENT";
+    private final static String OPPFOLGINGSENHET_ID   = "OPPFOLGINGSENHET_ID";
+    private final static String OPPFOLGINGSENHET_NAVN = "OPPFOLGINGSENHET_NAVN";
+    private final static String SIST_OPPDATERT        = "SIST_OPPDATERT";
+    private final static String BESLUTTER_NAVN        = "BESLUTTER_NAVN";
+    private final static String UTKAST_OPPRETTET      = "UTKAST_OPPRETTET";
+    private final static String BEGRUNNELSE           = "BEGRUNNELSE";
+    private final static String STATUS                = "STATUS";
+    private final static String DOKUMENT_ID           = "DOKUMENT_ID";
+    private final static String JOURNALPOST_ID        = "JOURNALPOST_ID";
+    private final static String GJELDENDE             = "GJELDENDE";
+    private final static String SENDT_TIL_BESLUTTER   = "SENDT_TIL_BESLUTTER";
 
     private final JdbcTemplate db;
     private KilderRepository kilderRepository;
@@ -139,19 +139,19 @@ public class VedtaksstotteRepository {
             .set(HOVEDMAL, getName(vedtak.getHovedmal()))
             .set(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
             .set(VEILEDER_IDENT, vedtak.getVeilederIdent())
-            .set(VEILEDER_ENHET_ID, vedtak.getVeilederEnhetId())
-            .set(VEILEDER_ENHET_NAVN, vedtak.getVeilederEnhetNavn())
+            .set(OPPFOLGINGSENHET_ID, vedtak.getOppfolgingsenhetId())
+            .set(OPPFOLGINGSENHET_NAVN, vedtak.getOppfolgingsenhetNavn())
             .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .set(BEGRUNNELSE, vedtak.getBegrunnelse())
             .execute();
     }
 
-    public void opprettUtkast(String aktorId, String veilederIdent, String veilederEnhetId, String veilederEnhetNavn) {
+    public void opprettUtkast(String aktorId, String veilederIdent, String oppfolgingsenhetId, String oppfolgingsenhetNavn) {
         SqlUtils.insert(db, VEDTAK_TABLE)
             .value(AKTOR_ID, aktorId)
             .value(VEILEDER_IDENT, veilederIdent)
-            .value(VEILEDER_ENHET_ID, veilederEnhetId)
-            .value(VEILEDER_ENHET_NAVN, veilederEnhetNavn)
+            .value(OPPFOLGINGSENHET_ID, oppfolgingsenhetId)
+            .value(OPPFOLGINGSENHET_NAVN, oppfolgingsenhetNavn)
             .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .value(STATUS, getName(VedtakStatus.UTKAST))
             .execute();
@@ -176,10 +176,10 @@ public class VedtaksstotteRepository {
                 .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
                 .setGjeldende(rs.getBoolean(GJELDENDE))
                 .setSendtTilBeslutter(rs.getBoolean(SENDT_TIL_BESLUTTER))
-                .setVeilederEnhetId(rs.getString(VEILEDER_ENHET_ID))
+                .setOppfolgingsenhetId(rs.getString(OPPFOLGINGSENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
                 .setBeslutterNavn(rs.getString(BESLUTTER_NAVN))
-                .setVeilederEnhetNavn(rs.getString(VEILEDER_ENHET_NAVN))
+                .setOppfolgingsenhetNavn(rs.getString(OPPFOLGINGSENHET_NAVN))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
                 .setDokumentInfoId(rs.getString(DOKUMENT_ID));

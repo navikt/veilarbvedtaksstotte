@@ -116,10 +116,10 @@ public class VedtakService {
     }
 
     private void sjekkOgOppdaterEnhet(Vedtak vedtak, String oppfolgingsenhetId) {
-        if (!oppfolgingsenhetId.equals(vedtak.getVeilederEnhetId())) {
+        if (!oppfolgingsenhetId.equals(vedtak.getOppfolgingsenhetId())) {
             String enhetNavn = veilederService.hentEnhetNavn(oppfolgingsenhetId);
-            vedtak.setVeilederEnhetId(oppfolgingsenhetId);
-            vedtak.setVeilederEnhetNavn(enhetNavn);
+            vedtak.setOppfolgingsenhetId(oppfolgingsenhetId);
+            vedtak.setOppfolgingsenhetNavn(enhetNavn);
         }
     }
 
@@ -254,7 +254,7 @@ public class VedtakService {
     private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, String fnr) {
         return new SendDokumentDTO()
                 .setBegrunnelse(vedtak.getBegrunnelse())
-                .setVeilederEnhet(vedtak.getVeilederEnhetId())
+                .setEnhetId(vedtak.getOppfolgingsenhetId())
                 .setOpplysninger(vedtak.getOpplysninger())
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak, fnr))
                 .setBrukerFnr(fnr);

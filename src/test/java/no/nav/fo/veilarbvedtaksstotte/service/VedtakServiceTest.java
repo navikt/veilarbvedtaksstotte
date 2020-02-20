@@ -110,7 +110,7 @@ public class VedtakServiceTest {
         reset(authSerivce);
         reset(veilederService);
         when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT);
-        when(veilederService.hentEnhetNavn(TEST_VEILEDER_ENHET_ID)).thenReturn(TEST_VEILEDER_ENHET_NAVN);
+        when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
         when(dokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
         when(kafkaTemplate.send(any(), any(), any())).thenReturn(new AsyncResult(null));
@@ -147,8 +147,8 @@ public class VedtakServiceTest {
         assertEquals(VedtakStatus.UTKAST, opprettetUtkast.getVedtakStatus());
         assertEquals(TEST_VEILEDER_IDENT, opprettetUtkast.getVeilederIdent());
         assertEquals(TEST_VEILEDER_NAVN, opprettetUtkast.getVeilederNavn());
-        assertEquals(TEST_VEILEDER_ENHET_ID, opprettetUtkast.getVeilederEnhetId());
-        assertEquals(TEST_VEILEDER_ENHET_NAVN, opprettetUtkast.getVeilederEnhetNavn());
+        assertEquals(TEST_OPPFOLGINGSENHET_ID, opprettetUtkast.getOppfolgingsenhetId());
+        assertEquals(TEST_OPPFOLGINGSENHET_NAVN, opprettetUtkast.getOppfolgingsenhetNavn());
         assertFalse(opprettetUtkast.isGjeldende());
         assertFalse(opprettetUtkast.isSendtTilBeslutter());
         assertEquals(opprettetUtkast.getOpplysninger().size(), 0);
@@ -231,7 +231,7 @@ public class VedtakServiceTest {
     public void taOverUtkast__setter_ny_veileder() {
         String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
         gittTilgangTilBruker();
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
 
         assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
         vedtakService.taOverUtkast(TEST_FNR);
@@ -259,7 +259,7 @@ public class VedtakServiceTest {
     @Test
     public void taOverUtkast__feiler_dersom_samme_veileder() {
         gittTilgangTilBruker();
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
 
         assertThatThrownBy(() ->
                 vedtakService.taOverUtkast(TEST_FNR)
@@ -267,6 +267,6 @@ public class VedtakServiceTest {
     }
 
     private void gittTilgangTilBruker() {
-        when(authSerivce.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst(Bruker.fraFnr(TEST_FNR).medAktoerId(TEST_AKTOR_ID), TEST_VEILEDER_ENHET_ID));
+        when(authSerivce.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst(Bruker.fraFnr(TEST_FNR).medAktoerId(TEST_AKTOR_ID), TEST_OPPFOLGINGSENHET_ID));
     }
 }
