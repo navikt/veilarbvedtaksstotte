@@ -79,10 +79,17 @@ public class VedtakResource {
     @Path("/utkast")
     public void deleteUtkast(@PathParam("fnr") String fnr) { vedtakService.slettUtkast(fnr); }
 
+    // TODO: slett når frontend bruker /oyeblikksbilde/{vedtakid}:
     @GET
     @Path("/oyblikksbilde/{vedtakid}")
-    public List<Oyblikksbilde> hentOyblikksbilde(@PathParam("fnr") String fnr, @PathParam("vedtakid") long vedtakId) {
-        return vedtakService.hentOyblikksbildeForVedtak(fnr, vedtakId);
+    public List<Oyeblikksbilde> hentOyblikksbilde(@PathParam("fnr") String fnr, @PathParam("vedtakid") long vedtakId) {
+        return vedtakService.hentOyeblikksbildeForVedtak(fnr, vedtakId);
+    }
+
+    @GET
+    @Path("/oyeblikksbilde/{vedtakid}")
+    public List<Oyeblikksbilde> hentOyeblikksbilde(@PathParam("fnr") String fnr, @PathParam("vedtakid") long vedtakId) {
+        return vedtakService.hentOyeblikksbildeForVedtak(fnr, vedtakId);
     }
 
     @POST

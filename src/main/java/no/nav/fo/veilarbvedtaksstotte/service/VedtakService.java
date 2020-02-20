@@ -7,7 +7,7 @@ import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
 import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
-import no.nav.fo.veilarbvedtaksstotte.repository.OyblikksbildeRepository;
+import no.nav.fo.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.sbl.jdbc.Transactor;
 import org.springframework.stereotype.Service;
@@ -19,14 +19,14 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType.*;
+import static no.nav.fo.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType.*;
 import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
 public class VedtakService {
 
     private VedtaksstotteRepository vedtaksstotteRepository;
-    private OyblikksbildeRepository oyblikksbildeRepository;
+    private OyeblikksbildeRepository oyeblikksbildeRepository;
     private KilderRepository kilderRepository;
     private AuthService authService;
     private DokumentClient dokumentClient;
@@ -44,7 +44,7 @@ public class VedtakService {
     @Inject
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
                          KilderRepository kilderRepository,
-                         OyblikksbildeRepository oyblikksbildeRepository,
+                         OyeblikksbildeRepository oyeblikksbildeRepository,
                          AuthService authService,
                          DokumentClient dokumentClient,
                          SAFClient safClient,
@@ -58,7 +58,7 @@ public class VedtakService {
                          MetricsService metricsService, Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.kilderRepository = kilderRepository;
-        this.oyblikksbildeRepository = oyblikksbildeRepository;
+        this.oyeblikksbildeRepository = oyeblikksbildeRepository;
         this.authService = authService;
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
@@ -90,7 +90,7 @@ public class VedtakService {
 
         long vedtakId = vedtak.getId();
 
-        lagreOyblikksbilde(fnr, vedtakId);
+        lagreOyeblikksbilde(fnr, vedtakId);
 
         sjekkOgOppdaterEnhet(vedtak, authKontekst.getOppfolgingsenhet());
         // TODO oppdater til ny status for "sender" + optimistic lock? Unngå potensielt å sende flere ganger
@@ -231,9 +231,9 @@ public class VedtakService {
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
     }
 
-    public List<Oyblikksbilde> hentOyblikksbildeForVedtak(String fnr, long vedtakId) {
+    public List<Oyeblikksbilde> hentOyeblikksbildeForVedtak(String fnr, long vedtakId) {
         authService.sjekkTilgang(fnr);
-        return oyblikksbildeRepository.hentOyblikksbildeForVedtak(vedtakId);
+        return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
     }
 
     public byte[] hentVedtakPdf(String fnr, String dokumentInfoId, String journalpostId) {
@@ -291,18 +291,18 @@ public class VedtakService {
                 || Innsatsgruppe.VARIG_TILPASSET_INNSATS == innsatsgruppe;
     }
 
-    private void lagreOyblikksbilde(String fnr, long vedtakId) {
+    private void lagreOyeblikksbilde(String fnr, long vedtakId) {
         final String cvData = cvClient.hentCV(fnr);
         final String registreringData = registreringClient.hentRegistreringDataJson(fnr);
         final String egenvurderingData = egenvurderingClient.hentEgenvurdering(fnr);
 
-        List<Oyblikksbilde> oyblikksbilde = Arrays.asList(
-                new Oyblikksbilde(vedtakId, CV_OG_JOBBPROFIL, cvData),
-                new Oyblikksbilde(vedtakId, REGISTRERINGSINFO, registreringData),
-                new Oyblikksbilde(vedtakId, EGENVURDERING, egenvurderingData)
+        List<Oyeblikksbilde> oyeblikksbilde = Arrays.asList(
+                new Oyeblikksbilde(vedtakId, CV_OG_JOBBPROFIL, cvData),
+                new Oyeblikksbilde(vedtakId, REGISTRERINGSINFO, registreringData),
+                new Oyeblikksbilde(vedtakId, EGENVURDERING, egenvurderingData)
         );
 
-        oyblikksbildeRepository.lagOyblikksbilde(oyblikksbilde);
+        oyeblikksbildeRepository.lagOyeblikksbilde(oyeblikksbilde);
     }
 
 }
