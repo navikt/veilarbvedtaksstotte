@@ -11,7 +11,6 @@ import javax.inject.Inject;
 
 import java.util.Optional;
 
-import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
 public class BeslutterOppgaveService {
@@ -40,7 +39,6 @@ public class BeslutterOppgaveService {
 	}
 
 	public void sendBeslutterOppgave(SendBeslutterOppgaveDTO sendBeslutterOppgaveDTO, String fnr) {
-		validerFnr(fnr);
 
 		AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 		String aktorId = authKontekst.getBruker().getAktoerId();

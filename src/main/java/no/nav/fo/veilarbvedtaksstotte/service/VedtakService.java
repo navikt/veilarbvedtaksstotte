@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
 public class VedtakService {
@@ -61,8 +60,6 @@ public class VedtakService {
     }
 
     public DokumentSendtDTO sendVedtak(String fnr, String beslutter) {
-
-        validerFnr(fnr);
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
         String aktorId = authKontekst.getBruker().getAktoerId();
@@ -127,7 +124,6 @@ public class VedtakService {
     }
 
     public void lagUtkast(String fnr) {
-        validerFnr(fnr);
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
         String aktorId = authKontekst.getBruker().getAktoerId();
@@ -148,7 +144,6 @@ public class VedtakService {
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
-        validerFnr(fnr);
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 
@@ -179,22 +174,21 @@ public class VedtakService {
     }
 
     public void slettUtkast(String fnr) {
-        validerFnr(fnr);
 
         Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
-        Vedtak vedtak = vedtaksstotteRepository.hentUtkast(bruker.getAktoerId());
+        Vedtak utkast = hentUtkastEllerFeil(bruker.getAktoerId());
+        sjekkAnsvarligVeileder(utkast);
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.slettUtkast(bruker.getAktoerId());
-            kilderRepository.slettKilder(vedtak.getId());
+            kilderRepository.slettKilder(utkast.getId());
         });
 
-        kafkaService.sendVedtakStatusEndring(vedtak, KafkaVedtakStatus.UTKAST_SLETTET);
+        kafkaService.sendVedtakStatusEndring(utkast, KafkaVedtakStatus.UTKAST_SLETTET);
         metricsService.rapporterUtkastSlettet();
     }
 
     public List<Vedtak> hentVedtak(String fnr) {
-        validerFnr(fnr);
 
         Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
 
@@ -206,7 +200,6 @@ public class VedtakService {
     }
 
     public byte[] produserDokumentUtkast(String fnr) {
-        validerFnr(fnr);
 
         Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
 
