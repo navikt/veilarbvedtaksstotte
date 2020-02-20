@@ -7,6 +7,7 @@ import no.nav.fo.veilarbvedtaksstotte.domain.Oyeblikksbilde;
 import no.nav.fo.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class OyeblikksbildeService {
     private RegistreringClient registreringClient;
     private EgenvurderingClient egenvurderingClient;
 
+    @Inject
     public OyeblikksbildeService(AuthService authService,
                                  OyeblikksbildeRepository oyeblikksbildeRepository,
                                  CVClient cvClient,

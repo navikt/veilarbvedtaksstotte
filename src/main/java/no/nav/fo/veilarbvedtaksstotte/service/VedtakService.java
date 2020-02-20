@@ -4,7 +4,6 @@ import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.apiapp.security.veilarbabac.Bruker;
 import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.fo.veilarbvedtaksstotte.client.SAFClient;
-import no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
@@ -14,6 +13,7 @@ import no.nav.sbl.jdbc.Transactor;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +30,6 @@ public class VedtakService {
     private AuthService authService;
     private DokumentClient dokumentClient;
     private SAFClient safClient;
-    private VeiledereOgEnhetClient veiledereOgEnhetClient;
     private VeilederService veilederService;
     private MalTypeService malTypeService;
     private KafkaService kafkaService;
@@ -44,7 +43,6 @@ public class VedtakService {
                          AuthService authService,
                          DokumentClient dokumentClient,
                          SAFClient safClient,
-                         VeiledereOgEnhetClient veiledereOgEnhetClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
                          KafkaService kafkaService,
@@ -55,7 +53,6 @@ public class VedtakService {
         this.authService = authService;
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
-        this.veiledereOgEnhetClient = veiledereOgEnhetClient;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
         this.kafkaService = kafkaService;
@@ -72,7 +69,7 @@ public class VedtakService {
 
         Vedtak vedtak = hentUtkastEllerFeil(aktorId);
 
-        sjekkAnsvarligSaksbehandler(vedtak);
+        sjekkAnsvarligVeileder(vedtak);
 
         if (skalHaBeslutter(vedtak.getInnsatsgruppe()) && (beslutter == null || beslutter.isEmpty())) {
             throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
@@ -115,7 +112,7 @@ public class VedtakService {
         return utkast;
     }
 
-    private void sjekkAnsvarligSaksbehandler(Vedtak vedtak) {
+    private void sjekkAnsvarligVeileder(Vedtak vedtak) {
         if (!vedtak.getVeilederIdent().equals(veilederService.hentVeilederIdentFraToken())) {
             throw new IngenTilgang("Ikke ansvarlig saksbehandler.");
         }
@@ -123,7 +120,7 @@ public class VedtakService {
 
     private void sjekkOgOppdaterEnhet(Vedtak vedtak, String oppfolgingsenhetId) {
         if (!oppfolgingsenhetId.equals(vedtak.getVeilederEnhetId())) {
-            String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
+            String enhetNavn = veilederService.hentEnhetNavn(oppfolgingsenhetId);
             vedtak.setVeilederEnhetId(oppfolgingsenhetId);
             vedtak.setVeilederEnhetNavn(enhetNavn);
         }
@@ -142,7 +139,7 @@ public class VedtakService {
 
         String veilederIdent = veilederService.hentVeilederIdentFraToken();
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
-        String enhetNavn = veiledereOgEnhetClient.hentEnhetNavn(oppfolgingsenhetId);
+        String enhetNavn = veilederService.hentEnhetNavn(oppfolgingsenhetId);
 
         vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
 
@@ -157,7 +154,7 @@ public class VedtakService {
 
         Vedtak utkast = hentUtkastEllerFeil(authKontekst.getBruker().getAktoerId());
 
-        sjekkAnsvarligSaksbehandler(utkast);
+        sjekkAnsvarligVeileder(utkast);
 
         sjekkOgOppdaterEnhet(utkast, authKontekst.getOppfolgingsenhet());
 
@@ -242,24 +239,23 @@ public class VedtakService {
 
         Vedtak utkast = hentUtkastEllerFeil(authKontekst.getBruker().getAktoerId());
 
-        Veileder veileder = hentVeileder(veilederService.hentVeilederIdentFraToken());
+        String veilederId = veilederService.hentVeilederIdentFraToken();
 
-        utkast.setVeilederIdent(veileder.getIdent());
+        if (veilederId.equals(utkast.getVeilederIdent())) {
+            throw new BadRequestException("Veileder er allerede ansvarlig for utkast");
+        }
+
+        utkast.setVeilederIdent(veilederId);
         sjekkOgOppdaterEnhet(utkast, authKontekst.getOppfolgingsenhet());
 
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
-
     }
 
     private void flettInnVeilederNavn(List<Vedtak> vedtak) {
         vedtak.forEach(v -> {
-            Veileder veileder = hentVeileder(v.getVeilederIdent());
+            Veileder veileder = veilederService.hentVeileder(v.getVeilederIdent());
             v.setVeilederNavn(veileder != null ? veileder.getNavn() : null);
         });
-    }
-
-    private Veileder hentVeileder(String veilederId) {
-        return veiledereOgEnhetClient.hentVeileder(veilederId);
     }
 
     private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, String fnr) {
