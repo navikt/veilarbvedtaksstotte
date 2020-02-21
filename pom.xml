@@ -105,6 +105,10 @@
         </dependency>
         <dependency>
             <groupId>no.nav.common</groupId>
+            <artifactId>nais</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.common</groupId>
             <artifactId>feature-toggle</artifactId>
         </dependency>
         <dependency>
