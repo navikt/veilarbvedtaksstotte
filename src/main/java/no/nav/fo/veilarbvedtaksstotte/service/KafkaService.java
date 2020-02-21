@@ -4,7 +4,6 @@ import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakSendtTemplate;
 import no.nav.fo.veilarbvedtaksstotte.kafka.VedtakStatusEndringTemplate;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -41,7 +40,7 @@ public class KafkaService {
                 .setHovedmal(vedtak.getHovedmal())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
                 .setVedtakSendt(vedtak.getSistOppdatert())
-                .setEnhetId(vedtak.getVeilederEnhetId());
+                .setEnhetId(vedtak.getOppfolgingsenhetId());
 
         vedtakSendtTemplate.send(vedtakSendt);
     }
@@ -52,11 +51,10 @@ public class KafkaService {
 
     public void sendVedtakStatusEndring(Vedtak vedtak, KafkaVedtakStatus status) {
         KafkaVedtakStatusEndring vedtakStatus = new KafkaVedtakStatusEndring()
-                .setId(vedtak.getId())
+                .setVedtakId(vedtak.getId())
                 .setAktorId(vedtak.getAktorId())
                 .setHovedmal(vedtak.getHovedmal())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setSistRedigertTidspunkt(vedtak.getSistOppdatert())
                 .setStatusEndretTidspunkt(LocalDateTime.now())
                 .setVedtakStatus(status);
 

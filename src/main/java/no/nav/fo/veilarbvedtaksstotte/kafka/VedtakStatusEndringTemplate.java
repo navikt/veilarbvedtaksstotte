@@ -7,7 +7,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 import javax.inject.Inject;
 
-import static no.nav.fo.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC_VEDTAK_SENDT;
 import static no.nav.fo.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC_VEDTAK_STATUS_ENDRING;
 import static no.nav.json.JsonUtils.toJson;
 
@@ -47,7 +46,7 @@ public class VedtakStatusEndringTemplate {
 
         if (harFeiletTidligere) {
             kafkaRepository.slettVedtakStatusEndringKafkaFeil(
-                    kafkaVedtakStatusEndring.getId(),
+                    kafkaVedtakStatusEndring.getVedtakId(),
                     kafkaVedtakStatusEndring.getVedtakStatus()
             );
         }

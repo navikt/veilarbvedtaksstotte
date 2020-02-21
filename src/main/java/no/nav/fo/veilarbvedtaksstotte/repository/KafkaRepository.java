@@ -24,14 +24,12 @@ public class KafkaRepository {
     public final static String VEDTAK_SENDT_KAFKA_FEIL_TABLE            = "VEDTAK_SENDT_KAFKA_FEIL";
     public final static String VEDTAK_STATUS_ENDRING_KAFKA_FEIL_TABLE   = "VEDTAK_STATUS_ENDRING_KAFKA_FEIL";
 
-    private final static String ID                                      = "ID";
     private final static String VEDTAK_ID                               = "VEDTAK_ID";
     private final static String VEDTAK_SENDT                            = "VEDTAK_SENDT";
     private final static String INNSATSGRUPPE                           = "INNSATSGRUPPE";
     private final static String AKTOR_ID                                = "AKTOR_ID";
     private final static String ENHET_ID                                = "ENHET_ID";
     private final static String HOVEDMAL                                = "HOVEDMAL";
-    private final static String SIST_REDIGERT_TIDSPUNKT                 = "SIST_REDIGERT_TIDSPUNKT";
     private final static String STATUS_ENDRET_TIDSPUNKT                 = "STATUS_ENDRET_TIDSPUNKT";
     private final static String KAFKA_VEDTAK_STATUS                     = "KAFKA_VEDTAK_STATUS";
 
@@ -67,15 +65,15 @@ public class KafkaRepository {
 
     public void lagreVedtakStatusEndringKafkaFeil(KafkaVedtakStatusEndring vedtakStatusEndring) {
         String sql = String.format(
-            "INSERT INTO %s (%s, %s, %s, %s, %s, %s) VALUES (?::KAFKA_VEDTAK_STATUS_TYPE,?,?,?,?,?)",
+            "INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?::KAFKA_VEDTAK_STATUS_TYPE,?,?,?,?)",
                 VEDTAK_STATUS_ENDRING_KAFKA_FEIL_TABLE, KAFKA_VEDTAK_STATUS, AKTOR_ID, HOVEDMAL,
-                INNSATSGRUPPE, SIST_REDIGERT_TIDSPUNKT, STATUS_ENDRET_TIDSPUNKT
+                INNSATSGRUPPE, STATUS_ENDRET_TIDSPUNKT
         );
 
         db.update(
                 sql, getName(vedtakStatusEndring.getVedtakStatus()), vedtakStatusEndring.getAktorId(),
                 getName(vedtakStatusEndring.getHovedmal()), getName(vedtakStatusEndring.getInnsatsgruppe()),
-                vedtakStatusEndring.getSistRedigertTidspunkt(), vedtakStatusEndring.getStatusEndretTidspunkt()
+                vedtakStatusEndring.getStatusEndretTidspunkt()
         );
     }
 
@@ -85,13 +83,13 @@ public class KafkaRepository {
                 .executeToList();
     }
 
-    public void slettVedtakStatusEndringKafkaFeil(long id, KafkaVedtakStatus vedtakStatus) {
+    public void slettVedtakStatusEndringKafkaFeil(long vedtakId, KafkaVedtakStatus vedtakStatus) {
         String sql = String.format(
                 "DELETE FROM %s WHERE %s = ? AND %s = ?::KAFKA_VEDTAK_STATUS_TYPE",
-                VEDTAK_STATUS_ENDRING_KAFKA_FEIL_TABLE, ID, KAFKA_VEDTAK_STATUS
+                VEDTAK_STATUS_ENDRING_KAFKA_FEIL_TABLE, VEDTAK_ID, KAFKA_VEDTAK_STATUS
         );
 
-        db.update(sql, id, getName(vedtakStatus));
+        db.update(sql, vedtakId, getName(vedtakStatus));
     }
 
 
@@ -108,11 +106,10 @@ public class KafkaRepository {
     @SneakyThrows
     private static KafkaVedtakStatusEndring mapKafkaVedtakStatusEndring(ResultSet rs) {
         return new KafkaVedtakStatusEndring()
-                .setId(rs.getLong(ID))
+                .setVedtakId(rs.getLong(VEDTAK_ID))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setHovedmal(valueOf(Hovedmal.class, rs.getString(HOVEDMAL)))
                 .setInnsatsgruppe(valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
-                .setSistRedigertTidspunkt(rs.getTimestamp(SIST_REDIGERT_TIDSPUNKT).toLocalDateTime())
                 .setStatusEndretTidspunkt(rs.getTimestamp(STATUS_ENDRET_TIDSPUNKT).toLocalDateTime())
                 .setVedtakStatus(valueOf(KafkaVedtakStatus.class, rs.getString(KAFKA_VEDTAK_STATUS)));
     }

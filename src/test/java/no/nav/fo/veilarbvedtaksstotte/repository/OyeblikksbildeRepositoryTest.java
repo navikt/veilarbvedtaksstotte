@@ -2,8 +2,8 @@ package no.nav.fo.veilarbvedtaksstotte.repository;
 
 import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
 import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
-import no.nav.fo.veilarbvedtaksstotte.domain.Oyblikksbilde;
-import no.nav.fo.veilarbvedtaksstotte.domain.enums.OyblikksbildeType;
+import no.nav.fo.veilarbvedtaksstotte.domain.Oyeblikksbilde;
+import no.nav.fo.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.*;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class OyblikksbildeRepositoryTest {
+public class OyeblikksbildeRepositoryTest {
 
     @ClassRule
     public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance();
@@ -25,14 +25,14 @@ public class OyblikksbildeRepositoryTest {
     private final static String REGISTRERINGSINFO_JSON = "{ \"data\": 42 }";
 
     private static JdbcTemplate db;
-    private static OyblikksbildeRepository oyblikksbildeRepository;
+    private static OyeblikksbildeRepository oyeblikksbildeRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
-        db = DbTestUtils.setupDb(pg.getEmbeddedPostgres());
+        db = DbTestUtils.setupEmbeddedDb(pg.getEmbeddedPostgres());
         KilderRepository kilderRepository = new KilderRepository(db);
-        oyblikksbildeRepository = new OyblikksbildeRepository(db);
+        oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }
 
@@ -42,35 +42,35 @@ public class OyblikksbildeRepositoryTest {
     }
 
     @Test
-    public void testLagOyblikksbildeFeilerHvisIkkeVedtakFinnes() {
-        Oyblikksbilde oyblikksbilde = new Oyblikksbilde(
+    public void testLagOyeblikksbildeFeilerHvisIkkeVedtakFinnes() {
+        Oyeblikksbilde oyeblikksbilde = new Oyeblikksbilde(
                 VEDTAK_ID_THAT_DOES_NOT_EXIST,
-                OyblikksbildeType.REGISTRERINGSINFO,
+                OyeblikksbildeType.REGISTRERINGSINFO,
                 REGISTRERINGSINFO_JSON
         );
 
-        List<Oyblikksbilde> oyblikksbilder = Collections.singletonList(oyblikksbilde);
+        List<Oyeblikksbilde> oyeblikksbilder = Collections.singletonList(oyeblikksbilde);
 
-        assertThrows(DataIntegrityViolationException.class, () -> oyblikksbildeRepository.lagOyblikksbilde(oyblikksbilder));
+        assertThrows(DataIntegrityViolationException.class, () -> oyeblikksbildeRepository.lagOyeblikksbilde(oyeblikksbilder));
     }
 
     @Test
-    public void testLagOgHentOyblikksbilde() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+    public void testLagOgHentOyeblikksbilde() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
-        Oyblikksbilde oyblikksbilde = new Oyblikksbilde(
+        Oyeblikksbilde oyeblikksbilde = new Oyeblikksbilde(
                 vedtakId,
-                OyblikksbildeType.REGISTRERINGSINFO,
+                OyeblikksbildeType.REGISTRERINGSINFO,
                 REGISTRERINGSINFO_JSON
         );
 
-        oyblikksbildeRepository.lagOyblikksbilde(Collections.singletonList(oyblikksbilde));
+        oyeblikksbildeRepository.lagOyeblikksbilde(Collections.singletonList(oyeblikksbilde));
 
-        List<Oyblikksbilde> hentetOyblikksbilder = oyblikksbildeRepository.hentOyblikksbildeForVedtak(vedtakId);
+        List<Oyeblikksbilde> hentetOyeblikksbilder = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
 
-        assertTrue(hentetOyblikksbilder.size() > 0);
-        assertEquals(oyblikksbilde.getJson(), hentetOyblikksbilder.get(0).getJson());
+        assertTrue(hentetOyeblikksbilder.size() > 0);
+        assertEquals(oyeblikksbilde.getJson(), hentetOyeblikksbilder.get(0).getJson());
     }
 
 }

@@ -1,6 +1,6 @@
 package no.nav.fo.veilarbvedtaksstotte.domain.enums;
 
-public enum OyblikksbildeType {
+public enum OyeblikksbildeType {
     CV_OG_JOBBPROFIL,
     REGISTRERINGSINFO,
     EGENVURDERING

@@ -14,12 +14,4 @@ public class VedtakDTO {
     Innsatsgruppe innsatsgruppe;
     String begrunnelse;
     List<String> opplysninger;
-
-    public Vedtak tilVedtakFraUtkast() {
-        return new Vedtak()
-                .setHovedmal(hovedmal)
-                .setInnsatsgruppe(innsatsgruppe)
-                .setBegrunnelse(begrunnelse)
-                .setOpplysninger(opplysninger);
-    }
 }

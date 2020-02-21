@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
-import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_ENHET_NAVN;
+import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class KilderRepositoryTest {
@@ -26,7 +26,7 @@ public class KilderRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = DbTestUtils.setupDb(pg.getEmbeddedPostgres());
+        db = DbTestUtils.setupEmbeddedDb(pg.getEmbeddedPostgres());
         kilderRepository = new KilderRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }
@@ -48,7 +48,7 @@ public class KilderRepositoryTest {
     @Test
     public void testLagOgHentKilder() {
 
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
 
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 

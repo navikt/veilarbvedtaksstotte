@@ -11,7 +11,6 @@ import org.junit.*;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
@@ -28,7 +27,7 @@ public class VedtaksstotteRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = DbTestUtils.setupDb(pg.getEmbeddedPostgres());
+        db = DbTestUtils.setupEmbeddedDb(pg.getEmbeddedPostgres());
         kilderRepository = new KilderRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }
@@ -40,7 +39,7 @@ public class VedtaksstotteRepositoryTest {
 
     @Test
     public void testSlettUtkast() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -52,15 +51,15 @@ public class VedtaksstotteRepositoryTest {
     }
 
     @Test
-    public void testHentUtkast() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+    public void testOpprettOgHentUtkast() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         assertEquals(TEST_AKTOR_ID, utkast.getAktorId());
         assertEquals(TEST_VEILEDER_IDENT, utkast.getVeilederIdent());
-        assertEquals(TEST_VEILEDER_ENHET_ID, utkast.getVeilederEnhetId());
-        assertEquals(TEST_VEILEDER_ENHET_NAVN, utkast.getVeilederEnhetNavn());
+        assertEquals(TEST_OPPFOLGINGSENHET_ID, utkast.getOppfolgingsenhetId());
+        assertEquals(TEST_OPPFOLGINGSENHET_NAVN, utkast.getOppfolgingsenhetNavn());
     }
 
     @Test
@@ -70,7 +69,7 @@ public class VedtaksstotteRepositoryTest {
 
     @Test
     public void testUtkastTilSendtVedtakMedBeslutterFlyt() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -110,7 +109,7 @@ public class VedtaksstotteRepositoryTest {
 
         DokumentSendtDTO dokumentSendtDTO = new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
 
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_VEILEDER_ENHET_ID, TEST_VEILEDER_ENHET_NAVN);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         utkast.setBegrunnelse(TEST_BEGRUNNELSE);

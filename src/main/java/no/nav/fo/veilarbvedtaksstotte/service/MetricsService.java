@@ -59,7 +59,7 @@ public class MetricsService {
 
         event.addFieldToReport("sekunderBrukt", secondsUsed);
         event.addFieldToReport("innsatsgruppe", getName(vedtak.getInnsatsgruppe()));
-        event.addFieldToReport("enhetsId", vedtak.getVeilederEnhetId());
+        event.addFieldToReport("enhetsId", vedtak.getOppfolgingsenhetId());
         event.addFieldToReport("begrunnelseLengde", begrunnelseLengde);
 
         if (vedtak.getHovedmal() != null) {
@@ -132,7 +132,7 @@ public class MetricsService {
         event.addFieldToReport("dagerBrukt", diff);
         event.addFieldToReport("oppfolgingStartDato", dato.toString());
         event.addFieldToReport("vedtakSendtDato", vedtakSendtDato.toString());
-        event.addFieldToReport("enhetsId", vedtak.getVeilederEnhetId());
+        event.addFieldToReport("enhetsId", vedtak.getOppfolgingsenhetId());
         event.report();
     }
 

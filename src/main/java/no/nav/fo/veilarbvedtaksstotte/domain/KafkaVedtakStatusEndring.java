@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class KafkaVedtakStatusEndring {
 
-    long id;
+    long vedtakId;
 
     String aktorId;
 
@@ -21,8 +21,6 @@ public class KafkaVedtakStatusEndring {
     Innsatsgruppe innsatsgruppe;
 
     Hovedmal hovedmal;
-
-    LocalDateTime sistRedigertTidspunkt;
 
     LocalDateTime statusEndretTidspunkt;
 
