@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import;
         VeilederService.class,
         MalTypeService.class,
         VedtakService.class,
+		OyeblikksbildeService.class,
         KafkaService.class,
         AuthService.class,
         MetricsService.class,
