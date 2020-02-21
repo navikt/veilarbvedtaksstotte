@@ -111,7 +111,7 @@ public class VedtakService {
 
     private void sjekkAnsvarligVeileder(Vedtak vedtak) {
         if (!vedtak.getVeilederIdent().equals(veilederService.hentVeilederIdentFraToken())) {
-            throw new IngenTilgang("Ikke ansvarlig saksbehandler.");
+            throw new IngenTilgang("Ikke ansvarlig veileder.");
         }
     }
 
