@@ -3,7 +3,6 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
 import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
 import no.nav.apiapp.feil.IngenTilgang;
-import no.nav.apiapp.security.veilarbabac.Bruker;
 import no.nav.fo.veilarbvedtaksstotte.client.CVClient;
 import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient;
@@ -267,6 +266,6 @@ public class VedtakServiceTest {
     }
 
     private void gittTilgangTilBruker() {
-        when(authSerivce.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst(Bruker.fraFnr(TEST_FNR).medAktoerId(TEST_AKTOR_ID), TEST_OPPFOLGINGSENHET_ID));
+        when(authSerivce.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst(TEST_FNR, TEST_AKTOR_ID, TEST_OPPFOLGINGSENHET_ID));
     }
 }

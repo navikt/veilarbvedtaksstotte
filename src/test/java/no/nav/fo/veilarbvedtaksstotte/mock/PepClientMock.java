@@ -11,16 +11,6 @@ public class PepClientMock extends PepClient {
     }
 
     @Override
-    public String sjekkLeseTilgangTilFnr(String fnr) {
-        return "";
-    }
-
-    @Override
-    public String sjekkSkriveTilgangTilFnr(String fnr) {
-        return "";
-    }
-
-    @Override
     public void sjekkTilgangTilEnhet(String enhet) throws IngenTilgang, PepException {}
 
     @Override

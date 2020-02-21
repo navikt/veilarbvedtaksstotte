@@ -1,8 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.apiapp.feil.IngenTilgang;
-import no.nav.apiapp.security.veilarbabac.Bruker;
-import no.nav.apiapp.security.veilarbabac.VeilarbAbacPepClient;
+import no.nav.apiapp.security.PepClient;
 import no.nav.common.auth.SubjectHandler;
 import no.nav.dialogarena.aktor.AktorService;
 import no.nav.fo.veilarbvedtaksstotte.client.ArenaClient;
@@ -17,12 +16,12 @@ import static no.nav.brukerdialog.security.domain.IdentType.InternBruker;
 public class AuthService {
 
     private final AktorService aktorService;
-    private final VeilarbAbacPepClient pepClient;
+    private final PepClient pepClient;
     private final ArenaClient arenaClient;
 
     @Inject
     public AuthService(AktorService aktorService,
-                       VeilarbAbacPepClient pepClient,
+                       PepClient pepClient,
                        ArenaClient arenaClient) {
         this.aktorService = aktorService;
         this.pepClient = pepClient;
@@ -34,12 +33,11 @@ public class AuthService {
         sjekkInternBruker();
 
         String aktorId = getAktorIdOrThrow(fnr);
-        Bruker bruker = Bruker.fraAktoerId(aktorId).medFoedselsnummer(fnr);
 
-        pepClient.sjekkSkrivetilgangTilBruker(bruker);
+        pepClient.sjekkSkrivetilgangTilAktorId(aktorId);
         String enhet = sjekkTilgangTilEnhet(fnr);
 
-        return new AuthKontekst(bruker, enhet);
+        return new AuthKontekst(fnr, aktorId, enhet);
     }
 
     private void sjekkInternBruker() {

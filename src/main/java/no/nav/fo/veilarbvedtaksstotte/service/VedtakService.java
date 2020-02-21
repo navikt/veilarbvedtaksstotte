@@ -1,7 +1,6 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.apiapp.feil.IngenTilgang;
-import no.nav.apiapp.security.veilarbabac.Bruker;
 import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.fo.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
@@ -62,7 +61,7 @@ public class VedtakService {
     public DokumentSendtDTO sendVedtak(String fnr, String beslutter) {
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
-        String aktorId = authKontekst.getBruker().getAktoerId();
+        String aktorId = authKontekst.getAktorId();
 
         Vedtak vedtak = hentUtkastEllerFeil(aktorId);
 
@@ -126,7 +125,7 @@ public class VedtakService {
     public void lagUtkast(String fnr) {
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
-        String aktorId = authKontekst.getBruker().getAktoerId();
+        String aktorId = authKontekst.getAktorId();
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
         if (utkast != null) {
@@ -147,7 +146,7 @@ public class VedtakService {
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 
-        Vedtak utkast = hentUtkastEllerFeil(authKontekst.getBruker().getAktoerId());
+        Vedtak utkast = hentUtkastEllerFeil(authKontekst.getAktorId());
 
         sjekkAnsvarligVeileder(utkast);
 
@@ -175,12 +174,12 @@ public class VedtakService {
 
     public void slettUtkast(String fnr) {
 
-        Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
-        Vedtak utkast = hentUtkastEllerFeil(bruker.getAktoerId());
+        String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+        Vedtak utkast = hentUtkastEllerFeil(aktorId);
         sjekkAnsvarligVeileder(utkast);
 
         transactor.inTransaction(() -> {
-            vedtaksstotteRepository.slettUtkast(bruker.getAktoerId());
+            vedtaksstotteRepository.slettUtkast(aktorId);
             kilderRepository.slettKilder(utkast.getId());
         });
 
@@ -190,9 +189,9 @@ public class VedtakService {
 
     public List<Vedtak> hentVedtak(String fnr) {
 
-        Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
+        String aktorId = authService.sjekkTilgang(fnr).getAktorId();
 
-        List<Vedtak> vedtak = vedtaksstotteRepository.hentVedtak(bruker.getAktoerId());
+        List<Vedtak> vedtak = vedtaksstotteRepository.hentVedtak(aktorId);
 
         flettInnVeilederNavn(vedtak);
 
@@ -201,10 +200,10 @@ public class VedtakService {
 
     public byte[] produserDokumentUtkast(String fnr) {
 
-        Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
+        String aktorId = authService.sjekkTilgang(fnr).getAktorId();
 
         SendDokumentDTO sendDokumentDTO =
-                Optional.ofNullable(vedtaksstotteRepository.hentUtkast(bruker.getAktoerId()))
+                Optional.ofNullable(vedtaksstotteRepository.hentUtkast(aktorId))
                         .map(vedtak -> lagDokumentDTO(vedtak, fnr))
                         .orElseThrow(() -> new NotFoundException("Fant ikke vedtak å forhandsvise for bruker"));
 
@@ -217,8 +216,8 @@ public class VedtakService {
     }
 
     public boolean harUtkast(String fnr) {
-        Bruker bruker = authService.sjekkTilgang(fnr).getBruker();
-        return vedtaksstotteRepository.hentUtkast(bruker.getAktoerId()) != null;
+        String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+        return vedtaksstotteRepository.hentUtkast(aktorId) != null;
     }
 
     public void behandleAvsluttOppfolging (KafkaAvsluttOppfolging melding ) {
@@ -230,7 +229,7 @@ public class VedtakService {
     public void taOverUtkast(String fnr) {
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 
-        Vedtak utkast = hentUtkastEllerFeil(authKontekst.getBruker().getAktoerId());
+        Vedtak utkast = hentUtkastEllerFeil(authKontekst.getAktorId());
 
         String veilederId = veilederService.hentVeilederIdentFraToken();
 
