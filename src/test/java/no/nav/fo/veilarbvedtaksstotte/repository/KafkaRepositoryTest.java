@@ -48,7 +48,7 @@ public class KafkaRepositoryTest {
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
                 .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                 .setAktorId(TEST_AKTOR_ID)
-                .setEnhetId(TEST_VEILEDER_ENHET_ID);
+                .setEnhetId(TEST_OPPFOLGINGSENHET_ID);
 
         assertThrows(DataIntegrityViolationException.class, () -> {
             kafkaRepository.lagreVedtakSendtKafkaFeil(vedtakSendt);
@@ -61,8 +61,8 @@ public class KafkaRepositoryTest {
         vedtaksstotteRepository.opprettUtkast(
                 TEST_AKTOR_ID,
                 TEST_VEILEDER_IDENT,
-                TEST_VEILEDER_ENHET_ID,
-                TEST_VEILEDER_ENHET_NAVN
+                TEST_OPPFOLGINGSENHET_ID,
+                TEST_OPPFOLGINGSENHET_NAVN
         );
 
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
@@ -73,7 +73,7 @@ public class KafkaRepositoryTest {
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
                 .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                 .setAktorId(TEST_AKTOR_ID)
-                .setEnhetId(TEST_VEILEDER_ENHET_ID);
+                .setEnhetId(TEST_OPPFOLGINGSENHET_ID);
 
         kafkaRepository.lagreVedtakSendtKafkaFeil(vedtakSendt);
 
@@ -88,8 +88,8 @@ public class KafkaRepositoryTest {
        vedtaksstotteRepository.opprettUtkast(
                 TEST_AKTOR_ID,
                 TEST_VEILEDER_IDENT,
-                TEST_VEILEDER_ENHET_ID,
-                TEST_VEILEDER_ENHET_NAVN
+               TEST_OPPFOLGINGSENHET_ID,
+               TEST_OPPFOLGINGSENHET_NAVN
         );
 
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
@@ -100,7 +100,7 @@ public class KafkaRepositoryTest {
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
                 .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                 .setAktorId(TEST_AKTOR_ID)
-                .setEnhetId(TEST_VEILEDER_ENHET_ID);
+                .setEnhetId(TEST_OPPFOLGINGSENHET_ID);
 
         kafkaRepository.lagreVedtakSendtKafkaFeil(vedtakSendt);
         kafkaRepository.slettVedtakSendtKafkaFeil(TEST_AKTOR_ID);
@@ -117,8 +117,8 @@ public class KafkaRepositoryTest {
         vedtaksstotteRepository.opprettUtkast(
                 TEST_AKTOR_ID,
                 TEST_VEILEDER_IDENT,
-                TEST_VEILEDER_ENHET_ID,
-                TEST_VEILEDER_ENHET_NAVN
+                TEST_OPPFOLGINGSENHET_ID,
+                TEST_OPPFOLGINGSENHET_NAVN
         );
 
         KafkaVedtakStatusEndring vedtakStatusEndring = new KafkaVedtakStatusEndring()
@@ -145,8 +145,8 @@ public class KafkaRepositoryTest {
         vedtaksstotteRepository.opprettUtkast(
                 TEST_AKTOR_ID,
                 TEST_VEILEDER_IDENT,
-                TEST_VEILEDER_ENHET_ID,
-                TEST_VEILEDER_ENHET_NAVN
+                TEST_OPPFOLGINGSENHET_ID,
+                TEST_OPPFOLGINGSENHET_NAVN
         );
 
         KafkaVedtakStatusEndring vedtakStatusEndring = new KafkaVedtakStatusEndring()

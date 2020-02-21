@@ -11,7 +11,6 @@ import javax.inject.Inject;
 
 import java.util.Optional;
 
-import static no.nav.fo.veilarbvedtaksstotte.utils.ValideringUtils.validerFnr;
 
 @Service
 public class BeslutterOppgaveService {
@@ -40,7 +39,6 @@ public class BeslutterOppgaveService {
 	}
 
 	public void sendBeslutterOppgave(SendBeslutterOppgaveDTO sendBeslutterOppgaveDTO, String fnr) {
-		validerFnr(fnr);
 
 		AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 		String aktorId = authKontekst.getBruker().getAktoerId();
@@ -54,7 +52,7 @@ public class BeslutterOppgaveService {
 		String beslutterNavn = null;
 
 		if (beslutterIdent != null) {
-			VeilederePaEnhetDTO veiledere = veiledereOgEnhetClient.hentVeilederePaEnhet(utkast.getVeilederEnhetId());
+			VeilederePaEnhetDTO veiledere = veiledereOgEnhetClient.hentVeilederePaEnhet(utkast.getOppfolgingsenhetId());
 			Optional<Veileder> beslutterFraEnhet = veiledere.getVeilederListe().stream()
 					.filter((v) -> v.getIdent().equalsIgnoreCase(beslutterIdent))
 					.findFirst();
@@ -66,8 +64,8 @@ public class BeslutterOppgaveService {
 
 		OpprettOppgaveDTO opprettOppgaveDTO = mapTilOpprettOppgaveDTO(sendBeslutterOppgaveDTO)
 				.setAktoerId(aktorId)
-				.setTildeltEnhetsnr(utkast.getVeilederEnhetId())
-				.setOpprettetAvEnhetsnr(utkast.getVeilederEnhetId())
+				.setTildeltEnhetsnr(utkast.getOppfolgingsenhetId())
+				.setOpprettetAvEnhetsnr(utkast.getOppfolgingsenhetId())
 				.setTilordnetRessurs(beslutterIdent)
 				.setTema(TEMA_OPPFOLGING)
 				.setBehandlingstype(BEHANDLINGSTYPE_TIL_BESLUTTER)

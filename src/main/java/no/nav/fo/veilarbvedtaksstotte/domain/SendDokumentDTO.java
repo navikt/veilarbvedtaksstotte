@@ -11,7 +11,7 @@ import java.util.List;
 public class SendDokumentDTO {
     String brukerFnr;
     MalType malType;
-    String veilederEnhet;
+    String enhetId;
     String begrunnelse;
     List<String> opplysninger;
 }

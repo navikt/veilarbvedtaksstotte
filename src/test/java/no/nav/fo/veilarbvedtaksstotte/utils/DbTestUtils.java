@@ -12,7 +12,7 @@ import java.util.List;
 
 import static no.nav.fo.veilarbvedtaksstotte.repository.KafkaRepository.VEDTAK_SENDT_KAFKA_FEIL_TABLE;
 import static no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository.KILDE_TABLE;
-import static no.nav.fo.veilarbvedtaksstotte.repository.OyblikksbildeRepository.OYBLIKKSBILDE_TABLE;
+import static no.nav.fo.veilarbvedtaksstotte.repository.OyeblikksbildeRepository.OYEBLIKKSBILDE_TABLE;
 import static no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository.VEDTAK_TABLE;
 
 @Slf4j
@@ -22,7 +22,7 @@ public class DbTestUtils {
     private final static List<String> ALL_TABLES = Arrays.asList(
             KILDE_TABLE,
             VEDTAK_SENDT_KAFKA_FEIL_TABLE,
-            OYBLIKKSBILDE_TABLE,
+            OYEBLIKKSBILDE_TABLE,
             VEDTAK_TABLE
     );
 

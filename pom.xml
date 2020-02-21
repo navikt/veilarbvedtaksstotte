@@ -92,10 +92,6 @@
             <artifactId>rest</artifactId>
         </dependency>
         <dependency>
-            <groupId>no.bekk.bekkopen</groupId>
-            <artifactId>nocommons</artifactId>
-        </dependency>
-        <dependency>
             <groupId>no.nav.common</groupId>
             <artifactId>aktor-klient</artifactId>
         </dependency>

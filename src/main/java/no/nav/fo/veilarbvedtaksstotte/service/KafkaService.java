@@ -40,7 +40,7 @@ public class KafkaService {
                 .setHovedmal(vedtak.getHovedmal())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
                 .setVedtakSendt(vedtak.getSistOppdatert())
-                .setEnhetId(vedtak.getVeilederEnhetId());
+                .setEnhetId(vedtak.getOppfolgingsenhetId());
 
         vedtakSendtTemplate.send(vedtakSendt);
     }
