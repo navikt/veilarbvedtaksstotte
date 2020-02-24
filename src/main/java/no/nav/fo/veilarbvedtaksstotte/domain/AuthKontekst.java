@@ -1,10 +1,12 @@
 package no.nav.fo.veilarbvedtaksstotte.domain;
 
-import lombok.Value;
-import no.nav.apiapp.security.veilarbabac.Bruker;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
-@Value
+@Data
+@Accessors(chain = true)
 public class AuthKontekst {
-    Bruker bruker;
+    String fnr;
+    String aktorId;
     String oppfolgingsenhet;
 }

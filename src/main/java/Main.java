@@ -1,13 +1,13 @@
 import no.nav.apiapp.ApiApp;
 import no.nav.brukerdialog.tools.SecurityConstants;
-import no.nav.common.utils.NaisUtils;
+import no.nav.common.nais.utils.NaisUtils;
 import no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig;
 import no.nav.sbl.dialogarena.common.abac.pep.CredentialConstants;
 import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 import no.nav.sbl.util.EnvironmentUtils;
 
 import static java.lang.System.setProperty;
-import static no.nav.common.utils.NaisUtils.getCredentials;
+import static no.nav.common.nais.utils.NaisUtils.getCredentials;
 import static no.nav.dialogarena.aktor.AktorConfig.AKTOER_ENDPOINT_URL;
 import static no.nav.fo.veilarbvedtaksstotte.client.CVClient.PAM_CV_API;
 import static no.nav.fo.veilarbvedtaksstotte.client.CVClient.CV_API_PROPERTY_NAME;

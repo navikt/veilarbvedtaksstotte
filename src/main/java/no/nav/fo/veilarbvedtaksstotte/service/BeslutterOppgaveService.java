@@ -41,7 +41,7 @@ public class BeslutterOppgaveService {
 	public void sendBeslutterOppgave(SendBeslutterOppgaveDTO sendBeslutterOppgaveDTO, String fnr) {
 
 		AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
-		String aktorId = authKontekst.getBruker().getAktoerId();
+		String aktorId = authKontekst.getAktorId();
 		Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
 		if (utkast.isSendtTilBeslutter()) {
