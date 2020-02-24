@@ -43,6 +43,7 @@ public class BeslutterOppgaveService {
 		AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 		String aktorId = authKontekst.getAktorId();
 		Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
+		authService.sjekkAnsvarligVeileder(utkast);
 
 		if (utkast.isSendtTilBeslutter()) {
 			throw new RuntimeException("Kan ikke sende mer enn en oppgave til beslutter per utkast");
