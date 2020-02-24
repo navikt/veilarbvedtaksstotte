@@ -37,7 +37,10 @@ public class AuthService {
         pepClient.sjekkSkrivetilgangTilAktorId(aktorId);
         String enhet = sjekkTilgangTilEnhet(fnr);
 
-        return new AuthKontekst(fnr, aktorId, enhet);
+        return new AuthKontekst()
+                .setFnr(fnr)
+                .setAktorId(aktorId)
+                .setOppfolgingsenhet(enhet);
     }
 
     private void sjekkInternBruker() {

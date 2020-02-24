@@ -266,6 +266,7 @@ public class VedtakServiceTest {
     }
 
     private void gittTilgangTilBruker() {
-        when(authSerivce.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst(TEST_FNR, TEST_AKTOR_ID, TEST_OPPFOLGINGSENHET_ID));
+        when(authSerivce.sjekkTilgang(TEST_FNR))
+                .thenReturn(new AuthKontekst().setFnr(TEST_FNR).setAktorId(TEST_AKTOR_ID).setOppfolgingsenhet(TEST_OPPFOLGINGSENHET_ID));
     }
 }
