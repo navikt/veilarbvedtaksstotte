@@ -3,10 +3,13 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
 import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
 import no.nav.apiapp.feil.IngenTilgang;
-import no.nav.fo.veilarbvedtaksstotte.client.CVClient;
-import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
-import no.nav.fo.veilarbvedtaksstotte.client.EgenvurderingClient;
-import no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient;
+import no.nav.apiapp.security.PepClient;
+import no.nav.brukerdialog.security.domain.IdentType;
+import no.nav.common.auth.SsoToken;
+import no.nav.common.auth.Subject;
+import no.nav.common.auth.SubjectHandler;
+import no.nav.dialogarena.aktor.AktorService;
+import no.nav.fo.veilarbvedtaksstotte.client.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
@@ -20,6 +23,7 @@ import no.nav.fo.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.sbl.jdbc.Transactor;
+import no.nav.sbl.util.fn.UnsafeRunnable;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -32,7 +36,9 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -61,15 +67,18 @@ public class VedtakServiceTest {
     private static OyeblikksbildeService oyeblikksbildeService;
     private static MalTypeService malTypeService;
     private static KafkaService kafkaService;
+    private static AuthService authSerivce;
 
     private static CVClient cvClient = mock(CVClient.class);
     private static RegistreringClient registreringClient = mock(RegistreringClient.class);
     private static EgenvurderingClient egenvurderingClient = mock(EgenvurderingClient.class);
-    private static AuthService authSerivce = mock(AuthService.class);
     private static VeilederService veilederService = mock(VeilederService.class);
     private static KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
     private static DokumentClient dokumentClient = mock(DokumentClient.class);
     private static MetricsService metricsService = mock(MetricsService.class);
+    private static AktorService aktorService = mock(AktorService.class);
+    private static PepClient pepClient = mock(PepClient.class);
+    private static ArenaClient arenaClient = mock(ArenaClient.class);
 
     private static String CV_DATA = "{\"cv\": \"cv\"}";
     private static String REGISTRERING_DATA = "{\"registrering\": \"registrering\"}";
@@ -87,6 +96,7 @@ public class VedtakServiceTest {
         vedtakSendtTemplate = new VedtakSendtTemplate(kafkaTemplate, "vedtakSendt", kafkaRepository);
         vedtakStatusEndringTemplate = new VedtakStatusEndringTemplate(kafkaTemplate, "vedtakStatusEndring", kafkaRepository);
 
+        authSerivce = new AuthService(aktorService, pepClient, arenaClient, veilederService);
         oyeblikksbildeService = new OyeblikksbildeService(authSerivce, oyeblikksbildeRepository, cvClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         kafkaService = new KafkaService(vedtakSendtTemplate, vedtakStatusEndringTemplate, vedtaksstotteRepository);
@@ -106,7 +116,6 @@ public class VedtakServiceTest {
     @Before
     public void setup() {
         DbTestUtils.cleanupDb(db);
-        reset(authSerivce);
         reset(veilederService);
         when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT);
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
@@ -116,27 +125,31 @@ public class VedtakServiceTest {
         when(cvClient.hentCV(TEST_FNR)).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
+        when(aktorService.getAktorId(TEST_FNR)).thenReturn(Optional.of(TEST_AKTOR_ID));
+        when(arenaClient.oppfolgingsenhet(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSENHET_ID);
     }
 
 
     @Test
     public void sendVedtak__opprett_oppdater_og_send_vedtak() {
-        gittTilgangTilBruker();
+        withSubject(() -> {
+            gittTilgang();
 
-        vedtakService.lagUtkast(TEST_FNR);
-        assertNyttUtkast();
+            vedtakService.lagUtkast(TEST_FNR);
+            assertNyttUtkast();
 
-        VedtakDTO oppdaterDto = new VedtakDTO()
-                .setHovedmal(Hovedmal.SKAFFE_ARBEID)
-                .setBegrunnelse("En begrunnelse")
-                .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                .setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
+            VedtakDTO oppdaterDto = new VedtakDTO()
+                    .setHovedmal(Hovedmal.SKAFFE_ARBEID)
+                    .setBegrunnelse("En begrunnelse")
+                    .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                    .setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.oppdaterUtkast(TEST_FNR, oppdaterDto);
-        assertOppdatertUtkast(oppdaterDto);
+            vedtakService.oppdaterUtkast(TEST_FNR, oppdaterDto);
+            assertOppdatertUtkast(oppdaterDto);
 
-        vedtakService.sendVedtak(TEST_FNR, TEST_BESLUTTER);
-        assertSendtVedtak();
+            vedtakService.sendVedtak(TEST_FNR, TEST_BESLUTTER);
+            assertSendtVedtak();
+        });
     }
 
     private void assertNyttUtkast() {
@@ -183,72 +196,82 @@ public class VedtakServiceTest {
 
     @Test
     public void oppdaterUtkast__feiler_for_veileder_som_ikke_er_satt_pa_utkast() {
-        gittTilgangTilBruker();
+        withSubject(() -> {
+            gittTilgang();
 
-        vedtakService.lagUtkast(TEST_FNR);
+            vedtakService.lagUtkast(TEST_FNR);
 
-        when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
+            when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
-        assertThatThrownBy(() ->
-                vedtakService.oppdaterUtkast(TEST_FNR, new VedtakDTO())
-        ).isExactlyInstanceOf(IngenTilgang.class);
+            assertThatThrownBy(() ->
+                    vedtakService.oppdaterUtkast(TEST_FNR, new VedtakDTO())
+            ).isExactlyInstanceOf(IngenTilgang.class);
+        });
     }
 
     @Test
     public void slettUtkast__feiler_for_veileder_som_ikke_er_satt_pa_utkast() {
-        gittTilgangTilBruker();
+        withSubject(() -> {
+            gittTilgang();
 
-        vedtakService.lagUtkast(TEST_FNR);
+            vedtakService.lagUtkast(TEST_FNR);
 
-        when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
+            when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
-        assertThatThrownBy(() ->
-                vedtakService.slettUtkast(TEST_FNR)
-        ).isExactlyInstanceOf(IngenTilgang.class);
+            assertThatThrownBy(() ->
+                    vedtakService.slettUtkast(TEST_FNR)
+            ).isExactlyInstanceOf(IngenTilgang.class);
+        });
     }
 
     @Test
     public void sendVedtak__feiler_for_veileder_som_ikke_er_satt_pa_utkast() {
-        gittTilgangTilBruker();
+        withSubject(() -> {
+            gittTilgang();
 
-        vedtakService.lagUtkast(TEST_FNR);
-        vedtakService.oppdaterUtkast(TEST_FNR,
-                new VedtakDTO()
-                        .setBegrunnelse("begrunnelse")
-                        .setHovedmal(Hovedmal.SKAFFE_ARBEID)
-                        .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                        .setOpplysninger(Arrays.asList("opplysning")));
+            vedtakService.lagUtkast(TEST_FNR);
+            vedtakService.oppdaterUtkast(TEST_FNR,
+                    new VedtakDTO()
+                            .setBegrunnelse("begrunnelse")
+                            .setHovedmal(Hovedmal.SKAFFE_ARBEID)
+                            .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                            .setOpplysninger(Arrays.asList("opplysning")));
 
-        when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
+            when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
-        assertThatThrownBy(() ->
-                vedtakService.sendVedtak(TEST_FNR, TEST_BESLUTTER)
-        ).isExactlyInstanceOf(IngenTilgang.class);
+            assertThatThrownBy(() ->
+                    vedtakService.sendVedtak(TEST_FNR, TEST_BESLUTTER)
+            ).isExactlyInstanceOf(IngenTilgang.class);
+        });
     }
 
     @Test
     public void taOverUtkast__setter_ny_veileder() {
-        String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
-        gittTilgangTilBruker();
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
+        withSubject(() -> {
+            String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
+            gittTilgang();
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
 
-        assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
-        vedtakService.taOverUtkast(TEST_FNR);
-        assertEquals(TEST_VEILEDER_IDENT, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
+            assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
+            vedtakService.taOverUtkast(TEST_FNR);
+            assertEquals(TEST_VEILEDER_IDENT, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
+        });
     }
 
     @Test
     public void taOverUtkast__feiler_dersom_ikke_utkast() {
-        gittTilgangTilBruker();
+        withSubject(() -> {
+            gittTilgang();
 
-        assertThatThrownBy(() ->
-                vedtakService.taOverUtkast(TEST_FNR)
-        ).isExactlyInstanceOf(NotFoundException.class);
+            assertThatThrownBy(() ->
+                    vedtakService.taOverUtkast(TEST_FNR)
+            ).isExactlyInstanceOf(NotFoundException.class);
+        });
     }
 
     @Test
     public void taOverUtkast__feiler_dersom_ingen_tilgang() {
-        when(authSerivce.sjekkTilgang(TEST_FNR)).thenThrow(new IngenTilgang());
+        when(pepClient.sjekkLesetilgangTilAktorId(TEST_AKTOR_ID)).thenThrow(new IngenTilgang());
 
         assertThatThrownBy(() ->
                 vedtakService.taOverUtkast(TEST_FNR)
@@ -257,16 +280,21 @@ public class VedtakServiceTest {
 
     @Test
     public void taOverUtkast__feiler_dersom_samme_veileder() {
-        gittTilgangTilBruker();
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
+        withSubject(() -> {
+            gittTilgang();
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
 
-        assertThatThrownBy(() ->
-                vedtakService.taOverUtkast(TEST_FNR)
-        ).isExactlyInstanceOf(BadRequestException.class);
+            assertThatThrownBy(() ->
+                    vedtakService.taOverUtkast(TEST_FNR)
+            ).isExactlyInstanceOf(BadRequestException.class);
+        });
     }
 
-    private void gittTilgangTilBruker() {
-        when(authSerivce.sjekkTilgang(TEST_FNR))
-                .thenReturn(new AuthKontekst().setFnr(TEST_FNR).setAktorId(TEST_AKTOR_ID).setOppfolgingsenhet(TEST_OPPFOLGINGSENHET_ID));
+    private void gittTilgang() {
+        when(pepClient.harTilgangTilEnhet(TEST_OPPFOLGINGSENHET_ID)).thenReturn(true);
+    }
+
+    private void withSubject(UnsafeRunnable runnable) {
+        SubjectHandler.withSubject(new Subject(TEST_VEILEDER_IDENT, IdentType.InternBruker, SsoToken.oidcToken("token", new HashMap<>())), runnable);
     }
 }

@@ -6,6 +6,7 @@ import no.nav.common.auth.SubjectHandler;
 import no.nav.dialogarena.aktor.AktorService;
 import no.nav.fo.veilarbvedtaksstotte.client.ArenaClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.AuthKontekst;
+import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -18,14 +19,17 @@ public class AuthService {
     private final AktorService aktorService;
     private final PepClient pepClient;
     private final ArenaClient arenaClient;
+    private final VeilederService veilederService;
 
     @Inject
     public AuthService(AktorService aktorService,
                        PepClient pepClient,
-                       ArenaClient arenaClient) {
+                       ArenaClient arenaClient,
+                       VeilederService veilederService) {
         this.aktorService = aktorService;
         this.pepClient = pepClient;
         this.arenaClient = arenaClient;
+        this.veilederService = veilederService;
     }
 
 
@@ -61,5 +65,11 @@ public class AuthService {
     private String getAktorIdOrThrow(String fnr) {
         return aktorService.getAktorId(fnr)
                 .orElseThrow(() -> new IllegalArgumentException("Fant ikke aktør for fnr"));
+    }
+
+    public void sjekkAnsvarligVeileder(Vedtak vedtak) {
+        if (!vedtak.getVeilederIdent().equals(veilederService.hentVeilederIdentFraToken())) {
+            throw new IngenTilgang("Ikke ansvarlig veileder.");
+        }
     }
 }
