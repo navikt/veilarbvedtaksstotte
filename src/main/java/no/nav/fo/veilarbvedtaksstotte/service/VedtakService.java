@@ -65,7 +65,7 @@ public class VedtakService {
 
         Vedtak vedtak = hentUtkastEllerFeil(aktorId);
 
-        sjekkAnsvarligVeileder(vedtak);
+        authService.sjekkAnsvarligVeileder(vedtak);
 
         if (skalHaBeslutter(vedtak.getInnsatsgruppe()) && (beslutter == null || beslutter.isEmpty())) {
             throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
@@ -124,7 +124,7 @@ public class VedtakService {
 
         Vedtak utkast = hentUtkastEllerFeil(authKontekst.getAktorId());
 
-        sjekkAnsvarligVeileder(utkast);
+        authService.sjekkAnsvarligVeileder(utkast);
 
         sjekkOgOppdaterEnhet(utkast, authKontekst.getOppfolgingsenhet());
 
@@ -152,7 +152,7 @@ public class VedtakService {
 
         String aktorId = authService.sjekkTilgang(fnr).getAktorId();
         Vedtak utkast = hentUtkastEllerFeil(aktorId);
-        sjekkAnsvarligVeileder(utkast);
+        authService.sjekkAnsvarligVeileder(utkast);
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.slettUtkast(aktorId);
