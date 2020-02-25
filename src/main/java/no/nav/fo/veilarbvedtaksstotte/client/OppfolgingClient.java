@@ -2,16 +2,15 @@ package no.nav.fo.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.domain.OppfolgingDTO;
-import no.nav.fo.veilarbvedtaksstotte.domain.OppfolgingPeriodeDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.OppfolgingstatusDTO;
+import org.springframework.cache.annotation.Cacheable;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.List;
-
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
+import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.OPPFOLGING_CACHE_NAME;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
 @Slf4j
@@ -32,11 +31,11 @@ public class OppfolgingClient extends BaseClient {
                 .getServicegruppe();
     }
 
-    public List<OppfolgingPeriodeDTO> hentOppfolgingsPerioder(String fnr) {
+    @Cacheable(OPPFOLGING_CACHE_NAME)
+    public OppfolgingDTO hentOppfolgingData(String fnr) {
         return get((joinPaths(baseUrl, "api", "oppfolging?fnr=") + fnr), OppfolgingDTO.class)
                 .withStatusCheck()
                 .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarboppfolging/api/oppfolging?fnr"))
-                .getOppfolgingsPerioder();
+                .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarboppfolging/api/oppfolging?fnr"));
     }
 }

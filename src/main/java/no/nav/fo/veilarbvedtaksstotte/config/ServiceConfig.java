@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Import;
         KafkaService.class,
         AuthService.class,
         MetricsService.class,
+		ArenaVedtakService.class,
 		BeslutterOppgaveService.class
 })
 public class ServiceConfig {}

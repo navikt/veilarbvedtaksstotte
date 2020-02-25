@@ -1,5 +1,4 @@
 import no.nav.apiapp.ApiApp;
-import no.nav.brukerdialog.tools.SecurityConstants;
 import no.nav.common.nais.utils.NaisUtils;
 import no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig;
 import no.nav.sbl.dialogarena.common.abac.pep.CredentialConstants;
@@ -46,10 +45,6 @@ public class Main {
         //ABAC
         System.setProperty(CredentialConstants.SYSTEMUSER_USERNAME, serviceUser.username);
         System.setProperty(CredentialConstants.SYSTEMUSER_PASSWORD, serviceUser.password);
-
-        //OIDC
-        System.setProperty(SecurityConstants.SYSTEMUSER_USERNAME, serviceUser.username);
-        System.setProperty(SecurityConstants.SYSTEMUSER_PASSWORD, serviceUser.password);
 
         setProperty(AKTOER_ENDPOINT_URL, getRequiredProperty("AKTOER_V2_ENDPOINTURL"));
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagClusterUrl(VEILARBDOKUMENT));

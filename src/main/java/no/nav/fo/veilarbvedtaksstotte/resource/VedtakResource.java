@@ -2,6 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.resource;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
+import no.nav.fo.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.fo.veilarbvedtaksstotte.service.OyeblikksbildeService;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.stereotype.Controller;
@@ -18,11 +19,13 @@ import java.util.List;
 public class VedtakResource {
 
     private VedtakService vedtakService;
+    private ArenaVedtakService arenaVedtakService;
     private OyeblikksbildeService oyeblikksbildeService;
 
     @Inject
-    public VedtakResource(VedtakService vedtakService, OyeblikksbildeService oyeblikksbildeService) {
+    public VedtakResource(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService) {
         this.vedtakService = vedtakService;
+        this.arenaVedtakService = arenaVedtakService;
         this.oyeblikksbildeService = oyeblikksbildeService;
     }
 
@@ -48,6 +51,12 @@ public class VedtakResource {
     @Path("/vedtak")
     public List<Vedtak> hentVedtak(@PathParam("fnr") String fnr) {
         return vedtakService.hentVedtak(fnr);
+    }
+
+    @GET
+    @Path("/vedtakFraArena")
+    public List<ArkivertVedtak> hentVedtakFraArena(@PathParam("fnr") String fnr) {
+        return arenaVedtakService.hentVedtakFraArena(fnr);
     }
 
     @POST
