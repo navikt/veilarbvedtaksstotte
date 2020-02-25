@@ -1,10 +1,10 @@
 package no.nav.fo.veilarbvedtaksstotte.domain;
 
-import lombok.Value;
+import lombok.Data;
 
 import java.util.List;
 
-@Value
+@Data
 public class OppfolgingDTO {
 
     private String servicegruppe;

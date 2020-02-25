@@ -5,10 +5,6 @@ import no.nav.fo.veilarbvedtaksstotte.domain.OppfolgingDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.OppfolgingstatusDTO;
 import org.springframework.cache.annotation.Cacheable;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
-
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
 import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.OPPFOLGING_CACHE_NAME;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
@@ -18,9 +14,8 @@ public class OppfolgingClient extends BaseClient {
     public static final String VEILARBOPPFOLGING_API_PROPERTY_NAME = "VEILARBOPPFOLGINGAPI_URL";
     public static final String VEILARBOPPFOLGING = "veilarboppfolging";
 
-    @Inject
-    public OppfolgingClient(Provider<HttpServletRequest> httpServletRequestProvider) {
-        super(getRequiredProperty(VEILARBOPPFOLGING_API_PROPERTY_NAME), httpServletRequestProvider);
+    public OppfolgingClient() {
+        super(getRequiredProperty(VEILARBOPPFOLGING_API_PROPERTY_NAME));
     }
 
     public String hentServicegruppe(String fnr) {

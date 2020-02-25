@@ -9,14 +9,8 @@ import no.nav.fo.veilarbvedtaksstotte.domain.Journalpost;
 import no.nav.json.JsonProvider;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
-
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Spliterator;
-import java.util.stream.StreamSupport;
 
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
@@ -29,9 +23,13 @@ public class SAFClient extends BaseClient {
     public static final String SAF_API_PROPERTY_NAME = "SAF_HENTDOKUMENT_URL";
     public static final String SAF = "saf";
 
+    public SAFClient(String apiUrl) {
+        super(apiUrl);
+    }
+
     @Inject
-    public SAFClient(Provider<HttpServletRequest> httpServletRequestProvider) {
-        super(getRequiredProperty(SAF_API_PROPERTY_NAME), httpServletRequestProvider);
+    public SAFClient() {
+        super(getRequiredProperty(SAF_API_PROPERTY_NAME));
     }
 
     public byte[] hentVedtakPdf(String journalpostId, String dokumentInfoId) {

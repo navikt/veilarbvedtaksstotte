@@ -3,10 +3,6 @@ package no.nav.fo.veilarbvedtaksstotte.client;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.fo.veilarbvedtaksstotte.utils.JsonUtils;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
-
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
@@ -16,9 +12,8 @@ public class EgenvurderingClient extends BaseClient {
     public static final String EGENVURDERING_API_PROPERTY_NAME = "EGENVURDERING_URL";
     public static final String VEILARBVEDTAKINFO = "veilarbvedtakinfo";
 
-    @Inject
-    public EgenvurderingClient(Provider<HttpServletRequest> httpServletRequestProvider) {
-        super(getRequiredProperty(EGENVURDERING_API_PROPERTY_NAME), httpServletRequestProvider);
+    public EgenvurderingClient() {
+        super(getRequiredProperty(EGENVURDERING_API_PROPERTY_NAME));
     }
 
     public String hentEgenvurdering(String fnr) {

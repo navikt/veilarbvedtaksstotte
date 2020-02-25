@@ -14,11 +14,8 @@ public class Journalpost {
 
     public JournalpostDokument[] dokumenter;
 
-
-    public class JournalpostDokument {
-
+    public static class JournalpostDokument {
         public String dokumentInfoId;
-
     }
 
 }

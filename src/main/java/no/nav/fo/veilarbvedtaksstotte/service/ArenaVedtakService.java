@@ -2,7 +2,10 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient;
 import no.nav.fo.veilarbvedtaksstotte.client.SAFClient;
-import no.nav.fo.veilarbvedtaksstotte.domain.*;
+import no.nav.fo.veilarbvedtaksstotte.domain.ArkivertVedtak;
+import no.nav.fo.veilarbvedtaksstotte.domain.AuthKontekst;
+import no.nav.fo.veilarbvedtaksstotte.domain.Journalpost;
+import no.nav.fo.veilarbvedtaksstotte.domain.OppfolgingDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.fo.veilarbvedtaksstotte.utils.OppfolgingUtils;
@@ -10,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -18,7 +20,7 @@ import java.util.stream.Collectors;
 @Service
 public class ArenaVedtakService {
 
-    private final static String JOURNALPOST_ARENA_VEDTAK_TITTEL = "Brev: Oppfølgingsvedtak (§14a)";
+    final static String JOURNALPOST_ARENA_VEDTAK_TITTEL = "Brev: Oppfølgingsvedtak (§14a)";
 
     private VedtaksstotteRepository vedtaksstotteRepository;
     private SAFClient safClient;
@@ -54,7 +56,7 @@ public class ArenaVedtakService {
         return vedtakFraArena;
     }
 
-    private Optional<ArkivertVedtak> finnGjeldendeVedtakFraArena(List<ArkivertVedtak> vedtakFraArena, String fnr, String aktorId) {
+    protected Optional<ArkivertVedtak> finnGjeldendeVedtakFraArena(List<ArkivertVedtak> vedtakFraArena, String fnr, String aktorId) {
         Optional<ArkivertVedtak> kanskjeSisteVedtak = finnSisteArkiverteVedtak(vedtakFraArena);
         boolean harGjeldendeVedtak = vedtaksstotteRepository.harGjeldendeVedtak(aktorId);
 
@@ -66,13 +68,13 @@ public class ArenaVedtakService {
         OppfolgingDTO oppfolgingData = oppfolgingClient.hentOppfolgingData(fnr);
         Optional<LocalDateTime> oppfolgingStartDato = OppfolgingUtils.getOppfolgingStartDato(oppfolgingData.getOppfolgingsPerioder());
 
-        boolean erSisteVedtakFraArenaGjeldende =
-                sisteVedtak.datoOpprettet.isAfter(oppfolgingStartDato.orElse(LocalDateTime.MIN));
+        boolean erSisteVedtakFraArenaGjeldende = oppfolgingStartDato.isPresent()
+                && sisteVedtak.datoOpprettet.isAfter(oppfolgingStartDato.get());
 
         return Optional.ofNullable(erSisteVedtakFraArenaGjeldende ? sisteVedtak : null);
     }
 
-    private List<ArkivertVedtak> hentArkiverteVedtakFraArena(String fnr) {
+    protected List<ArkivertVedtak> hentArkiverteVedtakFraArena(String fnr) {
         return safClient.hentJournalposter(fnr)
                 .stream()
                 .filter(this::erVedtakFraArena)
@@ -81,7 +83,7 @@ public class ArenaVedtakService {
                 .collect(Collectors.toList());
     }
 
-    private Optional<ArkivertVedtak> finnSisteArkiverteVedtak(List<ArkivertVedtak> arkivertVedtak) {
+    static Optional<ArkivertVedtak> finnSisteArkiverteVedtak(List<ArkivertVedtak> arkivertVedtak) {
         LocalDateTime sisteDato = LocalDateTime.MIN;
         ArkivertVedtak sisteVedtak = null;
 
@@ -103,8 +105,9 @@ public class ArenaVedtakService {
         arkivertVedtak.journalfortAvNavn = journalpost.journalfortAvNavn;
         arkivertVedtak.datoOpprettet = LocalDateTime.parse(journalpost.datoOpprettet);
 
-        Optional<Journalpost.JournalpostDokument> dokument = Arrays.stream(journalpost.dokumenter).findFirst();
-        dokument.ifPresent(journalpostDokument -> arkivertVedtak.dokumentInfoId = journalpostDokument.dokumentInfoId);
+        if (journalpost.dokumenter != null && journalpost.dokumenter.length > 0) {
+            arkivertVedtak.dokumentInfoId = journalpost.dokumenter[0].dokumentInfoId;
+        }
 
         return arkivertVedtak;
     }
