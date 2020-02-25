@@ -34,6 +34,8 @@ public class ArenaVedtakServiceTest {
         authKontekst.setFnr(TestData.TEST_FNR);
 
         OppfolgingDTO oppfolgingData = new OppfolgingDTO();
+        oppfolgingData.setServicegruppe("IKVAL");
+
         List<OppfolgingPeriodeDTO> oppfolgingsperioder = new ArrayList<>();
         OppfolgingPeriodeDTO oppfolgingPeriode = new OppfolgingPeriodeDTO();
         oppfolgingPeriode.startDato = LocalDateTime.now().minusMinutes(30);

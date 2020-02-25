@@ -44,9 +44,7 @@ public class ArenaVedtakService {
 
         if (kanskjeGjeldendeVedtak.isPresent()) {
             OppfolgingDTO oppfolgingData = oppfolgingClient.hentOppfolgingData(fnr);
-            Innsatsgruppe gjeldendeInnsatsgruppe = OppfolgingUtils.utledInnsatsgruppe(
-                    oppfolgingData.getServicegruppe(), oppfolgingData.getFormidlingsgruppe()
-            );
+            Innsatsgruppe gjeldendeInnsatsgruppe = OppfolgingUtils.utledInnsatsgruppe(oppfolgingData.getServicegruppe());
 
             ArkivertVedtak gjeldendeVedtak = kanskjeGjeldendeVedtak.get();
             gjeldendeVedtak.erGjeldende = true;

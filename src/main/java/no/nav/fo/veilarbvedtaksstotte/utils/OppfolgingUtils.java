@@ -20,12 +20,18 @@ public class OppfolgingUtils {
                 .findFirst();
     }
 
-    public static Innsatsgruppe utledInnsatsgruppe(String servicegruppe, String formidlingsgruppe) {
-        // servicegruppe: "IKVAL"
-        // formidlingsgruppe: "ARBS"
-        // rettighetsgruppe: "DAGP"
-        // TODO: Utled riktig innsatsgruppe
-
-        return Innsatsgruppe.STANDARD_INNSATS;
+    public static Innsatsgruppe utledInnsatsgruppe(String servicegruppe) {
+        switch (servicegruppe) {
+            case "IKVAL":
+                return Innsatsgruppe.STANDARD_INNSATS;
+            case "VARIG":
+                return Innsatsgruppe.VARIG_TILPASSET_INNSATS;
+            case "BFORM":
+                return Innsatsgruppe.SITUASJONSBESTEMT_INNSATS;
+            case "BATT":
+                return Innsatsgruppe.SPESIELT_TILPASSET_INNSATS;
+            default:
+                throw new IllegalArgumentException("Ugyldig servicegruppe " + servicegruppe);
+        }
     }
 }
