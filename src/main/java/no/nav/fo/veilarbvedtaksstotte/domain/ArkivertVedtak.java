@@ -10,14 +10,16 @@ public class ArkivertVedtak {
 
     public String dokumentInfoId;
 
-    public String journalforendeEnhet;
+    public String veilederNavn;
 
-    public String journalfortAvNavn;
+    public String oppfolgingsenhetId;
+
+    public String oppfolgingsenhetNavn;
 
     public LocalDateTime datoOpprettet;
 
     public boolean erGjeldende;
 
-    public Innsatsgruppe gjeldendeInnsatsgruppe;
+    public Innsatsgruppe innsatsgruppe; // Vedtak fra arena har kun innsatsgruppe hvis erGjeldende == true
 
 }

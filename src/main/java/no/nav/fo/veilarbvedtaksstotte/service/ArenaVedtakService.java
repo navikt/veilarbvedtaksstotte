@@ -2,6 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient;
 import no.nav.fo.veilarbvedtaksstotte.client.SAFClient;
+import no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.ArkivertVedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.fo.veilarbvedtaksstotte.domain.Journalpost;
@@ -24,13 +25,19 @@ public class ArenaVedtakService {
 
     private VedtaksstotteRepository vedtaksstotteRepository;
     private SAFClient safClient;
+    private VeiledereOgEnhetClient veiledereOgEnhetClient;
     private AuthService authService;
     private OppfolgingClient oppfolgingClient;
 
     @Inject
-    public ArenaVedtakService(VedtaksstotteRepository vedtaksstotteRepository, SAFClient safClient, AuthService authService, OppfolgingClient oppfolgingClient) {
+    public ArenaVedtakService(
+            VedtaksstotteRepository vedtaksstotteRepository,
+            SAFClient safClient, VeiledereOgEnhetClient veiledereOgEnhetClient,
+            AuthService authService, OppfolgingClient oppfolgingClient
+    ) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.safClient = safClient;
+        this.veiledereOgEnhetClient = veiledereOgEnhetClient;
         this.authService = authService;
         this.oppfolgingClient = oppfolgingClient;
     }
@@ -48,10 +55,20 @@ public class ArenaVedtakService {
 
             ArkivertVedtak gjeldendeVedtak = kanskjeGjeldendeVedtak.get();
             gjeldendeVedtak.erGjeldende = true;
-            gjeldendeVedtak.gjeldendeInnsatsgruppe = gjeldendeInnsatsgruppe;
+            gjeldendeVedtak.innsatsgruppe = gjeldendeInnsatsgruppe;
         }
 
+        oppdaterMedOppfolingsEnhetNavn(vedtakFraArena);
+
         return vedtakFraArena;
+    }
+
+    protected void oppdaterMedOppfolingsEnhetNavn(List<ArkivertVedtak> arkiverteVedtak) {
+        arkiverteVedtak.forEach(vedtak -> {
+            if (vedtak.oppfolgingsenhetId != null) {
+                vedtak.oppfolgingsenhetNavn = veiledereOgEnhetClient.hentEnhetNavn(vedtak.oppfolgingsenhetId);
+            }
+        });
     }
 
     protected Optional<ArkivertVedtak> finnGjeldendeVedtakFraArena(List<ArkivertVedtak> vedtakFraArena, String fnr, String aktorId) {
@@ -99,8 +116,8 @@ public class ArenaVedtakService {
         ArkivertVedtak arkivertVedtak = new ArkivertVedtak();
 
         arkivertVedtak.journalpostId = journalpost.journalpostId;
-        arkivertVedtak.journalforendeEnhet = journalpost.journalforendeEnhet;
-        arkivertVedtak.journalfortAvNavn = journalpost.journalfortAvNavn;
+        arkivertVedtak.veilederNavn = journalpost.journalfortAvNavn;
+        arkivertVedtak.oppfolgingsenhetId = journalpost.journalforendeEnhet;
         arkivertVedtak.datoOpprettet = LocalDateTime.parse(journalpost.datoOpprettet);
 
         if (journalpost.dokumenter != null && journalpost.dokumenter.length > 0) {

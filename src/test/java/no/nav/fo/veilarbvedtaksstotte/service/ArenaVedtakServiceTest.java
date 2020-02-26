@@ -2,6 +2,7 @@ package no.nav.fo.veilarbvedtaksstotte.service;
 
 import no.nav.fo.veilarbvedtaksstotte.client.OppfolgingClient;
 import no.nav.fo.veilarbvedtaksstotte.client.SAFClient;
+import no.nav.fo.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.fo.veilarbvedtaksstotte.utils.TestData;
@@ -14,10 +15,17 @@ import java.util.Optional;
 
 import static no.nav.fo.veilarbvedtaksstotte.service.ArenaVedtakService.JOURNALPOST_ARENA_VEDTAK_TITTEL;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ArenaVedtakServiceTest {
+
+    private static VeiledereOgEnhetClient veiledereOgEnhetClient = mock(VeiledereOgEnhetClient.class);
+
+    static {
+        when(veiledereOgEnhetClient.hentEnhetNavn(any())).thenReturn("TEST");
+    }
 
     @Test
     public void hentVedtakFraArena__skalReturnereListeHvorGjeldendeVedtakMedInnsatsgruppeFinnes() {
@@ -26,7 +34,7 @@ public class ArenaVedtakServiceTest {
         AuthService authService = mock(AuthService.class);
         SAFClient safClient = mock(SAFClient.class);
         ArenaVedtakService service = new ArenaVedtakService(
-                vedtaksstotteRepository, safClient, authService, oppfolgingClient
+                vedtaksstotteRepository, safClient, veiledereOgEnhetClient, authService, oppfolgingClient
         );
 
         AuthKontekst authKontekst = new AuthKontekst();
@@ -55,14 +63,14 @@ public class ArenaVedtakServiceTest {
 
         assertFalse(vedtakFraArena.isEmpty());
         assertTrue(vedtakFraArena.get(0).erGjeldende);
-        assertNotNull(vedtakFraArena.get(0).gjeldendeInnsatsgruppe);
+        assertNotNull(vedtakFraArena.get(0).innsatsgruppe);
     }
 
     @Test
     public void finnGjeldendeVedtakFraArena__skalReturnereGjeldendeVedtak() {
         VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
         OppfolgingClient oppfolgingClient = mock(OppfolgingClient.class);
-        ArenaVedtakService service = new ArenaVedtakService(vedtaksstotteRepository, null, null, oppfolgingClient);
+        ArenaVedtakService service = new ArenaVedtakService(vedtaksstotteRepository, null, veiledereOgEnhetClient, null, oppfolgingClient);
 
         OppfolgingDTO oppfolgingData = new OppfolgingDTO();
         List<OppfolgingPeriodeDTO> oppfolgingsperioder = new ArrayList<>();
@@ -90,7 +98,7 @@ public class ArenaVedtakServiceTest {
     @Test
     public void finnGjeldendeVedtakFraArena__skalReturnereEmptyHvisVedtaksstotteHarGjeldendeVedtak() {
         VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
-        ArenaVedtakService service = new ArenaVedtakService(vedtaksstotteRepository, null, null, null);
+        ArenaVedtakService service = new ArenaVedtakService(vedtaksstotteRepository, null, veiledereOgEnhetClient, null, null);
 
         when(vedtaksstotteRepository.harGjeldendeVedtak(TestData.TEST_AKTOR_ID)).thenReturn(true);
 
@@ -110,7 +118,7 @@ public class ArenaVedtakServiceTest {
     @Test
     public void finnGjeldendeVedtakFraArena__skalReturnereEmptyHvisIngenVedtakFraArenaFinnes() {
         VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
-        ArenaVedtakService service = new ArenaVedtakService(vedtaksstotteRepository, null, null, null);
+        ArenaVedtakService service = new ArenaVedtakService(vedtaksstotteRepository, null, veiledereOgEnhetClient, null, null);
 
         when(vedtaksstotteRepository.harGjeldendeVedtak(TestData.TEST_AKTOR_ID)).thenReturn(false);
 
@@ -120,7 +128,7 @@ public class ArenaVedtakServiceTest {
     @Test
     public void hentArkiverteVedtakFraArena__skalFiltrereVekkVedtakMedFeilTittel() {
         SAFClient safClient = mock(SAFClient.class);
-        ArenaVedtakService service = new ArenaVedtakService(null, safClient, null, null);
+        ArenaVedtakService service = new ArenaVedtakService(null, safClient, veiledereOgEnhetClient, null, null);
 
         List<Journalpost> journalposter = new ArrayList<>();
         journalposter.add(lagJournalpost(JOURNALPOST_ARENA_VEDTAK_TITTEL));
@@ -136,7 +144,7 @@ public class ArenaVedtakServiceTest {
     @Test
     public void hentArkiverteVedtakFraArena__skalFiltrereVekkVedtakUtenDokumentId() {
         SAFClient safClient = mock(SAFClient.class);
-        ArenaVedtakService arenaVedtakService = new ArenaVedtakService(null, safClient, null, null);
+        ArenaVedtakService arenaVedtakService = new ArenaVedtakService(null, safClient, veiledereOgEnhetClient, null, null);
 
         List<Journalpost> journalposter = new ArrayList<>();
         Journalpost journalpostUtenDokumentId = lagJournalpost(JOURNALPOST_ARENA_VEDTAK_TITTEL);

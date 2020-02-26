@@ -7,6 +7,7 @@ import no.nav.fo.veilarbvedtaksstotte.domain.VeilederePaEnhetDTO;
 import org.springframework.cache.annotation.Cacheable;
 
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
+import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.ENHET_NAVN_CACHE_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.VEILEDER_CACHE_NAME;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
@@ -20,6 +21,7 @@ public class VeiledereOgEnhetClient extends BaseClient {
         super(getRequiredProperty(VEILARBVEILEDER_API_PROPERTY_NAME));
     }
 
+    @Cacheable(ENHET_NAVN_CACHE_NAME)
     public String hentEnhetNavn(String enhetId) {
         return get(joinPaths(baseUrl, "api", "enhet", enhetId, "navn"), EnhetNavn.class)
                 .withStatusCheck()
