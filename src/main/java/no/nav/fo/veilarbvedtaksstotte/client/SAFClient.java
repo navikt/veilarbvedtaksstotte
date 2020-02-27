@@ -41,9 +41,9 @@ public class SAFClient extends BaseClient {
 
     @SneakyThrows(JsonProcessingException.class)
     public List<Journalpost> hentJournalposter(String fnr) {
-        String gqlQuery = createDokumentoversiktBrukerGqlStr(fnr);
+        GraphqlRequest graphqlRequest = new GraphqlRequest(createDokumentoversiktBrukerGqlStr(fnr));
 
-        String arkiverteVedtakJson = post(joinPaths(baseUrl, "graphql"), gqlQuery, String.class)
+        String arkiverteVedtakJson = post(joinPaths(baseUrl, "graphql"), graphqlRequest, String.class)
                 .withStatusCheck()
                 .getData()
                 .orElseThrow(() -> new RuntimeException("Feil ved kall mot saf/graphql"));
@@ -78,5 +78,15 @@ public class SAFClient extends BaseClient {
                 "    }\n" +
                 "  }\n" +
                 "}", fnr);
+    }
+
+    private static class GraphqlRequest {
+        public String query;
+
+        public Object variables;
+
+        public GraphqlRequest(String query) {
+            this.query = query;
+        }
     }
 }
