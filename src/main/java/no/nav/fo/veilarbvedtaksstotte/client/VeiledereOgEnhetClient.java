@@ -6,11 +6,8 @@ import no.nav.fo.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.fo.veilarbvedtaksstotte.domain.VeilederePaEnhetDTO;
 import org.springframework.cache.annotation.Cacheable;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
-
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
+import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.ENHET_NAVN_CACHE_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.VEILEDER_CACHE_NAME;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
@@ -20,11 +17,11 @@ public class VeiledereOgEnhetClient extends BaseClient {
     public static final String VEILARBVEILEDER_API_PROPERTY_NAME = "VEILARBVEILEDERAPI_URL";
     public static final String VEILARBVEILEDER = "veilarbveileder";
 
-    @Inject
-    public VeiledereOgEnhetClient(Provider<HttpServletRequest> httpServletRequestProvider) {
-        super(getRequiredProperty(VEILARBVEILEDER_API_PROPERTY_NAME), httpServletRequestProvider);
+    public VeiledereOgEnhetClient() {
+        super(getRequiredProperty(VEILARBVEILEDER_API_PROPERTY_NAME));
     }
 
+    @Cacheable(ENHET_NAVN_CACHE_NAME)
     public String hentEnhetNavn(String enhetId) {
         return get(joinPaths(baseUrl, "api", "enhet", enhetId, "navn"), EnhetNavn.class)
                 .withStatusCheck()

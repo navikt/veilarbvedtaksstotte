@@ -92,8 +92,8 @@ public class MetricsService {
         try {
             List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentVedtak(aktorId);
             RegistreringData registreringData = registreringClient.hentRegistreringData(fnr);
-            List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingsPerioder(fnr);
-            Optional<LocalDate> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);
+            List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingData(fnr).getOppfolgingsPerioder();
+            Optional<LocalDateTime> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);
 
             if (!startDato.isPresent() || registreringData == null) {
                 return -1;
@@ -117,20 +117,22 @@ public class MetricsService {
 
         if (erSykmeldtMedArbeidsgiver) {
             try {
-                List<OppfolgingPeriodeDTO> data = oppfolgingClient.hentOppfolgingsPerioder(fnr);
-                Optional<LocalDate> dato = OppfolgingUtils.getOppfolgingStartDato(data);
-                dato.ifPresent(localDate -> rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, localDate));
+                List<OppfolgingPeriodeDTO> data = oppfolgingClient.hentOppfolgingData(fnr).getOppfolgingsPerioder();
+                Optional<LocalDateTime> oppolgingStartDato = OppfolgingUtils.getOppfolgingStartDato(data);
+                oppolgingStartDato.ifPresent(
+                        startDato -> rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, startDato)
+                );
             } catch (Exception ignored) {}
         }
 
     }
 
-    private void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, LocalDate dato) {
+    private void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, LocalDateTime oppfolgingStartDato) {
         LocalDate vedtakSendtDato = LocalDate.now();
-        Long diff = Duration.between(vedtakSendtDato.atStartOfDay(), dato.atStartOfDay()).toDays();
+        Long diff = Duration.between(vedtakSendtDato.atStartOfDay(), oppfolgingStartDato).toDays();
         Event event = createMetricEvent("sykmeldt-uten-arbeidsgiver-vedtak-sendt");
         event.addFieldToReport("dagerBrukt", diff);
-        event.addFieldToReport("oppfolgingStartDato", dato.toString());
+        event.addFieldToReport("oppfolgingStartDato", oppfolgingStartDato.toString());
         event.addFieldToReport("vedtakSendtDato", vedtakSendtDato.toString());
         event.addFieldToReport("enhetsId", vedtak.getOppfolgingsenhetId());
         event.report();

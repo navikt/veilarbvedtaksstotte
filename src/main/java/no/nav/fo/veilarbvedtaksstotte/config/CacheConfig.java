@@ -19,7 +19,9 @@ import static no.nav.sbl.dialogarena.common.abac.pep.context.AbacContext.ABAC_CA
 public class CacheConfig {
 
     public static final String VEILEDER_CACHE_NAME = "veileder";
+    public static final String ENHET_NAVN_CACHE_NAME = "enhet-navn";
     public static final String REGISTRERING_CACHE_NAME = "registrering";
+    public static final String OPPFOLGING_CACHE_NAME = "oppfolging";
 
     private static final int ONE_DAY = 60 * 60 * 24 * 1000;
     private static final int FIVE_MINUTES = 60 * 5 * 1000;
@@ -36,6 +38,18 @@ public class CacheConfig {
                     .timeToIdleSeconds(FIVE_MINUTES)
                     .timeToLiveSeconds(FIVE_MINUTES);
 
+    private static final CacheConfiguration OPPFOLGING_CACHE =
+            new CacheConfiguration(OPPFOLGING_CACHE_NAME, 1000)
+                    .memoryStoreEvictionPolicy(LRU)
+                    .timeToIdleSeconds(FIVE_MINUTES)
+                    .timeToLiveSeconds(FIVE_MINUTES);
+
+    private static final CacheConfiguration ENHET_NAVN_CACHE =
+            new CacheConfiguration(OPPFOLGING_CACHE_NAME, 2000)
+                    .memoryStoreEvictionPolicy(LRU)
+                    .timeToIdleSeconds(ONE_DAY)
+                    .timeToLiveSeconds(ONE_DAY);
+
     @Bean
     public CacheManager cacheManager() {
         net.sf.ehcache.config.Configuration config = new net.sf.ehcache.config.Configuration();
@@ -44,6 +58,8 @@ public class CacheConfig {
         config.addCache(FNR_FROM_AKTOR_ID_CACHE);
         config.addCache(VEILEDER_CACHE);
         config.addCache(REGISTRERING_CACHE);
+        config.addCache(OPPFOLGING_CACHE);
+        config.addCache(ENHET_NAVN_CACHE);
 		return new EhCacheCacheManager(net.sf.ehcache.CacheManager.newInstance(config));
     }
 

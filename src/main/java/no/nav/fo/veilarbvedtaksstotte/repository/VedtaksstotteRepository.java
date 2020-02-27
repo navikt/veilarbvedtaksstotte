@@ -117,6 +117,15 @@ public class VedtaksstotteRepository {
                 .execute();
     }
 
+    public boolean harGjeldendeVedtak(String aktorId) {
+         Vedtak gjeldendeVedtak = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
+                .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(GJELDENDE, true)))
+                .column("*")
+                .execute();
+
+         return gjeldendeVedtak != null;
+    }
+
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
        db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
     }

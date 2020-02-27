@@ -1,11 +1,11 @@
 package no.nav.fo.veilarbvedtaksstotte.domain;
 
-import lombok.Value;
+import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-@Value
+@Data
 public class OppfolgingPeriodeDTO {
-    public LocalDate startDato;
-    public LocalDate sluttDato;
+    public LocalDateTime startDato;
+    public LocalDateTime sluttDato;
 }

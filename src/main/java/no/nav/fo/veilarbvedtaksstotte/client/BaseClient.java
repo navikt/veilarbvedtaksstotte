@@ -2,8 +2,6 @@ package no.nav.fo.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.Optional;
@@ -19,12 +17,10 @@ import static no.nav.sbl.rest.RestUtils.withClient;
 public class BaseClient {
 
     protected final String baseUrl;
-    protected final Provider<HttpServletRequest> httpServletRequestProvider;
-    protected static final int HTTP_READ_TIMEOUT = 2 * 60 * 1000; // two minutes
+    private static final int HTTP_READ_TIMEOUT = 2 * 60 * 1000; // two minutes
 
-    BaseClient(String baseUrl, Provider<HttpServletRequest> httpServletRequestProvider) {
+    BaseClient(String baseUrl) {
         this.baseUrl = baseUrl;
-        this.httpServletRequestProvider = httpServletRequestProvider;
     }
 
     protected <T> RestResponse<T> post(String url, Object postData, Class<T> returnedDataClass) {

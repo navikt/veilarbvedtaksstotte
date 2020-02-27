@@ -5,8 +5,6 @@ import no.nav.fo.veilarbvedtaksstotte.domain.RegistreringData;
 import org.springframework.cache.annotation.Cacheable;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
 
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
 import static no.nav.fo.veilarbvedtaksstotte.config.CacheConfig.REGISTRERING_CACHE_NAME;
@@ -20,8 +18,8 @@ public class RegistreringClient extends BaseClient {
     public static final String VEILARBREGISTRERING = "veilarbregistrering";
 
     @Inject
-    public RegistreringClient(Provider<HttpServletRequest> httpServletRequestProvider) {
-        super(getRequiredProperty(REGISTRERING_API_PROPERTY_NAME), httpServletRequestProvider);
+    public RegistreringClient() {
+        super(getRequiredProperty(REGISTRERING_API_PROPERTY_NAME));
     }
 
     @Cacheable(REGISTRERING_CACHE_NAME)

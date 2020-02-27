@@ -98,25 +98,6 @@ public class VedtakService {
         return dokumentSendt;
     }
 
-    private Vedtak hentUtkastEllerFeil(String aktorId) {
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
-
-        if (utkast == null) {
-            throw new NotFoundException("Fant ikke utkast");
-        }
-
-        return utkast;
-    }
-
-
-    private void sjekkOgOppdaterEnhet(Vedtak vedtak, String oppfolgingsenhetId) {
-        if (!oppfolgingsenhetId.equals(vedtak.getOppfolgingsenhetId())) {
-            String enhetNavn = veilederService.hentEnhetNavn(oppfolgingsenhetId);
-            vedtak.setOppfolgingsenhetId(oppfolgingsenhetId);
-            vedtak.setOppfolgingsenhetNavn(enhetNavn);
-        }
-    }
-
     public void lagUtkast(String fnr) {
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
@@ -236,6 +217,30 @@ public class VedtakService {
         sjekkOgOppdaterEnhet(utkast, authKontekst.getOppfolgingsenhet());
 
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
+    }
+
+    private Vedtak hentUtkastEllerFeil(String aktorId) {
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
+
+        if (utkast == null) {
+            throw new NotFoundException("Fant ikke utkast");
+        }
+
+        return utkast;
+    }
+
+    private void sjekkAnsvarligVeileder(Vedtak vedtak) {
+        if (!vedtak.getVeilederIdent().equals(veilederService.hentVeilederIdentFraToken())) {
+            throw new IngenTilgang("Ikke ansvarlig veileder.");
+        }
+    }
+
+    private void sjekkOgOppdaterEnhet(Vedtak vedtak, String oppfolgingsenhetId) {
+        if (!oppfolgingsenhetId.equals(vedtak.getOppfolgingsenhetId())) {
+            String enhetNavn = veilederService.hentEnhetNavn(oppfolgingsenhetId);
+            vedtak.setOppfolgingsenhetId(oppfolgingsenhetId);
+            vedtak.setOppfolgingsenhetNavn(enhetNavn);
+        }
     }
 
     private void flettInnVeilederNavn(List<Vedtak> vedtak) {
