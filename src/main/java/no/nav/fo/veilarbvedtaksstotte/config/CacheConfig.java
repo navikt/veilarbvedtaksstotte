@@ -45,7 +45,7 @@ public class CacheConfig {
                     .timeToLiveSeconds(FIVE_MINUTES);
 
     private static final CacheConfiguration ENHET_NAVN_CACHE =
-            new CacheConfiguration(OPPFOLGING_CACHE_NAME, 2000)
+            new CacheConfiguration(ENHET_NAVN_CACHE_NAME, 2000)
                     .memoryStoreEvictionPolicy(LRU)
                     .timeToIdleSeconds(ONE_DAY)
                     .timeToLiveSeconds(ONE_DAY);
