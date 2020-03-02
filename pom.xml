@@ -127,6 +127,11 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>5.1.3.RELEASE</version>
+        </dependency>
 
         <!-- kafka -->
         <dependency>
@@ -146,11 +151,6 @@
         <dependency>
             <groupId>no.nav.common</groupId>
             <artifactId>test-config</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-support</artifactId>
-            <version>5.1.3.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>io.zonky.test</groupId>
