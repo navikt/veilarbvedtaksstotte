@@ -23,8 +23,6 @@ import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF;
 import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.*;
 import static no.nav.fo.veilarbvedtaksstotte.config.DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY;
-import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC;
-import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC_API_URL_PROPERTY;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestUtils.lagFssUrl;
 import static no.nav.sbl.featuretoggle.unleash.UnleashServiceConfig.UNLEASH_API_URL_PROPERTY_NAME;
 import static no.nav.sbl.util.EnvironmentUtils.*;
@@ -46,7 +44,6 @@ public class TestContext {
         setProperty(REGISTRERING_API_PROPERTY_NAME, lagFssUrl(VEILARBREGISTRERING));
         setProperty(EGENVURDERING_API_PROPERTY_NAME, lagFssUrl(VEILARBVEDTAKINFO));
         setProperty(VEILARBARENA_API_PROPERTY_NAME, lagFssUrl(VEILARBARENA));
-        setProperty(VEILARBABAC_API_URL_PROPERTY, lagFssUrl(VEILARBABAC, false));
         setProperty(KAFKA_BROKERS_URL_PROPERTY, "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443");
         setProperty(UNLEASH_API_URL_PROPERTY_NAME, "https://unleash.nais.adeo.no/api/");
 

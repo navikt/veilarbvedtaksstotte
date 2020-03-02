@@ -27,8 +27,6 @@ import static no.nav.fo.veilarbvedtaksstotte.client.RegistreringClient.REGISTRER
 import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF;
 import static no.nav.fo.veilarbvedtaksstotte.client.SAFClient.SAF_API_PROPERTY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.SECURITYTOKENSERVICE_URL;
-import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC;
-import static no.nav.fo.veilarbvedtaksstotte.config.PepConfig.VEILARBABAC_API_URL_PROPERTY;
 import static no.nav.fo.veilarbvedtaksstotte.utils.UrlUtils.lagClusterUrl;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
@@ -48,7 +46,6 @@ public class Main {
 
         setProperty(AKTOER_ENDPOINT_URL, getRequiredProperty("AKTOER_V2_ENDPOINTURL"));
         setProperty(DOKUMENT_API_PROPERTY_NAME, lagClusterUrl(VEILARBDOKUMENT));
-        setProperty(VEILARBABAC_API_URL_PROPERTY, lagClusterUrl(VEILARBABAC, false));
         setProperty(VEILARBVEILEDER_API_PROPERTY_NAME, lagClusterUrl(VEILARBVEILEDER));
         setProperty(REGISTRERING_API_PROPERTY_NAME, lagClusterUrl(VEILARBREGISTRERING));
         setProperty(EGENVURDERING_API_PROPERTY_NAME, lagClusterUrl(VEILARBVEDTAKINFO));
