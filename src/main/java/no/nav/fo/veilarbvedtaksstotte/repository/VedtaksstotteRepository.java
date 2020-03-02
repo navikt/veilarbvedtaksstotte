@@ -117,13 +117,15 @@ public class VedtaksstotteRepository {
                 .execute();
     }
 
-    public boolean harGjeldendeVedtak(String aktorId) {
-         Vedtak gjeldendeVedtak = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
+    public Vedtak hentGjeldendeVedtak(String aktorId) {
+        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(GJELDENDE, true)))
                 .column("*")
                 .execute();
+    }
 
-         return gjeldendeVedtak != null;
+    public boolean harGjeldendeVedtak(String aktorId) {
+         return hentGjeldendeVedtak(aktorId) != null;
     }
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
