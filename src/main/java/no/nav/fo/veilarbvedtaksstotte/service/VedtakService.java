@@ -1,6 +1,5 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
-import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.fo.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.fo.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.fo.veilarbvedtaksstotte.domain.*;
@@ -67,9 +66,8 @@ public class VedtakService {
 
         authService.sjekkAnsvarligVeileder(vedtak);
 
-        if (skalHaBeslutter(vedtak.getInnsatsgruppe()) && (beslutter == null || beslutter.isEmpty())) {
-            throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
-        }
+        Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(aktorId);
+        validerUtkastForUtsending(vedtak, gjeldendeVedtak, beslutter);
 
         long vedtakId = vedtak.getId();
 
@@ -78,7 +76,6 @@ public class VedtakService {
         sjekkOgOppdaterEnhet(vedtak, authKontekst.getOppfolgingsenhet());
         // TODO oppdater til ny status for "sender" + optimistic lock? Unngå potensielt å sende flere ganger
         vedtaksstotteRepository.oppdaterUtkast(vedtakId, vedtak);
-
 
         SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, fnr);
         DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
@@ -229,12 +226,6 @@ public class VedtakService {
         return utkast;
     }
 
-    private void sjekkAnsvarligVeileder(Vedtak vedtak) {
-        if (!vedtak.getVeilederIdent().equals(veilederService.hentVeilederIdentFraToken())) {
-            throw new IngenTilgang("Ikke ansvarlig veileder.");
-        }
-    }
-
     private void sjekkOgOppdaterEnhet(Vedtak vedtak, String oppfolgingsenhetId) {
         if (!oppfolgingsenhetId.equals(vedtak.getOppfolgingsenhetId())) {
             String enhetNavn = veilederService.hentEnhetNavn(oppfolgingsenhetId);
@@ -262,6 +253,43 @@ public class VedtakService {
     private boolean skalHaBeslutter(Innsatsgruppe innsatsgruppe) {
         return Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS == innsatsgruppe
                 || Innsatsgruppe.VARIG_TILPASSET_INNSATS == innsatsgruppe;
+    }
+
+    void validerUtkastForUtsending(Vedtak vedtak, Vedtak gjeldendeVedtak, String beslutter) {
+
+        Innsatsgruppe innsatsgruppe = vedtak.getInnsatsgruppe();
+
+        if (innsatsgruppe == null) {
+            throw new IllegalStateException("Vedtak mangler innsatsgruppe");
+        }
+
+        if (skalHaBeslutter(innsatsgruppe) && (beslutter == null || beslutter.isEmpty())) {
+            throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
+        }
+
+        if (vedtak.getOpplysninger() == null || vedtak.getOpplysninger().isEmpty()) {
+            throw new IllegalStateException("Vedtak mangler opplysninger");
+        }
+
+        if (vedtak.getHovedmal() == null && innsatsgruppe != Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
+            throw new IllegalStateException("Vedtak mangler hovedmål");
+        } else if (vedtak.getHovedmal() != null && innsatsgruppe == Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
+            throw new IllegalStateException("Vedtak med varig tilpasset innsats skal ikke ha hovedmål");
+        }
+
+        boolean harIkkeBegrunnelse = vedtak.getBegrunnelse() == null || vedtak.getBegrunnelse().trim().isEmpty();
+        boolean erStandard = innsatsgruppe == Innsatsgruppe.STANDARD_INNSATS;
+        boolean erGjeldendeVedtakVarig =
+                gjeldendeVedtak != null &&
+                        (gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS ||
+                                gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
+
+        if (harIkkeBegrunnelse && erStandard && erGjeldendeVedtakVarig) {
+            throw new IllegalStateException("Vedtak mangler begrunnelse siden gjeldende vedtak er varig");
+        } else if (harIkkeBegrunnelse && !erStandard) {
+            throw new IllegalStateException("Vedtak mangler begrunnelse");
+        }
+
     }
 
 }
