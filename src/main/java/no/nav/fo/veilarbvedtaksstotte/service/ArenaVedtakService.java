@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,8 +46,10 @@ public class ArenaVedtakService {
 
         if (journalpost.dokumenter != null && journalpost.dokumenter.length > 0) {
             Journalpost.JournalpostDokument dokument = journalpost.dokumenter[0];
-            arkivertVedtak.dato = LocalDateTime.parse(dokument.datoFerdigstilt);
             arkivertVedtak.dokumentInfoId = dokument.dokumentInfoId;
+            arkivertVedtak.dato = Optional.ofNullable(dokument.datoFerdigstilt)
+                    .map(LocalDateTime::parse)
+                    .orElse(null);
         }
 
         return arkivertVedtak;
