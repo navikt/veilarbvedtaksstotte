@@ -69,11 +69,9 @@ public class SAFClient extends BaseClient {
                 "    journalposter {\n" +
                 "      journalpostId\n" +
                 "      tittel\n" +
-                "      journalforendeEnhet\n" +
-                "      journalfortAvNavn\n" +
-                "      datoOpprettet\n" +
                 "      dokumenter {\n" +
                 "        dokumentInfoId\n" +
+                "        datoFerdigstilt\n" +
                 "      }\n" +
                 "    }\n" +
                 "  }\n" +
