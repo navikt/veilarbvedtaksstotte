@@ -17,7 +17,7 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>yoe
+            <dependency>
                 <groupId>no.nav.common</groupId>
                 <artifactId>bom</artifactId>
                 <version>${project.parent.version}</version>
