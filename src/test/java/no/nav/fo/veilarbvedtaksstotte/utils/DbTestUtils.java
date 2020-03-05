@@ -1,6 +1,5 @@
 package no.nav.fo.veilarbvedtaksstotte.utils;
 
-import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,18 +25,7 @@ public class DbTestUtils {
             VEDTAK_TABLE
     );
 
-    public static JdbcTemplate setupEmbeddedDb(EmbeddedPostgres postgres) {
-        DataSource source = postgres.getPostgresDatabase();
-        DbTestUtils.testMigrate(source);
-        return new JdbcTemplate(source);
-    }
-
-    public static void cleanupDb(JdbcTemplate db) {
-        ALL_TABLES.forEach((table) -> deleteAllFromTable(db, table));
-    }
-
-    public static void testMigrate(DataSource dataSource) {
-        log.info("Starting test migration...");
+    public static void testMigrate (DataSource dataSource) {
         Flyway.configure()
                 .dataSource(dataSource)
                 .baselineOnMigrate(true)
@@ -45,6 +33,9 @@ public class DbTestUtils {
                 .migrate();
     }
 
+    public static void cleanupDb(JdbcTemplate db) {
+        ALL_TABLES.forEach((table) -> deleteAllFromTable(db, table));
+    }
     private static void deleteAllFromTable(JdbcTemplate db, String tableName) {
         db.execute("DELETE FROM " + tableName);
     }
