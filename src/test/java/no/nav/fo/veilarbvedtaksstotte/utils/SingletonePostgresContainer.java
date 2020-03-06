@@ -17,10 +17,10 @@ public class SingletonePostgresContainer {
     }
 
     private static void setupShutdownHook() {
-           Runtime.getRuntime().addShutdownHook(new Thread() -> {
+           Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                if (postgresContainer != null && postgresContainer.getContainer().isRunning()) {
                    postgresContainer.getContainer().stop();
                }
-        });
+        }));
     }
 }

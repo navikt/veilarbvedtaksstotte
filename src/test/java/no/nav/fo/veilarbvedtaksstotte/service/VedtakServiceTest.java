@@ -1,7 +1,5 @@
 package no.nav.fo.veilarbvedtaksstotte.service;
 
-import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
-import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
 import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.apiapp.security.PepClient;
 import no.nav.brukerdialog.security.domain.IdentType;
@@ -22,11 +20,11 @@ import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonePostgresContainer;
 import no.nav.sbl.jdbc.Transactor;
 import no.nav.sbl.util.fn.UnsafeRunnable;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -48,9 +46,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class VedtakServiceTest {
-
-    @ClassRule
-    public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance();
 
     private static JdbcTemplate db;
     private static Transactor transactor;
@@ -86,7 +81,7 @@ public class VedtakServiceTest {
 
     @BeforeClass
     public static void setupOnce() {
-        db = DbTestUtils.setupEmbeddedDb(pg.getEmbeddedPostgres());
+        db = SingletonePostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);

@@ -36,7 +36,9 @@ public class DbTestUtils {
     public static void cleanupDb(JdbcTemplate db) {
         ALL_TABLES.forEach((table) -> deleteAllFromTable(db, table));
     }
+
     private static void deleteAllFromTable(JdbcTemplate db, String tableName) {
         db.execute("DELETE FROM " + tableName);
     }
+
 }
