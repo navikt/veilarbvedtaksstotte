@@ -1,14 +1,12 @@
 package no.nav.fo.veilarbvedtaksstotte.repository;
 
-import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
-import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
 import no.nav.fo.veilarbvedtaksstotte.domain.Oyeblikksbilde;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
-
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonePostgresContainer;
 import java.util.Collections;
 import java.util.List;
 
@@ -19,9 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class OyeblikksbildeRepositoryTest {
 
-    @ClassRule
-    public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance();
-
     private final static String REGISTRERINGSINFO_JSON = "{ \"data\": 42 }";
 
     private static JdbcTemplate db;
@@ -30,7 +25,7 @@ public class OyeblikksbildeRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = DbTestUtils.setupEmbeddedDb(pg.getEmbeddedPostgres());
+        db = SingletonePostgresContainer.init().getDb();
         KilderRepository kilderRepository = new KilderRepository(db);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
