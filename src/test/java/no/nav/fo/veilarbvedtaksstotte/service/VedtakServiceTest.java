@@ -250,7 +250,7 @@ public class VedtakServiceTest {
         withSubject(() -> {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
             gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
 
             assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
             vedtakService.taOverUtkast(TEST_FNR);
@@ -282,7 +282,7 @@ public class VedtakServiceTest {
     public void taOverUtkast__feiler_dersom_samme_veileder() {
         withSubject(() -> {
             gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
             assertThatThrownBy(() ->
                     vedtakService.taOverUtkast(TEST_FNR)

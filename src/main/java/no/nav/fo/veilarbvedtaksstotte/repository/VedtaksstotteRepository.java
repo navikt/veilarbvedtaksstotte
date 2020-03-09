@@ -31,7 +31,6 @@ public class VedtaksstotteRepository {
     private final static String INNSATSGRUPPE         = "INNSATSGRUPPE";
     private final static String VEILEDER_IDENT        = "VEILEDER_IDENT";
     private final static String OPPFOLGINGSENHET_ID   = "OPPFOLGINGSENHET_ID";
-    private final static String OPPFOLGINGSENHET_NAVN = "OPPFOLGINGSENHET_NAVN";
     private final static String SIST_OPPDATERT        = "SIST_OPPDATERT";
     private final static String BESLUTTER_NAVN        = "BESLUTTER_NAVN";
     private final static String UTKAST_OPPRETTET      = "UTKAST_OPPRETTET";
@@ -151,18 +150,16 @@ public class VedtaksstotteRepository {
             .set(INNSATSGRUPPE, getName(vedtak.getInnsatsgruppe()))
             .set(VEILEDER_IDENT, vedtak.getVeilederIdent())
             .set(OPPFOLGINGSENHET_ID, vedtak.getOppfolgingsenhetId())
-            .set(OPPFOLGINGSENHET_NAVN, vedtak.getOppfolgingsenhetNavn())
             .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .set(BEGRUNNELSE, vedtak.getBegrunnelse())
             .execute();
     }
 
-    public void opprettUtkast(String aktorId, String veilederIdent, String oppfolgingsenhetId, String oppfolgingsenhetNavn) {
+    public void opprettUtkast(String aktorId, String veilederIdent, String oppfolgingsenhetId) {
         SqlUtils.insert(db, VEDTAK_TABLE)
             .value(AKTOR_ID, aktorId)
             .value(VEILEDER_IDENT, veilederIdent)
             .value(OPPFOLGINGSENHET_ID, oppfolgingsenhetId)
-            .value(OPPFOLGINGSENHET_NAVN, oppfolgingsenhetNavn)
             .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .value(STATUS, getName(VedtakStatus.UTKAST))
             .execute();
@@ -190,7 +187,6 @@ public class VedtaksstotteRepository {
                 .setOppfolgingsenhetId(rs.getString(OPPFOLGINGSENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
                 .setBeslutterNavn(rs.getString(BESLUTTER_NAVN))
-                .setOppfolgingsenhetNavn(rs.getString(OPPFOLGINGSENHET_NAVN))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
                 .setDokumentInfoId(rs.getString(DOKUMENT_ID));

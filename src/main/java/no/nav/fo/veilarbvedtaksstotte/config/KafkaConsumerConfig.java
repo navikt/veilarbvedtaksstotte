@@ -1,8 +1,10 @@
 package no.nav.fo.veilarbvedtaksstotte.config;
 
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
-import no.nav.fo.veilarbvedtaksstotte.kafka.AvsluttOpfolgingTemplate;
+import no.nav.fo.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
+import no.nav.fo.veilarbvedtaksstotte.kafka.AvsluttOppfolgingConsumer;
 import no.nav.fo.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
+import no.nav.fo.veilarbvedtaksstotte.kafka.OppfolgingsbrukerEndringConsumer;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
 import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -27,14 +29,17 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZE
 
 @EnableKafka
 @Configuration
-@Import({ KafkaHelsesjekk.class })
+@Import({KafkaHelsesjekk.class, ServiceConfig.class})
 public class KafkaConsumerConfig {
+
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
     private static final String USERNAME = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_USERNAME);
     private static final String PASSWORD = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_PASSWORD);
 
-    @Bean
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaAvsluttOppfolging>> kafkaListenerContainerFactory(KafkaHelsesjekk kafkaHelsesjekk) {
+    public static final String AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME = "avsluttOppfolgingKafkaListenerContainerFactory";
+
+    @Bean(name = AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME)
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaAvsluttOppfolging>> avsluttOppfolgingKafkaListenerContainerFactory(KafkaHelsesjekk kafkaHelsesjekk) {
         ConcurrentKafkaListenerContainerFactory<String, KafkaAvsluttOppfolging> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaProperties()));
         factory.getContainerProperties().setErrorHandler(kafkaHelsesjekk);
@@ -42,12 +47,27 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public AvsluttOpfolgingTemplate avsluttOpfolgingTemplate(VedtakService vedtakService) {
-        return new AvsluttOpfolgingTemplate(vedtakService);
+    public AvsluttOppfolgingConsumer avsluttOppfolgingConsumer(VedtakService vedtakService) {
+        return new AvsluttOppfolgingConsumer(vedtakService);
     }
 
-    private static HashMap<String, Object> kafkaProperties () {
-        HashMap<String, Object>  props = new HashMap<> ();
+    public static final String OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME = "oppfolgingsbrukerEndringKafkaListenerContainerFactory";
+
+    @Bean(name = OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME)
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaOppfolgingsbrukerEndring>> oppfolgingsbrukerEndringKafkaListenerContainerFactory(KafkaHelsesjekk kafkaHelsesjekk) {
+        ConcurrentKafkaListenerContainerFactory<String, KafkaOppfolgingsbrukerEndring> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaProperties()));
+        factory.getContainerProperties().setErrorHandler(kafkaHelsesjekk);
+        return factory;
+    }
+
+    @Bean
+    public OppfolgingsbrukerEndringConsumer oppfolgingsbrukerEndringConsumer(VedtakService vedtakService) {
+        return new OppfolgingsbrukerEndringConsumer(vedtakService);
+    }
+
+    private static HashMap<String, Object> kafkaProperties() {
+        HashMap<String, Object> props = new HashMap<>();
         props.put(BOOTSTRAP_SERVERS_CONFIG, KAFKA_BROKERS);
         props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
         props.put(SaslConfigs.SASL_MECHANISM, "PLAIN");
@@ -59,5 +79,4 @@ public class KafkaConsumerConfig {
         props.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         return props;
     }
-
 }
