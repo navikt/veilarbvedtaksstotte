@@ -23,32 +23,32 @@ public class CacheConfig {
     public static final String REGISTRERING_CACHE_NAME = "registrering";
     public static final String OPPFOLGING_CACHE_NAME = "oppfolging";
 
-    private static final int ONE_DAY = 60 * 60 * 24 * 1000;
-    private static final int FIVE_MINUTES = 60 * 5 * 1000;
+    private static final int ONE_DAY_IN_SECONDS = 60 * 60 * 24;
+    private static final int FIVE_MINUTES_IN_SECONDS = 60 * 5;
 
     private static final CacheConfiguration VEILEDER_CACHE =
             new CacheConfiguration(VEILEDER_CACHE_NAME, 10000)
                     .memoryStoreEvictionPolicy(LRU)
-                    .timeToIdleSeconds(ONE_DAY)
-                    .timeToLiveSeconds(ONE_DAY);
+                    .timeToIdleSeconds(ONE_DAY_IN_SECONDS)
+                    .timeToLiveSeconds(ONE_DAY_IN_SECONDS);
 
     private static final CacheConfiguration REGISTRERING_CACHE =
             new CacheConfiguration(REGISTRERING_CACHE_NAME, 1000)
                     .memoryStoreEvictionPolicy(LRU)
-                    .timeToIdleSeconds(FIVE_MINUTES)
-                    .timeToLiveSeconds(FIVE_MINUTES);
+                    .timeToIdleSeconds(FIVE_MINUTES_IN_SECONDS)
+                    .timeToLiveSeconds(FIVE_MINUTES_IN_SECONDS);
 
     private static final CacheConfiguration OPPFOLGING_CACHE =
             new CacheConfiguration(OPPFOLGING_CACHE_NAME, 1000)
                     .memoryStoreEvictionPolicy(LRU)
-                    .timeToIdleSeconds(FIVE_MINUTES)
-                    .timeToLiveSeconds(FIVE_MINUTES);
+                    .timeToIdleSeconds(FIVE_MINUTES_IN_SECONDS)
+                    .timeToLiveSeconds(FIVE_MINUTES_IN_SECONDS);
 
     private static final CacheConfiguration ENHET_NAVN_CACHE =
             new CacheConfiguration(ENHET_NAVN_CACHE_NAME, 2000)
                     .memoryStoreEvictionPolicy(LRU)
-                    .timeToIdleSeconds(ONE_DAY)
-                    .timeToLiveSeconds(ONE_DAY);
+                    .timeToIdleSeconds(ONE_DAY_IN_SECONDS)
+                    .timeToLiveSeconds(ONE_DAY_IN_SECONDS);
 
     @Bean
     public CacheManager cacheManager() {
