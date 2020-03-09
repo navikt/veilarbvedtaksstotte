@@ -6,7 +6,7 @@ import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.fo.veilarbvedtaksstotte.utils.SingletonePostgresContainer;
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,7 +24,7 @@ public class KafkaRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = SingletonePostgresContainer.init().getDb();
+        db = SingletonPostgresContainer.init().getDb();
         KilderRepository kilderRepository = new KilderRepository(db);
         kafkaRepository = new KafkaRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);

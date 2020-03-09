@@ -5,7 +5,7 @@ import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.fo.veilarbvedtaksstotte.utils.SingletonePostgresContainer;
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.*;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,7 +23,7 @@ public class VedtaksstotteRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = SingletonePostgresContainer.init().getDb();
+        db = SingletonPostgresContainer.init().getDb();
         kilderRepository = new KilderRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }

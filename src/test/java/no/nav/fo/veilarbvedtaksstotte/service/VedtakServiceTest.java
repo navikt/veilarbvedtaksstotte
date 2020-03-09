@@ -20,7 +20,7 @@ import no.nav.fo.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.fo.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.fo.veilarbvedtaksstotte.utils.SingletonePostgresContainer;
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import no.nav.sbl.jdbc.Transactor;
 import no.nav.sbl.util.fn.UnsafeRunnable;
 import org.junit.Before;
@@ -81,7 +81,7 @@ public class VedtakServiceTest {
 
     @BeforeClass
     public static void setupOnce() {
-        db = SingletonePostgresContainer.init().getDb();
+        db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);

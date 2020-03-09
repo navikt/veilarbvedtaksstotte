@@ -9,8 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Arrays;
 import java.util.List;
 
-import no.nav.fo.veilarbvedtaksstotte.utils.SingletonePostgresContainer;
-
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,7 +22,7 @@ public class KilderRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = SingletonePostgresContainer.init().getDb();
+        db = SingletonPostgresContainer.init().getDb();
         kilderRepository = new KilderRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }

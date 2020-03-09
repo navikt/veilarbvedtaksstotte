@@ -6,7 +6,7 @@ import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import no.nav.fo.veilarbvedtaksstotte.utils.SingletonePostgresContainer;
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,7 +25,7 @@ public class OyeblikksbildeRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = SingletonePostgresContainer.init().getDb();
+        db = SingletonPostgresContainer.init().getDb();
         KilderRepository kilderRepository = new KilderRepository(db);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);

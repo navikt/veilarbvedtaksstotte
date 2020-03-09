@@ -1,7 +1,7 @@
 package no.nav.fo.veilarbvedtaksstotte.utils;
 
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
-public class SingletonePostgresContainer {
+public class SingletonPostgresContainer {
 
     private static PostgresContainer postgresContainer;
 
