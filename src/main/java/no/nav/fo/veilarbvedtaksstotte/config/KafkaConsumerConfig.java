@@ -23,13 +23,14 @@ import java.util.HashMap;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.KAFKA_BROKERS_URL_PROPERTY;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
+import static no.nav.sbl.util.EnvironmentUtils.requireEnvironmentName;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
 @EnableKafka
 @Configuration
-@Import({KafkaHelsesjekk.class, ServiceConfig.class})
+@Import({KafkaHelsesjekk.class, ServiceConfig.class, OppfolgingsbrukerEndringConsumer.class})
 public class KafkaConsumerConfig {
 
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
@@ -62,8 +63,8 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public OppfolgingsbrukerEndringConsumer oppfolgingsbrukerEndringConsumer(VedtakService vedtakService) {
-        return new OppfolgingsbrukerEndringConsumer(vedtakService);
+    public OppfolgingsbrukerEndringConsumer.ConsumerParameters oppfolgingsbrukerEndringConsumerParameters() {
+        return new OppfolgingsbrukerEndringConsumer.ConsumerParameters("aapen-fo-endringPaaOppfoelgingsBruker-v1-" + requireEnvironmentName());
     }
 
     private static HashMap<String, Object> kafkaProperties() {
