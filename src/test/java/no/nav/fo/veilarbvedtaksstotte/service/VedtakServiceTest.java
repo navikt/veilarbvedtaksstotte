@@ -290,6 +290,22 @@ public class VedtakServiceTest {
         });
     }
 
+    @Test
+    public void behandleOppfolgingsbrukerEndring_endrer_oppfolgingsenhet() {
+        String nyEnhet = "4562";
+        when(pepClient.harTilgangTilEnhet(TEST_OPPFOLGINGSENHET_ID)).thenReturn(true);
+        when(pepClient.harTilgangTilEnhet(nyEnhet)).thenReturn(true);
+        withSubject(() -> {
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+            vedtakService.behandleOppfolgingsbrukerEndring(new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, nyEnhet));
+
+            List<Vedtak> oppdatertUtkastListe = vedtakService.hentVedtak(TEST_FNR);
+            assertEquals(oppdatertUtkastListe.size(), 1);
+            assertEquals(nyEnhet, oppdatertUtkastListe.get(0).getOppfolgingsenhetId());
+        });
+    }
+
     private void gittTilgang() {
         when(pepClient.harTilgangTilEnhet(TEST_OPPFOLGINGSENHET_ID)).thenReturn(true);
     }
