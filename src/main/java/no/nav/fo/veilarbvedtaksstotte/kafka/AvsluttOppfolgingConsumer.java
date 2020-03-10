@@ -5,23 +5,26 @@ import no.nav.fo.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Component;
+
+import javax.inject.Inject;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.KafkaConsumerConfig.AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME;
 import static no.nav.json.JsonUtils.fromJson;
 import static no.nav.sbl.util.EnvironmentUtils.Type.PUBLIC;
 import static no.nav.sbl.util.EnvironmentUtils.getOptionalProperty;
-import static no.nav.sbl.util.EnvironmentUtils.requireEnvironmentName;
 import static no.nav.sbl.util.EnvironmentUtils.setProperty;
 
+@Component
 @Slf4j
 public class AvsluttOppfolgingConsumer {
-    private static final String KAFKA_CONSUMER_TOPIC = "aapen-fo-endringPaaAvsluttOppfolging-v1-" + requireEnvironmentName();
     private static final String ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME = "ENDRING_PAA_AVSLUTTOPPFOLGING_TOPIC";
     private final VedtakService vedtakService;
 
-    public AvsluttOppfolgingConsumer(VedtakService vedtakService) {
+    @Inject
+    public AvsluttOppfolgingConsumer(VedtakService vedtakService, ConsumerParameters consumerParameters) {
         this.vedtakService = vedtakService;
-        setProperty(ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME, KAFKA_CONSUMER_TOPIC, PUBLIC);
+        setProperty(ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME, consumerParameters.topic, PUBLIC);
     }
 
     @KafkaListener(
@@ -35,6 +38,14 @@ public class AvsluttOppfolgingConsumer {
             vedtakService.behandleAvsluttOppfolging(melding);
         } catch (Throwable t) {
             log.error("Feilet ved behandling av kafka-melding", t);
+        }
+    }
+
+    public static class ConsumerParameters {
+        public final String topic;
+
+        public ConsumerParameters(String topic) {
+            this.topic = topic;
         }
     }
 }

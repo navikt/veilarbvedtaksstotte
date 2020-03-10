@@ -5,7 +5,6 @@ import no.nav.fo.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
 import no.nav.fo.veilarbvedtaksstotte.kafka.AvsluttOppfolgingConsumer;
 import no.nav.fo.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import no.nav.fo.veilarbvedtaksstotte.kafka.OppfolgingsbrukerEndringConsumer;
-import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
 import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.config.SaslConfigs;
@@ -30,12 +29,17 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZE
 
 @EnableKafka
 @Configuration
-@Import({KafkaHelsesjekk.class, ServiceConfig.class, OppfolgingsbrukerEndringConsumer.class})
+@Import({KafkaHelsesjekk.class, ServiceConfig.class, AvsluttOppfolgingConsumer.class, OppfolgingsbrukerEndringConsumer.class})
 public class KafkaConsumerConfig {
 
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
     private static final String USERNAME = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_USERNAME);
     private static final String PASSWORD = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_PASSWORD);
+
+    @Bean
+    public AvsluttOppfolgingConsumer.ConsumerParameters avsluttOppfolgingConsumerConsumerParameters() {
+        return new AvsluttOppfolgingConsumer.ConsumerParameters("aapen-fo-endringPaaAvsluttOppfolging-v1-" + requireEnvironmentName());
+    }
 
     public static final String AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME = "avsluttOppfolgingKafkaListenerContainerFactory";
 
@@ -48,8 +52,8 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public AvsluttOppfolgingConsumer avsluttOppfolgingConsumer(VedtakService vedtakService) {
-        return new AvsluttOppfolgingConsumer(vedtakService);
+    public OppfolgingsbrukerEndringConsumer.ConsumerParameters oppfolgingsbrukerEndringConsumerParameters() {
+        return new OppfolgingsbrukerEndringConsumer.ConsumerParameters("aapen-fo-endringPaaOppfoelgingsBruker-v1-" + requireEnvironmentName());
     }
 
     public static final String OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME = "oppfolgingsbrukerEndringKafkaListenerContainerFactory";
@@ -60,11 +64,6 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaProperties()));
         factory.getContainerProperties().setErrorHandler(kafkaHelsesjekk);
         return factory;
-    }
-
-    @Bean
-    public OppfolgingsbrukerEndringConsumer.ConsumerParameters oppfolgingsbrukerEndringConsumerParameters() {
-        return new OppfolgingsbrukerEndringConsumer.ConsumerParameters("aapen-fo-endringPaaOppfoelgingsBruker-v1-" + requireEnvironmentName());
     }
 
     private static HashMap<String, Object> kafkaProperties() {

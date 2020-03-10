@@ -1,5 +1,6 @@
 package no.nav.fo.veilarbvedtaksstotte.kafka;
 
+import no.nav.fo.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.fo.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
 import no.nav.fo.veilarbvedtaksstotte.service.VedtakService;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -15,6 +16,7 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import java.util.HashMap;
 
 import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.KAFKA_BROKERS_URL_PROPERTY;
+import static no.nav.fo.veilarbvedtaksstotte.config.KafkaConsumerConfig.AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME;
 import static no.nav.fo.veilarbvedtaksstotte.config.KafkaConsumerConfig.OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
@@ -23,7 +25,7 @@ import static org.mockito.Mockito.mock;
 
 @EnableKafka
 @Configuration
-@Import({OppfolgingsbrukerEndringConsumer.class})
+@Import({AvsluttOppfolgingConsumer.class, OppfolgingsbrukerEndringConsumer.class})
 public class KafkaTestConfig {
 
     public static final String KAFKA_TEST_TOPIC = "test-topic";
@@ -31,6 +33,18 @@ public class KafkaTestConfig {
     @Bean
     public VedtakService vedtakService() {
         return mock(VedtakService.class);
+    }
+
+    @Bean
+    public AvsluttOppfolgingConsumer.ConsumerParameters avsluttOppfolgingConsumerConsumerParameters() {
+        return new AvsluttOppfolgingConsumer.ConsumerParameters(KAFKA_TEST_TOPIC);
+    }
+
+    @Bean(name = AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME)
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaAvsluttOppfolging>> avsluttOppfolgingKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, KafkaAvsluttOppfolging> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+        return factory;
     }
 
     @Bean
