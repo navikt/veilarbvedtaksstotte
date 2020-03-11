@@ -1,7 +1,5 @@
 package no.nav.fo.veilarbvedtaksstotte.repository;
 
-import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
-import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
 import no.nav.fo.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.*;
@@ -11,13 +9,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Arrays;
 import java.util.List;
 
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class KilderRepositoryTest {
-
-    @ClassRule
-    public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance();
 
     private static JdbcTemplate db;
     private static KilderRepository kilderRepository;
@@ -25,7 +21,7 @@ public class KilderRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = DbTestUtils.setupEmbeddedDb(pg.getEmbeddedPostgres());
+        db = SingletonPostgresContainer.init().getDb();
         kilderRepository = new KilderRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }

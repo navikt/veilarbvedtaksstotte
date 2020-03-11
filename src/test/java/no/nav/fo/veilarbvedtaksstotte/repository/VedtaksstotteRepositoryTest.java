@@ -1,12 +1,11 @@
 package no.nav.fo.veilarbvedtaksstotte.repository;
 
-import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
-import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
 import no.nav.fo.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.fo.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.fo.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.fo.veilarbvedtaksstotte.utils.DbTestUtils;
+import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.*;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,16 +17,13 @@ import static org.junit.Assert.*;
 
 public class VedtaksstotteRepositoryTest {
 
-    @ClassRule
-    public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance();
-
     private static JdbcTemplate db;
     private static KilderRepository kilderRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
-        db = DbTestUtils.setupEmbeddedDb(pg.getEmbeddedPostgres());
+        db = SingletonPostgresContainer.init().getDb();
         kilderRepository = new KilderRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
     }
