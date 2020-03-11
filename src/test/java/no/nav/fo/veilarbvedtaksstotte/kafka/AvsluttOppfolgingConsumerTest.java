@@ -25,7 +25,7 @@ public class AvsluttOppfolgingConsumerTest extends KafkaTest {
         KafkaAvsluttOppfolging melding = new KafkaAvsluttOppfolging("1", new Date());
 
         send(KAFKA_TEST_TOPIC, toJson(melding));
-        verifiserAsynkront(3, TimeUnit.SECONDS, () ->
+        verifiserAsynkront(5, TimeUnit.SECONDS, () ->
                 verify(vedtakService).behandleAvsluttOppfolging(eq(melding))
         );
     }

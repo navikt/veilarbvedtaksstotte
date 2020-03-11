@@ -24,7 +24,7 @@ public class OppfolgingsbrukerEndringConsumerTest extends KafkaTest {
         KafkaOppfolgingsbrukerEndring melding = new KafkaOppfolgingsbrukerEndring("1", "2");
 
         send(KAFKA_TEST_TOPIC, toJson(melding));
-        verifiserAsynkront(3, TimeUnit.SECONDS, () ->
+        verifiserAsynkront(5, TimeUnit.SECONDS, () ->
                 verify(vedtakService).behandleOppfolgingsbrukerEndring(eq(melding))
         );
     }
