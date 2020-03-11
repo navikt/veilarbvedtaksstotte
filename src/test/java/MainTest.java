@@ -1,9 +1,9 @@
 import no.nav.apiapp.ApiApp;
-import no.nav.fo.veilarbvedtaksstotte.TestContext;
-import no.nav.fo.veilarbvedtaksstotte.config.ApplicationTestConfig;
+import no.nav.veilarbvedtaksstotte.TestContext;
+import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig;
 import no.nav.testconfig.ApiAppTest;
 
-import static no.nav.fo.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
+import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 
 public class MainTest {
 
