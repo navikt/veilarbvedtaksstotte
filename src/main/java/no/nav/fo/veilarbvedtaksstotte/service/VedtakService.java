@@ -73,7 +73,6 @@ public class VedtakService {
 
         oyeblikksbildeService.lagreOyeblikksbilde(fnr, vedtakId);
 
-        sjekkOgOppdaterEnhet(vedtak, authKontekst.getOppfolgingsenhet());
         // TODO oppdater til ny status for "sender" + optimistic lock? Unngå potensielt å sende flere ganger
         vedtaksstotteRepository.oppdaterUtkast(vedtakId, vedtak);
 
@@ -107,9 +106,8 @@ public class VedtakService {
 
         String veilederIdent = veilederService.hentVeilederIdentFraToken();
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
-        String enhetNavn = veilederService.hentEnhetNavn(oppfolgingsenhetId);
 
-        vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId, enhetNavn);
+        vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId);
 
         Vedtak opprettetUtkast = vedtaksstotteRepository.hentUtkast(aktorId);
         kafkaService.sendVedtakStatusEndring(opprettetUtkast, KafkaVedtakStatus.UTKAST_OPPRETTET);
@@ -122,8 +120,6 @@ public class VedtakService {
         Vedtak utkast = hentUtkastEllerFeil(authKontekst.getAktorId());
 
         authService.sjekkAnsvarligVeileder(utkast);
-
-        sjekkOgOppdaterEnhet(utkast, authKontekst.getOppfolgingsenhet());
 
         oppdaterUtkastFraDto(utkast, vedtakDTO);
 
@@ -167,6 +163,7 @@ public class VedtakService {
         List<Vedtak> vedtak = vedtaksstotteRepository.hentVedtak(aktorId);
 
         flettInnVeilederNavn(vedtak);
+        flettInnEnhetNavn(vedtak);
 
         return vedtak;
     }
@@ -199,6 +196,15 @@ public class VedtakService {
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
     }
 
+    public void behandleOppfolgingsbrukerEndring(KafkaOppfolgingsbrukerEndring endring) {
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(endring.getAktorId());
+
+        if (utkast != null && !utkast.getOppfolgingsenhetId().equals(endring.getOppfolgingsenhetId())) {
+            utkast.setOppfolgingsenhetId(endring.getOppfolgingsenhetId());
+            vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
+        }
+    }
+
     public void taOverUtkast(String fnr) {
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 
@@ -211,7 +217,6 @@ public class VedtakService {
         }
 
         utkast.setVeilederIdent(veilederId);
-        sjekkOgOppdaterEnhet(utkast, authKontekst.getOppfolgingsenhet());
 
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
     }
@@ -226,18 +231,17 @@ public class VedtakService {
         return utkast;
     }
 
-    private void sjekkOgOppdaterEnhet(Vedtak vedtak, String oppfolgingsenhetId) {
-        if (!oppfolgingsenhetId.equals(vedtak.getOppfolgingsenhetId())) {
-            String enhetNavn = veilederService.hentEnhetNavn(oppfolgingsenhetId);
-            vedtak.setOppfolgingsenhetId(oppfolgingsenhetId);
-            vedtak.setOppfolgingsenhetNavn(enhetNavn);
-        }
-    }
-
     private void flettInnVeilederNavn(List<Vedtak> vedtak) {
         vedtak.forEach(v -> {
             Veileder veileder = veilederService.hentVeileder(v.getVeilederIdent());
             v.setVeilederNavn(veileder != null ? veileder.getNavn() : null);
+        });
+    }
+
+    private void flettInnEnhetNavn(List<Vedtak> vedtak) {
+        vedtak.forEach(v -> {
+            String enhetNavn = veilederService.hentEnhetNavn(v.getOppfolgingsenhetId());
+            v.setOppfolgingsenhetNavn(enhetNavn);
         });
     }
 

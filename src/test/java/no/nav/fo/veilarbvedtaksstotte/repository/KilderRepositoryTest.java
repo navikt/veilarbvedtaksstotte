@@ -11,7 +11,6 @@ import java.util.List;
 
 import no.nav.fo.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.*;
-import static no.nav.fo.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class KilderRepositoryTest {
@@ -44,7 +43,7 @@ public class KilderRepositoryTest {
     @Test
     public void testLagOgHentKilder() {
 
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 

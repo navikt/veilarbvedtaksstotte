@@ -245,7 +245,7 @@ public class VedtakServiceTest {
         withSubject(() -> {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
             gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
 
             assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
             vedtakService.taOverUtkast(TEST_FNR);
@@ -277,11 +277,27 @@ public class VedtakServiceTest {
     public void taOverUtkast__feiler_dersom_samme_veileder() {
         withSubject(() -> {
             gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
             assertThatThrownBy(() ->
                     vedtakService.taOverUtkast(TEST_FNR)
             ).isExactlyInstanceOf(BadRequestException.class);
+        });
+    }
+
+    @Test
+    public void behandleOppfolgingsbrukerEndring_endrer_oppfolgingsenhet() {
+        String nyEnhet = "4562";
+        when(pepClient.harTilgangTilEnhet(TEST_OPPFOLGINGSENHET_ID)).thenReturn(true);
+        when(pepClient.harTilgangTilEnhet(nyEnhet)).thenReturn(true);
+        withSubject(() -> {
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+            vedtakService.behandleOppfolgingsbrukerEndring(new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, nyEnhet));
+
+            List<Vedtak> oppdatertUtkastListe = vedtakService.hentVedtak(TEST_FNR);
+            assertEquals(oppdatertUtkastListe.size(), 1);
+            assertEquals(nyEnhet, oppdatertUtkastListe.get(0).getOppfolgingsenhetId());
         });
     }
 
