@@ -57,17 +57,17 @@ public class VedtakService {
         this.transactor = transactor;
     }
 
-    public DokumentSendtDTO sendVedtak(String fnr, String beslutter) {
+    public DokumentSendtDTO sendVedtak(String fnr) {
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
         String aktorId = authKontekst.getAktorId();
 
-        Vedtak vedtak = hentUtkastEllerFeil(aktorId);
+        Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
 
         authService.sjekkAnsvarligVeileder(vedtak);
 
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(aktorId);
-        validerUtkastForUtsending(vedtak, gjeldendeVedtak, beslutter);
+        validerUtkastForUtsending(vedtak, gjeldendeVedtak);
 
         long vedtakId = vedtak.getId();
 
@@ -81,7 +81,7 @@ public class VedtakService {
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
-            vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendt, beslutter);
+            vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendt);
         });
 
         kafkaService.sendVedtak(vedtakId);
@@ -117,7 +117,7 @@ public class VedtakService {
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 
-        Vedtak utkast = hentUtkastEllerFeil(authKontekst.getAktorId());
+        Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(authKontekst.getAktorId());
 
         authService.sjekkAnsvarligVeileder(utkast);
 
@@ -144,7 +144,7 @@ public class VedtakService {
     public void slettUtkast(String fnr) {
 
         String aktorId = authService.sjekkTilgang(fnr).getAktorId();
-        Vedtak utkast = hentUtkastEllerFeil(aktorId);
+        Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
         authService.sjekkAnsvarligVeileder(utkast);
 
         transactor.inTransaction(() -> {
@@ -208,7 +208,7 @@ public class VedtakService {
     public void taOverUtkast(String fnr) {
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 
-        Vedtak utkast = hentUtkastEllerFeil(authKontekst.getAktorId());
+        Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(authKontekst.getAktorId());
 
         String veilederId = veilederService.hentVeilederIdentFraToken();
 
@@ -219,16 +219,6 @@ public class VedtakService {
         utkast.setVeilederIdent(veilederId);
 
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
-    }
-
-    private Vedtak hentUtkastEllerFeil(String aktorId) {
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
-
-        if (utkast == null) {
-            throw new NotFoundException("Fant ikke utkast");
-        }
-
-        return utkast;
     }
 
     private void flettInnVeilederNavn(List<Vedtak> vedtak) {
@@ -259,7 +249,7 @@ public class VedtakService {
                 || Innsatsgruppe.VARIG_TILPASSET_INNSATS == innsatsgruppe;
     }
 
-    void validerUtkastForUtsending(Vedtak vedtak, Vedtak gjeldendeVedtak, String beslutter) {
+    void validerUtkastForUtsending(Vedtak vedtak, Vedtak gjeldendeVedtak) {
 
         Innsatsgruppe innsatsgruppe = vedtak.getInnsatsgruppe();
 
@@ -267,7 +257,7 @@ public class VedtakService {
             throw new IllegalStateException("Vedtak mangler innsatsgruppe");
         }
 
-        if (skalHaBeslutter(innsatsgruppe) && (beslutter == null || beslutter.isEmpty())) {
+        if (skalHaBeslutter(innsatsgruppe) && vedtak.getBeslutterIdent() == null) {
             throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
         }
 

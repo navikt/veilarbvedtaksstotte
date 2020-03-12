@@ -22,4 +22,5 @@ public class TestData {
     public final static String TEST_BEGRUNNELSE = "Dette er en begrunnelse";
 
     public final static String TEST_BESLUTTER = "Beslutter Besluttersen";
+    public final static String TEST_BESLUTTER_IDENT = "Z748932";
 }

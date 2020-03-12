@@ -9,6 +9,9 @@ import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
 
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
+
 public class VedtakServiceValiderUtkastForUtsendingTest {
 
     @Rule
@@ -28,7 +31,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null, null);
+        vedtakService.validerUtkastForUtsending(vedtak, null);
     }
 
     @Test
@@ -40,7 +43,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null, null);
+        vedtakService.validerUtkastForUtsending(vedtak, null);
     }
 
     @Test
@@ -53,7 +56,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null, null);
+        vedtakService.validerUtkastForUtsending(vedtak, null);
     }
 
     @Test
@@ -66,7 +69,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null, null);
+        vedtakService.validerUtkastForUtsending(vedtak, null);
     }
 
     @Test
@@ -78,7 +81,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
 
-        vedtakService.validerUtkastForUtsending(vedtak, null, null);
+        vedtakService.validerUtkastForUtsending(vedtak, null);
     }
 
     @Test
@@ -90,7 +93,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null, null);
+        vedtakService.validerUtkastForUtsending(vedtak, null);
     }
 
     @Test
@@ -102,8 +105,9 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
+        vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
 
-        vedtakService.validerUtkastForUtsending(vedtak, null, "beslutter");
+        vedtakService.validerUtkastForUtsending(vedtak, null);
     }
 
     @Test
@@ -115,7 +119,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null, null);
+        vedtakService.validerUtkastForUtsending(vedtak, null);
     }
 
     @Test
@@ -125,7 +129,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null, null);
+        vedtakService.validerUtkastForUtsending(vedtak, null);
     }
 
     @Test
@@ -140,7 +144,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         Vedtak gjeldendeVedtak = new Vedtak();
         gjeldendeVedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
-        vedtakService.validerUtkastForUtsending(vedtak, gjeldendeVedtak, null);
+        vedtakService.validerUtkastForUtsending(vedtak, gjeldendeVedtak);
     }
 
 }

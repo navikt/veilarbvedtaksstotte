@@ -16,15 +16,12 @@ import static no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBV
 import static no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER_API_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING;
 import static no.nav.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING_API_PROPERTY_NAME;
-import static no.nav.veilarbvedtaksstotte.client.OppgaveClient.OPPGAVE;
-import static no.nav.veilarbvedtaksstotte.client.OppgaveClient.OPPGAVE_API_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.client.RegistreringClient.VEILARBREGISTRERING;
 import static no.nav.veilarbvedtaksstotte.client.RegistreringClient.REGISTRERING_API_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.client.SAFClient.SAF;
 import static no.nav.veilarbvedtaksstotte.client.SAFClient.SAF_API_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.*;
 import static no.nav.veilarbvedtaksstotte.config.DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY;
-import static no.nav.veilarbvedtaksstotte.utils.TestUtils.lagFssUrl;
 import static no.nav.sbl.featuretoggle.unleash.UnleashServiceConfig.UNLEASH_API_URL_PROPERTY_NAME;
 import static no.nav.sbl.util.EnvironmentUtils.*;
 
@@ -39,7 +36,6 @@ public class TestContext {
         setProperty(SAF_API_PROPERTY_NAME, TestUtils.lagFssUrl(SAF,false));
         setProperty(VEILARBVEILEDER_API_PROPERTY_NAME, TestUtils.lagFssUrl(VEILARBVEILEDER));
         setProperty(VEILARBOPPFOLGING_API_PROPERTY_NAME, TestUtils.lagFssUrl(VEILARBOPPFOLGING));
-        setProperty(OPPGAVE_API_PROPERTY_NAME, TestUtils.lagFssUrl(OPPGAVE, false));
 
         setProperty(CV_API_PROPERTY_NAME, TestUtils.lagFssUrl(PAM_CV_API));
         setProperty(REGISTRERING_API_PROPERTY_NAME, TestUtils.lagFssUrl(VEILARBREGISTRERING));

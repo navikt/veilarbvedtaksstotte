@@ -15,6 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,14 +31,15 @@ public class VedtaksstotteRepository {
     private final static String VEILEDER_IDENT        = "VEILEDER_IDENT";
     private final static String OPPFOLGINGSENHET_ID   = "OPPFOLGINGSENHET_ID";
     private final static String SIST_OPPDATERT        = "SIST_OPPDATERT";
-    private final static String BESLUTTER_NAVN        = "BESLUTTER_NAVN";
+    private final static String BESLUTTER_IDENT       = "BESLUTTER_IDENT";
+    private final static String GODKJENT_AV_BESLUTTER = "GODKJENT_AV_BESLUTTER";
+    private final static String BESLUTTER_PROSESS_STARTET = "BESLUTTER_PROSESS_STARTET";
     private final static String UTKAST_OPPRETTET      = "UTKAST_OPPRETTET";
     private final static String BEGRUNNELSE           = "BEGRUNNELSE";
     private final static String STATUS                = "STATUS";
     private final static String DOKUMENT_ID           = "DOKUMENT_ID";
     private final static String JOURNALPOST_ID        = "JOURNALPOST_ID";
     private final static String GJELDENDE             = "GJELDENDE";
-    private final static String SENDT_TIL_BESLUTTER   = "SENDT_TIL_BESLUTTER";
 
     private final JdbcTemplate db;
     private KilderRepository kilderRepository;
@@ -46,6 +48,16 @@ public class VedtaksstotteRepository {
     public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository) {
         this.db = db;
         this.kilderRepository = kilderRepository;
+    }
+
+    public Vedtak hentUtkastEllerFeil(String aktorId) {
+        Vedtak utkast = hentUtkast(aktorId);
+
+        if (utkast == null) {
+            throw new NotFoundException("Fant ikke utkast");
+        }
+
+        return utkast;
     }
 
     public Vedtak hentUtkast(String aktorId) {
@@ -98,12 +110,12 @@ public class VedtaksstotteRepository {
         return vedtakListe;
     }
 
-    public void markerUtkastSomSendtTilBeslutter(String aktorId, String beslutterNavn) {
-        String sql = "UPDATE VEDTAK SET BESLUTTER_NAVN = ?, SENDT_TIL_BESLUTTER = true WHERE AKTOR_ID = ? AND STATUS = ?";
-        long itemsUpdated = db.update(sql, beslutterNavn, aktorId, EnumUtils.getName(VedtakStatus.UTKAST));
+    public void setBeslutterProsessStartet(long vedtakId) {
+        String sql = "UPDATE VEDTAK SET BESLUTTER_PROSESS_STARTET = ? WHERE ID = ?";
+        long itemsUpdated = db.update(sql, true, vedtakId);
 
         if (itemsUpdated == 0) {
-            throw new RuntimeException("Fant ikke utkast å markere som sendt til beslutter for bruker med akørId " + aktorId);
+            throw new RuntimeException("Fant ikke utkast å starte beslutterprosess for " + vedtakId);
         }
     }
 
@@ -121,22 +133,17 @@ public class VedtaksstotteRepository {
                 .execute();
     }
 
-    public boolean harGjeldendeVedtak(String aktorId) {
-         return hentGjeldendeVedtak(aktorId) != null;
-    }
-
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
        db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
     }
 
-    public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO, String beslutter){
+    public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
         SqlUtils.update(db, VEDTAK_TABLE)
             .whereEquals(VEDTAK_ID, vedtakId)
             .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .set(STATUS, EnumUtils.getName(VedtakStatus.SENDT))
             .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
             .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
-            .set(BESLUTTER_NAVN, beslutter)
             .set(GJELDENDE, true)
             .execute();
     }
@@ -181,10 +188,11 @@ public class VedtaksstotteRepository {
                 .setSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
                 .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
                 .setGjeldende(rs.getBoolean(GJELDENDE))
-                .setSendtTilBeslutter(rs.getBoolean(SENDT_TIL_BESLUTTER))
+                .setBeslutterIdent(rs.getString(BESLUTTER_IDENT))
+                .setBeslutterProsessStartet(rs.getBoolean(BESLUTTER_PROSESS_STARTET))
+                .setGodkjentAvBeslutter(rs.getBoolean(GODKJENT_AV_BESLUTTER))
                 .setOppfolgingsenhetId(rs.getString(OPPFOLGINGSENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
-                .setBeslutterNavn(rs.getString(BESLUTTER_NAVN))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
                 .setDokumentInfoId(rs.getString(DOKUMENT_ID));
