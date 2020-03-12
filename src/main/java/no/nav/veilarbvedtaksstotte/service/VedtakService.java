@@ -164,6 +164,7 @@ public class VedtakService {
         List<Vedtak> vedtak = vedtaksstotteRepository.hentVedtak(aktorId);
 
         flettInnVeilederNavn(vedtak);
+        flettInnBeslutterNavn(vedtak);
         flettInnEnhetNavn(vedtak);
 
         return vedtak;
@@ -227,6 +228,15 @@ public class VedtakService {
             Veileder veileder = veilederService.hentVeileder(v.getVeilederIdent());
             v.setVeilederNavn(veileder != null ? veileder.getNavn() : null);
         });
+    }
+
+    private void flettInnBeslutterNavn(List<Vedtak> vedtak) {
+        vedtak.stream()
+                .filter(v -> v.getBeslutterIdent() != null)
+                .forEach(v -> {
+                    Veileder beslutter = veilederService.hentVeileder(v.getBeslutterIdent());
+                    v.setBeslutterNavn(beslutter != null ? beslutter.getNavn() : null);
+                });
     }
 
     private void flettInnEnhetNavn(List<Vedtak> vedtak) {
