@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
+import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 
 @Service
 public class VedtakService {
@@ -242,11 +243,6 @@ public class VedtakService {
                 .setOpplysninger(vedtak.getOpplysninger())
                 .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak, fnr))
                 .setBrukerFnr(fnr);
-    }
-
-    private boolean skalHaBeslutter(Innsatsgruppe innsatsgruppe) {
-        return Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS == innsatsgruppe
-                || Innsatsgruppe.VARIG_TILPASSET_INNSATS == innsatsgruppe;
     }
 
     void validerUtkastForUtsending(Vedtak vedtak, Vedtak gjeldendeVedtak) {
