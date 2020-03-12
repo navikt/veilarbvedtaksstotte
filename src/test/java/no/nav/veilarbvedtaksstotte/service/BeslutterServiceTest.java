@@ -19,9 +19,11 @@ public class BeslutterServiceTest {
     public void skal_starte_beslutter_prosess_hvis_ikke_startet() {
         AuthService authService = mock(AuthService.class);
         VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
+        Vedtak vedtak = new Vedtak();
+        vedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
-        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(new Vedtak());
+        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
         BeslutterService beslutterService = new BeslutterService(authService, repository);
 
@@ -34,9 +36,12 @@ public class BeslutterServiceTest {
     public void skal_ikke_starte_beslutter_prosess_hvis_allerede_startet() {
         AuthService authService = mock(AuthService.class);
         VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
+        Vedtak vedtak = new Vedtak();
+        vedtak.setBeslutterProsessStartet(true);
+        vedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
-        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(new Vedtak().setBeslutterProsessStartet(true));
+        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
         BeslutterService beslutterService = new BeslutterService(authService, repository);
 
@@ -49,9 +54,11 @@ public class BeslutterServiceTest {
     public void skal_kaste_exception_for_start_beslutter_prosess_hvis_feil_innsatsgruppe() {
         AuthService authService = mock(AuthService.class);
         VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
+        Vedtak vedtak = new Vedtak();
+        vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
-        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(new Vedtak().setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS));
+        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
         BeslutterService beslutterService = new BeslutterService(authService, repository);
 
