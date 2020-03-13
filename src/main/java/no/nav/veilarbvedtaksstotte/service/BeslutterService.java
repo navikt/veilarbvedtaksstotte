@@ -1,9 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.apiapp.feil.Feil;
+import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.apiapp.feil.UgyldigRequest;
-import no.nav.veilarbvedtaksstotte.domain.*;
-import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils;
 import org.springframework.stereotype.Service;
@@ -23,9 +22,7 @@ public class BeslutterService {
 	}
 
 	public void startBeslutterProsess(String fnr) {
-		AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
-		String aktorId = authKontekst.getAktorId();
-
+		String aktorId = authService.sjekkTilgang(fnr).getAktorId();
 		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
 
 		authService.sjekkAnsvarligVeileder(vedtak);
@@ -36,6 +33,20 @@ public class BeslutterService {
 
 		if (!vedtak.isBeslutterProsessStartet()) {
 			vedtaksstotteRepository.setBeslutterProsessStartet(vedtak.getId());
+		}
+	}
+
+	public void bliBeslutter(String fnr) {
+		String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
+
+		if (innloggetVeilederIdent.equals(vedtak.getVeilederIdent())) {
+			throw new IngenTilgang("Ansvarlig veileder kan ikke bli beslutter");
+		}
+
+		if (!innloggetVeilederIdent.equals(vedtak.getBeslutterIdent())) {
+			vedtaksstotteRepository.setBeslutter(vedtak.getId(), innloggetVeilederIdent);
 		}
 	}
 

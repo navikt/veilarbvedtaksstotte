@@ -29,4 +29,10 @@ public class BeslutterResource {
 		beslutterService.startBeslutterProsess(fnr);
 	}
 
+	@POST
+	@Path("/bliBeslutter")
+	public void bliBeslutter(@PathParam("fnr") String fnr) {
+		beslutterService.bliBeslutter(fnr);
+	}
+
 }
