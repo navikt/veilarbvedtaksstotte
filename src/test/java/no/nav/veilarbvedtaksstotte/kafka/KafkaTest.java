@@ -35,26 +35,27 @@ public abstract class KafkaTest {
     private static KafkaMessageListenerContainer<String, String> container;
     protected static BlockingQueue<ConsumerRecord<String, String>> records;
 
+    private static String[] topics = KafkaTestConfig.TOPICS.toArray(new String[0]);
+
     @ClassRule
-    public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, KafkaTestConfig.KAFKA_TEST_TOPIC);
+    public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, topics);
 
     @BeforeClass
     public static void configureKafkaBroker() throws Exception {
         Map<String, Object> consumerProperties = KafkaTestUtils.consumerProps("template", "false", embeddedKafka);
         DefaultKafkaConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProperties);
-        ContainerProperties containerProperties = new ContainerProperties(KafkaTestConfig.KAFKA_TEST_TOPIC);
+        ContainerProperties containerProperties = new ContainerProperties(topics);
 
         container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
         records = new LinkedBlockingQueue<>();
         container.setupMessageListener((MessageListener<String, String>) record -> records.add(record));
         container.start();
-        ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic());
+        ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic() * topics.length);
 
         Map<String, Object> kafkaProps = producerProps(embeddedKafka);
         kafkaProps.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 
         kafkaTemplate = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(kafkaProps));
-        kafkaTemplate.setDefaultTopic(KafkaTestConfig.KAFKA_TEST_TOPIC);
 
         setProperty(KAFKA_BROKERS_URL_PROPERTY, embeddedKafka.getBrokersAsString(), PUBLIC);
     }
