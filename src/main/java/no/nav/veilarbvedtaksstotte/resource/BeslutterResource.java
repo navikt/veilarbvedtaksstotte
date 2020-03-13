@@ -35,4 +35,10 @@ public class BeslutterResource {
 		beslutterService.bliBeslutter(fnr);
 	}
 
+	@POST
+	@Path("/godkjenn")
+	public void godkjennVedtak(@PathParam("fnr") String fnr) {
+		beslutterService.setGodkjentAvBeslutter(fnr);
+	}
+
 }

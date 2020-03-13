@@ -128,6 +128,15 @@ public class VedtaksstotteRepository {
         }
     }
 
+    public void setGodkjentAvBeslutter(long vedtakId, boolean godkjent) {
+        String sql = "UPDATE VEDTAK SET GODKJENT_AV_BESLUTTER = ? WHERE ID = ?";
+        long itemsUpdated = db.update(sql, godkjent, vedtakId);
+
+        if (itemsUpdated == 0) {
+            throw new RuntimeException("Fant ikke utkast" + vedtakId);
+        }
+    }
+
     public Vedtak hentVedtak(long vedtakId) {
         return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(VEDTAK_ID, vedtakId))

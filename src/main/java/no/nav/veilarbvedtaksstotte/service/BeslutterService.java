@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 
+import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVeilederForVedtak;
+import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterForVedtak;
+
 @Service
 public class BeslutterService {
 
@@ -41,13 +44,27 @@ public class BeslutterService {
 		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
 		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
-		if (innloggetVeilederIdent.equals(vedtak.getVeilederIdent())) {
+		if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, vedtak)) {
 			throw new IngenTilgang("Ansvarlig veileder kan ikke bli beslutter");
 		}
 
-		if (!innloggetVeilederIdent.equals(vedtak.getBeslutterIdent())) {
+		if (!erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
 			vedtaksstotteRepository.setBeslutter(vedtak.getId(), innloggetVeilederIdent);
 		}
 	}
+
+    public void setGodkjentAvBeslutter(String fnr) {
+        String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+        Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+        String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
+
+        if (!erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
+            throw new IngenTilgang("Kun beslutter kan godkjenne vedtak");
+        }
+
+        if (!vedtak.isGodkjentAvBeslutter()) {
+            vedtaksstotteRepository.setGodkjentAvBeslutter(vedtak.getId(), true);
+        }
+    }
 
 }

@@ -34,6 +34,19 @@ public class VedtaksstotteRepositoryTest {
     }
 
     @Test
+    public void setGodkjentAvBeslutter_skal_sette_godkjent() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        vedtaksstotteRepository.setGodkjentAvBeslutter(utkast.getId(), true);
+
+        Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        assertTrue(oppdatertUtkast.isGodkjentAvBeslutter());
+    }
+
+    @Test
     public void skal_starteBeslutterProsess() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 

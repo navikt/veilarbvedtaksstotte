@@ -119,4 +119,40 @@ public class BeslutterServiceTest {
         verify(repository, never()).setBeslutter(anyLong(), eq(TEST_VEILEDER_IDENT));
     }
 
+    @Test
+    public void godkjennVedtak_skal_sette_godkjent() {
+        AuthService authService = mock(AuthService.class);
+        VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
+        Vedtak vedtak = new Vedtak();
+        vedtak.setBeslutterIdent(TEST_VEILEDER_IDENT);
+        vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
+
+        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
+
+        BeslutterService beslutterService = new BeslutterService(authService, repository);
+
+        beslutterService.setGodkjentAvBeslutter(TEST_FNR);
+
+        verify(repository, atLeastOnce()).setGodkjentAvBeslutter(anyLong(), eq(true));
+    }
+
+    @Test
+    public void godkjennVedtak_skal_kaste_exception_hvis_ikke_beslutter() {
+        AuthService authService = mock(AuthService.class);
+        VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
+        Vedtak vedtak = new Vedtak();
+        vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
+        vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
+
+        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
+
+        BeslutterService beslutterService = new BeslutterService(authService, repository);
+
+        assertThrows(IngenTilgang.class, () -> beslutterService.setGodkjentAvBeslutter(TEST_FNR));
+    }
+
 }
