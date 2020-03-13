@@ -45,9 +45,7 @@ public class BeslutterServiceTest {
 
         BeslutterService beslutterService = new BeslutterService(authService, repository);
 
-        beslutterService.startBeslutterProsess(TEST_FNR);
-
-        verify(repository, never()).setBeslutterProsessStartet(anyLong());
+        assertThrows(UgyldigRequest.class, () ->  beslutterService.startBeslutterProsess(TEST_FNR));
     }
 
     @Test
@@ -114,9 +112,7 @@ public class BeslutterServiceTest {
 
         BeslutterService beslutterService = new BeslutterService(authService, repository);
 
-        beslutterService.bliBeslutter(TEST_FNR);
-
-        verify(repository, never()).setBeslutter(anyLong(), eq(TEST_VEILEDER_IDENT));
+        assertThrows(UgyldigRequest.class, () ->  beslutterService.bliBeslutter(TEST_FNR));
     }
 
     @Test

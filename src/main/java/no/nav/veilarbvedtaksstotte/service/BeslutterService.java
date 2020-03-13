@@ -34,9 +34,11 @@ public class BeslutterService {
 		    throw new UgyldigRequest();
         }
 
-		if (!vedtak.isBeslutterProsessStartet()) {
-			vedtaksstotteRepository.setBeslutterProsessStartet(vedtak.getId());
+		if (vedtak.isBeslutterProsessStartet()) {
+			throw new UgyldigRequest();
 		}
+
+		vedtaksstotteRepository.setBeslutterProsessStartet(vedtak.getId());
 	}
 
 	public void bliBeslutter(String fnr) {
@@ -48,9 +50,11 @@ public class BeslutterService {
 			throw new IngenTilgang("Ansvarlig veileder kan ikke bli beslutter");
 		}
 
-		if (!erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
-			vedtaksstotteRepository.setBeslutter(vedtak.getId(), innloggetVeilederIdent);
+		if (erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
+			throw new UgyldigRequest();
 		}
+
+		vedtaksstotteRepository.setBeslutter(vedtak.getId(), innloggetVeilederIdent);
 	}
 
     public void setGodkjentAvBeslutter(String fnr) {
@@ -62,9 +66,11 @@ public class BeslutterService {
             throw new IngenTilgang("Kun beslutter kan godkjenne vedtak");
         }
 
-        if (!vedtak.isGodkjentAvBeslutter()) {
-            vedtaksstotteRepository.setGodkjentAvBeslutter(vedtak.getId(), true);
+        if (vedtak.isGodkjentAvBeslutter()) {
+			throw new UgyldigRequest();
         }
+
+		vedtaksstotteRepository.setGodkjentAvBeslutter(vedtak.getId(), true);
     }
 
 }
