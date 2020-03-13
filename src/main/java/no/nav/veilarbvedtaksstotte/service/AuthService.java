@@ -47,6 +47,12 @@ public class AuthService {
                 .setOppfolgingsenhet(enhet);
     }
 
+    public String getInnloggetVeilederIdent() {
+        return SubjectHandler
+                .getIdent()
+                .orElseThrow(() -> new IngenTilgang("Fant ikke ident for innlogget veileder"));
+    }
+
     private void sjekkInternBruker() {
         SubjectHandler
                 .getIdentType()

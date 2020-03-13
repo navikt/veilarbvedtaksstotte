@@ -119,6 +119,24 @@ public class VedtaksstotteRepository {
         }
     }
 
+    public void setBeslutter(long vedtakId, String beslutterIdent) {
+        String sql = "UPDATE VEDTAK SET BESLUTTER_IDENT = ? WHERE ID = ?";
+        long itemsUpdated = db.update(sql, beslutterIdent, vedtakId);
+
+        if (itemsUpdated == 0) {
+            throw new RuntimeException("Fant ikke utkast å sette beslutter for " + vedtakId);
+        }
+    }
+
+    public void setGodkjentAvBeslutter(long vedtakId, boolean godkjent) {
+        String sql = "UPDATE VEDTAK SET GODKJENT_AV_BESLUTTER = ? WHERE ID = ?";
+        long itemsUpdated = db.update(sql, godkjent, vedtakId);
+
+        if (itemsUpdated == 0) {
+            throw new RuntimeException("Fant ikke utkast" + vedtakId);
+        }
+    }
+
     public Vedtak hentVedtak(long vedtakId) {
         return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(VEDTAK_ID, vedtakId))

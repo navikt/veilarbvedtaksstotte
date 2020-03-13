@@ -47,6 +47,19 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
     }
 
     @Test
+    public void skal_feile_hvis_beslutterprosess_startet_men_ikke_godkjent() {
+        exceptionRule.expectMessage("Vedtak er ikke godkjent av beslutter");
+
+        Vedtak vedtak = new Vedtak();
+        vedtak.setInnsatsgruppe(Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
+        vedtak.setBeslutterProsessStartet(true);
+        vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
+        vedtak.setGodkjentAvBeslutter(false);
+
+        vedtakService.validerUtkastForUtsending(vedtak, null);
+    }
+
+    @Test
     public void skal_feile_hvis_vedtak_med_gradert_varig_mangler_beslutter() {
         exceptionRule.expectMessage("Vedtak kan ikke bli sendt uten beslutter");
 
@@ -104,6 +117,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
+        vedtak.setGodkjentAvBeslutter(true);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
 

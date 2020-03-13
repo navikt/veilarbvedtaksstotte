@@ -263,8 +263,12 @@ public class VedtakService {
             throw new IllegalStateException("Vedtak mangler innsatsgruppe");
         }
 
-        if (skalHaBeslutter(innsatsgruppe) && vedtak.getBeslutterIdent() == null) {
-            throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
+        if (skalHaBeslutter(innsatsgruppe) || vedtak.isBeslutterProsessStartet()) {
+            if (vedtak.getBeslutterIdent() == null) {
+                throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
+            } else if (!vedtak.isGodkjentAvBeslutter()) {
+                throw new IllegalStateException("Vedtak er ikke godkjent av beslutter");
+            }
         }
 
         if (vedtak.getOpplysninger() == null || vedtak.getOpplysninger().isEmpty()) {
