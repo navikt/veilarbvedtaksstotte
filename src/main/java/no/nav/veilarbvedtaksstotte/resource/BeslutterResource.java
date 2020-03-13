@@ -1,8 +1,7 @@
 package no.nav.veilarbvedtaksstotte.resource;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.domain.SendBeslutterOppgaveDTO;
-import no.nav.veilarbvedtaksstotte.service.BeslutterOppgaveService;
+import no.nav.veilarbvedtaksstotte.service.BeslutterService;
 import org.springframework.stereotype.Controller;
 
 import javax.inject.Inject;
@@ -17,17 +16,17 @@ import javax.ws.rs.Produces;
 @Path("/{fnr}/beslutter")
 public class BeslutterResource {
 
-	private BeslutterOppgaveService beslutterOppgaveService;
+	private BeslutterService beslutterService;
 
 	@Inject
-	public BeslutterResource(BeslutterOppgaveService beslutterOppgaveService) {
-		this.beslutterOppgaveService = beslutterOppgaveService;
+	public BeslutterResource(BeslutterService beslutterService) {
+		this.beslutterService = beslutterService;
 	}
 
 	@POST
-	@Path("/send")
-	public void sendBeslutterOppgave(@PathParam("fnr") String fnr, SendBeslutterOppgaveDTO sendBeslutterOppgaveDTO) {
-		beslutterOppgaveService.sendBeslutterOppgave(sendBeslutterOppgaveDTO, fnr);
+	@Path("/start")
+	public void startBeslutterProsess(@PathParam("fnr") String fnr) {
+		beslutterService.startBeslutterProsess(fnr);
 	}
 
 }

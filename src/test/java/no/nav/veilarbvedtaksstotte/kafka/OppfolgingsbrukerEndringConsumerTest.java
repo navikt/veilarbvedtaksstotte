@@ -19,12 +19,12 @@ public class OppfolgingsbrukerEndringConsumerTest extends KafkaTest {
     VedtakService vedtakService;
 
     @Test
-    public void meldinger_for_endret_oppfolgingsbruker_blir_konsumert() throws Exception {
+    public void meldinger_for_endret_oppfolgingsbruker_blir_konsumert() {
 
         KafkaOppfolgingsbrukerEndring melding = new KafkaOppfolgingsbrukerEndring("1", "2");
 
         send(KAFKA_TEST_TOPIC, toJson(melding));
-        verifiserAsynkront(5, TimeUnit.SECONDS, () ->
+        verifiserAsynkront(10, TimeUnit.SECONDS, () ->
                 verify(vedtakService).behandleOppfolgingsbrukerEndring(eq(melding))
         );
     }

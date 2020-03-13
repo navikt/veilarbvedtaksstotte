@@ -13,6 +13,7 @@ import java.util.List;
 @Accessors(chain = true)
 public class Vedtak {
     long id;
+    String aktorId;
     Hovedmal hovedmal;
     Innsatsgruppe innsatsgruppe;
     VedtakStatus vedtakStatus;
@@ -23,10 +24,11 @@ public class Vedtak {
     String veilederNavn;
     String oppfolgingsenhetId;
     String oppfolgingsenhetNavn;
-    String aktorId;
+    String beslutterIdent;
     String beslutterNavn;
+    boolean beslutterProsessStartet;
+    boolean godkjentAvBeslutter;
     boolean gjeldende;
-    boolean sendtTilBeslutter;
     List<String> opplysninger;
     String journalpostId;
     String dokumentInfoId;

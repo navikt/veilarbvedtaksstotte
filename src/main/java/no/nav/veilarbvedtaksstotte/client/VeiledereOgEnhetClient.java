@@ -29,13 +29,6 @@ public class VeiledereOgEnhetClient extends BaseClient {
                 .getNavn();
     }
 
-    public VeilederePaEnhetDTO hentVeilederePaEnhet(String enhetId) {
-        return get(joinPaths(baseUrl, "api", "enhet", enhetId, "veiledere"), VeilederePaEnhetDTO.class)
-                .withStatusCheck()
-                .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarbveileder/api/enhet/{enhetId}/veiledere"));
-    }
-
     @Cacheable(CacheConfig.VEILEDER_CACHE_NAME)
     public Veileder hentVeileder(String veilederIdent) {
         return get(joinPaths(baseUrl, "api", "veileder", veilederIdent), Veileder.class)

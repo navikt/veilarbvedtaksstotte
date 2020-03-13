@@ -16,8 +16,6 @@ import static no.nav.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA_API_PR
 import static no.nav.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA;
 import static no.nav.veilarbvedtaksstotte.client.EgenvurderingClient.VEILARBVEDTAKINFO;
 import static no.nav.veilarbvedtaksstotte.client.EgenvurderingClient.EGENVURDERING_API_PROPERTY_NAME;
-import static no.nav.veilarbvedtaksstotte.client.OppgaveClient.OPPGAVE;
-import static no.nav.veilarbvedtaksstotte.client.OppgaveClient.OPPGAVE_API_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER;
 import static no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER_API_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING;
@@ -58,10 +56,8 @@ public class Main {
         if (EnvironmentUtils.requireEnvironmentName().equalsIgnoreCase("q1")) {
             String pamCVUrl = lagClusterUrl(PAM_CV_API).replace("q1", "q0");
             setProperty(CV_API_PROPERTY_NAME, pamCVUrl);
-            setProperty(OPPGAVE_API_PROPERTY_NAME, "https://oppgave.nais.preprod.local");
         } else {
             setProperty(CV_API_PROPERTY_NAME, lagClusterUrl(PAM_CV_API));
-            setProperty(OPPGAVE_API_PROPERTY_NAME, lagClusterUrl(OPPGAVE, false));
         }
 
         ApiApp.startApiApp(ApplicationConfig.class, args);

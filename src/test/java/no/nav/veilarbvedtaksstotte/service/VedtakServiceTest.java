@@ -142,7 +142,7 @@ public class VedtakServiceTest {
             vedtakService.oppdaterUtkast(TEST_FNR, oppdaterDto);
             assertOppdatertUtkast(oppdaterDto);
 
-            vedtakService.sendVedtak(TEST_FNR, TEST_BESLUTTER);
+            vedtakService.sendVedtak(TEST_FNR);
             assertSendtVedtak();
         });
     }
@@ -157,7 +157,6 @@ public class VedtakServiceTest {
         assertEquals(TEST_OPPFOLGINGSENHET_ID, opprettetUtkast.getOppfolgingsenhetId());
         assertEquals(TEST_OPPFOLGINGSENHET_NAVN, opprettetUtkast.getOppfolgingsenhetNavn());
         assertFalse(opprettetUtkast.isGjeldende());
-        assertFalse(opprettetUtkast.isSendtTilBeslutter());
         assertEquals(opprettetUtkast.getOpplysninger().size(), 0);
     }
 
@@ -178,7 +177,6 @@ public class VedtakServiceTest {
         assertEquals(VedtakStatus.SENDT, sendtVedtak.getVedtakStatus());
         assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
         assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
-        assertEquals(TEST_BESLUTTER, sendtVedtak.getBeslutterNavn());
         assertTrue(sendtVedtak.isGjeldende());
 
         List<Oyeblikksbilde> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(TEST_FNR, sendtVedtak.getId());
@@ -235,7 +233,7 @@ public class VedtakServiceTest {
             when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
             assertThatThrownBy(() ->
-                    vedtakService.sendVedtak(TEST_FNR, TEST_BESLUTTER)
+                    vedtakService.sendVedtak(TEST_FNR)
             ).isExactlyInstanceOf(IngenTilgang.class);
         });
     }

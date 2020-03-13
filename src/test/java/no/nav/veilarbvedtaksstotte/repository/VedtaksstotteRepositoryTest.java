@@ -34,6 +34,19 @@ public class VedtaksstotteRepositoryTest {
     }
 
     @Test
+    public void skal_starteBeslutterProsess() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        vedtaksstotteRepository.setBeslutterProsessStartet(utkast.getId());
+
+        Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        assertTrue(oppdatertUtkast.isBeslutterProsessStartet());
+    }
+
+    @Test
     public void testSlettUtkast() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
@@ -63,43 +76,6 @@ public class VedtaksstotteRepositoryTest {
     }
 
     @Test
-    public void testUtkastTilSendtVedtakMedBeslutterFlyt() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-
-        utkast.setBegrunnelse(TEST_BEGRUNNELSE);
-        utkast.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
-        utkast.setHovedmal(Hovedmal.SKAFFE_ARBEID);
-
-        vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
-
-        kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
-
-        vedtaksstotteRepository.markerUtkastSomSendtTilBeslutter(TEST_AKTOR_ID, TEST_BESLUTTER);
-
-        DokumentSendtDTO dokumentSendtDTO = new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
-
-        vedtaksstotteRepository.ferdigstillVedtak(utkast.getId(), dokumentSendtDTO, TEST_BESLUTTER);
-
-        Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
-
-        assertNotNull(fattetVedtak);
-
-        assertTrue(fattetVedtak.isGjeldende());
-
-        assertTrue(fattetVedtak.isSendtTilBeslutter());
-        assertEquals(fattetVedtak.getBeslutterNavn(), TEST_BESLUTTER);
-
-        assertEquals(fattetVedtak.getBegrunnelse(), TEST_BEGRUNNELSE);
-        assertEquals(fattetVedtak.getInnsatsgruppe(), Innsatsgruppe.STANDARD_INNSATS);
-        assertEquals(fattetVedtak.getHovedmal(), Hovedmal.SKAFFE_ARBEID);
-
-        assertEquals(fattetVedtak.getJournalpostId(), dokumentSendtDTO.getJournalpostId());
-        assertEquals(fattetVedtak.getDokumentInfoId(), dokumentSendtDTO.getDokumentId());
-    }
-
-    @Test
     public void testSettGjeldendeTilHistorisk() {
 
         DokumentSendtDTO dokumentSendtDTO = new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
@@ -113,15 +89,9 @@ public class VedtaksstotteRepositoryTest {
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
         kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
-        vedtaksstotteRepository.ferdigstillVedtak(utkast.getId(), dokumentSendtDTO, TEST_BESLUTTER);
+        vedtaksstotteRepository.ferdigstillVedtak(utkast.getId(), dokumentSendtDTO);
 
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID);
-
-        List<Vedtak> alleVedtak = vedtaksstotteRepository.hentVedtak(TEST_AKTOR_ID);
-
-        alleVedtak.forEach((v) -> {
-            System.out.println(v.toString());
-        });
 
         Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
 

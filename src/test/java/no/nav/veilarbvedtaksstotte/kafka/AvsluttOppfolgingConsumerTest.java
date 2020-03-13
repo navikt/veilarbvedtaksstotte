@@ -20,12 +20,12 @@ public class AvsluttOppfolgingConsumerTest extends KafkaTest {
     VedtakService vedtakService;
 
     @Test
-    public void meldinger_for_avslutt_oppfolging_blir_konsumert() throws Exception {
+    public void meldinger_for_avslutt_oppfolging_blir_konsumert() {
 
         KafkaAvsluttOppfolging melding = new KafkaAvsluttOppfolging("1", new Date());
 
         send(KAFKA_TEST_TOPIC, toJson(melding));
-        verifiserAsynkront(5, TimeUnit.SECONDS, () ->
+        verifiserAsynkront(10, TimeUnit.SECONDS, () ->
                 verify(vedtakService).behandleAvsluttOppfolging(eq(melding))
         );
     }
