@@ -13,6 +13,7 @@ public class TestData {
     public final static String TEST_VEILEDER_NAVN = "Veileder Veilederen";
     public final static String TEST_OPPFOLGINGSENHET_ID = "1234";
     public final static String TEST_OPPFOLGINGSENHET_NAVN = "NAV Testheim";
+    public final static String TEST_DIALOG_MELDING = "Dette er en melding";
 
     public final static List<String> TEST_KILDER = Arrays.asList("Kilde1", "Kilde2");
 
