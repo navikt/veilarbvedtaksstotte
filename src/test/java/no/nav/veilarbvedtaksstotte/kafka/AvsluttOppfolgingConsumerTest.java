@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import static no.nav.veilarbvedtaksstotte.kafka.KafkaTestConfig.KAFKA_TEST_TOPIC;
+import static no.nav.veilarbvedtaksstotte.kafka.KafkaTestConfig.TEST_AVSLUTT_OPPFOLGING_TOPIC_NAME;
 import static no.nav.json.JsonUtils.toJson;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -24,7 +24,7 @@ public class AvsluttOppfolgingConsumerTest extends KafkaTest {
 
         KafkaAvsluttOppfolging melding = new KafkaAvsluttOppfolging("1", new Date());
 
-        send(KAFKA_TEST_TOPIC, toJson(melding));
+        send(TEST_AVSLUTT_OPPFOLGING_TOPIC_NAME, toJson(melding));
         verifiserAsynkront(10, TimeUnit.SECONDS, () ->
                 verify(vedtakService).behandleAvsluttOppfolging(eq(melding))
         );
