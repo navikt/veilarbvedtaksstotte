@@ -22,8 +22,8 @@ public class DbTestUtils {
             KILDE_TABLE,
             VEDTAK_SENDT_KAFKA_FEIL_TABLE,
             OYEBLIKKSBILDE_TABLE,
-            VEDTAK_TABLE,
-            DIALOG_MELDING_TABLE
+            DIALOG_MELDING_TABLE,
+            VEDTAK_TABLE
     );
 
     public static void testMigrate (DataSource dataSource) {
