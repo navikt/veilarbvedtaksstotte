@@ -1,9 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
-import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
-import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
-import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.repository.*;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -12,6 +9,7 @@ import org.springframework.context.annotation.Import;
         VedtaksstotteRepository.class,
         KafkaRepository.class,
         OyeblikksbildeRepository.class,
-        KilderRepository.class
+        KilderRepository.class,
+        DialogRepository.class
 })
 public class RepositoryConfig {}
