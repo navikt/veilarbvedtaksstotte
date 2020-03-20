@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.resource;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.domain.DialogMelding;
+import no.nav.veilarbvedtaksstotte.domain.DialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.domain.OpprettDialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.service.DialogService;
 import org.springframework.stereotype.Controller;
@@ -25,7 +25,7 @@ public class DialogResource {
 
     @GET
     @Path("/")
-    public List<DialogMelding> hentDialogMeldinger(@PathParam("fnr") String fnr) {
+    public List<DialogMeldingDTO> hentDialogMeldinger(@PathParam("fnr") String fnr) {
         return dialogService.hentDialogMeldinger(fnr);
     }
 
