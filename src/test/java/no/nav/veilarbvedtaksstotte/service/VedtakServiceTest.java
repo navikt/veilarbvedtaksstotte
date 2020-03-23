@@ -37,11 +37,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -84,7 +87,7 @@ public class VedtakServiceTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         kafkaRepository = new KafkaRepository(db);
 
@@ -115,6 +118,7 @@ public class VedtakServiceTest {
         when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT);
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
+        reset(dokumentClient);
         when(dokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
         when(kafkaTemplate.send(any(), any(), any())).thenReturn(new AsyncResult(null));
         when(cvClient.hentCV(TEST_FNR)).thenReturn(CV_DATA);
@@ -148,9 +152,7 @@ public class VedtakServiceTest {
     }
 
     private void assertNyttUtkast() {
-        List<Vedtak> opprettetUtkastListe = vedtakService.hentVedtak(TEST_FNR);
-        assertEquals(opprettetUtkastListe.size(), 1);
-        Vedtak opprettetUtkast = opprettetUtkastListe.get(0);
+        Vedtak opprettetUtkast = hentVedtak();
         assertEquals(VedtakStatus.UTKAST, opprettetUtkast.getVedtakStatus());
         assertEquals(TEST_VEILEDER_IDENT, opprettetUtkast.getVeilederIdent());
         assertEquals(TEST_VEILEDER_NAVN, opprettetUtkast.getVeilederNavn());
@@ -158,12 +160,17 @@ public class VedtakServiceTest {
         assertEquals(TEST_OPPFOLGINGSENHET_NAVN, opprettetUtkast.getOppfolgingsenhetNavn());
         assertFalse(opprettetUtkast.isGjeldende());
         assertEquals(opprettetUtkast.getOpplysninger().size(), 0);
+        assertFalse(opprettetUtkast.isSender());
+    }
+
+    private Vedtak hentVedtak() {
+        List<Vedtak> vedtakList = vedtakService.hentVedtak(TEST_FNR);
+        assertEquals(vedtakList.size(), 1);
+        return vedtakList.get(0);
     }
 
     private void assertOppdatertUtkast(VedtakDTO dto) {
-        List<Vedtak> oppdatertUtkastListe = vedtakService.hentVedtak(TEST_FNR);
-        assertEquals(oppdatertUtkastListe.size(), 1);
-        Vedtak oppdatertUtkast = oppdatertUtkastListe.get(0);
+        Vedtak oppdatertUtkast = hentVedtak();
         assertEquals(dto.getHovedmal(), oppdatertUtkast.getHovedmal());
         assertEquals(dto.getBegrunnelse(), oppdatertUtkast.getBegrunnelse());
         assertEquals(dto.getInnsatsgruppe(), oppdatertUtkast.getInnsatsgruppe());
@@ -171,13 +178,12 @@ public class VedtakServiceTest {
     }
 
     private void assertSendtVedtak() {
-        List<Vedtak> sendtVedtakListe = vedtakService.hentVedtak(TEST_FNR);
-        assertEquals(sendtVedtakListe.size(), 1);
-        Vedtak sendtVedtak = sendtVedtakListe.get(0);
+        Vedtak sendtVedtak = hentVedtak();
         assertEquals(VedtakStatus.SENDT, sendtVedtak.getVedtakStatus());
         assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
         assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
         assertTrue(sendtVedtak.isGjeldende());
+        assertFalse(sendtVedtak.isSender());
 
         List<Oyeblikksbilde> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(TEST_FNR, sendtVedtak.getId());
         assertThat(oyeblikksbilde, containsInAnyOrder(
@@ -235,6 +241,40 @@ public class VedtakServiceTest {
             assertThatThrownBy(() ->
                     vedtakService.sendVedtak(TEST_FNR)
             ).isExactlyInstanceOf(IngenTilgang.class);
+        });
+    }
+
+
+    @Test
+    public void sendVedtak__sender_ikke_mer_enn_en_gang() {
+        withSubject(() -> {
+            gittTilgang();
+            gittUtkastKlarForUtsendelse();
+
+            Future<?> submit1 = sendVedtakAsynk();
+            Future<?> submit2 = sendVedtakAsynk();
+
+            assertThatThrownBy(() -> {
+                submit1.get();
+                submit2.get();
+            }).matches(x -> x instanceof ExecutionException && x.getCause() instanceof IllegalStateException);
+
+            verify(dokumentClient, times(1)).sendDokument(any());
+        });
+    }
+
+    @Test
+    public void sendVedtak__korrekt_sender_tilstand_dersom_send_dokument_feiler() {
+        when(dokumentClient.sendDokument(any())).thenThrow(new RuntimeException());
+
+        gittUtkastKlarForUtsendelse();
+
+        withSubject(() -> {
+            gittTilgang();
+            assertThatThrownBy(() ->
+            vedtakService.sendVedtak(TEST_FNR)).isExactlyInstanceOf(RuntimeException.class);
+
+            assertFalse(hentVedtak().isSender());
         });
     }
 
@@ -305,5 +345,34 @@ public class VedtakServiceTest {
 
     private void withSubject(UnsafeRunnable runnable) {
         SubjectHandler.withSubject(new Subject(TEST_VEILEDER_IDENT, IdentType.InternBruker, SsoToken.oidcToken("token", new HashMap<>())), runnable);
+    }
+
+    private void gittUtkastKlarForUtsendelse() {
+        withSubject(() -> {
+            gittTilgang();
+            vedtakService.lagUtkast(TEST_FNR);
+
+            VedtakDTO oppdaterDto = new VedtakDTO()
+                    .setHovedmal(Hovedmal.SKAFFE_ARBEID)
+                    .setBegrunnelse("En begrunnelse")
+                    .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                    .setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
+
+            vedtakService.oppdaterUtkast(TEST_FNR, oppdaterDto);
+
+        });
+    }
+
+    ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private Future<?> sendVedtakAsynk() {
+        return executorService.submit(() -> {
+            when(dokumentClient.sendDokument(any())).thenAnswer(invocation -> {
+                Thread.sleep(100); // Simuler tregt API for å sende dokument
+                return new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
+            });
+            withSubject(() -> {
+                vedtakService.sendVedtak(TEST_FNR);
+            });
+        });
     }
 }

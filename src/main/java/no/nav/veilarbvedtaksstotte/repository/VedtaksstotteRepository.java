@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
+import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
@@ -18,13 +19,17 @@ import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 @Repository
 public class VedtaksstotteRepository {
 
     public final static String VEDTAK_TABLE           = "VEDTAK";
     private final static String VEDTAK_ID             = "ID";
+    private final static String SENDER                = "SENDER";
     private final static String AKTOR_ID              = "AKTOR_ID";
     private final static String HOVEDMAL              = "HOVEDMAL";
     private final static String INNSATSGRUPPE         = "INNSATSGRUPPE";
@@ -42,12 +47,14 @@ public class VedtaksstotteRepository {
     private final static String GJELDENDE             = "GJELDENDE";
 
     private final JdbcTemplate db;
-    private KilderRepository kilderRepository;
+    private final KilderRepository kilderRepository;
+    private final Transactor transactor;
 
     @Inject
-    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository) {
+    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository, Transactor transactor) {
         this.db = db;
         this.kilderRepository = kilderRepository;
+        this.transactor = transactor;
     }
 
     public Vedtak hentUtkastEllerFeil(String aktorId) {
@@ -163,6 +170,7 @@ public class VedtaksstotteRepository {
             .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
             .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
             .set(GJELDENDE, true)
+            .set(SENDER, false)
             .execute();
     }
 
@@ -195,10 +203,30 @@ public class VedtaksstotteRepository {
                 .execute();
     }
 
+    public void oppdaterSender(long vedtakId, boolean sender) {
+        transactor.inTransaction(() -> {
+            boolean lagretSender =
+                    Optional.ofNullable(
+                            db.queryForObject(
+                                    "SELECT " + SENDER + " FROM " + VEDTAK_TABLE + " WHERE " + VEDTAK_ID + " = ? FOR UPDATE",
+                                    (rs, rowNum) -> rs.getBoolean(SENDER), vedtakId))
+                            .orElse(false);
+
+            if (lagretSender == sender) {
+                throw new IllegalStateException(format("Utkast med id %s er %s under sending", vedtakId, lagretSender ? "allerede" : "ikke"));
+            }
+
+            SqlUtils.update(db, VEDTAK_TABLE)
+                    .whereEquals(VEDTAK_ID, vedtakId)
+                    .set(SENDER, sender)
+                    .execute();
+        });
+    }
+
     @SneakyThrows
     private static Vedtak mapVedtak(ResultSet rs) {
         return new Vedtak()
-                .setId(rs.getInt(VEDTAK_ID))
+                .setId(rs.getLong(VEDTAK_ID))
                 .setHovedmal(EnumUtils.valueOf(Hovedmal.class, rs.getString(HOVEDMAL)))
                 .setInnsatsgruppe(EnumUtils.valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
                 .setVedtakStatus(EnumUtils.valueOf(VedtakStatus.class, rs.getString(STATUS)))
@@ -213,7 +241,8 @@ public class VedtaksstotteRepository {
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
-                .setDokumentInfoId(rs.getString(DOKUMENT_ID));
+                .setDokumentInfoId(rs.getString(DOKUMENT_ID))
+                .setSender(rs.getBoolean(SENDER));
 
     }
 }

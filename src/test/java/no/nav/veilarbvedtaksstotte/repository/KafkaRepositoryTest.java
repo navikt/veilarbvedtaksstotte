@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
+import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
@@ -10,6 +11,8 @@ import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,15 +22,17 @@ import static org.junit.jupiter.api.Assertions.*;
 public class KafkaRepositoryTest {
 
     private static JdbcTemplate db;
+    private static Transactor transactor;
     private static KafkaRepository kafkaRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
+        transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         KilderRepository kilderRepository = new KilderRepository(db);
         kafkaRepository = new KafkaRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
     }
 
     @Before

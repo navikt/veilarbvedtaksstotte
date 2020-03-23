@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import lombok.SneakyThrows;
 import no.nav.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
@@ -44,7 +45,8 @@ public class VedtakService {
                          VeilederService veilederService,
                          MalTypeService malTypeService,
                          KafkaService kafkaService,
-                         MetricsService metricsService, Transactor transactor) {
+                         MetricsService metricsService,
+                         Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.kilderRepository = kilderRepository;
         this.oyeblikksbildeService = oyeblikksbildeService;
@@ -58,6 +60,7 @@ public class VedtakService {
         this.transactor = transactor;
     }
 
+    @SneakyThrows
     public DokumentSendtDTO sendVedtak(String fnr) {
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
@@ -74,25 +77,44 @@ public class VedtakService {
 
         oyeblikksbildeService.lagreOyeblikksbilde(fnr, vedtakId);
 
-        // TODO oppdater til ny status for "sender" + optimistic lock? Unngå potensielt å sende flere ganger
-        vedtaksstotteRepository.oppdaterUtkast(vedtakId, vedtak);
-
-        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, fnr);
-        DokumentSendtDTO dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
+        DokumentSendtDTO dokumentSendt = sendDokument(vedtak, fnr);
 
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
             vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendt);
         });
 
-        kafkaService.sendVedtak(vedtakId);
-        kafkaService.sendVedtakStatusEndring(vedtak, KafkaVedtakStatus.SENDT_TIL_BRUKER);
+        sendKafkaMeldingerForVedtakSendt(vedtak);
 
-        metricsService.rapporterVedtakSendt(vedtak);
-        metricsService.rapporterTidFraRegistrering(vedtak, aktorId, fnr);
-        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr);
+        rapporterMetrikkerForVedtakSendt(vedtak, fnr);
 
         return dokumentSendt;
+    }
+
+    private DokumentSendtDTO sendDokument(Vedtak vedtak, String fnr) {
+        // Oppdaterer vedtak til "sender" tilstand for å redusere risiko for dupliserte utsendelser av dokument.
+        vedtaksstotteRepository.oppdaterSender(vedtak.getId(), true);
+        DokumentSendtDTO dokumentSendt;
+        try {
+            SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, fnr);
+
+            dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
+        } catch (Exception e) {
+            vedtaksstotteRepository.oppdaterSender(vedtak.getId(), false);
+            throw e;
+        }
+        return dokumentSendt;
+    }
+
+    private void sendKafkaMeldingerForVedtakSendt(Vedtak vedtak) {
+        kafkaService.sendVedtak(vedtak.getId());
+        kafkaService.sendVedtakStatusEndring(vedtak, KafkaVedtakStatus.SENDT_TIL_BRUKER);
+    }
+
+    private void rapporterMetrikkerForVedtakSendt(Vedtak vedtak, String fnr) {
+        metricsService.rapporterVedtakSendt(vedtak);
+        metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr);
+        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr);
     }
 
     public void lagUtkast(String fnr) {
