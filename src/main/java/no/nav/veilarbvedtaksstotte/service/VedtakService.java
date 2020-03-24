@@ -229,7 +229,7 @@ public class VedtakService {
         }
     }
 
-    public void taOverUtkast(String fnr) {
+    public void taOverUtkast(String fnr, String taOverVedtakFor) {
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(authKontekst.getAktorId());
@@ -240,8 +240,12 @@ public class VedtakService {
             throw new BadRequestException("Veileder er allerede ansvarlig for utkast");
         }
 
-        utkast.setVeilederIdent(veilederId);
-
+        if (taOverVedtakFor.equals("veileder")) {
+            utkast.setVeilederIdent(veilederId);
+        } else if (taOverVedtakFor.equals("beslutter")){
+            utkast.setBeslutterIdent(veilederId);
+        }
+                                      
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
     }
 
