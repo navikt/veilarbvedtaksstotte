@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
+import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.DialogMelding;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
@@ -7,6 +8,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import java.util.List;
 
@@ -18,12 +20,14 @@ public class DialogRepositoryTest {
     private static JdbcTemplate db;
     private static DialogRepository dialogRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
+    private static Transactor transactor;
 
     @BeforeClass
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
+        transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         dialogRepository = new DialogRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db));
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
     }
 
     @Before

@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
@@ -32,4 +33,6 @@ public class Vedtak {
     List<String> opplysninger;
     String journalpostId;
     String dokumentInfoId;
+    @JsonIgnore
+    boolean sender;
 }

@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
+import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.*;
@@ -10,20 +11,24 @@ import java.util.Arrays;
 import java.util.List;
 
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class KilderRepositoryTest {
 
     private static JdbcTemplate db;
+    private static Transactor transactor;
     private static KilderRepository kilderRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
+        transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
     }
 
     @Before

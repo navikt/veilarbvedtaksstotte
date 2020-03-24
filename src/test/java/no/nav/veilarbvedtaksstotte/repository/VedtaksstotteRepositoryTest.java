@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
+import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
@@ -9,6 +10,7 @@ import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.*;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import java.util.List;
 
@@ -18,14 +20,16 @@ import static org.junit.Assert.*;
 public class VedtaksstotteRepositoryTest {
 
     private static JdbcTemplate db;
+    private static Transactor transactor;
     private static KilderRepository kilderRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
+        transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
     }
 
     @Before
