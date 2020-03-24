@@ -180,6 +180,7 @@ public class VedtaksstotteRepository {
             .set(HOVEDMAL, EnumUtils.getName(vedtak.getHovedmal()))
             .set(INNSATSGRUPPE, EnumUtils.getName(vedtak.getInnsatsgruppe()))
             .set(VEILEDER_IDENT, vedtak.getVeilederIdent())
+            .set(BESLUTTER_IDENT, vedtak.getBeslutterIdent())
             .set(OPPFOLGINGSENHET_ID, vedtak.getOppfolgingsenhetId())
             .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
             .set(BEGRUNNELSE, vedtak.getBegrunnelse())

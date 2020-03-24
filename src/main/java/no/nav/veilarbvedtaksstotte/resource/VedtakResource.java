@@ -98,9 +98,9 @@ public class VedtakResource {
     }
 
     @POST
-    @Path("/utkast/overta")
-    public void oppdaterUtkast(@PathParam("fnr") String fnr) {
-        vedtakService.taOverUtkast(fnr);
+    @Path("/utkast/overta/{taOverVedtakFor}")
+    public void oppdaterUtkast(@PathParam("fnr") String fnr, @PathParam("taOverVedtakFor") String taOverVedtakFor) {
+        vedtakService.taOverUtkast(fnr, taOverVedtakFor);
     }
 }
 

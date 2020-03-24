@@ -35,4 +35,5 @@ public class Vedtak {
     String dokumentInfoId;
     @JsonIgnore
     boolean sender;
+    String taOverVedtakFor;
 }

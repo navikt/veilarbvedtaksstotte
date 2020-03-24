@@ -286,7 +286,7 @@ public class VedtakServiceTest {
             vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
 
             assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
-            vedtakService.taOverUtkast(TEST_FNR);
+            vedtakService.taOverUtkast(TEST_FNR, "veileder");
             assertEquals(TEST_VEILEDER_IDENT, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
         });
     }
@@ -297,7 +297,7 @@ public class VedtakServiceTest {
             gittTilgang();
 
             assertThatThrownBy(() ->
-                    vedtakService.taOverUtkast(TEST_FNR)
+                    vedtakService.taOverUtkast(TEST_FNR, "veileder")
             ).isExactlyInstanceOf(NotFoundException.class);
         });
     }
@@ -307,7 +307,7 @@ public class VedtakServiceTest {
         when(pepClient.sjekkLesetilgangTilAktorId(TEST_AKTOR_ID)).thenThrow(new IngenTilgang());
 
         assertThatThrownBy(() ->
-                vedtakService.taOverUtkast(TEST_FNR)
+                vedtakService.taOverUtkast(TEST_FNR, "veileder")
         ).isExactlyInstanceOf(IngenTilgang.class);
     }
 
@@ -318,7 +318,7 @@ public class VedtakServiceTest {
             vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
             assertThatThrownBy(() ->
-                    vedtakService.taOverUtkast(TEST_FNR)
+                    vedtakService.taOverUtkast(TEST_FNR, "veileder")
             ).isExactlyInstanceOf(BadRequestException.class);
         });
     }
