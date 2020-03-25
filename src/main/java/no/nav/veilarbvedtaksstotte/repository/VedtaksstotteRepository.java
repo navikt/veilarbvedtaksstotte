@@ -2,15 +2,15 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.sbl.jdbc.Transactor;
+import no.nav.sbl.sql.DbConstants;
+import no.nav.sbl.sql.SqlUtils;
+import no.nav.sbl.sql.where.WhereClause;
 import no.nav.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
-import no.nav.sbl.sql.DbConstants;
-import no.nav.sbl.sql.SqlUtils;
-import no.nav.sbl.sql.where.WhereClause;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -48,12 +48,14 @@ public class VedtaksstotteRepository {
 
     private final JdbcTemplate db;
     private final KilderRepository kilderRepository;
+    private final DialogRepository dialogRepository;
     private final Transactor transactor;
 
     @Inject
-    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository, Transactor transactor) {
+    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository, DialogRepository dialogRepository, Transactor transactor) {
         this.db = db;
         this.kilderRepository = kilderRepository;
+        this.dialogRepository = dialogRepository;
         this.transactor = transactor;
     }
 
@@ -90,6 +92,7 @@ public class VedtaksstotteRepository {
             return false;
         }
 
+        dialogRepository.slettDialogMeldinger(vedtakUtenOpplysninger.getId());
         kilderRepository.slettKilder(vedtakUtenOpplysninger.getId());
 
         return SqlUtils

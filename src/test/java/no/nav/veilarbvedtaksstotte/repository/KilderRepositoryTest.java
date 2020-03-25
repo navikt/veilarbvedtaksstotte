@@ -3,24 +3,27 @@ package no.nav.veilarbvedtaksstotte.repository;
 import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import org.junit.*;
+import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import java.util.Arrays;
 import java.util.List;
 
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class KilderRepositoryTest {
 
     private static JdbcTemplate db;
     private static Transactor transactor;
     private static KilderRepository kilderRepository;
+    private static DialogRepository dialogRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
@@ -28,7 +31,8 @@ public class KilderRepositoryTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
+        dialogRepository = new DialogRepository(db);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, dialogRepository, transactor);
     }
 
     @Before

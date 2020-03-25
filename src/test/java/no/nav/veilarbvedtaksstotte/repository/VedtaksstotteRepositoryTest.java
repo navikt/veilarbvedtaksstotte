@@ -7,12 +7,11 @@ import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
-import org.junit.*;
-
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-
-import java.util.List;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.Assert.*;
@@ -22,6 +21,7 @@ public class VedtaksstotteRepositoryTest {
     private static JdbcTemplate db;
     private static Transactor transactor;
     private static KilderRepository kilderRepository;
+    private static DialogRepository dialogRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
@@ -29,7 +29,8 @@ public class VedtaksstotteRepositoryTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
+        dialogRepository = new DialogRepository(db);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, dialogRepository, transactor);
     }
 
     @Before
@@ -83,6 +84,8 @@ public class VedtaksstotteRepositoryTest {
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
+
+        dialogRepository.opprettDialogMelding(utkast.getId(), null, "Test");
 
         vedtaksstotteRepository.slettUtkast(TEST_AKTOR_ID);
 

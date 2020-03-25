@@ -27,7 +27,7 @@ public class DialogRepositoryTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         dialogRepository = new DialogRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), dialogRepository, transactor);
     }
 
     @Before

@@ -7,6 +7,8 @@ import no.nav.common.auth.SsoToken;
 import no.nav.common.auth.Subject;
 import no.nav.common.auth.SubjectHandler;
 import no.nav.dialogarena.aktor.AktorService;
+import no.nav.sbl.jdbc.Transactor;
+import no.nav.sbl.util.fn.UnsafeRunnable;
 import no.nav.veilarbvedtaksstotte.client.*;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
@@ -15,14 +17,9 @@ import no.nav.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.kafka.VedtakSendtTemplate;
 import no.nav.veilarbvedtaksstotte.kafka.VedtakStatusEndringTemplate;
-import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
-import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
-import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
-import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
-import no.nav.sbl.jdbc.Transactor;
-import no.nav.sbl.util.fn.UnsafeRunnable;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -44,7 +41,8 @@ import java.util.concurrent.Future;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -55,6 +53,7 @@ public class VedtakServiceTest {
 
     private static VedtaksstotteRepository vedtaksstotteRepository;
     private static KilderRepository kilderRepository;
+    private static DialogRepository dialogRepository;
     private static OyeblikksbildeRepository oyeblikksbildeRepository;
     private static KafkaRepository kafkaRepository;
 
@@ -87,7 +86,8 @@ public class VedtakServiceTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
+        dialogRepository = new DialogRepository(db);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, dialogRepository, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         kafkaRepository = new KafkaRepository(db);
 

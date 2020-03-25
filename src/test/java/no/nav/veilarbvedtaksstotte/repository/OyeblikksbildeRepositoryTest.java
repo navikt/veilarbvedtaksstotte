@@ -4,10 +4,12 @@ import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import org.junit.*;
+import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import java.util.Collections;
@@ -31,9 +33,8 @@ public class OyeblikksbildeRepositoryTest {
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
-        KilderRepository kilderRepository = new KilderRepository(db);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), new DialogRepository(db), transactor);
     }
 
     @Before
