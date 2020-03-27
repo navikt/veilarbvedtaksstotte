@@ -158,6 +158,7 @@ public class BeslutterServiceTest {
         VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
         Vedtak vedtak = new Vedtak();
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
+        vedtak.setVeilederIdent(TEST_VEILEDER_IDENT);
         vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_VEILEDER);
 
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
@@ -177,6 +178,7 @@ public class BeslutterServiceTest {
         VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
         Vedtak vedtak = new Vedtak();
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
+        vedtak.setVeilederIdent(TEST_VEILEDER_IDENT);
         vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
 
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
@@ -207,4 +209,21 @@ public class BeslutterServiceTest {
         assertThrows(Feil.class, () -> beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR));
     }
 
+    @Test
+    public void oppdaterBeslutterProsessStatus_skal_feile_hvis_bruker_ikke_er_beslutter_eller_veileder() {
+        AuthService authService = mock(AuthService.class);
+        VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
+        Vedtak vedtak = new Vedtak();
+        vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
+        vedtak.setVeilederIdent(TEST_VEILEDER_IDENT);
+        vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_VEILEDER);
+
+        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_IKKE_ANSVARLIG_VEILEDER_IDENT);
+        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
+
+        BeslutterService beslutterService = new BeslutterService(authService, repository);
+
+        assertThrows(IngenTilgang.class, () -> beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR));
+    }
 }

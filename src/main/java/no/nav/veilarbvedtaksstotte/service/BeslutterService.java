@@ -81,10 +81,15 @@ public class BeslutterService {
 		String aktorId = authService.sjekkTilgang(fnr).getAktorId();
 		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
 		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
+        BeslutterProsessStatus nyStatus;
 
-		BeslutterProsessStatus nyStatus = erBeslutterForVedtak(innloggetVeilederIdent, vedtak)
-				? BeslutterProsessStatus.KLAR_TIL_VEILEDER
-				: BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
+		if (erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
+		    nyStatus = BeslutterProsessStatus.KLAR_TIL_VEILEDER;
+        } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, vedtak)) {
+		    nyStatus =  BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
+        } else {
+		    throw new IngenTilgang("Kun ansvarlig veileder eller beslutter kan sette beslutter prosess status");
+        }
 
 		if (nyStatus == vedtak.getBeslutterProsessStatus()) {
 			throw new Feil(FeilType.UGYLDIG_REQUEST, "Vedtak har allerede beslutter prosess status " + EnumUtils.getName(nyStatus));
