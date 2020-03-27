@@ -1,9 +1,13 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.apiapp.feil.Feil;
+import no.nav.apiapp.feil.FeilType;
 import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.apiapp.feil.UgyldigRequest;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils;
 import org.springframework.stereotype.Service;
 
@@ -72,5 +76,26 @@ public class BeslutterService {
 
 		vedtaksstotteRepository.setGodkjentAvBeslutter(vedtak.getId(), true);
     }
+
+	public void oppdaterBeslutterProsessStatus(String fnr) {
+		String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
+        BeslutterProsessStatus nyStatus;
+
+		if (erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
+		    nyStatus = BeslutterProsessStatus.KLAR_TIL_VEILEDER;
+        } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, vedtak)) {
+		    nyStatus =  BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
+        } else {
+		    throw new IngenTilgang("Kun ansvarlig veileder eller beslutter kan sette beslutter prosess status");
+        }
+
+		if (nyStatus == vedtak.getBeslutterProsessStatus()) {
+			throw new Feil(FeilType.UGYLDIG_REQUEST, "Vedtak har allerede beslutter prosess status " + EnumUtils.getName(nyStatus));
+		}
+
+		vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), nyStatus);
+	}
 
 }

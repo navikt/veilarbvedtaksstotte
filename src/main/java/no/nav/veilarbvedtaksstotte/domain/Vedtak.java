@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
@@ -33,6 +34,8 @@ public class Vedtak {
     List<String> opplysninger;
     String journalpostId;
     String dokumentInfoId;
+    BeslutterProsessStatus beslutterProsessStatus;
+
     @JsonIgnore
     boolean sender;
 }

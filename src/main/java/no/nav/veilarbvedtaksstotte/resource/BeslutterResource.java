@@ -5,10 +5,7 @@ import no.nav.veilarbvedtaksstotte.service.BeslutterService;
 import org.springframework.stereotype.Controller;
 
 import javax.inject.Inject;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 
 @Slf4j
 @Controller
@@ -39,6 +36,12 @@ public class BeslutterResource {
 	@Path("/godkjenn")
 	public void godkjennVedtak(@PathParam("fnr") String fnr) {
 		beslutterService.setGodkjentAvBeslutter(fnr);
+	}
+
+	@PUT
+	@Path("/status")
+	public void oppdaterBeslutterProsessStatus(@PathParam("fnr") String fnr) {
+		beslutterService.oppdaterBeslutterProsessStatus(fnr);
 	}
 
 }

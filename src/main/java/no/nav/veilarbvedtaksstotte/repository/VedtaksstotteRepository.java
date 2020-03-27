@@ -8,6 +8,7 @@ import no.nav.sbl.sql.where.WhereClause;
 import no.nav.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
@@ -38,13 +39,14 @@ public class VedtaksstotteRepository {
     private final static String SIST_OPPDATERT        = "SIST_OPPDATERT";
     private final static String BESLUTTER_IDENT       = "BESLUTTER_IDENT";
     private final static String GODKJENT_AV_BESLUTTER = "GODKJENT_AV_BESLUTTER";
-    private final static String BESLUTTER_PROSESS_STARTET = "BESLUTTER_PROSESS_STARTET";
     private final static String UTKAST_OPPRETTET      = "UTKAST_OPPRETTET";
     private final static String BEGRUNNELSE           = "BEGRUNNELSE";
     private final static String STATUS                = "STATUS";
     private final static String DOKUMENT_ID           = "DOKUMENT_ID";
     private final static String JOURNALPOST_ID        = "JOURNALPOST_ID";
     private final static String GJELDENDE             = "GJELDENDE";
+    private final static String BESLUTTER_PROSESS_STARTET = "BESLUTTER_PROSESS_STARTET";
+    private final static String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
 
     private final JdbcTemplate db;
     private final KilderRepository kilderRepository;
@@ -118,6 +120,15 @@ public class VedtaksstotteRepository {
         });
 
         return vedtakListe;
+    }
+
+    public void setBeslutterProsessStatus(long vedtakId, BeslutterProsessStatus beslutterProsessStatus) {
+        String sql = "UPDATE VEDTAK SET BESLUTTER_PROSESS_STATUS = ?::BESLUTTER_PROSESS_STATUS_TYPE WHERE ID = ?";
+        long itemsUpdated = db.update(sql, EnumUtils.getName(beslutterProsessStatus), vedtakId);
+
+        if (itemsUpdated == 0) {
+            throw new RuntimeException("Fant ikke utkast å oppdatere beslutter prosess status for " + vedtakId);
+        }
     }
 
     public void setBeslutterProsessStartet(long vedtakId) {
@@ -245,7 +256,8 @@ public class VedtaksstotteRepository {
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
                 .setDokumentInfoId(rs.getString(DOKUMENT_ID))
-                .setSender(rs.getBoolean(SENDER));
+                .setSender(rs.getBoolean(SENDER))
+                .setBeslutterProsessStatus(EnumUtils.valueOf(BeslutterProsessStatus.class, rs.getString(BESLUTTER_PROSESS_STATUS)));
 
     }
 }
