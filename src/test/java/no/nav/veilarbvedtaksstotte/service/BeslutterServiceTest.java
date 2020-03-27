@@ -1,13 +1,14 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.apiapp.feil.Feil;
 import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.apiapp.feil.UgyldigRequest;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.junit.Test;
-
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -149,6 +150,61 @@ public class BeslutterServiceTest {
         BeslutterService beslutterService = new BeslutterService(authService, repository);
 
         assertThrows(IngenTilgang.class, () -> beslutterService.setGodkjentAvBeslutter(TEST_FNR));
+    }
+
+    @Test
+    public void oppdaterBeslutterProsessStatus_skal_sette_riktig_status_for_veileder() {
+        AuthService authService = mock(AuthService.class);
+        VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
+        Vedtak vedtak = new Vedtak();
+        vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
+        vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_VEILEDER);
+
+        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
+
+        BeslutterService beslutterService = new BeslutterService(authService, repository);
+
+        beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR);
+
+        verify(repository, atLeastOnce()).setBeslutterProsessStatus(anyLong(), eq(BeslutterProsessStatus.KLAR_TIL_BESLUTTER));
+    }
+
+    @Test
+    public void oppdaterBeslutterProsessStatus_skal_sette_riktig_status_for_beslutter() {
+        AuthService authService = mock(AuthService.class);
+        VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
+        Vedtak vedtak = new Vedtak();
+        vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
+        vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
+
+        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
+        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
+
+        BeslutterService beslutterService = new BeslutterService(authService, repository);
+
+        beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR);
+
+        verify(repository, atLeastOnce()).setBeslutterProsessStatus(anyLong(), eq(BeslutterProsessStatus.KLAR_TIL_VEILEDER));
+    }
+
+    @Test
+    public void oppdaterBeslutterProsessStatus_skal_feile_hvis_status_er_lik() {
+        AuthService authService = mock(AuthService.class);
+        VedtaksstotteRepository repository = mock(VedtaksstotteRepository.class);
+        Vedtak vedtak = new Vedtak();
+        vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
+        vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_VEILEDER);
+
+        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
+        when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
+
+        BeslutterService beslutterService = new BeslutterService(authService, repository);
+
+        assertThrows(Feil.class, () -> beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR));
     }
 
 }
