@@ -357,7 +357,7 @@ public class VedtakServiceTest {
     private Future<?> sendVedtakAsynk() {
         return executorService.submit(() -> {
             when(dokumentClient.sendDokument(any())).thenAnswer(invocation -> {
-                Thread.sleep(100); // Simuler tregt API for å sende dokument
+                Thread.sleep(1000); // Simuler tregt API for å sende dokument
                 return new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
             });
             withSubject(() -> {
