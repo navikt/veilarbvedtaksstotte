@@ -54,6 +54,7 @@ public class VedtakServiceTest {
     private static DialogRepository dialogRepository;
     private static OyeblikksbildeRepository oyeblikksbildeRepository;
     private static KafkaRepository kafkaRepository;
+    private static BeslutteroversiktRepository beslutteroversiktRepository;
 
     private static VedtakService vedtakService;
     private static OyeblikksbildeService oyeblikksbildeService;
@@ -82,23 +83,29 @@ public class VedtakServiceTest {
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
         dialogRepository = new DialogRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, dialogRepository, transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         kafkaRepository = new KafkaRepository(db);
+        beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
         authSerivce = new AuthService(aktorService, pepClient, arenaClient, veilederService);
         oyeblikksbildeService = new OyeblikksbildeService(authSerivce, oyeblikksbildeRepository, cvClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         kafkaService = new KafkaService(kafkaTemplate, kafkaRepository);
-        vedtakService = new VedtakService(vedtaksstotteRepository,
+        vedtakService = new VedtakService(
+                vedtaksstotteRepository,
                 kilderRepository,
                 oyeblikksbildeService,
+                dialogRepository,
+                beslutteroversiktRepository,
                 authSerivce,
                 dokumentClient,
                 null,
                 veilederService,
                 malTypeService,
-                vedtakStatusEndringService, transactor);
+                vedtakStatusEndringService,
+                transactor
+        );
     }
 
     @Before
@@ -199,6 +206,21 @@ public class VedtakServiceTest {
     }
 
     @Test
+    public void slettUtkast__skal_slette_utkast_med_data() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
+
+        dialogRepository.opprettDialogMelding(utkast.getId(), null, "Test");
+
+        vedtakService.slettUtkast(TEST_AKTOR_ID);
+
+        assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
+    }
+
+    @Test
     public void slettUtkast__feiler_for_veileder_som_ikke_er_satt_pa_utkast() {
         withSubject(() -> {
             gittTilgang();
@@ -208,7 +230,7 @@ public class VedtakServiceTest {
             when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
             assertThatThrownBy(() ->
-                    vedtakService.slettUtkast(TEST_FNR)
+                    vedtakService.slettUtkastForFnr(TEST_FNR)
             ).isExactlyInstanceOf(IngenTilgang.class);
         });
     }

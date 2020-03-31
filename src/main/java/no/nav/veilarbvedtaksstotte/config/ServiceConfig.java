@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
 		ArenaVedtakService.class,
 		BeslutterService.class,
 		DialogService.class,
-		VedtakStatusEndringService.class
+		VedtakStatusEndringService.class,
+		BeslutteroversiktService.class
 })
 public class ServiceConfig {}

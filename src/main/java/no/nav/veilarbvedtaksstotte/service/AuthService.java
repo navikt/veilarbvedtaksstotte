@@ -53,6 +53,11 @@ public class AuthService {
                 .orElseThrow(() -> new IngenTilgang("Fant ikke ident for innlogget veileder"));
     }
 
+    public String getFnrOrThrow(String aktorId) {
+        return aktorService.getFnr(aktorId)
+                .orElseThrow(() -> new IllegalArgumentException("Fant ikke fnr for aktørId"));
+    }
+
     private void sjekkInternBruker() {
         SubjectHandler
                 .getIdentType()
