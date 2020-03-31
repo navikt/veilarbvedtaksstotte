@@ -1,16 +1,15 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.veilarbvedtaksstotte.domain.FeiletKafkaMelding;
 import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
 import no.nav.veilarbvedtaksstotte.kafka.VedtakSendtTemplate;
 import no.nav.veilarbvedtaksstotte.kafka.VedtakStatusEndringTemplate;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.time.LocalDateTime;
 
 @Service
 public class KafkaService {
@@ -31,7 +30,6 @@ public class KafkaService {
     }
 
     public void sendVedtak(long vedtakId) {
-
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
 
         KafkaVedtakSendt vedtakSendt = new KafkaVedtakSendt()
@@ -45,24 +43,19 @@ public class KafkaService {
         vedtakSendtTemplate.send(vedtakSendt);
     }
 
-    public void sendTidligereFeiletVedtak(KafkaVedtakSendt kafkaVedtakSendt) {
-        vedtakSendtTemplate.sendTidligereFeilet(kafkaVedtakSendt);
+    public void sendVedtakStatusEndring(KafkaVedtakStatusEndring kafkaVedtakStatusEndring) {
+        vedtakStatusEndringTemplate.send(kafkaVedtakStatusEndring);
     }
 
-    public void sendVedtakStatusEndring(Vedtak vedtak, KafkaVedtakStatus status) {
-        KafkaVedtakStatusEndring vedtakStatus = new KafkaVedtakStatusEndring()
-                .setVedtakId(vedtak.getId())
-                .setAktorId(vedtak.getAktorId())
-                .setHovedmal(vedtak.getHovedmal())
-                .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setStatusEndretTidspunkt(LocalDateTime.now())
-                .setVedtakStatus(status);
-
-        vedtakStatusEndringTemplate.send(vedtakStatus);
-    }
-
-    public void sendTidligereFeiletVedtakStatusEndring(KafkaVedtakStatusEndring kafkaVedtakStatusEndring) {
-        vedtakStatusEndringTemplate.sendTidligereFeilet(kafkaVedtakStatusEndring);
+    public void sendTidligereFeiletMelding(FeiletKafkaMelding feiletKafkaMelding) {
+        switch (feiletKafkaMelding.getTopic()) {
+            case VEDTAK_SENDT:
+                vedtakSendtTemplate.sendTidligereFeilet(feiletKafkaMelding);
+                break;
+            case VEDTAK_STATUS_ENDRING:
+                vedtakStatusEndringTemplate.sendTidligereFeilet(feiletKafkaMelding);
+                break;
+        }
     }
 
 }

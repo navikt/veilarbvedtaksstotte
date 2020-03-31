@@ -72,7 +72,7 @@ public class VedtakServiceTest {
     private static VeilederService veilederService = mock(VeilederService.class);
     private static KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
     private static DokumentClient dokumentClient = mock(DokumentClient.class);
-    private static MetricsService metricsService = mock(MetricsService.class);
+    private static VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
     private static AktorService aktorService = mock(AktorService.class);
     private static PepClient pepClient = mock(PepClient.class);
     private static ArenaClient arenaClient = mock(ArenaClient.class);
@@ -106,9 +106,7 @@ public class VedtakServiceTest {
                 null,
                 veilederService,
                 malTypeService,
-                kafkaService,
-                metricsService,
-                transactor);
+                vedtakStatusEndringService, transactor);
     }
 
     @Before

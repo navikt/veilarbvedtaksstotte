@@ -1,14 +1,16 @@
 package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.veilarbvedtaksstotte.domain.FeiletKafkaMelding;
 import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
+import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import javax.inject.Inject;
 
-import static no.nav.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC_VEDTAK_SENDT;
 import static no.nav.json.JsonUtils.toJson;
+import static no.nav.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC_VEDTAK_SENDT;
 
 @Slf4j
 public class VedtakSendtTemplate {
@@ -25,37 +27,33 @@ public class VedtakSendtTemplate {
     }
 
     public void send(KafkaVedtakSendt vedtakSendt) {
-        send(vedtakSendt, false);
-    }
-
-    public void sendTidligereFeilet(KafkaVedtakSendt vedtakSendt) {
-        send(vedtakSendt, true);
-    }
-
-    private void send(KafkaVedtakSendt vedtakSendt, boolean harFeiletTidligere) {
-        final String serialisertBruker = toJson(vedtakSendt);
-        kafkaTemplate.send(topic, vedtakSendt.getAktorId(), serialisertBruker)
+        final String serialisertData = toJson(vedtakSendt);
+        kafkaTemplate.send(topic, vedtakSendt.getAktorId(), serialisertData)
                 .addCallback(
-                        sendResult -> onSuccess(vedtakSendt, harFeiletTidligere),
-                        throwable -> onError(throwable, vedtakSendt, harFeiletTidligere)
+                        sendResult -> {},
+                        throwable -> onError(throwable, vedtakSendt.getAktorId(), serialisertData)
                 );
     }
 
-    private void onSuccess(KafkaVedtakSendt vedtakSendt, boolean harFeiletTidligere) {
-        log.info("Publiserte melding for aktorId:" + vedtakSendt.getAktorId() + " på topic: " + KAFKA_TOPIC_VEDTAK_SENDT);
-
-        if (harFeiletTidligere) {
-            kafkaRepository.slettVedtakSendtKafkaFeil(vedtakSendt.getAktorId());
-        }
+    public void sendTidligereFeilet(FeiletKafkaMelding feiletKafkaMelding) {
+        kafkaTemplate.send(topic, feiletKafkaMelding.getKey(), feiletKafkaMelding.getJsonPayload())
+                .addCallback(
+                        sendResult -> onSuccess(feiletKafkaMelding),
+                        throwable -> onError(throwable)
+                );
     }
 
-    private void onError(Throwable throwable, KafkaVedtakSendt vedtakSendt, boolean harFeiletTidligere) {
-        log.error("Kunne ikke publisere melding for aktorId: " + vedtakSendt.getAktorId() +
-                " på topic: " + KAFKA_TOPIC_VEDTAK_SENDT + "\nERROR: " + throwable);
+    private void onSuccess(FeiletKafkaMelding feiletKafkaMelding) {
+        kafkaRepository.slettFeiletKafkaMelding(feiletKafkaMelding.getId());
+    }
 
-        if (!harFeiletTidligere) {
-            kafkaRepository.lagreVedtakSendtKafkaFeil(vedtakSendt);
-        }
+    private void onError(Throwable throwable) {
+        log.error("Kunne ikke publisere tidligere feilet melding på topic: " + KAFKA_TOPIC_VEDTAK_SENDT + "\nERROR: " + throwable);
+    }
+
+    private void onError(Throwable throwable, String key, String jsonPayload) {
+        log.error("Kunne ikke publisere tidligere feilet melding på topic: " + KAFKA_TOPIC_VEDTAK_SENDT + "\nERROR: " + throwable);
+        kafkaRepository.lagreFeiletKafkaMelding(KafkaTopic.VEDTAK_SENDT, key, jsonPayload);
     }
 
 }
