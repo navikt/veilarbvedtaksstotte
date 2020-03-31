@@ -15,8 +15,6 @@ import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
-import no.nav.veilarbvedtaksstotte.kafka.VedtakSendtTemplate;
-import no.nav.veilarbvedtaksstotte.kafka.VedtakStatusEndringTemplate;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
@@ -57,9 +55,6 @@ public class VedtakServiceTest {
     private static OyeblikksbildeRepository oyeblikksbildeRepository;
     private static KafkaRepository kafkaRepository;
 
-    private static VedtakSendtTemplate vedtakSendtTemplate;
-    private static VedtakStatusEndringTemplate vedtakStatusEndringTemplate;
-
     private static VedtakService vedtakService;
     private static OyeblikksbildeService oyeblikksbildeService;
     private static MalTypeService malTypeService;
@@ -72,7 +67,7 @@ public class VedtakServiceTest {
     private static VeilederService veilederService = mock(VeilederService.class);
     private static KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
     private static DokumentClient dokumentClient = mock(DokumentClient.class);
-    private static MetricsService metricsService = mock(MetricsService.class);
+    private static VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
     private static AktorService aktorService = mock(AktorService.class);
     private static PepClient pepClient = mock(PepClient.class);
     private static ArenaClient arenaClient = mock(ArenaClient.class);
@@ -91,13 +86,10 @@ public class VedtakServiceTest {
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         kafkaRepository = new KafkaRepository(db);
 
-        vedtakSendtTemplate = new VedtakSendtTemplate(kafkaTemplate, "vedtakSendt", kafkaRepository);
-        vedtakStatusEndringTemplate = new VedtakStatusEndringTemplate(kafkaTemplate, "vedtakStatusEndring", kafkaRepository);
-
         authSerivce = new AuthService(aktorService, pepClient, arenaClient, veilederService);
         oyeblikksbildeService = new OyeblikksbildeService(authSerivce, oyeblikksbildeRepository, cvClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
-        kafkaService = new KafkaService(vedtakSendtTemplate, vedtakStatusEndringTemplate, vedtaksstotteRepository);
+        kafkaService = new KafkaService(kafkaTemplate, kafkaRepository);
         vedtakService = new VedtakService(vedtaksstotteRepository,
                 kilderRepository,
                 oyeblikksbildeService,
@@ -106,9 +98,7 @@ public class VedtakServiceTest {
                 null,
                 veilederService,
                 malTypeService,
-                kafkaService,
-                metricsService,
-                transactor);
+                vedtakStatusEndringService, transactor);
     }
 
     @Before
@@ -367,7 +357,7 @@ public class VedtakServiceTest {
     private Future<?> sendVedtakAsynk() {
         return executorService.submit(() -> {
             when(dokumentClient.sendDokument(any())).thenAnswer(invocation -> {
-                Thread.sleep(100); // Simuler tregt API for å sende dokument
+                Thread.sleep(1000); // Simuler tregt API for å sende dokument
                 return new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
             });
             withSubject(() -> {

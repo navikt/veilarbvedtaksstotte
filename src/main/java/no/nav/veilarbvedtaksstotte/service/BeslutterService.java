@@ -19,13 +19,17 @@ import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterFo
 @Service
 public class BeslutterService {
 
-	private AuthService authService;
-	private VedtaksstotteRepository vedtaksstotteRepository;
+	private final AuthService authService;
+
+	private final VedtaksstotteRepository vedtaksstotteRepository;
+
+	private final VedtakStatusEndringService vedtakStatusEndringService;
 
 	@Inject
-	public BeslutterService(AuthService authService, VedtaksstotteRepository vedtaksstotteRepository) {
+	public BeslutterService(AuthService authService, VedtaksstotteRepository vedtaksstotteRepository, VedtakStatusEndringService vedtakStatusEndringService) {
 		this.authService = authService;
 		this.vedtaksstotteRepository = vedtaksstotteRepository;
+		this.vedtakStatusEndringService = vedtakStatusEndringService;
 	}
 
 	public void startBeslutterProsess(String fnr) {
@@ -43,6 +47,7 @@ public class BeslutterService {
 		}
 
 		vedtaksstotteRepository.setBeslutterProsessStartet(vedtak.getId());
+		vedtakStatusEndringService.beslutterProsessStartet(vedtak);
 	}
 
 	public void bliBeslutter(String fnr) {
@@ -59,6 +64,12 @@ public class BeslutterService {
 		}
 
 		vedtaksstotteRepository.setBeslutter(vedtak.getId(), innloggetVeilederIdent);
+
+		if (vedtak.getBeslutterIdent() == null) {
+			vedtakStatusEndringService.blittBeslutter(vedtak, innloggetVeilederIdent);
+		} else {
+			vedtakStatusEndringService.tattOverForBeslutter(vedtak, innloggetVeilederIdent);
+		}
 	}
 
     public void setGodkjentAvBeslutter(String fnr) {
@@ -75,6 +86,7 @@ public class BeslutterService {
         }
 
 		vedtaksstotteRepository.setGodkjentAvBeslutter(vedtak.getId(), true);
+        vedtakStatusEndringService.godkjentAvBeslutter(vedtak);
     }
 
 	public void oppdaterBeslutterProsessStatus(String fnr) {
@@ -96,6 +108,12 @@ public class BeslutterService {
 		}
 
 		vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), nyStatus);
+
+		if (nyStatus == BeslutterProsessStatus.KLAR_TIL_BESLUTTER) {
+			vedtakStatusEndringService.klarTilBeslutter(vedtak);
+		} else {
+			vedtakStatusEndringService.klarTilVeileder(vedtak);
+		}
 	}
 
 }

@@ -1,14 +1,13 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
+import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.veilarbvedtaksstotte.client.SAFClient;
+import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.enums.KafkaVedtakStatus;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
-import no.nav.sbl.jdbc.Transactor;
-import no.nav.veilarbvedtaksstotte.domain.*;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -31,8 +30,7 @@ public class VedtakService {
     private SAFClient safClient;
     private VeilederService veilederService;
     private MalTypeService malTypeService;
-    private KafkaService kafkaService;
-    private MetricsService metricsService;
+    private VedtakStatusEndringService vedtakStatusEndringService;
     private Transactor transactor;
 
     @Inject
@@ -44,8 +42,7 @@ public class VedtakService {
                          SAFClient safClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
-                         KafkaService kafkaService,
-                         MetricsService metricsService,
+                         VedtakStatusEndringService vedtakStatusEndringService,
                          Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.kilderRepository = kilderRepository;
@@ -55,8 +52,7 @@ public class VedtakService {
         this.safClient = safClient;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
-        this.kafkaService = kafkaService;
-        this.metricsService = metricsService;
+        this.vedtakStatusEndringService = vedtakStatusEndringService;
         this.transactor = transactor;
     }
 
@@ -84,9 +80,7 @@ public class VedtakService {
             vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendt);
         });
 
-        sendKafkaMeldingerForVedtakSendt(vedtak);
-
-        rapporterMetrikkerForVedtakSendt(vedtak, fnr);
+        vedtakStatusEndringService.vedtakSendt(vedtak, fnr);
 
         return dokumentSendt;
     }
@@ -106,17 +100,6 @@ public class VedtakService {
         return dokumentSendt;
     }
 
-    private void sendKafkaMeldingerForVedtakSendt(Vedtak vedtak) {
-        kafkaService.sendVedtak(vedtak.getId());
-        kafkaService.sendVedtakStatusEndring(vedtak, KafkaVedtakStatus.SENDT_TIL_BRUKER);
-    }
-
-    private void rapporterMetrikkerForVedtakSendt(Vedtak vedtak, String fnr) {
-        metricsService.rapporterVedtakSendt(vedtak);
-        metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr);
-        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr);
-    }
-
     public void lagUtkast(String fnr) {
 
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
@@ -131,9 +114,7 @@ public class VedtakService {
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
 
         vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId);
-
-        Vedtak opprettetUtkast = vedtaksstotteRepository.hentUtkast(aktorId);
-        kafkaService.sendVedtakStatusEndring(opprettetUtkast, KafkaVedtakStatus.UTKAST_OPPRETTET);
+        vedtakStatusEndringService.utkastOpprettet(vedtaksstotteRepository.hentUtkast(aktorId));
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
@@ -165,7 +146,6 @@ public class VedtakService {
     }
 
     public void slettUtkast(String fnr) {
-
         String aktorId = authService.sjekkTilgang(fnr).getAktorId();
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
         authService.sjekkAnsvarligVeileder(utkast);
@@ -175,8 +155,7 @@ public class VedtakService {
             kilderRepository.slettKilder(utkast.getId());
         });
 
-        kafkaService.sendVedtakStatusEndring(utkast, KafkaVedtakStatus.UTKAST_SLETTET);
-        metricsService.rapporterUtkastSlettet();
+        vedtakStatusEndringService.utkastSlettet(utkast);
     }
 
     public List<Vedtak> hentVedtak(String fnr) {
@@ -231,9 +210,7 @@ public class VedtakService {
 
     public void taOverUtkast(String fnr) {
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(authKontekst.getAktorId());
-
         String veilederId = veilederService.hentVeilederIdentFraToken();
 
         if (veilederId.equals(utkast.getVeilederIdent())) {
@@ -243,6 +220,7 @@ public class VedtakService {
         utkast.setVeilederIdent(veilederId);
 
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
+        vedtakStatusEndringService.tattOverForVeileder(utkast, veilederId);
     }
 
     private void flettInnVeilederNavn(List<Vedtak> vedtak) {

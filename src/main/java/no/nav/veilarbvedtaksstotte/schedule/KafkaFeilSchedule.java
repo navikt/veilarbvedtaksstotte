@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.schedule;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
-import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.domain.FeiletKafkaMelding;
+import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
 import no.nav.veilarbvedtaksstotte.service.KafkaService;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,14 +29,14 @@ public class KafkaFeilSchedule {
 
     @Scheduled(fixedDelay = SCHEDULE_DELAY, initialDelay = 60 * 1000)
     public void sendVedtakSendtFeiledeKafkaMeldinger() {
-        List<KafkaVedtakSendt> feiledeMeldinger = kafkaRepository.hentFeiledeVedtakSendt();
-        feiledeMeldinger.forEach(feiletMelding -> kafkaService.sendTidligereFeiletVedtak(feiletMelding));
+        List<FeiletKafkaMelding> feiledeMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(KafkaTopic.VEDTAK_SENDT);
+        feiledeMeldinger.forEach(feiletMelding -> kafkaService.sendTidligereFeilet(feiletMelding));
     }
 
     @Scheduled(fixedDelay = SCHEDULE_DELAY, initialDelay = 60 * 1000)
     public void sendVedtakStatusFeiledeKafkaMeldinger() {
-        List<KafkaVedtakStatusEndring> feiledeMeldinger = kafkaRepository.hentFeiledeVedtakStatusEndringer();
-        feiledeMeldinger.forEach(feiletMelding -> kafkaService.sendTidligereFeiletVedtakStatusEndring(feiletMelding));
+        List<FeiletKafkaMelding> feiledeMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(KafkaTopic.VEDTAK_STATUS_ENDRING);
+        feiledeMeldinger.forEach(feiletMelding -> kafkaService.sendTidligereFeilet(feiletMelding));
     }
 
 }
