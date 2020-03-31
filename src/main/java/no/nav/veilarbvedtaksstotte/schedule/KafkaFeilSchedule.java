@@ -30,13 +30,13 @@ public class KafkaFeilSchedule {
     @Scheduled(fixedDelay = SCHEDULE_DELAY, initialDelay = 60 * 1000)
     public void sendVedtakSendtFeiledeKafkaMeldinger() {
         List<FeiletKafkaMelding> feiledeMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(KafkaTopic.VEDTAK_SENDT);
-        feiledeMeldinger.forEach(feiletMelding -> kafkaService.sendTidligereFeiletMelding(feiletMelding));
+        feiledeMeldinger.forEach(feiletMelding -> kafkaService.sendTidligereFeilet(feiletMelding));
     }
 
     @Scheduled(fixedDelay = SCHEDULE_DELAY, initialDelay = 60 * 1000)
     public void sendVedtakStatusFeiledeKafkaMeldinger() {
         List<FeiletKafkaMelding> feiledeMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(KafkaTopic.VEDTAK_STATUS_ENDRING);
-        feiledeMeldinger.forEach(feiletMelding -> kafkaService.sendTidligereFeiletMelding(feiletMelding));
+        feiledeMeldinger.forEach(feiletMelding -> kafkaService.sendTidligereFeilet(feiletMelding));
     }
 
 }

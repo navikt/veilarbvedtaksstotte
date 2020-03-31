@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
@@ -94,11 +95,21 @@ public class VedtakStatusEndringService {
         setStatusEndringData(statusEndring, vedtak);
 
         kafkaService.sendVedtakStatusEndring(statusEndring);
-        kafkaService.sendVedtak(vedtak.getId());
+        kafkaService.sendVedtakSendt(lagKafkaVedtakSendt(vedtak));
 
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr);
         metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr);
+    }
+
+    private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {
+        return new KafkaVedtakSendt()
+                .setId(vedtak.getId())
+                .setAktorId(vedtak.getAktorId())
+                .setHovedmal(vedtak.getHovedmal())
+                .setInnsatsgruppe(vedtak.getInnsatsgruppe())
+                .setVedtakSendt(vedtak.getSistOppdatert())
+                .setEnhetId(vedtak.getOppfolgingsenhetId());
     }
 
     private KafkaVedtakStatusEndring lagVedtakStatusEndring(Vedtak vedtak, VedtakStatusEndring endring) {
