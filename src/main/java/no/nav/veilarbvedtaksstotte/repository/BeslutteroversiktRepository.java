@@ -13,6 +13,9 @@ import javax.inject.Inject;
 import java.sql.ResultSet;
 import java.util.List;
 
+import static java.lang.String.format;
+import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
+
 @Repository
 public class BeslutteroversiktRepository {
 
@@ -35,9 +38,9 @@ public class BeslutteroversiktRepository {
         this.db = db;
     }
 
-    public void upsertBruker(BeslutteroversiktBruker bruker) {
-        String sql = String.format(
-            "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?, ?) ON CONFLICT UPDATE",
+    public void lagBruker(BeslutteroversiktBruker bruker) {
+        String sql = format(
+            "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?, ?)",
             BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID, BRUKER_FORNAVN, BRUKER_ETTERNAVN,
             BRUKER_OPPFOLGINGSENHET_NAVN, BRUKER_FNR, VEDTAK_STARTET, STATUS, BESLUTTER_NAVN, VEILEDER_NAVN
         );
@@ -50,8 +53,35 @@ public class BeslutteroversiktRepository {
         );
     }
 
+    public void oppdaterStatus(long vedtakId, BeslutteroversiktStatus status) {
+        String sql = format(
+                "UPDATE %s SET %s = ?::BESLUTTER_OVERSIKT_STATUS_TYPE WHERE %s = ?",
+                BESLUTTEROVERSIKT_BRUKER_TABLE, STATUS, VEDTAK_ID
+        );
+
+        db.update(sql, getName(status), vedtakId);
+    }
+
+    public void oppdaterVeileder(long vedtakId, String veilederNavn) {
+        String sql = format(
+                "UPDATE %s SET %s = ? WHERE %s = ?",
+                BESLUTTEROVERSIKT_BRUKER_TABLE, VEILEDER_NAVN, VEDTAK_ID
+        );
+
+        db.update(sql, veilederNavn, vedtakId);
+    }
+
+    public void oppdaterBeslutter(long vedtakId, String beslutterNavn) {
+        String sql = format(
+                "UPDATE %s SET %s = ? WHERE %s = ?",
+                BESLUTTEROVERSIKT_BRUKER_TABLE, BESLUTTER_NAVN, VEDTAK_ID
+        );
+
+        db.update(sql, beslutterNavn, vedtakId);
+    }
+
     public List<BeslutteroversiktBruker> finnBrukere(int limit, int offset) {
-        String sql = String.format(
+        String sql = format(
                 "SELECT * FROM %s LIMIT %d OFFSET %d",
                 BESLUTTEROVERSIKT_BRUKER_TABLE, limit, offset
         );
@@ -60,7 +90,7 @@ public class BeslutteroversiktRepository {
     }
 
     public BeslutteroversiktBruker finnBrukerForVedtak(long vedtakId) {
-        String sql = String.format(
+        String sql = format(
                 "SELECT * FROM %s WHERE %s = ? LIMIT 1",
                 BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID
         );

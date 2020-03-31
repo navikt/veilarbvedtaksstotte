@@ -28,7 +28,7 @@ public class BeslutterServiceTest {
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         beslutterService.startBeslutterProsess(TEST_FNR);
 
@@ -46,7 +46,7 @@ public class BeslutterServiceTest {
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         assertThrows(UgyldigRequest.class, () ->  beslutterService.startBeslutterProsess(TEST_FNR));
     }
@@ -61,7 +61,7 @@ public class BeslutterServiceTest {
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         assertThrows(UgyldigRequest.class, () -> beslutterService.startBeslutterProsess(TEST_FNR));
     }
@@ -77,7 +77,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         beslutterService.bliBeslutter(TEST_FNR);
 
@@ -96,7 +96,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         assertThrows(IngenTilgang.class, () -> beslutterService.bliBeslutter(TEST_FNR));
     }
@@ -113,7 +113,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         assertThrows(UgyldigRequest.class, () ->  beslutterService.bliBeslutter(TEST_FNR));
     }
@@ -130,7 +130,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         beslutterService.setGodkjentAvBeslutter(TEST_FNR);
 
@@ -149,7 +149,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         assertThrows(IngenTilgang.class, () -> beslutterService.setGodkjentAvBeslutter(TEST_FNR));
     }
@@ -167,7 +167,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR);
 
@@ -187,7 +187,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR);
 
@@ -206,7 +206,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         assertThrows(Feil.class, () -> beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR));
     }
@@ -224,7 +224,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_IKKE_ANSVARLIG_VEILEDER_IDENT);
         when(repository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService);
+        BeslutterService beslutterService = new BeslutterService(authService, repository, vedtakStatusEndringService, beslutteroversiktRepository, veiledereOgEnhetClient, personClient);
 
         assertThrows(IngenTilgang.class, () -> beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR));
     }

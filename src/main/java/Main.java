@@ -1,32 +1,34 @@
 import no.nav.apiapp.ApiApp;
 import no.nav.common.nais.utils.NaisUtils;
-import no.nav.veilarbvedtaksstotte.config.ApplicationConfig;
 import no.nav.sbl.dialogarena.common.abac.pep.CredentialConstants;
 import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 import no.nav.sbl.util.EnvironmentUtils;
+import no.nav.veilarbvedtaksstotte.config.ApplicationConfig;
 
 import static java.lang.System.setProperty;
 import static no.nav.common.nais.utils.NaisUtils.getCredentials;
 import static no.nav.dialogarena.aktor.AktorConfig.AKTOER_ENDPOINT_URL;
-import static no.nav.veilarbvedtaksstotte.client.CVClient.PAM_CV_API;
+import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
+import static no.nav.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA;
+import static no.nav.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA_API_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.client.CVClient.CV_API_PROPERTY_NAME;
+import static no.nav.veilarbvedtaksstotte.client.CVClient.PAM_CV_API;
 import static no.nav.veilarbvedtaksstotte.client.DokumentClient.DOKUMENT_API_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.client.DokumentClient.VEILARBDOKUMENT;
-import static no.nav.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA_API_PROPERTY_NAME;
-import static no.nav.veilarbvedtaksstotte.client.ArenaClient.VEILARBARENA;
-import static no.nav.veilarbvedtaksstotte.client.EgenvurderingClient.VEILARBVEDTAKINFO;
 import static no.nav.veilarbvedtaksstotte.client.EgenvurderingClient.EGENVURDERING_API_PROPERTY_NAME;
-import static no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER;
-import static no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER_API_PROPERTY_NAME;
+import static no.nav.veilarbvedtaksstotte.client.EgenvurderingClient.VEILARBVEDTAKINFO;
 import static no.nav.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING;
 import static no.nav.veilarbvedtaksstotte.client.OppfolgingClient.VEILARBOPPFOLGING_API_PROPERTY_NAME;
-import static no.nav.veilarbvedtaksstotte.client.RegistreringClient.VEILARBREGISTRERING;
+import static no.nav.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON;
+import static no.nav.veilarbvedtaksstotte.client.PersonClient.VEILARBPERSON_API_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.client.RegistreringClient.REGISTRERING_API_PROPERTY_NAME;
+import static no.nav.veilarbvedtaksstotte.client.RegistreringClient.VEILARBREGISTRERING;
 import static no.nav.veilarbvedtaksstotte.client.SAFClient.SAF;
 import static no.nav.veilarbvedtaksstotte.client.SAFClient.SAF_API_PROPERTY_NAME;
+import static no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER;
+import static no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient.VEILARBVEILEDER_API_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.SECURITYTOKENSERVICE_URL;
 import static no.nav.veilarbvedtaksstotte.utils.UrlUtils.lagClusterUrl;
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 
 public class Main {
 
@@ -50,6 +52,7 @@ public class Main {
         setProperty(VEILARBARENA_API_PROPERTY_NAME, lagClusterUrl(VEILARBARENA));
         setProperty(SAF_API_PROPERTY_NAME, lagClusterUrl(SAF,false));
         setProperty(VEILARBOPPFOLGING_API_PROPERTY_NAME, lagClusterUrl(VEILARBOPPFOLGING));
+        setProperty(VEILARBPERSON_API_PROPERTY_NAME, lagClusterUrl(VEILARBPERSON));
 
         // PAM CV finnes ikke i Q1, gå mot Q0 istedenfor
         // Oppgave i Q1 ligger på default namespace
