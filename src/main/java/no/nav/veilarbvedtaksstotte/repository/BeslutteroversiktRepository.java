@@ -25,6 +25,7 @@ public class BeslutteroversiktRepository {
     private final static String BRUKER_FORNAVN                              = "BRUKER_FORNAVN";
     private final static String BRUKER_ETTERNAVN                            = "BRUKER_ETTERNAVN";
     private final static String BRUKER_OPPFOLGINGSENHET_NAVN                = "BRUKER_OPPFOLGINGSENHET_NAVN";
+    private final static String BRUKER_OPPFOLGINGSENHET_ID                  = "BRUKER_OPPFOLGINGSENHET_ID";
     private final static String BRUKER_FNR                                  = "BRUKER_FNR";
     private final static String VEDTAK_STARTET                              = "VEDTAK_STARTET";
     private final static String STATUS                                      = "STATUS";
@@ -112,6 +113,7 @@ public class BeslutteroversiktRepository {
                 .setBrukerFornavn(rs.getString(BRUKER_FORNAVN))
                 .setBrukerEtternavn(rs.getString(BRUKER_ETTERNAVN))
                 .setBrukerOppfolgingsenhetNavn(rs.getString(BRUKER_OPPFOLGINGSENHET_NAVN))
+                .setBrukerOppfolgingsenhetNavn(rs.getString(BRUKER_OPPFOLGINGSENHET_ID))
                 .setBrukerFnr(rs.getString(BRUKER_FNR))
                 .setVedtakStartet(rs.getTimestamp(VEDTAK_STARTET).toLocalDateTime())
                 .setBeslutteroversiktStatus(EnumUtils.valueOf(BeslutteroversiktStatus.class, rs.getString(STATUS)))

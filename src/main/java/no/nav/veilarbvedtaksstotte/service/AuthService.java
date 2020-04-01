@@ -32,7 +32,6 @@ public class AuthService {
         this.veilederService = veilederService;
     }
 
-
     public AuthKontekst sjekkTilgang(String fnr) {
         sjekkInternBruker();
 
@@ -79,7 +78,7 @@ public class AuthService {
     }
 
     public void sjekkAnsvarligVeileder(Vedtak vedtak) {
-        if (!vedtak.getVeilederIdent().equals(veilederService.hentVeilederIdentFraToken())) {
+        if (!vedtak.getVeilederIdent().equals(getInnloggetVeilederIdent())) {
             throw new IngenTilgang("Ikke ansvarlig veileder.");
         }
     }

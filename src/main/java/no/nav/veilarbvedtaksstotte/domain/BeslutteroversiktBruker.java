@@ -13,6 +13,7 @@ public class BeslutteroversiktBruker {
     String brukerFornavn;
     String brukerEtternavn;
     String brukerOppfolgingsenhetNavn;
+    String brukerOppfolgingsenhetId;
     String brukerFnr;
     LocalDateTime vedtakStartet;
     BeslutteroversiktStatus beslutteroversiktStatus;

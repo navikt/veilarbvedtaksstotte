@@ -158,6 +158,7 @@ public class BeslutterService {
 				.setBrukerEtternavn(brukerNavn.getEtternavn())
 				.setBrukerFnr(brukerFnr)
 				.setBrukerOppfolgingsenhetNavn(enhetNavn)
+				.setBrukerOppfolgingsenhetId(vedtak.getOppfolgingsenhetId())
 				.setVedtakStartet(vedtak.getUtkastOpprettet())
 				.setBeslutteroversiktStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
 				.setBeslutterNavn(null)
