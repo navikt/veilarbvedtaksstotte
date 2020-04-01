@@ -160,7 +160,7 @@ public class BeslutterService {
 				.setBrukerOppfolgingsenhetNavn(enhetNavn)
 				.setBrukerOppfolgingsenhetId(vedtak.getOppfolgingsenhetId())
 				.setVedtakStartet(vedtak.getUtkastOpprettet())
-				.setBeslutteroversiktStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
+				.setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
 				.setBeslutterNavn(null)
 				.setVeilederNavn(veileder.getNavn());
 

@@ -1,17 +1,23 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
+import lombok.Value;
 import no.nav.sbl.sql.SqlUtils;
 import no.nav.sbl.sql.where.WhereClause;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
+import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSok;
+import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSokFilter;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
@@ -32,25 +38,31 @@ public class BeslutteroversiktRepository {
     private final static String BESLUTTER_NAVN                              = "BESLUTTER_NAVN";
     private final static String VEILEDER_NAVN                               = "VEILEDER_NAVN";
 
+    private final static Object[] NO_PARAMETERS = new Object[0];
+
     private final JdbcTemplate db;
 
+    private final NamedParameterJdbcTemplate namedDb;
+
     @Inject
-    public BeslutteroversiktRepository(JdbcTemplate db) {
-        this.db = db;
+    public BeslutteroversiktRepository(NamedParameterJdbcTemplate namedDb) {
+        this.db = namedDb.getJdbcTemplate();
+        this.namedDb = namedDb;
     }
 
     public void lagBruker(BeslutteroversiktBruker bruker) {
         String sql = format(
-            "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?, ?)",
+            "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?, ?)",
             BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID, BRUKER_FORNAVN, BRUKER_ETTERNAVN,
-            BRUKER_OPPFOLGINGSENHET_NAVN, BRUKER_FNR, VEDTAK_STARTET, STATUS, BESLUTTER_NAVN, VEILEDER_NAVN
+            BRUKER_OPPFOLGINGSENHET_NAVN, BRUKER_OPPFOLGINGSENHET_ID, BRUKER_FNR, VEDTAK_STARTET, STATUS, BESLUTTER_NAVN, VEILEDER_NAVN
         );
 
         db.update(
             sql,
             bruker.getVedtakId(), bruker.getBrukerFornavn(), bruker.getBrukerEtternavn(),
-            bruker.getBrukerOppfolgingsenhetNavn(), bruker.getBrukerFnr(), bruker.getVedtakStartet(),
-            bruker.getBeslutteroversiktStatus(),  bruker.getBeslutterNavn(), bruker.getVeilederNavn()
+            bruker.getBrukerOppfolgingsenhetNavn(), bruker.getBrukerOppfolgingsenhetId(),
+            bruker.getBrukerFnr(), bruker.getVedtakStartet(), getName(bruker.getStatus()),
+            bruker.getBeslutterNavn(), bruker.getVeilederNavn()
         );
     }
 
@@ -81,13 +93,24 @@ public class BeslutteroversiktRepository {
         db.update(sql, beslutterNavn, vedtakId);
     }
 
-    public List<BeslutteroversiktBruker> finnBrukere(int limit, int offset) {
-        String sql = format(
-                "SELECT * FROM %s LIMIT %d OFFSET %d",
-                BESLUTTEROVERSIKT_BRUKER_TABLE, limit, offset
-        );
+    public List<BeslutteroversiktBruker> sokEtterBrukere(BeslutteroversiktSok sok) {
+        Object[] parameters = NO_PARAMETERS;
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);
 
-        return db.query(sql, new Object[]{}, BeslutteroversiktRepository::mapBeslutteroversiktBruker);
+        Optional<SqlWithParameters> maybeFilterSqlWithParams = createFilterSqlWithParameters(sok.getFilter());
+        Optional<String> maybeOrderBySql = lagOrderBySql(sok.getOrderByField(), sok.getOrderByDirection());
+
+        if (maybeFilterSqlWithParams.isPresent()) {
+            SqlWithParameters filterSqlWithParams = maybeFilterSqlWithParams.get();
+            parameters = filterSqlWithParams.parameters;
+            sqlBuilder.append(" ").append(filterSqlWithParams.sql);
+        }
+
+        maybeOrderBySql.ifPresent(orderBySql -> sqlBuilder.append(" ").append(orderBySql));
+
+        sqlBuilder.append(" ").append(lagPaginationSql(sok.getAntall(), sok.getFra()));
+
+        return db.query(sqlBuilder.toString(), parameters, BeslutteroversiktRepository::mapBeslutteroversiktBruker);
     }
 
     public BeslutteroversiktBruker finnBrukerForVedtak(long vedtakId) {
@@ -106,6 +129,80 @@ public class BeslutteroversiktRepository {
                 .execute();
     }
 
+    private boolean harAktivtFilter(BeslutteroversiktSokFilter filter) {
+        return filter != null
+                && ((filter.getEnheter() != null && !filter.getEnheter().isEmpty())
+                || filter.getStatus() != null
+                || filter.getBrukerFilter() != null);
+    }
+
+    private Optional<String> lagOrderBySql(BeslutteroversiktSok.OrderByField field, BeslutteroversiktSok.OrderByDirection direction) {
+        if (field == null || direction == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(format("ORDER BY %s %s", mapOrderByFieldToColumnName(field), getName(direction)));
+    }
+
+    private String lagPaginationSql(int antall, int fra) {
+        fra = Math.max(0, fra);
+        antall = Math.max(1, antall);
+        return format("LIMIT %d OFFSET %d", antall, fra);
+    }
+
+    private String mapOrderByFieldToColumnName(BeslutteroversiktSok.OrderByField field) {
+        switch (field) {
+            case BRUKER_ETTERNAVN:
+                return BRUKER_ETTERNAVN;
+            case BRUKER_OPPFOLGINGSENHET_NAVN:
+                return BRUKER_OPPFOLGINGSENHET_NAVN;
+            case BRUKER_FNR:
+                return BRUKER_FNR;
+            case VEDTAK_STARTET:
+                return VEDTAK_STARTET;
+            case STATUS:
+                return STATUS;
+            case BESLUTTER_NAVN:
+                return BESLUTTER_NAVN;
+            case VEILEDER_NAVN:
+                return VEILEDER_NAVN;
+            default:
+                throw new IllegalArgumentException("Unknown field " + getName(field));
+        }
+    }
+
+    private Optional<SqlWithParameters> createFilterSqlWithParameters(BeslutteroversiktSokFilter filter) {
+        if (!harAktivtFilter(filter)) {
+            return Optional.empty();
+        }
+
+        StringBuilder sqlBuilder = new StringBuilder("WHERE");
+        List<Object> parameters = new ArrayList<>();
+
+        if (filter.getEnheter() != null && !filter.getEnheter().isEmpty()) {
+            sqlBuilder.append(format(" %s = ANY(?::varchar[])", BRUKER_OPPFOLGINGSENHET_ID));
+//            System.out.println(toPostgresArray(filter.getEnheter()));
+            parameters.add(toPostgresArray(filter.getEnheter()));
+        }
+
+        if (filter.getStatus() != null) {
+            sqlBuilder.append(format(" %s = ?::BESLUTTER_OVERSIKT_STATUS_TYPE", STATUS));
+            parameters.add(getName(filter.getStatus()));
+        }
+
+        return Optional.of(new SqlWithParameters(sqlBuilder.toString(), parameters.toArray()));
+    }
+
+    private String toPostgresArray(List<String> values) {
+        return "{" + String.join(",", values) + "}";
+    }
+
+    @Value
+    public class SqlWithParameters {
+        String sql;
+        Object[] parameters;
+    }
+
     @SneakyThrows
     private static BeslutteroversiktBruker mapBeslutteroversiktBruker(ResultSet rs, int rowNum) {
         return new BeslutteroversiktBruker()
@@ -113,10 +210,10 @@ public class BeslutteroversiktRepository {
                 .setBrukerFornavn(rs.getString(BRUKER_FORNAVN))
                 .setBrukerEtternavn(rs.getString(BRUKER_ETTERNAVN))
                 .setBrukerOppfolgingsenhetNavn(rs.getString(BRUKER_OPPFOLGINGSENHET_NAVN))
-                .setBrukerOppfolgingsenhetNavn(rs.getString(BRUKER_OPPFOLGINGSENHET_ID))
+                .setBrukerOppfolgingsenhetId(rs.getString(BRUKER_OPPFOLGINGSENHET_ID))
                 .setBrukerFnr(rs.getString(BRUKER_FNR))
                 .setVedtakStartet(rs.getTimestamp(VEDTAK_STARTET).toLocalDateTime())
-                .setBeslutteroversiktStatus(EnumUtils.valueOf(BeslutteroversiktStatus.class, rs.getString(STATUS)))
+                .setStatus(EnumUtils.valueOf(BeslutteroversiktStatus.class, rs.getString(STATUS)))
                 .setBeslutterNavn(rs.getString(BESLUTTER_NAVN))
                 .setVeilederNavn(rs.getString(VEILEDER_NAVN));
     }

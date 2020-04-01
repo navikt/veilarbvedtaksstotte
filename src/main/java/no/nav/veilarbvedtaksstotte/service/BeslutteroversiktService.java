@@ -19,7 +19,7 @@ public class BeslutteroversiktService {
     }
 
     public List<BeslutteroversiktBruker> sokEtterBruker(BeslutteroversiktSok sok) {
-        return beslutteroversiktRepository.finnBrukere(sok.getAntall(), sok.getFra());
+        return beslutteroversiktRepository.sokEtterBrukere(sok);
     }
 
 }

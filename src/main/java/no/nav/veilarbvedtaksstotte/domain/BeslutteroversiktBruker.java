@@ -16,7 +16,7 @@ public class BeslutteroversiktBruker {
     String brukerOppfolgingsenhetId;
     String brukerFnr;
     LocalDateTime vedtakStartet;
-    BeslutteroversiktStatus beslutteroversiktStatus;
+    BeslutteroversiktStatus status;
     String beslutterNavn;
     String veilederNavn;
 }
