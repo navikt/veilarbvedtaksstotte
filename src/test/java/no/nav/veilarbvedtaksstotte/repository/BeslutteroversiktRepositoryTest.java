@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import java.time.LocalDateTime;
@@ -29,7 +28,7 @@ public class BeslutteroversiktRepositoryTest {
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
-        beslutteroversiktRepository = new BeslutteroversiktRepository(new NamedParameterJdbcTemplate(db));
+        beslutteroversiktRepository = new BeslutteroversiktRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
     }
 

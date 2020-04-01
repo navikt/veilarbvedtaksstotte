@@ -22,7 +22,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -81,7 +80,7 @@ public class VedtakServiceTest {
         dialogRepository = new DialogRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
-        beslutteroversiktRepository = new BeslutteroversiktRepository(new NamedParameterJdbcTemplate(db));
+        beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
         authService = spy(new AuthService(aktorService, pepClient, arenaClient, veilederService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, cvClient, registreringClient, egenvurderingClient);

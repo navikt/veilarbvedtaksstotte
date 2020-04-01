@@ -10,7 +10,6 @@ import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSokFilter;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -21,6 +20,9 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
+import static no.nav.veilarbvedtaksstotte.utils.ValidationUtils.isListEmpty;
+import static no.nav.veilarbvedtaksstotte.utils.ValidationUtils.isStringBlank;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 @Repository
 public class BeslutteroversiktRepository {
@@ -39,15 +41,13 @@ public class BeslutteroversiktRepository {
     private final static String VEILEDER_NAVN                               = "VEILEDER_NAVN";
 
     private final static Object[] NO_PARAMETERS = new Object[0];
+    private final static int DEFAULT_BRUKER_SOK_ANTALL = 20;
 
     private final JdbcTemplate db;
 
-    private final NamedParameterJdbcTemplate namedDb;
-
     @Inject
-    public BeslutteroversiktRepository(NamedParameterJdbcTemplate namedDb) {
-        this.db = namedDb.getJdbcTemplate();
-        this.namedDb = namedDb;
+    public BeslutteroversiktRepository(JdbcTemplate db) {
+        this.db = db;
     }
 
     public void lagBruker(BeslutteroversiktBruker bruker) {
@@ -131,9 +131,10 @@ public class BeslutteroversiktRepository {
 
     private boolean harAktivtFilter(BeslutteroversiktSokFilter filter) {
         return filter != null
-                && ((filter.getEnheter() != null && !filter.getEnheter().isEmpty())
+                && (isListEmpty(filter.getEnheter())
                 || filter.getStatus() != null
-                || filter.getBrukerFilter() != null);
+                || filter.getBrukerFilter() != null
+                || isStringBlank(filter.getNavnEllerFnr()));
     }
 
     private Optional<String> lagOrderBySql(BeslutteroversiktSok.OrderByField field, BeslutteroversiktSok.OrderByDirection direction) {
@@ -145,8 +146,8 @@ public class BeslutteroversiktRepository {
     }
 
     private String lagPaginationSql(int antall, int fra) {
+        antall = antall >= 0 ? DEFAULT_BRUKER_SOK_ANTALL : antall;
         fra = Math.max(0, fra);
-        antall = Math.max(1, antall);
         return format("LIMIT %d OFFSET %d", antall, fra);
     }
 
@@ -179,10 +180,16 @@ public class BeslutteroversiktRepository {
         StringBuilder sqlBuilder = new StringBuilder("WHERE");
         List<Object> parameters = new ArrayList<>();
 
-        if (filter.getEnheter() != null && !filter.getEnheter().isEmpty()) {
-            sqlBuilder.append(format(" %s = ANY(?::varchar[])", BRUKER_OPPFOLGINGSENHET_ID));
-//            System.out.println(toPostgresArray(filter.getEnheter()));
+        if (!isListEmpty(filter.getEnheter())) {
+            sqlBuilder.append(format(" %s = SOME(?::varchar[])", BRUKER_OPPFOLGINGSENHET_ID));
+            System.out.println(toPostgresArray(filter.getEnheter()));
             parameters.add(toPostgresArray(filter.getEnheter()));
+        }
+
+        if (!isStringBlank(filter.getNavnEllerFnr())) {
+            String nameOrFnrCol = isNumeric(filter.getNavnEllerFnr()) ? BRUKER_FNR : BRUKER_ETTERNAVN;
+            sqlBuilder.append(format(" %s ILIKE ?", nameOrFnrCol));
+            parameters.add("%" + filter.getNavnEllerFnr() + "%"); // TODO: Check if this is the correct way
         }
 
         if (filter.getStatus() != null) {

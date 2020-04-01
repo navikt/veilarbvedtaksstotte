@@ -10,7 +10,6 @@ import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +24,7 @@ public class BeslutterRepositorySokTest {
     @BeforeClass
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
-        beslutteroversiktRepository = new BeslutteroversiktRepository(new NamedParameterJdbcTemplate(db));
+        beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
         DbTestUtils.cleanupDb(db);
         String beslutteroversiktBrukereSql = TestUtils.readTestResourceFile("beslutteroversikt-brukere.sql");
@@ -70,6 +69,26 @@ public class BeslutterRepositorySokTest {
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
 
         assertEquals(2, brukere.size());
+    }
+
+    @Test
+    public void sokEtterBrukere__skal_finne_bruker_med_fnr() {
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .setFilter(new BeslutteroversiktSokFilter().setNavnEllerFnr("234567890"));
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+
+        assertEquals(1, brukere.size());
+    }
+
+    @Test
+    public void sokEtterBrukere__skal_finne_bruker_med_navn() {
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .setFilter(new BeslutteroversiktSokFilter().setNavnEllerFnr("arls"));
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+
+        assertEquals(1, brukere.size());
     }
 
 }

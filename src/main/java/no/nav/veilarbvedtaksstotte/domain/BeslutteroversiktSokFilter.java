@@ -16,6 +16,8 @@ public class BeslutteroversiktSokFilter {
 
     BrukerFilter brukerFilter;
 
+    String navnEllerFnr;
+
     public enum BrukerFilter {
         MINE_BRUKERE, MANGLER_BESLUTTER
     }
