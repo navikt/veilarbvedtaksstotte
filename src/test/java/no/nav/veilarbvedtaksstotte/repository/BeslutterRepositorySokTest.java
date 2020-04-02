@@ -91,4 +91,26 @@ public class BeslutterRepositorySokTest {
         assertEquals(1, brukere.size());
     }
 
+    @Test
+    public void sokEtterBrukere__skal_sortere_pa_fnr_asc() {
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .setOrderByField(BeslutteroversiktSok.OrderByField.BRUKER_FNR)
+                .setOrderByDirection(BeslutteroversiktSok.OrderByDirection.ASC);
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+
+        assertEquals("011111111111",  brukere.get(0).getBrukerFnr());
+    }
+
+    @Test
+    public void sokEtterBrukere__skal_sortere_pa_fnr_desc() {
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .setOrderByField(BeslutteroversiktSok.OrderByField.BRUKER_FNR)
+                .setOrderByDirection(BeslutteroversiktSok.OrderByDirection.DESC);
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+
+        assertEquals("9999999999",  brukere.get(0).getBrukerFnr());
+    }
+
 }

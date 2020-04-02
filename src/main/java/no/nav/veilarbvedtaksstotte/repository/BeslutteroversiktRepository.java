@@ -38,6 +38,7 @@ public class BeslutteroversiktRepository {
     private final static String VEDTAK_STARTET                              = "VEDTAK_STARTET";
     private final static String STATUS                                      = "STATUS";
     private final static String BESLUTTER_NAVN                              = "BESLUTTER_NAVN";
+    private final static String BESLUTTER_IDENT                             = "BESLUTTER_IDENT";
     private final static String VEILEDER_NAVN                               = "VEILEDER_NAVN";
 
     private final static Object[] NO_PARAMETERS = new Object[0];
@@ -84,13 +85,13 @@ public class BeslutteroversiktRepository {
         db.update(sql, veilederNavn, vedtakId);
     }
 
-    public void oppdaterBeslutter(long vedtakId, String beslutterNavn) {
+    public void oppdaterBeslutter(long vedtakId, String beslutterIdent, String beslutterNavn) {
         String sql = format(
-                "UPDATE %s SET %s = ? WHERE %s = ?",
-                BESLUTTEROVERSIKT_BRUKER_TABLE, BESLUTTER_NAVN, VEDTAK_ID
+                "UPDATE %s SET %s = ?, %s = ? WHERE %s = ?",
+                BESLUTTEROVERSIKT_BRUKER_TABLE, BESLUTTER_NAVN, BESLUTTER_IDENT, VEDTAK_ID
         );
 
-        db.update(sql, beslutterNavn, vedtakId);
+        db.update(sql, beslutterNavn, beslutterIdent, vedtakId);
     }
 
     public List<BeslutteroversiktBruker> sokEtterBrukere(BeslutteroversiktSok sok) {
@@ -222,6 +223,7 @@ public class BeslutteroversiktRepository {
                 .setVedtakStartet(rs.getTimestamp(VEDTAK_STARTET).toLocalDateTime())
                 .setStatus(EnumUtils.valueOf(BeslutteroversiktStatus.class, rs.getString(STATUS)))
                 .setBeslutterNavn(rs.getString(BESLUTTER_NAVN))
+                .setBeslutterIdent(rs.getString(BESLUTTER_IDENT))
                 .setVeilederNavn(rs.getString(VEILEDER_NAVN));
     }
 

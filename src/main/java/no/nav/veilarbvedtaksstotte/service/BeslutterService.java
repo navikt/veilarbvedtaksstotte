@@ -89,7 +89,7 @@ public class BeslutterService {
 		vedtaksstotteRepository.setBeslutter(vedtak.getId(), innloggetVeilederIdent);
 
 		Veileder beslutter = veilederService.hentVeileder(innloggetVeilederIdent);
-		beslutteroversiktRepository.oppdaterBeslutter(vedtak.getId(), beslutter.getNavn());
+		beslutteroversiktRepository.oppdaterBeslutter(vedtak.getId(), beslutter.getIdent(), beslutter.getNavn());
 
 		if (vedtak.getBeslutterIdent() == null) {
 			beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.HAR_BESLUTTER);
@@ -162,6 +162,7 @@ public class BeslutterService {
 				.setVedtakStartet(vedtak.getUtkastOpprettet())
 				.setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
 				.setBeslutterNavn(null)
+				.setBeslutterIdent(null)
 				.setVeilederNavn(veileder.getNavn());
 
 		beslutteroversiktRepository.lagBruker(bruker);

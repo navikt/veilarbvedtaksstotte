@@ -18,5 +18,6 @@ public class BeslutteroversiktBruker {
     LocalDateTime vedtakStartet;
     BeslutteroversiktStatus status;
     String beslutterNavn;
+    String beslutterIdent;
     String veilederNavn;
 }

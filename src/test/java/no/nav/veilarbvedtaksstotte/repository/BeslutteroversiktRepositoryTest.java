@@ -100,11 +100,12 @@ public class BeslutteroversiktRepositoryTest {
         BeslutteroversiktBruker nyBruker = lagBruker(vedtakId);
 
         beslutteroversiktRepository.lagBruker(nyBruker);
-        beslutteroversiktRepository.oppdaterBeslutter(vedtakId, "NY BESLUTTER");
+        beslutteroversiktRepository.oppdaterBeslutter(vedtakId, "NY_BESLUTTER_IDENT","NY_BESLUTTER");
 
         BeslutteroversiktBruker oppdatertBruker = beslutteroversiktRepository.finnBrukerForVedtak(vedtakId);
 
-        assertEquals("NY BESLUTTER", oppdatertBruker.getBeslutterNavn());
+        assertEquals("NY_BESLUTTER_IDENT", oppdatertBruker.getBeslutterIdent());
+        assertEquals("NY_BESLUTTER", oppdatertBruker.getBeslutterNavn());
     }
 
     private BeslutteroversiktBruker lagBruker(long vedtakId) {
