@@ -183,12 +183,11 @@ public class BeslutteroversiktRepository {
 
         if (!isListEmpty(filter.getEnheter())) {
             sqlBuilder.append(format(" %s = SOME(?::varchar[])", BRUKER_OPPFOLGINGSENHET_ID));
-            System.out.println(toPostgresArray(filter.getEnheter()));
             parameters.add(toPostgresArray(filter.getEnheter()));
         }
 
         if (!isStringBlank(filter.getNavnEllerFnr())) {
-            String nameOrFnrCol = isNumeric(filter.getNavnEllerFnr()) ? BRUKER_FNR : BRUKER_ETTERNAVN;
+            String nameOrFnrCol = isNumeric(filter.getNavnEllerFnr()) ? BRUKER_FNR : BRUKER_ETTERNAVN; // TODO: Bedre søk på navn
             sqlBuilder.append(format(" %s ILIKE ?", nameOrFnrCol));
             parameters.add("%" + filter.getNavnEllerFnr() + "%"); // TODO: Check if this is the correct way
         }

@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
-import no.nav.veilarbvedtaksstotte.domain.VeilederePaEnhetDTO;
-import no.nav.veilarbvedtaksstotte.config.CacheConfig;
+import no.nav.veilarbvedtaksstotte.domain.VeilederEnheterDTO;
 import org.springframework.cache.annotation.Cacheable;
 
 import static no.nav.apiapp.util.UrlUtils.joinPaths;
@@ -32,6 +32,14 @@ public class VeiledereOgEnhetClient extends BaseClient {
     @Cacheable(CacheConfig.VEILEDER_CACHE_NAME)
     public Veileder hentVeileder(String veilederIdent) {
         return get(joinPaths(baseUrl, "api", "veileder", veilederIdent), Veileder.class)
+                .withStatusCheck()
+                .getData()
+                .orElse(null);
+    }
+
+    @Cacheable(CacheConfig.VEILEDER_ENHETER_CACHE_NAME)
+    public VeilederEnheterDTO hentInnloggetVeilederEnheter() {
+        return get(joinPaths(baseUrl, "api", "veileder", "enheter"), VeilederEnheterDTO.class)
                 .withStatusCheck()
                 .getData()
                 .orElse(null);
