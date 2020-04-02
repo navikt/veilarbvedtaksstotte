@@ -147,7 +147,7 @@ public class BeslutteroversiktRepository {
     }
 
     private String lagPaginationSql(int antall, int fra) {
-        antall = antall >= 0 ? DEFAULT_BRUKER_SOK_ANTALL : antall;
+        antall = antall <= 0 ? DEFAULT_BRUKER_SOK_ANTALL : antall;
         fra = Math.max(0, fra);
         return format("LIMIT %d OFFSET %d", antall, fra);
     }

@@ -113,4 +113,25 @@ public class BeslutterRepositorySokTest {
         assertEquals("9999999999",  brukere.get(0).getBrukerFnr());
     }
 
+    @Test
+    public void sokEtterBrukere__skal_begrense_antall() {
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .setAntall(1);
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+
+        assertEquals(1, brukere.size());
+    }
+
+    @Test
+    public void sokEtterBrukere__skal_hoppe_over() {
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .setFra(1);
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+
+        assertEquals("011111111111", brukere.get(0).getBrukerFnr());
+    }
+
+
 }
