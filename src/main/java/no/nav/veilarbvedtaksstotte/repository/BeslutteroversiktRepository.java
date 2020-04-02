@@ -37,6 +37,7 @@ public class BeslutteroversiktRepository {
     private final static String BRUKER_FNR                                  = "BRUKER_FNR";
     private final static String VEDTAK_STARTET                              = "VEDTAK_STARTET";
     private final static String STATUS                                      = "STATUS";
+    private final static String STATUS_ENDRET                               = "STATUS_ENDRET";
     private final static String BESLUTTER_NAVN                              = "BESLUTTER_NAVN";
     private final static String BESLUTTER_IDENT                             = "BESLUTTER_IDENT";
     private final static String VEILEDER_NAVN                               = "VEILEDER_NAVN";
@@ -69,8 +70,8 @@ public class BeslutteroversiktRepository {
 
     public void oppdaterStatus(long vedtakId, BeslutteroversiktStatus status) {
         String sql = format(
-                "UPDATE %s SET %s = ?::BESLUTTER_OVERSIKT_STATUS_TYPE WHERE %s = ?",
-                BESLUTTEROVERSIKT_BRUKER_TABLE, STATUS, VEDTAK_ID
+                "UPDATE %s SET %s = ?::BESLUTTER_OVERSIKT_STATUS_TYPE, %s = CURRENT_TIMESTAMP WHERE %s = ?",
+                BESLUTTEROVERSIKT_BRUKER_TABLE, STATUS, STATUS_ENDRET, VEDTAK_ID
         );
 
         db.update(sql, getName(status), vedtakId);
@@ -143,34 +144,13 @@ public class BeslutteroversiktRepository {
             return Optional.empty();
         }
 
-        return Optional.of(format("ORDER BY %s %s", mapOrderByFieldToColumnName(field), getName(direction)));
+        return Optional.of(format("ORDER BY %s %s", getName(field), getName(direction)));
     }
 
     private String lagPaginationSql(int antall, int fra) {
         antall = antall <= 0 ? DEFAULT_BRUKER_SOK_ANTALL : antall;
         fra = Math.max(0, fra);
         return format("LIMIT %d OFFSET %d", antall, fra);
-    }
-
-    private String mapOrderByFieldToColumnName(BeslutteroversiktSok.OrderByField field) {
-        switch (field) {
-            case BRUKER_ETTERNAVN:
-                return BRUKER_ETTERNAVN;
-            case BRUKER_OPPFOLGINGSENHET_NAVN:
-                return BRUKER_OPPFOLGINGSENHET_NAVN;
-            case BRUKER_FNR:
-                return BRUKER_FNR;
-            case VEDTAK_STARTET:
-                return VEDTAK_STARTET;
-            case STATUS:
-                return STATUS;
-            case BESLUTTER_NAVN:
-                return BESLUTTER_NAVN;
-            case VEILEDER_NAVN:
-                return VEILEDER_NAVN;
-            default:
-                throw new IllegalArgumentException("Unknown field " + getName(field));
-        }
     }
 
     private Optional<SqlWithParameters> createFilterSqlWithParameters(BeslutteroversiktSokFilter filter) {
@@ -221,6 +201,7 @@ public class BeslutteroversiktRepository {
                 .setBrukerFnr(rs.getString(BRUKER_FNR))
                 .setVedtakStartet(rs.getTimestamp(VEDTAK_STARTET).toLocalDateTime())
                 .setStatus(EnumUtils.valueOf(BeslutteroversiktStatus.class, rs.getString(STATUS)))
+                .setStatusEndret(rs.getTimestamp(STATUS_ENDRET).toLocalDateTime())
                 .setBeslutterNavn(rs.getString(BESLUTTER_NAVN))
                 .setBeslutterIdent(rs.getString(BESLUTTER_IDENT))
                 .setVeilederNavn(rs.getString(VEILEDER_NAVN));

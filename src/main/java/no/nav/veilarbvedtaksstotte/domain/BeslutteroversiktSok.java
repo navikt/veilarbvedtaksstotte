@@ -20,6 +20,7 @@ public class BeslutteroversiktSok {
         BRUKER_FNR,
         VEDTAK_STARTET,
         STATUS,
+        STATUS_ENDRET,
         BESLUTTER_NAVN,
         VEILEDER_NAVN
     }

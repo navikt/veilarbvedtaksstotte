@@ -34,7 +34,7 @@ public class VeiledereOgEnhetClient extends BaseClient {
         return get(joinPaths(baseUrl, "api", "veileder", veilederIdent), Veileder.class)
                 .withStatusCheck()
                 .getData()
-                .orElse(null);
+                .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarbveileder/api/veileder/{veilederIdent}"));
     }
 
     @Cacheable(CacheConfig.VEILEDER_ENHETER_CACHE_NAME)
@@ -42,7 +42,7 @@ public class VeiledereOgEnhetClient extends BaseClient {
         return get(joinPaths(baseUrl, "api", "veileder", "enheter"), VeilederEnheterDTO.class)
                 .withStatusCheck()
                 .getData()
-                .orElse(null);
+                .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarbveileder/api/veileder/enheter"));
     }
 
 }

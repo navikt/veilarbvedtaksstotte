@@ -14,8 +14,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import java.time.LocalDateTime;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class BeslutteroversiktRepositoryTest {
 
@@ -47,7 +46,7 @@ public class BeslutteroversiktRepositoryTest {
         beslutteroversiktRepository.lagBruker(nyBruker);
 
         BeslutteroversiktBruker bruker = beslutteroversiktRepository.finnBrukerForVedtak(vedtakId)
-                .setVedtakId(vedtakId);
+                .setStatusEndret(null);
 
         assertEquals(nyBruker, bruker);
     }
@@ -72,11 +71,15 @@ public class BeslutteroversiktRepositoryTest {
                 .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER);
 
         beslutteroversiktRepository.lagBruker(nyBruker);
+
+        nyBruker = beslutteroversiktRepository.finnBrukerForVedtak(vedtakId);
+
         beslutteroversiktRepository.oppdaterStatus(vedtakId, BeslutteroversiktStatus.HAR_BESLUTTER);
 
         BeslutteroversiktBruker oppdatertBruker = beslutteroversiktRepository.finnBrukerForVedtak(vedtakId);
 
         assertEquals(BeslutteroversiktStatus.HAR_BESLUTTER, oppdatertBruker.getStatus());
+        assertNotEquals(nyBruker.getStatusEndret(), oppdatertBruker.getStatusEndret());
     }
 
     @Test
