@@ -74,11 +74,11 @@ public class BeslutteroversiktRepositoryTest {
 
         nyBruker = beslutteroversiktRepository.finnBrukerForVedtak(vedtakId);
 
-        beslutteroversiktRepository.oppdaterStatus(vedtakId, BeslutteroversiktStatus.HAR_BESLUTTER);
+        beslutteroversiktRepository.oppdaterStatus(vedtakId, BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
 
         BeslutteroversiktBruker oppdatertBruker = beslutteroversiktRepository.finnBrukerForVedtak(vedtakId);
 
-        assertEquals(BeslutteroversiktStatus.HAR_BESLUTTER, oppdatertBruker.getStatus());
+        assertEquals(BeslutteroversiktStatus.KLAR_TIL_VEILEDER, oppdatertBruker.getStatus());
         assertNotEquals(nyBruker.getStatusEndret(), oppdatertBruker.getStatusEndret());
     }
 
@@ -120,7 +120,7 @@ public class BeslutteroversiktRepositoryTest {
                 .setBrukerOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .setBrukerFnr(TEST_FNR)
                 .setVedtakStartet(LocalDateTime.now())
-                .setStatus(BeslutteroversiktStatus.HAR_BESLUTTER)
+                .setStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER)
                 .setBeslutterNavn(TEST_BESLUTTER_NAVN)
                 .setBeslutterIdent(TEST_BESLUTTER_IDENT)
                 .setVeilederNavn(TEST_VEILEDER_NAVN);

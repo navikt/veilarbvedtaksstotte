@@ -92,7 +92,8 @@ public class BeslutterService {
 		beslutteroversiktRepository.oppdaterBeslutter(vedtak.getId(), beslutter.getIdent(), beslutter.getNavn());
 
 		if (vedtak.getBeslutterIdent() == null) {
-			beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.HAR_BESLUTTER);
+			beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
+			vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
 			vedtakStatusEndringService.blittBeslutter(vedtak, innloggetVeilederIdent);
 		} else {
 			vedtakStatusEndringService.tattOverForBeslutter(vedtak, innloggetVeilederIdent);

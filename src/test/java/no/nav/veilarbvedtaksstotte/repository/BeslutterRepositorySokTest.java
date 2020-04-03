@@ -44,7 +44,7 @@ public class BeslutterRepositorySokTest {
     @Test
     public void sokEtterBrukere__skal_finne_bruker_med_status() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setFilter(new BeslutteroversiktSokFilter().setStatus(BeslutteroversiktStatus.HAR_BESLUTTER));
+                .setFilter(new BeslutteroversiktSokFilter().setStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER));
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
