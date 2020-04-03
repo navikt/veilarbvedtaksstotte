@@ -7,7 +7,9 @@ import no.nav.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
+import no.nav.veilarbvedtaksstotte.repository.SystemMeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -17,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
+import static no.nav.veilarbvedtaksstotte.domain.enums.SystemMeldingType.TA_OVER_SOM_VEILEDER;
+import static no.nav.veilarbvedtaksstotte.domain.enums.SystemMeldingType.UTKAST_OPPRETTET;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 
 @Service
@@ -32,6 +36,7 @@ public class VedtakService {
     private MalTypeService malTypeService;
     private VedtakStatusEndringService vedtakStatusEndringService;
     private Transactor transactor;
+    private SystemMeldingRepository systemMeldingRepository;
 
     @Inject
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
@@ -42,6 +47,7 @@ public class VedtakService {
                          SAFClient safClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
+                         SystemMeldingRepository systemMeldingRepository,
                          VedtakStatusEndringService vedtakStatusEndringService,
                          Transactor transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
@@ -52,6 +58,7 @@ public class VedtakService {
         this.safClient = safClient;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
+        this.systemMeldingRepository = systemMeldingRepository;
         this.vedtakStatusEndringService = vedtakStatusEndringService;
         this.transactor = transactor;
     }
@@ -111,9 +118,11 @@ public class VedtakService {
         }
 
         String veilederIdent = veilederService.hentVeilederIdentFraToken();
+        String veilederNavn = veilederService.hentInnloggetVeilederNavn();
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
 
         vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId);
+        systemMeldingRepository.opprettSystemMelding(utkast.getId(), UTKAST_OPPRETTET, veilederNavn);
         vedtakStatusEndringService.utkastOpprettet(vedtaksstotteRepository.hentUtkast(aktorId));
     }
 
@@ -219,7 +228,10 @@ public class VedtakService {
 
         utkast.setVeilederIdent(veilederId);
 
+        String veilederNavn = veilederService.hentInnloggetVeilederNavn();
+
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
+        systemMeldingRepository.opprettSystemMelding(utkast.getId(), TA_OVER_SOM_VEILEDER, veilederNavn);
         vedtakStatusEndringService.tattOverForVeileder(utkast, veilederId);
     }
 

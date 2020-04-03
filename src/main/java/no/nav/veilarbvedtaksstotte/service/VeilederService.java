@@ -29,4 +29,9 @@ public class VeilederService {
     public String hentEnhetNavn(String enhetId) {
         return veiledereOgEnhetClient.hentEnhetNavn(enhetId);
     }
+
+    public String hentInnloggetVeilederNavn() {
+        Veileder veileder = veiledereOgEnhetClient.hentVeileder(hentVeilederIdentFraToken());
+        return veileder != null ? veileder.getNavn() : null ;
+    }
 }

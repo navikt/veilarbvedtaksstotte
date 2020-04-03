@@ -6,6 +6,8 @@ import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.apiapp.feil.UgyldigRequest;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
+import no.nav.veilarbvedtaksstotte.domain.enums.SystemMeldingType;
+import no.nav.veilarbvedtaksstotte.repository.SystemMeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 
+import static no.nav.veilarbvedtaksstotte.domain.enums.SystemMeldingType.BESLUTTER_PROSESS_STARTET;
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVeilederForVedtak;
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterForVedtak;
 
@@ -25,11 +28,20 @@ public class BeslutterService {
 
 	private final VedtakStatusEndringService vedtakStatusEndringService;
 
+	private final SystemMeldingRepository systemMeldingRepository;
+
+	private final VeilederService veilederService;
+
 	@Inject
-	public BeslutterService(AuthService authService, VedtaksstotteRepository vedtaksstotteRepository, VedtakStatusEndringService vedtakStatusEndringService) {
+	public BeslutterService(AuthService authService, VedtaksstotteRepository vedtaksstotteRepository,
+							VedtakStatusEndringService vedtakStatusEndringService,
+							SystemMeldingRepository systemMeldingRepository,
+							VeilederService veilederService) {
 		this.authService = authService;
 		this.vedtaksstotteRepository = vedtaksstotteRepository;
 		this.vedtakStatusEndringService = vedtakStatusEndringService;
+		this.systemMeldingRepository = systemMeldingRepository;
+		this.veilederService = veilederService;
 	}
 
 	public void startBeslutterProsess(String fnr) {
@@ -46,7 +58,10 @@ public class BeslutterService {
 			throw new UgyldigRequest();
 		}
 
+		String veilederNavn = veilederService.hentInnloggetVeilederNavn();
+
 		vedtaksstotteRepository.setBeslutterProsessStartet(vedtak.getId());
+		systemMeldingRepository.opprettSystemMelding(vedtak.getId(), BESLUTTER_PROSESS_STARTET, veilederNavn);
 		vedtakStatusEndringService.beslutterProsessStartet(vedtak);
 	}
 
@@ -65,9 +80,13 @@ public class BeslutterService {
 
 		vedtaksstotteRepository.setBeslutter(vedtak.getId(), innloggetVeilederIdent);
 
+		String veilederNavn = veilederService.hentInnloggetVeilederNavn();
+
 		if (vedtak.getBeslutterIdent() == null) {
+			systemMeldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.BLI_BESLUTTER, veilederNavn);
 			vedtakStatusEndringService.blittBeslutter(vedtak, innloggetVeilederIdent);
 		} else {
+			systemMeldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.TA_OVER_SOM_BESLUTTER, veilederNavn);
 			vedtakStatusEndringService.tattOverForBeslutter(vedtak, innloggetVeilederIdent);
 		}
 	}
@@ -85,7 +104,10 @@ public class BeslutterService {
 			throw new UgyldigRequest();
         }
 
+		String veilederNavn = veilederService.hentInnloggetVeilederNavn();
+
 		vedtaksstotteRepository.setGodkjentAvBeslutter(vedtak.getId(), true);
+		systemMeldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.GODSKJENT_AV_BESLUTTER, veilederNavn);
         vedtakStatusEndringService.godkjentAvBeslutter(vedtak);
     }
 

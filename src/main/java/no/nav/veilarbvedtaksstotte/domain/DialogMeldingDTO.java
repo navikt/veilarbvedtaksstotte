@@ -22,4 +22,15 @@ public class DialogMeldingDTO {
 
         return melding;
     }
+
+    public static DialogMeldingDTO fraSystemMelding(SystemMelding systemMelding) {
+        DialogMeldingDTO melding = new DialogMeldingDTO();
+
+        melding.melding = String.valueOf(systemMelding.systemMeldingType);
+        melding.opprettet = systemMelding.opprettet;
+        melding.opprettetAvIdent = null;
+        melding.opprettetAvNavn = systemMelding.utfortAvNavn;
+
+        return melding;
+    }
 }

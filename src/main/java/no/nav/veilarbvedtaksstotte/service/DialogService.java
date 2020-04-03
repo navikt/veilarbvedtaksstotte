@@ -4,6 +4,7 @@ import no.nav.veilarbvedtaksstotte.domain.DialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.veilarbvedtaksstotte.repository.DialogRepository;
+import no.nav.veilarbvedtaksstotte.repository.SystemMeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.stereotype.Service;
 
@@ -18,16 +19,19 @@ public class DialogService {
     private final VeilederService veilederService;
     private final DialogRepository dialogRepository;
     private final VedtaksstotteRepository vedtaksstotteRepository;
+    private final SystemMeldingRepository systemMeldingRepository;
 
     @Inject
     public DialogService(
             AuthService authService, VeilederService veilederService,
-            DialogRepository dialogRepository, VedtaksstotteRepository vedtaksstotteRepository
+            DialogRepository dialogRepository, VedtaksstotteRepository vedtaksstotteRepository,
+            SystemMeldingRepository systemMeldingRepository
     ) {
         this.authService = authService;
         this.veilederService = veilederService;
         this.dialogRepository = dialogRepository;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
+        this.systemMeldingRepository = systemMeldingRepository;
     }
 
     public void opprettBrukerDialogMelding(String fnr, String melding) {
@@ -48,7 +52,22 @@ public class DialogService {
 
         flettInnNavn(meldinger);
 
+        List<DialogMeldingDTO> systemMeldinger = hentSystemMeldinger(fnr);
+        meldinger.addAll(systemMeldinger);
+
         return meldinger;
+    }
+
+    public List<DialogMeldingDTO> hentSystemMeldinger(String fnr) {
+        String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+        Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+
+        List<DialogMeldingDTO> systemMeldinger = systemMeldingRepository.hentSystemMeldinger(vedtak.getId())
+                .stream()
+                .map(DialogMeldingDTO::fraSystemMelding)
+                .collect(Collectors.toList());
+
+        return systemMeldinger;
     }
 
     private void flettInnNavn(List<DialogMeldingDTO> meldinger) {
