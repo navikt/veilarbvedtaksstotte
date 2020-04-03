@@ -102,6 +102,20 @@ public class BeslutterRepositorySokTest {
     }
 
     @Test
+    public void sokEtterBrukere__skal_finne_bruker_med_flere_filter() {
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .setFilter(
+                        new BeslutteroversiktSokFilter()
+                                .setEnheter(List.of("1234", "6755"))
+                                .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
+                );
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
+
+        assertEquals(1, brukere.size());
+    }
+
+    @Test
     public void sokEtterBrukere__skal_sortere_pa_fnr_asc() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setOrderByField(BeslutteroversiktSok.OrderByField.BRUKER_FNR)

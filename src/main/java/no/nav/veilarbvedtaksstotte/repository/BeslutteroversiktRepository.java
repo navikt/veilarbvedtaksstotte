@@ -159,31 +159,32 @@ public class BeslutteroversiktRepository {
             return Optional.empty();
         }
 
-        StringBuilder sqlBuilder = new StringBuilder("WHERE");
+        List<String> filterStrs = new ArrayList<>();
         List<Object> parameters = new ArrayList<>();
 
         if (!isNullOrEmpty(filter.getEnheter())) {
-            sqlBuilder.append(format(" %s = SOME(?::varchar[])", BRUKER_OPPFOLGINGSENHET_ID));
+            filterStrs.add(format("%s = SOME(?::varchar[])", BRUKER_OPPFOLGINGSENHET_ID));
             parameters.add(toPostgresArray(filter.getEnheter()));
         }
 
         if (!ValidationUtils.isNullOrEmpty(filter.getNavnEllerFnr())) {
             String nameOrFnrCol = isNumeric(filter.getNavnEllerFnr()) ? BRUKER_FNR : BRUKER_ETTERNAVN; // TODO: Bedre søk på navn
-            sqlBuilder.append(format(" %s ILIKE ?", nameOrFnrCol));
+            filterStrs.add(format("%s ILIKE ?", nameOrFnrCol));
             parameters.add("%" + filter.getNavnEllerFnr() + "%"); // TODO: Check if this is the correct way
         }
 
         if (filter.isVisMineBrukere()) {
-            sqlBuilder.append(format(" %s = ?", BESLUTTER_IDENT));
+            filterStrs.add(format("%s = ?", BESLUTTER_IDENT));
             parameters.add(innloggetVeilederIdent);
         }
 
         if (filter.getStatus() != null) {
-            sqlBuilder.append(format(" %s = ?::BESLUTTER_OVERSIKT_STATUS_TYPE", STATUS));
+            filterStrs.add(format("%s = ?::BESLUTTER_OVERSIKT_STATUS_TYPE", STATUS));
             parameters.add(getName(filter.getStatus()));
         }
 
-        return Optional.of(new SqlWithParameters(sqlBuilder.toString(), parameters.toArray()));
+        String sqlStr = "WHERE " + String.join(" AND ", filterStrs);
+        return Optional.of(new SqlWithParameters(sqlStr, parameters.toArray()));
     }
 
     private String toPostgresArray(List<String> values) {
