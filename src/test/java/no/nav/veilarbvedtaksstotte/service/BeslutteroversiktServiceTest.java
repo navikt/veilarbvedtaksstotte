@@ -29,7 +29,7 @@ public class BeslutteroversiktServiceTest {
 
     @Test
     public void sokEtterBruker__skal_sette_alle_veileder_enheter_hvis_enhet_filter_mangler() {
-        when(beslutteroversiktRepository.sokEtterBrukere(any())).thenReturn(Collections.emptyList());
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(Collections.emptyList());
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
                         new PortefoljeEnhet("1234", "test1"),
@@ -40,15 +40,16 @@ public class BeslutteroversiktServiceTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok();
 
         beslutteroversiktService.sokEtterBruker(sok);
-        ArgumentCaptor<BeslutteroversiktSok> argument = ArgumentCaptor.forClass(BeslutteroversiktSok.class);
-        verify(beslutteroversiktRepository).sokEtterBrukere(argument.capture());
+        ArgumentCaptor<BeslutteroversiktSok> argument1 = ArgumentCaptor.forClass(BeslutteroversiktSok.class);
+        ArgumentCaptor<String> argument2 = ArgumentCaptor.forClass(String.class);
+        verify(beslutteroversiktRepository).sokEtterBrukere(argument1.capture(), argument2.capture());
 
-        assertEquals(2, argument.getValue().getFilter().getEnheter().size());
+        assertEquals(2, argument1.getValue().getFilter().getEnheter().size());
     }
 
     @Test
     public void sokEtterBruker__skal_feile_hvis_ikke_tilgang_til_enhet() {
-        when(beslutteroversiktRepository.sokEtterBrukere(any())).thenReturn(Collections.emptyList());
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(Collections.emptyList());
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
                         new PortefoljeEnhet("1234", "test1"),
@@ -66,7 +67,7 @@ public class BeslutteroversiktServiceTest {
 
     @Test
     public void sokEtterBruker__skal_ikke_feile_hvis_tilgang_til_enheter() {
-        when(beslutteroversiktRepository.sokEtterBrukere(any())).thenReturn(Collections.emptyList());
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(Collections.emptyList());
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
                         new PortefoljeEnhet("1234", "test1"),
@@ -78,7 +79,7 @@ public class BeslutteroversiktServiceTest {
         sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(List.of("4321", "1234")));
 
         beslutteroversiktService.sokEtterBruker(sok);
-        verify(beslutteroversiktRepository, atLeastOnce()).sokEtterBrukere(any());
+        verify(beslutteroversiktRepository, atLeastOnce()).sokEtterBrukere(any(), anyString());
     }
 
 }

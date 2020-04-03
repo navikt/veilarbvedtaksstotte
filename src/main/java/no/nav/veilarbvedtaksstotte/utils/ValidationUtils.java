@@ -4,11 +4,11 @@ import java.util.List;
 
 public class ValidationUtils {
 
-    public static boolean isListEmpty(List list) {
+    public static boolean isNullOrEmpty(List list) {
         return list == null || list.isEmpty();
     }
 
-    public static boolean isStringBlank(String str) {
+    public static boolean isNullOrEmpty(String str) {
         return str == null || str.isBlank();
     }
 

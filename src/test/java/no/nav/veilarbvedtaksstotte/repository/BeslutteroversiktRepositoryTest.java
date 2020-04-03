@@ -122,6 +122,7 @@ public class BeslutteroversiktRepositoryTest {
                 .setVedtakStartet(LocalDateTime.now())
                 .setStatus(BeslutteroversiktStatus.HAR_BESLUTTER)
                 .setBeslutterNavn(TEST_BESLUTTER_NAVN)
+                .setBeslutterIdent(TEST_BESLUTTER_IDENT)
                 .setVeilederNavn(TEST_VEILEDER_NAVN);
     }
 

@@ -40,7 +40,7 @@ public class BeslutteroversiktService {
             sjekkTilgangTilAlleEnheter(sok.getFilter().getEnheter(), veilederEnheter);
         }
 
-        return beslutteroversiktRepository.sokEtterBrukere(sok);
+        return beslutteroversiktRepository.sokEtterBrukere(sok, veilederEnheterDTO.getIdent());
     }
 
     private void sjekkTilgangTilAlleEnheter(List<String> sokteEnheter, List<String> veilederEnheter) {

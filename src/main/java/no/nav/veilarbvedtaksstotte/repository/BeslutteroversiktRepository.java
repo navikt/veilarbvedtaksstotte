@@ -9,6 +9,7 @@ import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSokFilter;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
+import no.nav.veilarbvedtaksstotte.utils.ValidationUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,8 +21,7 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
-import static no.nav.veilarbvedtaksstotte.utils.ValidationUtils.isListEmpty;
-import static no.nav.veilarbvedtaksstotte.utils.ValidationUtils.isStringBlank;
+import static no.nav.veilarbvedtaksstotte.utils.ValidationUtils.isNullOrEmpty;
 import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 @Repository
@@ -54,9 +54,10 @@ public class BeslutteroversiktRepository {
 
     public void lagBruker(BeslutteroversiktBruker bruker) {
         String sql = format(
-            "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?, ?)",
+            "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?, ?, ?)",
             BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID, BRUKER_FORNAVN, BRUKER_ETTERNAVN,
-            BRUKER_OPPFOLGINGSENHET_NAVN, BRUKER_OPPFOLGINGSENHET_ID, BRUKER_FNR, VEDTAK_STARTET, STATUS, BESLUTTER_NAVN, VEILEDER_NAVN
+            BRUKER_OPPFOLGINGSENHET_NAVN, BRUKER_OPPFOLGINGSENHET_ID, BRUKER_FNR,
+            VEDTAK_STARTET, STATUS, BESLUTTER_NAVN, BESLUTTER_IDENT, VEILEDER_NAVN
         );
 
         db.update(
@@ -64,7 +65,7 @@ public class BeslutteroversiktRepository {
             bruker.getVedtakId(), bruker.getBrukerFornavn(), bruker.getBrukerEtternavn(),
             bruker.getBrukerOppfolgingsenhetNavn(), bruker.getBrukerOppfolgingsenhetId(),
             bruker.getBrukerFnr(), bruker.getVedtakStartet(), getName(bruker.getStatus()),
-            bruker.getBeslutterNavn(), bruker.getVeilederNavn()
+            bruker.getBeslutterNavn(), bruker.getBeslutterIdent(), bruker.getVeilederNavn()
         );
     }
 
@@ -95,11 +96,11 @@ public class BeslutteroversiktRepository {
         db.update(sql, beslutterNavn, beslutterIdent, vedtakId);
     }
 
-    public List<BeslutteroversiktBruker> sokEtterBrukere(BeslutteroversiktSok sok) {
+    public List<BeslutteroversiktBruker> sokEtterBrukere(BeslutteroversiktSok sok, String innloggetVeilederIdent) {
         Object[] parameters = NO_PARAMETERS;
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);
 
-        Optional<SqlWithParameters> maybeFilterSqlWithParams = createFilterSqlWithParameters(sok.getFilter());
+        Optional<SqlWithParameters> maybeFilterSqlWithParams = createFilterSqlWithParameters(sok.getFilter(), innloggetVeilederIdent);
         Optional<String> maybeOrderBySql = lagOrderBySql(sok.getOrderByField(), sok.getOrderByDirection());
 
         if (maybeFilterSqlWithParams.isPresent()) {
@@ -133,10 +134,10 @@ public class BeslutteroversiktRepository {
 
     private boolean harAktivtFilter(BeslutteroversiktSokFilter filter) {
         return filter != null
-                && (isListEmpty(filter.getEnheter())
+                && (!isNullOrEmpty(filter.getEnheter())
                 || filter.getStatus() != null
-                || filter.getBrukerFilter() != null
-                || isStringBlank(filter.getNavnEllerFnr()));
+                || filter.isVisMineBrukere()
+                || !isNullOrEmpty(filter.getNavnEllerFnr()));
     }
 
     private Optional<String> lagOrderBySql(BeslutteroversiktSok.OrderByField field, BeslutteroversiktSok.OrderByDirection direction) {
@@ -153,7 +154,7 @@ public class BeslutteroversiktRepository {
         return format("LIMIT %d OFFSET %d", antall, fra);
     }
 
-    private Optional<SqlWithParameters> createFilterSqlWithParameters(BeslutteroversiktSokFilter filter) {
+    private Optional<SqlWithParameters> createFilterSqlWithParameters(BeslutteroversiktSokFilter filter, String innloggetVeilederIdent) {
         if (!harAktivtFilter(filter)) {
             return Optional.empty();
         }
@@ -161,15 +162,20 @@ public class BeslutteroversiktRepository {
         StringBuilder sqlBuilder = new StringBuilder("WHERE");
         List<Object> parameters = new ArrayList<>();
 
-        if (!isListEmpty(filter.getEnheter())) {
+        if (!isNullOrEmpty(filter.getEnheter())) {
             sqlBuilder.append(format(" %s = SOME(?::varchar[])", BRUKER_OPPFOLGINGSENHET_ID));
             parameters.add(toPostgresArray(filter.getEnheter()));
         }
 
-        if (!isStringBlank(filter.getNavnEllerFnr())) {
+        if (!ValidationUtils.isNullOrEmpty(filter.getNavnEllerFnr())) {
             String nameOrFnrCol = isNumeric(filter.getNavnEllerFnr()) ? BRUKER_FNR : BRUKER_ETTERNAVN; // TODO: Bedre søk på navn
             sqlBuilder.append(format(" %s ILIKE ?", nameOrFnrCol));
             parameters.add("%" + filter.getNavnEllerFnr() + "%"); // TODO: Check if this is the correct way
+        }
+
+        if (filter.isVisMineBrukere()) {
+            sqlBuilder.append(format(" %s = ?", BESLUTTER_IDENT));
+            parameters.add(innloggetVeilederIdent);
         }
 
         if (filter.getStatus() != null) {

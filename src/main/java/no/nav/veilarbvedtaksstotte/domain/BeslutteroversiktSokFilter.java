@@ -14,12 +14,8 @@ public class BeslutteroversiktSokFilter {
 
     BeslutteroversiktStatus status;
 
-    BrukerFilter brukerFilter;
+    boolean visMineBrukere;
 
     String navnEllerFnr;
-
-    public enum BrukerFilter {
-        MINE_BRUKERE, MANGLER_BESLUTTER
-    }
 
 }

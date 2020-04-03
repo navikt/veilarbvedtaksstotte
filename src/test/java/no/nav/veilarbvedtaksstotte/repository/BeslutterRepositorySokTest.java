@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Collections;
 import java.util.List;
 
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
 import static org.junit.Assert.assertEquals;
 
 public class BeslutterRepositorySokTest {
@@ -33,10 +34,9 @@ public class BeslutterRepositorySokTest {
 
     @Test
     public void sokEtterBrukere__skal_finne_alle_brukere_uten_filter() {
-        BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setAntall(1000);
+        BeslutteroversiktSok sok = new BeslutteroversiktSok();
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
         assertEquals(3, brukere.size());
     }
@@ -46,7 +46,7 @@ public class BeslutterRepositorySokTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setFilter(new BeslutteroversiktSokFilter().setStatus(BeslutteroversiktStatus.HAR_BESLUTTER));
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
         assertEquals(1, brukere.size());
     }
@@ -56,7 +56,7 @@ public class BeslutterRepositorySokTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setFilter(new BeslutteroversiktSokFilter().setEnheter(Collections.singletonList("1234")));
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
         assertEquals(1, brukere.size());
     }
@@ -66,7 +66,7 @@ public class BeslutterRepositorySokTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setFilter(new BeslutteroversiktSokFilter().setEnheter(List.of("1234", "6755")));
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
         assertEquals(2, brukere.size());
     }
@@ -76,7 +76,7 @@ public class BeslutterRepositorySokTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setFilter(new BeslutteroversiktSokFilter().setNavnEllerFnr("234567890"));
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
         assertEquals(1, brukere.size());
     }
@@ -86,9 +86,19 @@ public class BeslutterRepositorySokTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setFilter(new BeslutteroversiktSokFilter().setNavnEllerFnr("arls"));
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
         assertEquals(1, brukere.size());
+    }
+
+    @Test
+    public void sokEtterBrukere__skal_finne_mine_brukere() {
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .setFilter(new BeslutteroversiktSokFilter().setVisMineBrukere(true));
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
+
+        assertEquals(2, brukere.size());
     }
 
     @Test
@@ -97,7 +107,7 @@ public class BeslutterRepositorySokTest {
                 .setOrderByField(BeslutteroversiktSok.OrderByField.BRUKER_FNR)
                 .setOrderByDirection(BeslutteroversiktSok.OrderByDirection.ASC);
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
         assertEquals("011111111111",  brukere.get(0).getBrukerFnr());
     }
@@ -108,7 +118,7 @@ public class BeslutterRepositorySokTest {
                 .setOrderByField(BeslutteroversiktSok.OrderByField.BRUKER_FNR)
                 .setOrderByDirection(BeslutteroversiktSok.OrderByDirection.DESC);
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
         assertEquals("9999999999",  brukere.get(0).getBrukerFnr());
     }
@@ -118,7 +128,7 @@ public class BeslutterRepositorySokTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setAntall(1);
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
         assertEquals(1, brukere.size());
     }
@@ -128,7 +138,7 @@ public class BeslutterRepositorySokTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setFra(1);
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok);
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 
         assertEquals("011111111111", brukere.get(0).getBrukerFnr());
     }
