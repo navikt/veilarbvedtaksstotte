@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.auth.SubjectHandler;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
@@ -37,8 +38,13 @@ public class VeiledereOgEnhetClient extends BaseClient {
                 .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarbveileder/api/veileder/{veilederIdent}"));
     }
 
-    @Cacheable(CacheConfig.VEILEDER_ENHETER_CACHE_NAME)
     public VeilederEnheterDTO hentInnloggetVeilederEnheter() {
+        String veilederIdent = SubjectHandler.getIdent().orElseThrow(() -> new IllegalStateException("Fant ikke veileder ident"));
+        return hentInnloggetVeilederEnheter(veilederIdent);
+    }
+
+    @Cacheable(CacheConfig.VEILEDER_ENHETER_CACHE_NAME)
+    public VeilederEnheterDTO hentInnloggetVeilederEnheter(String veilederIdentUsedOnlyForCaching) {
         return get(joinPaths(baseUrl, "api", "veileder", "enheter"), VeilederEnheterDTO.class)
                 .withStatusCheck()
                 .getData()
