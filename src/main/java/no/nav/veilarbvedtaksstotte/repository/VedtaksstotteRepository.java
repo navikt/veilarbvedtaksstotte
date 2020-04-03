@@ -50,14 +50,12 @@ public class VedtaksstotteRepository {
 
     private final JdbcTemplate db;
     private final KilderRepository kilderRepository;
-    private final DialogRepository dialogRepository;
     private final Transactor transactor;
 
     @Inject
-    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository, DialogRepository dialogRepository, Transactor transactor) {
+    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository, Transactor transactor) {
         this.db = db;
         this.kilderRepository = kilderRepository;
-        this.dialogRepository = dialogRepository;
         this.transactor = transactor;
     }
 
@@ -88,15 +86,6 @@ public class VedtaksstotteRepository {
     }
 
     public boolean slettUtkast(String aktorId) {
-        Vedtak vedtakUtenOpplysninger = hentUtkastUtenOpplysninger(aktorId);
-
-        if (vedtakUtenOpplysninger == null) {
-            return false;
-        }
-
-        dialogRepository.slettDialogMeldinger(vedtakUtenOpplysninger.getId());
-        kilderRepository.slettKilder(vedtakUtenOpplysninger.getId());
-
         return SqlUtils
                 .delete(db, VEDTAK_TABLE)
                 .where(WhereClause.equals(STATUS, EnumUtils.getName(VedtakStatus.UTKAST)).and(WhereClause.equals(AKTOR_ID,aktorId)))
@@ -210,7 +199,7 @@ public class VedtaksstotteRepository {
             .execute();
     }
 
-    private Vedtak hentUtkastUtenOpplysninger(String aktorId) {
+    public Vedtak hentUtkastUtenOpplysninger(String aktorId) {
         return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
                 .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, EnumUtils.getName(VedtakStatus.UTKAST))))
                 .column("*")

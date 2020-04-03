@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
-import no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -17,11 +16,6 @@ public class VeilederService {
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
     }
 
-    public String hentVeilederIdentFraToken() {
-        return AutentiseringUtils.hentIdent()
-                .orElseThrow(() -> new RuntimeException("Fant ikke ident for veileder"));
-    }
-
     public Veileder hentVeileder(String veilederId) {
         return veiledereOgEnhetClient.hentVeileder(veilederId);
     }
@@ -29,4 +23,5 @@ public class VeilederService {
     public String hentEnhetNavn(String enhetId) {
         return veiledereOgEnhetClient.hentEnhetNavn(enhetId);
     }
+
 }

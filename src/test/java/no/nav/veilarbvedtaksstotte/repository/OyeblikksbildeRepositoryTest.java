@@ -34,7 +34,7 @@ public class OyeblikksbildeRepositoryTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), new DialogRepository(db), transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
     }
 
     @Before

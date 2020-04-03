@@ -28,10 +28,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,13 +50,12 @@ public class VedtakServiceTest {
     private static KilderRepository kilderRepository;
     private static DialogRepository dialogRepository;
     private static OyeblikksbildeRepository oyeblikksbildeRepository;
-    private static KafkaRepository kafkaRepository;
+    private static BeslutteroversiktRepository beslutteroversiktRepository;
 
     private static VedtakService vedtakService;
     private static OyeblikksbildeService oyeblikksbildeService;
     private static MalTypeService malTypeService;
-    private static KafkaService kafkaService;
-    private static AuthService authSerivce;
+    private static AuthService authService;
 
     private static CVClient cvClient = mock(CVClient.class);
     private static RegistreringClient registreringClient = mock(RegistreringClient.class);
@@ -82,30 +78,34 @@ public class VedtakServiceTest {
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
         dialogRepository = new DialogRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, dialogRepository, transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
-        kafkaRepository = new KafkaRepository(db);
+        beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
-        authSerivce = new AuthService(aktorService, pepClient, arenaClient, veilederService);
-        oyeblikksbildeService = new OyeblikksbildeService(authSerivce, oyeblikksbildeRepository, cvClient, registreringClient, egenvurderingClient);
+        authService = spy(new AuthService(aktorService, pepClient, arenaClient, veilederService));
+        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, cvClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
-        kafkaService = new KafkaService(kafkaTemplate, kafkaRepository);
-        vedtakService = new VedtakService(vedtaksstotteRepository,
+        vedtakService = new VedtakService(
+                vedtaksstotteRepository,
                 kilderRepository,
                 oyeblikksbildeService,
-                authSerivce,
+                dialogRepository,
+                beslutteroversiktRepository,
+                authService,
                 dokumentClient,
                 null,
                 veilederService,
                 malTypeService,
-                vedtakStatusEndringService, transactor);
+                vedtakStatusEndringService,
+                transactor
+        );
     }
 
     @Before
     public void setup() {
         DbTestUtils.cleanupDb(db);
         reset(veilederService);
-        when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT);
+        doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
         reset(dokumentClient);
@@ -190,12 +190,27 @@ public class VedtakServiceTest {
 
             vedtakService.lagUtkast(TEST_FNR);
 
-            when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
+            when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
             assertThatThrownBy(() ->
                     vedtakService.oppdaterUtkast(TEST_FNR, new VedtakDTO())
             ).isExactlyInstanceOf(IngenTilgang.class);
         });
+    }
+
+    @Test
+    public void slettUtkast__skal_slette_utkast_med_data() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
+
+        dialogRepository.opprettDialogMelding(utkast.getId(), null, "Test");
+
+        vedtakService.slettUtkast(TEST_AKTOR_ID);
+
+        assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
     }
 
     @Test
@@ -205,10 +220,10 @@ public class VedtakServiceTest {
 
             vedtakService.lagUtkast(TEST_FNR);
 
-            when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
+            when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
             assertThatThrownBy(() ->
-                    vedtakService.slettUtkast(TEST_FNR)
+                    vedtakService.slettUtkastForFnr(TEST_FNR)
             ).isExactlyInstanceOf(IngenTilgang.class);
         });
     }
@@ -224,9 +239,9 @@ public class VedtakServiceTest {
                             .setBegrunnelse("begrunnelse")
                             .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                             .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                            .setOpplysninger(Arrays.asList("opplysning")));
+                            .setOpplysninger(Collections.singletonList("opplysning")));
 
-            when(veilederService.hentVeilederIdentFraToken()).thenReturn(TEST_VEILEDER_IDENT + "annen");
+            when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
             assertThatThrownBy(() ->
                     vedtakService.sendVedtak(TEST_FNR)

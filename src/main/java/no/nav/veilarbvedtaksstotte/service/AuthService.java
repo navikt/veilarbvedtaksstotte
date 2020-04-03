@@ -32,7 +32,6 @@ public class AuthService {
         this.veilederService = veilederService;
     }
 
-
     public AuthKontekst sjekkTilgang(String fnr) {
         sjekkInternBruker();
 
@@ -51,6 +50,11 @@ public class AuthService {
         return SubjectHandler
                 .getIdent()
                 .orElseThrow(() -> new IngenTilgang("Fant ikke ident for innlogget veileder"));
+    }
+
+    public String getFnrOrThrow(String aktorId) {
+        return aktorService.getFnr(aktorId)
+                .orElseThrow(() -> new IllegalArgumentException("Fant ikke fnr for aktørId"));
     }
 
     private void sjekkInternBruker() {
@@ -74,7 +78,7 @@ public class AuthService {
     }
 
     public void sjekkAnsvarligVeileder(Vedtak vedtak) {
-        if (!vedtak.getVeilederIdent().equals(veilederService.hentVeilederIdentFraToken())) {
+        if (!vedtak.getVeilederIdent().equals(getInnloggetVeilederIdent())) {
             throw new IngenTilgang("Ikke ansvarlig veileder.");
         }
     }

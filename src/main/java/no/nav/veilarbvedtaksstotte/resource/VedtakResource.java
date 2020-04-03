@@ -89,7 +89,7 @@ public class VedtakResource {
 
     @DELETE
     @Path("/utkast")
-    public void deleteUtkast(@PathParam("fnr") String fnr) { vedtakService.slettUtkast(fnr); }
+    public void deleteUtkast(@PathParam("fnr") String fnr) { vedtakService.slettUtkastForFnr(fnr); }
 
     @GET
     @Path("/oyeblikksbilde/{vedtakid}")

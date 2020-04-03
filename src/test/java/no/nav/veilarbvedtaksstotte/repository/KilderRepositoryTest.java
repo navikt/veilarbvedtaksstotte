@@ -32,7 +32,7 @@ public class KilderRepositoryTest {
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
         dialogRepository = new DialogRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, dialogRepository, transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
     }
 
     @Before

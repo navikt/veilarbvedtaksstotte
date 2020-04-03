@@ -10,19 +10,16 @@ import org.junit.rules.ExpectedException;
 import java.util.Arrays;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
-import static org.mockito.Mockito.mock;
 
 public class VedtakServiceValiderUtkastForUtsendingTest {
-
-    private static VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
 
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
 
     private static VedtakService vedtakService = new VedtakService(
             null, null,null,
-            null,null,null,null,null,
-            vedtakStatusEndringService, null
+            null, null, null,null,null,null,null,
+            null, null
     );
 
     @Test

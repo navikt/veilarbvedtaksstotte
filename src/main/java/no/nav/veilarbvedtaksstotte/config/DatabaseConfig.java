@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.apiapp.selftest.HelsesjekkMetadata;
-import no.nav.veilarbvedtaksstotte.utils.DbRole;
 import no.nav.sbl.dialogarena.types.Pingable;
 import no.nav.sbl.jdbc.Database;
 import no.nav.sbl.jdbc.Transactor;
+import no.nav.veilarbvedtaksstotte.utils.DbRole;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,8 +13,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-import static no.nav.veilarbvedtaksstotte.utils.DbUtils.createDataSource;
 import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
+import static no.nav.veilarbvedtaksstotte.utils.DbUtils.createDataSource;
 
 @Configuration
 public class DatabaseConfig {

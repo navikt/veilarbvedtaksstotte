@@ -4,8 +4,14 @@ import no.nav.apiapp.feil.Feil;
 import no.nav.apiapp.feil.FeilType;
 import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.apiapp.feil.UgyldigRequest;
+import no.nav.veilarbvedtaksstotte.client.PersonClient;
+import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
+import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
+import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
+import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils;
@@ -25,11 +31,27 @@ public class BeslutterService {
 
 	private final VedtakStatusEndringService vedtakStatusEndringService;
 
+	private final BeslutteroversiktRepository beslutteroversiktRepository;
+
+	private final VeilederService veilederService;
+
+	private final PersonClient personClient;
+
 	@Inject
-	public BeslutterService(AuthService authService, VedtaksstotteRepository vedtaksstotteRepository, VedtakStatusEndringService vedtakStatusEndringService) {
+	public BeslutterService(
+			AuthService authService,
+			VedtaksstotteRepository vedtaksstotteRepository,
+			VedtakStatusEndringService vedtakStatusEndringService,
+			BeslutteroversiktRepository beslutteroversiktRepository,
+			VeilederService veilederService,
+			PersonClient personClient
+	) {
 		this.authService = authService;
 		this.vedtaksstotteRepository = vedtaksstotteRepository;
 		this.vedtakStatusEndringService = vedtakStatusEndringService;
+		this.beslutteroversiktRepository = beslutteroversiktRepository;
+		this.veilederService = veilederService;
+		this.personClient = personClient;
 	}
 
 	public void startBeslutterProsess(String fnr) {
@@ -46,6 +68,7 @@ public class BeslutterService {
 			throw new UgyldigRequest();
 		}
 
+		leggTilBrukerIBeslutterOversikt(vedtak);
 		vedtaksstotteRepository.setBeslutterProsessStartet(vedtak.getId());
 		vedtakStatusEndringService.beslutterProsessStartet(vedtak);
 	}
@@ -65,7 +88,11 @@ public class BeslutterService {
 
 		vedtaksstotteRepository.setBeslutter(vedtak.getId(), innloggetVeilederIdent);
 
+		Veileder beslutter = veilederService.hentVeileder(innloggetVeilederIdent);
+		beslutteroversiktRepository.oppdaterBeslutter(vedtak.getId(), beslutter.getIdent(), beslutter.getNavn());
+
 		if (vedtak.getBeslutterIdent() == null) {
+			beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.HAR_BESLUTTER);
 			vedtakStatusEndringService.blittBeslutter(vedtak, innloggetVeilederIdent);
 		} else {
 			vedtakStatusEndringService.tattOverForBeslutter(vedtak, innloggetVeilederIdent);
@@ -86,6 +113,7 @@ public class BeslutterService {
         }
 
 		vedtaksstotteRepository.setGodkjentAvBeslutter(vedtak.getId(), true);
+        beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.GODKJENT_AV_BESLUTTER);
         vedtakStatusEndringService.godkjentAvBeslutter(vedtak);
     }
 
@@ -110,10 +138,34 @@ public class BeslutterService {
 		vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), nyStatus);
 
 		if (nyStatus == BeslutterProsessStatus.KLAR_TIL_BESLUTTER) {
+			beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
 			vedtakStatusEndringService.klarTilBeslutter(vedtak);
 		} else {
+			beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
 			vedtakStatusEndringService.klarTilVeileder(vedtak);
 		}
+	}
+
+	private void leggTilBrukerIBeslutterOversikt(Vedtak vedtak) {
+		String brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
+		Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
+		String enhetNavn = veilederService.hentEnhetNavn(vedtak.getOppfolgingsenhetId());
+		PersonNavn brukerNavn = personClient.hentPersonNavn(brukerFnr);
+
+		BeslutteroversiktBruker bruker = new BeslutteroversiktBruker()
+				.setVedtakId(vedtak.getId())
+				.setBrukerFornavn(brukerNavn.getFornavn())
+				.setBrukerEtternavn(brukerNavn.getEtternavn())
+				.setBrukerFnr(brukerFnr)
+				.setBrukerOppfolgingsenhetNavn(enhetNavn)
+				.setBrukerOppfolgingsenhetId(vedtak.getOppfolgingsenhetId())
+				.setVedtakStartet(vedtak.getUtkastOpprettet())
+				.setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
+				.setBeslutterNavn(null)
+				.setBeslutterIdent(null)
+				.setVeilederNavn(veileder.getNavn());
+
+		beslutteroversiktRepository.lagBruker(bruker);
 	}
 
 }

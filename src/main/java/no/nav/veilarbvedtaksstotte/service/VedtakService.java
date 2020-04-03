@@ -6,6 +6,8 @@ import no.nav.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.DialogRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.stereotype.Service;
@@ -22,21 +24,25 @@ import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutt
 @Service
 public class VedtakService {
 
-    private VedtaksstotteRepository vedtaksstotteRepository;
-    private OyeblikksbildeService oyeblikksbildeService;
-    private KilderRepository kilderRepository;
-    private AuthService authService;
-    private DokumentClient dokumentClient;
-    private SAFClient safClient;
-    private VeilederService veilederService;
-    private MalTypeService malTypeService;
-    private VedtakStatusEndringService vedtakStatusEndringService;
-    private Transactor transactor;
+    private final VedtaksstotteRepository vedtaksstotteRepository;
+    private final OyeblikksbildeService oyeblikksbildeService;
+    private final KilderRepository kilderRepository;
+    private final DialogRepository dialogRepository;
+    private final BeslutteroversiktRepository beslutteroversiktRepository;
+    private final AuthService authService;
+    private final DokumentClient dokumentClient;
+    private final SAFClient safClient;
+    private final VeilederService veilederService;
+    private final MalTypeService malTypeService;
+    private final VedtakStatusEndringService vedtakStatusEndringService;
+    private final Transactor transactor;
 
     @Inject
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
                          KilderRepository kilderRepository,
                          OyeblikksbildeService oyeblikksbildeService,
+                         DialogRepository dialogRepository,
+                         BeslutteroversiktRepository beslutteroversiktRepository,
                          AuthService authService,
                          DokumentClient dokumentClient,
                          SAFClient safClient,
@@ -47,6 +53,8 @@ public class VedtakService {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.kilderRepository = kilderRepository;
         this.oyeblikksbildeService = oyeblikksbildeService;
+        this.dialogRepository = dialogRepository;
+        this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.authService = authService;
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
@@ -78,6 +86,7 @@ public class VedtakService {
         transactor.inTransaction(() -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
             vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendt);
+            beslutteroversiktRepository.slettBruker(vedtakId);
         });
 
         vedtakStatusEndringService.vedtakSendt(vedtak, fnr);
@@ -110,7 +119,7 @@ public class VedtakService {
             throw new IllegalStateException(format("Kan ikke lage nytt utkast, bruker med aktorId %s har allerede et aktivt utkast", aktorId));
         }
 
-        String veilederIdent = veilederService.hentVeilederIdentFraToken();
+        String veilederIdent = authService.getInnloggetVeilederIdent();
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
 
         vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId);
@@ -145,14 +154,22 @@ public class VedtakService {
         }
     }
 
-    public void slettUtkast(String fnr) {
+    public void slettUtkastForFnr(String fnr) {
         String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+        slettUtkast(aktorId);
+    }
+
+    public void slettUtkast(String aktorId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+        long utkastId = utkast.getId();
         authService.sjekkAnsvarligVeileder(utkast);
 
         transactor.inTransaction(() -> {
-            vedtaksstotteRepository.slettUtkast(aktorId);
-            kilderRepository.slettKilder(utkast.getId());
+            dialogRepository.slettDialogMeldinger(utkastId);
+            kilderRepository.slettKilder(utkastId);
+            beslutteroversiktRepository.slettBruker(utkastId);
+            kilderRepository.slettKilder(utkastId);
+            vedtaksstotteRepository.slettUtkast(utkast.getAktorId());
         });
 
         vedtakStatusEndringService.utkastSlettet(utkast);
@@ -194,9 +211,8 @@ public class VedtakService {
     }
 
     public void behandleAvsluttOppfolging (KafkaAvsluttOppfolging melding ) {
-        String aktorId = melding.getAktorId();
-        vedtaksstotteRepository.slettUtkast(aktorId);
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
+        slettUtkast(melding.getAktorId());
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding.getAktorId());
     }
 
     public void behandleOppfolgingsbrukerEndring(KafkaOppfolgingsbrukerEndring endring) {
@@ -211,16 +227,18 @@ public class VedtakService {
     public void taOverUtkast(String fnr) {
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(authKontekst.getAktorId());
-        String veilederId = veilederService.hentVeilederIdentFraToken();
+        String veilederIdent = authService.getInnloggetVeilederIdent();
+        Veileder veileder = veilederService.hentVeileder(veilederIdent);
 
-        if (veilederId.equals(utkast.getVeilederIdent())) {
+        if (veilederIdent.equals(utkast.getVeilederIdent())) {
             throw new BadRequestException("Veileder er allerede ansvarlig for utkast");
         }
 
-        utkast.setVeilederIdent(veilederId);
+        utkast.setVeilederIdent(veilederIdent);
 
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
-        vedtakStatusEndringService.tattOverForVeileder(utkast, veilederId);
+        beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
+        vedtakStatusEndringService.tattOverForVeileder(utkast, veilederIdent);
     }
 
     private void flettInnVeilederNavn(List<Vedtak> vedtak) {

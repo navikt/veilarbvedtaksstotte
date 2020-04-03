@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.List;
 
+import static no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository.BESLUTTEROVERSIKT_BRUKER_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.DialogRepository.DIALOG_MELDING_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.KafkaRepository.FEILET_KAFKA_MELDING_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.KilderRepository.KILDE_TABLE;
@@ -23,6 +24,7 @@ public class DbTestUtils {
             FEILET_KAFKA_MELDING_TABLE,
             OYEBLIKKSBILDE_TABLE,
             DIALOG_MELDING_TABLE,
+            BESLUTTEROVERSIKT_BRUKER_TABLE,
             VEDTAK_TABLE
     );
 

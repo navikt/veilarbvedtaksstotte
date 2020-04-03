@@ -31,7 +31,7 @@ public class VedtaksstotteRepositoryTest {
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
         dialogRepository = new DialogRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, dialogRepository, transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
     }
 
     @Before
@@ -94,12 +94,6 @@ public class VedtaksstotteRepositoryTest {
     @Test
     public void testSlettUtkast() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-
-        kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
-
-        dialogRepository.opprettDialogMelding(utkast.getId(), null, "Test");
 
         vedtaksstotteRepository.slettUtkast(TEST_AKTOR_ID);
 

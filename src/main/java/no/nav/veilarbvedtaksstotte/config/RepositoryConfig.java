@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Import;
         KafkaRepository.class,
         OyeblikksbildeRepository.class,
         KilderRepository.class,
-        DialogRepository.class
+        DialogRepository.class,
+        BeslutteroversiktRepository.class
 })
 public class RepositoryConfig {}
