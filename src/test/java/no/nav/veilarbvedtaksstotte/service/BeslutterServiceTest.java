@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.DialogRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,9 +34,11 @@ public class BeslutterServiceTest {
 
     private AuthService authService = mock(AuthService.class);
 
+    private DialogRepository dialogRepository = mock(DialogRepository.class);
+
     private BeslutterService beslutterService = new BeslutterService(
             authService, vedtaksstotteRepository, vedtakStatusEndringService,
-            beslutteroversiktRepository, veilederService, personClient
+            beslutteroversiktRepository, veilederService, personClient, dialogRepository
     );
 
     @Before
@@ -61,7 +64,6 @@ public class BeslutterServiceTest {
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
         beslutterService.startBeslutterProsess(TEST_FNR);
-
         verify(vedtaksstotteRepository, atLeastOnce()).setBeslutterProsessStartet(anyLong());
     }
 

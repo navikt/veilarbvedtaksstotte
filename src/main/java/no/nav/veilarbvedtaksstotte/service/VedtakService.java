@@ -6,6 +6,7 @@ import no.nav.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.domain.enums.MeldingUnderType;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.DialogRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
@@ -100,7 +101,6 @@ public class VedtakService {
         DokumentSendtDTO dokumentSendt;
         try {
             SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, fnr);
-
             dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
         } catch (Exception e) {
             vedtaksstotteRepository.oppdaterSender(vedtak.getId(), false);
@@ -123,6 +123,10 @@ public class VedtakService {
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
 
         vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId);
+
+        Vedtak vedtak = vedtaksstotteRepository.hentUtkast(aktorId);
+        dialogRepository.opprettDialogSystemMelding(vedtak.getId(), veilederIdent, MeldingUnderType.UTKAST_OPPRETTET);
+
         vedtakStatusEndringService.utkastOpprettet(vedtaksstotteRepository.hentUtkast(aktorId));
     }
 
@@ -237,6 +241,7 @@ public class VedtakService {
         utkast.setVeilederIdent(veilederIdent);
 
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
+        dialogRepository.opprettDialogSystemMelding(utkast.getId(), veilederIdent, MeldingUnderType.TA_OVER_SOM_VEILEDER);
         beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
         vedtakStatusEndringService.tattOverForVeileder(utkast, veilederIdent);
     }

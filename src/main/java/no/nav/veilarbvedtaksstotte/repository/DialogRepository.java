@@ -4,12 +4,17 @@ import lombok.SneakyThrows;
 import no.nav.sbl.sql.SqlUtils;
 import no.nav.sbl.sql.where.WhereClause;
 import no.nav.veilarbvedtaksstotte.domain.DialogMelding;
+import no.nav.veilarbvedtaksstotte.domain.enums.MeldingType;
+import no.nav.veilarbvedtaksstotte.domain.enums.MeldingUnderType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.sql.ResultSet;
 import java.util.List;
+
+import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
+import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 
 @Repository
 public class DialogRepository {
@@ -20,6 +25,8 @@ public class DialogRepository {
     private final static String MELDING             = "MELDING";
     private final static String OPPRETTET           = "OPPRETTET";
     private final static String OPPRETTET_AV_IDENT  = "OPPRETTET_AV_IDENT";
+    private final static String MELDING_UNDER_TYPE = "MELDING_UNDER_TYPE";
+    private final static String MELDING_TYPE = "MELDING_TYPE";
 
     private final JdbcTemplate db;
 
@@ -35,12 +42,18 @@ public class DialogRepository {
                 .executeToList();
     }
 
-    public void opprettDialogMelding(long vedtakId, String opprettetAvIdent, String melding) {
-        SqlUtils.insert(db, DIALOG_MELDING_TABLE)
-                .value(VEDTAK_ID, vedtakId)
-                .value(OPPRETTET_AV_IDENT, opprettetAvIdent)
-                .value(MELDING, melding)
-                .execute();
+    public void opprettDialogManuellMelding(long vedtakId, String opprettetAvIdent, String melding) {
+        db.update(
+                "INSERT INTO DIALOG_MELDING(VEDTAK_ID, OPPRETTET_AV_IDENT, MELDING, MELDING_TYPE) VALUES (?, ?, ? ,?::MELDING_TYPE)",
+                vedtakId, opprettetAvIdent, melding, getName(MeldingType.MANUELL)
+        );
+    }
+
+    public void opprettDialogSystemMelding(long vedtakId, String opprettetAvIdent, MeldingUnderType meldingUnderType) {
+        db.update(
+                "INSERT INTO DIALOG_MELDING(VEDTAK_ID, OPPRETTET_AV_IDENT, MELDING_UNDER_TYPE, MELDING_TYPE) VALUES (?, ?, ?::MELDING_UNDER_TYPE ,?::MELDING_TYPE)",
+                vedtakId, opprettetAvIdent, getName(meldingUnderType), getName(MeldingType.SYSTEM)
+        );
     }
 
     public boolean slettDialogMeldinger(long vedtakId) {
@@ -56,7 +69,9 @@ public class DialogRepository {
                 .setVedtakId(rs.getLong(VEDTAK_ID))
                 .setMelding(rs.getString(MELDING))
                 .setOpprettet(rs.getTimestamp(OPPRETTET).toLocalDateTime())
-                .setOpprettetAvIdent(rs.getString(OPPRETTET_AV_IDENT));
+                .setOpprettetAvIdent(rs.getString(OPPRETTET_AV_IDENT))
+                .setMeldingUnderType(valueOf(MeldingUnderType.class, rs.getString(MELDING_UNDER_TYPE)))
+                .setMeldingType(valueOf(MeldingType.class, rs.getString(MELDING_TYPE)));
     }
 
 }

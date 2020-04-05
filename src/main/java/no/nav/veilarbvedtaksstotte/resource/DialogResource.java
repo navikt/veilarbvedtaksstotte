@@ -31,7 +31,7 @@ public class DialogResource {
 
     @POST
     @Path("/")
-    public void opprettDialogMelding(@PathParam("fnr") String fnr, OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
+    public void opprettBrukerDialogMelding(@PathParam("fnr") String fnr, OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
         dialogService.opprettBrukerDialogMelding(fnr, opprettDialogMeldingDTO.getMelding());
     }
 

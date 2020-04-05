@@ -34,7 +34,7 @@ public class DialogService {
         String aktorId = authService.sjekkTilgang(fnr).getAktorId();
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
-        dialogRepository.opprettDialogMelding(vedtak.getId(), innloggetVeilederIdent, melding);
+        dialogRepository.opprettDialogManuellMelding(vedtak.getId(), innloggetVeilederIdent, melding);
     }
 
     public List<DialogMeldingDTO> hentDialogMeldinger(String fnr) {

@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.DialogMelding;
+import no.nav.veilarbvedtaksstotte.domain.enums.MeldingUnderType;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
@@ -12,6 +13,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import java.util.List;
 
+import static no.nav.veilarbvedtaksstotte.domain.enums.MeldingType.MANUELL;
+import static no.nav.veilarbvedtaksstotte.domain.enums.MeldingType.SYSTEM;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,11 +39,11 @@ public class DialogRepositoryTest {
     }
 
     @Test
-    public void opprettDialogMelding_skal_opprette_dialog_melding() {
+    public void opprettDialogManuellMelding_skal_opprette_manuell_melding_i_dialog() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
-        dialogRepository.opprettDialogMelding(vedtakId, TEST_VEILEDER_IDENT, TEST_DIALOG_MELDING);
+        dialogRepository.opprettDialogManuellMelding(vedtakId, TEST_VEILEDER_IDENT, TEST_DIALOG_MELDING);
 
         List<DialogMelding> meldinger = dialogRepository.hentDialogMeldinger(vedtakId);
         DialogMelding melding = meldinger.get(0);
@@ -50,14 +53,33 @@ public class DialogRepositoryTest {
         assertEquals(melding.getOpprettetAvIdent(), TEST_VEILEDER_IDENT);
         assertEquals(melding.getMelding(), TEST_DIALOG_MELDING);
         assertNotNull(melding.getOpprettet());
+        assertEquals(melding.getMeldingType(), MANUELL);
     }
 
     @Test
-    public void slettDialogMeldinger_skal_slette_dialog_melding() {
+    public void opprettDialogSystemMelding_skal_opprette_system_melding_i_dialog() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
-        dialogRepository.opprettDialogMelding(vedtakId, TEST_VEILEDER_IDENT, TEST_DIALOG_MELDING);
+        dialogRepository.opprettDialogSystemMelding(vedtakId, TEST_VEILEDER_IDENT, MeldingUnderType.UTKAST_OPPRETTET);
+
+        List<DialogMelding> meldinger = dialogRepository.hentDialogMeldinger(vedtakId);
+        DialogMelding melding = meldinger.get(0);
+
+        assertTrue(melding.getId() > 0);
+        assertEquals(melding.getVedtakId(), vedtakId);
+        assertEquals(melding.getOpprettetAvIdent(), TEST_VEILEDER_IDENT);
+        assertEquals(melding.getMeldingUnderType(), MeldingUnderType.UTKAST_OPPRETTET);
+        assertNotNull(melding.getOpprettet());
+        assertEquals(melding.getMeldingType(), SYSTEM);
+    }
+
+    @Test
+    public void slettDialogMeldinger_skal_slette_alle_meldinger_i_dialog() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+        dialogRepository.opprettDialogSystemMelding(vedtakId, TEST_VEILEDER_IDENT, MeldingUnderType.UTKAST_OPPRETTET);
+        dialogRepository.opprettDialogManuellMelding(vedtakId, TEST_VEILEDER_IDENT, TEST_DIALOG_MELDING);
 
         dialogRepository.slettDialogMeldinger(vedtakId);
 

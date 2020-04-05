@@ -206,7 +206,7 @@ public class VedtakServiceTest {
 
         kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
-        dialogRepository.opprettDialogMelding(utkast.getId(), null, "Test");
+        dialogRepository.opprettDialogManuellMelding(utkast.getId(), null, "Test");
 
         vedtakService.slettUtkast(TEST_AKTOR_ID);
 
