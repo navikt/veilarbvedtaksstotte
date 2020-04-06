@@ -7,8 +7,8 @@ import no.nav.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
-import no.nav.veilarbvedtaksstotte.repository.DialogRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
+import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +27,7 @@ public class VedtakService {
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final OyeblikksbildeService oyeblikksbildeService;
     private final KilderRepository kilderRepository;
-    private final DialogRepository dialogRepository;
+    private final MeldingRepository meldingRepository;
     private final BeslutteroversiktRepository beslutteroversiktRepository;
     private final AuthService authService;
     private final DokumentClient dokumentClient;
@@ -41,7 +41,7 @@ public class VedtakService {
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
                          KilderRepository kilderRepository,
                          OyeblikksbildeService oyeblikksbildeService,
-                         DialogRepository dialogRepository,
+                         MeldingRepository meldingRepository,
                          BeslutteroversiktRepository beslutteroversiktRepository,
                          AuthService authService,
                          DokumentClient dokumentClient,
@@ -53,7 +53,7 @@ public class VedtakService {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.kilderRepository = kilderRepository;
         this.oyeblikksbildeService = oyeblikksbildeService;
-        this.dialogRepository = dialogRepository;
+        this.meldingRepository = meldingRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.authService = authService;
         this.dokumentClient = dokumentClient;
@@ -165,7 +165,7 @@ public class VedtakService {
         authService.sjekkAnsvarligVeileder(utkast);
 
         transactor.inTransaction(() -> {
-            dialogRepository.slettDialogMeldinger(utkastId);
+            meldingRepository.slettMeldinger(utkastId);
             kilderRepository.slettKilder(utkastId);
             beslutteroversiktRepository.slettBruker(utkastId);
             kilderRepository.slettKilder(utkastId);

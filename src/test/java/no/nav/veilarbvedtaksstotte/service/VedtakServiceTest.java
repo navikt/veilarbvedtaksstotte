@@ -48,7 +48,7 @@ public class VedtakServiceTest {
 
     private static VedtaksstotteRepository vedtaksstotteRepository;
     private static KilderRepository kilderRepository;
-    private static DialogRepository dialogRepository;
+    private static MeldingRepository meldingRepository;
     private static OyeblikksbildeRepository oyeblikksbildeRepository;
     private static BeslutteroversiktRepository beslutteroversiktRepository;
 
@@ -77,7 +77,7 @@ public class VedtakServiceTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        dialogRepository = new DialogRepository(db);
+        meldingRepository = new MeldingRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
@@ -89,7 +89,7 @@ public class VedtakServiceTest {
                 vedtaksstotteRepository,
                 kilderRepository,
                 oyeblikksbildeService,
-                dialogRepository,
+                meldingRepository,
                 beslutteroversiktRepository,
                 authService,
                 dokumentClient,
@@ -206,7 +206,7 @@ public class VedtakServiceTest {
 
         kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
-        dialogRepository.opprettDialogMelding(utkast.getId(), null, "Test");
+        meldingRepository.opprettDialogMelding(utkast.getId(), null, "Test");
 
         vedtakService.slettUtkast(TEST_AKTOR_ID);
 

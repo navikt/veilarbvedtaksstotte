@@ -1,7 +1,9 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.sbl.jdbc.Transactor;
-import no.nav.veilarbvedtaksstotte.domain.DialogMelding;
+import no.nav.veilarbvedtaksstotte.domain.dialog.DialogMelding;
+import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMelding;
+import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
@@ -15,10 +17,10 @@ import java.util.List;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DialogRepositoryTest {
+public class MeldingRepositoryTest {
 
     private static JdbcTemplate db;
-    private static DialogRepository dialogRepository;
+    private static MeldingRepository meldingRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
     private static Transactor transactor;
 
@@ -26,7 +28,7 @@ public class DialogRepositoryTest {
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
-        dialogRepository = new DialogRepository(db);
+        meldingRepository = new MeldingRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
     }
 
@@ -40,9 +42,9 @@ public class DialogRepositoryTest {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
-        dialogRepository.opprettDialogMelding(vedtakId, TEST_VEILEDER_IDENT, TEST_DIALOG_MELDING);
+        meldingRepository.opprettDialogMelding(vedtakId, TEST_VEILEDER_IDENT, TEST_DIALOG_MELDING);
 
-        List<DialogMelding> meldinger = dialogRepository.hentDialogMeldinger(vedtakId);
+        List<DialogMelding> meldinger = meldingRepository.hentDialogMeldinger(vedtakId);
         DialogMelding melding = meldinger.get(0);
 
         assertTrue(melding.getId() > 0);
@@ -53,17 +55,36 @@ public class DialogRepositoryTest {
     }
 
     @Test
-    public void slettDialogMeldinger_skal_slette_dialog_melding() {
+    public void opprettSystemMelding_skal_opprette_system_melding() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
-        dialogRepository.opprettDialogMelding(vedtakId, TEST_VEILEDER_IDENT, TEST_DIALOG_MELDING);
+        meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.UTKAST_OPPRETTET, TEST_VEILEDER_NAVN);
 
-        dialogRepository.slettDialogMeldinger(vedtakId);
+        List<SystemMelding> meldinger = meldingRepository.hentSystemMeldinger(vedtakId);
+        SystemMelding melding = meldinger.get(0);
 
-        List<DialogMelding> meldinger = dialogRepository.hentDialogMeldinger(vedtakId);
+        assertTrue(melding.getId() > 0);
+        assertEquals(melding.getVedtakId(), vedtakId);
+        assertEquals(melding.getSystemMeldingType(), SystemMeldingType.UTKAST_OPPRETTET);
+        assertEquals(melding.getUtfortAvNavn(), TEST_VEILEDER_NAVN);
+        assertNotNull(melding.getOpprettet());
+    }
 
-        assertTrue(meldinger.isEmpty());
+    @Test
+    public void slettMeldinger_skal_slette_alle_meldinger() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+
+        meldingRepository.opprettDialogMelding(vedtakId, TEST_VEILEDER_IDENT, TEST_DIALOG_MELDING);
+
+        meldingRepository.slettMeldinger(vedtakId);
+
+        List<DialogMelding> dialogMeldinger = meldingRepository.hentDialogMeldinger(vedtakId);
+        List<SystemMelding> systemMeldinger = meldingRepository.hentSystemMeldinger(vedtakId);
+
+        assertTrue(dialogMeldinger.isEmpty());
+        assertTrue(systemMeldinger.isEmpty());
     }
 
 

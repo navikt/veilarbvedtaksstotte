@@ -1,17 +1,18 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.domain.dialog;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDateTime;
-
 @Data
 @Accessors(chain = true)
-public class DialogMeldingDTO {
+public class DialogMeldingDTO extends MeldingDTO {
     String melding;
-    LocalDateTime opprettet;
     String opprettetAvIdent;
     String opprettetAvNavn;
+
+    public DialogMeldingDTO() {
+        type = Type.DIALOG_MELDING;
+    }
 
     public static DialogMeldingDTO fraMelding(DialogMelding dialogMelding) {
         DialogMeldingDTO melding = new DialogMeldingDTO();
