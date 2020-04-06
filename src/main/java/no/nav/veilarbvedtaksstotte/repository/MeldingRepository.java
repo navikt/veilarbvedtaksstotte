@@ -32,7 +32,7 @@ public class MeldingRepository {
 
     // System melding
     private final static String SYSTEM_MELDING_TYPE = "SYSTEM_MELDING_TYPE";
-    private final static String UTFORT_AV_NAVN  = "UTFORT_AV_NAVN";
+    private final static String UTFORT_AV_IDENT  = "UTFORT_AV_IDENT";
 
     private final JdbcTemplate db;
 
@@ -63,13 +63,13 @@ public class MeldingRepository {
                 .execute();
     }
 
-    public void opprettSystemMelding(long vedtakId, SystemMeldingType systemMeldingType, String utfortAvNavn) {
+    public void opprettSystemMelding(long vedtakId, SystemMeldingType systemMeldingType, String utfortAvIdent) {
         String sql = String.format(
                 "INSERT INTO %s (%s, %s, %s) VALUES (?, ?::SYSTEM_MELDING_TYPE, ?)",
-                SYSTEM_MELDING_TABLE, VEDTAK_ID, SYSTEM_MELDING_TYPE, UTFORT_AV_NAVN
+                SYSTEM_MELDING_TABLE, VEDTAK_ID, SYSTEM_MELDING_TYPE, UTFORT_AV_IDENT
         );
 
-        db.update(sql, vedtakId, getName(systemMeldingType), utfortAvNavn);
+        db.update(sql, vedtakId, getName(systemMeldingType), utfortAvIdent);
     }
 
     public boolean slettMeldinger(long vedtakId) {
@@ -98,7 +98,7 @@ public class MeldingRepository {
     private static SystemMelding mapSystemMelding(ResultSet rs) {
         return (SystemMelding) new SystemMelding()
                 .setSystemMeldingType(EnumUtils.valueOf(SystemMeldingType.class, rs.getString(SYSTEM_MELDING_TYPE)))
-                .setUtfortAvNavn(rs.getString(UTFORT_AV_NAVN))
+                .setUtfortAvIdent(rs.getString(UTFORT_AV_IDENT))
                 .setOpprettet(rs.getTimestamp(OPPRETTET).toLocalDateTime())
                 .setId(rs.getInt(ID))
                 .setVedtakId(rs.getLong(VEDTAK_ID));

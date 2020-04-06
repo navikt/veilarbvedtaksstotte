@@ -5,6 +5,7 @@ import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
+import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
@@ -119,11 +120,14 @@ public class VedtakService {
             throw new IllegalStateException(format("Kan ikke lage nytt utkast, bruker med aktorId %s har allerede et aktivt utkast", aktorId));
         }
 
-        String veilederIdent = authService.getInnloggetVeilederIdent();
+        String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
 
-        vedtaksstotteRepository.opprettUtkast(aktorId, veilederIdent, oppfolgingsenhetId);
+        vedtaksstotteRepository.opprettUtkast(aktorId, innloggetVeilederIdent, oppfolgingsenhetId);
         vedtakStatusEndringService.utkastOpprettet(vedtaksstotteRepository.hentUtkast(aktorId));
+
+        Vedtak nyttUtkast = vedtaksstotteRepository.hentUtkast(aktorId);
+        meldingRepository.opprettSystemMelding(nyttUtkast.getId(), SystemMeldingType.UTKAST_OPPRETTET, innloggetVeilederIdent);
     }
 
     public void oppdaterUtkast(String fnr, VedtakDTO vedtakDTO) {
@@ -227,18 +231,19 @@ public class VedtakService {
     public void taOverUtkast(String fnr) {
         AuthKontekst authKontekst = authService.sjekkTilgang(fnr);
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(authKontekst.getAktorId());
-        String veilederIdent = authService.getInnloggetVeilederIdent();
-        Veileder veileder = veilederService.hentVeileder(veilederIdent);
+        String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
+        Veileder veileder = veilederService.hentVeileder(innloggetVeilederIdent);
 
-        if (veilederIdent.equals(utkast.getVeilederIdent())) {
+        if (innloggetVeilederIdent.equals(utkast.getVeilederIdent())) {
             throw new BadRequestException("Veileder er allerede ansvarlig for utkast");
         }
 
-        utkast.setVeilederIdent(veilederIdent);
+        utkast.setVeilederIdent(innloggetVeilederIdent);
 
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
         beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
-        vedtakStatusEndringService.tattOverForVeileder(utkast, veilederIdent);
+        vedtakStatusEndringService.tattOverForVeileder(utkast, innloggetVeilederIdent);
+        meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_VEILEDER, innloggetVeilederIdent);
     }
 
     private void flettInnVeilederNavn(List<Vedtak> vedtak) {

@@ -59,7 +59,7 @@ public class MeldingRepositoryTest {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
-        meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.UTKAST_OPPRETTET, TEST_VEILEDER_NAVN);
+        meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.UTKAST_OPPRETTET, TEST_VEILEDER_IDENT);
 
         List<SystemMelding> meldinger = meldingRepository.hentSystemMeldinger(vedtakId);
         SystemMelding melding = meldinger.get(0);
@@ -67,7 +67,7 @@ public class MeldingRepositoryTest {
         assertTrue(melding.getId() > 0);
         assertEquals(melding.getVedtakId(), vedtakId);
         assertEquals(melding.getSystemMeldingType(), SystemMeldingType.UTKAST_OPPRETTET);
-        assertEquals(melding.getUtfortAvNavn(), TEST_VEILEDER_NAVN);
+        assertEquals(melding.getUtfortAvIdent(), TEST_VEILEDER_IDENT);
         assertNotNull(melding.getOpprettet());
     }
 

@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 public class SystemMeldingDTO extends MeldingDTO {
     SystemMeldingType systemMeldingType;
     String utfortAvNavn;
+    String utfortAvIdent;
 
     public SystemMeldingDTO() {
         type = Type.SYSTEM_MELDING;
@@ -18,7 +19,7 @@ public class SystemMeldingDTO extends MeldingDTO {
 
         melding.systemMeldingType = systemMelding.systemMeldingType;
         melding.opprettet = systemMelding.opprettet;
-        melding.utfortAvNavn = systemMelding.utfortAvNavn;
+        melding.utfortAvIdent = systemMelding.utfortAvIdent;
 
         return melding;
     }

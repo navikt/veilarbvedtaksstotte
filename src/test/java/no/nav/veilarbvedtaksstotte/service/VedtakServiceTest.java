@@ -11,6 +11,7 @@ import no.nav.sbl.jdbc.Transactor;
 import no.nav.sbl.util.fn.UnsafeRunnable;
 import no.nav.veilarbvedtaksstotte.client.*;
 import no.nav.veilarbvedtaksstotte.domain.*;
+import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType;
@@ -77,7 +78,7 @@ public class VedtakServiceTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        meldingRepository = new MeldingRepository(db);
+        meldingRepository = spy(new MeldingRepository(db));
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
@@ -182,6 +183,18 @@ public class VedtakServiceTest {
                 equalTo(new Oyeblikksbilde(sendtVedtak.getId(), OyeblikksbildeType.EGENVURDERING, EGENVURDERING_DATA)))
         );
     }
+
+    @Test
+    public void lagUtkast__skal_opprette_system_melding() {
+        withSubject(() -> {
+            gittTilgang();
+            vedtakService.lagUtkast(TEST_FNR);
+
+            verify(meldingRepository, times(1))
+                    .opprettSystemMelding(anyLong(), eq(SystemMeldingType.UTKAST_OPPRETTET), eq(TEST_VEILEDER_IDENT));
+        });
+    }
+
 
     @Test
     public void oppdaterUtkast__feiler_for_veileder_som_ikke_er_satt_pa_utkast() {
@@ -293,6 +306,22 @@ public class VedtakServiceTest {
             assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
             vedtakService.taOverUtkast(TEST_FNR);
             assertEquals(TEST_VEILEDER_IDENT, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
+        });
+    }
+
+    @Test
+    public void taOverUtkast__oppretter_system_melding() {
+        withSubject(() -> {
+            String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
+            gittTilgang();
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
+
+            reset(meldingRepository);
+
+            vedtakService.taOverUtkast(TEST_FNR);
+
+            verify(meldingRepository, times(1))
+                    .opprettSystemMelding(anyLong(), eq(SystemMeldingType.TATT_OVER_SOM_VEILEDER), eq(TEST_VEILEDER_IDENT));
         });
     }
 

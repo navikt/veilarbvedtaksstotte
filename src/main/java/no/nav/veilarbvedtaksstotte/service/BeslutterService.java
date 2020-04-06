@@ -9,9 +9,11 @@ import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
+import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils;
@@ -33,6 +35,8 @@ public class BeslutterService {
 
 	private final BeslutteroversiktRepository beslutteroversiktRepository;
 
+	private final MeldingRepository meldingRepository;
+
 	private final VeilederService veilederService;
 
 	private final PersonClient personClient;
@@ -43,6 +47,7 @@ public class BeslutterService {
 			VedtaksstotteRepository vedtaksstotteRepository,
 			VedtakStatusEndringService vedtakStatusEndringService,
 			BeslutteroversiktRepository beslutteroversiktRepository,
+			MeldingRepository meldingRepository,
 			VeilederService veilederService,
 			PersonClient personClient
 	) {
@@ -50,6 +55,7 @@ public class BeslutterService {
 		this.vedtaksstotteRepository = vedtaksstotteRepository;
 		this.vedtakStatusEndringService = vedtakStatusEndringService;
 		this.beslutteroversiktRepository = beslutteroversiktRepository;
+		this.meldingRepository = meldingRepository;
 		this.veilederService = veilederService;
 		this.personClient = personClient;
 	}
@@ -71,6 +77,7 @@ public class BeslutterService {
 		leggTilBrukerIBeslutterOversikt(vedtak);
 		vedtaksstotteRepository.setBeslutterProsessStartet(vedtak.getId());
 		vedtakStatusEndringService.beslutterProsessStartet(vedtak);
+		meldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.BESLUTTER_PROSESS_STARTET, vedtak.getVeilederIdent());
 	}
 
 	public void bliBeslutter(String fnr) {
@@ -95,8 +102,10 @@ public class BeslutterService {
 			beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
 			vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
 			vedtakStatusEndringService.blittBeslutter(vedtak, innloggetVeilederIdent);
+			meldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.BLITT_BESLUTTER, innloggetVeilederIdent);
 		} else {
 			vedtakStatusEndringService.tattOverForBeslutter(vedtak, innloggetVeilederIdent);
+			meldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.TATT_OVER_SOM_BESLUTTER, innloggetVeilederIdent);
 		}
 	}
 
@@ -116,6 +125,7 @@ public class BeslutterService {
 		vedtaksstotteRepository.setGodkjentAvBeslutter(vedtak.getId(), true);
         beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.GODKJENT_AV_BESLUTTER);
         vedtakStatusEndringService.godkjentAvBeslutter(vedtak);
+        meldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);
     }
 
 	public void oppdaterBeslutterProsessStatus(String fnr) {

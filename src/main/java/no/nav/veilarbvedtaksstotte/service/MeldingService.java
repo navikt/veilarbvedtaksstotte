@@ -52,10 +52,17 @@ public class MeldingService {
     }
 
     private List<SystemMeldingDTO> hentSystemMeldinger(long vedtakId) {
-        return meldingRepository.hentSystemMeldinger(vedtakId)
+        List<SystemMeldingDTO> meldinger = meldingRepository.hentSystemMeldinger(vedtakId)
                 .stream()
                 .map(SystemMeldingDTO::fraMelding)
                 .collect(Collectors.toList());
+
+        meldinger.forEach(melding -> {
+            Veileder veileder = veilederService.hentVeileder(melding.getUtfortAvIdent());
+            melding.setUtfortAvNavn(veileder.getNavn());
+        });
+
+        return meldinger;
     }
 
     private List<DialogMeldingDTO> hentDialogMeldinger(long vedtakId) {
@@ -64,16 +71,12 @@ public class MeldingService {
                 .map(DialogMeldingDTO::fraMelding)
                 .collect(Collectors.toList());
 
-        flettInnNavn(meldinger);
-
-        return meldinger;
-    }
-
-    private void flettInnNavn(List<DialogMeldingDTO> meldinger) {
         meldinger.forEach(melding -> {
             Veileder veileder = veilederService.hentVeileder(melding.getOpprettetAvIdent());
             melding.setOpprettetAvNavn(veileder.getNavn());
         });
+
+        return meldinger;
     }
 
 }

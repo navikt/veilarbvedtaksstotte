@@ -7,5 +7,5 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class SystemMelding extends Melding {
     SystemMeldingType systemMeldingType;
-    String utfortAvNavn;
+    String utfortAvIdent;
 }
