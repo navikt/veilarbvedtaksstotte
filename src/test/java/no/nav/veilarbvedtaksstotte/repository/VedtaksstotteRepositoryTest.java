@@ -22,7 +22,7 @@ public class VedtaksstotteRepositoryTest {
     private static JdbcTemplate db;
     private static Transactor transactor;
     private static KilderRepository kilderRepository;
-    private static DialogRepository dialogRepository;
+    private static MeldingRepository meldingRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
@@ -30,7 +30,7 @@ public class VedtaksstotteRepositoryTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        dialogRepository = new DialogRepository(db);
+        meldingRepository = new MeldingRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
     }
 

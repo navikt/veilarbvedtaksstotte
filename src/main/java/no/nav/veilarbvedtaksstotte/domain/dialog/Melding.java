@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.domain.dialog;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -7,10 +7,8 @@ import java.time.LocalDateTime;
 
 @Data
 @Accessors(chain = true)
-public class DialogMelding {
+public class Melding {
     long id;
     long vedtakId;
-    String melding;
     LocalDateTime opprettet;
-    String opprettetAvIdent;
 }
