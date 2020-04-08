@@ -23,7 +23,7 @@ public class BeslutteroversiktService {
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
     }
 
-    public List<BeslutteroversiktBruker> sokEtterBruker(BeslutteroversiktSok sok) {
+    public BrukereMedAntall sokEtterBruker(BeslutteroversiktSok sok) {
         if (sok.getFilter() == null) {
             sok.setFilter(new BeslutteroversiktSokFilter());
         }

@@ -7,6 +7,7 @@ import no.nav.sbl.sql.where.WhereClause;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSokFilter;
+import no.nav.veilarbvedtaksstotte.domain.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import no.nav.veilarbvedtaksstotte.utils.ValidationUtils;
@@ -96,7 +97,7 @@ public class BeslutteroversiktRepository {
         db.update(sql, beslutterNavn, beslutterIdent, vedtakId);
     }
 
-    public List<BeslutteroversiktBruker> sokEtterBrukere(BeslutteroversiktSok sok, String innloggetVeilederIdent) {
+    public BrukereMedAntall sokEtterBrukere(BeslutteroversiktSok sok, String innloggetVeilederIdent) {
         Object[] parameters = NO_PARAMETERS;
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);
 
@@ -113,7 +114,10 @@ public class BeslutteroversiktRepository {
 
         sqlBuilder.append(" ").append(lagPaginationSql(sok.getAntall(), sok.getFra()));
 
-        return db.query(sqlBuilder.toString(), parameters, BeslutteroversiktRepository::mapBeslutteroversiktBruker);
+        long totaltAntallSokteBrukere = totaltAntallBrukereForSok(sok, innloggetVeilederIdent);
+        List<BeslutteroversiktBruker> brukere = db.query(sqlBuilder.toString(), parameters, BeslutteroversiktRepository::mapBeslutteroversiktBruker);
+
+        return new BrukereMedAntall(brukere, totaltAntallSokteBrukere);
     }
 
     public BeslutteroversiktBruker finnBrukerForVedtak(long vedtakId) {
@@ -130,6 +134,22 @@ public class BeslutteroversiktRepository {
         SqlUtils.delete(db, BESLUTTEROVERSIKT_BRUKER_TABLE)
                 .where(WhereClause.equals(VEDTAK_ID, vedtakId))
                 .execute();
+    }
+
+    private long totaltAntallBrukereForSok(BeslutteroversiktSok sok, String innloggetVeilederIdent) {
+        Object[] parameters = NO_PARAMETERS;
+        StringBuilder sqlBuilder = new StringBuilder("SELECT count(*) FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);
+
+        Optional<SqlWithParameters> maybeFilterSqlWithParams = createFilterSqlWithParameters(sok.getFilter(), innloggetVeilederIdent);
+
+        if (maybeFilterSqlWithParams.isPresent()) {
+            SqlWithParameters filterSqlWithParams = maybeFilterSqlWithParams.get();
+            parameters = filterSqlWithParams.parameters;
+            sqlBuilder.append(" ").append(filterSqlWithParams.sql);
+        }
+
+        Long count = db.queryForObject(sqlBuilder.toString(), parameters, BeslutteroversiktRepository::mapCount);
+        return count == null ? 0 : count;
     }
 
     private boolean harAktivtFilter(BeslutteroversiktSokFilter filter) {
@@ -195,6 +215,11 @@ public class BeslutteroversiktRepository {
     public class SqlWithParameters {
         String sql;
         Object[] parameters;
+    }
+
+    @SneakyThrows
+    private static long mapCount(ResultSet rs, int rowNum) {
+        return rs.getLong(1);
     }
 
     @SneakyThrows

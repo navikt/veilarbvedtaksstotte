@@ -2,10 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
-import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSok;
-import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSokFilter;
-import no.nav.veilarbvedtaksstotte.domain.PortefoljeEnhet;
-import no.nav.veilarbvedtaksstotte.domain.VeilederEnheterDTO;
+import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -27,9 +24,11 @@ public class BeslutteroversiktServiceTest {
 
     private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient);
 
+    private final static BrukereMedAntall INGEN_BRUKERE = new BrukereMedAntall(Collections.emptyList(), 0);
+
     @Test
     public void sokEtterBruker__skal_sette_alle_veileder_enheter_hvis_enhet_filter_mangler() {
-        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(Collections.emptyList());
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
                         new PortefoljeEnhet("1234", "test1"),
@@ -49,7 +48,7 @@ public class BeslutteroversiktServiceTest {
 
     @Test
     public void sokEtterBruker__skal_feile_hvis_ikke_tilgang_til_enhet() {
-        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(Collections.emptyList());
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
                         new PortefoljeEnhet("1234", "test1"),
@@ -67,7 +66,7 @@ public class BeslutteroversiktServiceTest {
 
     @Test
     public void sokEtterBruker__skal_ikke_feile_hvis_tilgang_til_enheter() {
-        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(Collections.emptyList());
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
                         new PortefoljeEnhet("1234", "test1"),
