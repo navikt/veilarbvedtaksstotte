@@ -17,10 +17,17 @@ public class BeslutteroversiktService {
 
     private final VeiledereOgEnhetClient veiledereOgEnhetClient;
 
+    private final AuthService authService;
+
     @Inject
-    public BeslutteroversiktService(BeslutteroversiktRepository beslutteroversiktRepository, VeiledereOgEnhetClient veiledereOgEnhetClient) {
+    public BeslutteroversiktService(
+            BeslutteroversiktRepository beslutteroversiktRepository,
+            VeiledereOgEnhetClient veiledereOgEnhetClient,
+            AuthService authService
+    ) {
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
+        this.authService = authService;
     }
 
     public BrukereMedAntall sokEtterBruker(BeslutteroversiktSok sok) {
@@ -40,13 +47,40 @@ public class BeslutteroversiktService {
             sjekkTilgangTilAlleEnheter(sok.getFilter().getEnheter(), veilederEnheter);
         }
 
-        return beslutteroversiktRepository.sokEtterBrukere(sok, veilederEnheterDTO.getIdent());
+        BrukereMedAntall brukereMedAntall = beslutteroversiktRepository.sokEtterBrukere(sok, veilederEnheterDTO.getIdent());
+        sensurerBrukere(brukereMedAntall.getBrukere());
+
+        return brukereMedAntall;
     }
 
     private void sjekkTilgangTilAlleEnheter(List<String> sokteEnheter, List<String> veilederEnheter) {
         if (!veilederEnheter.containsAll(sokteEnheter)) {
             throw new IngenTilgang("Veileder mangler tilgang til enhet");
         }
+    }
+
+    private void sensurerBrukere(List<BeslutteroversiktBruker> brukere) {
+        brukere.forEach(this::fjernKonfidensiellInfoDersomIkkeTilgang);
+    }
+
+    private void fjernKonfidensiellInfoDersomIkkeTilgang(BeslutteroversiktBruker bruker) {
+        String diskresjonskode = ""; // TODO: Hent fra bruker eller API
+        boolean erEgenAnsatt = false; // TODO: Hent fra bruker eller API
+
+        boolean manglerTilgang =
+                ("6".equals(diskresjonskode) && !authService.harInnloggetVeilederTilgangTilKode6())
+                || ("7".equals(diskresjonskode) && !authService.harInnloggetVeilederTilgangTilKode7())
+                || (erEgenAnsatt && !authService.harInnloggetVeilederTilgangTilEgenAnsatt());
+
+        if (manglerTilgang) {
+            fjernKonfidensiellInfo(bruker);
+        }
+    }
+
+    private static void fjernKonfidensiellInfo(BeslutteroversiktBruker bruker) {
+        bruker.setBrukerFnr("");
+        bruker.setBrukerFornavn("");
+        bruker.setBrukerEtternavn("");
     }
 
 }

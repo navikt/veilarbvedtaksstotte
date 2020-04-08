@@ -22,7 +22,9 @@ public class BeslutteroversiktServiceTest {
 
     private final VeiledereOgEnhetClient veiledereOgEnhetClient = mock(VeiledereOgEnhetClient.class);
 
-    private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient);
+    private final AuthService authService = mock(AuthService.class);
+
+    private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService);
 
     private final static BrukereMedAntall INGEN_BRUKERE = new BrukereMedAntall(Collections.emptyList(), 0);
 
