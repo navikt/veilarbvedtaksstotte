@@ -187,7 +187,7 @@ public class BeslutteroversiktRepository {
             parameters.add(toPostgresArray(filter.getEnheter()));
         }
 
-        if (!ValidationUtils.isNullOrEmpty(filter.getNavnEllerFnr())) {
+        if (!isNullOrEmpty(filter.getNavnEllerFnr())) {
             String nameOrFnrCol = isNumeric(filter.getNavnEllerFnr()) ? BRUKER_FNR : BRUKER_ETTERNAVN; // TODO: Bedre søk på navn
             filterStrs.add(format("%s ILIKE ?", nameOrFnrCol));
             parameters.add("%" + filter.getNavnEllerFnr() + "%"); // TODO: Check if this is the correct way

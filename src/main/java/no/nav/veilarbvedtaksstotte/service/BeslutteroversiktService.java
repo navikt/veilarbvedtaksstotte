@@ -41,10 +41,12 @@ public class BeslutteroversiktService {
                 .map(PortefoljeEnhet::getEnhetId)
                 .collect(Collectors.toList());
 
-        if (sok.getFilter().getEnheter() == null) {
+        List<String> enhetFilter = sok.getFilter().getEnheter();
+
+        if (enhetFilter == null || enhetFilter.isEmpty()) {
             sok.getFilter().setEnheter(veilederEnheter);
-        } else  {
-            sjekkTilgangTilAlleEnheter(sok.getFilter().getEnheter(), veilederEnheter);
+        } else {
+            sjekkTilgangTilAlleEnheter(enhetFilter, veilederEnheter);
         }
 
         BrukereMedAntall brukereMedAntall = beslutteroversiktRepository.sokEtterBrukere(sok, veilederEnheterDTO.getIdent());
