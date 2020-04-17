@@ -86,6 +86,23 @@ public class BeslutteroversiktServiceTest {
     }
 
     @Test
+    public void sokEtterBruker__skal_sensurere_brukere() {
+        BeslutteroversiktService beslutteroversiktService =
+                spy(new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService));
+
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
+                        new PortefoljeEnhet("1234", "test1"),
+                        new PortefoljeEnhet("4321", "test1")
+                ))
+        );
+
+        beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok());
+        verify(beslutteroversiktService).sensurerBrukere(anyList());
+    }
+
+    @Test
     public void sensurerBrukere__skal_fjerne_informasjon_pa_brukere_uten_tilgang() {
         String bruker1Fnr = "11111111111";
         String bruker2Fnr = "22222222222";
