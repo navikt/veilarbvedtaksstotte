@@ -8,7 +8,9 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static org.junit.Assert.assertEquals;
@@ -81,6 +83,60 @@ public class BeslutteroversiktServiceTest {
 
         beslutteroversiktService.sokEtterBruker(sok);
         verify(beslutteroversiktRepository, atLeastOnce()).sokEtterBrukere(any(), anyString());
+    }
+
+    @Test
+    public void sensurerBrukere__skal_fjerne_informasjon_pa_brukere_uten_tilgang() {
+        String bruker1Fnr = "11111111111";
+        String bruker2Fnr = "22222222222";
+        Map<String, Boolean> brukerTilganger = new HashMap<>();
+        brukerTilganger.put(bruker1Fnr, true);
+        brukerTilganger.put(bruker2Fnr, false);
+
+        when(authService.harInnloggetVeilederTilgangTilBrukere(any()))
+                .thenReturn(brukerTilganger);
+
+        BeslutteroversiktBruker bruker1 = new BeslutteroversiktBruker()
+               .setBrukerFnr(bruker1Fnr)
+               .setBrukerFornavn("Bruker 1")
+               .setBrukerEtternavn("Bruker 1");
+
+        BeslutteroversiktBruker bruker2 = new BeslutteroversiktBruker()
+                .setBrukerFnr(bruker2Fnr)
+                .setBrukerFornavn("Bruker 2")
+                .setBrukerEtternavn("Bruker 2");
+
+        List<BeslutteroversiktBruker> brukere = List.of(bruker1, bruker2);
+
+        beslutteroversiktService.sensurerBrukere(brukere);
+
+        assertEquals(bruker1.getBrukerFnr(), brukere.get(0).getBrukerFnr());
+        assertEquals(bruker1.getBrukerFornavn(), brukere.get(0).getBrukerFornavn());
+        assertEquals(bruker1.getBrukerEtternavn(), brukere.get(0).getBrukerEtternavn());
+
+        assertEquals("", brukere.get(1).getBrukerFnr());
+        assertEquals("", brukere.get(1).getBrukerFornavn());
+        assertEquals("", brukere.get(1).getBrukerEtternavn());
+    }
+
+    @Test
+    public void sensurerBrukere__skal_fjerne_informasjon_pa_bruker_som_det_mangler_sjekk_pa() {
+        when(authService.harInnloggetVeilederTilgangTilBrukere(any()))
+                .thenReturn(Collections.emptyMap());
+
+        BeslutteroversiktBruker bruker1 = new BeslutteroversiktBruker()
+                .setBrukerFnr("11111111111")
+                .setBrukerFornavn("Bruker 1")
+                .setBrukerEtternavn("Bruker 1");
+
+
+        List<BeslutteroversiktBruker> brukere = List.of(bruker1);
+
+        beslutteroversiktService.sensurerBrukere(brukere);
+
+        assertEquals("", brukere.get(0).getBrukerFnr());
+        assertEquals("", brukere.get(0).getBrukerFornavn());
+        assertEquals("", brukere.get(0).getBrukerEtternavn());
     }
 
 }

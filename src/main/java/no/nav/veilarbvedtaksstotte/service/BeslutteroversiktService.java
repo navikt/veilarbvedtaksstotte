@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,22 +62,17 @@ public class BeslutteroversiktService {
         }
     }
 
-    private void sensurerBrukere(List<BeslutteroversiktBruker> brukere) {
-        brukere.forEach(this::fjernKonfidensiellInfoDersomIkkeTilgang);
-    }
+    void sensurerBrukere(List<BeslutteroversiktBruker> brukere) {
+        List<String> brukerFnrs = brukere.stream().map(BeslutteroversiktBruker::getBrukerFnr).collect(Collectors.toList());
+        Map<String, Boolean> tilgangTilBrukere = authService.harInnloggetVeilederTilgangTilBrukere(brukerFnrs);
 
-    private void fjernKonfidensiellInfoDersomIkkeTilgang(BeslutteroversiktBruker bruker) {
-        String diskresjonskode = ""; // TODO: Hent fra bruker eller API
-        boolean erEgenAnsatt = false; // TODO: Hent fra bruker eller API
+        brukere.forEach(bruker -> {
+            boolean harTilgang = tilgangTilBrukere.getOrDefault(bruker.getBrukerFnr(), Boolean.FALSE);
 
-        boolean manglerTilgang =
-                ("6".equals(diskresjonskode) && !authService.harInnloggetVeilederTilgangTilKode6())
-                || ("7".equals(diskresjonskode) && !authService.harInnloggetVeilederTilgangTilKode7())
-                || (erEgenAnsatt && !authService.harInnloggetVeilederTilgangTilEgenAnsatt());
-
-        if (manglerTilgang) {
-            fjernKonfidensiellInfo(bruker);
-        }
+            if (!harTilgang) {
+                fjernKonfidensiellInfo(bruker);
+            }
+        });
     }
 
     private static void fjernKonfidensiellInfo(BeslutteroversiktBruker bruker) {
