@@ -7,6 +7,7 @@ import no.nav.common.auth.SsoToken;
 import no.nav.common.auth.Subject;
 import no.nav.common.auth.SubjectHandler;
 import no.nav.dialogarena.aktor.AktorService;
+import no.nav.sbl.dialogarena.common.abac.pep.service.AbacService;
 import no.nav.sbl.jdbc.Transactor;
 import no.nav.sbl.util.fn.UnsafeRunnable;
 import no.nav.veilarbvedtaksstotte.client.*;
@@ -68,6 +69,7 @@ public class VedtakServiceTest {
     private static VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
     private static AktorService aktorService = mock(AktorService.class);
     private static PepClient pepClient = mock(PepClient.class);
+    private static AbacService abacService = mock(AbacService.class);
     private static ArenaClient arenaClient = mock(ArenaClient.class);
 
     private static String CV_DATA = "{\"cv\": \"cv\"}";
@@ -84,7 +86,7 @@ public class VedtakServiceTest {
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
-        authService = spy(new AuthService(aktorService, pepClient, arenaClient, veilederService));
+        authService = spy(new AuthService(aktorService, pepClient, abacService, arenaClient));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, cvClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         vedtakService = new VedtakService(

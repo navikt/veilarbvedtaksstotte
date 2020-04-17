@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,10 +18,17 @@ public class BeslutteroversiktService {
 
     private final VeiledereOgEnhetClient veiledereOgEnhetClient;
 
+    private final AuthService authService;
+
     @Inject
-    public BeslutteroversiktService(BeslutteroversiktRepository beslutteroversiktRepository, VeiledereOgEnhetClient veiledereOgEnhetClient) {
+    public BeslutteroversiktService(
+            BeslutteroversiktRepository beslutteroversiktRepository,
+            VeiledereOgEnhetClient veiledereOgEnhetClient,
+            AuthService authService
+    ) {
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
+        this.authService = authService;
     }
 
     public BrukereMedAntall sokEtterBruker(BeslutteroversiktSok sok) {
@@ -34,19 +42,43 @@ public class BeslutteroversiktService {
                 .map(PortefoljeEnhet::getEnhetId)
                 .collect(Collectors.toList());
 
-        if (sok.getFilter().getEnheter() == null) {
+        List<String> enhetFilter = sok.getFilter().getEnheter();
+
+        if (enhetFilter == null || enhetFilter.isEmpty()) {
             sok.getFilter().setEnheter(veilederEnheter);
-        } else  {
-            sjekkTilgangTilAlleEnheter(sok.getFilter().getEnheter(), veilederEnheter);
+        } else {
+            sjekkTilgangTilAlleEnheter(enhetFilter, veilederEnheter);
         }
 
-        return beslutteroversiktRepository.sokEtterBrukere(sok, veilederEnheterDTO.getIdent());
+        BrukereMedAntall brukereMedAntall = beslutteroversiktRepository.sokEtterBrukere(sok, veilederEnheterDTO.getIdent());
+        sensurerBrukere(brukereMedAntall.getBrukere());
+
+        return brukereMedAntall;
     }
 
     private void sjekkTilgangTilAlleEnheter(List<String> sokteEnheter, List<String> veilederEnheter) {
         if (!veilederEnheter.containsAll(sokteEnheter)) {
             throw new IngenTilgang("Veileder mangler tilgang til enhet");
         }
+    }
+
+    void sensurerBrukere(List<BeslutteroversiktBruker> brukere) {
+        List<String> brukerFnrs = brukere.stream().map(BeslutteroversiktBruker::getBrukerFnr).collect(Collectors.toList());
+        Map<String, Boolean> tilgangTilBrukere = authService.harInnloggetVeilederTilgangTilBrukere(brukerFnrs);
+
+        brukere.forEach(bruker -> {
+            boolean harTilgang = tilgangTilBrukere.getOrDefault(bruker.getBrukerFnr(), Boolean.FALSE);
+
+            if (!harTilgang) {
+                fjernKonfidensiellInfo(bruker);
+            }
+        });
+    }
+
+    private static void fjernKonfidensiellInfo(BeslutteroversiktBruker bruker) {
+        bruker.setBrukerFnr("");
+        bruker.setBrukerFornavn("");
+        bruker.setBrukerEtternavn("");
     }
 
 }
