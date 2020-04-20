@@ -6,6 +6,7 @@ import no.nav.sbl.dialogarena.common.abac.pep.domain.response.XacmlResponse;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public class AuthServiceTest {
     public void lagSjekkTilgangRequest__skal_lage_riktig_request() {
         AuthService authService = new AuthService(null, null, null, null);
 
-        XacmlRequest request = authService.lagSjekkTilgangRequest("srvtest", "Z1234", List.of("11111111111", "2222222222"));
+        XacmlRequest request = authService.lagSjekkTilgangRequest("srvtest", "Z1234", Arrays.asList("11111111111", "2222222222"));
 
         String requestJson = XacmlMapper.mapRequestToEntity(request);
         String expectedRequestJson = TestUtils.readTestResourceFile("xacmlrequest-abac-tilgang.json");

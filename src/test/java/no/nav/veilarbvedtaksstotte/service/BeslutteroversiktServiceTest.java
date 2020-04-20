@@ -7,10 +7,7 @@ import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static org.junit.Assert.assertEquals;
@@ -34,7 +31,7 @@ public class BeslutteroversiktServiceTest {
     public void sokEtterBruker__skal_sette_alle_veileder_enheter_hvis_enhet_filter_mangler() {
         when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
-                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, Arrays.asList(
                         new PortefoljeEnhet("1234", "test1"),
                         new PortefoljeEnhet("4321", "test1")
                 ))
@@ -54,14 +51,14 @@ public class BeslutteroversiktServiceTest {
     public void sokEtterBruker__skal_feile_hvis_ikke_tilgang_til_enhet() {
         when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
-                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, Arrays.asList(
                         new PortefoljeEnhet("1234", "test1"),
                         new PortefoljeEnhet("4321", "test1")
                 ))
         );
 
         BeslutteroversiktSok sok = new BeslutteroversiktSok();
-        sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(List.of("5431")));
+        sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("5431")));
 
         assertThrows(IngenTilgang.class, () -> {
             beslutteroversiktService.sokEtterBruker(sok);
@@ -72,14 +69,14 @@ public class BeslutteroversiktServiceTest {
     public void sokEtterBruker__skal_ikke_feile_hvis_tilgang_til_enheter() {
         when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
-                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, Arrays.asList(
                         new PortefoljeEnhet("1234", "test1"),
                         new PortefoljeEnhet("4321", "test1")
                 ))
         );
 
         BeslutteroversiktSok sok = new BeslutteroversiktSok();
-        sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(List.of("4321", "1234")));
+        sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("4321", "1234")));
 
         beslutteroversiktService.sokEtterBruker(sok);
         verify(beslutteroversiktRepository, atLeastOnce()).sokEtterBrukere(any(), anyString());
@@ -92,7 +89,7 @@ public class BeslutteroversiktServiceTest {
 
         when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
-                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, Arrays.asList(
                         new PortefoljeEnhet("1234", "test1"),
                         new PortefoljeEnhet("4321", "test1")
                 ))
@@ -123,7 +120,7 @@ public class BeslutteroversiktServiceTest {
                 .setBrukerFornavn("Bruker 2")
                 .setBrukerEtternavn("Bruker 2");
 
-        List<BeslutteroversiktBruker> brukere = List.of(bruker1, bruker2);
+        List<BeslutteroversiktBruker> brukere = Arrays.asList(bruker1, bruker2);
 
         beslutteroversiktService.sensurerBrukere(brukere);
 
@@ -147,7 +144,7 @@ public class BeslutteroversiktServiceTest {
                 .setBrukerEtternavn("Bruker 1");
 
 
-        List<BeslutteroversiktBruker> brukere = List.of(bruker1);
+        List<BeslutteroversiktBruker> brukere = Arrays.asList(bruker1);
 
         beslutteroversiktService.sensurerBrukere(brukere);
 
