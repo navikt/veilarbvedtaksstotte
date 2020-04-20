@@ -12,6 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -65,7 +66,7 @@ public class BeslutterRepositorySokTest {
     @Test
     public void sokEtterBrukere__skal_finne_bruker_med_flere_enheter() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setFilter(new BeslutteroversiktSokFilter().setEnheter(List.of("1234", "6755")));
+                .setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("1234", "6755")));
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT).getBrukere();
 
@@ -107,7 +108,7 @@ public class BeslutterRepositorySokTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setFilter(
                         new BeslutteroversiktSokFilter()
-                                .setEnheter(List.of("1234", "6755"))
+                                .setEnheter(Arrays.asList("1234", "6755"))
                                 .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
                 );
 
@@ -162,7 +163,7 @@ public class BeslutterRepositorySokTest {
     public void sokEtterBrukere__skal_finne_totalt_antall() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setAntall(1)
-                .setFilter(new BeslutteroversiktSokFilter().setEnheter(List.of("1234", "6755")));
+                .setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("1234", "6755")));
 
         BrukereMedAntall brukereMedAntall = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT);
 

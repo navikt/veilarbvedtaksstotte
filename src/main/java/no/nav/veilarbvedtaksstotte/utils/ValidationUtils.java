@@ -9,7 +9,7 @@ public class ValidationUtils {
     }
 
     public static boolean isNullOrEmpty(String str) {
-        return str == null || str.isBlank();
+        return str == null || str.trim().isEmpty();
     }
 
 }
