@@ -50,7 +50,7 @@ public class VedtaksstotteRepositoryTest {
 
         Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        assertTrue(oppdatertUtkast.getBeslutterProsessStatus() == GODKJENT_AV_BESLUTTER);
+        assertEquals(true, oppdatertUtkast.getBeslutterProsessStatus() == GODKJENT_AV_BESLUTTER);
     }
 
     @Test
@@ -63,7 +63,7 @@ public class VedtaksstotteRepositoryTest {
 
         Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        assertTrue(oppdatertUtkast.getBeslutterProsessStatus() == KLAR_TIL_BESLUTTER);
+        assertEquals(true,oppdatertUtkast.getBeslutterProsessStatus() == KLAR_TIL_BESLUTTER);
     }
 
     @Test

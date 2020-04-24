@@ -23,6 +23,7 @@ import javax.inject.Inject;
 
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVeilederForVedtak;
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterForVedtak;
+import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.erBeslutterProsessStartet;
 
 @Service
 public class BeslutterService {
@@ -70,7 +71,7 @@ public class BeslutterService {
 		    throw new UgyldigRequest();
         }
 
-		if (vedtak.getBeslutterProsessStatus() == BeslutterProsessStatus.KLAR_TIL_BESLUTTER) {
+		if (erBeslutterProsessStartet(vedtak.getBeslutterProsessStatus())) {
 			throw new UgyldigRequest();
 		}
 
