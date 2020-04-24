@@ -76,7 +76,7 @@ public class BeslutterRepositorySokTest {
     @Test
     public void sokEtterBrukere__skal_finne_bruker_med_fnr() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setFilter(new BeslutteroversiktSokFilter().setNavnEllerFnr("234567890"));
+                .setFilter(new BeslutteroversiktSokFilter().setNavnEllerFnr("123456"));
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT).getBrukere();
 
@@ -84,9 +84,29 @@ public class BeslutterRepositorySokTest {
     }
 
     @Test
-    public void sokEtterBrukere__skal_finne_bruker_med_navn() {
+    public void sokEtterBrukere__skal_finne_bruker_med_delvis_etternavn() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .setFilter(new BeslutteroversiktSokFilter().setNavnEllerFnr("arls"));
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT).getBrukere();
+
+        assertEquals(1, brukere.size());
+    }
+
+    @Test
+    public void sokEtterBrukere__skal_finne_bruker_med_delvis_fornavn() {
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .setFilter(new BeslutteroversiktSokFilter().setNavnEllerFnr("ari"));
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT).getBrukere();
+
+        assertEquals(1, brukere.size());
+    }
+
+    @Test
+    public void sokEtterBrukere__skal_finne_bruker_med_fornavn_og_etternavn() {
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .setFilter(new BeslutteroversiktSokFilter().setNavnEllerFnr("Kari Karlsen"));
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, TEST_BESLUTTER_IDENT).getBrukere();
 
