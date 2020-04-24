@@ -70,12 +70,12 @@ public class BeslutterService {
 		    throw new UgyldigRequest();
         }
 
-		if (vedtak.isBeslutterProsessStartet()) {
+		if (vedtak.getBeslutterProsessStatus() == BeslutterProsessStatus.KLAR_TIL_BESLUTTER) {
 			throw new UgyldigRequest();
 		}
 
 		leggTilBrukerIBeslutterOversikt(vedtak);
-		vedtaksstotteRepository.setBeslutterProsessStartet(vedtak.getId());
+		vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
 		vedtakStatusEndringService.beslutterProsessStartet(vedtak);
 		meldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.BESLUTTER_PROSESS_STARTET, vedtak.getVeilederIdent());
 	}
@@ -118,11 +118,11 @@ public class BeslutterService {
             throw new IngenTilgang("Kun beslutter kan godkjenne vedtak");
         }
 
-        if (vedtak.isGodkjentAvBeslutter()) {
+        if (vedtak.getBeslutterProsessStatus() == BeslutterProsessStatus.GODKJENT_AV_BESLUTTER) {
 			throw new UgyldigRequest();
         }
 
-		vedtaksstotteRepository.setGodkjentAvBeslutter(vedtak.getId(), true);
+		vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), BeslutterProsessStatus.GODKJENT_AV_BESLUTTER);
         beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.GODKJENT_AV_BESLUTTER);
         vedtakStatusEndringService.godkjentAvBeslutter(vedtak);
         meldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);

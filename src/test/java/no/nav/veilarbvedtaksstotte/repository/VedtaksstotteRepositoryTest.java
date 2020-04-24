@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
+import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.*;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.Assert.*;
 
@@ -45,11 +46,11 @@ public class VedtaksstotteRepositoryTest {
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        vedtaksstotteRepository.setGodkjentAvBeslutter(utkast.getId(), true);
+        vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), GODKJENT_AV_BESLUTTER);
 
         Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        assertTrue(oppdatertUtkast.isGodkjentAvBeslutter());
+        assertTrue(oppdatertUtkast.getBeslutterProsessStatus() == GODKJENT_AV_BESLUTTER);
     }
 
     @Test
@@ -58,11 +59,11 @@ public class VedtaksstotteRepositoryTest {
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        vedtaksstotteRepository.setBeslutterProsessStartet(utkast.getId());
+        vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), KLAR_TIL_BESLUTTER);
 
         Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        assertTrue(oppdatertUtkast.isBeslutterProsessStartet());
+        assertTrue(oppdatertUtkast.getBeslutterProsessStatus() == KLAR_TIL_BESLUTTER);
     }
 
     @Test

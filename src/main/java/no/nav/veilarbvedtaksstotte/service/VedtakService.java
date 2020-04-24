@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
+import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.*;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 
 @Service
@@ -286,10 +287,13 @@ public class VedtakService {
             throw new IllegalStateException("Vedtak mangler innsatsgruppe");
         }
 
-        if (skalHaBeslutter(innsatsgruppe) || vedtak.isBeslutterProsessStartet()) {
+        boolean isBeslutterProsessStartet = vedtak.getBeslutterProsessStatus() == KLAR_TIL_BESLUTTER;
+        boolean isGodkjentAvBeslutter = vedtak.getBeslutterProsessStatus() == GODKJENT_AV_BESLUTTER;
+
+        if (skalHaBeslutter(innsatsgruppe) || isBeslutterProsessStartet) {
             if (vedtak.getBeslutterIdent() == null) {
                 throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
-            } else if (!vedtak.isGodkjentAvBeslutter()) {
+            } else if (!isGodkjentAvBeslutter) {
                 throw new IllegalStateException("Vedtak er ikke godkjent av beslutter");
             }
         }
