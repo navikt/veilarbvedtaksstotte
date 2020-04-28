@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.domain.enums;
 public enum VedtakStatusEndring {
     UTKAST_OPPRETTET,
     UTKAST_SLETTET,
-    VEDATK_SENDT,
+    VEDTAK_SENDT,
     BESLUTTER_PROSESS_STARTET,
     BLI_BESLUTTER,
     OVERTA_FOR_BESLUTTER,

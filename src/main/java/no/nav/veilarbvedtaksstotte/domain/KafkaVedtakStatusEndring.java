@@ -22,7 +22,7 @@ public class KafkaVedtakStatusEndring {
 
     @Data
     public static class VedtakSendt extends KafkaVedtakStatusEndring {
-        public VedtakSendt() { vedtakStatusEndring = VedtakStatusEndring.VEDATK_SENDT; }
+        public VedtakSendt() { vedtakStatusEndring = VedtakStatusEndring.VEDTAK_SENDT; }
 
         Innsatsgruppe innsatsgruppe;
         Hovedmal hovedmal;
