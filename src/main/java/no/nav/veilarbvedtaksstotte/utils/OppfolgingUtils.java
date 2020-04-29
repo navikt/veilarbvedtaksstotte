@@ -19,19 +19,4 @@ public class OppfolgingUtils {
                 .map(OppfolgingPeriodeDTO::getStartDato)
                 .findFirst();
     }
-
-    public static Innsatsgruppe utledInnsatsgruppe(String servicegruppe) {
-        switch (servicegruppe) {
-            case "IKVAL":
-                return Innsatsgruppe.STANDARD_INNSATS;
-            case "VARIG":
-                return Innsatsgruppe.VARIG_TILPASSET_INNSATS;
-            case "BFORM":
-                return Innsatsgruppe.SITUASJONSBESTEMT_INNSATS;
-            case "BATT":
-                return Innsatsgruppe.SPESIELT_TILPASSET_INNSATS;
-            default:
-                throw new IllegalArgumentException("Ugyldig servicegruppe " + servicegruppe);
-        }
-    }
 }

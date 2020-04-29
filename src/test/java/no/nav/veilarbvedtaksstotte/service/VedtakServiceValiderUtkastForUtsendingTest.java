@@ -9,6 +9,8 @@ import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
 
+import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
+import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
 
 public class VedtakServiceValiderUtkastForUtsendingTest {
@@ -51,9 +53,8 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
 
         Vedtak vedtak = new Vedtak();
         vedtak.setInnsatsgruppe(Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
-        vedtak.setBeslutterProsessStartet(true);
+        vedtak.setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
-        vedtak.setGodkjentAvBeslutter(false);
 
         vedtakService.validerUtkastForUtsending(vedtak, null);
     }
@@ -116,7 +117,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
-        vedtak.setGodkjentAvBeslutter(true);
+        vedtak.setBeslutterProsessStatus(GODKJENT_AV_BESLUTTER);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
 

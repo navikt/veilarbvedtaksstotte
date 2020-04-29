@@ -28,8 +28,6 @@ public class Vedtak {
     String oppfolgingsenhetNavn;
     String beslutterIdent;
     String beslutterNavn;
-    boolean beslutterProsessStartet;
-    boolean godkjentAvBeslutter;
     boolean gjeldende;
     List<String> opplysninger;
     String journalpostId;

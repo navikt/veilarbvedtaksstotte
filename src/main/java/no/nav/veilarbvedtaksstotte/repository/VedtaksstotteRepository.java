@@ -120,30 +120,12 @@ public class VedtaksstotteRepository {
         }
     }
 
-    public void setBeslutterProsessStartet(long vedtakId) {
-        String sql = "UPDATE VEDTAK SET BESLUTTER_PROSESS_STARTET = ? WHERE ID = ?";
-        long itemsUpdated = db.update(sql, true, vedtakId);
-
-        if (itemsUpdated == 0) {
-            throw new RuntimeException("Fant ikke utkast å starte beslutterprosess for " + vedtakId);
-        }
-    }
-
     public void setBeslutter(long vedtakId, String beslutterIdent) {
         String sql = "UPDATE VEDTAK SET BESLUTTER_IDENT = ? WHERE ID = ?";
         long itemsUpdated = db.update(sql, beslutterIdent, vedtakId);
 
         if (itemsUpdated == 0) {
             throw new RuntimeException("Fant ikke utkast å sette beslutter for " + vedtakId);
-        }
-    }
-
-    public void setGodkjentAvBeslutter(long vedtakId, boolean godkjent) {
-        String sql = "UPDATE VEDTAK SET GODKJENT_AV_BESLUTTER = ? WHERE ID = ?";
-        long itemsUpdated = db.update(sql, godkjent, vedtakId);
-
-        if (itemsUpdated == 0) {
-            throw new RuntimeException("Fant ikke utkast" + vedtakId);
         }
     }
 
@@ -238,8 +220,6 @@ public class VedtaksstotteRepository {
                 .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
                 .setGjeldende(rs.getBoolean(GJELDENDE))
                 .setBeslutterIdent(rs.getString(BESLUTTER_IDENT))
-                .setBeslutterProsessStartet(rs.getBoolean(BESLUTTER_PROSESS_STARTET))
-                .setGodkjentAvBeslutter(rs.getBoolean(GODKJENT_AV_BESLUTTER))
                 .setOppfolgingsenhetId(rs.getString(OPPFOLGINGSENHET_ID))
                 .setVeilederIdent(rs.getString(VEILEDER_IDENT))
                 .setAktorId(rs.getString(AKTOR_ID))

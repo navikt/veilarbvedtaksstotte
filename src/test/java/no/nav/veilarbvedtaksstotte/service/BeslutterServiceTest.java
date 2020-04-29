@@ -17,6 +17,7 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.junit.Before;
 import org.junit.Test;
 
+import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.*;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -66,13 +67,13 @@ public class BeslutterServiceTest {
 
         beslutterService.startBeslutterProsess(TEST_FNR);
 
-        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStartet(anyLong());
+        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
     }
 
     @Test
     public void startBeslutterProsess__skal_ikke_starte_beslutter_prosess_hvis_allerede_startet() {
         Vedtak vedtak = new Vedtak();
-        vedtak.setBeslutterProsessStartet(true);
+        vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
         vedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
@@ -192,7 +193,7 @@ public class BeslutterServiceTest {
 
         beslutterService.setGodkjentAvBeslutter(TEST_FNR);
 
-        verify(vedtaksstotteRepository, times(1)).setGodkjentAvBeslutter(anyLong(), eq(true));
+        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(GODKJENT_AV_BESLUTTER));
     }
 
     @Test
@@ -229,7 +230,7 @@ public class BeslutterServiceTest {
         Vedtak vedtak = new Vedtak();
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
         vedtak.setVeilederIdent(TEST_VEILEDER_IDENT);
-        vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_VEILEDER);
+        vedtak.setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
 
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
@@ -237,7 +238,7 @@ public class BeslutterServiceTest {
 
         beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR);
 
-        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(BeslutterProsessStatus.KLAR_TIL_BESLUTTER));
+        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
     }
 
     @Test
@@ -245,7 +246,7 @@ public class BeslutterServiceTest {
         Vedtak vedtak = new Vedtak();
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
         vedtak.setVeilederIdent(TEST_VEILEDER_IDENT);
-        vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
+        vedtak.setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
 
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
@@ -253,14 +254,14 @@ public class BeslutterServiceTest {
 
         beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR);
 
-        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(BeslutterProsessStatus.KLAR_TIL_VEILEDER));
+        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_VEILEDER));
     }
 
     @Test
     public void oppdaterBeslutterProsessStatus__skal_feile_hvis_status_er_lik() {
         Vedtak vedtak = new Vedtak();
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
-        vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_VEILEDER);
+        vedtak.setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
 
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
@@ -274,7 +275,7 @@ public class BeslutterServiceTest {
         Vedtak vedtak = new Vedtak();
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
         vedtak.setVeilederIdent(TEST_VEILEDER_IDENT);
-        vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_VEILEDER);
+        vedtak.setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
 
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_IKKE_ANSVARLIG_VEILEDER_IDENT);
