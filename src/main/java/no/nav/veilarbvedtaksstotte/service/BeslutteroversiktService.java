@@ -63,6 +63,10 @@ public class BeslutteroversiktService {
     }
 
     void sensurerBrukere(List<BeslutteroversiktBruker> brukere) {
+        if (brukere == null || brukere.isEmpty()) {
+            return;
+        }
+
         List<String> brukerFnrs = brukere.stream().map(BeslutteroversiktBruker::getBrukerFnr).collect(Collectors.toList());
         Map<String, Boolean> tilgangTilBrukere = authService.harInnloggetVeilederTilgangTilBrukere(brukerFnrs);
 

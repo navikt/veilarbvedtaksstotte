@@ -10,7 +10,6 @@ import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSokFilter;
 import no.nav.veilarbvedtaksstotte.domain.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
-import no.nav.veilarbvedtaksstotte.utils.ValidationUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +18,8 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
@@ -188,9 +189,17 @@ public class BeslutteroversiktRepository {
         }
 
         if (!isNullOrEmpty(filter.getNavnEllerFnr())) {
-            String nameOrFnrCol = isNumeric(filter.getNavnEllerFnr()) ? BRUKER_FNR : BRUKER_ETTERNAVN; // TODO: Bedre søk på navn
-            filterStrs.add(format("%s ILIKE ?", nameOrFnrCol));
-            parameters.add("%" + filter.getNavnEllerFnr() + "%"); // TODO: Check if this is the correct way
+            boolean erSokPaFnr = isNumeric(filter.getNavnEllerFnr());
+
+            if (erSokPaFnr) {
+                filterStrs.add(format("%s LIKE ?", BRUKER_FNR));
+                parameters.add(filter.getNavnEllerFnr() + "%");
+            } else {
+                String nameSearchTerms = createNameSearchTerms(filter.getNavnEllerFnr());
+                filterStrs.add(format("%s ILIKE ANY(?::varchar[]) OR %s ILIKE ANY(?::varchar[])", BRUKER_FORNAVN, BRUKER_ETTERNAVN));
+                parameters.add(nameSearchTerms);
+                parameters.add(nameSearchTerms);
+            }
         }
 
         if (filter.isVisMineBrukere()) {
@@ -209,6 +218,12 @@ public class BeslutteroversiktRepository {
 
     private String toPostgresArray(List<String> values) {
         return "{" + String.join(",", values) + "}";
+    }
+
+    private String createNameSearchTerms(String nameSearch) {
+        String[] words = nameSearch.split(" ");
+        String searchWords = Stream.of(words).map(w -> "%" + w + "%").collect(Collectors.joining(","));
+        return "{" + searchWords + "}";
     }
 
     @Value
