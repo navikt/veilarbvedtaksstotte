@@ -142,4 +142,20 @@ public class MetricsService {
         createMetricEvent("utkast-slettet").report();
     }
 
+    public void rapporterTidMellomUtkastOpprettetTilGodkjent(Vedtak vedtak) {
+        Event event = createMetricEvent("tid-mellom-utkast-opprettet-til-godkjent");
+
+        Long sekunderBrukt = Duration.between(vedtak.getUtkastOpprettet(), LocalDateTime.now()).getSeconds();
+        event.addFieldToReport("sekunder", sekunderBrukt);
+        event.report();
+    }
+
+    public void repporterDialogMeldingSendtAvVeilederOgBeslutter(String melding, String sendtAv) {
+        Event event = createMetricEvent("dialog-meldinger");
+
+        int antallTegn = melding.length();
+        event.addFieldToReport("sendtAv", sendtAv);
+        event.addFieldToReport("antallTegn", antallTegn);
+        event.report();
+    }
 }

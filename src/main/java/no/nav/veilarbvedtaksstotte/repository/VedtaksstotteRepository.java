@@ -38,14 +38,12 @@ public class VedtaksstotteRepository {
     private final static String OPPFOLGINGSENHET_ID   = "OPPFOLGINGSENHET_ID";
     private final static String SIST_OPPDATERT        = "SIST_OPPDATERT";
     private final static String BESLUTTER_IDENT       = "BESLUTTER_IDENT";
-    private final static String GODKJENT_AV_BESLUTTER = "GODKJENT_AV_BESLUTTER";
     private final static String UTKAST_OPPRETTET      = "UTKAST_OPPRETTET";
     private final static String BEGRUNNELSE           = "BEGRUNNELSE";
     private final static String STATUS                = "STATUS";
     private final static String DOKUMENT_ID           = "DOKUMENT_ID";
     private final static String JOURNALPOST_ID        = "JOURNALPOST_ID";
     private final static String GJELDENDE             = "GJELDENDE";
-    private final static String BESLUTTER_PROSESS_STARTET = "BESLUTTER_PROSESS_STARTET";
     private final static String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
 
     private final JdbcTemplate db;

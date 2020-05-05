@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVeilederForVedtak;
+import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterForVedtak;
+
 @Service
 public class MeldingService {
 
@@ -21,16 +24,18 @@ public class MeldingService {
     private final VeilederService veilederService;
     private final MeldingRepository meldingRepository;
     private final VedtaksstotteRepository vedtaksstotteRepository;
+    private final MetricsService metricsService;
 
     @Inject
     public MeldingService(
             AuthService authService, VeilederService veilederService,
-            MeldingRepository meldingRepository, VedtaksstotteRepository vedtaksstotteRepository
-    ) {
+            MeldingRepository meldingRepository, VedtaksstotteRepository vedtaksstotteRepository,
+            MetricsService metricsService) {
         this.authService = authService;
         this.veilederService = veilederService;
         this.meldingRepository = meldingRepository;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
+        this.metricsService = metricsService;
     }
 
     public void opprettBrukerDialogMelding(String fnr, String melding) {
@@ -38,6 +43,12 @@ public class MeldingService {
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
         meldingRepository.opprettDialogMelding(vedtak.getId(), innloggetVeilederIdent, melding);
+
+        if (erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
+            metricsService.repporterDialogMeldingSendtAvVeilederOgBeslutter(melding, "beslutter");
+        } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, vedtak)) {
+            metricsService.repporterDialogMeldingSendtAvVeilederOgBeslutter(melding, "veileder");
+        }
     }
 
     public List<MeldingDTO> hentMeldinger(String fnr) {
