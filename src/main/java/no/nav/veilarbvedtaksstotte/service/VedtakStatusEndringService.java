@@ -41,6 +41,7 @@ public class VedtakStatusEndringService {
 
     public void godkjentAvBeslutter(Vedtak vedtak) {
         kafkaService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.GODKJENT_AV_BESLUTTER));
+        metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(vedtak);
     }
 
     public void klarTilBeslutter(Vedtak vedtak) {
