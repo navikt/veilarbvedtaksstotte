@@ -5,7 +5,6 @@ import no.nav.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.kafka.AvsluttOppfolgingConsumer;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import no.nav.veilarbvedtaksstotte.kafka.OppfolgingsbrukerEndringConsumer;
-import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -20,25 +19,23 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 
 import java.util.HashMap;
 
+import static no.nav.common.utils.EnvironmentUtils.getRequiredProperty;
+import static no.nav.common.utils.EnvironmentUtils.requireNamespace;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.KAFKA_BROKERS_URL_PROPERTY;
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
-import static no.nav.sbl.util.EnvironmentUtils.requireEnvironmentName;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
 @EnableKafka
 @Configuration
-@Import({KafkaHelsesjekk.class, ServiceConfig.class, AvsluttOppfolgingConsumer.class, OppfolgingsbrukerEndringConsumer.class})
+@Import({KafkaHelsesjekk.class, AvsluttOppfolgingConsumer.class, OppfolgingsbrukerEndringConsumer.class})
 public class KafkaConsumerConfig {
 
     private static final String KAFKA_BROKERS = getRequiredProperty(KAFKA_BROKERS_URL_PROPERTY);
-    private static final String USERNAME = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_USERNAME);
-    private static final String PASSWORD = getRequiredProperty(StsSecurityConstants.SYSTEMUSER_PASSWORD);
+    private static final String USERNAME = getRequiredProperty("StsSecurityConstants.SYSTEMUSER_USERNAME");
+    private static final String PASSWORD = getRequiredProperty("StsSecurityConstants.SYSTEMUSER_PASSWORD");
 
     @Bean
     public AvsluttOppfolgingConsumer.ConsumerParameters avsluttOppfolgingConsumerConsumerParameters() {
-        return new AvsluttOppfolgingConsumer.ConsumerParameters("aapen-fo-endringPaaAvsluttOppfolging-v1-" + requireEnvironmentName());
+        return new AvsluttOppfolgingConsumer.ConsumerParameters("aapen-fo-endringPaaAvsluttOppfolging-v1-" + requireNamespace()); // TODO: Ikke riktig i prod
     }
 
     public static final String AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME = "avsluttOppfolgingKafkaListenerContainerFactory";
@@ -47,13 +44,13 @@ public class KafkaConsumerConfig {
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaAvsluttOppfolging>> avsluttOppfolgingKafkaListenerContainerFactory(KafkaHelsesjekk kafkaHelsesjekk) {
         ConcurrentKafkaListenerContainerFactory<String, KafkaAvsluttOppfolging> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaProperties()));
-        factory.getContainerProperties().setErrorHandler(kafkaHelsesjekk);
+        // factory.getContainerProperties().setErrorHandler(kafkaHelsesjekk);
         return factory;
     }
 
     @Bean
     public OppfolgingsbrukerEndringConsumer.ConsumerParameters oppfolgingsbrukerEndringConsumerParameters() {
-        return new OppfolgingsbrukerEndringConsumer.ConsumerParameters("aapen-fo-endringPaaOppfoelgingsBruker-v1-" + requireEnvironmentName());
+        return new OppfolgingsbrukerEndringConsumer.ConsumerParameters("aapen-fo-endringPaaOppfoelgingsBruker-v1-" + requireNamespace()); // TODO: Ikke riktig i prod
     }
 
     public static final String OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME = "oppfolgingsbrukerEndringKafkaListenerContainerFactory";
@@ -62,7 +59,7 @@ public class KafkaConsumerConfig {
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaOppfolgingsbrukerEndring>> oppfolgingsbrukerEndringKafkaListenerContainerFactory(KafkaHelsesjekk kafkaHelsesjekk) {
         ConcurrentKafkaListenerContainerFactory<String, KafkaOppfolgingsbrukerEndring> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaProperties()));
-        factory.getContainerProperties().setErrorHandler(kafkaHelsesjekk);
+        // factory.getContainerProperties().setErrorHandler(kafkaHelsesjekk);
         return factory;
     }
 

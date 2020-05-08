@@ -1,0 +1,91 @@
+package no.nav.veilarbvedtaksstotte.controller;
+
+import no.nav.veilarbvedtaksstotte.domain.*;
+import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
+import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
+import no.nav.veilarbvedtaksstotte.service.VedtakService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import javax.ws.rs.core.Response;
+import java.util.List;
+
+@RestController
+@RequestMapping("/{fnr}")
+public class VedtakResource {
+
+    private final VedtakService vedtakService;
+    private final ArenaVedtakService arenaVedtakService;
+    private final OyeblikksbildeService oyeblikksbildeService;
+
+    @Autowired
+    public VedtakResource(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService) {
+        this.vedtakService = vedtakService;
+        this.arenaVedtakService = arenaVedtakService;
+        this.oyeblikksbildeService = oyeblikksbildeService;
+    }
+
+    @PostMapping("/vedtak/send")
+    public DokumentSendtDTO sendVedtak(@PathVariable("fnr") String fnr) {
+        return vedtakService.sendVedtak(fnr);
+    }
+
+//    @Produces("application/pdf")
+    @GetMapping("/vedtak/pdf")
+    public Response hentVedtakPdf(@PathVariable("fnr") String fnr,
+                                  @RequestParam("dokumentInfoId") String dokumentInfoId,
+                                  @RequestParam("journalpostId") String journalpostId) {
+        byte[] vedtakPdf = vedtakService.hentVedtakPdf(fnr, dokumentInfoId, journalpostId);
+        return Response.ok(vedtakPdf)
+                .header("Content-Disposition",  "filename=vedtaksbrev.pdf")
+                .build();
+    }
+
+    @GetMapping("/vedtak")
+    public List<Vedtak> hentVedtak(@PathVariable("fnr") String fnr) {
+        return vedtakService.hentVedtak(fnr);
+    }
+
+    @GetMapping("/vedtakFraArena")
+    public List<ArkivertVedtak> hentVedtakFraArena(@PathVariable("fnr") String fnr) {
+        return arenaVedtakService.hentVedtakFraArena(fnr);
+    }
+
+    @PostMapping("/utkast")
+    public void lagUtkast(@PathVariable("fnr") String fnr) {
+        vedtakService.lagUtkast(fnr);
+    }
+
+    @PutMapping("/utkast")
+    public void oppdaterUtkast(@PathVariable("fnr") String fnr, VedtakDTO vedtakDTO) {
+        vedtakService.oppdaterUtkast(fnr, vedtakDTO);
+    }
+
+    @GetMapping("/harUtkast")
+    public boolean harUtkast(@PathVariable("fnr") String fnr) {
+       return vedtakService.harUtkast(fnr);
+    }
+
+//    @Produces("application/pdf")
+    @GetMapping("/utkast/pdf")
+    public Response hentForhandsvisning(@PathVariable("fnr") String fnr) {
+        byte[] utkastPdf = vedtakService.produserDokumentUtkast(fnr);
+        return Response.ok(utkastPdf)
+                .header("Content-Disposition", "filename=vedtaksbrev-utkast.pdf")
+                .build();
+    }
+
+    @DeleteMapping("/utkast")
+    public void deleteUtkast(@PathVariable("fnr") String fnr) { vedtakService.slettUtkastForFnr(fnr); }
+
+    @GetMapping("/oyeblikksbilde/{vedtakid}")
+    public List<Oyeblikksbilde> hentOyeblikksbilde(@PathVariable("fnr") String fnr, @PathVariable("vedtakid") long vedtakId) {
+        return oyeblikksbildeService.hentOyeblikksbildeForVedtak(fnr, vedtakId);
+    }
+
+    @PostMapping("/utkast/overta")
+    public void oppdaterUtkast(@PathVariable("fnr") String fnr) {
+        vedtakService.taOverUtkast(fnr);
+    }
+}
+

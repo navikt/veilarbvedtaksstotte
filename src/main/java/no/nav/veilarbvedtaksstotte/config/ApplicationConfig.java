@@ -1,79 +1,77 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import no.nav.apiapp.ApiApplication;
-import no.nav.apiapp.ServletUtil;
-import no.nav.apiapp.config.ApiAppConfigurator;
-import no.nav.brukerdialog.security.domain.IdentType;
-import no.nav.common.oidc.auth.OidcAuthenticatorConfig;
-import no.nav.dialogarena.aktor.AktorConfig;
-import no.nav.veilarbvedtaksstotte.utils.DbRole;
-import no.nav.veilarbvedtaksstotte.utils.DbUtils;
-import no.nav.sbl.featuretoggle.unleash.UnleashService;
-import org.springframework.beans.factory.annotation.Autowired;
+import no.nav.common.abac.Pep;
+import no.nav.common.abac.VeilarbPep;
+import no.nav.common.aktorregisterklient.AktorregisterHttpKlient;
+import no.nav.common.aktorregisterklient.AktorregisterKlient;
+import no.nav.common.aktorregisterklient.CachedAktorregisterKlient;
+import no.nav.common.featuretoggle.UnleashService;
+import no.nav.common.metrics.InfluxClient;
+import no.nav.common.metrics.MetricsClient;
+import no.nav.common.metrics.SensuConfig;
+import no.nav.common.nais.NaisUtils;
+import no.nav.common.sts.NaisSystemUserTokenProvider;
+import no.nav.common.sts.SystemUserTokenProvider;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.ServletContext;
+import static no.nav.common.featuretoggle.UnleashServiceConfig.resolveFromEnvironment;
+import static no.nav.common.nais.NaisUtils.getCredentials;
 
-import static no.nav.common.oidc.Constants.OPEN_AM_ID_TOKEN_COOKIE_NAME;
-import static no.nav.common.oidc.Constants.REFRESH_TOKEN_COOKIE_NAME;
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
-
-
+@Profile("!local")
 @Configuration
 @EnableScheduling
-@Import({
-        ResourceConfig.class,
-        DatabaseConfig.class,
-        PepConfig.class,
-        AktorConfig.class,
-        KafkaProducerConfig.class,
-        KafkaConsumerConfig.class,
-        ServiceConfig.class,
-        ClientConfig.class,
-        CacheConfig.class,
-        RepositoryConfig.class,
-        ScheduleConfig.class,
-        FeatureToggleConfig.class
-})
-public class ApplicationConfig implements ApiApplication {
+@EnableConfigurationProperties(EnvironmentProperties.class)
+public class ApplicationConfig {
 
-    public static final String APPLICATION_NAME = "veilarbvedtaksstotte";
-    public static final String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
-    public static final String SECURITYTOKENSERVICE_URL = "SECURITYTOKENSERVICE_URL";
+    public final static String APPLICATION_NAME = "veilarbvedtaksstotte";
 
-    @Autowired
-    UnleashService unleashService;
+    public final static String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
 
-    private OidcAuthenticatorConfig createOpenAmAuthenticatorConfig() {
-        String discoveryUrl = getRequiredProperty("OPENAM_DISCOVERY_URL");
-        String clientId = getRequiredProperty("VEILARBLOGIN_OPENAM_CLIENT_ID");
-        String refreshUrl = getRequiredProperty("VEILARBLOGIN_OPENAM_REFRESH_URL");
+    private final String serviceUsername;
 
-        return new OidcAuthenticatorConfig()
-                .withDiscoveryUrl(discoveryUrl)
-                .withClientId(clientId)
-                .withRefreshUrl(refreshUrl)
-                .withRefreshTokenCookieName(REFRESH_TOKEN_COOKIE_NAME)
-                .withIdTokenCookieName(OPEN_AM_ID_TOKEN_COOKIE_NAME)
-                .withIdentType(IdentType.InternBruker);
+    private final String servicePassword;
+
+    public ApplicationConfig() {
+        NaisUtils.Credentials serviceUser = getCredentials("service_user");
+        this.serviceUsername = serviceUser.username;
+        this.servicePassword = serviceUser.password;
     }
 
-    @Override
-    public void configure(ApiAppConfigurator apiAppConfigurator) {
-        apiAppConfigurator
-                .addOidcAuthenticator(createOpenAmAuthenticatorConfig())
-                .sts();
+    // TODO: Do this on startup
+//    String dbUrl = getRequiredProperty(DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY);
+//        DbUtils.migrateAndClose(DbUtils.createDataSource(dbUrl, DbRole.ADMIN), DbRole.ADMIN);
+//        ServletUtil.filterBuilder(new ToggleFilter(unleashService)).register(servletContext);
+
+    @Bean
+    public UnleashService unleashService() {
+        return new UnleashService(resolveFromEnvironment());
     }
 
-    @Transactional
-    @Override
-    public void startup(ServletContext servletContext) {
-        String dbUrl = getRequiredProperty(DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY);
-        DbUtils.migrateAndClose(DbUtils.createDataSource(dbUrl, DbRole.ADMIN), DbRole.ADMIN);
-        ServletUtil.filterBuilder(new ToggleFilter(unleashService)).register(servletContext);
+    @Bean
+    public MetricsClient influxMetricsClient() {
+        return new InfluxClient(SensuConfig.resolveNaisConfig());
+    }
+
+    @Bean
+    public SystemUserTokenProvider systemUserTokenProvider(EnvironmentProperties properties) {
+        return new NaisSystemUserTokenProvider(properties.getStsDiscoveryUrl(), serviceUsername, servicePassword);
+    }
+
+    @Bean
+    public AktorregisterKlient aktorregisterKlient(EnvironmentProperties properties, SystemUserTokenProvider tokenProvider) {
+        AktorregisterKlient aktorregisterKlient = new AktorregisterHttpKlient(
+                properties.getAktorregisterUrl(), APPLICATION_NAME, tokenProvider::getSystemUserToken
+        );
+        return new CachedAktorregisterKlient(aktorregisterKlient);
+    }
+
+    @Bean
+    public Pep veilarbPep(EnvironmentProperties properties) {
+        return new VeilarbPep(properties.getAbacUrl(), serviceUsername, servicePassword);
     }
 
 }

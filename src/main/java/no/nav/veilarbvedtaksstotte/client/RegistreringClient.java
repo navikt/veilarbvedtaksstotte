@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.domain.RegistreringData;
-import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 
 import javax.inject.Inject;

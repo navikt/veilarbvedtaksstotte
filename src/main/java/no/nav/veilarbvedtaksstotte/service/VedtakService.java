@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
-import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.client.DokumentClient;
 import no.nav.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
@@ -11,16 +10,16 @@ import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.*;
+import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.erBeslutterProsessStartet;
 
@@ -38,9 +37,9 @@ public class VedtakService {
     private final VeilederService veilederService;
     private final MalTypeService malTypeService;
     private final VedtakStatusEndringService vedtakStatusEndringService;
-    private final Transactor transactor;
+//    private final Transactor transactor;
 
-    @Inject
+    @Autowired
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
                          KilderRepository kilderRepository,
                          OyeblikksbildeService oyeblikksbildeService,
@@ -51,8 +50,7 @@ public class VedtakService {
                          SAFClient safClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
-                         VedtakStatusEndringService vedtakStatusEndringService,
-                         Transactor transactor) {
+                         VedtakStatusEndringService vedtakStatusEndringService) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.kilderRepository = kilderRepository;
         this.oyeblikksbildeService = oyeblikksbildeService;
@@ -64,7 +62,7 @@ public class VedtakService {
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
         this.vedtakStatusEndringService = vedtakStatusEndringService;
-        this.transactor = transactor;
+//        this.transactor = transactor;
     }
 
     @SneakyThrows
@@ -86,11 +84,11 @@ public class VedtakService {
 
         DokumentSendtDTO dokumentSendt = sendDokument(vedtak, fnr);
 
-        transactor.inTransaction(() -> {
+//        transactor.inTransaction(() -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
             vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendt);
             beslutteroversiktRepository.slettBruker(vedtakId);
-        });
+//        });
 
         vedtakStatusEndringService.vedtakSendt(vedtak, fnr);
 
@@ -142,11 +140,11 @@ public class VedtakService {
 
         oppdaterUtkastFraDto(utkast, vedtakDTO);
 
-        transactor.inTransaction(() -> {
+//        transactor.inTransaction(() -> {
             vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
             kilderRepository.slettKilder(utkast.getId());
             kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
-        });
+//        });
     }
 
     private void oppdaterUtkastFraDto(Vedtak utkast, VedtakDTO dto) {
@@ -170,13 +168,13 @@ public class VedtakService {
         long utkastId = utkast.getId();
         authService.sjekkAnsvarligVeileder(utkast);
 
-        transactor.inTransaction(() -> {
+//        transactor.inTransaction(() -> {
             meldingRepository.slettMeldinger(utkastId);
             kilderRepository.slettKilder(utkastId);
             beslutteroversiktRepository.slettBruker(utkastId);
             kilderRepository.slettKilder(utkastId);
             vedtaksstotteRepository.slettUtkast(utkast.getAktorId());
-        });
+//        });
 
         vedtakStatusEndringService.utkastSlettet(utkast);
     }

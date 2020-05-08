@@ -1,9 +1,5 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import no.nav.apiapp.selftest.HelsesjekkMetadata;
-import no.nav.sbl.dialogarena.types.Pingable;
-import no.nav.sbl.jdbc.Database;
-import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.utils.DbRole;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +9,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
+import static no.nav.common.utils.EnvironmentUtils.getRequiredProperty;
 import static no.nav.veilarbvedtaksstotte.utils.DbUtils.createDataSource;
 
 @Configuration
@@ -36,30 +32,30 @@ public class DatabaseConfig {
         return new JdbcTemplate(dataSource);
     }
 
-    @Bean
-    public Database database(JdbcTemplate jdbcTemplate) {
-        return new Database(jdbcTemplate);
-    }
+//    @Bean
+//    public Database database(JdbcTemplate jdbcTemplate) {
+//        return new Database(jdbcTemplate);
+//    }
+//
+//    @Bean
+//    public Transactor transactor(PlatformTransactionManager platformTransactionManager) {
+//        return new Transactor(platformTransactionManager);
+//    }
 
-    @Bean
-    public Transactor transactor(PlatformTransactionManager platformTransactionManager) {
-        return new Transactor(platformTransactionManager);
-    }
-
-    @Bean
-    public Pingable dbPinger(JdbcTemplate db) {
-        HelsesjekkMetadata metadata = new HelsesjekkMetadata("db",
-                "Database: " + getRequiredProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY),
-                "Database for veilarbvedtaksstotte",
-                true);
-
-        return () -> {
-            try {
-                db.execute("SELECT 1");
-                return Pingable.Ping.lyktes(metadata);
-            } catch (Exception e) {
-                return Pingable.Ping.feilet(metadata, e);
-            }
-        };
-    }
+//    @Bean
+//    public Pingable dbPinger(JdbcTemplate db) {
+//        HelsesjekkMetadata metadata = new HelsesjekkMetadata("db",
+//                "Database: " + getRequiredProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY),
+//                "Database for veilarbvedtaksstotte",
+//                true);
+//
+//        return () -> {
+//            try {
+//                db.execute("SELECT 1");
+//                return Pingable.Ping.lyktes(metadata);
+//            } catch (Exception e) {
+//                return Pingable.Ping.feilet(metadata, e);
+//            }
+//        };
+//    }
 }

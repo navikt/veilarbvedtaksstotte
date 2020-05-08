@@ -1,19 +1,18 @@
 package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.veilarbvedtaksstotte.config.KafkaConsumerConfig;
 import no.nav.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
-import no.nav.veilarbvedtaksstotte.config.KafkaConsumerConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-
-import static no.nav.json.JsonUtils.fromJson;
-import static no.nav.sbl.util.EnvironmentUtils.Type.PUBLIC;
-import static no.nav.sbl.util.EnvironmentUtils.getOptionalProperty;
-import static no.nav.sbl.util.EnvironmentUtils.setProperty;
+import static no.nav.common.json.JsonUtils.fromJson;
+import static no.nav.common.utils.EnvironmentUtils.Type.PUBLIC;
+import static no.nav.common.utils.EnvironmentUtils.getOptionalProperty;
+import static no.nav.common.utils.EnvironmentUtils.setProperty;
 
 @Component
 @Slf4j
@@ -21,7 +20,7 @@ public class AvsluttOppfolgingConsumer {
     private static final String ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME = "ENDRING_PAA_AVSLUTTOPPFOLGING_TOPIC";
     private final VedtakService vedtakService;
 
-    @Inject
+    @Autowired
     public AvsluttOppfolgingConsumer(VedtakService vedtakService, ConsumerParameters consumerParameters) {
         this.vedtakService = vedtakService;
         setProperty(ENDRING_PAA_AVSLUTTOPPFOLGING_KAFKA_TOPIC_PROPERTY_NAME, consumerParameters.topic, PUBLIC);

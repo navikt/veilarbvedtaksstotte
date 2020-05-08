@@ -7,9 +7,9 @@ import no.nav.veilarbvedtaksstotte.domain.dialog.MeldingDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingDTO;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,7 +26,7 @@ public class MeldingService {
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final MetricsService metricsService;
 
-    @Inject
+    @Autowired
     public MeldingService(
             AuthService authService, VeilederService veilederService,
             MeldingRepository meldingRepository, VedtaksstotteRepository vedtaksstotteRepository,

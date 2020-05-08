@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.auth.SubjectHandler;
-import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.VeilederEnheterDTO;

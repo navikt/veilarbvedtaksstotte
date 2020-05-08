@@ -7,8 +7,9 @@ import org.flywaydb.core.Flyway;
 
 import javax.sql.DataSource;
 
+import static no.nav.common.utils.EnvironmentUtils.isProduction;
+import static no.nav.common.utils.EnvironmentUtils.requireNamespace;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
-import static no.nav.sbl.util.EnvironmentUtils.*;
 
 public class DbUtils {
 
@@ -46,7 +47,7 @@ public class DbUtils {
     }
 
     private static String getMountPath() {
-        boolean isProd = getEnvironmentClass() == EnviromentClass.P;
+        boolean isProd = isProduction().orElse(false);
         return "postgresql/" + (isProd ? "prod-fss" : "preprod-fss");
     }
 

@@ -3,9 +3,9 @@ package no.nav.veilarbvedtaksstotte.service;
 import no.nav.veilarbvedtaksstotte.client.SAFClient;
 import no.nav.veilarbvedtaksstotte.domain.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.domain.Journalpost;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +19,7 @@ public class ArenaVedtakService {
     private SAFClient safClient;
     private AuthService authService;
 
-    @Inject
+    @Autowired
     public ArenaVedtakService(SAFClient safClient, AuthService authService) {
         this.safClient = safClient;
         this.authService = authService;

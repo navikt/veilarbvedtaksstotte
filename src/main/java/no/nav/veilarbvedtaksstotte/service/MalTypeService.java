@@ -6,16 +6,15 @@ import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.MalType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Inject;
 
 @Service
 public class MalTypeService {
 
     private RegistreringClient registreringClient;
 
-    @Inject
+    @Autowired
     public MalTypeService(RegistreringClient registreringClient){
         this.registreringClient = registreringClient;
     }

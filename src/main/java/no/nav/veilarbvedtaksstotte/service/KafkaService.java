@@ -6,13 +6,12 @@ import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
-
 import static java.lang.String.format;
-import static no.nav.json.JsonUtils.toJson;
+import static no.nav.common.json.JsonUtils.toJson;
 import static no.nav.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC_VEDTAK_SENDT;
 import static no.nav.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC_VEDTAK_STATUS_ENDRING;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
@@ -25,7 +24,7 @@ public class KafkaService {
 
     private final KafkaRepository kafkaRepository;
 
-    @Inject
+    @Autowired
     public KafkaService(KafkaTemplate<String, String> kafkaTemplate, KafkaRepository kafkaRepository) {
         this.kafkaTemplate = kafkaTemplate;
         this.kafkaRepository = kafkaRepository;
