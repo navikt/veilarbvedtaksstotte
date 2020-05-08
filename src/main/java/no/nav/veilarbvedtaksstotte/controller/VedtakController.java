@@ -12,14 +12,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/{fnr}")
-public class VedtakResource {
+public class VedtakController {
 
     private final VedtakService vedtakService;
     private final ArenaVedtakService arenaVedtakService;
     private final OyeblikksbildeService oyeblikksbildeService;
 
     @Autowired
-    public VedtakResource(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService) {
+    public VedtakController(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService) {
         this.vedtakService = vedtakService;
         this.arenaVedtakService = arenaVedtakService;
         this.oyeblikksbildeService = oyeblikksbildeService;

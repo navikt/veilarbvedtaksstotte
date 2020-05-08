@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/{fnr}/beslutter")
-public class BeslutterResource {
+public class BeslutterController {
 
 	private final BeslutterService beslutterService;
 
 	@Autowired
-	public BeslutterResource(BeslutterService beslutterService) {
+	public BeslutterController(BeslutterService beslutterService) {
 		this.beslutterService = beslutterService;
 	}
 

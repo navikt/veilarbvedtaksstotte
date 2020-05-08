@@ -1,66 +1,81 @@
 package no.nav.veilarbvedtaksstotte.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.rest.client.RestClient;
+import no.nav.common.rest.client.RestUtils;
+import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.domain.Journalpost;
-import no.nav.json.JsonProvider;
+import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 
-import static no.nav.apiapp.util.UrlUtils.joinPaths;
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
+import static no.nav.common.utils.UrlUtils.joinPaths;
+import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
 @Slf4j
-public class SAFClient extends BaseClient {
+@Component
+public class SAFClient {
 
-    private static final ObjectMapper objectMapper = JsonProvider.createObjectMapper();
+    private static final Gson gson = new Gson();
     
     public static final String SAF_API_PROPERTY_NAME = "SAF_HENTDOKUMENT_URL";
     public static final String SAF = "saf";
 
-    public SAFClient(String apiUrl) {
-        super(apiUrl);
-    }
+    private final String safUrl;
 
-    @Inject
     public SAFClient() {
-        super(getRequiredProperty(SAF_API_PROPERTY_NAME));
+        this.safUrl = EnvironmentUtils.getRequiredProperty(SAF_API_PROPERTY_NAME);
     }
 
+    @SneakyThrows
     public byte[] hentVedtakPdf(String journalpostId, String dokumentInfoId) {
-        return get(joinPaths(baseUrl, "rest", "hentdokument", journalpostId, dokumentInfoId, "ARKIV"), byte[].class)
-                .withStatusCheck()
-                .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot saf/hentdokument"));
+        Request request = new Request.Builder()
+                .url(joinPaths(safUrl, "/rest/hentdokument/", journalpostId, dokumentInfoId, "ARKIV"))
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestClientUtils.throwIfNotSuccessful(response);
+            return response.body().bytes();
+        }
     }
 
-    @SneakyThrows(JsonProcessingException.class)
+    @SneakyThrows
     public List<Journalpost> hentJournalposter(String fnr) {
         GraphqlRequest graphqlRequest = new GraphqlRequest(createDokumentoversiktBrukerGqlStr(fnr));
 
-        String arkiverteVedtakJson = post(joinPaths(baseUrl, "graphql"), graphqlRequest, String.class)
-                .withStatusCheck()
-                .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot saf/graphql"));
+        Request request = new Request.Builder()
+                .url(joinPaths(safUrl, "graphql"))
+                .post(RestUtils.toJsonRequestBody(graphqlRequest))
+                .build();
 
-        return Arrays.asList(hentJournalposterFraJson(arkiverteVedtakJson));
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestClientUtils.throwIfNotSuccessful(response);
+            String json = response.body().string();
+            return Arrays.asList(hentJournalposterFraJson(json));
+        }
     }
 
-    private Journalpost[] hentJournalposterFraJson(String journalposterGraphqlJsonData) throws JsonProcessingException {
-        JsonNode journalPosterNode = objectMapper.readTree(journalposterGraphqlJsonData);
+    private Journalpost[] hentJournalposterFraJson(String journalposterGraphqlJsonData) {
+        JsonElement journalPosterElement = JsonParser.parseString(journalposterGraphqlJsonData);
 
-        String journalposterJson = journalPosterNode
-                .get("data")
-                .get("dokumentoversiktBruker")
-                .get("journalposter")
+        String journalposterJson = journalPosterElement
+                .getAsJsonObject()
+                .getAsJsonObject("data")
+                .getAsJsonObject("dokumentoversiktBruker")
+                .getAsJsonObject("journalposter")
                 .toString();
 
-        return objectMapper.readValue(journalposterJson, Journalpost[].class);
+        return gson.fromJson(journalposterJson, Journalpost[].class);
     }
 
     private String createDokumentoversiktBrukerGqlStr(String fnr) {

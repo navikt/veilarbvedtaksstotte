@@ -1,5 +1,8 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
+import static no.nav.common.utils.UrlUtils.clusterUrlForApplication;
+import static no.nav.common.utils.UrlUtils.joinPaths;
+
 public class UrlUtils {
 
     private UrlUtils() {}

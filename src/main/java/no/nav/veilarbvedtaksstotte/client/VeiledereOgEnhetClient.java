@@ -1,40 +1,62 @@
 package no.nav.veilarbvedtaksstotte.client;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.common.auth.SubjectHandler;
+import no.nav.common.auth.subject.SubjectHandler;
+import no.nav.common.rest.client.RestClient;
+import no.nav.common.rest.client.RestUtils;
+import no.nav.common.utils.UrlUtils;
 import no.nav.veilarbvedtaksstotte.domain.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.VeilederEnheterDTO;
-import org.springframework.cache.annotation.Cacheable;
+import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Component;
 
-import static no.nav.apiapp.util.UrlUtils.joinPaths;
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
+import static no.nav.common.utils.EnvironmentUtils.getRequiredProperty;
+import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
 @Slf4j
-public class VeiledereOgEnhetClient extends BaseClient {
+@Component
+public class VeiledereOgEnhetClient {
 
     public static final String VEILARBVEILEDER_API_PROPERTY_NAME = "VEILARBVEILEDERAPI_URL";
     public static final String VEILARBVEILEDER = "veilarbveileder";
 
+    private final String veilarbveilederUrl;
+
     public VeiledereOgEnhetClient() {
-        super(getRequiredProperty(VEILARBVEILEDER_API_PROPERTY_NAME));
+        this.veilarbveilederUrl = getRequiredProperty(VEILARBVEILEDER_API_PROPERTY_NAME);
     }
 
-    @Cacheable(CacheConfig.ENHET_NAVN_CACHE_NAME)
+//    @Cacheable(CacheConfig.ENHET_NAVN_CACHE_NAME)
+    @SneakyThrows
     public String hentEnhetNavn(String enhetId) {
-        return get(joinPaths(baseUrl, "api", "enhet", enhetId, "navn"), EnhetNavn.class)
-                .withStatusCheck()
-                .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarbveileder/api/enhet/{enhetId}/navn"))
-                .getNavn();
+        Request request = new Request.Builder()
+                .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/enhet/", enhetId, "/navn"))
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestClientUtils.throwIfNotSuccessful(response);
+            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), EnhetNavn.class).getNavn();
+        }
     }
 
-    @Cacheable(CacheConfig.VEILEDER_CACHE_NAME)
+//    @Cacheable(CacheConfig.VEILEDER_CACHE_NAME)
+    @SneakyThrows
     public Veileder hentVeileder(String veilederIdent) {
-        return get(joinPaths(baseUrl, "api", "veileder", veilederIdent), Veileder.class)
-                .withStatusCheck()
-                .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarbveileder/api/veileder/{veilederIdent}"));
+        Request request = new Request.Builder()
+                .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/veileder/", veilederIdent))
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestClientUtils.throwIfNotSuccessful(response);
+            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), Veileder.class);
+        }
     }
 
     public VeilederEnheterDTO hentInnloggetVeilederEnheter() {
@@ -42,12 +64,18 @@ public class VeiledereOgEnhetClient extends BaseClient {
         return hentInnloggetVeilederEnheter(veilederIdent);
     }
 
-    @Cacheable(CacheConfig.VEILEDER_ENHETER_CACHE_NAME)
+//    @Cacheable(CacheConfig.VEILEDER_ENHETER_CACHE_NAME)
+    @SneakyThrows
     public VeilederEnheterDTO hentInnloggetVeilederEnheter(String veilederIdentUsedOnlyForCaching) {
-        return get(joinPaths(baseUrl, "api", "veileder", "enheter"), VeilederEnheterDTO.class)
-                .withStatusCheck()
-                .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarbveileder/api/veileder/enheter"));
+        Request request = new Request.Builder()
+                .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/veileder/enheter"))
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestClientUtils.throwIfNotSuccessful(response);
+            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), VeilederEnheterDTO.class);
+        }
     }
 
 }

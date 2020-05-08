@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <common.version>2.2020.05.08_10.33-f8c53a193c7b</common.version>
+        <common.version>2.2020.05.08_14.59-04ad685adfc2</common.version>
         <springfox.version>2.9.2</springfox.version>
     </properties>
 
@@ -30,7 +30,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
-        <finalName>veilarbdemo</finalName>
+        <finalName>veilarbvedtaksstotte</finalName>
     </build>
 
     <dependencies>

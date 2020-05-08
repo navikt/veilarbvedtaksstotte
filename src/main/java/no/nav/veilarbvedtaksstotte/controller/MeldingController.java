@@ -10,12 +10,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/{fnr}/meldinger")
-public class MeldingResource {
+public class MeldingController {
 
     private final MeldingService meldingService;
 
     @Autowired
-    public MeldingResource(MeldingService meldingService) {
+    public MeldingController(MeldingService meldingService) {
         this.meldingService = meldingService;
     }
 

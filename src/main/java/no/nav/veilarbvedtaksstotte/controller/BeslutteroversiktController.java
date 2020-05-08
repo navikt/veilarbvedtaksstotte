@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/beslutteroversikt")
-public class BeslutteroversiktResource {
+public class BeslutteroversiktController {
 
     private final BeslutteroversiktService beslutteroversiktService;
 
     @Autowired
-    public BeslutteroversiktResource(BeslutteroversiktService beslutteroversiktService) {
+    public BeslutteroversiktController(BeslutteroversiktService beslutteroversiktService) {
         this.beslutteroversiktService = beslutteroversiktService;
     }
 
