@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.config;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ApplicationTestConfig extends ApplicationConfig {
+public class ApplicationTestConfig {
 
 //    @Override
 //    public void startup(ServletContext servletContext) {}

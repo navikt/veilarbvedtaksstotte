@@ -12,14 +12,21 @@ import no.nav.common.metrics.SensuConfig;
 import no.nav.common.nais.NaisUtils;
 import no.nav.common.sts.NaisSystemUserTokenProvider;
 import no.nav.common.sts.SystemUserTokenProvider;
+import no.nav.veilarbvedtaksstotte.utils.DbRole;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import javax.sql.DataSource;
 
 import static no.nav.common.featuretoggle.UnleashServiceConfig.resolveFromEnvironment;
 import static no.nav.common.nais.NaisUtils.getCredentials;
+import static no.nav.veilarbvedtaksstotte.utils.DbUtils.createDataSource;
 
 @Profile("!local")
 @Configuration
@@ -72,6 +79,21 @@ public class ApplicationConfig {
     @Bean
     public Pep veilarbPep(EnvironmentProperties properties) {
         return new VeilarbPep(properties.getAbacUrl(), serviceUsername, servicePassword);
+    }
+
+    @Bean
+    public DataSource dataSource(EnvironmentProperties properties) {
+        return createDataSource(properties.getDbUrl(), DbRole.USER);
+    }
+
+    @Bean
+    public PlatformTransactionManager transactionManager(DataSource ds) {
+        return new DataSourceTransactionManager(ds);
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 
 }

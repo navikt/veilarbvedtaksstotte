@@ -12,7 +12,7 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertTrue;
 
-public class SAFClientTest {
+public class SafClientTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(0);
@@ -21,7 +21,7 @@ public class SAFClientTest {
     public void hentJournalposter__skalReturnereJournalposter() {
         String journalposterJson = TestUtils.readTestResourceFile("saf-client-journalposter.json");
         String apiUrl = "http://localhost:" + wireMockRule.port();
-        SAFClient safClient = new SAFClient(apiUrl);
+        SafClient safClient = new SafClient(apiUrl);
 
         givenThat(post(urlEqualTo("/graphql"))
                 .willReturn(aResponse()
@@ -42,7 +42,7 @@ public class SAFClientTest {
     @Test(expected = RuntimeException.class)
     public void hentJournalposter__skalKasteExceptionPaErrorStatus() {
         String apiUrl = "http://localhost:" + wireMockRule.port();
-        SAFClient safClient = new SAFClient(apiUrl);
+        SafClient safClient = new SafClient(apiUrl);
 
         givenThat(post(urlEqualTo("/graphql")).willReturn(aResponse().withStatus(500)));
 

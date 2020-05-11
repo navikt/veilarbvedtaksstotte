@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
 import no.nav.veilarbvedtaksstotte.client.DokumentClient;
-import no.nav.veilarbvedtaksstotte.client.SAFClient;
+import no.nav.veilarbvedtaksstotte.client.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +35,7 @@ public class VedtakService {
     private final BeslutteroversiktRepository beslutteroversiktRepository;
     private final AuthService authService;
     private final DokumentClient dokumentClient;
-    private final SAFClient safClient;
+    private final SafClient safClient;
     private final VeilederService veilederService;
     private final MalTypeService malTypeService;
     private final VedtakStatusEndringService vedtakStatusEndringService;
@@ -50,7 +49,7 @@ public class VedtakService {
                          BeslutteroversiktRepository beslutteroversiktRepository,
                          AuthService authService,
                          DokumentClient dokumentClient,
-                         SAFClient safClient,
+                         SafClient safClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
                          VedtakStatusEndringService vedtakStatusEndringService, TransactionTemplate transactor) {

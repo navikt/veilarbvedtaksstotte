@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.VeilarbPep;
-import no.nav.common.abac.exception.PepException;
 import no.nav.common.aktorregisterklient.AktorregisterKlient;
 import no.nav.common.auth.subject.IdentType;
 import no.nav.common.auth.subject.SsoToken;
@@ -23,7 +22,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -63,7 +61,7 @@ public class VedtakServiceTest {
     private static MalTypeService malTypeService;
     private static AuthService authService;
 
-    private static CVClient cvClient = mock(CVClient.class);
+    private static PamCvClient pamCvClient = mock(PamCvClient.class);
     private static RegistreringClient registreringClient = mock(RegistreringClient.class);
     private static EgenvurderingClient egenvurderingClient = mock(EgenvurderingClient.class);
     private static VeilederService veilederService = mock(VeilederService.class);
@@ -90,7 +88,7 @@ public class VedtakServiceTest {
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
         authService = spy(new AuthService(aktorregisterKlient, veilarbPep, arenaClient, abacClient));
-        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, cvClient, registreringClient, egenvurderingClient);
+        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, pamCvClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         vedtakService = new VedtakService(
                 vedtaksstotteRepository,
@@ -118,7 +116,7 @@ public class VedtakServiceTest {
         reset(dokumentClient);
         when(dokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
         when(kafkaTemplate.send(any(), any(), any())).thenReturn(new AsyncResult(null));
-        when(cvClient.hentCV(TEST_FNR)).thenReturn(CV_DATA);
+        when(pamCvClient.hentCV(TEST_FNR)).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
         when(aktorregisterKlient.hentAktorId(TEST_FNR)).thenReturn(TEST_AKTOR_ID);

@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.client;
 
-import lombok.extern.slf4j.Slf4j;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.veilarbvedtaksstotte.domain.Oppfolgingsenhet;
@@ -9,24 +8,17 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import static no.nav.common.utils.EnvironmentUtils.getRequiredProperty;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-@Slf4j
-@Component
 public class ArenaClient {
-
-    public static final String VEILARBARENA_API_PROPERTY_NAME = "VEILARBARENA_URL";
-    public static final String VEILARBARENA = "veilarbarena";
 
     private final String veilarbarenaUrl;
 
-    public ArenaClient() {
-        this.veilarbarenaUrl = getRequiredProperty(VEILARBARENA_API_PROPERTY_NAME);
+    public ArenaClient(String veilarbarenaUrl) {
+        this.veilarbarenaUrl = veilarbarenaUrl;
     }
 
     public String oppfolgingsenhet(String fnr) {

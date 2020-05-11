@@ -4,16 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
-import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.domain.Journalpost;
 import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,22 +18,13 @@ import java.util.List;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-@Slf4j
-@Component
-public class SAFClient {
+public class SafClient {
 
     private static final Gson gson = new Gson();
-    
-    public static final String SAF_API_PROPERTY_NAME = "SAF_HENTDOKUMENT_URL";
-    public static final String SAF = "saf";
 
     private final String safUrl;
 
-    public SAFClient() {
-        this.safUrl = EnvironmentUtils.getRequiredProperty(SAF_API_PROPERTY_NAME);
-    }
-
-    public SAFClient(String safUrl) {
+    public SafClient(String safUrl) {
         this.safUrl = safUrl;
     }
 

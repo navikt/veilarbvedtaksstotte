@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.kafka;
 
 import no.nav.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
-import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +21,6 @@ import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.KAFKA_BROKERS
 import static no.nav.veilarbvedtaksstotte.config.KafkaConsumerConfig.AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConsumerConfig.OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
-import static org.mockito.Mockito.mock;
 
 @EnableKafka
 @Configuration
@@ -32,11 +30,6 @@ public class KafkaTestConfig {
     public static final String TEST_AVSLUTT_OPPFOLGING_TOPIC_NAME = "avslutt-oppfolging";
     public static final String TEST_OPPFOLGINGSBRUKER_ENDRING_TOPIC_NAME = "oppfolgingsbruker-endring";
     public static final List<String> TOPICS = Arrays.asList(TEST_AVSLUTT_OPPFOLGING_TOPIC_NAME, TEST_OPPFOLGINGSBRUKER_ENDRING_TOPIC_NAME);
-
-    @Bean
-    public VedtakService vedtakService() {
-        return mock(VedtakService.class);
-    }
 
     @Bean
     public AvsluttOppfolgingConsumer.ConsumerParameters avsluttOppfolgingConsumerConsumerParameters() {

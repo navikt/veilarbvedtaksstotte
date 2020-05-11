@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import no.nav.common.auth.subject.SubjectHandler;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
@@ -13,22 +12,15 @@ import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
 
-import static no.nav.common.utils.EnvironmentUtils.getRequiredProperty;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-@Slf4j
-@Component
 public class VeiledereOgEnhetClient {
-
-    public static final String VEILARBVEILEDER_API_PROPERTY_NAME = "VEILARBVEILEDERAPI_URL";
-    public static final String VEILARBVEILEDER = "veilarbveileder";
 
     private final String veilarbveilederUrl;
 
-    public VeiledereOgEnhetClient() {
-        this.veilarbveilederUrl = getRequiredProperty(VEILARBVEILEDER_API_PROPERTY_NAME);
+    public VeiledereOgEnhetClient(String veilarbveilederUrl) {
+        this.veilarbveilederUrl = veilarbveilederUrl;
     }
 
 //    @Cacheable(CacheConfig.ENHET_NAVN_CACHE_NAME)

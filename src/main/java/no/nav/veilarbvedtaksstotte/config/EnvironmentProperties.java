@@ -9,8 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.env")
 public class EnvironmentProperties {
 
-    private String aktorregisterUrl;
-
     private String openAmDiscoveryUrl;
 
     private String openAmClientId;
@@ -18,5 +16,9 @@ public class EnvironmentProperties {
     private String stsDiscoveryUrl;
 
     private String abacUrl;
+
+    private String aktorregisterUrl;
+
+    private String dbUrl;
 
 }
