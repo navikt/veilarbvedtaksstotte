@@ -3,8 +3,8 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.SneakyThrows;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.NavAttributter;
+import no.nav.common.abac.Pep;
 import no.nav.common.abac.StandardAttributter;
-import no.nav.common.abac.VeilarbPep;
 import no.nav.common.abac.domain.AbacPersonId;
 import no.nav.common.abac.domain.Attribute;
 import no.nav.common.abac.domain.request.*;
@@ -32,13 +32,13 @@ import static no.nav.common.auth.subject.IdentType.InternBruker;
 public class AuthService {
 
     private final AktorregisterKlient aktorregisterKlient;
-    private final VeilarbPep veilarbPep;
+    private final Pep veilarbPep;
     private final ArenaClient arenaClient;
     private final AbacClient abacClient;
 
     @Autowired
     public AuthService(AktorregisterKlient aktorregisterKlient,
-                       VeilarbPep veilarbPep,
+                       Pep veilarbPep,
                        ArenaClient arenaClient,
                        AbacClient abacClient) {
         this.aktorregisterKlient = aktorregisterKlient;

@@ -5,6 +5,7 @@ import no.nav.veilarbvedtaksstotte.config.KafkaConsumerConfig;
 import no.nav.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import static no.nav.common.utils.EnvironmentUtils.Type.PUBLIC;
 import static no.nav.common.utils.EnvironmentUtils.getOptionalProperty;
 import static no.nav.common.utils.EnvironmentUtils.setProperty;
 
+@Profile("!local")
 @Component
 @Slf4j
 public class AvsluttOppfolgingConsumer {

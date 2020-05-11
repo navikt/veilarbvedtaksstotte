@@ -59,7 +59,7 @@ public class FilterConfig {
     }
 
     @Bean
-    public FilterRegistrationBean logFilterRegistrationBean(UnleashService unleashService) {
+    public FilterRegistrationBean toggleFilterRegistrationBean(UnleashService unleashService) {
         FilterRegistrationBean<ToggleFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new ToggleFilter(unleashService));
         registration.setOrder(4);

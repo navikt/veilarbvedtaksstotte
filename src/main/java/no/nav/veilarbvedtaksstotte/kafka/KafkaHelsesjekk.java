@@ -3,12 +3,14 @@ package no.nav.veilarbvedtaksstotte.kafka;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.listener.ContainerAwareErrorHandler;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Profile("!local")
 @Slf4j
 @Component
 public class KafkaHelsesjekk implements ContainerAwareErrorHandler {

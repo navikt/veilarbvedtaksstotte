@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import static no.nav.common.utils.EnvironmentUtils.getOptionalProperty;
 import static no.nav.common.utils.EnvironmentUtils.setProperty;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConsumerConfig.OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME;
 
+@Profile("!local")
 @Component
 @Slf4j
 public class OppfolgingsbrukerEndringConsumer {

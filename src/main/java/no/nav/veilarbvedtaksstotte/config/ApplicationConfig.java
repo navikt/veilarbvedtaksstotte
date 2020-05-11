@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import lombok.extern.slf4j.Slf4j;
 import no.nav.common.abac.Pep;
 import no.nav.common.abac.VeilarbPep;
 import no.nav.common.aktorregisterklient.AktorregisterHttpKlient;
@@ -12,23 +13,17 @@ import no.nav.common.metrics.SensuConfig;
 import no.nav.common.nais.NaisUtils;
 import no.nav.common.sts.NaisSystemUserTokenProvider;
 import no.nav.common.sts.SystemUserTokenProvider;
-import no.nav.veilarbvedtaksstotte.utils.DbRole;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.transaction.PlatformTransactionManager;
-
-import javax.sql.DataSource;
 
 import static no.nav.common.featuretoggle.UnleashServiceConfig.resolveFromEnvironment;
 import static no.nav.common.nais.NaisUtils.getCredentials;
-import static no.nav.veilarbvedtaksstotte.utils.DbUtils.createDataSource;
 
 @Profile("!local")
+@Slf4j
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties(EnvironmentProperties.class)
@@ -36,22 +31,10 @@ public class ApplicationConfig {
 
     public final static String APPLICATION_NAME = "veilarbvedtaksstotte";
 
-    public final static String KAFKA_BROKERS_URL_PROPERTY = "KAFKA_BROKERS_URL";
-
-    private final String serviceUsername;
-
-    private final String servicePassword;
-
-    public ApplicationConfig() {
-        NaisUtils.Credentials serviceUser = getCredentials("service_user");
-        this.serviceUsername = serviceUser.username;
-        this.servicePassword = serviceUser.password;
+    @Bean
+    public NaisUtils.Credentials serviceUserCredentials() {
+        return getCredentials("service_user");
     }
-
-    // TODO: Do this on startup
-//    String dbUrl = getRequiredProperty(DatabaseConfig.VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY);
-//        DbUtils.migrateAndClose(DbUtils.createDataSource(dbUrl, DbRole.ADMIN), DbRole.ADMIN);
-//        ServletUtil.filterBuilder(new ToggleFilter(unleashService)).register(servletContext);
 
     @Bean
     public UnleashService unleashService() {
@@ -64,8 +47,8 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public SystemUserTokenProvider systemUserTokenProvider(EnvironmentProperties properties) {
-        return new NaisSystemUserTokenProvider(properties.getStsDiscoveryUrl(), serviceUsername, servicePassword);
+    public SystemUserTokenProvider systemUserTokenProvider(EnvironmentProperties properties, NaisUtils.Credentials serviceUserCredentials) {
+        return new NaisSystemUserTokenProvider(properties.getStsDiscoveryUrl(), serviceUserCredentials.username, serviceUserCredentials.password);
     }
 
     @Bean
@@ -77,23 +60,8 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public Pep veilarbPep(EnvironmentProperties properties) {
-        return new VeilarbPep(properties.getAbacUrl(), serviceUsername, servicePassword);
-    }
-
-    @Bean
-    public DataSource dataSource(EnvironmentProperties properties) {
-        return createDataSource(properties.getDbUrl(), DbRole.USER);
-    }
-
-    @Bean
-    public PlatformTransactionManager transactionManager(DataSource ds) {
-        return new DataSourceTransactionManager(ds);
-    }
-
-    @Bean
-    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
-        return new JdbcTemplate(dataSource);
+    public Pep veilarbPep(EnvironmentProperties properties, NaisUtils.Credentials serviceUserCredentials) {
+        return new VeilarbPep(properties.getAbacUrl(), serviceUserCredentials.username, serviceUserCredentials.password);
     }
 
 }

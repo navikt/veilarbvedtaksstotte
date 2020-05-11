@@ -44,7 +44,6 @@ public abstract class KafkaTest {
 //
 //        kafkaTemplate = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(kafkaProps));
 //
-//        setProperty(KAFKA_BROKERS_URL_PROPERTY, embeddedKafka.getBrokersAsString(), PUBLIC);
     }
 
     @BeforeClass
