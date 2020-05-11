@@ -1,8 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.common.abac.Pep;
-import no.nav.common.abac.VeilarbPep;
+import no.nav.common.abac.*;
 import no.nav.common.aktorregisterklient.AktorregisterHttpKlient;
 import no.nav.common.aktorregisterklient.AktorregisterKlient;
 import no.nav.common.aktorregisterklient.CachedAktorregisterKlient;
@@ -60,8 +59,13 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public Pep veilarbPep(EnvironmentProperties properties, NaisUtils.Credentials serviceUserCredentials) {
-        return new VeilarbPep(properties.getAbacUrl(), serviceUserCredentials.username, serviceUserCredentials.password);
+    public AbacClient abacClient(EnvironmentProperties properties, NaisUtils.Credentials serviceUserCredentials) {
+        return new AbacCachedClient(new AbacHttpClient(properties.getAbacUrl(), serviceUserCredentials.username, serviceUserCredentials.password));
+    }
+
+    @Bean
+    public Pep veilarbPep(NaisUtils.Credentials serviceUserCredentials, AbacClient abacClient) {
+        return new VeilarbPep(serviceUserCredentials.username, abacClient, new AuditLogger());
     }
 
 }
