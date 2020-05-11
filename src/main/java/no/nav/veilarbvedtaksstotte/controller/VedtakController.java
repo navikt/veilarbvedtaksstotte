@@ -12,7 +12,7 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 
 @RestController
-@RequestMapping("/{fnr}")
+@RequestMapping("/api/{fnr}")
 public class VedtakController {
 
     private final VedtakService vedtakService;
