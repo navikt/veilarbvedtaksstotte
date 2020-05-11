@@ -1,10 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
-import no.nav.sbl.jdbc.Transactor;
-import no.nav.sbl.sql.DbConstants;
-import no.nav.sbl.sql.SqlUtils;
-import no.nav.sbl.sql.where.WhereClause;
 import no.nav.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
@@ -12,11 +8,13 @@ import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import java.sql.ResultSet;
 import java.util.List;
@@ -24,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
 @Repository
 public class VedtaksstotteRepository {
@@ -48,10 +47,10 @@ public class VedtaksstotteRepository {
 
     private final JdbcTemplate db;
     private final KilderRepository kilderRepository;
-    private final Transactor transactor;
+    private final TransactionTemplate transactor;
 
-    @Inject
-    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository, Transactor transactor) {
+    @Autowired
+    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository, TransactionTemplate transactor) {
         this.db = db;
         this.kilderRepository = kilderRepository;
         this.transactor = transactor;
@@ -84,18 +83,14 @@ public class VedtaksstotteRepository {
     }
 
     public boolean slettUtkast(String aktorId) {
-        return SqlUtils
-                .delete(db, VEDTAK_TABLE)
-                .where(WhereClause.equals(STATUS, EnumUtils.getName(VedtakStatus.UTKAST)).and(WhereClause.equals(AKTOR_ID,aktorId)))
-                .execute() > 0;
+        String sql = format("DELETE FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, STATUS, AKTOR_ID);
+        return db.update(sql, getName(VedtakStatus.UTKAST), aktorId) > 0;
     }
 
     public List<Vedtak> hentVedtak(String aktorId) {
-        List<Vedtak> vedtakListe = SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
-                .where(WhereClause.equals(AKTOR_ID, aktorId))
-                .column("*")
-                .executeToList();
+        String sql = format("SELECT * FROM %s WHERE %s = ?", VEDTAK_TABLE, AKTOR_ID);
 
+        List<Vedtak> vedtakListe = db.query(sql, new Object[]{aktorId}, VedtaksstotteRepository::mapVedtak);
         List<Kilde> opplysninger = kilderRepository.hentKilderForAlleVedtak(vedtakListe);
 
         vedtakListe.forEach(vedtak -> {
@@ -111,7 +106,7 @@ public class VedtaksstotteRepository {
 
     public void setBeslutterProsessStatus(long vedtakId, BeslutterProsessStatus beslutterProsessStatus) {
         String sql = "UPDATE VEDTAK SET BESLUTTER_PROSESS_STATUS = ?::BESLUTTER_PROSESS_STATUS_TYPE WHERE ID = ?";
-        long itemsUpdated = db.update(sql, EnumUtils.getName(beslutterProsessStatus), vedtakId);
+        long itemsUpdated = db.update(sql, getName(beslutterProsessStatus), vedtakId);
 
         if (itemsUpdated == 0) {
             throw new RuntimeException("Fant ikke utkast å oppdatere beslutter prosess status for " + vedtakId);
@@ -128,17 +123,15 @@ public class VedtaksstotteRepository {
     }
 
     public Vedtak hentVedtak(long vedtakId) {
-        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
-                .where(WhereClause.equals(VEDTAK_ID, vedtakId))
-                .column("*")
-                .execute();
+        String sql = format("SELECT * FROM %s WHERE %s = ?", VEDTAK_TABLE, VEDTAK_ID);
+        List<Vedtak> vedtakListe = db.query(sql, new Object[]{vedtakId}, VedtaksstotteRepository::mapVedtak);
+        return DbUtils.firstInList(vedtakListe);
     }
 
     public Vedtak hentGjeldendeVedtak(String aktorId) {
-        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
-                .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(GJELDENDE, true)))
-                .column("*")
-                .execute();
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = true", VEDTAK_TABLE, AKTOR_ID, GJELDENDE);
+        List<Vedtak> vedtakListe = db.query(sql, new Object[]{aktorId}, VedtaksstotteRepository::mapVedtak);
+        return DbUtils.firstInList(vedtakListe);
     }
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
@@ -146,52 +139,47 @@ public class VedtaksstotteRepository {
     }
 
     public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
-        SqlUtils.update(db, VEDTAK_TABLE)
-            .whereEquals(VEDTAK_ID, vedtakId)
-            .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-            .set(STATUS, EnumUtils.getName(VedtakStatus.SENDT))
-            .set(DOKUMENT_ID, dokumentSendtDTO.getDokumentId())
-            .set(JOURNALPOST_ID, dokumentSendtDTO.getJournalpostId())
-            .set(GJELDENDE, true)
-            .set(SENDER, false)
-            .execute();
+        String sql = format(
+                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP, %s = true, %s = false WHERE %s = ?",
+                VEDTAK_TABLE, STATUS, DOKUMENT_ID, JOURNALPOST_ID, SIST_OPPDATERT, GJELDENDE, SENDER, VEDTAK_ID
+        );
+
+        db.update(
+                sql, getName(VedtakStatus.SENDT),
+                dokumentSendtDTO.getDokumentId(), dokumentSendtDTO.getJournalpostId(), vedtakId
+        );
     }
 
     public void oppdaterUtkast(long vedtakId, Vedtak vedtak) {
-        SqlUtils.update(db, VEDTAK_TABLE)
-            .whereEquals(VEDTAK_ID, vedtakId)
-            .set(HOVEDMAL, EnumUtils.getName(vedtak.getHovedmal()))
-            .set(INNSATSGRUPPE, EnumUtils.getName(vedtak.getInnsatsgruppe()))
-            .set(VEILEDER_IDENT, vedtak.getVeilederIdent())
-            .set(OPPFOLGINGSENHET_ID, vedtak.getOppfolgingsenhetId())
-            .set(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-            .set(BEGRUNNELSE, vedtak.getBegrunnelse())
-            .execute();
+        String sql = format(
+                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ?",
+                VEDTAK_TABLE, HOVEDMAL, INNSATSGRUPPE, BEGRUNNELSE, SIST_OPPDATERT, VEDTAK_ID
+        );
+
+        db.update(sql, getName(vedtak.getHovedmal()), getName(vedtak.getInnsatsgruppe()), vedtak.getBegrunnelse(), vedtakId);
     }
 
     public void opprettUtkast(String aktorId, String veilederIdent, String oppfolgingsenhetId) {
-        SqlUtils.insert(db, VEDTAK_TABLE)
-            .value(AKTOR_ID, aktorId)
-            .value(VEILEDER_IDENT, veilederIdent)
-            .value(OPPFOLGINGSENHET_ID, oppfolgingsenhetId)
-            .value(SIST_OPPDATERT, DbConstants.CURRENT_TIMESTAMP)
-            .value(STATUS, EnumUtils.getName(VedtakStatus.UTKAST))
-            .execute();
+        String sql = format(
+                "INSERT INTO %s(%s, %s, %s, %s, %s) values(?, ?, ?, ?, CURRENT_TIMESTAMP)",
+                VEDTAK_TABLE, AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, SIST_OPPDATERT
+        );
+
+        db.update(sql, aktorId, veilederIdent, oppfolgingsenhetId, getName(VedtakStatus.UTKAST));
     }
 
     public Vedtak hentUtkastUtenOpplysninger(String aktorId) {
-        return SqlUtils.select(db, VEDTAK_TABLE, VedtaksstotteRepository::mapVedtak)
-                .where(WhereClause.equals(AKTOR_ID, aktorId).and(WhereClause.equals(STATUS, EnumUtils.getName(VedtakStatus.UTKAST))))
-                .column("*")
-                .execute();
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
+        List<Vedtak> vedtakListe = db.query(sql, new Object[]{aktorId, getName(VedtakStatus.UTKAST)}, VedtaksstotteRepository::mapVedtak);
+        return DbUtils.firstInList(vedtakListe);
     }
 
     public void oppdaterSender(long vedtakId, boolean sender) {
-        transactor.inTransaction(() -> {
+        transactor.executeWithoutResult((status) -> {
             boolean lagretSender =
                     Optional.ofNullable(
                             db.queryForObject(
-                                    "SELECT " + SENDER + " FROM " + VEDTAK_TABLE + " WHERE " + VEDTAK_ID + " = ? FOR UPDATE",
+                                    format("SELECT %s FROM %s WHERE %s = ? FOR UPDATE", SENDER, VEDTAK_TABLE, VEDTAK_ID),
                                     (rs, rowNum) -> rs.getBoolean(SENDER), vedtakId))
                             .orElse(false);
 
@@ -199,15 +187,13 @@ public class VedtaksstotteRepository {
                 throw new IllegalStateException(format("Utkast med id %s er %s under sending", vedtakId, lagretSender ? "allerede" : "ikke"));
             }
 
-            SqlUtils.update(db, VEDTAK_TABLE)
-                    .whereEquals(VEDTAK_ID, vedtakId)
-                    .set(SENDER, sender)
-                    .execute();
+            String sql = format("UPDATE %s SET %s = ? WHERE %s = ?", VEDTAK_TABLE, SENDER, VEDTAK_ID);
+            db.update(sql, sender, vedtakId);
         });
     }
 
     @SneakyThrows
-    private static Vedtak mapVedtak(ResultSet rs) {
+    private static Vedtak mapVedtak(ResultSet rs, int row) {
         return new Vedtak()
                 .setId(rs.getLong(VEDTAK_ID))
                 .setHovedmal(EnumUtils.valueOf(Hovedmal.class, rs.getString(HOVEDMAL)))

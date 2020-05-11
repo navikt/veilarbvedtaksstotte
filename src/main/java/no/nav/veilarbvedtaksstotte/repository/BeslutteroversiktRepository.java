@@ -2,18 +2,16 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import lombok.Value;
-import no.nav.sbl.sql.SqlUtils;
-import no.nav.sbl.sql.where.WhereClause;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSokFilter;
 import no.nav.veilarbvedtaksstotte.domain.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.inject.Inject;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +47,7 @@ public class BeslutteroversiktRepository {
 
     private final JdbcTemplate db;
 
-    @Inject
+    @Autowired
     public BeslutteroversiktRepository(JdbcTemplate db) {
         this.db = db;
     }
@@ -132,9 +130,7 @@ public class BeslutteroversiktRepository {
     }
 
     public void slettBruker(long vedtakId) {
-        SqlUtils.delete(db, BESLUTTEROVERSIKT_BRUKER_TABLE)
-                .where(WhereClause.equals(VEDTAK_ID, vedtakId))
-                .execute();
+        db.update(format("DELETE FROM %s WHERE %s = ?", BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID), vedtakId);
     }
 
     private long totaltAntallBrukereForSok(BeslutteroversiktSok sok, String innloggetVeilederIdent) {

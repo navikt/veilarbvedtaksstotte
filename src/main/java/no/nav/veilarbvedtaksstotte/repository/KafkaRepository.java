@@ -1,18 +1,17 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
-import no.nav.sbl.sql.SqlUtils;
-import no.nav.sbl.sql.where.WhereClause;
 import no.nav.veilarbvedtaksstotte.domain.FeiletKafkaMelding;
 import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.inject.Inject;
 import java.sql.ResultSet;
 import java.util.List;
 
+import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
 @Repository
@@ -26,13 +25,13 @@ public class KafkaRepository {
 
     private final JdbcTemplate db;
 
-    @Inject
+    @Autowired
     public KafkaRepository(JdbcTemplate db) {
         this.db = db;
     }
 
     public void lagreFeiletKafkaMelding(KafkaTopic topic, String key, String jsonPayload) {
-        String sql = String.format(
+        String sql = format(
                 "INSERT INTO %s (%s, %s, %s) VALUES (?::KAFKA_TOPIC_TYPE, ?, ?::json)",
                 FEILET_KAFKA_MELDING_TABLE, TOPIC, KEY, PAYLOAD
         );
@@ -41,7 +40,7 @@ public class KafkaRepository {
     }
 
     public List<FeiletKafkaMelding> hentFeiledeKafkaMeldinger(KafkaTopic topic) {
-        String sql = String.format(
+        String sql = format(
                 "SELECT * FROM %s WHERE %s = ?::KAFKA_TOPIC_TYPE",
                 FEILET_KAFKA_MELDING_TABLE, TOPIC
         );
@@ -50,9 +49,7 @@ public class KafkaRepository {
     }
 
     public void slettFeiletKafkaMelding(long feiletMeldingId) {
-        SqlUtils.delete(db, FEILET_KAFKA_MELDING_TABLE)
-                .where(WhereClause.equals(ID, feiletMeldingId))
-                .execute();
+        db.update(format("DELETE FROM %S WHERE %s = ?", FEILET_KAFKA_MELDING_TABLE, ID), feiletMeldingId);
     }
 
     @SneakyThrows

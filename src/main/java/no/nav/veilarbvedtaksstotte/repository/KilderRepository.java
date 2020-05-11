@@ -3,16 +3,16 @@ package no.nav.veilarbvedtaksstotte.repository;
 import lombok.SneakyThrows;
 import no.nav.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.sbl.sql.SqlUtils;
-import no.nav.sbl.sql.where.WhereClause;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.inject.Inject;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 @Repository
 public class KilderRepository {
@@ -23,7 +23,7 @@ public class KilderRepository {
 
     private final JdbcTemplate db;
 
-    @Inject
+    @Autowired
     public KilderRepository(JdbcTemplate db) {
         this.db = db;
     }
@@ -33,10 +33,8 @@ public class KilderRepository {
     }
 
     public List<Kilde> hentKilderForVedtak(long vedtakId) {
-        return SqlUtils.select(db, KILDE_TABLE, KilderRepository::mapKilder)
-                .where(WhereClause.equals(VEDTAK_ID, vedtakId))
-                .column("*")
-                .executeToList();
+        String sql = format("SELECT * FROM %s WHERE %s = %d", KILDE_TABLE, VEDTAK_ID, vedtakId);
+        return db.query(sql, KilderRepository::mapKilder);
     }
 
     public List<Kilde> hentKilderForAlleVedtak(List<Vedtak> vedtakListe) {
@@ -45,27 +43,23 @@ public class KilderRepository {
         }
 
         List<Long> vedtakIder = vedtakListe.stream().map(Vedtak::getId).collect(Collectors.toList());
-        return SqlUtils.select(db, KILDE_TABLE, KilderRepository::mapKilder)
-                .where(WhereClause.in(VEDTAK_ID, vedtakIder))
-                .column("*")
-                .executeToList();
+        String sql = format("SELECT * FROM %s WHERE %s = SOME(?::bigint[])", KILDE_TABLE, VEDTAK_ID);
+
+        // TODO: Skrive test for denne
+        return db.query(sql, new Object[]{vedtakIder}, KilderRepository::mapKilder);
     }
 
     public void slettKilder(long vedtakId) {
-        SqlUtils.delete(db, KILDE_TABLE)
-                .where(WhereClause.equals(VEDTAK_ID, vedtakId))
-                .execute();
+        db.update(format("DELETE FROM %s WHERE %s = ?", KILDE_TABLE, VEDTAK_ID), vedtakId);
     }
 
     private void insertKilde(String tekst, long vedtakId) {
-        SqlUtils.insert(db, KILDE_TABLE)
-                .value(VEDTAK_ID, vedtakId)
-                .value(TEKST, tekst)
-                .execute();
+        String sql = format("INSERT INTO %s(%s, %s) values(?,?)", KILDE_TABLE, VEDTAK_ID, TEKST);
+        db.update(sql, vedtakId, tekst);
     }
 
     @SneakyThrows
-    private static Kilde mapKilder(ResultSet rs) {
+    private static Kilde mapKilder(ResultSet rs, int row) {
         return new Kilde()
                 .setVedtakId(rs.getLong(VEDTAK_ID))
                 .setTekst(rs.getString(TEKST));

@@ -5,6 +5,7 @@ import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.ws.rs.core.Response;
@@ -30,8 +31,7 @@ public class VedtakController {
         return vedtakService.sendVedtak(fnr);
     }
 
-//    @Produces("application/pdf")
-    @GetMapping("/vedtak/pdf")
+    @GetMapping(value = "/vedtak/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public Response hentVedtakPdf(@PathVariable("fnr") String fnr,
                                   @RequestParam("dokumentInfoId") String dokumentInfoId,
                                   @RequestParam("journalpostId") String journalpostId) {
@@ -66,8 +66,7 @@ public class VedtakController {
        return vedtakService.harUtkast(fnr);
     }
 
-//    @Produces("application/pdf")
-    @GetMapping("/utkast/pdf")
+    @GetMapping(value = "/utkast/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public Response hentForhandsvisning(@PathVariable("fnr") String fnr) {
         byte[] utkastPdf = vedtakService.produserDokumentUtkast(fnr);
         return Response.ok(utkastPdf)

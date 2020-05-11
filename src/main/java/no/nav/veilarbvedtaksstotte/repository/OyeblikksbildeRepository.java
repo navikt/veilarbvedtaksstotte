@@ -3,15 +3,14 @@ package no.nav.veilarbvedtaksstotte.repository;
 import lombok.SneakyThrows;
 import no.nav.veilarbvedtaksstotte.domain.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType;
-import no.nav.sbl.sql.SqlUtils;
-import no.nav.sbl.sql.where.WhereClause;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.inject.Inject;
 import java.sql.ResultSet;
 import java.util.List;
 
+import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 
@@ -25,16 +24,14 @@ public class OyeblikksbildeRepository {
 
     private final JdbcTemplate db;
 
-    @Inject
+    @Autowired
     public OyeblikksbildeRepository(JdbcTemplate db) {
         this.db = db;
     }
 
     public List<Oyeblikksbilde> hentOyeblikksbildeForVedtak(long vedtakId) {
-        return SqlUtils.select(db, OYEBLIKKSBILDE_TABLE, OyeblikksbildeRepository::mapOyeblikksbilde)
-                .where(WhereClause.equals(VEDTAK_ID, vedtakId))
-                .column("*")
-                .executeToList();
+        String sql = format("SELECT * FROM %s WHERE %s = ?", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
+        return db.query(sql, new Object[]{vedtakId}, OyeblikksbildeRepository::mapOyeblikksbilde);
     }
 
     public void lagOyeblikksbilde(List<Oyeblikksbilde> oyeblikksbildeList) {
@@ -49,7 +46,7 @@ public class OyeblikksbildeRepository {
     }
 
     @SneakyThrows
-    private static Oyeblikksbilde mapOyeblikksbilde(ResultSet rs) {
+    private static Oyeblikksbilde mapOyeblikksbilde(ResultSet rs, int row) {
         return new Oyeblikksbilde()
                 .setVedtakId(rs.getLong(VEDTAK_ID))
                 .setOyeblikksbildeType(valueOf(OyeblikksbildeType.class, rs.getString(OYEBLIKKSBILDE_TYPE)))

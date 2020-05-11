@@ -1,19 +1,18 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
-import no.nav.sbl.sql.SqlUtils;
-import no.nav.sbl.sql.where.WhereClause;
 import no.nav.veilarbvedtaksstotte.domain.dialog.DialogMelding;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMelding;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.inject.Inject;
 import java.sql.ResultSet;
 import java.util.List;
 
+import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
 @Repository
@@ -36,35 +35,28 @@ public class MeldingRepository {
 
     private final JdbcTemplate db;
 
-    @Inject
+    @Autowired
     public MeldingRepository(JdbcTemplate db) {
         this.db = db;
     }
 
     public List<DialogMelding> hentDialogMeldinger(long vedtakId) {
-        return SqlUtils.select(db, DIALOG_MELDING_TABLE, MeldingRepository::mapDialogMelding)
-                .where(WhereClause.equals(VEDTAK_ID, vedtakId))
-                .column("*")
-                .executeToList();
+        String sql = format("SELECT * FROM %s WHERE %s = %d", DIALOG_MELDING_TABLE, VEDTAK_ID, vedtakId);
+        return db.query(sql, MeldingRepository::mapDialogMelding);
     }
 
     public List<SystemMelding> hentSystemMeldinger(long vedtakId) {
-        return SqlUtils.select(db, SYSTEM_MELDING_TABLE, MeldingRepository::mapSystemMelding)
-                .where(WhereClause.equals(VEDTAK_ID, vedtakId))
-                .column("*")
-                .executeToList();
+        String sql = format("SELECT * FROM %s WHERE %s = %d", SYSTEM_MELDING_TABLE, VEDTAK_ID, vedtakId);
+        return db.query(sql, MeldingRepository::mapSystemMelding);
     }
 
     public void opprettDialogMelding(long vedtakId, String opprettetAvIdent, String melding) {
-        SqlUtils.insert(db, DIALOG_MELDING_TABLE)
-                .value(VEDTAK_ID, vedtakId)
-                .value(OPPRETTET_AV_IDENT, opprettetAvIdent)
-                .value(MELDING, melding)
-                .execute();
+        String sql = format("INSERT INTO %s(%s, %s, %s) values(?,?,?)", DIALOG_MELDING_TABLE, vedtakId, opprettetAvIdent, melding);
+        db.update(sql, vedtakId, opprettetAvIdent, melding);
     }
 
     public void opprettSystemMelding(long vedtakId, SystemMeldingType systemMeldingType, String utfortAvIdent) {
-        String sql = String.format(
+        String sql = format(
                 "INSERT INTO %s (%s, %s, %s) VALUES (?, ?::SYSTEM_MELDING_TYPE, ?)",
                 SYSTEM_MELDING_TABLE, VEDTAK_ID, SYSTEM_MELDING_TYPE, UTFORT_AV_IDENT
         );
@@ -73,19 +65,17 @@ public class MeldingRepository {
     }
 
     public boolean slettMeldinger(long vedtakId) {
-        int dialogMeldingerSlettet = SqlUtils.delete(db, DIALOG_MELDING_TABLE)
-                .where(WhereClause.equals(VEDTAK_ID, vedtakId))
-                .execute();
+        String dialogMeldingSql = format("DELETE FROM %s WHERE %s = %d", DIALOG_MELDING_TABLE, VEDTAK_ID, vedtakId);
+        String systemMeldingSql = format("DELETE FROM %s WHERE %s = %d", SYSTEM_MELDING_TABLE, VEDTAK_ID, vedtakId);
 
-        int systemMeldingerSlettet = SqlUtils.delete(db, SYSTEM_MELDING_TABLE)
-                .where(WhereClause.equals(VEDTAK_ID, vedtakId))
-                .execute();
+        int dialogMeldingerSlettet = db.update(dialogMeldingSql);
+        int systemMeldingerSlettet = db.update(systemMeldingSql);
 
         return (dialogMeldingerSlettet + systemMeldingerSlettet) > 0;
     }
 
     @SneakyThrows
-    private static DialogMelding mapDialogMelding(ResultSet rs) {
+    private static DialogMelding mapDialogMelding(ResultSet rs, int row) {
         return (DialogMelding) new DialogMelding()
                 .setMelding(rs.getString(MELDING))
                 .setOpprettetAvIdent(rs.getString(OPPRETTET_AV_IDENT))
@@ -95,7 +85,7 @@ public class MeldingRepository {
     }
 
     @SneakyThrows
-    private static SystemMelding mapSystemMelding(ResultSet rs) {
+    private static SystemMelding mapSystemMelding(ResultSet rs, int row) {
         return (SystemMelding) new SystemMelding()
                 .setSystemMeldingType(EnumUtils.valueOf(SystemMeldingType.class, rs.getString(SYSTEM_MELDING_TYPE)))
                 .setUtfortAvIdent(rs.getString(UTFORT_AV_IDENT))
