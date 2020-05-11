@@ -1,11 +1,11 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
@@ -60,7 +60,7 @@ public class BeslutteroversiktServiceTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok();
         sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("5431")));
 
-        assertThrows(IngenTilgang.class, () -> {
+        assertThrows(ResponseStatusException.class, () -> {
             beslutteroversiktService.sokEtterBruker(sok);
         });
     }

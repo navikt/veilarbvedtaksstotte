@@ -36,6 +36,10 @@ public class SAFClient {
         this.safUrl = EnvironmentUtils.getRequiredProperty(SAF_API_PROPERTY_NAME);
     }
 
+    public SAFClient(String safUrl) {
+        this.safUrl = safUrl;
+    }
+
     @SneakyThrows
     public byte[] hentVedtakPdf(String journalpostId, String dokumentInfoId) {
         Request request = new Request.Builder()
@@ -72,7 +76,7 @@ public class SAFClient {
                 .getAsJsonObject()
                 .getAsJsonObject("data")
                 .getAsJsonObject("dokumentoversiktBruker")
-                .getAsJsonObject("journalposter")
+                .getAsJsonArray("journalposter")
                 .toString();
 
         return gson.fromJson(journalposterJson, Journalpost[].class);

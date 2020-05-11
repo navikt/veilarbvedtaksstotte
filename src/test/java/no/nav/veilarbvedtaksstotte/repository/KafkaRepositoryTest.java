@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.FeiletKafkaMelding;
 import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
@@ -15,11 +14,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static no.nav.json.JsonUtils.toJson;
+import static no.nav.common.json.JsonUtils.toJson;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -27,14 +27,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class KafkaRepositoryTest {
 
     private static JdbcTemplate db;
-    private static Transactor transactor;
+    private static TransactionTemplate transactor;
     private static KafkaRepository kafkaRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
-        transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
+        transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         kafkaRepository = new KafkaRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
     }

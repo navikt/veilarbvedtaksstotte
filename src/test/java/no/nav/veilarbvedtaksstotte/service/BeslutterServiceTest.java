@@ -1,8 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.apiapp.feil.Feil;
-import no.nav.apiapp.feil.IngenTilgang;
-import no.nav.apiapp.feil.UgyldigRequest;
 import no.nav.veilarbvedtaksstotte.client.PersonClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
@@ -16,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.web.server.ResponseStatusException;
 
 import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.*;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
@@ -79,7 +77,7 @@ public class BeslutterServiceTest {
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        assertThrows(UgyldigRequest.class, () ->  beslutterService.startBeslutterProsess(TEST_FNR));
+        assertThrows(ResponseStatusException.class, () ->  beslutterService.startBeslutterProsess(TEST_FNR));
     }
 
     @Test
@@ -90,7 +88,7 @@ public class BeslutterServiceTest {
         when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        assertThrows(UgyldigRequest.class, () -> beslutterService.startBeslutterProsess(TEST_FNR));
+        assertThrows(ResponseStatusException.class, () -> beslutterService.startBeslutterProsess(TEST_FNR));
     }
 
     @Test
@@ -134,7 +132,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        assertThrows(IngenTilgang.class, () -> beslutterService.bliBeslutter(TEST_FNR));
+        assertThrows(ResponseStatusException.class, () -> beslutterService.bliBeslutter(TEST_FNR));
     }
 
     @Test
@@ -147,7 +145,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        assertThrows(UgyldigRequest.class, () ->  beslutterService.bliBeslutter(TEST_FNR));
+        assertThrows(ResponseStatusException.class, () ->  beslutterService.bliBeslutter(TEST_FNR));
     }
 
     @Test
@@ -206,7 +204,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        assertThrows(IngenTilgang.class, () -> beslutterService.setGodkjentAvBeslutter(TEST_FNR));
+        assertThrows(ResponseStatusException.class, () -> beslutterService.setGodkjentAvBeslutter(TEST_FNR));
     }
 
     @Test
@@ -267,7 +265,7 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        assertThrows(Feil.class, () -> beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR));
+        assertThrows(ResponseStatusException.class, () -> beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR));
     }
 
     @Test
@@ -281,6 +279,6 @@ public class BeslutterServiceTest {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_IKKE_ANSVARLIG_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
-        assertThrows(IngenTilgang.class, () -> beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR));
+        assertThrows(ResponseStatusException.class, () -> beslutterService.oppdaterBeslutterProsessStatus(TEST_FNR));
     }
 }

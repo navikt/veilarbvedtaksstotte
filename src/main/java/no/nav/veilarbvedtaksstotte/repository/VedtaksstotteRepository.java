@@ -11,11 +11,14 @@ import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.ws.rs.NotFoundException;
+import java.lang.module.ResolutionException;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +63,7 @@ public class VedtaksstotteRepository {
         Vedtak utkast = hentUtkast(aktorId);
 
         if (utkast == null) {
-            throw new NotFoundException("Fant ikke utkast");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke utkast");
         }
 
         return utkast;
@@ -109,7 +112,7 @@ public class VedtaksstotteRepository {
         long itemsUpdated = db.update(sql, getName(beslutterProsessStatus), vedtakId);
 
         if (itemsUpdated == 0) {
-            throw new RuntimeException("Fant ikke utkast å oppdatere beslutter prosess status for " + vedtakId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke utkast å oppdatere beslutter prosess status for " + vedtakId);
         }
     }
 
@@ -118,7 +121,7 @@ public class VedtaksstotteRepository {
         long itemsUpdated = db.update(sql, beslutterIdent, vedtakId);
 
         if (itemsUpdated == 0) {
-            throw new RuntimeException("Fant ikke utkast å sette beslutter for " + vedtakId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke utkast å sette beslutter for " + vedtakId);
         }
     }
 
@@ -152,11 +155,29 @@ public class VedtaksstotteRepository {
 
     public void oppdaterUtkast(long vedtakId, Vedtak vedtak) {
         String sql = format(
-                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ?",
-                VEDTAK_TABLE, HOVEDMAL, INNSATSGRUPPE, BEGRUNNELSE, SIST_OPPDATERT, VEDTAK_ID
+                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ? AND %s = ?",
+                VEDTAK_TABLE, HOVEDMAL, INNSATSGRUPPE, BEGRUNNELSE, SIST_OPPDATERT, VEDTAK_ID, STATUS
         );
 
-        db.update(sql, getName(vedtak.getHovedmal()), getName(vedtak.getInnsatsgruppe()), vedtak.getBegrunnelse(), vedtakId);
+        db.update(sql, getName(vedtak.getHovedmal()), getName(vedtak.getInnsatsgruppe()), vedtak.getBegrunnelse(), vedtakId, getName(VedtakStatus.UTKAST));
+    }
+
+    public void oppdaterUtkastVeileder(long vedtakId, String veilederIdent) {
+        String sql = format(
+                "UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?",
+                VEDTAK_TABLE, VEILEDER_IDENT, VEDTAK_ID, STATUS
+        );
+
+        db.update(sql, veilederIdent, vedtakId, getName(VedtakStatus.UTKAST));
+    }
+
+    public void oppdaterUtkastEnhet(long vedtakId, String enhetId) {
+        String sql = format(
+                "UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?",
+                VEDTAK_TABLE, OPPFOLGINGSENHET_ID, VEDTAK_ID, STATUS
+        );
+
+        db.update(sql, enhetId, vedtakId, getName(VedtakStatus.UTKAST));
     }
 
     public void opprettUtkast(String aktorId, String veilederIdent, String oppfolgingsenhetId) {

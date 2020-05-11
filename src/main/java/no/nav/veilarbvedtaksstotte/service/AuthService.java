@@ -8,6 +8,7 @@ import no.nav.common.abac.VeilarbPep;
 import no.nav.common.abac.domain.AbacPersonId;
 import no.nav.common.abac.domain.Attribute;
 import no.nav.common.abac.domain.request.*;
+import no.nav.common.abac.domain.response.Category;
 import no.nav.common.abac.domain.response.Decision;
 import no.nav.common.abac.domain.response.XacmlResponse;
 import no.nav.common.aktorregisterklient.AktorregisterKlient;
@@ -107,8 +108,8 @@ public class AuthService {
         Request request = new Request()
                 .withEnvironment(environment)
                 .withAction(action)
-                .withAccessSubject(accessSubject);
-//                .withResources(resources);
+                .withAccessSubject(accessSubject)
+                .withResources(resources);
 
         return new XacmlRequest().withRequest(request);
     }
@@ -117,7 +118,7 @@ public class AuthService {
         Resource resource = new Resource();
         resource.addAttribute(new Attribute(NavAttributter.RESOURCE_FELLES_DOMENE, "veilarb"));
         resource.addAttribute(new Attribute(NavAttributter.RESOURCE_FELLES_RESOURCE_TYPE, NavAttributter.RESOURCE_VEILARB_PERSON));
-//        resource.addAttribute(new Attribute(NavAttributter.RESOURCE_FELLES_PERSON_FNR, fnr, true));
+        resource.addAttribute(new Attribute(NavAttributter.RESOURCE_FELLES_PERSON_FNR, fnr, true));
         return resource;
     }
 
@@ -128,10 +129,10 @@ public class AuthService {
             boolean harTilgang = response.getDecision() == Decision.Permit;
 
             // There should always be a single category
-//            Category category = response.getCategory().get(0);
-//            String brukerFnr = category.getAttribute().getValue();
+            Category category = response.getCategory().get(0);
+            String brukerFnr = category.getAttribute().getValue();
 
-            tilgangTilBrukere.put("brukerFnr", harTilgang);
+            tilgangTilBrukere.put(brukerFnr, harTilgang);
         });
 
         return tilgangTilBrukere;

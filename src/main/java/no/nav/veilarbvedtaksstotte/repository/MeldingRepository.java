@@ -51,7 +51,7 @@ public class MeldingRepository {
     }
 
     public void opprettDialogMelding(long vedtakId, String opprettetAvIdent, String melding) {
-        String sql = format("INSERT INTO %s(%s, %s, %s) values(?,?,?)", DIALOG_MELDING_TABLE, vedtakId, opprettetAvIdent, melding);
+        String sql = format("INSERT INTO %s(%s, %s, %s) values(?,?,?)", DIALOG_MELDING_TABLE, VEDTAK_ID, OPPRETTET_AV_IDENT, MELDING);
         db.update(sql, vedtakId, opprettetAvIdent, melding);
     }
 

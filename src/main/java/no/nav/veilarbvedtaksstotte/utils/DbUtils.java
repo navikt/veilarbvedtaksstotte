@@ -7,12 +7,17 @@ import org.flywaydb.core.Flyway;
 
 import javax.sql.DataSource;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static no.nav.common.utils.EnvironmentUtils.isProduction;
 import static no.nav.common.utils.EnvironmentUtils.requireNamespace;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 
 public class DbUtils {
+
+    public static String toPostgresArray(List<String> values) {
+        return "{" + String.join(",", values) + "}";
+    }
 
     public static <T> T firstInList(List<T> listResult) {
         return listResult == null || listResult.isEmpty() ? null : listResult.get(0);

@@ -11,7 +11,10 @@ import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
@@ -37,7 +40,7 @@ public class VedtakService {
     private final VeilederService veilederService;
     private final MalTypeService malTypeService;
     private final VedtakStatusEndringService vedtakStatusEndringService;
-//    private final Transactor transactor;
+    private final TransactionTemplate transactor;
 
     @Autowired
     public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
@@ -50,7 +53,7 @@ public class VedtakService {
                          SAFClient safClient,
                          VeilederService veilederService,
                          MalTypeService malTypeService,
-                         VedtakStatusEndringService vedtakStatusEndringService) {
+                         VedtakStatusEndringService vedtakStatusEndringService, TransactionTemplate transactor) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.kilderRepository = kilderRepository;
         this.oyeblikksbildeService = oyeblikksbildeService;
@@ -62,7 +65,7 @@ public class VedtakService {
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
         this.vedtakStatusEndringService = vedtakStatusEndringService;
-//        this.transactor = transactor;
+        this.transactor = transactor;
     }
 
     @SneakyThrows
@@ -84,11 +87,11 @@ public class VedtakService {
 
         DokumentSendtDTO dokumentSendt = sendDokument(vedtak, fnr);
 
-//        transactor.inTransaction(() -> {
+        transactor.executeWithoutResult((status) -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(aktorId);
             vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendt);
             beslutteroversiktRepository.slettBruker(vedtakId);
-//        });
+        });
 
         vedtakStatusEndringService.vedtakSendt(vedtak, fnr);
 
@@ -140,11 +143,11 @@ public class VedtakService {
 
         oppdaterUtkastFraDto(utkast, vedtakDTO);
 
-//        transactor.inTransaction(() -> {
+        transactor.executeWithoutResult((status) -> {
             vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
             kilderRepository.slettKilder(utkast.getId());
             kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
-//        });
+        });
     }
 
     private void oppdaterUtkastFraDto(Vedtak utkast, VedtakDTO dto) {
@@ -168,13 +171,13 @@ public class VedtakService {
         long utkastId = utkast.getId();
         authService.sjekkAnsvarligVeileder(utkast);
 
-//        transactor.inTransaction(() -> {
+        transactor.executeWithoutResult((status) -> {
             meldingRepository.slettMeldinger(utkastId);
             kilderRepository.slettKilder(utkastId);
             beslutteroversiktRepository.slettBruker(utkastId);
             kilderRepository.slettKilder(utkastId);
             vedtaksstotteRepository.slettUtkast(utkast.getAktorId());
-//        });
+        });
 
         vedtakStatusEndringService.utkastSlettet(utkast);
     }
@@ -223,8 +226,7 @@ public class VedtakService {
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(endring.getAktorId());
 
         if (utkast != null && !utkast.getOppfolgingsenhetId().equals(endring.getOppfolgingsenhetId())) {
-            utkast.setOppfolgingsenhetId(endring.getOppfolgingsenhetId());
-            vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
+            vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), endring.getOppfolgingsenhetId());
         }
     }
 
@@ -235,12 +237,10 @@ public class VedtakService {
         Veileder veileder = veilederService.hentVeileder(innloggetVeilederIdent);
 
         if (innloggetVeilederIdent.equals(utkast.getVeilederIdent())) {
-            throw new BadRequestException("Veileder er allerede ansvarlig for utkast");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Veileder er allerede ansvarlig for utkast");
         }
 
-        utkast.setVeilederIdent(innloggetVeilederIdent);
-
-        vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
+        vedtaksstotteRepository.oppdaterUtkastVeileder(utkast.getId(), innloggetVeilederIdent);
         beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
         vedtakStatusEndringService.tattOverForVeileder(utkast, innloggetVeilederIdent);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_VEILEDER, innloggetVeilederIdent);

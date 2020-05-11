@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static no.nav.veilarbvedtaksstotte.utils.DbUtils.toPostgresArray;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.veilarbvedtaksstotte.utils.ValidationUtils.isNullOrEmpty;
 import static org.apache.commons.lang3.StringUtils.isNumeric;
@@ -210,10 +211,6 @@ public class BeslutteroversiktRepository {
 
         String sqlStr = "WHERE " + String.join(" AND ", filterStrs);
         return Optional.of(new SqlWithParameters(sqlStr, parameters.toArray()));
-    }
-
-    private String toPostgresArray(List<String> values) {
-        return "{" + String.join(",", values) + "}";
     }
 
     private String createNameSearchTerms(String nameSearch) {

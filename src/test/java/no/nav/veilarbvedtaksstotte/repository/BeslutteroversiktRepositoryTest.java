@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
@@ -10,6 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 
@@ -21,12 +21,12 @@ public class BeslutteroversiktRepositoryTest {
     private static JdbcTemplate db;
     private static VedtaksstotteRepository vedtaksstotteRepository;
     private static BeslutteroversiktRepository beslutteroversiktRepository;
-    private static Transactor transactor;
+    private static TransactionTemplate transactor;
 
     @BeforeClass
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
-        transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
+        transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
     }

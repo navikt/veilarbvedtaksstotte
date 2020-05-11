@@ -1,13 +1,12 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.sbl.dialogarena.common.abac.pep.XacmlMapper;
-import no.nav.sbl.dialogarena.common.abac.pep.domain.request.XacmlRequest;
-import no.nav.sbl.dialogarena.common.abac.pep.domain.response.XacmlResponse;
+import no.nav.common.abac.XacmlMapper;
+import no.nav.common.abac.domain.request.XacmlRequest;
+import no.nav.common.abac.domain.response.XacmlResponse;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;

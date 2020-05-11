@@ -17,12 +17,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import static no.nav.common.utils.EnvironmentUtils.getRequiredProperty;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.KAFKA_BROKERS_URL_PROPERTY;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConsumerConfig.AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConsumerConfig.OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME;
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import static org.mockito.Mockito.mock;
 
 @EnableKafka

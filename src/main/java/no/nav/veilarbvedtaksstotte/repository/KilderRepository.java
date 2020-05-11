@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static no.nav.veilarbvedtaksstotte.utils.DbUtils.toPostgresArray;
 
 @Repository
 public class KilderRepository {
@@ -44,9 +45,9 @@ public class KilderRepository {
 
         List<Long> vedtakIder = vedtakListe.stream().map(Vedtak::getId).collect(Collectors.toList());
         String sql = format("SELECT * FROM %s WHERE %s = SOME(?::bigint[])", KILDE_TABLE, VEDTAK_ID);
+        List<String> strVedtakIder = vedtakIder.stream().map(String::valueOf).collect(Collectors.toList());
 
-        // TODO: Skrive test for denne
-        return db.query(sql, new Object[]{vedtakIder}, KilderRepository::mapKilder);
+        return db.query(sql, new Object[]{toPostgresArray(strVedtakIder)}, KilderRepository::mapKilder);
     }
 
     public void slettKilder(long vedtakId) {

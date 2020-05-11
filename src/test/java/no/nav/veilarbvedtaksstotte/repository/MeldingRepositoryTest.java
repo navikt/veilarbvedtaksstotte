@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.dialog.DialogMelding;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMelding;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
@@ -11,6 +10,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
@@ -22,12 +22,12 @@ public class MeldingRepositoryTest {
     private static JdbcTemplate db;
     private static MeldingRepository meldingRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
-    private static Transactor transactor;
+    private static TransactionTemplate transactor;
 
     @BeforeClass
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
-        transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
+        transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         meldingRepository = new MeldingRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
     }
