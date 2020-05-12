@@ -6,9 +6,9 @@ import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.core.Response;
 import java.util.List;
 
 @RestController
@@ -32,13 +32,13 @@ public class VedtakController {
     }
 
     @GetMapping(value = "/vedtak/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    public Response hentVedtakPdf(@PathVariable("fnr") String fnr,
+    public ResponseEntity<byte[]> hentVedtakPdf(@PathVariable("fnr") String fnr,
                                   @RequestParam("dokumentInfoId") String dokumentInfoId,
                                   @RequestParam("journalpostId") String journalpostId) {
         byte[] vedtakPdf = vedtakService.hentVedtakPdf(fnr, dokumentInfoId, journalpostId);
-        return Response.ok(vedtakPdf)
-                .header("Content-Disposition",  "filename=vedtaksbrev.pdf")
-                .build();
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "filename=vedtaksbrev-utkast.pdf")
+                .body(vedtakPdf);
     }
 
     @GetMapping("/vedtak")
@@ -67,11 +67,11 @@ public class VedtakController {
     }
 
     @GetMapping(value = "/utkast/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    public Response hentForhandsvisning(@PathVariable("fnr") String fnr) {
+    public ResponseEntity<byte[]> hentForhandsvisning(@PathVariable("fnr") String fnr) {
         byte[] utkastPdf = vedtakService.produserDokumentUtkast(fnr);
-        return Response.ok(utkastPdf)
+        return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev-utkast.pdf")
-                .build();
+                .body(utkastPdf);
     }
 
     @DeleteMapping("/utkast")

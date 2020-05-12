@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -201,7 +200,7 @@ public class VedtakService {
         SendDokumentDTO sendDokumentDTO =
                 Optional.ofNullable(vedtaksstotteRepository.hentUtkast(aktorId))
                         .map(vedtak -> lagDokumentDTO(vedtak, fnr))
-                        .orElseThrow(() -> new NotFoundException("Fant ikke vedtak å forhandsvise for bruker"));
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke vedtak å forhandsvise for bruker"));
 
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
     }
