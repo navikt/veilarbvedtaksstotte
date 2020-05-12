@@ -5,9 +5,9 @@ import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatusEndring;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.time.LocalDateTime;
 
 @Service
@@ -19,7 +19,7 @@ public class VedtakStatusEndringService {
 
     private final VeilederService veilederService;
 
-    @Inject
+    @Autowired
     public VedtakStatusEndringService(KafkaService kafkaService, MetricsService metricsService, VeilederService veilederService) {
         this.kafkaService = kafkaService;
         this.metricsService = metricsService;

@@ -1,13 +1,13 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.CVClient;
 import no.nav.veilarbvedtaksstotte.client.EgenvurderingClient;
+import no.nav.veilarbvedtaksstotte.client.PamCvClient;
 import no.nav.veilarbvedtaksstotte.client.RegistreringClient;
 import no.nav.veilarbvedtaksstotte.domain.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,19 +19,19 @@ public class OyeblikksbildeService {
 
     private final AuthService authService;
     private final OyeblikksbildeRepository oyeblikksbildeRepository;
-    private CVClient cvClient;
+    private PamCvClient pamCvClient;
     private RegistreringClient registreringClient;
     private EgenvurderingClient egenvurderingClient;
 
-    @Inject
+    @Autowired
     public OyeblikksbildeService(AuthService authService,
                                  OyeblikksbildeRepository oyeblikksbildeRepository,
-                                 CVClient cvClient,
+                                 PamCvClient pamCvClient,
                                  RegistreringClient registreringClient,
                                  EgenvurderingClient egenvurderingClient) {
         this.oyeblikksbildeRepository = oyeblikksbildeRepository;
         this.authService = authService;
-        this.cvClient = cvClient;
+        this.pamCvClient = pamCvClient;
         this.registreringClient = registreringClient;
         this.egenvurderingClient = egenvurderingClient;
     }
@@ -42,7 +42,7 @@ public class OyeblikksbildeService {
     }
 
     void lagreOyeblikksbilde(String fnr, long vedtakId) {
-        final String cvData = cvClient.hentCV(fnr);
+        final String cvData = pamCvClient.hentCV(fnr);
         final String registreringData = registreringClient.hentRegistreringDataJson(fnr);
         final String egenvurderingData = egenvurderingClient.hentEgenvurdering(fnr);
 

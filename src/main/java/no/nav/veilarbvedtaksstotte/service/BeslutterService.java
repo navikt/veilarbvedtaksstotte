@@ -1,9 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.apiapp.feil.Feil;
-import no.nav.apiapp.feil.FeilType;
-import no.nav.apiapp.feil.IngenTilgang;
-import no.nav.apiapp.feil.UgyldigRequest;
 import no.nav.veilarbvedtaksstotte.client.PersonClient;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
@@ -17,9 +13,10 @@ import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Inject;
+import org.springframework.web.server.ResponseStatusException;
 
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVeilederForVedtak;
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterForVedtak;
@@ -42,7 +39,7 @@ public class BeslutterService {
 
 	private final PersonClient personClient;
 
-	@Inject
+	@Autowired
 	public BeslutterService(
 			AuthService authService,
 			VedtaksstotteRepository vedtaksstotteRepository,
@@ -68,11 +65,11 @@ public class BeslutterService {
 		authService.sjekkAnsvarligVeileder(vedtak);
 
 		if (!InnsatsgruppeUtils.skalHaBeslutter(vedtak.getInnsatsgruppe())) {
-		    throw new UgyldigRequest();
+		    throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
 		if (erBeslutterProsessStartet(vedtak.getBeslutterProsessStatus())) {
-			throw new UgyldigRequest();
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 		}
 
 		leggTilBrukerIBeslutterOversikt(vedtak);
@@ -87,11 +84,11 @@ public class BeslutterService {
 		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
 		if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, vedtak)) {
-			throw new IngenTilgang("Ansvarlig veileder kan ikke bli beslutter");
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ansvarlig veileder kan ikke bli beslutter");
 		}
 
 		if (erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
-			throw new UgyldigRequest();
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 		}
 
 		vedtaksstotteRepository.setBeslutter(vedtak.getId(), innloggetVeilederIdent);
@@ -116,11 +113,11 @@ public class BeslutterService {
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
         if (!erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
-            throw new IngenTilgang("Kun beslutter kan godkjenne vedtak");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kun beslutter kan godkjenne vedtak");
         }
 
         if (vedtak.getBeslutterProsessStatus() == BeslutterProsessStatus.GODKJENT_AV_BESLUTTER) {
-			throw new UgyldigRequest();
+	        throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
 		vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), BeslutterProsessStatus.GODKJENT_AV_BESLUTTER);
@@ -140,11 +137,11 @@ public class BeslutterService {
         } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, vedtak)) {
 		    nyStatus =  BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
         } else {
-		    throw new IngenTilgang("Kun ansvarlig veileder eller beslutter kan sette beslutter prosess status");
+		    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kun ansvarlig veileder eller beslutter kan sette beslutter prosess status");
         }
 
 		if (nyStatus == vedtak.getBeslutterProsessStatus()) {
-			throw new Feil(FeilType.UGYLDIG_REQUEST, "Vedtak har allerede beslutter prosess status " + EnumUtils.getName(nyStatus));
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vedtak har allerede beslutter prosess status " + EnumUtils.getName(nyStatus));
 		}
 
 		vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), nyStatus);

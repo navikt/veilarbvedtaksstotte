@@ -1,65 +1,39 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import no.nav.apiapp.selftest.HelsesjekkMetadata;
-import no.nav.sbl.dialogarena.types.Pingable;
-import no.nav.sbl.jdbc.Database;
-import no.nav.sbl.jdbc.Transactor;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.utils.DbRole;
+import no.nav.veilarbvedtaksstotte.utils.DbUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.context.annotation.Profile;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
 import static no.nav.veilarbvedtaksstotte.utils.DbUtils.createDataSource;
 
+@Profile("!local")
+@Slf4j
 @Configuration
 public class DatabaseConfig {
-    public static final String VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY = "VEILARBVEDTAKSSTOTTE_DB_URL";
 
-    @Bean
-    public DataSource dataSource() {
-        String dbUrl = getRequiredProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY);
-        return createDataSource(dbUrl, DbRole.USER);
-    }
+    private final EnvironmentProperties environmentProperties;
 
-    @Bean(name = "transactionManager")
-    public PlatformTransactionManager transactionManager(DataSource ds) {
-        return new DataSourceTransactionManager(ds);
+    @Autowired
+    public DatabaseConfig(EnvironmentProperties environmentProperties) {
+        this.environmentProperties = environmentProperties;
     }
 
     @Bean
-    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
-        return new JdbcTemplate(dataSource);
+    public DataSource dataSource(EnvironmentProperties properties) {
+        return createDataSource(properties.getDbUrl(), DbRole.USER);
     }
 
-    @Bean
-    public Database database(JdbcTemplate jdbcTemplate) {
-        return new Database(jdbcTemplate);
+    @PostConstruct
+    public void migrateDb() {
+        log.info("Starting database migration...");
+        DbUtils.migrateAndClose(DbUtils.createDataSource(environmentProperties.getDbUrl(), DbRole.ADMIN), DbRole.ADMIN);
     }
 
-    @Bean
-    public Transactor transactor(PlatformTransactionManager platformTransactionManager) {
-        return new Transactor(platformTransactionManager);
-    }
-
-    @Bean
-    public Pingable dbPinger(JdbcTemplate db) {
-        HelsesjekkMetadata metadata = new HelsesjekkMetadata("db",
-                "Database: " + getRequiredProperty(VEILARBVEDTAKSSTOTTE_DB_URL_PROPERTY),
-                "Database for veilarbvedtaksstotte",
-                true);
-
-        return () -> {
-            try {
-                db.execute("SELECT 1");
-                return Pingable.Ping.lyktes(metadata);
-            } catch (Exception e) {
-                return Pingable.Ping.feilet(metadata, e);
-            }
-        };
-    }
 }

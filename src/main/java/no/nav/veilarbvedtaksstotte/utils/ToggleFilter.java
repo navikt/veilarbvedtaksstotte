@@ -1,6 +1,6 @@
-package no.nav.veilarbvedtaksstotte.config;
+package no.nav.veilarbvedtaksstotte.utils;
 
-import no.nav.sbl.featuretoggle.unleash.UnleashService;
+import no.nav.common.featuretoggle.UnleashService;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -18,9 +18,6 @@ public class ToggleFilter implements Filter {
     }
 
     @Override
-    public void init(FilterConfig filterConfig) {}
-
-    @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         if (httpServletRequest.getServletPath().startsWith("/internal") ||
@@ -33,7 +30,8 @@ public class ToggleFilter implements Filter {
     }
 
     @Override
-    public void destroy() {
+    public void init(FilterConfig filterConfig) {}
 
-    }
+    @Override
+    public void destroy() {}
 }

@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.SAFClient;
+import no.nav.veilarbvedtaksstotte.client.SafClient;
 import no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.veilarbvedtaksstotte.domain.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.domain.Journalpost;
@@ -26,7 +26,7 @@ public class ArenaVedtakServiceTest {
 
     @Test
     public void hentArkiverteVedtakFraArena__skalFiltrereVekkVedtakMedFeilTittel() {
-        SAFClient safClient = mock(SAFClient.class);
+        SafClient safClient = mock(SafClient.class);
         ArenaVedtakService service = new ArenaVedtakService(safClient, null);
 
         List<Journalpost> journalposter = new ArrayList<>();
@@ -42,7 +42,7 @@ public class ArenaVedtakServiceTest {
 
     @Test
     public void hentArkiverteVedtakFraArena__skalFiltrereVekkVedtakUtenDokumentId() {
-        SAFClient safClient = mock(SAFClient.class);
+        SafClient safClient = mock(SafClient.class);
         ArenaVedtakService arenaVedtakService = new ArenaVedtakService( safClient,null);
 
         List<Journalpost> journalposter = new ArrayList<>();

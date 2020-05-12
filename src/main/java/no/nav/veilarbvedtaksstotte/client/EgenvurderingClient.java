@@ -1,30 +1,39 @@
 package no.nav.veilarbvedtaksstotte.client;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.SneakyThrows;
+import no.nav.common.rest.client.RestClient;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
+import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.springframework.http.HttpHeaders;
 
-import static no.nav.apiapp.util.UrlUtils.joinPaths;
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
+import static no.nav.common.utils.UrlUtils.joinPaths;
+import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-@Slf4j
-public class EgenvurderingClient extends BaseClient {
+public class EgenvurderingClient {
 
-    public static final String EGENVURDERING_API_PROPERTY_NAME = "EGENVURDERING_URL";
-    public static final String VEILARBVEDTAKINFO = "veilarbvedtakinfo";
+    private final String veilarbvedtakInfoUrl;
 
-    public EgenvurderingClient() {
-        super(getRequiredProperty(EGENVURDERING_API_PROPERTY_NAME));
+    public EgenvurderingClient(String veilarbvedtakInfoUrl) {
+        this.veilarbvedtakInfoUrl = veilarbvedtakInfoUrl;
     }
 
+    @SneakyThrows
     public String hentEgenvurdering(String fnr) {
-        RestResponse<String> response = get(joinPaths(baseUrl, "api", "behovsvurdering", "besvarelse?fnr=") + fnr, String.class);
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarbvedtakInfoUrl, "/api/behovsvurdering/besvarelse?fnr=" + fnr))
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .build();
 
-        if (response.hasStatus(204)) {
-            return JsonUtils.createNoDataStr("Bruker har ikke fylt ut egenvurdering");
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestClientUtils.throwIfNotSuccessful(response);
+
+            if (response.code() == 204) {
+                return JsonUtils.createNoDataStr("Bruker har ikke fylt ut egenvurdering");
+            }
+
+            return response.body().string();
         }
-
-        return response.withStatusCheck()
-                .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot veilarbvedtakinfo/api/behovsvurdering/besvarelse"));
     }
 }

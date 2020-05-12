@@ -1,41 +1,43 @@
 package no.nav.veilarbvedtaksstotte.client;
 
-import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.domain.RegistreringData;
+import lombok.SneakyThrows;
+import no.nav.common.rest.client.RestClient;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
+import no.nav.veilarbvedtaksstotte.domain.RegistreringData;
+import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpHeaders;
 
-import javax.inject.Inject;
+import static no.nav.common.json.JsonUtils.fromJson;
+import static no.nav.common.utils.UrlUtils.joinPaths;
+import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-import static no.nav.apiapp.util.UrlUtils.joinPaths;
-import static no.nav.json.JsonUtils.fromJson;
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
+public class RegistreringClient {
 
-@Slf4j
-public class RegistreringClient extends BaseClient {
+    private final String veilarbregistreringUrl;
 
-    public static final String REGISTRERING_API_PROPERTY_NAME = "REGISTRERING_URL";
-    public static final String VEILARBREGISTRERING = "veilarbregistrering";
-
-    @Inject
-    public RegistreringClient() {
-        super(getRequiredProperty(REGISTRERING_API_PROPERTY_NAME));
+    public RegistreringClient(String veilarbregistreringUrl) {
+        this.veilarbregistreringUrl = veilarbregistreringUrl;
     }
 
     @Cacheable(CacheConfig.REGISTRERING_CACHE_NAME)
+    @SneakyThrows
     public String hentRegistreringDataJson(String fnr) {
-        String hentRegistreringUrl = joinPaths(baseUrl, "api", "registrering?fnr=") + fnr;
-        RestResponse<String> response = get(hentRegistreringUrl, String.class);
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarbregistreringUrl, "/api/registrering?fnr=" + fnr))
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .build();
 
-        if (response.hasStatus(404) || response.hasStatus(204)) {
-            return null;
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            if (response.code() == 404 || response.code() == 204) {
+                return null;
+            }
+
+            RestClientUtils.throwIfNotSuccessful(response);
+            return response.body().string();
         }
-
-        if (response.getStatus() >= 400) {
-            throw new RuntimeException("Feil ved kall mot " + hentRegistreringUrl);
-        }
-
-        return response.getData().orElseThrow(() -> new RuntimeException("Feil ved kall mot " + hentRegistreringUrl));
     }
 
     public RegistreringData hentRegistreringData(String fnr) {

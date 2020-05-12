@@ -2,16 +2,15 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Inject;
 
 @Service
 public class VeilederService {
 
     private final VeiledereOgEnhetClient veiledereOgEnhetClient;
 
-    @Inject
+    @Autowired
     public VeilederService(VeiledereOgEnhetClient veiledereOgEnhetClient) {
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
     }

@@ -2,29 +2,16 @@ package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.MessageListener;
-import org.springframework.kafka.listener.config.ContainerProperties;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
-import org.springframework.kafka.test.utils.ContainerTestUtils;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
 
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
-import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.KAFKA_BROKERS_URL_PROPERTY;
-import static no.nav.sbl.util.EnvironmentUtils.Type.PUBLIC;
-import static no.nav.sbl.util.EnvironmentUtils.setProperty;
-import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
-import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
 public abstract class KafkaTest {
 
@@ -37,27 +24,26 @@ public abstract class KafkaTest {
 
     private static String[] topics = KafkaTestConfig.TOPICS.toArray(new String[0]);
 
-    @ClassRule
-    public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, topics);
+//    @ClassRule
+//    public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, topics);
 
     @BeforeClass
     public static void configureKafkaBroker() throws Exception {
-        Map<String, Object> consumerProperties = KafkaTestUtils.consumerProps("template", "false", embeddedKafka);
-        DefaultKafkaConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProperties);
-        ContainerProperties containerProperties = new ContainerProperties(topics);
-
-        container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
-        records = new LinkedBlockingQueue<>();
-        container.setupMessageListener((MessageListener<String, String>) record -> records.add(record));
-        container.start();
-        ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic() * topics.length);
-
-        Map<String, Object> kafkaProps = producerProps(embeddedKafka);
-        kafkaProps.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-
-        kafkaTemplate = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(kafkaProps));
-
-        setProperty(KAFKA_BROKERS_URL_PROPERTY, embeddedKafka.getBrokersAsString(), PUBLIC);
+//        Map<String, Object> consumerProperties = KafkaTestUtils.consumerProps("template", "false", embeddedKafka);
+//        DefaultKafkaConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProperties);
+//        ContainerProperties containerProperties = new ContainerProperties(topics);
+//
+//        container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
+//        records = new LinkedBlockingQueue<>();
+//        container.setupMessageListener((MessageListener<String, String>) record -> records.add(record));
+//        container.start();
+//        ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic() * topics.length);
+//
+//        Map<String, Object> kafkaProps = producerProps(embeddedKafka);
+//        kafkaProps.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+//
+//        kafkaTemplate = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(kafkaProps));
+//
     }
 
     @BeforeClass

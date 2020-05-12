@@ -1,12 +1,13 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.apiapp.feil.IngenTilgang;
 import no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,7 +21,7 @@ public class BeslutteroversiktService {
 
     private final AuthService authService;
 
-    @Inject
+    @Autowired
     public BeslutteroversiktService(
             BeslutteroversiktRepository beslutteroversiktRepository,
             VeiledereOgEnhetClient veiledereOgEnhetClient,
@@ -58,7 +59,7 @@ public class BeslutteroversiktService {
 
     private void sjekkTilgangTilAlleEnheter(List<String> sokteEnheter, List<String> veilederEnheter) {
         if (!veilederEnheter.containsAll(sokteEnheter)) {
-            throw new IngenTilgang("Veileder mangler tilgang til enhet");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Veileder mangler tilgang til enhet");
         }
     }
 

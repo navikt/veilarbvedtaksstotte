@@ -1,58 +1,58 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
-import no.nav.apiapp.feil.IngenTilgang;
-import no.nav.apiapp.security.PepClient;
-import no.nav.brukerdialog.security.domain.IdentType;
-import no.nav.common.auth.SubjectHandler;
-import no.nav.dialogarena.aktor.AktorService;
-import no.nav.sbl.dialogarena.common.abac.pep.NavAttributter;
-import no.nav.sbl.dialogarena.common.abac.pep.StandardAttributter;
-import no.nav.sbl.dialogarena.common.abac.pep.domain.Attribute;
-import no.nav.sbl.dialogarena.common.abac.pep.domain.request.*;
-import no.nav.sbl.dialogarena.common.abac.pep.domain.response.Category;
-import no.nav.sbl.dialogarena.common.abac.pep.domain.response.Decision;
-import no.nav.sbl.dialogarena.common.abac.pep.domain.response.XacmlResponse;
-import no.nav.sbl.dialogarena.common.abac.pep.service.AbacService;
-import no.nav.sbl.dialogarena.common.cxf.StsSecurityConstants;
+import no.nav.common.abac.AbacClient;
+import no.nav.common.abac.NavAttributter;
+import no.nav.common.abac.Pep;
+import no.nav.common.abac.StandardAttributter;
+import no.nav.common.abac.domain.AbacPersonId;
+import no.nav.common.abac.domain.Attribute;
+import no.nav.common.abac.domain.request.*;
+import no.nav.common.abac.domain.response.Category;
+import no.nav.common.abac.domain.response.Decision;
+import no.nav.common.abac.domain.response.XacmlResponse;
+import no.nav.common.aktorregisterklient.AktorregisterKlient;
+import no.nav.common.auth.subject.SubjectHandler;
 import no.nav.veilarbvedtaksstotte.client.ArenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static no.nav.brukerdialog.security.domain.IdentType.InternBruker;
+import static no.nav.common.auth.subject.IdentType.InternBruker;
 
 @Service
 public class AuthService {
 
-    private final AktorService aktorService;
-    private final PepClient pepClient;
-    private final AbacService abacService;
+    private final AktorregisterKlient aktorregisterKlient;
+    private final Pep veilarbPep;
     private final ArenaClient arenaClient;
+    private final AbacClient abacClient;
 
-    @Inject
-    public AuthService(AktorService aktorService,
-                       PepClient pepClient,
-                       AbacService abacService,
-                       ArenaClient arenaClient) {
-        this.aktorService = aktorService;
-        this.pepClient = pepClient;
-        this.abacService = abacService;
+    @Autowired
+    public AuthService(AktorregisterKlient aktorregisterKlient,
+                       Pep veilarbPep,
+                       ArenaClient arenaClient,
+                       AbacClient abacClient) {
+        this.aktorregisterKlient = aktorregisterKlient;
+        this.veilarbPep = veilarbPep;
         this.arenaClient = arenaClient;
+        this.abacClient = abacClient;
     }
 
     public AuthKontekst sjekkTilgang(String fnr) {
         sjekkInternBruker();
 
-        String aktorId = getAktorIdOrThrow(fnr);
+        String aktorId = aktorregisterKlient.hentAktorId(fnr);
 
-        pepClient.sjekkSkrivetilgangTilAktorId(aktorId);
+        veilarbPep.sjekkVeilederTilgangTilBruker(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId));
         String enhet = sjekkTilgangTilEnhet(fnr);
 
         return new AuthKontekst()
@@ -64,23 +64,22 @@ public class AuthService {
     public String getInnloggetVeilederIdent() {
         return SubjectHandler
                 .getIdent()
-                .orElseThrow(() -> new IngenTilgang("Fant ikke ident for innlogget veileder"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fant ikke ident for innlogget veileder"));
     }
 
     public String getFnrOrThrow(String aktorId) {
-        return aktorService.getFnr(aktorId)
-                .orElseThrow(() -> new IllegalArgumentException("Fant ikke fnr for aktørId"));
+        return aktorregisterKlient.hentFnr(aktorId);
     }
 
     public void sjekkAnsvarligVeileder(Vedtak vedtak) {
         if (!vedtak.getVeilederIdent().equals(getInnloggetVeilederIdent())) {
-            throw new IngenTilgang("Ikke ansvarlig veileder.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke ansvarlig veileder.");
         }
     }
 
     public Map<String, Boolean> harInnloggetVeilederTilgangTilBrukere(List<String> brukerFnrs) {
         String veilederIdent = getInnloggetVeilederIdent();
-        String systembrukerNavn = System.getProperty(StsSecurityConstants.SYSTEMUSER_USERNAME);
+        String systembrukerNavn = System.getProperty("StsSecurityConstants.SYSTEMUSER_USERNAME");
         XacmlResponse abacResponse = sjekkTilgangTilBrukere(systembrukerNavn, veilederIdent, brukerFnrs);
         return mapBrukerTilgangRespons(abacResponse);
     }
@@ -88,7 +87,7 @@ public class AuthService {
     @SneakyThrows
     private XacmlResponse sjekkTilgangTilBrukere(String systembrukerNavn, String veilederIdent, List<String> brukerFnrs) {
         XacmlRequest request = lagSjekkTilgangRequest(systembrukerNavn, veilederIdent, brukerFnrs);
-        return abacService.askForPermission(request);
+        return abacClient.sendRequest(request);
     }
 
     XacmlRequest lagSjekkTilgangRequest(String systembrukerNavn, String veilederIdent, List<String> brukerFnrs) {
@@ -96,11 +95,11 @@ public class AuthService {
         environment.addAttribute(new Attribute(NavAttributter.ENVIRONMENT_FELLES_PEP_ID, systembrukerNavn));
 
         Action action = new Action();
-        action.addAttribute(new Attribute(StandardAttributter.ACTION_ID, Action.ActionId.WRITE.name()));
+        action.addAttribute(new Attribute(StandardAttributter.ACTION_ID, ActionId.WRITE.name()));
 
         AccessSubject accessSubject = new AccessSubject();
         accessSubject.addAttribute(new Attribute(StandardAttributter.SUBJECT_ID, veilederIdent));
-        accessSubject.addAttribute(new Attribute(NavAttributter.SUBJECT_FELLES_SUBJECTTYPE, IdentType.InternBruker.name()));
+        accessSubject.addAttribute(new Attribute(NavAttributter.SUBJECT_FELLES_SUBJECTTYPE, InternBruker.name()));
 
         List<Resource> resources = brukerFnrs.stream()
                 .map(this::mapBrukerFnrTilAbacResource)
@@ -143,20 +142,13 @@ public class AuthService {
         SubjectHandler
                 .getIdentType()
                 .filter(InternBruker::equals)
-                .orElseThrow(() -> new IngenTilgang("Ikke intern bruker"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke intern bruker"));
     }
 
     private String sjekkTilgangTilEnhet(String fnr) {
         String enhet = arenaClient.oppfolgingsenhet(fnr);
-        if(!pepClient.harTilgangTilEnhet(enhet)) {
-            throw new IngenTilgang("Ikke tilgang til enhet");
-        }
+        veilarbPep.sjekkVeilederTilgangTilEnhet(getInnloggetVeilederIdent(), enhet);
         return enhet;
-    }
-
-    private String getAktorIdOrThrow(String fnr) {
-        return aktorService.getAktorId(fnr)
-                .orElseThrow(() -> new IllegalArgumentException("Fant ikke aktør for fnr"));
     }
 
 }

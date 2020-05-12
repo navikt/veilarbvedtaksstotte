@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 import lombok.Value;
 
 @Value
 public class Oppfolgingsenhet {
-    @JsonProperty("nav_kontor")
+    @SerializedName("nav_kontor")
     String navKontor;
 }

@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.sbl.jdbc.Transactor;
 import no.nav.veilarbvedtaksstotte.domain.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
@@ -13,15 +12,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
-import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.*;
+import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
+import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.Assert.*;
 
 public class VedtaksstotteRepositoryTest {
 
     private static JdbcTemplate db;
-    private static Transactor transactor;
+    private static TransactionTemplate transactor;
     private static KilderRepository kilderRepository;
     private static MeldingRepository meldingRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
@@ -29,7 +30,7 @@ public class VedtaksstotteRepositoryTest {
     @BeforeClass
     public static void setup() {
         db = SingletonPostgresContainer.init().getDb();
-        transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
+        transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
         meldingRepository = new MeldingRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);

@@ -3,17 +3,19 @@ package no.nav.veilarbvedtaksstotte.kafka;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-
+import static no.nav.common.json.JsonUtils.fromJson;
+import static no.nav.common.utils.EnvironmentUtils.Type.PUBLIC;
+import static no.nav.common.utils.EnvironmentUtils.getOptionalProperty;
+import static no.nav.common.utils.EnvironmentUtils.setProperty;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConsumerConfig.OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME;
-import static no.nav.json.JsonUtils.fromJson;
-import static no.nav.sbl.util.EnvironmentUtils.Type.PUBLIC;
-import static no.nav.sbl.util.EnvironmentUtils.*;
 
+@Profile("!local")
 @Component
 @Slf4j
 public class OppfolgingsbrukerEndringConsumer {
@@ -21,7 +23,7 @@ public class OppfolgingsbrukerEndringConsumer {
     private static final String ENDRING_PAA_OPPFOLGINGSBRUKER_KAFKA_TOPIC_PROPERTY_NAME = "ENDRING_PAA_OPPFOLGINGSBRUKER_TOPIC";
     private final VedtakService vedtakService;
 
-    @Inject
+    @Autowired
     public OppfolgingsbrukerEndringConsumer(VedtakService vedtakService, ConsumerParameters consumerParameters) {
         this.vedtakService = vedtakService;
         setProperty(ENDRING_PAA_OPPFOLGINGSBRUKER_KAFKA_TOPIC_PROPERTY_NAME, consumerParameters.topic, PUBLIC);

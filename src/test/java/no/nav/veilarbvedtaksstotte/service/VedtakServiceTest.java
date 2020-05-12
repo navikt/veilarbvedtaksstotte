@@ -1,15 +1,13 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.apiapp.feil.IngenTilgang;
-import no.nav.apiapp.security.PepClient;
-import no.nav.brukerdialog.security.domain.IdentType;
-import no.nav.common.auth.SsoToken;
-import no.nav.common.auth.Subject;
-import no.nav.common.auth.SubjectHandler;
-import no.nav.dialogarena.aktor.AktorService;
-import no.nav.sbl.dialogarena.common.abac.pep.service.AbacService;
-import no.nav.sbl.jdbc.Transactor;
-import no.nav.sbl.util.fn.UnsafeRunnable;
+import no.nav.common.abac.AbacClient;
+import no.nav.common.abac.VeilarbPep;
+import no.nav.common.aktorregisterklient.AktorregisterKlient;
+import no.nav.common.auth.subject.IdentType;
+import no.nav.common.auth.subject.SsoToken;
+import no.nav.common.auth.subject.Subject;
+import no.nav.common.auth.subject.SubjectHandler;
+import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.veilarbvedtaksstotte.client.*;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
@@ -28,10 +26,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotFoundException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,7 +48,7 @@ import static org.mockito.Mockito.*;
 public class VedtakServiceTest {
 
     private static JdbcTemplate db;
-    private static Transactor transactor;
+    private static TransactionTemplate transactor;
 
     private static VedtaksstotteRepository vedtaksstotteRepository;
     private static KilderRepository kilderRepository;
@@ -60,17 +61,17 @@ public class VedtakServiceTest {
     private static MalTypeService malTypeService;
     private static AuthService authService;
 
-    private static CVClient cvClient = mock(CVClient.class);
+    private static PamCvClient pamCvClient = mock(PamCvClient.class);
     private static RegistreringClient registreringClient = mock(RegistreringClient.class);
     private static EgenvurderingClient egenvurderingClient = mock(EgenvurderingClient.class);
     private static VeilederService veilederService = mock(VeilederService.class);
     private static KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
     private static DokumentClient dokumentClient = mock(DokumentClient.class);
     private static VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
-    private static AktorService aktorService = mock(AktorService.class);
-    private static PepClient pepClient = mock(PepClient.class);
-    private static AbacService abacService = mock(AbacService.class);
+    private static AktorregisterKlient aktorregisterKlient = mock(AktorregisterKlient.class);
+    private static VeilarbPep veilarbPep = mock(VeilarbPep.class);
     private static ArenaClient arenaClient = mock(ArenaClient.class);
+    private static AbacClient abacClient = mock(AbacClient.class);
 
     private static String CV_DATA = "{\"cv\": \"cv\"}";
     private static String REGISTRERING_DATA = "{\"registrering\": \"registrering\"}";
@@ -79,15 +80,15 @@ public class VedtakServiceTest {
     @BeforeClass
     public static void setupOnce() {
         db = SingletonPostgresContainer.init().getDb();
-        transactor = new Transactor(new DataSourceTransactionManager(db.getDataSource()));
+        transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
         meldingRepository = spy(new MeldingRepository(db));
         vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
-        authService = spy(new AuthService(aktorService, pepClient, abacService, arenaClient));
-        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, cvClient, registreringClient, egenvurderingClient);
+        authService = spy(new AuthService(aktorregisterKlient, veilarbPep, arenaClient, abacClient));
+        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, pamCvClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         vedtakService = new VedtakService(
                 vedtaksstotteRepository,
@@ -115,10 +116,10 @@ public class VedtakServiceTest {
         reset(dokumentClient);
         when(dokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
         when(kafkaTemplate.send(any(), any(), any())).thenReturn(new AsyncResult(null));
-        when(cvClient.hentCV(TEST_FNR)).thenReturn(CV_DATA);
+        when(pamCvClient.hentCV(TEST_FNR)).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
-        when(aktorService.getAktorId(TEST_FNR)).thenReturn(Optional.of(TEST_AKTOR_ID));
+        when(aktorregisterKlient.hentAktorId(TEST_FNR)).thenReturn(TEST_AKTOR_ID);
         when(arenaClient.oppfolgingsenhet(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSENHET_ID);
     }
 
@@ -210,7 +211,7 @@ public class VedtakServiceTest {
 
             assertThatThrownBy(() ->
                     vedtakService.oppdaterUtkast(TEST_FNR, new VedtakDTO())
-            ).isExactlyInstanceOf(IngenTilgang.class);
+            ).isExactlyInstanceOf(ResponseStatusException.class);
         });
     }
 
@@ -240,7 +241,7 @@ public class VedtakServiceTest {
 
             assertThatThrownBy(() ->
                     vedtakService.slettUtkastForFnr(TEST_FNR)
-            ).isExactlyInstanceOf(IngenTilgang.class);
+            ).isExactlyInstanceOf(ResponseStatusException.class);
         });
     }
 
@@ -261,7 +262,7 @@ public class VedtakServiceTest {
 
             assertThatThrownBy(() ->
                     vedtakService.sendVedtak(TEST_FNR)
-            ).isExactlyInstanceOf(IngenTilgang.class);
+            ).isExactlyInstanceOf(ResponseStatusException.class);
         });
     }
 
@@ -332,21 +333,17 @@ public class VedtakServiceTest {
     @Test
     public void taOverUtkast__feiler_dersom_ikke_utkast() {
         withSubject(() -> {
-            gittTilgang();
-
             assertThatThrownBy(() ->
                     vedtakService.taOverUtkast(TEST_FNR)
-            ).isExactlyInstanceOf(NotFoundException.class);
+            ).hasMessage("404 NOT_FOUND \"Fant ikke utkast\"");
         });
     }
 
     @Test
     public void taOverUtkast__feiler_dersom_ingen_tilgang() {
-        when(pepClient.sjekkLesetilgangTilAktorId(TEST_AKTOR_ID)).thenThrow(new IngenTilgang());
-
         assertThatThrownBy(() ->
                 vedtakService.taOverUtkast(TEST_FNR)
-        ).isExactlyInstanceOf(IngenTilgang.class);
+        ).isExactlyInstanceOf(ResponseStatusException.class);
     }
 
     @Test
@@ -357,15 +354,13 @@ public class VedtakServiceTest {
 
             assertThatThrownBy(() ->
                     vedtakService.taOverUtkast(TEST_FNR)
-            ).isExactlyInstanceOf(BadRequestException.class);
+            ).isExactlyInstanceOf(ResponseStatusException.class);
         });
     }
 
     @Test
     public void behandleOppfolgingsbrukerEndring_endrer_oppfolgingsenhet() {
         String nyEnhet = "4562";
-        when(pepClient.harTilgangTilEnhet(TEST_OPPFOLGINGSENHET_ID)).thenReturn(true);
-        when(pepClient.harTilgangTilEnhet(nyEnhet)).thenReturn(true);
         withSubject(() -> {
             vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
@@ -378,7 +373,8 @@ public class VedtakServiceTest {
     }
 
     private void gittTilgang() {
-        when(pepClient.harTilgangTilEnhet(TEST_OPPFOLGINGSENHET_ID)).thenReturn(true);
+
+        // when(veilarbPep.sjekkVeilederTilgangTilEnhet(anyString(), TEST_OPPFOLGINGSENHET_ID))
     }
 
     private void withSubject(UnsafeRunnable runnable) {

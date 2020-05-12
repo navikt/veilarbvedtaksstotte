@@ -1,36 +1,52 @@
 package no.nav.veilarbvedtaksstotte.client;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.SneakyThrows;
+import no.nav.common.rest.client.RestClient;
+import no.nav.common.rest.client.RestUtils;
+import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.OppfolgingDTO;
 import no.nav.veilarbvedtaksstotte.domain.OppfolgingstatusDTO;
-import no.nav.veilarbvedtaksstotte.config.CacheConfig;
+import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpHeaders;
 
-import static no.nav.apiapp.util.UrlUtils.joinPaths;
-import static no.nav.sbl.util.EnvironmentUtils.getRequiredProperty;
+import static no.nav.common.utils.UrlUtils.joinPaths;
+import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-@Slf4j
-public class OppfolgingClient extends BaseClient {
-    public static final String VEILARBOPPFOLGING_API_PROPERTY_NAME = "VEILARBOPPFOLGINGAPI_URL";
-    public static final String VEILARBOPPFOLGING = "veilarboppfolging";
+public class OppfolgingClient {
 
-    public OppfolgingClient() {
-        super(getRequiredProperty(VEILARBOPPFOLGING_API_PROPERTY_NAME));
+    private final String veilarboppfolgingUrl;
+
+    public OppfolgingClient(String veilarboppfolgingUrl) {
+        this.veilarboppfolgingUrl = veilarboppfolgingUrl;
     }
 
+    @SneakyThrows
     public String hentServicegruppe(String fnr) {
-        return get(joinPaths(baseUrl, "api", "person", fnr, "oppfolgingsstatus"), OppfolgingstatusDTO.class)
-                .withStatusCheck()
-                .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarboppfolging/api/person/{fnr}/oppfolgingsstatus"))
-                .getServicegruppe();
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarboppfolgingUrl, "/api/person/", fnr, "/oppfolgingsstatus"))
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestClientUtils.throwIfNotSuccessful(response);
+            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), OppfolgingstatusDTO.class).getServicegruppe();
+        }
     }
 
     @Cacheable(CacheConfig.OPPFOLGING_CACHE_NAME)
+    @SneakyThrows
     public OppfolgingDTO hentOppfolgingData(String fnr) {
-        return get((joinPaths(baseUrl, "api", "oppfolging?fnr=") + fnr), OppfolgingDTO.class)
-                .withStatusCheck()
-                .getData()
-                .orElseThrow(() -> new RuntimeException("Feil ved kall mot /veilarboppfolging/api/oppfolging?fnr"));
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarboppfolgingUrl, "/api/oppfolging?fnr=" + fnr))
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestClientUtils.throwIfNotSuccessful(response);
+            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), OppfolgingDTO.class);
+        }
     }
 }

@@ -1,11 +1,11 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.SAFClient;
+import no.nav.veilarbvedtaksstotte.client.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.domain.Journalpost;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,11 +16,11 @@ public class ArenaVedtakService {
 
     final static String JOURNALPOST_ARENA_VEDTAK_TITTEL = "Brev: Oppfølgingsvedtak (§14a)";
 
-    private SAFClient safClient;
+    private SafClient safClient;
     private AuthService authService;
 
-    @Inject
-    public ArenaVedtakService(SAFClient safClient, AuthService authService) {
+    @Autowired
+    public ArenaVedtakService(SafClient safClient, AuthService authService) {
         this.safClient = safClient;
         this.authService = authService;
     }

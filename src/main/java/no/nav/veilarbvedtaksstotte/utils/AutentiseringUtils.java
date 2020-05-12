@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
-import no.nav.common.auth.SsoToken;
-import no.nav.common.auth.SubjectHandler;
+import no.nav.common.auth.subject.SsoToken;
+import no.nav.common.auth.subject.SubjectHandler;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 
 public class AutentiseringUtils {

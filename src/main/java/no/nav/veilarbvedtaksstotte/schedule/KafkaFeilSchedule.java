@@ -5,10 +5,10 @@ import no.nav.veilarbvedtaksstotte.domain.FeiletKafkaMelding;
 import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
 import no.nav.veilarbvedtaksstotte.service.KafkaService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.List;
 
 @Slf4j
@@ -21,7 +21,7 @@ public class KafkaFeilSchedule {
 
     private KafkaService kafkaService;
 
-    @Inject
+    @Autowired
     public KafkaFeilSchedule(KafkaRepository kafkaRepository, KafkaService kafkaService) {
         this.kafkaRepository = kafkaRepository;
         this.kafkaService = kafkaService;

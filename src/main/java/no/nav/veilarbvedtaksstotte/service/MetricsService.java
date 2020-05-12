@@ -1,7 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.metrics.Event;
+import no.nav.common.metrics.MetricsClient;
 import no.nav.veilarbvedtaksstotte.client.OppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.RegistreringClient;
 import no.nav.veilarbvedtaksstotte.domain.OppfolgingPeriodeDTO;
@@ -9,11 +10,9 @@ import no.nav.veilarbvedtaksstotte.domain.RegistreringData;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
-import no.nav.metrics.Event;
-import no.nav.metrics.MetricsFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,21 +29,27 @@ import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.tellVedtakEtterDato;
 @Slf4j
 public class MetricsService {
 
-    private OppfolgingClient oppfolgingClient;
+    private final MetricsClient influxClient;
 
-    private RegistreringClient registreringClient;
+    private final OppfolgingClient oppfolgingClient;
 
-    private VedtaksstotteRepository vedtaksstotteRepository;
+    private final RegistreringClient registreringClient;
 
-    @Inject
-    public MetricsService(OppfolgingClient oppfolgingClient, RegistreringClient registreringClient, VedtaksstotteRepository vedtaksstotteRepository)  {
+    private final VedtaksstotteRepository vedtaksstotteRepository;
+
+    @Autowired
+    public MetricsService(MetricsClient influxClient,
+                          OppfolgingClient oppfolgingClient,
+                          RegistreringClient registreringClient,
+                          VedtaksstotteRepository vedtaksstotteRepository)  {
+        this.influxClient = influxClient;
         this.oppfolgingClient = oppfolgingClient;
         this.registreringClient = registreringClient;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
     }
 
     private static Event createMetricEvent(String tagName) {
-        return MetricsFactory.createEvent(APPLICATION_NAME + ".metrikker." + tagName);
+        return new Event(APPLICATION_NAME + ".metrikker." + tagName);
     }
 
     private static long localDateTimeToMillis(LocalDateTime ldt) {
@@ -66,7 +71,7 @@ public class MetricsService {
             event.addFieldToReport("hovedmal", vedtak.getHovedmal());
         }
 
-        event.report();
+        influxClient.report(event);
     }
 
     public void rapporterTidFraRegistrering(Vedtak vedtak, String aktorId, String fnr) {
@@ -79,7 +84,8 @@ public class MetricsService {
         Event event = createMetricEvent("tid-fra-registrering");
         event.addFieldToReport("innsatsgruppe", getName(vedtak.getInnsatsgruppe()));
         event.addFieldToReport("dager", dagerFraRegistrering);
-        event.report();
+
+        influxClient.report(event);
     }
 
     /**
@@ -111,9 +117,12 @@ public class MetricsService {
     }
 
     public void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, String fnr) {
-        boolean erSykmeldtMedArbeidsgiver = Try.of(() -> oppfolgingClient.hentServicegruppe(fnr))
-                .map(OppfolgingUtils::erSykmeldtUtenArbeidsgiver)
-                .getOrElse(false);
+        boolean erSykmeldtMedArbeidsgiver;
+
+        try {
+            String serviceGruppe = oppfolgingClient.hentServicegruppe(fnr);
+            erSykmeldtMedArbeidsgiver = OppfolgingUtils.erSykmeldtUtenArbeidsgiver(serviceGruppe);
+        } finally {}
 
         if (erSykmeldtMedArbeidsgiver) {
             try {
@@ -135,11 +144,11 @@ public class MetricsService {
         event.addFieldToReport("oppfolgingStartDato", oppfolgingStartDato.toString());
         event.addFieldToReport("vedtakSendtDato", vedtakSendtDato.toString());
         event.addFieldToReport("enhetsId", vedtak.getOppfolgingsenhetId());
-        event.report();
+        influxClient.report(event);
     }
 
     public void rapporterUtkastSlettet() {
-        createMetricEvent("utkast-slettet").report();
+        influxClient.report(createMetricEvent("utkast-slettet"));
     }
 
     public void rapporterTidMellomUtkastOpprettetTilGodkjent(Vedtak vedtak) {
@@ -147,7 +156,8 @@ public class MetricsService {
 
         Long sekunderBrukt = Duration.between(vedtak.getUtkastOpprettet(), LocalDateTime.now()).getSeconds();
         event.addFieldToReport("sekunder", sekunderBrukt);
-        event.report();
+
+        influxClient.report(event);
     }
 
     public void repporterDialogMeldingSendtAvVeilederOgBeslutter(String melding, String sendtAv) {
@@ -156,6 +166,7 @@ public class MetricsService {
         int antallTegn = melding.length();
         event.addFieldToReport("sendtAv", sendtAv);
         event.addFieldToReport("antallTegn", antallTegn);
-        event.report();
+
+        influxClient.report(event);
     }
 }
