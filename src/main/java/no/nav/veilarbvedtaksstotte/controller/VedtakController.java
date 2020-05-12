@@ -57,7 +57,7 @@ public class VedtakController {
     }
 
     @PutMapping("/utkast")
-    public void oppdaterUtkast(@PathVariable("fnr") String fnr, VedtakDTO vedtakDTO) {
+    public void oppdaterUtkast(@PathVariable("fnr") String fnr, @RequestBody VedtakDTO vedtakDTO) {
         vedtakService.oppdaterUtkast(fnr, vedtakDTO);
     }
 

@@ -25,7 +25,7 @@ public class MeldingController {
     }
 
     @PostMapping("/")
-    public void opprettDialogMelding(@PathVariable("fnr") String fnr, OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
+    public void opprettDialogMelding(@PathVariable("fnr") String fnr, @RequestBody OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
         meldingService.opprettBrukerDialogMelding(fnr, opprettDialogMeldingDTO.getMelding());
     }
 
