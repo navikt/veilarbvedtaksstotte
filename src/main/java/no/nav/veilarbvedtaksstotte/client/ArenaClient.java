@@ -2,10 +2,12 @@ package no.nav.veilarbvedtaksstotte.client;
 
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
+import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.Oppfolgingsenhet;
 import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,6 +23,7 @@ public class ArenaClient {
         this.veilarbarenaUrl = veilarbarenaUrl;
     }
 
+    @Cacheable(CacheConfig.BRUKER_ENHET_CACHE_NAME)
     public String oppfolgingsenhet(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbarenaUrl, "/api/oppfolgingsbruker/", fnr))

@@ -3,11 +3,13 @@ package no.nav.veilarbvedtaksstotte.client;
 import lombok.SneakyThrows;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
+import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.OppfolgingDTO;
 import no.nav.veilarbvedtaksstotte.domain.OppfolgingstatusDTO;
 import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
 import static no.nav.common.utils.UrlUtils.joinPaths;
@@ -34,7 +36,7 @@ public class OppfolgingClient {
         }
     }
 
-//    @Cacheable(CacheConfig.OPPFOLGING_CACHE_NAME)
+    @Cacheable(CacheConfig.OPPFOLGING_CACHE_NAME)
     @SneakyThrows
     public OppfolgingDTO hentOppfolgingData(String fnr) {
         Request request = new Request.Builder()

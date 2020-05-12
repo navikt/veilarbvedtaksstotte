@@ -5,12 +5,14 @@ import no.nav.common.auth.subject.SubjectHandler;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.utils.UrlUtils;
+import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
@@ -23,7 +25,7 @@ public class VeiledereOgEnhetClient {
         this.veilarbveilederUrl = veilarbveilederUrl;
     }
 
-//    @Cacheable(CacheConfig.ENHET_NAVN_CACHE_NAME)
+    @Cacheable(CacheConfig.ENHET_NAVN_CACHE_NAME)
     @SneakyThrows
     public String hentEnhetNavn(String enhetId) {
         Request request = new Request.Builder()
@@ -37,7 +39,7 @@ public class VeiledereOgEnhetClient {
         }
     }
 
-//    @Cacheable(CacheConfig.VEILEDER_CACHE_NAME)
+    @Cacheable(CacheConfig.VEILEDER_CACHE_NAME)
     @SneakyThrows
     public Veileder hentVeileder(String veilederIdent) {
         Request request = new Request.Builder()
@@ -56,7 +58,7 @@ public class VeiledereOgEnhetClient {
         return hentInnloggetVeilederEnheter(veilederIdent);
     }
 
-//    @Cacheable(CacheConfig.VEILEDER_ENHETER_CACHE_NAME)
+    @Cacheable(CacheConfig.VEILEDER_ENHETER_CACHE_NAME)
     @SneakyThrows
     public VeilederEnheterDTO hentInnloggetVeilederEnheter(String veilederIdentUsedOnlyForCaching) {
         Request request = new Request.Builder()
