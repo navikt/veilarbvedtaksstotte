@@ -47,6 +47,7 @@ public class SafClient {
 
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "graphql"))
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
                 .post(RestUtils.toJsonRequestBody(graphqlRequest))
                 .build();
 
