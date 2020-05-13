@@ -34,7 +34,7 @@ public class ClientConfig {
     @Bean
     public PamCvClient pamCvClient() {
         // PAM CV finnes ikke i Q1, gå mot Q0 istedenfor
-        String pamCvUrl = clusterUrlForApplication("pam-cv-api").replace("q1", "q0");
+        String pamCvUrl = clusterUrlForApplication("pam-cv-api", true).replace("q1", "q0");
         return new PamCvClient(pamCvUrl);
     }
 
