@@ -19,12 +19,12 @@ public class MeldingController {
         this.meldingService = meldingService;
     }
 
-    @GetMapping("/")
+    @GetMapping
     public List<MeldingDTO> hentDialogMeldinger(@PathVariable("fnr") String fnr) {
         return meldingService.hentMeldinger(fnr);
     }
 
-    @PostMapping("/")
+    @PostMapping
     public void opprettDialogMelding(@PathVariable("fnr") String fnr, @RequestBody OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
         meldingService.opprettBrukerDialogMelding(fnr, opprettDialogMeldingDTO.getMelding());
     }
