@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import lombok.SneakyThrows;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.NavAttributter;
 import no.nav.common.abac.Pep;
@@ -13,6 +12,7 @@ import no.nav.common.abac.domain.response.Decision;
 import no.nav.common.abac.domain.response.XacmlResponse;
 import no.nav.common.aktorregisterklient.AktorregisterKlient;
 import no.nav.common.auth.subject.SubjectHandler;
+import no.nav.common.nais.NaisUtils;
 import no.nav.veilarbvedtaksstotte.client.ArenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
@@ -35,16 +35,19 @@ public class AuthService {
     private final Pep veilarbPep;
     private final ArenaClient arenaClient;
     private final AbacClient abacClient;
+    private final NaisUtils.Credentials serviceUserCredentials;
 
     @Autowired
     public AuthService(AktorregisterKlient aktorregisterKlient,
                        Pep veilarbPep,
                        ArenaClient arenaClient,
-                       AbacClient abacClient) {
+                       AbacClient abacClient,
+                       NaisUtils.Credentials serviceUserCredentials) {
         this.aktorregisterKlient = aktorregisterKlient;
         this.veilarbPep = veilarbPep;
         this.arenaClient = arenaClient;
         this.abacClient = abacClient;
+        this.serviceUserCredentials = serviceUserCredentials;
     }
 
     public AuthKontekst sjekkTilgang(String fnr) {
@@ -78,16 +81,9 @@ public class AuthService {
     }
 
     public Map<String, Boolean> harInnloggetVeilederTilgangTilBrukere(List<String> brukerFnrs) {
-        String veilederIdent = getInnloggetVeilederIdent();
-        String systembrukerNavn = System.getProperty("StsSecurityConstants.SYSTEMUSER_USERNAME");
-        XacmlResponse abacResponse = sjekkTilgangTilBrukere(systembrukerNavn, veilederIdent, brukerFnrs);
+        XacmlRequest request = lagSjekkTilgangRequest(serviceUserCredentials.username, getInnloggetVeilederIdent(), brukerFnrs);
+        XacmlResponse abacResponse = abacClient.sendRequest(request);
         return mapBrukerTilgangRespons(abacResponse);
-    }
-
-    @SneakyThrows
-    private XacmlResponse sjekkTilgangTilBrukere(String systembrukerNavn, String veilederIdent, List<String> brukerFnrs) {
-        XacmlRequest request = lagSjekkTilgangRequest(systembrukerNavn, veilederIdent, brukerFnrs);
-        return abacClient.sendRequest(request);
     }
 
     XacmlRequest lagSjekkTilgangRequest(String systembrukerNavn, String veilederIdent, List<String> brukerFnrs) {
