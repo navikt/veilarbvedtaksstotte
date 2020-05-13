@@ -1,10 +1,13 @@
 package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.SneakyThrows;
+import no.nav.common.health.HealthCheck;
+import no.nav.common.health.HealthCheckResult;
+import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
-import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpHeaders;
@@ -12,12 +15,15 @@ import org.springframework.http.HttpHeaders;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class PersonClient {
+public class PersonClient implements HealthCheck {
 
     private final String veilarbpersonUrl;
 
+    private final OkHttpClient client;
+
     public PersonClient(String veilarbpersonUrl) {
         this.veilarbpersonUrl = veilarbpersonUrl;
+        this.client = RestClient.baseClient();
     }
 
     @SneakyThrows
@@ -28,9 +34,14 @@ public class PersonClient {
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
-            RestClientUtils.throwIfNotSuccessful(response);
+            RestUtils.throwIfNotSuccessful(response);
             return RestUtils.parseJsonResponseBodyOrThrow(response.body(), PersonNavn.class);
         }
+    }
+
+    @Override
+    public HealthCheckResult checkHealth() {
+        return HealthCheckUtils.pingUrl(joinPaths(veilarbpersonUrl, "/internal/isReady"), client);
     }
 
 }

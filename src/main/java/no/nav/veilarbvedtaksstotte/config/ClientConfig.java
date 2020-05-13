@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import static no.nav.veilarbvedtaksstotte.utils.UrlUtils.lagClusterUrl;
+import static no.nav.common.utils.UrlUtils.clusterUrlForApplication;
 
 @Configuration
 @Profile("!local")
@@ -13,49 +13,49 @@ public class ClientConfig {
 
     @Bean
     public ArenaClient arenaClient() {
-        return new ArenaClient(lagClusterUrl("veilarbarena"));
+        return new ArenaClient(clusterUrlForApplication("veilarbarena", true));
     }
 
     @Bean
     public DokumentClient dokumentClient() {
-        return new DokumentClient(lagClusterUrl("veilarbdokument"));
+        return new DokumentClient(clusterUrlForApplication("veilarbdokument", true));
     }
 
     @Bean
     public EgenvurderingClient egenvurderingClient() {
-        return new EgenvurderingClient(lagClusterUrl("veilarbvedtakinfo"));
+        return new EgenvurderingClient(clusterUrlForApplication("veilarbvedtakinfo", true));
     }
 
     @Bean
     public OppfolgingClient oppfolgingClient() {
-        return new OppfolgingClient(lagClusterUrl("veilarboppfolging"));
+        return new OppfolgingClient(clusterUrlForApplication("veilarboppfolging", true));
     }
 
     @Bean
     public PamCvClient pamCvClient() {
         // PAM CV finnes ikke i Q1, gå mot Q0 istedenfor
-        String pamCvUrl = lagClusterUrl("pam-cv-api").replace("q1", "q0");
-        return new PamCvClient(lagClusterUrl(pamCvUrl));
+        String pamCvUrl = clusterUrlForApplication("pam-cv-api").replace("q1", "q0");
+        return new PamCvClient(pamCvUrl);
     }
 
     @Bean
     public PersonClient personClient() {
-        return new PersonClient(lagClusterUrl("veilarbperson"));
+        return new PersonClient(clusterUrlForApplication("veilarbperson", true));
     }
 
     @Bean
     public RegistreringClient registreringClient() {
-        return new RegistreringClient(lagClusterUrl("veilarbregistrering"));
+        return new RegistreringClient(clusterUrlForApplication("veilarbregistrering", true));
     }
 
     @Bean
     public SafClient safClient() {
-        return new SafClient(lagClusterUrl("saf", false));
+        return new SafClient(clusterUrlForApplication("saf", false));
     }
 
     @Bean
     public VeiledereOgEnhetClient veilederOgEnhetClient() {
-        return new VeiledereOgEnhetClient(lagClusterUrl("veilarbveileder"));
+        return new VeiledereOgEnhetClient(clusterUrlForApplication("veilarbveileder", true));
     }
 
 }

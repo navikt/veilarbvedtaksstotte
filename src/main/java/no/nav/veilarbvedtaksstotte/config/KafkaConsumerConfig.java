@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import no.nav.common.nais.NaisUtils;
+import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.kafka.AvsluttOppfolgingConsumer;
@@ -37,7 +37,7 @@ public class KafkaConsumerConfig {
 
     @Bean(name = AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME)
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaAvsluttOppfolging>>
-    avsluttOppfolgingKafkaListenerContainerFactory(KafkaHelsesjekk kafkaHelsesjekk, EnvironmentProperties properties, NaisUtils.Credentials serviceUserCredentials) {
+    avsluttOppfolgingKafkaListenerContainerFactory(KafkaHelsesjekk kafkaHelsesjekk, EnvironmentProperties properties, Credentials serviceUserCredentials) {
         ConcurrentKafkaListenerContainerFactory<String, KafkaAvsluttOppfolging> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaProperties(properties.getKafkaBrokersUrl(), serviceUserCredentials)));
         factory.setErrorHandler(kafkaHelsesjekk);
@@ -53,14 +53,14 @@ public class KafkaConsumerConfig {
 
     @Bean(name = OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME)
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaOppfolgingsbrukerEndring>>
-    oppfolgingsbrukerEndringKafkaListenerContainerFactory(KafkaHelsesjekk kafkaHelsesjekk, EnvironmentProperties properties, NaisUtils.Credentials serviceUserCredentials) {
+    oppfolgingsbrukerEndringKafkaListenerContainerFactory(KafkaHelsesjekk kafkaHelsesjekk, EnvironmentProperties properties, Credentials serviceUserCredentials) {
         ConcurrentKafkaListenerContainerFactory<String, KafkaOppfolgingsbrukerEndring> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaProperties(properties.getKafkaBrokersUrl(), serviceUserCredentials)));
         factory.setErrorHandler(kafkaHelsesjekk);
         return factory;
     }
 
-    private static HashMap<String, Object> kafkaProperties(String kafkaBrokersUrl, NaisUtils.Credentials serviceUserCredentials) {
+    private static HashMap<String, Object> kafkaProperties(String kafkaBrokersUrl, Credentials serviceUserCredentials) {
         HashMap<String, Object> props = new HashMap<>();
         props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaBrokersUrl);
         props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");

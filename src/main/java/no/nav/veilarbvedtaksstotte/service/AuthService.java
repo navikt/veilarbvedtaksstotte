@@ -12,7 +12,7 @@ import no.nav.common.abac.domain.response.Decision;
 import no.nav.common.abac.domain.response.XacmlResponse;
 import no.nav.common.aktorregisterklient.AktorregisterKlient;
 import no.nav.common.auth.subject.SubjectHandler;
-import no.nav.common.nais.NaisUtils;
+import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.client.ArenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
@@ -35,14 +35,14 @@ public class AuthService {
     private final Pep veilarbPep;
     private final ArenaClient arenaClient;
     private final AbacClient abacClient;
-    private final NaisUtils.Credentials serviceUserCredentials;
+    private final Credentials serviceUserCredentials;
 
     @Autowired
     public AuthService(AktorregisterKlient aktorregisterKlient,
                        Pep veilarbPep,
                        ArenaClient arenaClient,
                        AbacClient abacClient,
-                       NaisUtils.Credentials serviceUserCredentials) {
+                       Credentials serviceUserCredentials) {
         this.aktorregisterKlient = aktorregisterKlient;
         this.veilarbPep = veilarbPep;
         this.arenaClient = arenaClient;

@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import no.nav.common.nais.NaisUtils;
+import no.nav.common.utils.Credentials;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
@@ -28,7 +28,7 @@ public class KafkaProducerConfig {
     public static final String KAFKA_TOPIC_VEDTAK_STATUS_ENDRING = "aapen-oppfolging-vedtakStatusEndring-v1-" + requireKafkaTopicEnv();
 
     @Bean
-    public static ProducerFactory<String, String> producerFactory(EnvironmentProperties properties, NaisUtils.Credentials serviceUserCredentials) {
+    public static ProducerFactory<String, String> producerFactory(EnvironmentProperties properties, Credentials serviceUserCredentials) {
         return new DefaultKafkaProducerFactory<>(producerProperties(properties.getKafkaBrokersUrl(), serviceUserCredentials)); }
 
     @Bean
@@ -40,7 +40,7 @@ public class KafkaProducerConfig {
         return template;
     }
 
-    static HashMap<String, Object> producerProperties (String kafkaBrokersUrl, NaisUtils.Credentials serviceUserCredentials) {
+    static HashMap<String, Object> producerProperties (String kafkaBrokersUrl, Credentials serviceUserCredentials) {
         HashMap<String, Object>  props = new HashMap<>();
         props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaBrokersUrl);
         props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");

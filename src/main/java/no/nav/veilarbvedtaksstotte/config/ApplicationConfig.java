@@ -9,9 +9,9 @@ import no.nav.common.featuretoggle.UnleashService;
 import no.nav.common.metrics.InfluxClient;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.metrics.SensuConfig;
-import no.nav.common.nais.NaisUtils;
 import no.nav.common.sts.NaisSystemUserTokenProvider;
 import no.nav.common.sts.SystemUserTokenProvider;
+import no.nav.common.utils.Credentials;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import static no.nav.common.featuretoggle.UnleashServiceConfig.resolveFromEnvironment;
-import static no.nav.common.nais.NaisUtils.getCredentials;
+import static no.nav.common.utils.NaisUtils.getCredentials;
 
 @Profile("!local")
 @Slf4j
@@ -31,7 +31,7 @@ public class ApplicationConfig {
     public final static String APPLICATION_NAME = "veilarbvedtaksstotte";
 
     @Bean
-    public NaisUtils.Credentials serviceUserCredentials() {
+    public Credentials serviceUserCredentials() {
         return getCredentials("service_user");
     }
 
@@ -46,7 +46,7 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public SystemUserTokenProvider systemUserTokenProvider(EnvironmentProperties properties, NaisUtils.Credentials serviceUserCredentials) {
+    public SystemUserTokenProvider systemUserTokenProvider(EnvironmentProperties properties, Credentials serviceUserCredentials) {
         return new NaisSystemUserTokenProvider(properties.getStsDiscoveryUrl(), serviceUserCredentials.username, serviceUserCredentials.password);
     }
 
@@ -59,12 +59,12 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public AbacClient abacClient(EnvironmentProperties properties, NaisUtils.Credentials serviceUserCredentials) {
+    public AbacClient abacClient(EnvironmentProperties properties, Credentials serviceUserCredentials) {
         return new AbacCachedClient(new AbacHttpClient(properties.getAbacUrl(), serviceUserCredentials.username, serviceUserCredentials.password));
     }
 
     @Bean
-    public Pep veilarbPep(NaisUtils.Credentials serviceUserCredentials, AbacClient abacClient) {
+    public Pep veilarbPep(Credentials serviceUserCredentials, AbacClient abacClient) {
         return new VeilarbPep(serviceUserCredentials.username, abacClient, new AuditLogger());
     }
 

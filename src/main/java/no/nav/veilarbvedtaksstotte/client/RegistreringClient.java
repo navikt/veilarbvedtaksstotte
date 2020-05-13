@@ -1,10 +1,14 @@
 package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.SneakyThrows;
+import no.nav.common.health.HealthCheck;
+import no.nav.common.health.HealthCheckResult;
+import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
+import no.nav.common.rest.client.RestUtils;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.RegistreringData;
-import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.cache.annotation.Cacheable;
@@ -14,12 +18,15 @@ import static no.nav.common.json.JsonUtils.fromJson;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class RegistreringClient {
+public class RegistreringClient implements HealthCheck {
 
     private final String veilarbregistreringUrl;
 
+    private final OkHttpClient client;
+
     public RegistreringClient(String veilarbregistreringUrl) {
         this.veilarbregistreringUrl = veilarbregistreringUrl;
+        this.client = RestClient.baseClient();
     }
 
     @Cacheable(CacheConfig.REGISTRERING_CACHE_NAME)
@@ -35,7 +42,7 @@ public class RegistreringClient {
                 return null;
             }
 
-            RestClientUtils.throwIfNotSuccessful(response);
+            RestUtils.throwIfNotSuccessful(response);
             return response.body().string();
         }
     }
@@ -45,6 +52,11 @@ public class RegistreringClient {
         return registreringData != null
                 ? fromJson(registreringData, RegistreringData.class)
                 : null;
+    }
+
+    @Override
+    public HealthCheckResult checkHealth() {
+        return HealthCheckUtils.pingUrl(joinPaths(veilarbregistreringUrl, "/internal/isReady"), client);
     }
 
 }

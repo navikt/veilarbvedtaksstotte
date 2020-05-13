@@ -1,8 +1,12 @@
 package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.SneakyThrows;
+import no.nav.common.health.HealthCheck;
+import no.nav.common.health.HealthCheckResult;
+import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpHeaders;
@@ -10,12 +14,15 @@ import org.springframework.http.HttpHeaders;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class PamCvClient {
+public class PamCvClient implements HealthCheck {
 
     private final String pamCvUrl;
 
+    private final OkHttpClient client;
+
     public PamCvClient(String pamCvUrl) {
         this.pamCvUrl = pamCvUrl;
+        this.client = RestClient.baseClient();
     }
 
     @SneakyThrows
@@ -38,4 +45,10 @@ public class PamCvClient {
             return response.body().string();
         }
     }
+
+    @Override
+    public HealthCheckResult checkHealth() {
+        return HealthCheckUtils.pingUrl(joinPaths(pamCvUrl, "/rest/internal/isReady"), client);
+    }
+
 }

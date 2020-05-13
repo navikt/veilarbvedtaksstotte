@@ -1,9 +1,13 @@
 package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.SneakyThrows;
+import no.nav.common.health.HealthCheck;
+import no.nav.common.health.HealthCheckResult;
+import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
+import no.nav.common.rest.client.RestUtils;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
-import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpHeaders;
@@ -11,12 +15,15 @@ import org.springframework.http.HttpHeaders;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class EgenvurderingClient {
+public class EgenvurderingClient implements HealthCheck {
 
     private final String veilarbvedtakInfoUrl;
 
+    private final OkHttpClient client;
+
     public EgenvurderingClient(String veilarbvedtakInfoUrl) {
         this.veilarbvedtakInfoUrl = veilarbvedtakInfoUrl;
+        this.client = RestClient.baseClient();
     }
 
     @SneakyThrows
@@ -27,7 +34,7 @@ public class EgenvurderingClient {
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
-            RestClientUtils.throwIfNotSuccessful(response);
+            RestUtils.throwIfNotSuccessful(response);
 
             if (response.code() == 204) {
                 return JsonUtils.createNoDataStr("Bruker har ikke fylt ut egenvurdering");
@@ -36,4 +43,10 @@ public class EgenvurderingClient {
             return response.body().string();
         }
     }
+
+    @Override
+    public HealthCheckResult checkHealth() {
+        return HealthCheckUtils.pingUrl(joinPaths(veilarbvedtakInfoUrl, "/internal/isReady"), client);
+    }
+
 }

@@ -2,6 +2,9 @@ package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.SneakyThrows;
 import no.nav.common.auth.subject.SubjectHandler;
+import no.nav.common.health.HealthCheck;
+import no.nav.common.health.HealthCheckResult;
+import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.utils.UrlUtils;
@@ -9,20 +12,24 @@ import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.VeilederEnheterDTO;
-import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
+import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class VeiledereOgEnhetClient {
+public class VeiledereOgEnhetClient implements HealthCheck {
 
     private final String veilarbveilederUrl;
 
+    private final OkHttpClient client;
+
     public VeiledereOgEnhetClient(String veilarbveilederUrl) {
         this.veilarbveilederUrl = veilarbveilederUrl;
+        this.client = RestClient.baseClient();
     }
 
     @Cacheable(CacheConfig.ENHET_NAVN_CACHE_NAME)
@@ -34,7 +41,7 @@ public class VeiledereOgEnhetClient {
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
-            RestClientUtils.throwIfNotSuccessful(response);
+            RestUtils.throwIfNotSuccessful(response);
             return RestUtils.parseJsonResponseBodyOrThrow(response.body(), EnhetNavn.class).getNavn();
         }
     }
@@ -48,7 +55,7 @@ public class VeiledereOgEnhetClient {
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
-            RestClientUtils.throwIfNotSuccessful(response);
+            RestUtils.throwIfNotSuccessful(response);
             return RestUtils.parseJsonResponseBodyOrThrow(response.body(), Veileder.class);
         }
     }
@@ -67,9 +74,14 @@ public class VeiledereOgEnhetClient {
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
-            RestClientUtils.throwIfNotSuccessful(response);
+            RestUtils.throwIfNotSuccessful(response);
             return RestUtils.parseJsonResponseBodyOrThrow(response.body(), VeilederEnheterDTO.class);
         }
+    }
+
+    @Override
+    public HealthCheckResult checkHealth() {
+        return HealthCheckUtils.pingUrl(joinPaths(veilarbveilederUrl, "/internal/isReady"), client);
     }
 
 }
