@@ -11,7 +11,7 @@ public class DialogMeldingDTO extends MeldingDTO {
     String opprettetAvNavn;
 
     public DialogMeldingDTO() {
-        type = Type.DIALOG_MELDING;
+        type = MeldingType.DIALOG_MELDING;
     }
 
     public static DialogMeldingDTO fraMelding(DialogMelding dialogMelding) {

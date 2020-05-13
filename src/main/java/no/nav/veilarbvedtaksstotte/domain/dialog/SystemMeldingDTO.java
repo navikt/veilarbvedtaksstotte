@@ -11,7 +11,7 @@ public class SystemMeldingDTO extends MeldingDTO {
     String utfortAvIdent;
 
     public SystemMeldingDTO() {
-        type = Type.SYSTEM_MELDING;
+        type = MeldingType.SYSTEM_MELDING;
     }
 
     public static SystemMeldingDTO fraMelding(SystemMelding systemMelding) {

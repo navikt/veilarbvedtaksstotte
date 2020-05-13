@@ -1,12 +1,15 @@
 package no.nav.veilarbvedtaksstotte.domain.dialog;
 
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
+@Data
 public class MeldingDTO {
     LocalDateTime opprettet;
-    Type type;
+    MeldingType type;
 
-    public enum Type {
+    public enum MeldingType {
         DIALOG_MELDING, SYSTEM_MELDING
     }
 }

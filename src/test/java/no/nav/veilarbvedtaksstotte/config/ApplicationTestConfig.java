@@ -4,27 +4,27 @@ import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
 import no.nav.common.aktorregisterklient.AktorregisterKlient;
 import no.nav.common.metrics.MetricsClient;
+import no.nav.common.nais.NaisUtils;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
 import no.nav.veilarbvedtaksstotte.mock.AktorregisterKlientMock;
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock;
 import no.nav.veilarbvedtaksstotte.mock.PepMock;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
+import static org.mockito.Mockito.mock;
+
 @Configuration
 @EnableConfigurationProperties(EnvironmentProperties.class)
 public class ApplicationTestConfig {
 
-    private final EnvironmentProperties environmentProperties;
-
-    @Autowired
-    public ApplicationTestConfig(EnvironmentProperties environmentProperties) {
-        this.environmentProperties = environmentProperties;
+    @Bean
+    public NaisUtils.Credentials serviceUserCredentials() {
+        return mock(NaisUtils.Credentials.class);
     }
 
     @Bean
@@ -49,13 +49,6 @@ public class ApplicationTestConfig {
 
     @Bean
     public DataSource dataSource() {
-        // TODO: Use datasource from config
-//        HikariConfig config = new HikariConfig();
-//        config.setJdbcUrl(properties.getDbUrl());
-//        config.setMaximumPoolSize(1);
-//        config.setMinimumIdle(1);
-//        config.setUsername("postgres");
-//        config.setPassword("qwerty");
         return SingletonPostgresContainer.init().getDataSource();
     }
 
