@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.Collections;
 
 import static no.nav.common.auth.Constants.OPEN_AM_ID_TOKEN_COOKIE_NAME;
+import static no.nav.common.auth.Constants.REFRESH_TOKEN_COOKIE_NAME;
 import static no.nav.common.auth.oidc.filter.OidcAuthenticator.fromConfig;
 import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 import static no.nav.common.utils.EnvironmentUtils.requireApplicationName;
@@ -29,6 +30,7 @@ public class FilterConfig {
                 .withDiscoveryUrl(properties.getOpenAmDiscoveryUrl())
                 .withClientId(properties.getOpenAmClientId())
                 .withIdTokenCookieName(OPEN_AM_ID_TOKEN_COOKIE_NAME)
+                .withRefreshTokenCookieName(REFRESH_TOKEN_COOKIE_NAME)
                 .withIdentType(IdentType.InternBruker);
 
         FilterRegistrationBean<OidcAuthenticationFilter> registration = new FilterRegistrationBean<>();
