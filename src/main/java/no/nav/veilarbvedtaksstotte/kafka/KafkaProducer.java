@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.service;
+package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.domain.FeiletKafkaMelding;
@@ -8,24 +8,25 @@ import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import static java.lang.String.format;
 import static no.nav.common.json.JsonUtils.toJson;
-import static no.nav.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC_VEDTAK_SENDT;
-import static no.nav.veilarbvedtaksstotte.config.KafkaProducerConfig.KAFKA_TOPIC_VEDTAK_STATUS_ENDRING;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
-@Service
 @Slf4j
-public class KafkaService {
+@Component
+public class KafkaProducer {
+
+    private final KafkaProperties kafkaProperties;
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     private final KafkaRepository kafkaRepository;
 
     @Autowired
-    public KafkaService(KafkaTemplate<String, String> kafkaTemplate, KafkaRepository kafkaRepository) {
+    public KafkaProducer(KafkaProperties kafkaProperties, KafkaTemplate<String, String> kafkaTemplate, KafkaRepository kafkaRepository) {
+        this.kafkaProperties = kafkaProperties;
         this.kafkaTemplate = kafkaTemplate;
         this.kafkaRepository = kafkaRepository;
     }
@@ -58,9 +59,9 @@ public class KafkaService {
     private String kafkaTopicToStr(KafkaTopic topic) {
         switch (topic) {
             case VEDTAK_SENDT:
-                return KAFKA_TOPIC_VEDTAK_SENDT;
+                return kafkaProperties.getTopicVedtakSendt();
             case VEDTAK_STATUS_ENDRING:
-                return KAFKA_TOPIC_VEDTAK_STATUS_ENDRING;
+                return kafkaProperties.getTopicVedtakStatusEndring();
             default:
                 throw new IllegalArgumentException("Unknown topic " + getName(topic));
         }

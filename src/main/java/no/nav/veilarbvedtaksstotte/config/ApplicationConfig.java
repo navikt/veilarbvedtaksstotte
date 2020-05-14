@@ -12,6 +12,7 @@ import no.nav.common.metrics.SensuConfig;
 import no.nav.common.sts.NaisSystemUserTokenProvider;
 import no.nav.common.sts.SystemUserTokenProvider;
 import no.nav.common.utils.Credentials;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +26,7 @@ import static no.nav.common.utils.NaisUtils.getCredentials;
 @Slf4j
 @Configuration
 @EnableScheduling
-@EnableConfigurationProperties(EnvironmentProperties.class)
+@EnableConfigurationProperties({EnvironmentProperties.class, KafkaProperties.class})
 public class ApplicationConfig {
 
     public final static String APPLICATION_NAME = "veilarbvedtaksstotte";
