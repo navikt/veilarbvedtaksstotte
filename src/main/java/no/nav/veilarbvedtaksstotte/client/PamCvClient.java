@@ -35,7 +35,7 @@ public class PamCvClient implements HealthCheck {
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
 
             if (response.code() == 403 || response.code() == 401) {
-                return JsonUtils.createErrorStr("Bruker har ikke delt CV/jobbprofil med NAV");
+                return JsonUtils.createNoDataStr("Bruker har ikke delt CV/jobbprofil med NAV");
             }
 
             if (response.code() == 204 || response.code() == 404) {
