@@ -22,7 +22,6 @@ import java.util.Optional;
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
-import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.erBeslutterProsessStartet;
 
 @Service
 public class VedtakService {
@@ -286,7 +285,7 @@ public class VedtakService {
 
         boolean isGodkjentAvBeslutter = vedtak.getBeslutterProsessStatus() == GODKJENT_AV_BESLUTTER;
 
-        if (skalHaBeslutter(innsatsgruppe) || erBeslutterProsessStartet(vedtak.getBeslutterProsessStatus())) {
+        if (skalHaBeslutter(innsatsgruppe)) {
             if (vedtak.getBeslutterIdent() == null) {
                 throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
             } else if (!isGodkjentAvBeslutter) {
