@@ -15,6 +15,8 @@ public class EnvironmentProperties {
 
     private String stsDiscoveryUrl;
 
+    private String refreshUrl;
+
     private String abacUrl;
 
     private String aktorregisterUrl;
