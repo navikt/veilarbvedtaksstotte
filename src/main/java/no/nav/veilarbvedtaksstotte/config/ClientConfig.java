@@ -4,12 +4,10 @@ import no.nav.veilarbvedtaksstotte.client.*;
 import no.nav.veilarbvedtaksstotte.client.api.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 import static no.nav.common.utils.UrlUtils.clusterUrlForApplication;
 
 @Configuration
-@Profile("!local")
 public class ClientConfig {
 
     @Bean

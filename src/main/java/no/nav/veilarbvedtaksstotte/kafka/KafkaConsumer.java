@@ -16,42 +16,43 @@ import static no.nav.common.json.JsonUtils.fromJson;
 @Component
 public class KafkaConsumer {
 
-    private final KafkaProperties kafkaProperties;
+    private final KafkaTopicProperties kafkaTopicProperties;
 
     private final VedtakService vedtakService;
 
     @Autowired
-    public KafkaConsumer(KafkaProperties kafkaProperties, VedtakService vedtakService) {
-        this.kafkaProperties = kafkaProperties;
+    public KafkaConsumer(KafkaTopicProperties kafkaTopicProperties, VedtakService vedtakService) {
+        System.out.println("PROPS======================================" + kafkaTopicProperties.getAllTopics().length);
+        this.kafkaTopicProperties = kafkaTopicProperties;
         this.vedtakService = vedtakService;
     }
 
     @KafkaListener(
-            topics = "#{kafkaProperties.getTopicEndringPaAvsluttOppfolging()}",
+            topics = "#{kafkaTopicProperties.getEndringPaAvsluttOppfolging()}",
             containerFactory = KafkaConfig.AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME
     )
     public void consumeEndringPaAvsluttOppfolging(@Payload String kafkaMelding) {
         try {
             KafkaAvsluttOppfolging melding = fromJson(kafkaMelding, KafkaAvsluttOppfolging.class);
-            log.info("Leser melding for aktorId:" + melding.getAktorId() + " på topic: " + kafkaProperties.getTopicEndringPaAvsluttOppfolging());
+            log.info("Leser melding for aktorId:" + melding.getAktorId() + " på topic: " + kafkaTopicProperties.getEndringPaAvsluttOppfolging());
             vedtakService.behandleAvsluttOppfolging(melding);
         } catch (Throwable t) {
-            log.error("Feilet ved behandling av kafka-melding fra topic " + kafkaProperties.getTopicEndringPaAvsluttOppfolging(), t);
+            log.error("Feilet ved behandling av kafka-melding fra topic " + kafkaTopicProperties.getEndringPaAvsluttOppfolging(), t);
         }
     }
 
 
     @KafkaListener(
-            topics = "#{kafkaProperties.getTopicEndringPaOppfolgingBruker()}",
+            topics = "#{kafkaTopicProperties.getEndringPaOppfolgingBruker()}",
             containerFactory = KafkaConfig.OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME
     )
     public void consumeEndringPaOppfolgingBruker(@Payload String kafkaMelding) {
         try {
             KafkaOppfolgingsbrukerEndring melding = fromJson(kafkaMelding, KafkaOppfolgingsbrukerEndring.class);
-            log.info("Leser melding for aktorId:" + melding.getAktorId() + " på topic: " + kafkaProperties.getTopicEndringPaOppfolgingBruker());
+            log.info("Leser melding for aktorId:" + melding.getAktorId() + " på topic: " + kafkaTopicProperties.getEndringPaOppfolgingBruker());
             vedtakService.behandleOppfolgingsbrukerEndring(melding);
         } catch (Throwable t) {
-            log.error("Feilet ved behandling av kafka-melding fra topic " + kafkaProperties.getTopicEndringPaOppfolgingBruker(), t);
+            log.error("Feilet ved behandling av kafka-melding fra topic " + kafkaTopicProperties.getEndringPaOppfolgingBruker(), t);
         }
     }
 

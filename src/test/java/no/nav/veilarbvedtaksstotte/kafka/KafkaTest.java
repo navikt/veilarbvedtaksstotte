@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.kafka;
 
-import lombok.SneakyThrows;
+import no.nav.veilarbvedtaksstotte.config.KafkaTestConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -11,7 +11,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 public abstract class KafkaTest {
 
@@ -22,7 +21,7 @@ public abstract class KafkaTest {
     private static KafkaMessageListenerContainer<String, String> container;
     protected static BlockingQueue<ConsumerRecord<String, String>> records;
 
-    private static String[] topics = KafkaTestConfig.TOPICS.toArray(new String[0]);
+//    private static String[] topics = KafkaTestConfig.TOPICS.toArray(new String[0]);
 
 //    @ClassRule
 //    public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, topics);
@@ -71,24 +70,4 @@ public abstract class KafkaTest {
         }
     }
 
-    @SneakyThrows
-    protected void verifiserAsynkront(long timeout, TimeUnit unit, Runnable verifiser) {
-        long timeoutMillis = unit.toMillis(timeout);
-        boolean prosessert = false;
-        boolean timedOut = false;
-        long start = System.currentTimeMillis();
-        while (!prosessert) {
-            try {
-                Thread.sleep(10);
-                long current = System.currentTimeMillis();
-                timedOut = current - start > timeoutMillis;
-                verifiser.run();
-                prosessert = true;
-            } catch (Throwable a) {
-                if (timedOut) {
-                    throw a;
-                }
-            }
-        }
-    }
 }

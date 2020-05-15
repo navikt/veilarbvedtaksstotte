@@ -10,7 +10,6 @@ import no.nav.veilarbvedtaksstotte.utils.ToggleFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 import java.util.Collections;
 
@@ -21,7 +20,6 @@ import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 import static no.nav.common.utils.EnvironmentUtils.requireApplicationName;
 
 @Configuration
-@Profile("!local")
 public class FilterConfig {
 
     @Bean

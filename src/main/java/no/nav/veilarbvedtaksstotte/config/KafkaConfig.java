@@ -4,16 +4,15 @@ import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaProperties;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
@@ -30,7 +29,6 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 
-@Profile("!local")
 @EnableKafka
 @Configuration
 public class KafkaConfig {
@@ -41,21 +39,21 @@ public class KafkaConfig {
 
     private final KafkaHelsesjekk kafkaHelsesjekk;
 
-    private final KafkaProperties kafkaProperties;
-
     private final Credentials serviceUserCredentials;
 
+    @Value("${spring.kafka.bootstrap-servers}")
+    String brokersUrl;
+
     @Autowired
-    public KafkaConfig(KafkaHelsesjekk kafkaHelsesjekk, KafkaProperties kafkaProperties, Credentials serviceUserCredentials) {
+    public KafkaConfig(KafkaHelsesjekk kafkaHelsesjekk, Credentials serviceUserCredentials) {
         this.kafkaHelsesjekk = kafkaHelsesjekk;
-        this.kafkaProperties = kafkaProperties;
         this.serviceUserCredentials = serviceUserCredentials;
     }
 
     @Bean(name = AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME)
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaAvsluttOppfolging>> avsluttOppfolgingKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, KafkaAvsluttOppfolging> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaConsumerProperties(kafkaProperties.getBrokersUrl(), serviceUserCredentials)));
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaConsumerProperties(brokersUrl, serviceUserCredentials)));
         factory.setErrorHandler(kafkaHelsesjekk);
         return factory;
     }
@@ -63,16 +61,14 @@ public class KafkaConfig {
     @Bean(name = OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME)
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaOppfolgingsbrukerEndring>> oppfolgingsbrukerEndringKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, KafkaOppfolgingsbrukerEndring> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaConsumerProperties(kafkaProperties.getBrokersUrl(), serviceUserCredentials)));
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaConsumerProperties(brokersUrl, serviceUserCredentials)));
         factory.setErrorHandler(kafkaHelsesjekk);
         return factory;
     }
 
     @Bean
     public KafkaTemplate<String, String> kafkaTemplate() {
-        ProducerFactory<String, String> producerFactory =
-                new DefaultKafkaProducerFactory<>(kafkaProducerProperties(kafkaProperties.getBrokersUrl(), serviceUserCredentials));
-
+        ProducerFactory<String, String> producerFactory = new DefaultKafkaProducerFactory<>(kafkaProducerProperties(brokersUrl, serviceUserCredentials));
         KafkaTemplate<String, String> template = new KafkaTemplate<>(producerFactory);
         LoggingProducerListener<String, String> producerListener = new LoggingProducerListener<>();
         producerListener.setIncludeContents(false);

@@ -18,15 +18,15 @@ import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 @Component
 public class KafkaProducer {
 
-    private final KafkaProperties kafkaProperties;
+    private final KafkaTopicProperties kafkaTopicProperties;
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     private final KafkaRepository kafkaRepository;
 
     @Autowired
-    public KafkaProducer(KafkaProperties kafkaProperties, KafkaTemplate<String, String> kafkaTemplate, KafkaRepository kafkaRepository) {
-        this.kafkaProperties = kafkaProperties;
+    public KafkaProducer(KafkaTopicProperties kafkaTopicProperties, KafkaTemplate<String, String> kafkaTemplate, KafkaRepository kafkaRepository) {
+        this.kafkaTopicProperties = kafkaTopicProperties;
         this.kafkaTemplate = kafkaTemplate;
         this.kafkaRepository = kafkaRepository;
     }
@@ -59,9 +59,9 @@ public class KafkaProducer {
     private String kafkaTopicToStr(KafkaTopic topic) {
         switch (topic) {
             case VEDTAK_SENDT:
-                return kafkaProperties.getTopicVedtakSendt();
+                return kafkaTopicProperties.getVedtakSendt();
             case VEDTAK_STATUS_ENDRING:
-                return kafkaProperties.getTopicVedtakStatusEndring();
+                return kafkaTopicProperties.getVedtakStatusEndring();
             default:
                 throw new IllegalArgumentException("Unknown topic " + getName(topic));
         }
