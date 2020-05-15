@@ -15,6 +15,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 
@@ -22,7 +25,6 @@ import javax.sql.DataSource;
 @Configuration
 @EnableConfigurationProperties({EnvironmentProperties.class,  KafkaTopicProperties.class})
 @Import({
-        CacheConfig.class,
         SwaggerConfig.class,
         ClientTestConfig.class,
         ControllerTestConfig.class,
@@ -71,6 +73,16 @@ public class ApplicationTestConfig {
     @Bean
     public DataSource dataSource() {
         return SingletonPostgresContainer.init().getDataSource();
+    }
+
+    @Bean
+    public TransactionTemplate transactionTemplate(DataSource dataSource) {
+        return new TransactionTemplate(new DataSourceTransactionManager(dataSource));
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 
 }

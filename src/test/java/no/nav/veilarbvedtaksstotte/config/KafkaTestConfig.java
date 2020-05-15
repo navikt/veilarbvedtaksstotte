@@ -54,7 +54,6 @@ public class KafkaTestConfig {
 
     @Bean(name = KafkaConfig.AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME)
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaAvsluttOppfolging>> avsluttOppfolgingKafkaListenerContainerFactory(EmbeddedKafkaBroker embeddedKafkaBroker) {
-        System.out.println("BROKERS================================ " + embeddedKafkaBroker.getBrokersAsString());
         ConcurrentKafkaListenerContainerFactory<String, KafkaAvsluttOppfolging> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory(embeddedKafkaBroker.getBrokersAsString()));
         return factory;
@@ -62,7 +61,6 @@ public class KafkaTestConfig {
 
     @Bean(name = KafkaConfig.OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME)
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaOppfolgingsbrukerEndring>> oppfolgingsbrukerEndringKafkaListenerContainerFactory(EmbeddedKafkaBroker embeddedKafkaBroker) {
-        System.out.println("BROKERS================================ " + embeddedKafkaBroker.getBrokersAsString());
         ConcurrentKafkaListenerContainerFactory<String, KafkaOppfolgingsbrukerEndring> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory(embeddedKafkaBroker.getBrokersAsString()));
         return factory;
