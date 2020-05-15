@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.VeiledereOgEnhetClient;
+import no.nav.veilarbvedtaksstotte.client.api.VeiledereOgEnhetClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.springframework.beans.factory.annotation.Autowired;

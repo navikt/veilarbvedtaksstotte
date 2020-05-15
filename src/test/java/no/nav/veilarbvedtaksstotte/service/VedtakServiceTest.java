@@ -8,7 +8,7 @@ import no.nav.common.auth.subject.SsoToken;
 import no.nav.common.auth.subject.Subject;
 import no.nav.common.auth.subject.SubjectHandler;
 import no.nav.common.utils.fn.UnsafeRunnable;
-import no.nav.veilarbvedtaksstotte.client.*;
+import no.nav.veilarbvedtaksstotte.client.api.*;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;

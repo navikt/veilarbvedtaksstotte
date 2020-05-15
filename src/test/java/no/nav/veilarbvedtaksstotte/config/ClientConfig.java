@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import no.nav.veilarbvedtaksstotte.client.*;
+import no.nav.veilarbvedtaksstotte.client.api.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

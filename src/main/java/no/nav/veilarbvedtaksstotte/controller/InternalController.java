@@ -6,7 +6,7 @@ import no.nav.common.health.selftest.SelfTestCheck;
 import no.nav.common.health.selftest.SelfTestUtils;
 import no.nav.common.health.selftest.SelftTestCheckResult;
 import no.nav.common.health.selftest.SelftestHtmlGenerator;
-import no.nav.veilarbvedtaksstotte.client.*;
+import no.nav.veilarbvedtaksstotte.client.api.*;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

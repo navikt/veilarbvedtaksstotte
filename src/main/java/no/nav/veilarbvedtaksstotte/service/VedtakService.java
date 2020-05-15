@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
-import no.nav.veilarbvedtaksstotte.client.DokumentClient;
-import no.nav.veilarbvedtaksstotte.client.SafClient;
+import no.nav.veilarbvedtaksstotte.client.api.DokumentClient;
+import no.nav.veilarbvedtaksstotte.client.api.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
@@ -40,17 +40,20 @@ public class VedtakService {
     private final TransactionTemplate transactor;
 
     @Autowired
-    public VedtakService(VedtaksstotteRepository vedtaksstotteRepository,
-                         KilderRepository kilderRepository,
-                         OyeblikksbildeService oyeblikksbildeService,
-                         MeldingRepository meldingRepository,
-                         BeslutteroversiktRepository beslutteroversiktRepository,
-                         AuthService authService,
-                         DokumentClient dokumentClient,
-                         SafClient safClient,
-                         VeilederService veilederService,
-                         MalTypeService malTypeService,
-                         VedtakStatusEndringService vedtakStatusEndringService, TransactionTemplate transactor) {
+    public VedtakService(
+            VedtaksstotteRepository vedtaksstotteRepository,
+            KilderRepository kilderRepository,
+            OyeblikksbildeService oyeblikksbildeService,
+            MeldingRepository meldingRepository,
+            BeslutteroversiktRepository beslutteroversiktRepository,
+            AuthService authService,
+            DokumentClient dokumentClient,
+            SafClient safClient,
+            VeilederService veilederService,
+            MalTypeService malTypeService,
+            VedtakStatusEndringService vedtakStatusEndringService,
+            TransactionTemplate transactor
+    ) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.kilderRepository = kilderRepository;
         this.oyeblikksbildeService = oyeblikksbildeService;

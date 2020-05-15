@@ -1,11 +1,11 @@
 package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.SneakyThrows;
-import no.nav.common.health.HealthCheck;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
+import no.nav.veilarbvedtaksstotte.client.api.PersonClient;
 import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -15,13 +15,13 @@ import org.springframework.http.HttpHeaders;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class PersonClient implements HealthCheck {
+public class PersonClientImpl implements PersonClient {
 
     private final String veilarbpersonUrl;
 
     private final OkHttpClient client;
 
-    public PersonClient(String veilarbpersonUrl) {
+    public PersonClientImpl(String veilarbpersonUrl) {
         this.veilarbpersonUrl = veilarbpersonUrl;
         this.client = RestClient.baseClient();
     }

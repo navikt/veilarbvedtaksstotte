@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.RegistreringClient;
+import no.nav.veilarbvedtaksstotte.client.api.RegistreringClient;
 import no.nav.veilarbvedtaksstotte.domain.RegistreringData;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;

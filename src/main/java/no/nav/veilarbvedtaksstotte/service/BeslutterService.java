@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.PersonClient;
+import no.nav.veilarbvedtaksstotte.client.api.PersonClient;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
