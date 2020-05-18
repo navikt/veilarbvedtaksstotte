@@ -6,6 +6,13 @@ import no.nav.common.abac.domain.AbacPersonId;
 import no.nav.common.abac.domain.request.ActionId;
 
 public class PepMock implements Pep {
+
+    private final AbacClient abacClient;
+
+    public PepMock(AbacClient abacClient) {
+        this.abacClient = abacClient;
+    }
+
     @Override
     public void sjekkVeilederTilgangTilEnhet(String s, String s1) {
 
@@ -38,6 +45,6 @@ public class PepMock implements Pep {
 
     @Override
     public AbacClient getAbacClient() {
-        return null;
+        return abacClient;
     }
 }

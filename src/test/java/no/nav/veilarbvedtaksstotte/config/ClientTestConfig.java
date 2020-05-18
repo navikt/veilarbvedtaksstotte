@@ -6,7 +6,10 @@ import no.nav.veilarbvedtaksstotte.domain.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Collections;
 import java.util.List;
+
+import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 
 @Configuration
 public class ClientTestConfig {
@@ -16,7 +19,7 @@ public class ClientTestConfig {
         return new ArenaClient() {
             @Override
             public String oppfolgingsenhet(String fnr) {
-                return null;
+                return TEST_OPPFOLGINGSENHET_ID;
             }
 
             @Override
@@ -31,7 +34,7 @@ public class ClientTestConfig {
         return new DokumentClient() {
             @Override
             public DokumentSendtDTO sendDokument(SendDokumentDTO sendDokumentDTO) {
-                return null;
+                return new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
             }
 
             @Override
@@ -51,7 +54,7 @@ public class ClientTestConfig {
         return new EgenvurderingClient() {
             @Override
             public String hentEgenvurdering(String fnr) {
-                return null;
+                return "{ \"testData\": \"Egenvurdering\"}";
             }
 
             @Override
@@ -66,12 +69,15 @@ public class ClientTestConfig {
         return new OppfolgingClient() {
             @Override
             public String hentServicegruppe(String fnr) {
-                return null;
+                return "VURDU";
             }
 
             @Override
             public OppfolgingDTO hentOppfolgingData(String fnr) {
-                return null;
+                OppfolgingDTO oppfolgingDTO = new OppfolgingDTO();
+                oppfolgingDTO.setServicegruppe("VURDU");
+                oppfolgingDTO.setOppfolgingsPerioder(Collections.EMPTY_LIST);
+                return oppfolgingDTO;
             }
 
             @Override
@@ -86,7 +92,7 @@ public class ClientTestConfig {
         return new PamCvClient() {
             @Override
             public String hentCV(String fnr) {
-                return null;
+                return "{ \"data\": \"Bruker har ikke delt CV/jobbprofil med NAV\"}";
             }
 
             @Override
@@ -101,7 +107,12 @@ public class ClientTestConfig {
         return new PersonClient() {
             @Override
             public PersonNavn hentPersonNavn(String fnr) {
-                return null;
+                PersonNavn personNavn = new PersonNavn();
+                personNavn.setFornavn("TEST");
+                personNavn.setMellomnavn(null);
+                personNavn.setEtternavn("TESTERSEN");
+                personNavn.setSammensattNavn("TEST TESTERSEN");
+                return personNavn;
             }
 
             @Override
@@ -141,7 +152,7 @@ public class ClientTestConfig {
 
             @Override
             public List<Journalpost> hentJournalposter(String fnr) {
-                return null;
+                return Collections.emptyList();
             }
 
             @Override
@@ -156,17 +167,24 @@ public class ClientTestConfig {
         return new VeiledereOgEnhetClient() {
             @Override
             public String hentEnhetNavn(String enhetId) {
-                return null;
+                return TEST_OPPFOLGINGSENHET_NAVN;
             }
 
             @Override
             public Veileder hentVeileder(String veilederIdent) {
-                return null;
+                Veileder veileder = new Veileder();
+                veileder.setIdent(TEST_VEILEDER_IDENT);
+                veileder.setFornavn("VEILEDER");
+                veileder.setEtternavn("VEILEDERSEN");
+                return veileder;
             }
 
             @Override
             public VeilederEnheterDTO hentInnloggetVeilederEnheter() {
-                return null;
+                List<PortefoljeEnhet> enheter = List.of(
+                        new PortefoljeEnhet(TEST_OPPFOLGINGSENHET_ID, TEST_OPPFOLGINGSENHET_NAVN)
+                );
+                return new VeilederEnheterDTO(TEST_VEILEDER_IDENT, enheter);
             }
 
             @Override

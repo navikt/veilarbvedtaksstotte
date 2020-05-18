@@ -30,7 +30,8 @@ import javax.sql.DataSource;
         ControllerTestConfig.class,
         RepositoryTestConfig.class,
         ServiceTestConfig.class,
-        KafkaTestConfig.class
+        KafkaTestConfig.class,
+        FilterTestConfig.class
 })
 public class ApplicationTestConfig {
 
@@ -61,8 +62,8 @@ public class ApplicationTestConfig {
     }
 
     @Bean
-    public Pep veilarbPep() {
-        return new PepMock();
+    public Pep veilarbPep(AbacClient abacClient) {
+        return new PepMock(abacClient);
     }
 
     @Bean

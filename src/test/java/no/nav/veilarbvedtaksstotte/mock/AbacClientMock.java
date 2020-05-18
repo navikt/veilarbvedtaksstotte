@@ -2,16 +2,24 @@ package no.nav.veilarbvedtaksstotte.mock;
 
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.domain.request.XacmlRequest;
+import no.nav.common.abac.domain.response.Decision;
+import no.nav.common.abac.domain.response.Response;
 import no.nav.common.abac.domain.response.XacmlResponse;
 
+import java.util.Collections;
+
 public class AbacClientMock implements AbacClient {
+
     @Override
     public String sendRawRequest(String s) {
-        return null;
+        return "raw_abac_mock_request";
     }
 
     @Override
     public XacmlResponse sendRequest(XacmlRequest xacmlRequest) {
-        return null;
+        XacmlResponse xacmlResponse = new XacmlResponse();
+        xacmlResponse.withResponse(Collections.singletonList(new Response().withDecision(Decision.Permit)));
+        return xacmlResponse;
     }
+
 }
