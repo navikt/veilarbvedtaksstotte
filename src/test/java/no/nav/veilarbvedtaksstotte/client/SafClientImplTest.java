@@ -5,6 +5,7 @@ import no.nav.common.auth.subject.IdentType;
 import no.nav.common.auth.subject.SsoToken;
 import no.nav.common.auth.subject.Subject;
 import no.nav.common.auth.subject.SubjectHandler;
+import no.nav.veilarbvedtaksstotte.client.api.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.Journalpost;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
@@ -17,7 +18,7 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertTrue;
 
-public class SafClientTest {
+public class SafClientImplTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(0);
@@ -26,7 +27,7 @@ public class SafClientTest {
     public void hentJournalposter__skalReturnereJournalposter() {
         String journalposterJson = TestUtils.readTestResourceFile("saf-client-journalposter.json");
         String apiUrl = "http://localhost:" + wireMockRule.port();
-        SafClient safClient = new SafClient(apiUrl);
+        SafClient safClient = new SafClientImpl(apiUrl);
 
         givenThat(post(urlEqualTo("/graphql"))
                 .willReturn(aResponse()
@@ -49,7 +50,7 @@ public class SafClientTest {
     @Test(expected = RuntimeException.class)
     public void hentJournalposter__skalKasteExceptionPaErrorStatus() {
         String apiUrl = "http://localhost:" + wireMockRule.port();
-        SafClient safClient = new SafClient(apiUrl);
+        SafClient safClient = new SafClientImpl(apiUrl);
 
         givenThat(post(urlEqualTo("/graphql")).willReturn(aResponse().withStatus(500)));
 

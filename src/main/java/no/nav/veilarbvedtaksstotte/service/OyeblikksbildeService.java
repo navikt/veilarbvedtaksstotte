@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.EgenvurderingClient;
-import no.nav.veilarbvedtaksstotte.client.PamCvClient;
-import no.nav.veilarbvedtaksstotte.client.RegistreringClient;
+import no.nav.veilarbvedtaksstotte.client.api.EgenvurderingClient;
+import no.nav.veilarbvedtaksstotte.client.api.PamCvClient;
+import no.nav.veilarbvedtaksstotte.client.api.RegistreringClient;
 import no.nav.veilarbvedtaksstotte.domain.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import org.springframework.beans.factory.annotation.Autowired;

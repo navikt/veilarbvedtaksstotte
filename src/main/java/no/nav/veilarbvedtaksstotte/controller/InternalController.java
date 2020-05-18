@@ -6,7 +6,8 @@ import no.nav.common.health.selftest.SelfTestCheck;
 import no.nav.common.health.selftest.SelfTestUtils;
 import no.nav.common.health.selftest.SelftTestCheckResult;
 import no.nav.common.health.selftest.SelftestHtmlGenerator;
-import no.nav.veilarbvedtaksstotte.client.*;
+import no.nav.veilarbvedtaksstotte.client.api.*;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,7 +37,7 @@ public class InternalController {
             ArenaClient arenaClient, DokumentClient dokumentClient, EgenvurderingClient egenvurderingClient,
             OppfolgingClient oppfolgingClient, PamCvClient pamCvClient, PersonClient personClient,
             RegistreringClient registreringClient, SafClient safClient, VeiledereOgEnhetClient veiledereOgEnhetClient,
-            JdbcTemplate db
+            KafkaHelsesjekk kafkaHelsesjekk, JdbcTemplate db
     ) {
         this.db = db;
 
@@ -50,6 +51,7 @@ public class InternalController {
                 new SelfTestCheck("RegistreringClient", false, registreringClient),
                 new SelfTestCheck("SafClient", false, safClient),
                 new SelfTestCheck("VeilederOgEnhetClient", false, veiledereOgEnhetClient),
+                new SelfTestCheck("Kafka Consumer", false, kafkaHelsesjekk),
                 new SelfTestCheck("Ping database", true, this::checkDbHealth)
         );
     }

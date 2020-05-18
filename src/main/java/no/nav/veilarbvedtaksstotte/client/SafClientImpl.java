@@ -4,11 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import lombok.SneakyThrows;
-import no.nav.common.health.HealthCheck;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
+import no.nav.veilarbvedtaksstotte.client.api.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.Journalpost;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -21,7 +21,7 @@ import java.util.List;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class SafClient implements HealthCheck {
+public class SafClientImpl implements SafClient {
 
     private static final Gson gson = new Gson();
 
@@ -29,7 +29,7 @@ public class SafClient implements HealthCheck {
 
     private final OkHttpClient client;
 
-    public SafClient(String safUrl) {
+    public SafClientImpl(String safUrl) {
         this.safUrl = safUrl;
         this.client = RestClient.baseClient();
     }

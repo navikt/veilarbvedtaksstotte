@@ -12,20 +12,19 @@ import no.nav.common.metrics.SensuConfig;
 import no.nav.common.sts.NaisSystemUserTokenProvider;
 import no.nav.common.sts.SystemUserTokenProvider;
 import no.nav.common.utils.Credentials;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaTopicProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import static no.nav.common.featuretoggle.UnleashServiceConfig.resolveFromEnvironment;
 import static no.nav.common.utils.NaisUtils.getCredentials;
 
-@Profile("!local")
 @Slf4j
 @Configuration
 @EnableScheduling
-@EnableConfigurationProperties(EnvironmentProperties.class)
+@EnableConfigurationProperties({EnvironmentProperties.class, KafkaTopicProperties.class})
 public class ApplicationConfig {
 
     public final static String APPLICATION_NAME = "veilarbvedtaksstotte";

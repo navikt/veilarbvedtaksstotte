@@ -2,12 +2,12 @@ package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.SneakyThrows;
 import no.nav.common.auth.subject.SubjectHandler;
-import no.nav.common.health.HealthCheck;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.utils.UrlUtils;
+import no.nav.veilarbvedtaksstotte.client.api.VeiledereOgEnhetClient;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.domain.Veileder;
@@ -21,13 +21,13 @@ import org.springframework.http.HttpHeaders;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class VeiledereOgEnhetClient implements HealthCheck {
+public class VeiledereOgEnhetClientImpl implements VeiledereOgEnhetClient {
 
     private final String veilarbveilederUrl;
 
     private final OkHttpClient client;
 
-    public VeiledereOgEnhetClient(String veilarbveilederUrl) {
+    public VeiledereOgEnhetClientImpl(String veilarbveilederUrl) {
         this.veilarbveilederUrl = veilarbveilederUrl;
         this.client = RestClient.baseClient();
     }

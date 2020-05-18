@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.client;
 
-import no.nav.common.health.HealthCheck;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
+import no.nav.veilarbvedtaksstotte.client.api.ArenaClient;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.domain.Oppfolgingsenhet;
 import okhttp3.OkHttpClient;
@@ -18,13 +18,13 @@ import org.springframework.web.server.ResponseStatusException;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class ArenaClient implements HealthCheck {
+public class ArenaClientImpl implements ArenaClient {
 
     private final String veilarbarenaUrl;
 
     private final OkHttpClient client;
 
-    public ArenaClient(String veilarbarenaUrl) {
+    public ArenaClientImpl(String veilarbarenaUrl) {
         this.veilarbarenaUrl = veilarbarenaUrl;
         this.client = RestClient.baseClient();
     }

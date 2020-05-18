@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.SafClient;
+import no.nav.veilarbvedtaksstotte.client.api.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.domain.Journalpost;
 import org.springframework.beans.factory.annotation.Autowired;

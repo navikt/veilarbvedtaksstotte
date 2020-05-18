@@ -13,7 +13,7 @@ import no.nav.common.abac.domain.response.XacmlResponse;
 import no.nav.common.aktorregisterklient.AktorregisterKlient;
 import no.nav.common.auth.subject.SubjectHandler;
 import no.nav.common.utils.Credentials;
-import no.nav.veilarbvedtaksstotte.client.ArenaClient;
+import no.nav.veilarbvedtaksstotte.client.api.ArenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import org.springframework.beans.factory.annotation.Autowired;
