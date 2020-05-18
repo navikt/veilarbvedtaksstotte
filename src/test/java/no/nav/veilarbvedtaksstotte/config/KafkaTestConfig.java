@@ -1,7 +1,5 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import no.nav.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
-import no.nav.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaConsumer;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer;
@@ -20,7 +18,6 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.LoggingProducerListener;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 
@@ -52,16 +49,9 @@ public class KafkaTestConfig {
         return embeddedKafkaBroker;
     }
 
-    @Bean(name = KafkaConfig.AVSLUTT_OPPFOLGING_CONTAINER_FACTORY_NAME)
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaAvsluttOppfolging>> avsluttOppfolgingKafkaListenerContainerFactory(EmbeddedKafkaBroker embeddedKafkaBroker) {
-        ConcurrentKafkaListenerContainerFactory<String, KafkaAvsluttOppfolging> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory(embeddedKafkaBroker.getBrokersAsString()));
-        return factory;
-    }
-
-    @Bean(name = KafkaConfig.OPPFOLGINGSBRUKER_ENDRING_CONTAINER_FACTORY_NAME)
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, KafkaOppfolgingsbrukerEndring>> oppfolgingsbrukerEndringKafkaListenerContainerFactory(EmbeddedKafkaBroker embeddedKafkaBroker) {
-        ConcurrentKafkaListenerContainerFactory<String, KafkaOppfolgingsbrukerEndring> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    @Bean
+    public KafkaListenerContainerFactory kafkaListenerContainerFactory(EmbeddedKafkaBroker embeddedKafkaBroker) {
+        ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory(embeddedKafkaBroker.getBrokersAsString()));
         return factory;
     }
