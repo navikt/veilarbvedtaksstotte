@@ -9,8 +9,8 @@ import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
 
-import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
+import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
 
 public class VedtakServiceValiderUtkastForUtsendingTest {
@@ -21,7 +21,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
     private static VedtakService vedtakService = new VedtakService(
             null, null,null,
             null, null, null,null,null,null,null,
-            null, null
+            null, null, null
     );
 
     @Test

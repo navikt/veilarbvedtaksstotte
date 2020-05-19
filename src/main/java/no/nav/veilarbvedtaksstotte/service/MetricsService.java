@@ -56,6 +56,11 @@ public class MetricsService {
         return ldt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
+    public void rapporterSendDokument() {
+        // Brukes sammen med metrikker for sendte vedtak for å verfisere at antall dokumenter opprettet er lik antall vedtak sendt
+        influxClient.report(createMetricEvent("send-dokument"));
+    }
+
     public void rapporterVedtakSendt(Vedtak vedtak) {
         Event event = createMetricEvent("vedtak-sendt");
         long utkastOpprettetMillis = localDateTimeToMillis(vedtak.getUtkastOpprettet());

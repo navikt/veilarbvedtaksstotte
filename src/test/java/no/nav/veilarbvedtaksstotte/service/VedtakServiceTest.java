@@ -72,6 +72,7 @@ public class VedtakServiceTest {
     private static VeilarbPep veilarbPep = mock(VeilarbPep.class);
     private static ArenaClient arenaClient = mock(ArenaClient.class);
     private static AbacClient abacClient = mock(AbacClient.class);
+    private static MetricsService metricsService = mock(MetricsService.class);
 
     private static String CV_DATA = "{\"cv\": \"cv\"}";
     private static String REGISTRERING_DATA = "{\"registrering\": \"registrering\"}";
@@ -102,7 +103,7 @@ public class VedtakServiceTest {
                 veilederService,
                 malTypeService,
                 vedtakStatusEndringService,
-                transactor
+                metricsService, transactor
         );
     }
 

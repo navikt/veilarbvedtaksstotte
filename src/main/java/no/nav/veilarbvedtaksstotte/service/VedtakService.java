@@ -37,6 +37,7 @@ public class VedtakService {
     private final VeilederService veilederService;
     private final MalTypeService malTypeService;
     private final VedtakStatusEndringService vedtakStatusEndringService;
+    private final MetricsService metricsService;
     private final TransactionTemplate transactor;
 
     @Autowired
@@ -52,6 +53,7 @@ public class VedtakService {
             VeilederService veilederService,
             MalTypeService malTypeService,
             VedtakStatusEndringService vedtakStatusEndringService,
+            MetricsService metricsService,
             TransactionTemplate transactor
     ) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
@@ -65,6 +67,7 @@ public class VedtakService {
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
         this.vedtakStatusEndringService = vedtakStatusEndringService;
+        this.metricsService = metricsService;
         this.transactor = transactor;
     }
 
@@ -101,16 +104,14 @@ public class VedtakService {
     private DokumentSendtDTO sendDokument(Vedtak vedtak, String fnr) {
         // Oppdaterer vedtak til "sender" tilstand for å redusere risiko for dupliserte utsendelser av dokument.
         vedtaksstotteRepository.oppdaterSender(vedtak.getId(), true);
-        DokumentSendtDTO dokumentSendt;
         try {
+            metricsService.rapporterSendDokument();
             SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, fnr);
-
-            dokumentSendt = dokumentClient.sendDokument(sendDokumentDTO);
+            return dokumentClient.sendDokument(sendDokumentDTO);
         } catch (Exception e) {
             vedtaksstotteRepository.oppdaterSender(vedtak.getId(), false);
             throw e;
         }
-        return dokumentSendt;
     }
 
     public void lagUtkast(String fnr) {
