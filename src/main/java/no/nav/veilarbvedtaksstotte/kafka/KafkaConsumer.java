@@ -15,36 +15,36 @@ import static no.nav.common.json.JsonUtils.fromJson;
 @Component
 public class KafkaConsumer {
 
-    private final KafkaTopicProperties kafkaTopicProperties;
+    private final KafkaTopics kafkaTopics;
 
     private final VedtakService vedtakService;
 
     @Autowired
-    public KafkaConsumer(KafkaTopicProperties kafkaTopicProperties, VedtakService vedtakService) {
-        this.kafkaTopicProperties = kafkaTopicProperties;
+    public KafkaConsumer(KafkaTopics kafkaTopics, VedtakService vedtakService) {
+        this.kafkaTopics = kafkaTopics;
         this.vedtakService = vedtakService;
     }
 
-    @KafkaListener(topics = "#{kafkaTopicProperties.getEndringPaAvsluttOppfolging()}")
+    @KafkaListener(topics = "#{kafkaTopics.getEndringPaAvsluttOppfolging()}")
     public void consumeEndringPaAvsluttOppfolging(@Payload String kafkaMelding) {
         try {
             KafkaAvsluttOppfolging melding = fromJson(kafkaMelding, KafkaAvsluttOppfolging.class);
-            log.info("Leser melding for aktorId:" + melding.getAktorId() + " på topic: " + kafkaTopicProperties.getEndringPaAvsluttOppfolging());
+            log.info("Leser melding for aktorId:" + melding.getAktorId() + " på topic: " + kafkaTopics.getEndringPaAvsluttOppfolging());
             vedtakService.behandleAvsluttOppfolging(melding);
         } catch (Throwable t) {
-            log.error("Feilet ved behandling av kafka-melding fra topic " + kafkaTopicProperties.getEndringPaAvsluttOppfolging(), t);
+            log.error("Feilet ved behandling av kafka-melding fra topic " + kafkaTopics.getEndringPaAvsluttOppfolging(), t);
         }
     }
 
 
-    @KafkaListener(topics = "#{kafkaTopicProperties.getEndringPaOppfolgingBruker()}")
+    @KafkaListener(topics = "#{kafkaTopics.getEndringPaOppfolgingBruker()}")
     public void consumeEndringPaOppfolgingBruker(@Payload String kafkaMelding) {
         try {
             KafkaOppfolgingsbrukerEndring melding = fromJson(kafkaMelding, KafkaOppfolgingsbrukerEndring.class);
-            log.info("Leser melding for aktorId:" + melding.getAktorId() + " på topic: " + kafkaTopicProperties.getEndringPaOppfolgingBruker());
+            log.info("Leser melding for aktorId:" + melding.getAktorId() + " på topic: " + kafkaTopics.getEndringPaOppfolgingBruker());
             vedtakService.behandleOppfolgingsbrukerEndring(melding);
         } catch (Throwable t) {
-            log.error("Feilet ved behandling av kafka-melding fra topic " + kafkaTopicProperties.getEndringPaOppfolgingBruker(), t);
+            log.error("Feilet ved behandling av kafka-melding fra topic " + kafkaTopics.getEndringPaOppfolgingBruker(), t);
         }
     }
 

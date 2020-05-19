@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
@@ -21,6 +22,7 @@ import org.springframework.kafka.support.LoggingProducerListener;
 
 import java.util.HashMap;
 
+import static no.nav.veilarbvedtaksstotte.utils.KafkaUtils.requireKafkaTopicPrefix;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 
 @EnableKafka
@@ -38,6 +40,11 @@ public class KafkaConfig {
     public KafkaConfig(KafkaHelsesjekk kafkaHelsesjekk, Credentials serviceUserCredentials) {
         this.kafkaHelsesjekk = kafkaHelsesjekk;
         this.serviceUserCredentials = serviceUserCredentials;
+    }
+
+    @Bean
+    public KafkaTopics kafkaTopics() {
+        return KafkaTopics.create(requireKafkaTopicPrefix());
     }
 
     @Bean

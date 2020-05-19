@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.config;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaConsumer;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaTopicProperties;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -36,16 +36,16 @@ import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_
 })
 public class KafkaTestConfig {
 
-    private final KafkaTopicProperties kafkaTopicProperties;
+    private final KafkaTopics kafkaTopics;
 
     @Autowired
-    public KafkaTestConfig(KafkaTopicProperties kafkaTopicProperties) {
-        this.kafkaTopicProperties = kafkaTopicProperties;
+    public KafkaTestConfig(KafkaTopics kafkaTopics) {
+        this.kafkaTopics = kafkaTopics;
     }
 
     @Bean
     public EmbeddedKafkaBroker embeddedKafkaBroker() {
-        EmbeddedKafkaBroker embeddedKafkaBroker = new EmbeddedKafkaBroker(1, true, kafkaTopicProperties.getAllTopics());
+        EmbeddedKafkaBroker embeddedKafkaBroker = new EmbeddedKafkaBroker(1, true, kafkaTopics.getAllTopics());
         return embeddedKafkaBroker;
     }
 

@@ -5,7 +5,7 @@ import no.nav.common.abac.Pep;
 import no.nav.common.aktorregisterklient.AktorregisterKlient;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.utils.Credentials;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaTopicProperties;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
 import no.nav.veilarbvedtaksstotte.mock.AktorregisterKlientMock;
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock;
@@ -23,7 +23,7 @@ import javax.sql.DataSource;
 
 
 @Configuration
-@EnableConfigurationProperties({EnvironmentProperties.class,  KafkaTopicProperties.class})
+@EnableConfigurationProperties({EnvironmentProperties.class})
 @Import({
         SwaggerConfig.class,
         ClientTestConfig.class,
@@ -36,14 +36,8 @@ import javax.sql.DataSource;
 public class ApplicationTestConfig {
 
     @Bean
-    public KafkaTopicProperties kafkaTopicProperties() {
-        KafkaTopicProperties props = new KafkaTopicProperties();
-        props.setEndringPaAvsluttOppfolging("test1");
-        props.setEndringPaOppfolgingBruker("test2");
-        props.setVedtakSendt("test3");
-        props.setVedtakStatusEndring("test4");
-
-        return props;
+    public KafkaTopics kafkaTopics() {
+        return KafkaTopics.create("local");
     }
 
     @Bean

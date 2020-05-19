@@ -43,6 +43,3 @@ spec:
         mountPath: /var/run/secrets/nais.io/vault
   envFrom:
     - configmap: pto-config
-  env:
-    - name: SPRING_PROFILES_ACTIVE
-      value: prod

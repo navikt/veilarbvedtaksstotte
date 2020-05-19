@@ -31,11 +31,14 @@ public class AvsluttOppfolgingConsumerTest {
     @Autowired
     KafkaTemplate<String, String> kafkaTemplate;
 
+    @Autowired
+    KafkaTopics kafkaTopics;
+
     @Test
     public void meldinger_for_avslutt_oppfolging_blir_konsumert() {
         KafkaAvsluttOppfolging melding = new KafkaAvsluttOppfolging("1", new Date());
 
-        kafkaTemplate.send("aapen-fo-endringPaaAvsluttOppfolging", toJson(melding));
+        kafkaTemplate.send(kafkaTopics.getEndringPaAvsluttOppfolging(), toJson(melding));
 
         verifiserAsynkront(10, TimeUnit.SECONDS, () ->
                 verify(vedtakService).behandleAvsluttOppfolging(eq(melding))

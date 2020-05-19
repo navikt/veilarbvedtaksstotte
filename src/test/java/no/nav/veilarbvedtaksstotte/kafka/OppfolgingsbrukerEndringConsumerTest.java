@@ -30,11 +30,14 @@ public class OppfolgingsbrukerEndringConsumerTest {
     @Autowired
     KafkaTemplate<String, String> kafkaTemplate;
 
+    @Autowired
+    KafkaTopics kafkaTopics;
+
     @Test
     public void meldinger_for_endret_oppfolgingsbruker_blir_konsumert() {
         KafkaOppfolgingsbrukerEndring melding = new KafkaOppfolgingsbrukerEndring("1", "2");
 
-        kafkaTemplate.send("aapen-fo-endringPaaOppfoelgingsBruker", toJson(melding));
+        kafkaTemplate.send(kafkaTopics.getEndringPaOppfolgingBruker(), toJson(melding));
 
         verifiserAsynkront(10, TimeUnit.SECONDS, () ->
                 verify(vedtakService).behandleOppfolgingsbrukerEndring(eq(melding))
