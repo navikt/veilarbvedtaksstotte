@@ -2,12 +2,12 @@ package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
-import no.nav.common.aktorregisterklient.AktorregisterKlient;
+import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
-import no.nav.veilarbvedtaksstotte.mock.AktorregisterKlientMock;
+import no.nav.veilarbvedtaksstotte.mock.AktorregisterClientMock;
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock;
 import no.nav.veilarbvedtaksstotte.mock.PepMock;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
@@ -46,8 +46,8 @@ public class ApplicationTestConfig {
     }
 
     @Bean
-    public AktorregisterKlient aktorregisterKlient() {
-        return new AktorregisterKlientMock();
+    public AktorregisterClient aktorregisterClient() {
+        return new AktorregisterClientMock();
     }
 
     @Bean

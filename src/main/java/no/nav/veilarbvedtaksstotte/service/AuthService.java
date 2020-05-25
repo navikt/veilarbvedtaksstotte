@@ -10,8 +10,8 @@ import no.nav.common.abac.domain.request.*;
 import no.nav.common.abac.domain.response.Category;
 import no.nav.common.abac.domain.response.Decision;
 import no.nav.common.abac.domain.response.XacmlResponse;
-import no.nav.common.aktorregisterklient.AktorregisterKlient;
 import no.nav.common.auth.subject.SubjectHandler;
+import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.client.api.ArenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
@@ -31,19 +31,19 @@ import static no.nav.common.auth.subject.IdentType.InternBruker;
 @Service
 public class AuthService {
 
-    private final AktorregisterKlient aktorregisterKlient;
+    private final AktorregisterClient aktorregisterClient;
     private final Pep veilarbPep;
     private final ArenaClient arenaClient;
     private final AbacClient abacClient;
     private final Credentials serviceUserCredentials;
 
     @Autowired
-    public AuthService(AktorregisterKlient aktorregisterKlient,
+    public AuthService(AktorregisterClient aktorregisterClient,
                        Pep veilarbPep,
                        ArenaClient arenaClient,
                        AbacClient abacClient,
                        Credentials serviceUserCredentials) {
-        this.aktorregisterKlient = aktorregisterKlient;
+        this.aktorregisterClient = aktorregisterClient;
         this.veilarbPep = veilarbPep;
         this.arenaClient = arenaClient;
         this.abacClient = abacClient;
@@ -53,7 +53,7 @@ public class AuthService {
     public AuthKontekst sjekkTilgang(String fnr) {
         sjekkInternBruker();
 
-        String aktorId = aktorregisterKlient.hentAktorId(fnr);
+        String aktorId = aktorregisterClient.hentAktorId(fnr);
 
         veilarbPep.sjekkVeilederTilgangTilBruker(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId));
         String enhet = sjekkTilgangTilEnhet(fnr);
@@ -71,7 +71,7 @@ public class AuthService {
     }
 
     public String getFnrOrThrow(String aktorId) {
-        return aktorregisterKlient.hentFnr(aktorId);
+        return aktorregisterClient.hentFnr(aktorId);
     }
 
     public void sjekkAnsvarligVeileder(Vedtak vedtak) {

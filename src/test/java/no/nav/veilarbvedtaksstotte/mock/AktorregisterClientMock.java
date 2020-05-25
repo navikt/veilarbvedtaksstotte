@@ -1,7 +1,8 @@
 package no.nav.veilarbvedtaksstotte.mock;
 
-import no.nav.common.aktorregisterklient.AktorregisterKlient;
-import no.nav.common.aktorregisterklient.IdentOppslag;
+import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.client.aktorregister.IdentOppslag;
+import no.nav.common.health.HealthCheckResult;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,7 +10,7 @@ import java.util.stream.Collectors;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 
-public class AktorregisterKlientMock implements AktorregisterKlient {
+public class AktorregisterClientMock implements AktorregisterClient {
 
     @Override
     public String hentFnr(String aktorId) {
@@ -35,4 +36,8 @@ public class AktorregisterKlientMock implements AktorregisterKlient {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public HealthCheckResult checkHealth() {
+        return HealthCheckResult.healthy();
+    }
 }

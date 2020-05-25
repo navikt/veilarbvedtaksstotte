@@ -2,11 +2,11 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.VeilarbPep;
-import no.nav.common.aktorregisterklient.AktorregisterKlient;
 import no.nav.common.auth.subject.IdentType;
 import no.nav.common.auth.subject.SsoToken;
 import no.nav.common.auth.subject.Subject;
 import no.nav.common.auth.subject.SubjectHandler;
+import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.veilarbvedtaksstotte.client.api.*;
 import no.nav.veilarbvedtaksstotte.domain.*;
@@ -68,7 +68,7 @@ public class VedtakServiceTest {
     private static KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
     private static DokumentClient dokumentClient = mock(DokumentClient.class);
     private static VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
-    private static AktorregisterKlient aktorregisterKlient = mock(AktorregisterKlient.class);
+    private static AktorregisterClient aktorregisterClient = mock(AktorregisterClient.class);
     private static VeilarbPep veilarbPep = mock(VeilarbPep.class);
     private static ArenaClient arenaClient = mock(ArenaClient.class);
     private static AbacClient abacClient = mock(AbacClient.class);
@@ -88,7 +88,7 @@ public class VedtakServiceTest {
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
-        authService = spy(new AuthService(aktorregisterKlient, veilarbPep, arenaClient, abacClient, null));
+        authService = spy(new AuthService(aktorregisterClient, veilarbPep, arenaClient, abacClient, null));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, pamCvClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         vedtakService = new VedtakService(
@@ -120,7 +120,7 @@ public class VedtakServiceTest {
         when(pamCvClient.hentCV(TEST_FNR)).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
-        when(aktorregisterKlient.hentAktorId(TEST_FNR)).thenReturn(TEST_AKTOR_ID);
+        when(aktorregisterClient.hentAktorId(TEST_FNR)).thenReturn(TEST_AKTOR_ID);
         when(arenaClient.oppfolgingsenhet(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSENHET_ID);
     }
 

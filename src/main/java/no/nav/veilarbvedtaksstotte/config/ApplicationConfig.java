@@ -2,9 +2,9 @@ package no.nav.veilarbvedtaksstotte.config;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.abac.*;
-import no.nav.common.aktorregisterklient.AktorregisterHttpKlient;
-import no.nav.common.aktorregisterklient.AktorregisterKlient;
-import no.nav.common.aktorregisterklient.CachedAktorregisterKlient;
+import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.client.aktorregister.AktorregisterHttpClient;
+import no.nav.common.client.aktorregister.CachedAktorregisterClient;
 import no.nav.common.featuretoggle.UnleashService;
 import no.nav.common.metrics.InfluxClient;
 import no.nav.common.metrics.MetricsClient;
@@ -49,11 +49,11 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public AktorregisterKlient aktorregisterKlient(EnvironmentProperties properties, SystemUserTokenProvider tokenProvider) {
-        AktorregisterKlient aktorregisterKlient = new AktorregisterHttpKlient(
+    public AktorregisterClient aktorregisterClient(EnvironmentProperties properties, SystemUserTokenProvider tokenProvider) {
+        AktorregisterClient aktorregisterClient = new AktorregisterHttpClient(
                 properties.getAktorregisterUrl(), APPLICATION_NAME, tokenProvider::getSystemUserToken
         );
-        return new CachedAktorregisterKlient(aktorregisterKlient);
+        return new CachedAktorregisterClient(aktorregisterClient);
     }
 
     @Bean

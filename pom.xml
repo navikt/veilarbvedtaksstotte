@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <common.version>2.2020.05.13_14.46-9bafc245bcc7</common.version>
+        <common.version>2.2020.05.20_13.07-ca02e035a457</common.version>
         <springfox.version>2.9.2</springfox.version>
     </properties>
 
@@ -137,7 +137,7 @@
         </dependency>
         <dependency>
             <groupId>no.nav.common</groupId>
-            <artifactId>aktorregister-klient</artifactId>
+            <artifactId>client</artifactId>
             <version>${common.version}</version>
         </dependency>
         <dependency>
