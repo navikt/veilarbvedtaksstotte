@@ -6,6 +6,8 @@ import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.client.aktorregister.AktorregisterHttpClient;
 import no.nav.common.client.aktorregister.CachedAktorregisterClient;
 import no.nav.common.featuretoggle.UnleashService;
+import no.nav.common.leaderelection.LeaderElectionClient;
+import no.nav.common.leaderelection.LeaderElectionHttpClient;
 import no.nav.common.metrics.InfluxClient;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.metrics.SensuConfig;
@@ -40,7 +42,12 @@ public class ApplicationConfig {
 
     @Bean
     public MetricsClient influxMetricsClient() {
-        return new InfluxClient(SensuConfig.resolveNaisConfig());
+        return new InfluxClient(SensuConfig.defaultConfig());
+    }
+
+    @Bean
+    public LeaderElectionClient leaderElectionClient() {
+        return new LeaderElectionHttpClient();
     }
 
     @Bean
