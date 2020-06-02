@@ -52,7 +52,7 @@ public class KafkaProducer {
         kafkaTemplate.send(topic, key, jsonPayload)
                 .addCallback(
                         sendResult -> onSuccess(topic, key),
-                        throwable -> onError(topic, key, throwable)
+                        throwable -> onError(kafkaTopic, key, jsonPayload, throwable)
                 );
     }
 
@@ -71,8 +71,9 @@ public class KafkaProducer {
         log.info(format("Publiserte melding på topic %s med key %s", topic, key));
     }
 
-    private void onError(String topic, String key, Throwable throwable) {
-        log.error(format("Kunne ikke publisere melding på topic %s med key %s \nERROR: %s", topic, key, throwable));
+    private void onError(KafkaTopic topic, String key, String jsonPayload, Throwable throwable) {
+        log.error(format("Kunne ikke publisere melding på topic %s med key %s \nERROR: %s", kafkaTopicToStr(topic), key, throwable));
+        kafkaRepository.lagreFeiletKafkaMelding(topic, key, jsonPayload);
     }
 
     private void onSuccessTidligereFeilet(FeiletKafkaMelding feiletKafkaMelding) {
@@ -87,10 +88,8 @@ public class KafkaProducer {
         KafkaTopic kafkaTopic = feiletKafkaMelding.getTopic();
         String topic = kafkaTopicToStr(kafkaTopic);
         String key = feiletKafkaMelding.getKey();
-        String jsonPayload = feiletKafkaMelding.getJsonPayload();
 
         log.error(format("Kunne ikke publisere tidligere feilet melding på topic %s med key %s \nERROR: %s", topic, key, throwable));
-        kafkaRepository.lagreFeiletKafkaMelding(kafkaTopic, key, jsonPayload);
     }
 
 }
