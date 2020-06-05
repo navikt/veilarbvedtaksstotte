@@ -1,0 +1,14 @@
+package no.nav.veilarbvedtaksstotte.domain.enums;
+
+public enum VedtakStatusEndring {
+    UTKAST_OPPRETTET,
+    UTKAST_SLETTET,
+    VEDTAK_SENDT,
+    BESLUTTER_PROSESS_STARTET,
+    BLI_BESLUTTER,
+    OVERTA_FOR_BESLUTTER,
+    OVERTA_FOR_VEILEDER,
+    GODKJENT_AV_BESLUTTER,
+    KLAR_TIL_BESLUTTER,
+    KLAR_TIL_VEILEDER
+}

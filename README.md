@@ -13,7 +13,7 @@ mvn clean install
 mvn test
 
 # starte
-# Kjør main-metoden i Main.java
-# For lokal test kjøring kjør MainTest.java
+# Kjør main-metoden i no.nav.veilarbvedtaksstotte.VeilarbvedtaksstotteApp.java
+# For lokal test kjøring kjør no.nav.veilarbvedtaksstotte.VeilarbvedtaksstotteTestApp.java
 # For å kjøre lokalt så husk å starte docker tjenestene først med "docker-compose up -d"
 ```

@@ -1,0 +1,28 @@
+{
+  "data": {
+    "dokumentoversiktBruker": {
+      "journalposter": [
+        {
+          "journalpostId": "212934817",
+          "tittel": "Brev: Oppfølgingsvedtak (§14a)",
+          "dokumenter": [
+            {
+              "datoFerdigstilt": "2016-10-31T16:37:32",
+              "dokumentInfoId": "417324785"
+            }
+          ]
+        },
+        {
+          "journalpostId": "1133493487",
+          "tittel": "Brev: Oppfølgingsvedtak (§14a)",
+          "dokumenter": [
+            {
+              "datoFerdigstilt": "2018-11-24T12:34:12",
+              "dokumentInfoId": "31235785"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

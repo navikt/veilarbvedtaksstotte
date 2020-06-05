@@ -16,7 +16,7 @@ spec:
     - https://veilarbvedtaksstotte-{{namespace}}.nais.preprod.local
   prometheus:
     enabled: true
-    path: veilarbvedtaksstotte/internal/metrics
+    path: veilarbvedtaksstotte/internal/prometheus
   readiness:
     path: veilarbvedtaksstotte/internal/isReady
     initialDelay: 30
