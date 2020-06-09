@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client;
 import lombok.SneakyThrows;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
+import no.nav.common.json.JsonUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.veilarbvedtaksstotte.client.api.OppfolgingClient;
@@ -52,7 +53,9 @@ public class OppfolgingClientImpl implements OppfolgingClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), OppfolgingDTO.class);
+            return RestUtils.getBodyStr(response.body())
+                    .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingDTO.class))
+                    .orElseThrow(() -> new IllegalStateException("Unable to parse json"));
         }
     }
 
