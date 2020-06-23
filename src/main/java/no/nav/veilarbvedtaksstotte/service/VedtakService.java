@@ -219,12 +219,12 @@ public class VedtakService {
 
     public byte[] hentVedtakPdf(long vedtakId, String dokumentInfoId, String journalpostId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        authService.sjekkTilgangTilAktorId(vedtak.getAktorId());
 
         if (vedtak.getVedtakStatus() != VedtakStatus.SENDT) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vedtak er ikke sendt");
         }
 
-        authService.sjekkTilgangTilAktorId(vedtak.getAktorId());
         return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
     }
 

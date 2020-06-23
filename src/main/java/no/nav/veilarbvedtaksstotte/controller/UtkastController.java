@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
 import no.nav.veilarbvedtaksstotte.domain.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.domain.LagUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.VedtakDTO;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
@@ -26,8 +27,8 @@ public class UtkastController {
     }
 
     @PostMapping
-    public void lagUtkast(@RequestParam("fnr") String fnr) {
-        vedtakService.lagUtkast(fnr);
+    public void lagUtkast(LagUtkastDTO lagUtkastDTO) {
+        vedtakService.lagUtkast(lagUtkastDTO.getFnr());
     }
 
     @PostMapping("/{vedtakId}/fattVedtak")
