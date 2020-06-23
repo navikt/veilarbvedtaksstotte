@@ -38,25 +38,26 @@ public class MeldingService {
         this.metricsService = metricsService;
     }
 
-    public void opprettBrukerDialogMelding(String fnr, String melding) {
-        String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
-        String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
-        Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
-        meldingRepository.opprettDialogMelding(vedtak.getId(), innloggetVeilederIdent, melding);
+    public void opprettBrukerDialogMelding(long vedtakId, String melding) {
+        Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+        authService.sjekkTilgangTilAktorId(utkast.getAktorId());
 
-        if (erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
+        String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
+        meldingRepository.opprettDialogMelding(utkast.getId(), innloggetVeilederIdent, melding);
+
+        if (erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
             metricsService.repporterDialogMeldingSendtAvVeilederOgBeslutter(melding, "beslutter");
-        } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, vedtak)) {
+        } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, utkast)) {
             metricsService.repporterDialogMeldingSendtAvVeilederOgBeslutter(melding, "veileder");
         }
     }
 
-    public List<MeldingDTO> hentMeldinger(String fnr) {
-        String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
-        Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+    public List<MeldingDTO> hentMeldinger(long vedtakId) {
+        Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+        authService.sjekkTilgangTilAktorId(utkast.getAktorId());
 
-        List<DialogMeldingDTO> dialogMeldinger = hentDialogMeldinger(vedtak.getId());
-        List<SystemMeldingDTO> systemMeldinger = hentSystemMeldinger(vedtak.getId());
+        List<DialogMeldingDTO> dialogMeldinger = hentDialogMeldinger(utkast.getId());
+        List<SystemMeldingDTO> systemMeldinger = hentSystemMeldinger(utkast.getId());
 
         return Stream.concat(dialogMeldinger.stream(), systemMeldinger.stream())
                 .collect(Collectors.toList());

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/{fnr}/meldinger")
+@RequestMapping("/api/meldinger")
 public class MeldingController {
 
     private final MeldingService meldingService;
@@ -20,13 +20,13 @@ public class MeldingController {
     }
 
     @GetMapping
-    public List<MeldingDTO> hentDialogMeldinger(@PathVariable("fnr") String fnr) {
-        return meldingService.hentMeldinger(fnr);
+    public List<MeldingDTO> hentDialogMeldinger(@RequestParam("vedtakId") long vedtakId) {
+        return meldingService.hentMeldinger(vedtakId);
     }
 
     @PostMapping
-    public void opprettDialogMelding(@PathVariable("fnr") String fnr, @RequestBody OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
-        meldingService.opprettBrukerDialogMelding(fnr, opprettDialogMeldingDTO.getMelding());
+    public void opprettDialogMelding(@RequestParam("vedtakId") long vedtakId, @RequestBody OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
+        meldingService.opprettBrukerDialogMelding(vedtakId, opprettDialogMeldingDTO.getMelding());
     }
 
 }
