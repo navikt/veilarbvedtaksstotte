@@ -39,7 +39,7 @@ public class MeldingService {
     }
 
     public void opprettBrukerDialogMelding(String fnr, String melding) {
-        String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+        String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
         meldingRepository.opprettDialogMelding(vedtak.getId(), innloggetVeilederIdent, melding);
@@ -52,7 +52,7 @@ public class MeldingService {
     }
 
     public List<MeldingDTO> hentMeldinger(String fnr) {
-        String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+        String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
 
         List<DialogMeldingDTO> dialogMeldinger = hentDialogMeldinger(vedtak.getId());

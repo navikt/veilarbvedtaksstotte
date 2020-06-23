@@ -59,7 +59,7 @@ public class BeslutterService {
 	}
 
 	public void startBeslutterProsess(String fnr) {
-		String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+		String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
 		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
 
 		authService.sjekkAnsvarligVeileder(vedtak);
@@ -79,7 +79,7 @@ public class BeslutterService {
 	}
 
 	public void bliBeslutter(String fnr) {
-		String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+		String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
 		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
 		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
@@ -108,7 +108,7 @@ public class BeslutterService {
 	}
 
     public void setGodkjentAvBeslutter(String fnr) {
-        String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+        String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
@@ -127,7 +127,7 @@ public class BeslutterService {
     }
 
 	public void oppdaterBeslutterProsessStatus(String fnr) {
-		String aktorId = authService.sjekkTilgang(fnr).getAktorId();
+		String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
 		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
 		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         BeslutterProsessStatus nyStatus;

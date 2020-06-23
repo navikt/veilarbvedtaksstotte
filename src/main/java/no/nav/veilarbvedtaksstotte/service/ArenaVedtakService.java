@@ -26,7 +26,7 @@ public class ArenaVedtakService {
     }
 
     public List<ArkivertVedtak> hentVedtakFraArena(String fnr) {
-        authService.sjekkTilgang(fnr);
+        authService.sjekkTilgangTilFnr(fnr);
         return hentArkiverteVedtakFraArena(fnr);
     }
 

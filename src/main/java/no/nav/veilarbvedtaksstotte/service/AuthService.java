@@ -38,11 +38,13 @@ public class AuthService {
     private final Credentials serviceUserCredentials;
 
     @Autowired
-    public AuthService(AktorregisterClient aktorregisterClient,
-                       Pep veilarbPep,
-                       ArenaClient arenaClient,
-                       AbacClient abacClient,
-                       Credentials serviceUserCredentials) {
+    public AuthService(
+            AktorregisterClient aktorregisterClient,
+            Pep veilarbPep,
+            ArenaClient arenaClient,
+            AbacClient abacClient,
+            Credentials serviceUserCredentials
+    ) {
         this.aktorregisterClient = aktorregisterClient;
         this.veilarbPep = veilarbPep;
         this.arenaClient = arenaClient;
@@ -50,10 +52,24 @@ public class AuthService {
         this.serviceUserCredentials = serviceUserCredentials;
     }
 
-    public AuthKontekst sjekkTilgang(String fnr) {
+    public AuthKontekst sjekkTilgangTilFnr(String fnr) {
         sjekkInternBruker();
 
         String aktorId = aktorregisterClient.hentAktorId(fnr);
+
+        veilarbPep.sjekkVeilederTilgangTilBruker(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId));
+        String enhet = sjekkTilgangTilEnhet(fnr);
+
+        return new AuthKontekst()
+                .setFnr(fnr)
+                .setAktorId(aktorId)
+                .setOppfolgingsenhet(enhet);
+    }
+
+    public AuthKontekst sjekkTilgangTilAktorId(String aktorId) {
+        sjekkInternBruker();
+
+        String fnr = aktorregisterClient.hentFnr(aktorId);
 
         veilarbPep.sjekkVeilederTilgangTilBruker(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId));
         String enhet = sjekkTilgangTilEnhet(fnr);

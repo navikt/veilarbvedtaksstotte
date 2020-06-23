@@ -101,7 +101,7 @@ public class MetricsService {
      */
     private long finnTidFraRegistreringStartet(String aktorId, String fnr) {
         try {
-            List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentVedtak(aktorId);
+            List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId);
             RegistreringData registreringData = registreringClient.hentRegistreringData(fnr);
             List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingData(fnr).getOppfolgingsPerioder();
             Optional<LocalDateTime> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);

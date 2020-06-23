@@ -28,7 +28,7 @@ public class BeslutteroversiktRepositoryTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
     }
 
     @Before

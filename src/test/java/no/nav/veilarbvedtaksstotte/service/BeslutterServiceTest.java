@@ -44,7 +44,7 @@ public class BeslutterServiceTest {
     @Before
     public void setup() {
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
-        doReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID)).when(authService).sjekkTilgang(anyString());
+        doReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID)).when(authService).sjekkTilgangTilFnr(anyString());
         doReturn(TEST_FNR).when(authService).getFnrOrThrow(TEST_AKTOR_ID);
 
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn("VEILEDER"));
@@ -60,7 +60,7 @@ public class BeslutterServiceTest {
                 .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .setVeilederIdent(TEST_VEILEDER_IDENT);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
         beslutterService.startBeslutterProsess(TEST_FNR);
@@ -74,7 +74,7 @@ public class BeslutterServiceTest {
         vedtak.setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
         vedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
         assertThrows(ResponseStatusException.class, () ->  beslutterService.startBeslutterProsess(TEST_FNR));
@@ -85,7 +85,7 @@ public class BeslutterServiceTest {
         Vedtak vedtak = new Vedtak();
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
         assertThrows(ResponseStatusException.class, () -> beslutterService.startBeslutterProsess(TEST_FNR));
@@ -99,7 +99,7 @@ public class BeslutterServiceTest {
                 .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .setVeilederIdent(TEST_VEILEDER_IDENT);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
         beslutterService.startBeslutterProsess(TEST_FNR);
@@ -113,7 +113,7 @@ public class BeslutterServiceTest {
         Vedtak vedtak = new Vedtak();
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -128,7 +128,7 @@ public class BeslutterServiceTest {
         vedtak.setVeilederIdent(TEST_VEILEDER_IDENT);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -141,7 +141,7 @@ public class BeslutterServiceTest {
         vedtak.setBeslutterIdent(TEST_VEILEDER_IDENT);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -153,7 +153,7 @@ public class BeslutterServiceTest {
         Vedtak vedtak = new Vedtak();
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -169,7 +169,7 @@ public class BeslutterServiceTest {
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         vedtak.setBeslutterIdent("TIDLIGERE BESLUTTER IDENT");
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -185,7 +185,7 @@ public class BeslutterServiceTest {
         vedtak.setBeslutterIdent(TEST_VEILEDER_IDENT);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -200,7 +200,7 @@ public class BeslutterServiceTest {
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -213,7 +213,7 @@ public class BeslutterServiceTest {
         vedtak.setBeslutterIdent(TEST_VEILEDER_IDENT);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -230,7 +230,7 @@ public class BeslutterServiceTest {
         vedtak.setVeilederIdent(TEST_VEILEDER_IDENT);
         vedtak.setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -246,7 +246,7 @@ public class BeslutterServiceTest {
         vedtak.setVeilederIdent(TEST_VEILEDER_IDENT);
         vedtak.setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -261,7 +261,7 @@ public class BeslutterServiceTest {
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
         vedtak.setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 
@@ -275,7 +275,7 @@ public class BeslutterServiceTest {
         vedtak.setVeilederIdent(TEST_VEILEDER_IDENT);
         vedtak.setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
 
-        when(authService.sjekkTilgang(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_IKKE_ANSVARLIG_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(TEST_AKTOR_ID)).thenReturn(vedtak);
 

@@ -24,7 +24,6 @@ public class VedtaksstotteRepositoryTest {
     private static JdbcTemplate db;
     private static TransactionTemplate transactor;
     private static KilderRepository kilderRepository;
-    private static MeldingRepository meldingRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
@@ -32,8 +31,7 @@ public class VedtaksstotteRepositoryTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        meldingRepository = new MeldingRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
     }
 
     @Before
@@ -97,7 +95,9 @@ public class VedtaksstotteRepositoryTest {
     public void testSlettUtkast() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
-        vedtaksstotteRepository.slettUtkast(TEST_AKTOR_ID);
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        vedtaksstotteRepository.slettUtkast(utkast.getId());
 
         assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
     }
