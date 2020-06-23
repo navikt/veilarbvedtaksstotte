@@ -90,7 +90,7 @@ public class AuthService {
         return aktorregisterClient.hentFnr(aktorId);
     }
 
-    public void sjekkAnsvarligVeileder(Vedtak vedtak) {
+    public void sjekkErAnsvarligVeilederFor(Vedtak vedtak) {
         if (!vedtak.getVeilederIdent().equals(getInnloggetVeilederIdent())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke ansvarlig veileder.");
         }

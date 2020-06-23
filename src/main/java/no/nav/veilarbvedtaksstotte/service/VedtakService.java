@@ -76,7 +76,7 @@ public class VedtakService {
     public DokumentSendtDTO fattVedtak(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         AuthKontekst authKontekst = authService.sjekkTilgangTilAktorId(utkast.getAktorId());
-        authService.sjekkAnsvarligVeileder(utkast);
+        authService.sjekkErAnsvarligVeilederFor(utkast);
 
         flettInnVedtakInformasjon(utkast);
 
@@ -143,7 +143,7 @@ public class VedtakService {
     public void oppdaterUtkast(long vedtakId, VedtakDTO vedtakDTO) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilAktorId(utkast.getAktorId());
-        authService.sjekkAnsvarligVeileder(utkast);
+        authService.sjekkErAnsvarligVeilederFor(utkast);
 
         oppdaterUtkastFraDto(utkast, vedtakDTO);
 
@@ -181,7 +181,7 @@ public class VedtakService {
     public void slettUtkast(String aktorId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
         long utkastId = utkast.getId();
-        authService.sjekkAnsvarligVeileder(utkast);
+        authService.sjekkErAnsvarligVeilederFor(utkast);
 
         transactor.executeWithoutResult((status) -> {
             meldingRepository.slettMeldinger(utkastId);

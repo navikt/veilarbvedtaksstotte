@@ -58,100 +58,102 @@ public class BeslutterService {
 		this.personClient = personClient;
 	}
 
-	public void startBeslutterProsess(String fnr) {
-		String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
-		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+	public void startBeslutterProsess(long vedtakId) {
+		Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+		authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+		authService.sjekkErAnsvarligVeilederFor(utkast);
 
-		authService.sjekkAnsvarligVeileder(vedtak);
-
-		if (!InnsatsgruppeUtils.skalHaBeslutter(vedtak.getInnsatsgruppe())) {
+		if (!InnsatsgruppeUtils.skalHaBeslutter(utkast.getInnsatsgruppe())) {
 		    throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-		if (erBeslutterProsessStartet(vedtak.getBeslutterProsessStatus())) {
+		if (erBeslutterProsessStartet(utkast.getBeslutterProsessStatus())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 		}
 
-		leggTilBrukerIBeslutterOversikt(vedtak);
-		vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
-		vedtakStatusEndringService.beslutterProsessStartet(vedtak);
-		meldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.BESLUTTER_PROSESS_STARTET, vedtak.getVeilederIdent());
+		leggTilBrukerIBeslutterOversikt(utkast);
+		vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
+		vedtakStatusEndringService.beslutterProsessStartet(utkast);
+		meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_PROSESS_STARTET, utkast.getVeilederIdent());
 	}
 
-	public void bliBeslutter(String fnr) {
-		String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
-		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+	public void bliBeslutter(long vedtakId) {
+		Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+		authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+
 		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
-		if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, vedtak)) {
+		if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, utkast)) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ansvarlig veileder kan ikke bli beslutter");
 		}
 
-		if (erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
+		if (erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 		}
 
-		vedtaksstotteRepository.setBeslutter(vedtak.getId(), innloggetVeilederIdent);
+		vedtaksstotteRepository.setBeslutter(utkast.getId(), innloggetVeilederIdent);
 
 		Veileder beslutter = veilederService.hentVeileder(innloggetVeilederIdent);
-		beslutteroversiktRepository.oppdaterBeslutter(vedtak.getId(), beslutter.getIdent(), beslutter.getNavn());
+		beslutteroversiktRepository.oppdaterBeslutter(utkast.getId(), beslutter.getIdent(), beslutter.getNavn());
 
-		if (vedtak.getBeslutterIdent() == null) {
-			beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
-			vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
-			vedtakStatusEndringService.blittBeslutter(vedtak, innloggetVeilederIdent);
-			meldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.BLITT_BESLUTTER, innloggetVeilederIdent);
+		if (utkast.getBeslutterIdent() == null) {
+			beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
+			vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
+			vedtakStatusEndringService.blittBeslutter(utkast, innloggetVeilederIdent);
+			meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BLITT_BESLUTTER, innloggetVeilederIdent);
 		} else {
-			vedtakStatusEndringService.tattOverForBeslutter(vedtak, innloggetVeilederIdent);
-			meldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.TATT_OVER_SOM_BESLUTTER, innloggetVeilederIdent);
+			vedtakStatusEndringService.tattOverForBeslutter(utkast, innloggetVeilederIdent);
+			meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_BESLUTTER, innloggetVeilederIdent);
 		}
 	}
 
-    public void setGodkjentAvBeslutter(String fnr) {
-        String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
-        Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+    public void setGodkjentAvBeslutter(long vedtakId) {
+	    Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+	    authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
-        if (!erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
+        if (!erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kun beslutter kan godkjenne vedtak");
         }
 
-        if (vedtak.getBeslutterProsessStatus() == BeslutterProsessStatus.GODKJENT_AV_BESLUTTER) {
+        if (utkast.getBeslutterProsessStatus() == BeslutterProsessStatus.GODKJENT_AV_BESLUTTER) {
 	        throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-		vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), BeslutterProsessStatus.GODKJENT_AV_BESLUTTER);
-        beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.GODKJENT_AV_BESLUTTER);
-        vedtakStatusEndringService.godkjentAvBeslutter(vedtak);
-        meldingRepository.opprettSystemMelding(vedtak.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);
+		vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.GODKJENT_AV_BESLUTTER);
+        beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.GODKJENT_AV_BESLUTTER);
+        vedtakStatusEndringService.godkjentAvBeslutter(utkast);
+        meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);
     }
 
-	public void oppdaterBeslutterProsessStatus(String fnr) {
-		String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
-		Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+	public void oppdaterBeslutterProsessStatus(long vedtakId) {
+		Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+		authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+
 		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         BeslutterProsessStatus nyStatus;
 
-		if (erBeslutterForVedtak(innloggetVeilederIdent, vedtak)) {
+		if (erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
 		    nyStatus = BeslutterProsessStatus.KLAR_TIL_VEILEDER;
-        } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, vedtak)) {
+        } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, utkast)) {
 		    nyStatus =  BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
         } else {
 		    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kun ansvarlig veileder eller beslutter kan sette beslutter prosess status");
         }
 
-		if (nyStatus == vedtak.getBeslutterProsessStatus()) {
+		if (nyStatus == utkast.getBeslutterProsessStatus()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vedtak har allerede beslutter prosess status " + EnumUtils.getName(nyStatus));
 		}
 
-		vedtaksstotteRepository.setBeslutterProsessStatus(vedtak.getId(), nyStatus);
+		vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), nyStatus);
 
 		if (nyStatus == BeslutterProsessStatus.KLAR_TIL_BESLUTTER) {
-			beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
-			vedtakStatusEndringService.klarTilBeslutter(vedtak);
+			beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
+			vedtakStatusEndringService.klarTilBeslutter(utkast);
 		} else {
-			beslutteroversiktRepository.oppdaterStatus(vedtak.getId(), BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
-			vedtakStatusEndringService.klarTilVeileder(vedtak);
+			beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
+			vedtakStatusEndringService.klarTilVeileder(utkast);
 		}
 	}
 
