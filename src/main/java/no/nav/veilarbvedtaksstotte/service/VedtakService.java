@@ -217,14 +217,8 @@ public class VedtakService {
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
     }
 
-    public byte[] hentVedtakPdf(long vedtakId, String dokumentInfoId, String journalpostId) {
-        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilAktorId(vedtak.getAktorId());
-
-        if (vedtak.getVedtakStatus() != VedtakStatus.SENDT) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vedtak er ikke sendt");
-        }
-
+    public byte[] hentVedtakPdf(String dokumentInfoId, String journalpostId) {
+        // Tilgangskontroll gjøres av SAF
         return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
     }
 

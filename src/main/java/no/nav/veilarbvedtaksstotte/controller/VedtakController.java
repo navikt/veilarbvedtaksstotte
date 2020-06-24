@@ -28,11 +28,9 @@ public class VedtakController {
         this.oyeblikksbildeService = oyeblikksbildeService;
     }
 
-    @GetMapping(value = "/{vedtakId}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<byte[]> hentVedtakPdf(@PathVariable("vedtakId") long vedtakId,
-                                  @RequestParam("dokumentInfoId") String dokumentInfoId,
-                                  @RequestParam("journalpostId") String journalpostId) {
-        byte[] vedtakPdf = vedtakService.hentVedtakPdf(vedtakId, dokumentInfoId, journalpostId);
+    @GetMapping(value = "/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> hentVedtakPdf(@RequestParam("dokumentInfoId") String dokumentInfoId, @RequestParam("journalpostId") String journalpostId) {
+        byte[] vedtakPdf = vedtakService.hentVedtakPdf(dokumentInfoId, journalpostId);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev.pdf")
                 .body(vedtakPdf);
