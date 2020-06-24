@@ -116,6 +116,10 @@ public class VedtakService {
         String aktorId = authKontekst.getAktorId();
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
+        if (utkast == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bruker har ikke utkast");
+        }
+
         flettInnVedtakInformasjon(utkast);
 
         return utkast;
