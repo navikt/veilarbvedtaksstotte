@@ -6,9 +6,11 @@ import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.VedtakDTO;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/utkast")
@@ -27,7 +29,10 @@ public class UtkastController {
     }
 
     @PostMapping
-    public void lagUtkast(LagUtkastDTO lagUtkastDTO) {
+    public void lagUtkast(@RequestBody LagUtkastDTO lagUtkastDTO) {
+        if (lagUtkastDTO == null || lagUtkastDTO.getFnr() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing fnr");
+        }
         vedtakService.lagUtkast(lagUtkastDTO.getFnr());
     }
 
