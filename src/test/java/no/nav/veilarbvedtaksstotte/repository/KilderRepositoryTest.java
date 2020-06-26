@@ -23,7 +23,6 @@ public class KilderRepositoryTest {
     private static JdbcTemplate db;
     private static TransactionTemplate transactor;
     private static KilderRepository kilderRepository;
-    private static MeldingRepository meldingRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
@@ -31,8 +30,7 @@ public class KilderRepositoryTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
-        meldingRepository = new MeldingRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, kilderRepository, transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
     }
 
     @Before

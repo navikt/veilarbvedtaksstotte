@@ -4,7 +4,9 @@ import no.nav.veilarbvedtaksstotte.client.api.EgenvurderingClient;
 import no.nav.veilarbvedtaksstotte.client.api.PamCvClient;
 import no.nav.veilarbvedtaksstotte.client.api.RegistreringClient;
 import no.nav.veilarbvedtaksstotte.domain.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,25 +21,31 @@ public class OyeblikksbildeService {
 
     private final AuthService authService;
     private final OyeblikksbildeRepository oyeblikksbildeRepository;
-    private PamCvClient pamCvClient;
-    private RegistreringClient registreringClient;
-    private EgenvurderingClient egenvurderingClient;
+    private final VedtaksstotteRepository vedtaksstotteRepository;
+    private final PamCvClient pamCvClient;
+    private final RegistreringClient registreringClient;
+    private final EgenvurderingClient egenvurderingClient;
 
     @Autowired
-    public OyeblikksbildeService(AuthService authService,
-                                 OyeblikksbildeRepository oyeblikksbildeRepository,
-                                 PamCvClient pamCvClient,
-                                 RegistreringClient registreringClient,
-                                 EgenvurderingClient egenvurderingClient) {
+    public OyeblikksbildeService(
+            AuthService authService,
+            OyeblikksbildeRepository oyeblikksbildeRepository,
+            VedtaksstotteRepository vedtaksstotteRepository,
+            PamCvClient pamCvClient,
+            RegistreringClient registreringClient,
+            EgenvurderingClient egenvurderingClient
+    ) {
         this.oyeblikksbildeRepository = oyeblikksbildeRepository;
         this.authService = authService;
+        this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.pamCvClient = pamCvClient;
         this.registreringClient = registreringClient;
         this.egenvurderingClient = egenvurderingClient;
     }
 
-    public List<Oyeblikksbilde> hentOyeblikksbildeForVedtak(String fnr, long vedtakId) {
-        authService.sjekkTilgang(fnr);
+    public List<Oyeblikksbilde> hentOyeblikksbildeForVedtak(long vedtakId) {
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        authService.sjekkTilgangTilAktorId(vedtak.getAktorId());
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
     }
 

@@ -2,13 +2,11 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.veilarbvedtaksstotte.domain.DokumentSendtDTO;
-import no.nav.veilarbvedtaksstotte.domain.Kilde;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
-import no.nav.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,14 +15,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.ws.rs.NotFoundException;
-import java.lang.module.ResolutionException;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static no.nav.veilarbvedtaksstotte.utils.DbUtils.firstInList;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
 @Repository
@@ -49,14 +45,22 @@ public class VedtaksstotteRepository {
     private final static String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
 
     private final JdbcTemplate db;
-    private final KilderRepository kilderRepository;
     private final TransactionTemplate transactor;
 
     @Autowired
-    public VedtaksstotteRepository(JdbcTemplate db, KilderRepository kilderRepository, TransactionTemplate transactor) {
+    public VedtaksstotteRepository(JdbcTemplate db, TransactionTemplate transactor) {
         this.db = db;
-        this.kilderRepository = kilderRepository;
         this.transactor = transactor;
+    }
+
+    public Vedtak hentUtkast(String aktorId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
+        return firstInList(db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.UTKAST)));
+    }
+
+    public List<Vedtak> hentFattedeVedtak(String aktorId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
+        return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.SENDT));
     }
 
     public Vedtak hentUtkastEllerFeil(String aktorId) {
@@ -69,42 +73,24 @@ public class VedtaksstotteRepository {
         return utkast;
     }
 
-    public Vedtak hentUtkast(String aktorId) {
-        Vedtak vedtakUtenOpplysninger = hentUtkastUtenOpplysninger(aktorId);
+    public Vedtak hentUtkastEllerFeil(long vedtakId) {
+        Vedtak utkast = hentVedtak(vedtakId);
 
-        if (vedtakUtenOpplysninger == null) {
-            return null;
+        if (utkast == null || utkast.getVedtakStatus() != VedtakStatus.UTKAST) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke utkast");
         }
 
-        final List<String> opplysninger = kilderRepository
-                .hentKilderForVedtak(vedtakUtenOpplysninger.getId())
-                .stream()
-                .map(Kilde::getTekst)
-                .collect(Collectors.toList());
-
-        return vedtakUtenOpplysninger.setOpplysninger(opplysninger);
+        return utkast;
     }
 
-    public boolean slettUtkast(String aktorId) {
-        String sql = format("DELETE FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, STATUS, AKTOR_ID);
-        return db.update(sql, getName(VedtakStatus.UTKAST), aktorId) > 0;
+    public boolean slettUtkast(long vedtakId) {
+        String sql = format("DELETE FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, STATUS, VEDTAK_ID);
+        return db.update(sql, getName(VedtakStatus.UTKAST), vedtakId) > 0;
     }
 
-    public List<Vedtak> hentVedtak(String aktorId) {
-        String sql = format("SELECT * FROM %s WHERE %s = ?", VEDTAK_TABLE, AKTOR_ID);
-
-        List<Vedtak> vedtakListe = db.query(sql, new Object[]{aktorId}, VedtaksstotteRepository::mapVedtak);
-        List<Kilde> opplysninger = kilderRepository.hentKilderForAlleVedtak(vedtakListe);
-
-        vedtakListe.forEach(vedtak -> {
-            List<String> vedtakOpplysninger = opplysninger.stream()
-                    .filter(o -> o.getVedtakId() == vedtak.getId())
-                    .map(Kilde::getTekst)
-                    .collect(Collectors.toList());
-            vedtak.setOpplysninger(vedtakOpplysninger);
-        });
-
-        return vedtakListe;
+    public Vedtak hentVedtak(long vedtakId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ?", VEDTAK_TABLE, VEDTAK_ID);
+        return firstInList(db.query(sql, VedtaksstotteRepository::mapVedtak, vedtakId));
     }
 
     public void setBeslutterProsessStatus(long vedtakId, BeslutterProsessStatus beslutterProsessStatus) {
@@ -125,16 +111,10 @@ public class VedtaksstotteRepository {
         }
     }
 
-    public Vedtak hentVedtak(long vedtakId) {
-        String sql = format("SELECT * FROM %s WHERE %s = ?", VEDTAK_TABLE, VEDTAK_ID);
-        List<Vedtak> vedtakListe = db.query(sql, new Object[]{vedtakId}, VedtaksstotteRepository::mapVedtak);
-        return DbUtils.firstInList(vedtakListe);
-    }
-
     public Vedtak hentGjeldendeVedtak(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = true", VEDTAK_TABLE, AKTOR_ID, GJELDENDE);
         List<Vedtak> vedtakListe = db.query(sql, new Object[]{aktorId}, VedtaksstotteRepository::mapVedtak);
-        return DbUtils.firstInList(vedtakListe);
+        return firstInList(vedtakListe);
     }
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
@@ -187,12 +167,6 @@ public class VedtaksstotteRepository {
         );
 
         db.update(sql, aktorId, veilederIdent, oppfolgingsenhetId, getName(VedtakStatus.UTKAST));
-    }
-
-    public Vedtak hentUtkastUtenOpplysninger(String aktorId) {
-        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
-        List<Vedtak> vedtakListe = db.query(sql, new Object[]{aktorId, getName(VedtakStatus.UTKAST)}, VedtaksstotteRepository::mapVedtak);
-        return DbUtils.firstInList(vedtakListe);
     }
 
     public void oppdaterSender(long vedtakId, boolean sender) {

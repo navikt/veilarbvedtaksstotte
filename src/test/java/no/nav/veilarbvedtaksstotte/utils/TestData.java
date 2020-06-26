@@ -7,6 +7,8 @@ public class TestData {
 
     public final static long VEDTAK_ID_THAT_DOES_NOT_EXIST = 1000;
 
+    public final static long SOME_ID = 42;
+
     public final static String TEST_FNR = "fnr";
     public final static String TEST_AKTOR_ID = "123";
     public final static String TEST_VEILEDER_IDENT = "Z12345";

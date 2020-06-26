@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Import;
         BeslutteroversiktController.class,
         InternalController.class,
         MeldingController.class,
-        VedtakController.class
+        VedtakController.class,
+        UtkastController.class
 })
 public class ControllerTestConfig {}
