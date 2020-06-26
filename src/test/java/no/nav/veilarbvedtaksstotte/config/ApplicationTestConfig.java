@@ -31,7 +31,8 @@ import javax.sql.DataSource;
         RepositoryTestConfig.class,
         ServiceTestConfig.class,
         KafkaTestConfig.class,
-        FilterTestConfig.class
+        FilterTestConfig.class,
+        HealthConfig.class
 })
 public class ApplicationTestConfig {
 
