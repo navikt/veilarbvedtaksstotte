@@ -9,14 +9,14 @@ import no.nav.common.health.selftest.SelftestHtmlGenerator;
 import no.nav.veilarbvedtaksstotte.client.api.*;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.actuate.jdbc.DataSourceHealthIndicator;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,18 +28,18 @@ import static no.nav.common.health.selftest.SelfTestUtils.checkAllParallel;
 @RequestMapping("/internal")
 public class InternalController {
 
-    private final JdbcTemplate db;
-
     private final List<SelfTestCheck> selftestChecks;
+
+    private final DataSourceHealthIndicator dataSourceHealthIndicator;
 
     @Autowired
     public InternalController(
             ArenaClient arenaClient, DokumentClient dokumentClient, EgenvurderingClient egenvurderingClient,
             OppfolgingClient oppfolgingClient, PamCvClient pamCvClient, PersonClient personClient,
             RegistreringClient registreringClient, SafClient safClient, VeiledereOgEnhetClient veiledereOgEnhetClient,
-            KafkaHelsesjekk kafkaHelsesjekk, JdbcTemplate db
+            KafkaHelsesjekk kafkaHelsesjekk, DataSourceHealthIndicator dataSourceHealthIndicator
     ) {
-        this.db = db;
+        this.dataSourceHealthIndicator = dataSourceHealthIndicator;
 
         this.selftestChecks = Arrays.asList(
                 new SelfTestCheck("ArenaClient", false, arenaClient),
@@ -56,19 +56,6 @@ public class InternalController {
         );
     }
 
-    @GetMapping("/isReady")
-    public void isReady() {
-        isAlive();
-    }
-
-    @GetMapping("/isAlive")
-    public void isAlive() {
-        HealthCheckResult dbHealthCheckResult = checkDbHealth();
-        if (!dbHealthCheckResult.isHealthy()) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     @GetMapping("/selftest")
     public ResponseEntity selftest() {
         List<SelftTestCheckResult> checkResults = checkAllParallel(selftestChecks);
@@ -82,12 +69,11 @@ public class InternalController {
     }
 
     private HealthCheckResult checkDbHealth() {
-        try {
-            db.query("SELECT 1", resultSet -> {});
+        Health health = dataSourceHealthIndicator.health();
+        if (Status.UP.equals(health.getStatus())) {
             return HealthCheckResult.healthy();
-        } catch (Exception e) {
-            log.error("Helsesjekk mot database feilet", e);
-            return HealthCheckResult.unhealthy("Fikk ikke kontakt med databasen", e);
+        } else {
+            return HealthCheckResult.unhealthy("Fikk ikke kontakt med databasen" + health.getDetails().toString());
         }
     }
 
