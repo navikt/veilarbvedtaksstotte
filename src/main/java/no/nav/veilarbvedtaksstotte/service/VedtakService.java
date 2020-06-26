@@ -216,6 +216,7 @@ public class VedtakService {
 
     public byte[] produserDokumentUtkast(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+        flettInnOpplysinger(utkast);
         AuthKontekst authKontekst = authService.sjekkTilgangTilAktorId(utkast.getAktorId());
         SendDokumentDTO sendDokumentDTO = lagDokumentDTO(utkast, authKontekst.getFnr());
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
