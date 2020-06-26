@@ -111,6 +111,12 @@ public class VedtakService {
         }
     }
 
+    public boolean erUtkastGodkjentAvBeslutter(long vedtakId) {
+        Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+        authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+        return utkast.getBeslutterProsessStatus() == GODKJENT_AV_BESLUTTER;
+    }
+
     public Vedtak hentUtkast(String fnr) {
         AuthKontekst authKontekst = authService.sjekkTilgangTilFnr(fnr);
         String aktorId = authKontekst.getAktorId();
