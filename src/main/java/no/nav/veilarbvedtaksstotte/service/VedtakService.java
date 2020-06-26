@@ -222,9 +222,16 @@ public class VedtakService {
         return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
     }
 
+    // TODO midlertidig for bakoverkompabilitet frontend:
     public byte[] hentVedtakPdf(String dokumentInfoId, String journalpostId) {
         // Tilgangskontroll gjøres av SAF
         return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
+    }
+
+    public byte[] hentVedtakPdf(long vedtakId) {
+        Vedtak vedtak = vedtaksstotteRepository.hentFattetVedtak(vedtakId);
+        authService.sjekkTilgangTilAktorId(vedtak.getAktorId());
+        return safClient.hentVedtakPdf(vedtak.getJournalpostId(), vedtak.getDokumentInfoId());
     }
 
     public boolean harUtkast(String fnr) {

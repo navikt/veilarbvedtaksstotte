@@ -9,6 +9,7 @@ import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -61,6 +62,16 @@ public class VedtaksstotteRepository {
     public List<Vedtak> hentFattedeVedtak(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
         return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.SENDT));
+    }
+
+    public Vedtak hentFattetVedtak(long vedtakId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, VEDTAK_ID, STATUS);
+        try {
+            return db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, vedtakId, getName(VedtakStatus.SENDT));
+
+        } catch (IncorrectResultSizeDataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke vedtak");
+        }
     }
 
     public Vedtak hentUtkastEllerFeil(String aktorId) {

@@ -28,9 +28,18 @@ public class VedtakController {
         this.oyeblikksbildeService = oyeblikksbildeService;
     }
 
+    // TODO midlertidig for bakoverkompabilitet frontend:
     @GetMapping(value = "/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> hentVedtakPdf(@RequestParam("dokumentInfoId") String dokumentInfoId, @RequestParam("journalpostId") String journalpostId) {
         byte[] vedtakPdf = vedtakService.hentVedtakPdf(dokumentInfoId, journalpostId);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "filename=vedtaksbrev.pdf")
+                .body(vedtakPdf);
+    }
+
+    @GetMapping(value = "{vedtakId}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> hentVedtakPdf(@PathVariable("vedtakId") long vedtakId) {
+        byte[] vedtakPdf = vedtakService.hentVedtakPdf(vedtakId);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev.pdf")
                 .body(vedtakPdf);
