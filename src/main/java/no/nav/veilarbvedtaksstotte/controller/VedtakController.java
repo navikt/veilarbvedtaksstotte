@@ -46,10 +46,9 @@ public class VedtakController {
         return arenaVedtakService.hentVedtakFraArena(fnr);
     }
 
-    @GetMapping("/oyeblikksbilde/{vedtakId}")
+    @GetMapping("{vedtakId}/oyeblikksbilde")
     public List<Oyeblikksbilde> hentOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
         return oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
     }
-
 }
 
