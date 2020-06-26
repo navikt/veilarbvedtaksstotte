@@ -30,6 +30,11 @@ public class ArenaVedtakService {
         return hentArkiverteVedtakFraArena(fnr);
     }
 
+    public byte[] hentVedtakPdf(String dokumentInfoId, String journalpostId) {
+        // Tilgangskontroll gjøres av SAF
+        return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
+    }
+
     protected List<ArkivertVedtak> hentArkiverteVedtakFraArena(String fnr) {
         return safClient.hentJournalposter(fnr)
                 .stream()
