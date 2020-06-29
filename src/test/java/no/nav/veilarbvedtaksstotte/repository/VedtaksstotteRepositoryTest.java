@@ -144,24 +144,4 @@ public class VedtaksstotteRepositoryTest {
 
     }
 
-    @Test(expected = ResponseStatusException.class)
-    public void hentFattetVedtak_feiler_dersom_vedtak_ikke_er_ferdigstilt() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-        vedtaksstotteRepository.hentFattetVedtak(utkast.getId());
-    }
-
-    @Test
-    public void hentFattetVedtak_henter_fattet_vedtak() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
-        DokumentSendtDTO dokumentSendtDTO = new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
-        vedtaksstotteRepository.ferdigstillVedtak(vedtakId, dokumentSendtDTO);
-
-        Vedtak vedtak = vedtaksstotteRepository.hentFattetVedtak(vedtakId);
-        assertEquals(vedtakId, vedtak.getId());
-        assertEquals(TEST_JOURNALPOST_ID, vedtak.getJournalpostId());
-        assertEquals(TEST_DOKUMENT_ID, vedtak.getDokumentInfoId());
-    }
-
 }

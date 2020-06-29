@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
+import static no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 
 @Service
@@ -223,7 +224,10 @@ public class VedtakService {
     }
 
     public byte[] hentVedtakPdf(long vedtakId) {
-        Vedtak vedtak = vedtaksstotteRepository.hentFattetVedtak(vedtakId);
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        if (vedtak == null || !SENDT.equals(vedtak.getVedtakStatus())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke fattet vedtak");
+        }
         authService.sjekkTilgangTilAktorId(vedtak.getAktorId());
         return safClient.hentVedtakPdf(vedtak.getJournalpostId(), vedtak.getDokumentInfoId());
     }

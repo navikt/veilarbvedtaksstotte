@@ -64,16 +64,6 @@ public class VedtaksstotteRepository {
         return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.SENDT));
     }
 
-    public Vedtak hentFattetVedtak(long vedtakId) {
-        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, VEDTAK_ID, STATUS);
-        try {
-            return db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, vedtakId, getName(VedtakStatus.SENDT));
-
-        } catch (IncorrectResultSizeDataAccessException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke vedtak");
-        }
-    }
-
     public Vedtak hentUtkastEllerFeil(String aktorId) {
         Vedtak utkast = hentUtkast(aktorId);
 
