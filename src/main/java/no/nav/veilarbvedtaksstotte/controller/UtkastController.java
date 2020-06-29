@@ -1,9 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
-import no.nav.veilarbvedtaksstotte.domain.DokumentSendtDTO;
-import no.nav.veilarbvedtaksstotte.domain.LagUtkastDTO;
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.VedtakDTO;
+import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +23,12 @@ public class UtkastController {
     @GetMapping
     public Vedtak hentUtkast(@RequestParam("fnr") String fnr) {
         return vedtakService.hentUtkast(fnr);
+    }
+
+
+    @GetMapping("/{vedtakId}/erGodkjent")
+    public ErGodkjentDTO erGodkjentAvBeslutter(@PathVariable("vedtakId") long vedtakId) {
+        return new ErGodkjentDTO(vedtakService.erUtkastGodkjentAvBeslutter(vedtakId));
     }
 
     @PostMapping
