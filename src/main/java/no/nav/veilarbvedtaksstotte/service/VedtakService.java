@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.client.api.DokumentClient;
 import no.nav.veilarbvedtaksstotte.client.api.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
@@ -25,6 +26,7 @@ import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.GO
 import static no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 
+@Slf4j
 @Service
 public class VedtakService {
 
@@ -87,6 +89,9 @@ public class VedtakService {
         oyeblikksbildeService.lagreOyeblikksbilde(authKontekst.getFnr(), vedtakId);
 
         DokumentSendtDTO dokumentSendt = sendDokument(utkast, authKontekst.getFnr());
+
+        log.info(String.format("Dokument sendt: journalpostId=%s dokumentId=%s",
+                dokumentSendt.getJournalpostId(), dokumentSendt.getDokumentId()));
 
         transactor.executeWithoutResult((status) -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(utkast.getAktorId());
