@@ -25,10 +25,9 @@ public class UtkastController {
         return vedtakService.hentUtkast(fnr);
     }
 
-
-    @GetMapping("/{vedtakId}/erGodkjent")
-    public ErGodkjentDTO erGodkjentAvBeslutter(@PathVariable("vedtakId") long vedtakId) {
-        return new ErGodkjentDTO(vedtakService.erUtkastGodkjentAvBeslutter(vedtakId));
+    @GetMapping("/{vedtakId}/beslutterprosessStatus")
+    public BeslutterprosessStatusDTO beslutterprosessStatus(@PathVariable("vedtakId") long vedtakId) {
+        return new BeslutterprosessStatusDTO(vedtakService.hentBeslutterprosessStatus(vedtakId));
     }
 
     @PostMapping

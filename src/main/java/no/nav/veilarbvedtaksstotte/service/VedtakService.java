@@ -6,6 +6,7 @@ import no.nav.veilarbvedtaksstotte.client.api.DokumentClient;
 import no.nav.veilarbvedtaksstotte.client.api.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
+import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
@@ -117,10 +118,10 @@ public class VedtakService {
         }
     }
 
-    public boolean erUtkastGodkjentAvBeslutter(long vedtakId) {
+    public BeslutterProsessStatus hentBeslutterprosessStatus(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilAktorId(utkast.getAktorId());
-        return utkast.getBeslutterProsessStatus() == GODKJENT_AV_BESLUTTER;
+        return utkast.getBeslutterProsessStatus();
     }
 
     public Vedtak hentUtkast(String fnr) {
