@@ -150,9 +150,11 @@ public class BeslutterService {
 
 		if (nyStatus == BeslutterProsessStatus.KLAR_TIL_BESLUTTER) {
 			beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
+			meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_BESLUTTER, innloggetVeilederIdent);
 			vedtakStatusEndringService.klarTilBeslutter(utkast);
 		} else {
 			beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
+			meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_VEILEDER, innloggetVeilederIdent);
 			vedtakStatusEndringService.klarTilVeileder(utkast);
 		}
 	}
