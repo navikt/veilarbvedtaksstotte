@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/{fnr}/beslutter")
+@RequestMapping("/api/beslutter")
 public class BeslutterController {
 
 	private final BeslutterService beslutterService;
@@ -16,23 +16,23 @@ public class BeslutterController {
 	}
 
 	@PostMapping("/start")
-	public void startBeslutterProsess(@PathVariable("fnr") String fnr) {
-		beslutterService.startBeslutterProsess(fnr);
+	public void startBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
+		beslutterService.startBeslutterProsess(vedtakId);
 	}
 
 	@PostMapping("/bliBeslutter")
-	public void bliBeslutter(@PathVariable("fnr") String fnr) {
-		beslutterService.bliBeslutter(fnr);
+	public void bliBeslutter(@RequestParam("vedtakId") long vedtakId) {
+		beslutterService.bliBeslutter(vedtakId);
 	}
 
 	@PostMapping("/godkjenn")
-	public void godkjennVedtak(@PathVariable("fnr") String fnr) {
-		beslutterService.setGodkjentAvBeslutter(fnr);
+	public void godkjennVedtak(@RequestParam("vedtakId") long vedtakId) {
+		beslutterService.setGodkjentAvBeslutter(vedtakId);
 	}
 
 	@PutMapping("/status")
-	public void oppdaterBeslutterProsessStatus(@PathVariable("fnr") String fnr) {
-		beslutterService.oppdaterBeslutterProsessStatus(fnr);
+	public void oppdaterBeslutterProsessStatus(@RequestParam("vedtakId") long vedtakId) {
+		beslutterService.oppdaterBeslutterProsessStatus(vedtakId);
 	}
 
 }

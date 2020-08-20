@@ -26,8 +26,13 @@ public class ArenaVedtakService {
     }
 
     public List<ArkivertVedtak> hentVedtakFraArena(String fnr) {
-        authService.sjekkTilgang(fnr);
+        authService.sjekkTilgangTilFnr(fnr);
         return hentArkiverteVedtakFraArena(fnr);
+    }
+
+    public byte[] hentVedtakPdf(String dokumentInfoId, String journalpostId) {
+        // Tilgangskontroll gjøres av SAF
+        return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
     }
 
     protected List<ArkivertVedtak> hentArkiverteVedtakFraArena(String fnr) {

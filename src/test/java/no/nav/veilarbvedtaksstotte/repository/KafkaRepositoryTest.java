@@ -36,7 +36,7 @@ public class KafkaRepositoryTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         kafkaRepository = new KafkaRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
     }
 
     @Before

@@ -18,10 +18,10 @@ spec:
     enabled: true
     path: veilarbvedtaksstotte/internal/prometheus
   readiness:
-    path: veilarbvedtaksstotte/internal/isReady
+    path: veilarbvedtaksstotte/internal/health/readiness
     initialDelay: 30
   liveness:
-    path: veilarbvedtaksstotte/internal/isAlive
+    path: veilarbvedtaksstotte/internal/health/liveness
     initialDelay: 30
   replicas:
     min: 2

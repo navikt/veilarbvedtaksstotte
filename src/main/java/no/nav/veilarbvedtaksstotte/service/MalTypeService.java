@@ -20,7 +20,6 @@ public class MalTypeService {
     }
 
     public MalType utledMalTypeFraVedtak(Vedtak vedtak, String fnr) {
-
         Innsatsgruppe innsatsgruppe = vedtak.getInnsatsgruppe();
         Hovedmal hovedmal = vedtak.getHovedmal();
 

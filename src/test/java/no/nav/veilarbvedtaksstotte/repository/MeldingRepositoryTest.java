@@ -29,7 +29,7 @@ public class MeldingRepositoryTest {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         meldingRepository = new MeldingRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, new KilderRepository(db), transactor);
+        vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
     }
 
     @Before

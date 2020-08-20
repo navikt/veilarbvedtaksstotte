@@ -10,7 +10,6 @@ import no.nav.common.leaderelection.LeaderElectionClient;
 import no.nav.common.leaderelection.LeaderElectionHttpClient;
 import no.nav.common.metrics.InfluxClient;
 import no.nav.common.metrics.MetricsClient;
-import no.nav.common.metrics.SensuConfig;
 import no.nav.common.sts.NaisSystemUserTokenProvider;
 import no.nav.common.sts.SystemUserTokenProvider;
 import no.nav.common.utils.Credentials;
@@ -42,7 +41,7 @@ public class ApplicationConfig {
 
     @Bean
     public MetricsClient influxMetricsClient() {
-        return new InfluxClient(SensuConfig.defaultConfig());
+        return new InfluxClient();
     }
 
     @Bean
