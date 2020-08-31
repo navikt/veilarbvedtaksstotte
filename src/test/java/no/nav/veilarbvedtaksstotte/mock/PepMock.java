@@ -14,33 +14,48 @@ public class PepMock implements Pep {
     }
 
     @Override
-    public void sjekkVeilederTilgangTilEnhet(String s, String s1) {
-
+    public boolean harVeilederTilgangTilEnhet(String veilederIdent, String enhetId) {
+        return true;
     }
 
     @Override
-    public void sjekkVeilederTilgangTilBruker(String s, ActionId actionId, AbacPersonId abacPersonId) {
-
+    public boolean harTilgangTilEnhet(String innloggetBrukerIdToken, String enhetId) {
+        return true;
     }
 
     @Override
-    public void sjekkTilgangTilPerson(String s, ActionId actionId, AbacPersonId abacPersonId) {
-
+    public boolean harVeilederTilgangTilPerson(String veilederIdent, ActionId actionId, AbacPersonId personId) {
+        return true;
     }
 
     @Override
-    public void sjekkVeilederTilgangTilKode6(String s) {
-
+    public boolean harTilgangTilPerson(String innloggetBrukerIdToken, ActionId actionId, AbacPersonId personId) {
+        return true;
     }
 
     @Override
-    public void sjekkVeilederTilgangTilKode7(String s) {
-
+    public boolean harVeilederTilgangTilOppfolging(String innloggetVeilederIdToken) {
+        return true;
     }
 
     @Override
-    public void sjekkVeilederTilgangTilEgenAnsatt(String s) {
+    public boolean harVeilederTilgangTilModia(String innloggetVeilederIdToken) {
+        return true;
+    }
 
+    @Override
+    public boolean harVeilederTilgangTilKode6(String veilederIdent) {
+        return true;
+    }
+
+    @Override
+    public boolean harVeilederTilgangTilKode7(String veilederIdent) {
+        return true;
+    }
+
+    @Override
+    public boolean harVeilederTilgangTilEgenAnsatt(String veilederIdent) {
+        return true;
     }
 
     @Override

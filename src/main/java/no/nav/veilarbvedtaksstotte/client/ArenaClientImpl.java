@@ -38,7 +38,7 @@ public class ArenaClientImpl implements ArenaClient {
 
         try (Response response = client.newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), Oppfolgingsenhet.class).getNavKontor();
+            return RestUtils.parseJsonResponseOrThrow(response, Oppfolgingsenhet.class).getNavKontor();
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Feil ved kall mot veilarbarena/oppfolgingsbruker");
         }

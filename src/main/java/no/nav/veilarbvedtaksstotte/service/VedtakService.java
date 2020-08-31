@@ -144,7 +144,7 @@ public class VedtakService {
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
         if (utkast != null) {
-            throw new IllegalStateException(format("Kan ikke lage nytt utkast, bruker med aktorId %s har allerede et aktivt utkast", aktorId));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, format("Kan ikke lage nytt utkast, bruker med aktorId %s har allerede et aktivt utkast", aktorId));
         }
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();

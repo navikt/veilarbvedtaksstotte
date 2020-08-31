@@ -42,7 +42,7 @@ public class VeiledereOgEnhetClientImpl implements VeiledereOgEnhetClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), EnhetNavn.class).getNavn();
+            return RestUtils.parseJsonResponseOrThrow(response, EnhetNavn.class).getNavn();
         }
     }
 
@@ -56,7 +56,7 @@ public class VeiledereOgEnhetClientImpl implements VeiledereOgEnhetClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), Veileder.class);
+            return RestUtils.parseJsonResponseOrThrow(response, Veileder.class);
         }
     }
 
@@ -75,7 +75,7 @@ public class VeiledereOgEnhetClientImpl implements VeiledereOgEnhetClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), VeilederEnheterDTO.class);
+            return RestUtils.parseJsonResponseOrThrow(response, VeilederEnheterDTO.class);
         }
     }
 

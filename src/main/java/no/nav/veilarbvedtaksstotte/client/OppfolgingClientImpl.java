@@ -39,7 +39,7 @@ public class OppfolgingClientImpl implements OppfolgingClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), OppfolgingstatusDTO.class).getServicegruppe();
+            return RestUtils.parseJsonResponseOrThrow(response, OppfolgingstatusDTO.class).getServicegruppe();
         }
     }
 
@@ -53,7 +53,7 @@ public class OppfolgingClientImpl implements OppfolgingClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.getBodyStr(response.body())
+            return RestUtils.getBodyStr(response)
                     .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingDTO.class))
                     .orElseThrow(() -> new IllegalStateException("Unable to parse json"));
         }

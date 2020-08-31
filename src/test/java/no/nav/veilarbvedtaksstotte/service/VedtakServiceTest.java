@@ -389,8 +389,8 @@ public class VedtakServiceTest {
     }
 
     private void gittTilgang() {
-
-        // when(veilarbPep.sjekkVeilederTilgangTilEnhet(anyString(), TEST_OPPFOLGINGSENHET_ID))
+        when(veilarbPep.harVeilederTilgangTilPerson(anyString(), any(), any())).thenReturn(true);
+        when(veilarbPep.harVeilederTilgangTilEnhet(anyString(), eq(TEST_OPPFOLGINGSENHET_ID))).thenReturn(true);
     }
 
     private void withSubject(UnsafeRunnable runnable) {

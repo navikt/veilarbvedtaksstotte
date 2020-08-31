@@ -35,7 +35,7 @@ public class PersonClientImpl implements PersonClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), PersonNavn.class);
+            return RestUtils.parseJsonResponseOrThrow(response, PersonNavn.class);
         }
     }
 

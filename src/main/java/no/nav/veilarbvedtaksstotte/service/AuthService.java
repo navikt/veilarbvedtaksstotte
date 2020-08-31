@@ -1,9 +1,9 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.abac.AbacClient;
-import no.nav.common.abac.NavAttributter;
 import no.nav.common.abac.Pep;
-import no.nav.common.abac.StandardAttributter;
+import no.nav.common.abac.constants.NavAttributter;
+import no.nav.common.abac.constants.StandardAttributter;
 import no.nav.common.abac.domain.AbacPersonId;
 import no.nav.common.abac.domain.Attribute;
 import no.nav.common.abac.domain.request.*;
@@ -57,7 +57,10 @@ public class AuthService {
 
         String aktorId = aktorregisterClient.hentAktorId(fnr);
 
-        veilarbPep.sjekkVeilederTilgangTilBruker(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId));
+        if (!veilarbPep.harVeilederTilgangTilPerson(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
         String enhet = sjekkTilgangTilEnhet(fnr);
 
         return new AuthKontekst()
@@ -71,7 +74,10 @@ public class AuthService {
 
         String fnr = aktorregisterClient.hentFnr(aktorId);
 
-        veilarbPep.sjekkVeilederTilgangTilBruker(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId));
+        if (!veilarbPep.harVeilederTilgangTilPerson(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
         String enhet = sjekkTilgangTilEnhet(fnr);
 
         return new AuthKontekst()
@@ -159,7 +165,11 @@ public class AuthService {
 
     private String sjekkTilgangTilEnhet(String fnr) {
         String enhet = arenaClient.oppfolgingsenhet(fnr);
-        veilarbPep.sjekkVeilederTilgangTilEnhet(getInnloggetVeilederIdent(), enhet);
+
+        if (!veilarbPep.harVeilederTilgangTilEnhet(getInnloggetVeilederIdent(), enhet)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
         return enhet;
     }
 
