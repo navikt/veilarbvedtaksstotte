@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
 import static no.nav.common.auth.subject.IdentType.InternBruker;
 
 @Service
@@ -164,7 +165,7 @@ public class AuthService {
     }
 
     private String sjekkTilgangTilEnhet(String fnr) {
-        String enhet = arenaClient.oppfolgingsenhet(fnr);
+        String enhet = ofNullable(arenaClient.oppfolgingsenhet(fnr)).orElse("");
 
         if (!veilarbPep.harVeilederTilgangTilEnhet(getInnloggetVeilederIdent(), enhet)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
