@@ -109,6 +109,19 @@ public class BeslutterServiceTest {
     }
 
     @Test
+    public void avbrytBeslutterProsess__skal_avbryte_beslutter_prosess() {
+        Vedtak vedtak = new Vedtak()
+                .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
+
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
+
+        beslutterService.startBeslutterProsess(SOME_ID);
+
+        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
+    }
+
+    @Test
     public void bliBeslutter__skal_ta_over_som_beslutter() {
         Vedtak vedtak = new Vedtak();
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
