@@ -109,16 +109,46 @@ public class BeslutterServiceTest {
     }
 
     @Test
-    public void avbrytBeslutterProsess__skal_avbryte_beslutter_prosess() {
+    public void avbrytBeslutterProsess__skal_avbryte_beslutter_prosess_hvis_ikke_allerede_gjort() {
         Vedtak vedtak = new Vedtak()
-                .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
+                .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                .setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
 
         when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
-        beslutterService.startBeslutterProsess(SOME_ID);
+        beslutterService.avbrytBeslutterProsess(SOME_ID);
 
-        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
+        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(null));
+    }
+
+    @Test
+    public void avbrytBeslutterProsess__skal_kaste_exception_hvis_feil_innsatsgruppe() {
+        Vedtak vedtak = new Vedtak();
+        vedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
+
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
+
+        assertThrows(ResponseStatusException.class, () -> beslutterService.avbrytBeslutterProsess(SOME_ID));
+    }
+
+    @Test
+    public void avbrytBeslutterProsess__skal_opprette_system_melding() {
+        Vedtak vedtak = new Vedtak()
+                .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                .setBeslutterProsessStatus(KLAR_TIL_BESLUTTER)
+                .setAktorId(TEST_AKTOR_ID)
+                .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
+                .setVeilederIdent(TEST_VEILEDER_IDENT);
+
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
+
+        beslutterService.avbrytBeslutterProsess(SOME_ID);
+
+        verify(meldingRepository, times(1))
+                .opprettSystemMelding(anyLong(), eq(SystemMeldingType.BESLUTTER_PROSESS_AVBRUTT), eq(TEST_VEILEDER_IDENT));
     }
 
     @Test

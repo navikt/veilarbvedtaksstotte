@@ -21,7 +21,6 @@ import org.springframework.web.server.ResponseStatusException;
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVeilederForVedtak;
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterForVedtak;
 import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.erBeslutterProsessStartet;
-import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.tellVedtakEtterDato;
 
 @Service
 public class BeslutterService {
@@ -83,16 +82,16 @@ public class BeslutterService {
 		authService.sjekkTilgangTilAktorId(utkast.getAktorId());
 		authService.sjekkErAnsvarligVeilederFor(utkast);
 
-		if (!erBeslutterProsessStartet(utkast.getBeslutterProsessStatus())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-		}
-
 		if (InnsatsgruppeUtils.skalHaBeslutter(utkast.getInnsatsgruppe())) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
 
+		if (!erBeslutterProsessStartet(utkast.getBeslutterProsessStatus())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+		}
+
 		fjernBrukerFraBeslutterOversikt(utkast);
-		vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.BESLUTTER_PROSESS_AVBRUTT);
+		vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), null);
 		vedtaksstotteRepository.setBeslutter(utkast.getId(), null);
 		vedtakStatusEndringService.beslutterProsessAvbrutt(utkast);
 		meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_PROSESS_AVBRUTT, utkast.getVeilederIdent());
