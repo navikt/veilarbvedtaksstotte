@@ -11,8 +11,12 @@ import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.*;
@@ -36,10 +40,14 @@ public class BeslutterServiceTest {
 
     private AuthService authService = mock(AuthService.class);
 
+    private JdbcTemplate db = SingletonPostgresContainer.init().getDb();
+
+    private TransactionTemplate transactor= new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
+
     private BeslutterService beslutterService = new BeslutterService(
             authService, vedtaksstotteRepository, vedtakStatusEndringService,
-            beslutteroversiktRepository, meldingRepository, veilederService, personClient
-    );
+            beslutteroversiktRepository, meldingRepository, veilederService, personClient, transactor
+            );
 
     @Before
     public void setup() {
@@ -65,7 +73,7 @@ public class BeslutterServiceTest {
 
         beslutterService.startBeslutterProsess(SOME_ID);
 
-        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
+        verify(vedtaksstotteRepository, atLeastOnce()).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
     }
 
     @Test
@@ -202,7 +210,7 @@ public class BeslutterServiceTest {
 
         beslutterService.bliBeslutter(SOME_ID);
 
-        verify(meldingRepository, times(1))
+        verify(meldingRepository, atLeastOnce())
                 .opprettSystemMelding(anyLong(), eq(SystemMeldingType.BLITT_BESLUTTER), eq(TEST_VEILEDER_IDENT));
     }
 
@@ -262,7 +270,7 @@ public class BeslutterServiceTest {
 
         beslutterService.setGodkjentAvBeslutter(SOME_ID);
 
-        verify(meldingRepository, times(1))
+        verify(meldingRepository, atLeastOnce())
                 .opprettSystemMelding(anyLong(), eq(SystemMeldingType.BESLUTTER_HAR_GODKJENT), eq(TEST_VEILEDER_IDENT));
     }
 
@@ -279,7 +287,7 @@ public class BeslutterServiceTest {
 
         beslutterService.oppdaterBeslutterProsessStatus(SOME_ID);
 
-        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
+        verify(vedtaksstotteRepository, atLeastOnce()).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
     }
 
     @Test

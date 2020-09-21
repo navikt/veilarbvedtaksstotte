@@ -20,8 +20,8 @@ public class BeslutterController {
 		beslutterService.startBeslutterProsess(vedtakId);
 	}
 
-	@PostMapping("/avbrutt")
-	public void avbruttBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
+	@PostMapping("/avbryt")
+	public void avbrytBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
 		beslutterService.avbrytBeslutterProsess(vedtakId);
 	}
 
