@@ -73,7 +73,7 @@ public class BeslutterServiceTest {
 
         beslutterService.startBeslutterProsess(SOME_ID);
 
-        verify(vedtaksstotteRepository, atLeastOnce()).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
+        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
     }
 
     @Test
@@ -210,7 +210,7 @@ public class BeslutterServiceTest {
 
         beslutterService.bliBeslutter(SOME_ID);
 
-        verify(meldingRepository, atLeastOnce())
+        verify(meldingRepository, times(1))
                 .opprettSystemMelding(anyLong(), eq(SystemMeldingType.BLITT_BESLUTTER), eq(TEST_VEILEDER_IDENT));
     }
 
@@ -270,7 +270,7 @@ public class BeslutterServiceTest {
 
         beslutterService.setGodkjentAvBeslutter(SOME_ID);
 
-        verify(meldingRepository, atLeastOnce())
+        verify(meldingRepository, times(1))
                 .opprettSystemMelding(anyLong(), eq(SystemMeldingType.BESLUTTER_HAR_GODKJENT), eq(TEST_VEILEDER_IDENT));
     }
 
@@ -287,7 +287,7 @@ public class BeslutterServiceTest {
 
         beslutterService.oppdaterBeslutterProsessStatus(SOME_ID);
 
-        verify(vedtaksstotteRepository, atLeastOnce()).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
+        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
     }
 
     @Test
