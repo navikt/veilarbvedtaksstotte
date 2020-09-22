@@ -103,7 +103,8 @@ public class VedtakServiceTest {
                 veilederService,
                 malTypeService,
                 vedtakStatusEndringService,
-                metricsService, transactor
+                metricsService,
+                transactor
         );
     }
 
