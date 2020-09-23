@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.PersonClient;
+import no.nav.veilarbvedtaksstotte.client.api.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
@@ -38,7 +38,7 @@ public class BeslutterService {
 
 	private final VeilederService veilederService;
 
-	private final PersonClient personClient;
+	private final VeilarbpersonClient veilarbpersonClient;
 
 	private final TransactionTemplate transactor;
 
@@ -50,7 +50,7 @@ public class BeslutterService {
 			BeslutteroversiktRepository beslutteroversiktRepository,
 			MeldingRepository meldingRepository,
 			VeilederService veilederService,
-			PersonClient personClient,
+			VeilarbpersonClient veilarbpersonClient,
 			TransactionTemplate transactor
 	) {
 		this.authService = authService;
@@ -59,7 +59,7 @@ public class BeslutterService {
 		this.beslutteroversiktRepository = beslutteroversiktRepository;
 		this.meldingRepository = meldingRepository;
 		this.veilederService = veilederService;
-		this.personClient = personClient;
+		this.veilarbpersonClient = veilarbpersonClient;
 		this.transactor = transactor;
 	}
 
@@ -186,7 +186,7 @@ public class BeslutterService {
 		String brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
 		Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
 		String enhetNavn = veilederService.hentEnhetNavn(vedtak.getOppfolgingsenhetId());
-		PersonNavn brukerNavn = personClient.hentPersonNavn(brukerFnr);
+		PersonNavn brukerNavn = veilarbpersonClient.hentPersonNavn(brukerFnr);
 
 		BeslutteroversiktBruker bruker = new BeslutteroversiktBruker()
 				.setVedtakId(vedtak.getId())

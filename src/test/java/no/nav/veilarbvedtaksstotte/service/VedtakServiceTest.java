@@ -61,7 +61,7 @@ public class VedtakServiceTest {
     private static MalTypeService malTypeService;
     private static AuthService authService;
 
-    private static PamCvClient pamCvClient = mock(PamCvClient.class);
+    private static VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static RegistreringClient registreringClient = mock(RegistreringClient.class);
     private static EgenvurderingClient egenvurderingClient = mock(EgenvurderingClient.class);
     private static VeilederService veilederService = mock(VeilederService.class);
@@ -89,7 +89,7 @@ public class VedtakServiceTest {
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
         authService = spy(new AuthService(aktorregisterClient, veilarbPep, arenaClient, abacClient, null));
-        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, pamCvClient, registreringClient, egenvurderingClient);
+        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         vedtakService = new VedtakService(
                 vedtaksstotteRepository,
@@ -118,7 +118,7 @@ public class VedtakServiceTest {
         reset(dokumentClient);
         when(dokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
         when(kafkaTemplate.send(any(), any(), any())).thenReturn(new AsyncResult(null));
-        when(pamCvClient.hentCV(TEST_FNR)).thenReturn(CV_DATA);
+        when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR)).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
         when(aktorregisterClient.hentAktorId(TEST_FNR)).thenReturn(TEST_AKTOR_ID);
