@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.veilarbvedtaksstotte.client.*;
 import no.nav.veilarbvedtaksstotte.client.api.*;
+import no.nav.veilarbvedtaksstotte.service.AuthService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,15 +32,8 @@ public class ClientConfig {
     }
 
     @Bean
-    public PamCvClient pamCvClient() {
-        // PAM CV finnes ikke i Q1, gå mot Q0 istedenfor
-        String pamCvUrl = clusterUrlForApplication("pam-cv-api", true).replace("q1", "q0");
-        return new PamCvClientImpl(pamCvUrl);
-    }
-
-    @Bean
-    public PersonClient personClient() {
-        return new PersonClientImpl(clusterUrlForApplication("veilarbperson", true));
+    public VeilarbpersonClient personClient(AuthService authService) {
+        return new VeilarbpersonClientImpl(clusterUrlForApplication("veilarbperson", true), authService::getInnloggetBrukerToken);
     }
 
     @Bean

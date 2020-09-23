@@ -10,6 +10,7 @@ import no.nav.common.abac.domain.request.*;
 import no.nav.common.abac.domain.response.Category;
 import no.nav.common.abac.domain.response.Decision;
 import no.nav.common.abac.domain.response.XacmlResponse;
+import no.nav.common.auth.subject.SsoToken;
 import no.nav.common.auth.subject.SubjectHandler;
 import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.utils.Credentials;
@@ -85,6 +86,10 @@ public class AuthService {
                 .setFnr(fnr)
                 .setAktorId(aktorId)
                 .setOppfolgingsenhet(enhet);
+    }
+
+    public String getInnloggetBrukerToken() {
+        return SubjectHandler.getSsoToken().map(SsoToken::getToken).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bruker mangler token"));
     }
 
     public String getInnloggetVeilederIdent() {

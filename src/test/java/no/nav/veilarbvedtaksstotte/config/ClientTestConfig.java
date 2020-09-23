@@ -88,23 +88,8 @@ public class ClientTestConfig {
     }
 
     @Bean
-    public PamCvClient pamCvClient() {
-        return new PamCvClient() {
-            @Override
-            public String hentCV(String fnr) {
-                return "{ \"data\": \"Bruker har ikke delt CV/jobbprofil med NAV\"}";
-            }
-
-            @Override
-            public HealthCheckResult checkHealth() {
-                return HealthCheckResult.healthy();
-            }
-        };
-    }
-
-    @Bean
-    public PersonClient personClient() {
-        return new PersonClient() {
+    public VeilarbpersonClient personClient() {
+        return new VeilarbpersonClient() {
             @Override
             public PersonNavn hentPersonNavn(String fnr) {
                 PersonNavn personNavn = new PersonNavn();
@@ -113,6 +98,11 @@ public class ClientTestConfig {
                 personNavn.setEtternavn("TESTERSEN");
                 personNavn.setSammensattNavn("TEST TESTERSEN");
                 return personNavn;
+            }
+
+            @Override
+            public String hentCVOgJobbprofil(String fnr) {
+                return "{ \"data\": \"Bruker har ikke delt CV/jobbprofil med NAV\"}";
             }
 
             @Override

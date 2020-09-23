@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.PersonClient;
+import no.nav.veilarbvedtaksstotte.client.api.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
@@ -36,7 +36,7 @@ public class BeslutterServiceTest {
 
     private VeilederService veilederService = mock(VeilederService.class);
 
-    private PersonClient personClient = mock(PersonClient.class);
+    private VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
 
     private AuthService authService = mock(AuthService.class);
 
@@ -46,7 +46,7 @@ public class BeslutterServiceTest {
 
     private BeslutterService beslutterService = new BeslutterService(
             authService, vedtaksstotteRepository, vedtakStatusEndringService,
-            beslutteroversiktRepository, meldingRepository, veilederService, personClient, transactor
+            beslutteroversiktRepository, meldingRepository, veilederService, veilarbpersonClient, transactor
             );
 
     @Before
@@ -57,7 +57,7 @@ public class BeslutterServiceTest {
 
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn("VEILEDER"));
         when(veilederService.hentEnhetNavn(anyString())).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
-        when(personClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn().setFornavn("FORNAVN").setEtternavn("ETTERNAVN"));
+        when(veilarbpersonClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn().setFornavn("FORNAVN").setEtternavn("ETTERNAVN"));
     }
 
     @Test
