@@ -1,15 +1,16 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.abac.AbacClient;
-import no.nav.common.abac.NavAttributter;
 import no.nav.common.abac.Pep;
-import no.nav.common.abac.StandardAttributter;
+import no.nav.common.abac.constants.NavAttributter;
+import no.nav.common.abac.constants.StandardAttributter;
 import no.nav.common.abac.domain.AbacPersonId;
 import no.nav.common.abac.domain.Attribute;
 import no.nav.common.abac.domain.request.*;
 import no.nav.common.abac.domain.response.Category;
 import no.nav.common.abac.domain.response.Decision;
 import no.nav.common.abac.domain.response.XacmlResponse;
+import no.nav.common.auth.subject.SsoToken;
 import no.nav.common.auth.subject.SubjectHandler;
 import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.utils.Credentials;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
 import static no.nav.common.auth.subject.IdentType.InternBruker;
 
 @Service
@@ -57,7 +59,10 @@ public class AuthService {
 
         String aktorId = aktorregisterClient.hentAktorId(fnr);
 
-        veilarbPep.sjekkVeilederTilgangTilBruker(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId));
+        if (!veilarbPep.harVeilederTilgangTilPerson(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
         String enhet = sjekkTilgangTilEnhet(fnr);
 
         return new AuthKontekst()
@@ -71,13 +76,20 @@ public class AuthService {
 
         String fnr = aktorregisterClient.hentFnr(aktorId);
 
-        veilarbPep.sjekkVeilederTilgangTilBruker(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId));
+        if (!veilarbPep.harVeilederTilgangTilPerson(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
         String enhet = sjekkTilgangTilEnhet(fnr);
 
         return new AuthKontekst()
                 .setFnr(fnr)
                 .setAktorId(aktorId)
                 .setOppfolgingsenhet(enhet);
+    }
+
+    public String getInnloggetBrukerToken() {
+        return SubjectHandler.getSsoToken().map(SsoToken::getToken).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bruker mangler token"));
     }
 
     public String getInnloggetVeilederIdent() {
@@ -158,8 +170,12 @@ public class AuthService {
     }
 
     private String sjekkTilgangTilEnhet(String fnr) {
-        String enhet = arenaClient.oppfolgingsenhet(fnr);
-        veilarbPep.sjekkVeilederTilgangTilEnhet(getInnloggetVeilederIdent(), enhet);
+        String enhet = ofNullable(arenaClient.oppfolgingsenhet(fnr)).orElse("");
+
+        if (!veilarbPep.harVeilederTilgangTilEnhet(getInnloggetVeilederIdent(), enhet)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
         return enhet;
     }
 

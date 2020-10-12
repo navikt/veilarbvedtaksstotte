@@ -40,6 +40,10 @@ public class VedtakStatusEndringService {
         kafkaProducer.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.BESLUTTER_PROSESS_STARTET));
     }
 
+    public void beslutterProsessAvbrutt(Vedtak vedtak) {
+        kafkaProducer.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.BESLUTTER_PROSESS_AVBRUTT));
+    }
+
     public void godkjentAvBeslutter(Vedtak vedtak) {
         kafkaProducer.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.GODKJENT_AV_BESLUTTER));
         metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(vedtak);

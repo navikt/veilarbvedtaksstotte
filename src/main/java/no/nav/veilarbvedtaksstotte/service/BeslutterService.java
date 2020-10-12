@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.PersonClient;
+import no.nav.veilarbvedtaksstotte.client.api.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
@@ -16,6 +16,7 @@ import no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVeilederForVedtak;
@@ -37,7 +38,9 @@ public class BeslutterService {
 
 	private final VeilederService veilederService;
 
-	private final PersonClient personClient;
+	private final VeilarbpersonClient veilarbpersonClient;
+
+	private final TransactionTemplate transactor;
 
 	@Autowired
 	public BeslutterService(
@@ -47,7 +50,8 @@ public class BeslutterService {
 			BeslutteroversiktRepository beslutteroversiktRepository,
 			MeldingRepository meldingRepository,
 			VeilederService veilederService,
-			PersonClient personClient
+			VeilarbpersonClient veilarbpersonClient,
+			TransactionTemplate transactor
 	) {
 		this.authService = authService;
 		this.vedtaksstotteRepository = vedtaksstotteRepository;
@@ -55,7 +59,8 @@ public class BeslutterService {
 		this.beslutteroversiktRepository = beslutteroversiktRepository;
 		this.meldingRepository = meldingRepository;
 		this.veilederService = veilederService;
-		this.personClient = personClient;
+		this.veilarbpersonClient = veilarbpersonClient;
+		this.transactor = transactor;
 	}
 
 	public void startBeslutterProsess(long vedtakId) {
@@ -75,6 +80,24 @@ public class BeslutterService {
 		vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
 		vedtakStatusEndringService.beslutterProsessStartet(utkast);
 		meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_PROSESS_STARTET, utkast.getVeilederIdent());
+	}
+
+	public void avbrytBeslutterProsess(long vedtakId) {
+		Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+		authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+		authService.sjekkErAnsvarligVeilederFor(utkast);
+
+		if (!erBeslutterProsessStartet(utkast.getBeslutterProsessStatus())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+		}
+
+		transactor.executeWithoutResult((status) -> {
+			beslutteroversiktRepository.slettBruker(utkast.getId());
+			vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), null);
+			vedtaksstotteRepository.setBeslutter(utkast.getId(), null);
+			vedtakStatusEndringService.beslutterProsessAvbrutt(utkast);
+			meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_PROSESS_AVBRUTT, utkast.getVeilederIdent());
+		});
 	}
 
 	public void bliBeslutter(long vedtakId) {
@@ -163,7 +186,7 @@ public class BeslutterService {
 		String brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
 		Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
 		String enhetNavn = veilederService.hentEnhetNavn(vedtak.getOppfolgingsenhetId());
-		PersonNavn brukerNavn = personClient.hentPersonNavn(brukerFnr);
+		PersonNavn brukerNavn = veilarbpersonClient.hentPersonNavn(brukerFnr);
 
 		BeslutteroversiktBruker bruker = new BeslutteroversiktBruker()
 				.setVedtakId(vedtak.getId())
@@ -180,5 +203,4 @@ public class BeslutterService {
 
 		beslutteroversiktRepository.lagBruker(bruker);
 	}
-
 }

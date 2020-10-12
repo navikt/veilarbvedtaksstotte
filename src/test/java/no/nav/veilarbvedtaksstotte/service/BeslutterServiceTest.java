@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.PersonClient;
+import no.nav.veilarbvedtaksstotte.client.api.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
@@ -11,8 +11,12 @@ import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.*;
@@ -32,14 +36,18 @@ public class BeslutterServiceTest {
 
     private VeilederService veilederService = mock(VeilederService.class);
 
-    private PersonClient personClient = mock(PersonClient.class);
+    private VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
 
     private AuthService authService = mock(AuthService.class);
 
+    private JdbcTemplate db = SingletonPostgresContainer.init().getDb();
+
+    private TransactionTemplate transactor= new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
+
     private BeslutterService beslutterService = new BeslutterService(
             authService, vedtaksstotteRepository, vedtakStatusEndringService,
-            beslutteroversiktRepository, meldingRepository, veilederService, personClient
-    );
+            beslutteroversiktRepository, meldingRepository, veilederService, veilarbpersonClient, transactor
+            );
 
     @Before
     public void setup() {
@@ -49,7 +57,7 @@ public class BeslutterServiceTest {
 
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn("VEILEDER"));
         when(veilederService.hentEnhetNavn(anyString())).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
-        when(personClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn().setFornavn("FORNAVN").setEtternavn("ETTERNAVN"));
+        when(veilarbpersonClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn().setFornavn("FORNAVN").setEtternavn("ETTERNAVN"));
     }
 
     @Test
@@ -106,6 +114,49 @@ public class BeslutterServiceTest {
 
         verify(meldingRepository, times(1))
                 .opprettSystemMelding(anyLong(), eq(SystemMeldingType.BESLUTTER_PROSESS_STARTET), eq(TEST_VEILEDER_IDENT));
+    }
+
+    @Test
+    public void avbrytBeslutterProsess__skal_avbryte_beslutter_prosess_hvis_ikke_allerede_gjort() {
+        Vedtak vedtak = new Vedtak()
+                .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                .setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
+
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
+
+        beslutterService.avbrytBeslutterProsess(SOME_ID);
+
+        verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(null));
+    }
+
+    @Test
+    public void avbrytBeslutterProsess__skal_kaste_exception_hvis_feil_innsatsgruppe() {
+        Vedtak vedtak = new Vedtak();
+        vedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
+
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
+
+        assertThrows(ResponseStatusException.class, () -> beslutterService.avbrytBeslutterProsess(SOME_ID));
+    }
+
+    @Test
+    public void avbrytBeslutterProsess__skal_opprette_system_melding() {
+        Vedtak vedtak = new Vedtak()
+                .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                .setBeslutterProsessStatus(KLAR_TIL_BESLUTTER)
+                .setAktorId(TEST_AKTOR_ID)
+                .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
+                .setVeilederIdent(TEST_VEILEDER_IDENT);
+
+        when(authService.sjekkTilgangTilFnr(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
+        when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
+
+        beslutterService.avbrytBeslutterProsess(SOME_ID);
+
+        verify(meldingRepository, times(1))
+                .opprettSystemMelding(anyLong(), eq(SystemMeldingType.BESLUTTER_PROSESS_AVBRUTT), eq(TEST_VEILEDER_IDENT));
     }
 
     @Test

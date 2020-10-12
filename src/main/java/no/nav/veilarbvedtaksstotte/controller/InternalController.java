@@ -35,7 +35,7 @@ public class InternalController {
     @Autowired
     public InternalController(
             ArenaClient arenaClient, DokumentClient dokumentClient, EgenvurderingClient egenvurderingClient,
-            OppfolgingClient oppfolgingClient, PamCvClient pamCvClient, PersonClient personClient,
+            OppfolgingClient oppfolgingClient, VeilarbpersonClient veilarbpersonClient,
             RegistreringClient registreringClient, SafClient safClient, VeiledereOgEnhetClient veiledereOgEnhetClient,
             KafkaHelsesjekk kafkaHelsesjekk, DataSourceHealthIndicator dataSourceHealthIndicator
     ) {
@@ -46,8 +46,7 @@ public class InternalController {
                 new SelfTestCheck("DokumentClient", false, dokumentClient),
                 new SelfTestCheck("EgenvurderingClient", false, egenvurderingClient),
                 new SelfTestCheck("OppfolgingClient", false, oppfolgingClient),
-                new SelfTestCheck("PamCvClient", false, pamCvClient),
-                new SelfTestCheck("PersonClient", false, personClient),
+                new SelfTestCheck("PersonClient", false, veilarbpersonClient),
                 new SelfTestCheck("RegistreringClient", false, registreringClient),
                 new SelfTestCheck("SafClient", false, safClient),
                 new SelfTestCheck("VeilederOgEnhetClient", false, veiledereOgEnhetClient),

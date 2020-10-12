@@ -1,14 +1,23 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
-import lombok.extern.slf4j.Slf4j;
 import no.nav.common.auth.subject.SsoToken;
 import no.nav.common.auth.subject.SubjectHandler;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
-@Slf4j
 public class RestClientUtils {
 
     public static String authHeaderMedInnloggetBruker() {
-        return "Bearer " + SubjectHandler.getSsoToken().map(SsoToken::getToken).orElseThrow(() -> new RuntimeException("Fant ikke token til innlogget bruker"));
+        String token = SubjectHandler.
+                getSsoToken()
+                .map(SsoToken::getToken)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Fant ikke token til innlogget bruker"));
+
+        return bearerToken(token);
+    }
+
+    public static String bearerToken(String token) {
+        return "Bearer " + token;
     }
 
 }

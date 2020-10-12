@@ -37,7 +37,7 @@ public class DokumentClientImpl implements DokumentClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseBodyOrThrow(response.body(), DokumentSendtDTO.class);
+            return RestUtils.parseJsonResponseOrThrow(response, DokumentSendtDTO.class);
         }
     }
 
