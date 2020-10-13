@@ -36,7 +36,7 @@ public class EgenvurderingClientImpl implements EgenvurderingClient {
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
 
-            if (response.code() == 204) {
+            if (response.code() == 204 || response.code() == 404) {
                 return JsonUtils.createNoDataStr("Bruker har ikke fylt ut egenvurdering");
             }
 
