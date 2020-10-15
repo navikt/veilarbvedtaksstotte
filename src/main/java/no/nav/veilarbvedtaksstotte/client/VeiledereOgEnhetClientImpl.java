@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client;
 
 import lombok.SneakyThrows;
-import no.nav.common.auth.subject.SubjectHandler;
+import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
@@ -61,7 +61,11 @@ public class VeiledereOgEnhetClientImpl implements VeiledereOgEnhetClient {
     }
 
     public VeilederEnheterDTO hentInnloggetVeilederEnheter() {
-        String veilederIdent = SubjectHandler.getIdent().orElseThrow(() -> new IllegalStateException("Fant ikke veileder ident"));
+        String veilederIdent = AuthContextHolder
+                .getNavIdent()
+                .orElseThrow(() -> new IllegalStateException("Fant ikke veileder ident"))
+                .get();
+
         return hentInnloggetVeilederEnheter(veilederIdent);
     }
 
