@@ -2,8 +2,10 @@ package no.nav.veilarbvedtaksstotte.mock;
 
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
-import no.nav.common.abac.domain.AbacPersonId;
 import no.nav.common.abac.domain.request.ActionId;
+import no.nav.common.types.identer.EksternBrukerId;
+import no.nav.common.types.identer.EnhetId;
+import no.nav.common.types.identer.NavIdent;
 
 public class PepMock implements Pep {
 
@@ -14,48 +16,53 @@ public class PepMock implements Pep {
     }
 
     @Override
-    public boolean harVeilederTilgangTilEnhet(String veilederIdent, String enhetId) {
-        return true;
+    public boolean harVeilederTilgangTilEnhet(NavIdent navIdent, EnhetId enhetId) {
+        return false;
     }
 
     @Override
-    public boolean harTilgangTilEnhet(String innloggetBrukerIdToken, String enhetId) {
-        return true;
+    public boolean harTilgangTilEnhet(String s, EnhetId enhetId) {
+        return false;
     }
 
     @Override
-    public boolean harVeilederTilgangTilPerson(String veilederIdent, ActionId actionId, AbacPersonId personId) {
-        return true;
+    public boolean harTilgangTilEnhetMedSperre(String s, EnhetId enhetId) {
+        return false;
     }
 
     @Override
-    public boolean harTilgangTilPerson(String innloggetBrukerIdToken, ActionId actionId, AbacPersonId personId) {
-        return true;
+    public boolean harVeilederTilgangTilPerson(NavIdent navIdent, ActionId actionId, EksternBrukerId eksternBrukerId) {
+        return false;
     }
 
     @Override
-    public boolean harVeilederTilgangTilOppfolging(String innloggetVeilederIdToken) {
-        return true;
+    public boolean harTilgangTilPerson(String s, ActionId actionId, EksternBrukerId eksternBrukerId) {
+        return false;
     }
 
     @Override
-    public boolean harVeilederTilgangTilModia(String innloggetVeilederIdToken) {
-        return true;
+    public boolean harTilgangTilOppfolging(String s) {
+        return false;
     }
 
     @Override
-    public boolean harVeilederTilgangTilKode6(String veilederIdent) {
-        return true;
+    public boolean harVeilederTilgangTilModia(String s) {
+        return false;
     }
 
     @Override
-    public boolean harVeilederTilgangTilKode7(String veilederIdent) {
-        return true;
+    public boolean harVeilederTilgangTilKode6(NavIdent navIdent) {
+        return false;
     }
 
     @Override
-    public boolean harVeilederTilgangTilEgenAnsatt(String veilederIdent) {
-        return true;
+    public boolean harVeilederTilgangTilKode7(NavIdent navIdent) {
+        return false;
+    }
+
+    @Override
+    public boolean harVeilederTilgangTilEgenAnsatt(NavIdent navIdent) {
+        return false;
     }
 
     @Override

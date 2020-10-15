@@ -1,10 +1,9 @@
 package no.nav.veilarbvedtaksstotte.client;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import no.nav.common.auth.subject.IdentType;
-import no.nav.common.auth.subject.SsoToken;
-import no.nav.common.auth.subject.Subject;
-import no.nav.common.auth.subject.SubjectHandler;
+import no.nav.common.auth.context.AuthContextHolder;
+import no.nav.common.auth.context.UserRole;
+import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.veilarbvedtaksstotte.client.api.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.Journalpost;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
@@ -12,7 +11,6 @@ import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -35,7 +33,8 @@ public class SafClientImplTest {
                         .withBody(journalposterJson))
         );
 
-        SubjectHandler.withSubject(new Subject("test", IdentType.InternBruker, SsoToken.oidcToken("token", new HashMap<>())), () -> {
+
+        AuthContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), () -> {
             List<Journalpost> journalposter = safClient.hentJournalposter(TestData.TEST_FNR);
 
             assertTrue(journalposter.stream().anyMatch(j ->
