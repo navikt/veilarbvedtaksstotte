@@ -63,8 +63,8 @@ public class ApplicationConfig {
     @Bean
     public AktorOppslagClient aktorOppslagClient(SystemUserTokenProvider tokenProvider) {
         String pdlUrl = EnvironmentUtils.isDevelopment().orElse(false)
-                ? createDevAdeoIngressUrl("pdl", false)
-                : createNaisAdeoIngressUrl("pdl", false);
+                ? createDevAdeoIngressUrl("pdl-api", false)
+                : createNaisAdeoIngressUrl("pdl-api", false);
 
         return new CachedAktorOppslagClient(
                 new PdlAktorOppslagClient(pdlUrl, tokenProvider::getSystemUserToken, tokenProvider::getSystemUserToken)
