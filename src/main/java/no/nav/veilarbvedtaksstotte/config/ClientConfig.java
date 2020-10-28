@@ -54,7 +54,7 @@ public class ClientConfig {
     }
 
     private static String naisPreprodOrNaisAdeoIngress(String appName, boolean withAppContextPath) {
-        return  EnvironmentUtils.isDevelopment().orElse(false)
+        return EnvironmentUtils.isDevelopment().orElse(false)
                 ? createNaisPreprodIngressUrl(appName, "q1", withAppContextPath)
                 : createNaisAdeoIngressUrl(appName, withAppContextPath);
     }
