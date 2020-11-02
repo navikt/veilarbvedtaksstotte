@@ -1,6 +1,9 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import no.nav.common.client.pdl.AktorOppslagClient;
 import no.nav.common.health.HealthCheckResult;
+import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.api.*;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import org.springframework.context.annotation.Bean;
@@ -8,11 +11,42 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 
 @Configuration
 public class ClientTestConfig {
+
+    @Bean
+    public AktorOppslagClient aktorOppslagClient() {
+        return new AktorOppslagClient() {
+            @Override
+            public Fnr hentFnr(AktorId aktorId) {
+                return Fnr.of(TEST_FNR);
+            }
+
+            @Override
+            public AktorId hentAktorId(Fnr fnr) {
+                return AktorId.of(TEST_AKTOR_ID);
+            }
+
+            @Override
+            public Map<AktorId, Fnr> hentFnrBolk(List<AktorId> list) {
+                return Collections.emptyMap();
+            }
+
+            @Override
+            public Map<Fnr, AktorId> hentAktorIdBolk(List<Fnr> list) {
+                return Collections.emptyMap();
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
+            }
+        };
+    }
 
     @Bean
     public ArenaClient arenaClient() {
@@ -76,7 +110,7 @@ public class ClientTestConfig {
             public OppfolgingDTO hentOppfolgingData(String fnr) {
                 OppfolgingDTO oppfolgingDTO = new OppfolgingDTO();
                 oppfolgingDTO.setServicegruppe("VURDU");
-                oppfolgingDTO.setOppfolgingsPerioder(Collections.EMPTY_LIST);
+                oppfolgingDTO.setOppfolgingsPerioder(Collections.emptyList());
                 return oppfolgingDTO;
             }
 

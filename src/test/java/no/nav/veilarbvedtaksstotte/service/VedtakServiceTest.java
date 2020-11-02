@@ -2,11 +2,13 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.VeilarbPep;
-import no.nav.common.auth.subject.IdentType;
-import no.nav.common.auth.subject.SsoToken;
-import no.nav.common.auth.subject.Subject;
-import no.nav.common.auth.subject.SubjectHandler;
-import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.auth.context.AuthContextHolder;
+import no.nav.common.auth.context.UserRole;
+import no.nav.common.client.pdl.AktorOppslagClient;
+import no.nav.common.test.auth.AuthTestUtils;
+import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.Fnr;
+import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.veilarbvedtaksstotte.client.api.*;
 import no.nav.veilarbvedtaksstotte.domain.*;
@@ -31,7 +33,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -68,7 +69,7 @@ public class VedtakServiceTest {
     private static KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
     private static DokumentClient dokumentClient = mock(DokumentClient.class);
     private static VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
-    private static AktorregisterClient aktorregisterClient = mock(AktorregisterClient.class);
+    private static AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static VeilarbPep veilarbPep = mock(VeilarbPep.class);
     private static ArenaClient arenaClient = mock(ArenaClient.class);
     private static AbacClient abacClient = mock(AbacClient.class);
@@ -88,7 +89,7 @@ public class VedtakServiceTest {
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
-        authService = spy(new AuthService(aktorregisterClient, veilarbPep, arenaClient, abacClient, null));
+        authService = spy(new AuthService(aktorOppslagClient, veilarbPep, arenaClient, abacClient, null));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         vedtakService = new VedtakService(
@@ -121,15 +122,15 @@ public class VedtakServiceTest {
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR)).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
-        when(aktorregisterClient.hentAktorId(TEST_FNR)).thenReturn(TEST_AKTOR_ID);
-        when(aktorregisterClient.hentFnr(TEST_AKTOR_ID)).thenReturn(TEST_FNR);
+        when(aktorOppslagClient.hentAktorId(Fnr.of(TEST_FNR))).thenReturn(AktorId.of(TEST_AKTOR_ID));
+        when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(Fnr.of(TEST_FNR));
         when(arenaClient.oppfolgingsenhet(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSENHET_ID);
     }
 
 
     @Test
     public void fattVedtak__opprett_oppdater_og_send_vedtak() {
-        withSubject(() -> {
+        withContext(() -> {
             gittTilgang();
 
             vedtakService.lagUtkast(TEST_FNR);
@@ -195,7 +196,7 @@ public class VedtakServiceTest {
 
     @Test
     public void lagUtkast__skal_opprette_system_melding() {
-        withSubject(() -> {
+        withContext(() -> {
             gittTilgang();
             vedtakService.lagUtkast(TEST_FNR);
 
@@ -207,7 +208,7 @@ public class VedtakServiceTest {
 
     @Test
     public void oppdaterUtkast__feiler_for_veileder_som_ikke_er_satt_pa_utkast() {
-        withSubject(() -> {
+        withContext(() -> {
             gittTilgang();
 
             vedtakService.lagUtkast(TEST_FNR);
@@ -240,7 +241,7 @@ public class VedtakServiceTest {
 
     @Test
     public void slettUtkast__feiler_for_veileder_som_ikke_er_satt_pa_utkast() {
-        withSubject(() -> {
+        withContext(() -> {
             gittTilgang();
 
             vedtakService.lagUtkast(TEST_FNR);
@@ -255,7 +256,7 @@ public class VedtakServiceTest {
 
     @Test
     public void fattVedtak__feiler_for_veileder_som_ikke_er_satt_pa_utkast() {
-        withSubject(() -> {
+        withContext(() -> {
             gittTilgang();
 
             vedtakService.lagUtkast(TEST_FNR);
@@ -281,7 +282,7 @@ public class VedtakServiceTest {
     @Test
     @Ignore // TODO: Denne testen brekker pipelinen altfor ofte, må fikses
     public void fattVedtak_sender_ikke_mer_enn_en_gang() {
-        withSubject(() -> {
+        withContext(() -> {
             gittTilgang();
             gittUtkastKlarForUtsendelse();
 
@@ -305,7 +306,7 @@ public class VedtakServiceTest {
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        withSubject(() -> {
+        withContext(() -> {
             gittTilgang();
             assertThatThrownBy(() ->
             vedtakService.fattVedtak(utkast.getId())).isExactlyInstanceOf(RuntimeException.class);
@@ -316,7 +317,7 @@ public class VedtakServiceTest {
 
     @Test
     public void taOverUtkast__setter_ny_veileder() {
-        withSubject(() -> {
+        withContext(() -> {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
             gittTilgang();
             vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
@@ -330,7 +331,7 @@ public class VedtakServiceTest {
 
     @Test
     public void taOverUtkast__oppretter_system_melding() {
-        withSubject(() -> {
+        withContext(() -> {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
             gittTilgang();
 
@@ -348,7 +349,7 @@ public class VedtakServiceTest {
 
     @Test
     public void taOverUtkast__feiler_dersom_ikke_utkast() {
-        withSubject(() -> {
+        withContext(() -> {
             assertThatThrownBy(() ->
                     vedtakService.taOverUtkast(123)
             ).hasMessage("404 NOT_FOUND \"Fant ikke utkast\"");
@@ -364,7 +365,7 @@ public class VedtakServiceTest {
 
     @Test
     public void taOverUtkast__feiler_dersom_samme_veileder() {
-        withSubject(() -> {
+        withContext(() -> {
             gittTilgang();
             vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
@@ -378,7 +379,7 @@ public class VedtakServiceTest {
     @Test
     public void behandleOppfolgingsbrukerEndring_endrer_oppfolgingsenhet() {
         String nyEnhet = "4562";
-        withSubject(() -> {
+        withContext(() -> {
             vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
             vedtakService.behandleOppfolgingsbrukerEndring(new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, nyEnhet));
@@ -390,16 +391,16 @@ public class VedtakServiceTest {
     }
 
     private void gittTilgang() {
-        when(veilarbPep.harVeilederTilgangTilPerson(anyString(), any(), any())).thenReturn(true);
-        when(veilarbPep.harVeilederTilgangTilEnhet(anyString(), eq(TEST_OPPFOLGINGSENHET_ID))).thenReturn(true);
+        when(veilarbPep.harVeilederTilgangTilPerson(any(NavIdent.class), any(), any())).thenReturn(true);
+        when(veilarbPep.harVeilederTilgangTilEnhet(any(NavIdent.class), any())).thenReturn(true);
     }
 
-    private void withSubject(UnsafeRunnable runnable) {
-        SubjectHandler.withSubject(new Subject(TEST_VEILEDER_IDENT, IdentType.InternBruker, SsoToken.oidcToken("token", new HashMap<>())), runnable);
+    private void withContext(UnsafeRunnable runnable) { ;
+        AuthContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, TEST_VEILEDER_IDENT), runnable);
     }
 
     private void gittUtkastKlarForUtsendelse() {
-        withSubject(() -> {
+        withContext(() -> {
             gittTilgang();
             vedtakService.lagUtkast(TEST_FNR);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
@@ -426,7 +427,7 @@ public class VedtakServiceTest {
                 Thread.sleep(1000); // Simuler tregt API for å sende dokument
                 return new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
             });
-            withSubject(() -> {
+            withContext(() -> {
                 Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
                 vedtakService.fattVedtak(utkast.getId());
             });

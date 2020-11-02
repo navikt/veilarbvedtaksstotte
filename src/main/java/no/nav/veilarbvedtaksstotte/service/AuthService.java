@@ -4,15 +4,18 @@ import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
 import no.nav.common.abac.constants.NavAttributter;
 import no.nav.common.abac.constants.StandardAttributter;
-import no.nav.common.abac.domain.AbacPersonId;
 import no.nav.common.abac.domain.Attribute;
 import no.nav.common.abac.domain.request.*;
 import no.nav.common.abac.domain.response.Category;
 import no.nav.common.abac.domain.response.Decision;
 import no.nav.common.abac.domain.response.XacmlResponse;
-import no.nav.common.auth.subject.SsoToken;
-import no.nav.common.auth.subject.SubjectHandler;
-import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.auth.context.AuthContextHolder;
+import no.nav.common.auth.context.UserRole;
+import no.nav.common.client.pdl.AktorOppslagClient;
+import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.EnhetId;
+import no.nav.common.types.identer.Fnr;
+import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.client.api.ArenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
@@ -28,12 +31,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
-import static no.nav.common.auth.subject.IdentType.InternBruker;
 
 @Service
 public class AuthService {
 
-    private final AktorregisterClient aktorregisterClient;
+    private final AktorOppslagClient aktorOppslagClient;
     private final Pep veilarbPep;
     private final ArenaClient arenaClient;
     private final AbacClient abacClient;
@@ -41,13 +43,13 @@ public class AuthService {
 
     @Autowired
     public AuthService(
-            AktorregisterClient aktorregisterClient,
+            AktorOppslagClient aktorOppslagClient,
             Pep veilarbPep,
             ArenaClient arenaClient,
             AbacClient abacClient,
             Credentials serviceUserCredentials
     ) {
-        this.aktorregisterClient = aktorregisterClient;
+        this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbPep = veilarbPep;
         this.arenaClient = arenaClient;
         this.abacClient = abacClient;
@@ -57,9 +59,9 @@ public class AuthService {
     public AuthKontekst sjekkTilgangTilFnr(String fnr) {
         sjekkInternBruker();
 
-        String aktorId = aktorregisterClient.hentAktorId(fnr);
+        AktorId aktorId = aktorOppslagClient.hentAktorId(Fnr.of(fnr));
 
-        if (!veilarbPep.harVeilederTilgangTilPerson(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId))) {
+        if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(getInnloggetVeilederIdent()), ActionId.WRITE, aktorId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -67,16 +69,16 @@ public class AuthService {
 
         return new AuthKontekst()
                 .setFnr(fnr)
-                .setAktorId(aktorId)
+                .setAktorId(aktorId.get())
                 .setOppfolgingsenhet(enhet);
     }
 
     public AuthKontekst sjekkTilgangTilAktorId(String aktorId) {
         sjekkInternBruker();
 
-        String fnr = aktorregisterClient.hentFnr(aktorId);
+        String fnr = aktorOppslagClient.hentFnr(AktorId.of(aktorId)).get();
 
-        if (!veilarbPep.harVeilederTilgangTilPerson(getInnloggetVeilederIdent(), ActionId.WRITE, AbacPersonId.aktorId(aktorId))) {
+        if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(getInnloggetVeilederIdent()), ActionId.WRITE, AktorId.of(aktorId))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -89,17 +91,20 @@ public class AuthService {
     }
 
     public String getInnloggetBrukerToken() {
-        return SubjectHandler.getSsoToken().map(SsoToken::getToken).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bruker mangler token"));
+        return AuthContextHolder
+                .getIdTokenString()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bruker mangler token"));
     }
 
     public String getInnloggetVeilederIdent() {
-        return SubjectHandler
-                .getIdent()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fant ikke ident for innlogget veileder"));
+        return AuthContextHolder
+                .getNavIdent()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fant ikke ident for innlogget veileder"))
+                .get();
     }
 
     public String getFnrOrThrow(String aktorId) {
-        return aktorregisterClient.hentFnr(aktorId);
+        return aktorOppslagClient.hentFnr(AktorId.of(aktorId)).get();
     }
 
     public void sjekkErAnsvarligVeilederFor(Vedtak vedtak) {
@@ -123,7 +128,7 @@ public class AuthService {
 
         AccessSubject accessSubject = new AccessSubject();
         accessSubject.addAttribute(new Attribute(StandardAttributter.SUBJECT_ID, veilederIdent));
-        accessSubject.addAttribute(new Attribute(NavAttributter.SUBJECT_FELLES_SUBJECTTYPE, InternBruker.name()));
+        accessSubject.addAttribute(new Attribute(NavAttributter.SUBJECT_FELLES_SUBJECTTYPE, "InternBruker"));
 
         List<Resource> resources = brukerFnrs.stream()
                 .map(this::mapBrukerFnrTilAbacResource)
@@ -163,16 +168,16 @@ public class AuthService {
     }
 
     private void sjekkInternBruker() {
-        SubjectHandler
-                .getIdentType()
-                .filter(InternBruker::equals)
+        AuthContextHolder
+                .getRole()
+                .filter(role -> role == UserRole.INTERN)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke intern bruker"));
     }
 
     private String sjekkTilgangTilEnhet(String fnr) {
         String enhet = ofNullable(arenaClient.oppfolgingsenhet(fnr)).orElse("");
 
-        if (!veilarbPep.harVeilederTilgangTilEnhet(getInnloggetVeilederIdent(), enhet)) {
+        if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(getInnloggetVeilederIdent()), EnhetId.of(enhet))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 

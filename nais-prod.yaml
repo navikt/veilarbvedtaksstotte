@@ -2,10 +2,9 @@ kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
   name: veilarbvedtaksstotte
-  namespace: default
+  namespace: pto
   labels:
     team: pto
-  cluster: prod-fss
 spec:
   image: docker.pkg.github.com/navikt/veilarbvedtaksstotte/veilarbvedtaksstotte:{{version}}
   port: 8080

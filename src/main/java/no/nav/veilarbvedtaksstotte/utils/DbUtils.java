@@ -7,10 +7,8 @@ import org.flywaydb.core.Flyway;
 
 import javax.sql.DataSource;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static no.nav.common.utils.EnvironmentUtils.isProduction;
-import static no.nav.common.utils.EnvironmentUtils.requireNamespace;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 
 public class DbUtils {
@@ -62,10 +60,8 @@ public class DbUtils {
     }
 
     public static String toDbRoleStr(DbRole dbRole) {
-        String namespace = requireNamespace();
-        String environment = "default".equals(namespace) ? "p" : namespace;
+        String environment = isProduction().orElse(false) ? "p" : "q1";
         String role = EnumUtils.getName(dbRole).toLowerCase();
-
         return String.join("-", APPLICATION_NAME, environment, role);
     }
 
