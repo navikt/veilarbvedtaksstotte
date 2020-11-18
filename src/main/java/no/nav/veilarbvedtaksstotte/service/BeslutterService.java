@@ -145,8 +145,8 @@ public class BeslutterService {
         }
 
 		vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.GODKJENT_AV_BESLUTTER);
-        beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.GODKJENT_AV_BESLUTTER);
-        vedtakStatusEndringService.godkjentAvBeslutter(utkast);
+	    beslutteroversiktRepository.slettBruker(utkast.getId()); // Bruker skal ikke vises i beslutteroversikten hvis utkast er godkjent
+	    vedtakStatusEndringService.godkjentAvBeslutter(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);
     }
 
