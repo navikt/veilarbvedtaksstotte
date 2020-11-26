@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.api.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
-import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
+import no.nav.veilarbvedtaksstotte.client.api.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.Veileder;
+import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;

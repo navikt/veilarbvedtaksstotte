@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.client.api.veilederogenhet;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

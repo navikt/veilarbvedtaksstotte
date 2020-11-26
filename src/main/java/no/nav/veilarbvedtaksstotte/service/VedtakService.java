@@ -2,8 +2,11 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.client.api.DokumentClient;
-import no.nav.veilarbvedtaksstotte.client.api.SafClient;
+import no.nav.veilarbvedtaksstotte.client.api.dokument.DokumentClient;
+import no.nav.veilarbvedtaksstotte.client.api.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.api.dokument.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.client.api.dokument.SendDokumentDTO;
+import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;

@@ -1,13 +1,13 @@
-package no.nav.veilarbvedtaksstotte.client;
+package no.nav.veilarbvedtaksstotte.client.impl;
 
 import lombok.SneakyThrows;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
-import no.nav.veilarbvedtaksstotte.client.api.RegistreringClient;
+import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringClient;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
-import no.nav.veilarbvedtaksstotte.domain.RegistreringData;
+import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringData;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;

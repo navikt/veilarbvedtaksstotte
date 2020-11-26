@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
+import no.nav.veilarbvedtaksstotte.client.api.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;

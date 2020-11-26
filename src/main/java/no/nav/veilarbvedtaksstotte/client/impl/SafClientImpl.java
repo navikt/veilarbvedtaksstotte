@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client;
+package no.nav.veilarbvedtaksstotte.client.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -8,8 +8,8 @@ import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
-import no.nav.veilarbvedtaksstotte.client.api.SafClient;
-import no.nav.veilarbvedtaksstotte.domain.Journalpost;
+import no.nav.veilarbvedtaksstotte.client.api.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.api.dokarkiv.Journalpost;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;

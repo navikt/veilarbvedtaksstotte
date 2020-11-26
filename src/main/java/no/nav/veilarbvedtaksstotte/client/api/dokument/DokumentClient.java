@@ -1,8 +1,6 @@
-package no.nav.veilarbvedtaksstotte.client.api;
+package no.nav.veilarbvedtaksstotte.client.api.dokument;
 
 import no.nav.common.health.HealthCheck;
-import no.nav.veilarbvedtaksstotte.domain.DokumentSendtDTO;
-import no.nav.veilarbvedtaksstotte.domain.SendDokumentDTO;
 
 public interface DokumentClient extends HealthCheck {
 

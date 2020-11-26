@@ -1,8 +1,14 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.common.utils.EnvironmentUtils;
-import no.nav.veilarbvedtaksstotte.client.*;
 import no.nav.veilarbvedtaksstotte.client.api.*;
+import no.nav.veilarbvedtaksstotte.client.api.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.api.dokument.DokumentClient;
+import no.nav.veilarbvedtaksstotte.client.impl.*;
+import no.nav.veilarbvedtaksstotte.client.api.oppfolging.OppfolgingClient;
+import no.nav.veilarbvedtaksstotte.client.api.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringClient;
+import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.VeiledereOgEnhetClient;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

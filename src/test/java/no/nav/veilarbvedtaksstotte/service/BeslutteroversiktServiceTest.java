@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.VeiledereOgEnhetClient;
+import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.PortefoljeEnhet;
+import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.VeilederEnheterDTO;
+import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.VeiledereOgEnhetClient;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.junit.Test;

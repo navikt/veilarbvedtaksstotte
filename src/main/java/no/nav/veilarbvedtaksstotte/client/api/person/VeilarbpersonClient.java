@@ -1,7 +1,6 @@
-package no.nav.veilarbvedtaksstotte.client.api;
+package no.nav.veilarbvedtaksstotte.client.api.person;
 
 import no.nav.common.health.HealthCheck;
-import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
 
 public interface VeilarbpersonClient extends HealthCheck {
 

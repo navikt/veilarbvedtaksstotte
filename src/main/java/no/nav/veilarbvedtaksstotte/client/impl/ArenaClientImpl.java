@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client;
+package no.nav.veilarbvedtaksstotte.client.impl;
 
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;

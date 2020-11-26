@@ -1,12 +1,12 @@
-package no.nav.veilarbvedtaksstotte.client;
+package no.nav.veilarbvedtaksstotte.client.impl;
 
 import lombok.SneakyThrows;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
-import no.nav.veilarbvedtaksstotte.client.api.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
+import no.nav.veilarbvedtaksstotte.client.api.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.api.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
 import okhttp3.OkHttpClient;

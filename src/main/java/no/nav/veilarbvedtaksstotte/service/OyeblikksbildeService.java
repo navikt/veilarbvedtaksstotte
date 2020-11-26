@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.api.EgenvurderingClient;
-import no.nav.veilarbvedtaksstotte.client.api.RegistreringClient;
-import no.nav.veilarbvedtaksstotte.client.api.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringClient;
+import no.nav.veilarbvedtaksstotte.client.api.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;

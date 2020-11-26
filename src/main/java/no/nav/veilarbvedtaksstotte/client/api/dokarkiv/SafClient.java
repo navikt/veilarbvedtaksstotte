@@ -1,7 +1,6 @@
-package no.nav.veilarbvedtaksstotte.client.api;
+package no.nav.veilarbvedtaksstotte.client.api.dokarkiv;
 
 import no.nav.common.health.HealthCheck;
-import no.nav.veilarbvedtaksstotte.domain.Journalpost;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.Veileder;
+import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.dialog.DialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.MeldingDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingDTO;

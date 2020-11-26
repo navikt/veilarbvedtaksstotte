@@ -1,7 +1,6 @@
-package no.nav.veilarbvedtaksstotte.client.api;
+package no.nav.veilarbvedtaksstotte.client.api.oppfolging;
 
 import no.nav.common.health.HealthCheck;
-import no.nav.veilarbvedtaksstotte.domain.OppfolgingDTO;
 
 public interface OppfolgingClient extends HealthCheck {
 
