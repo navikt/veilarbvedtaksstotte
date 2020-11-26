@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.domain.vedtak;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -2,8 +2,8 @@ package no.nav.veilarbvedtaksstotte.kafka.dto;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 
 import java.time.LocalDateTime;
 

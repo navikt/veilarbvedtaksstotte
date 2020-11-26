@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.veilarbvedtaksstotte.kafka.dto.FeiletKafkaMelding;
-import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaTopic;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;

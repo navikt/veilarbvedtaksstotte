@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain.enums;
+package no.nav.veilarbvedtaksstotte.kafka.dto;
 
 public enum VedtakStatusEndring {
     UTKAST_OPPRETTET,

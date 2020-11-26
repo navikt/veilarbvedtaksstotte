@@ -2,10 +2,10 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringClient;
 import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringData;
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.enums.MalType;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.client.api.dokument.MalType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

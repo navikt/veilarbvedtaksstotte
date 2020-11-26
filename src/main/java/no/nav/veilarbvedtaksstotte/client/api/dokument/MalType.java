@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain.enums;
+package no.nav.veilarbvedtaksstotte.client.api.dokument;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

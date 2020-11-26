@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.veilarbvedtaksstotte.domain.Oyeblikksbilde;
-import no.nav.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;

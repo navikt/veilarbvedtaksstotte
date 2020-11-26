@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
-import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktSok;
-import no.nav.veilarbvedtaksstotte.domain.BrukereMedAntall;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.service.BeslutteroversiktService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;

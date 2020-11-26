@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
-import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 
 public class InnsatsgruppeUtils {
 

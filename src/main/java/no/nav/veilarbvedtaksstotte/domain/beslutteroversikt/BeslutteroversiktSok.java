@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.domain.beslutteroversikt;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

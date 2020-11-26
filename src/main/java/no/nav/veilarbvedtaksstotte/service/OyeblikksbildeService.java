@@ -3,8 +3,8 @@ package no.nav.veilarbvedtaksstotte.service;
 import no.nav.veilarbvedtaksstotte.client.api.EgenvurderingClient;
 import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringClient;
 import no.nav.veilarbvedtaksstotte.client.api.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.domain.Oyeblikksbilde;
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 
-import static no.nav.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType.*;
+import static no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType.*;
 
 
 @Service

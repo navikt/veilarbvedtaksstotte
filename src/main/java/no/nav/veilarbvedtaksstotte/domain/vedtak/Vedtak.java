@@ -1,12 +1,8 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.domain.vedtak;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;

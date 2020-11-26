@@ -19,7 +19,7 @@ import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.client.api.ArenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

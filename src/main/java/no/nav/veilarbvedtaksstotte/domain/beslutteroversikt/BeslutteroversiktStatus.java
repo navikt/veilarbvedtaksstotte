@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain.enums;
+package no.nav.veilarbvedtaksstotte.domain.beslutteroversikt;
 
 public enum  BeslutteroversiktStatus {
     TRENGER_BESLUTTER,

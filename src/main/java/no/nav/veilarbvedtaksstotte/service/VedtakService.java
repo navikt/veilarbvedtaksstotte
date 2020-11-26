@@ -10,9 +10,7 @@ import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
@@ -29,8 +27,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
-import static no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus.SENDT;
+import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
+import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 
 @Slf4j

@@ -1,8 +1,7 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.domain.beslutteroversikt;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
 
 import java.time.LocalDateTime;
 

@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain.enums;
+package no.nav.veilarbvedtaksstotte.domain.vedtak;
 
 public enum Innsatsgruppe {
     STANDARD_INNSATS,

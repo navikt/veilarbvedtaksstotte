@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.client.api.dokument;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import no.nav.veilarbvedtaksstotte.domain.enums.MalType;
 
 import java.util.List;
 

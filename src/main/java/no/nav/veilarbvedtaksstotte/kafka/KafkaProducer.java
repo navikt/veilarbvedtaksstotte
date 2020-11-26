@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.kafka.dto.FeiletKafkaMelding;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
-import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;

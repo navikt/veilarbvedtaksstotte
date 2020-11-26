@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.impl;
+package no.nav.veilarbvedtaksstotte.client.impl.arena;
 
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
@@ -6,7 +6,6 @@ import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.veilarbvedtaksstotte.client.api.ArenaClient;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
-import no.nav.veilarbvedtaksstotte.domain.Oppfolgingsenhet;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;

@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.kafka.dto;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaTopic;
 
 @Data
 @Accessors(chain = true)
