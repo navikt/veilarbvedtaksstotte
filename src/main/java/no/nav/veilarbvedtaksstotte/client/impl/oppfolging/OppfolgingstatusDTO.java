@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.client.impl.oppfolging;
 import lombok.Value;
 
 @Value

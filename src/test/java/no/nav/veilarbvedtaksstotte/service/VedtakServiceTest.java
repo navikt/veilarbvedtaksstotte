@@ -16,6 +16,7 @@ import no.nav.veilarbvedtaksstotte.client.api.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.client.api.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringClient;
 import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
@@ -144,7 +145,7 @@ public class VedtakServiceTest {
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
             kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
-            VedtakDTO oppdaterDto = new VedtakDTO()
+            OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                     .setBegrunnelse("En begrunnelse")
                     .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
@@ -176,7 +177,7 @@ public class VedtakServiceTest {
         return vedtakList.get(0);
     }
 
-    private void assertOppdatertUtkast(VedtakDTO dto) {
+    private void assertOppdatertUtkast(OppdaterUtkastDTO dto) {
         Vedtak oppdatertUtkast = vedtakService.hentUtkast(TEST_FNR);
         assertEquals(dto.getHovedmal(), oppdatertUtkast.getHovedmal());
         assertEquals(dto.getBegrunnelse(), oppdatertUtkast.getBegrunnelse());
@@ -224,7 +225,7 @@ public class VedtakServiceTest {
 
             assertThatThrownBy(() -> {
                 vedtakService.fattVedtak(utkast.getId());
-                vedtakService.oppdaterUtkast(utkast.getId(), new VedtakDTO());
+                vedtakService.oppdaterUtkast(utkast.getId(), new OppdaterUtkastDTO());
             }
             ).isExactlyInstanceOf(ResponseStatusException.class);
         });
@@ -270,7 +271,7 @@ public class VedtakServiceTest {
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             vedtakService.oppdaterUtkast(utkast.getId(),
-                    new VedtakDTO()
+                    new OppdaterUtkastDTO()
                             .setBegrunnelse("begrunnelse")
                             .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                             .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
@@ -411,7 +412,7 @@ public class VedtakServiceTest {
             vedtakService.lagUtkast(TEST_FNR);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-            VedtakDTO oppdaterDto = new VedtakDTO()
+            OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                     .setBegrunnelse("En begrunnelse")
                     .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)

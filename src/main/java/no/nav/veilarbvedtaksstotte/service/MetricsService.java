@@ -5,7 +5,7 @@ import no.nav.common.metrics.Event;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.veilarbvedtaksstotte.client.api.oppfolging.OppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringClient;
-import no.nav.veilarbvedtaksstotte.domain.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.api.oppfolging.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;

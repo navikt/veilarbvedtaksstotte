@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.controller.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

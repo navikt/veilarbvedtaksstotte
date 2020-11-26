@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.api.oppfolging;
 
 import lombok.Data;
-import no.nav.veilarbvedtaksstotte.domain.OppfolgingPeriodeDTO;
 
 import java.util.List;
 

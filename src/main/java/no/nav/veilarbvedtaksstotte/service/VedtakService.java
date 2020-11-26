@@ -7,6 +7,7 @@ import no.nav.veilarbvedtaksstotte.client.api.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.api.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.client.api.dokument.SendDokumentDTO;
 import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
@@ -162,7 +163,7 @@ public class VedtakService {
         meldingRepository.opprettSystemMelding(nyttUtkast.getId(), SystemMeldingType.UTKAST_OPPRETTET, innloggetVeilederIdent);
     }
 
-    public void oppdaterUtkast(long vedtakId, VedtakDTO vedtakDTO) {
+    public void oppdaterUtkast(long vedtakId, OppdaterUtkastDTO vedtakDTO) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilAktorId(utkast.getAktorId());
         authService.sjekkErAnsvarligVeilederFor(utkast);
@@ -178,7 +179,7 @@ public class VedtakService {
         });
     }
 
-    private void oppdaterUtkastFraDto(Vedtak utkast, VedtakDTO dto) {
+    private void oppdaterUtkastFraDto(Vedtak utkast, OppdaterUtkastDTO dto) {
         utkast.setInnsatsgruppe(dto.getInnsatsgruppe());
         utkast.setBegrunnelse(dto.getBegrunnelse());
         utkast.setOpplysninger(dto.getOpplysninger());

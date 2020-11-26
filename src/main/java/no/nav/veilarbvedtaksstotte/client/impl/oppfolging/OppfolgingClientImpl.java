@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.impl;
+package no.nav.veilarbvedtaksstotte.client.impl.oppfolging;
 
 import lombok.SneakyThrows;
 import no.nav.common.health.HealthCheckResult;
@@ -9,7 +9,6 @@ import no.nav.common.rest.client.RestUtils;
 import no.nav.veilarbvedtaksstotte.client.api.oppfolging.OppfolgingClient;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import no.nav.veilarbvedtaksstotte.client.api.oppfolging.OppfolgingDTO;
-import no.nav.veilarbvedtaksstotte.domain.OppfolgingstatusDTO;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;

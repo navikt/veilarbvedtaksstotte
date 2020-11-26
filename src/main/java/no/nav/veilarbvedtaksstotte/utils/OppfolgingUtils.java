@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
-import no.nav.veilarbvedtaksstotte.domain.OppfolgingPeriodeDTO;
-import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.client.api.oppfolging.OppfolgingPeriodeDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;

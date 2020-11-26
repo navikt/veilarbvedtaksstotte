@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.controller.dto;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-public class VedtakDTO {
+public class OppdaterUtkastDTO {
     Hovedmal hovedmal;
     Innsatsgruppe innsatsgruppe;
     String begrunnelse;

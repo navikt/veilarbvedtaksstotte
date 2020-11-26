@@ -9,6 +9,8 @@ import no.nav.veilarbvedtaksstotte.client.api.oppfolging.OppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.api.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.api.registrering.RegistreringClient;
 import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.VeiledereOgEnhetClient;
+import no.nav.veilarbvedtaksstotte.client.impl.oppfolging.OppfolgingClientImpl;
+import no.nav.veilarbvedtaksstotte.client.impl.veilederogenhet.VeiledereOgEnhetClientImpl;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

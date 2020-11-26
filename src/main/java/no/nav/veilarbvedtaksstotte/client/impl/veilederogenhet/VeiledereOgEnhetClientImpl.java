@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.impl;
+package no.nav.veilarbvedtaksstotte.client.impl.veilederogenhet;
 
 import lombok.SneakyThrows;
 import no.nav.common.auth.context.AuthContextHolder;
@@ -9,7 +9,6 @@ import no.nav.common.rest.client.RestUtils;
 import no.nav.common.utils.UrlUtils;
 import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.VeiledereOgEnhetClient;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
-import no.nav.veilarbvedtaksstotte.domain.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.VeilederEnheterDTO;
 import okhttp3.OkHttpClient;

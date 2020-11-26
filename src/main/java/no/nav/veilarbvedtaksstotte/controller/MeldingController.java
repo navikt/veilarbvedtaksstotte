@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
-import no.nav.veilarbvedtaksstotte.domain.OpprettDialogMeldingDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.OpprettDialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.MeldingDTO;
 import no.nav.veilarbvedtaksstotte.service.MeldingService;
 import org.springframework.beans.factory.annotation.Autowired;
