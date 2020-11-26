@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
-import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.Vedtak;
 import no.nav.veilarbvedtaksstotte.client.api.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatusEndring;

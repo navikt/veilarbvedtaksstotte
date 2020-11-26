@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.veilarbvedtaksstotte.domain.FeiletKafkaMelding;
-import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
-import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.kafka.dto.FeiletKafkaMelding;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;

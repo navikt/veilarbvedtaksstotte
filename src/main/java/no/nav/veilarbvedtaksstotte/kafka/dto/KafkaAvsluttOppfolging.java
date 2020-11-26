@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.kafka.dto;
 
 import lombok.Value;
 import java.util.Date;

@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain;
+package no.nav.veilarbvedtaksstotte.kafka.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Value;
