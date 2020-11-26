@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeiledereOgEnhetClient;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
@@ -24,7 +24,7 @@ public class BeslutteroversiktServiceTest {
 
     private final BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
 
-    private final VeiledereOgEnhetClient veiledereOgEnhetClient = mock(VeiledereOgEnhetClient.class);
+    private final VeilarbveilederClient veiledereOgEnhetClient = mock(VeilarbveilederClient.class);
 
     private final AuthService authService = mock(AuthService.class);
 

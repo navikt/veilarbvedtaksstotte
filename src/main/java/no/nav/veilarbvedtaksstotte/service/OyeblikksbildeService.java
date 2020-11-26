@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringClient;
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -23,8 +23,8 @@ public class OyeblikksbildeService {
     private final OyeblikksbildeRepository oyeblikksbildeRepository;
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final VeilarbpersonClient veilarbpersonClient;
-    private final RegistreringClient registreringClient;
-    private final EgenvurderingClient egenvurderingClient;
+    private final VeilarbregistreringClient registreringClient;
+    private final VeilarbvedtakinfoClient egenvurderingClient;
 
     @Autowired
     public OyeblikksbildeService(
@@ -32,8 +32,8 @@ public class OyeblikksbildeService {
             OyeblikksbildeRepository oyeblikksbildeRepository,
             VedtaksstotteRepository vedtaksstotteRepository,
             VeilarbpersonClient veilarbpersonClient,
-            RegistreringClient registreringClient,
-            EgenvurderingClient egenvurderingClient
+            VeilarbregistreringClient registreringClient,
+            VeilarbvedtakinfoClient egenvurderingClient
     ) {
         this.oyeblikksbildeRepository = oyeblikksbildeRepository;
         this.authService = authService;

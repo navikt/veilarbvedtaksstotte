@@ -13,13 +13,13 @@ import org.springframework.http.HttpHeaders;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class DokumentClientImpl implements DokumentClient {
+public class VeilarbdokumentClientImpl implements VeilarbdokumentClient {
 
     private final String veilarbdokumentUrl;
 
     private final OkHttpClient client;
 
-    public DokumentClientImpl(String veilarbdokumentUrl) {
+    public VeilarbdokumentClientImpl(String veilarbdokumentUrl) {
         this.veilarbdokumentUrl = veilarbdokumentUrl;
         this.client = RestClient.baseClient();
     }

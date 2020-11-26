@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.client.dokument.DokumentClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO;
@@ -41,7 +41,7 @@ public class VedtakService {
     private final MeldingRepository meldingRepository;
     private final BeslutteroversiktRepository beslutteroversiktRepository;
     private final AuthService authService;
-    private final DokumentClient dokumentClient;
+    private final VeilarbdokumentClient dokumentClient;
     private final SafClient safClient;
     private final VeilederService veilederService;
     private final MalTypeService malTypeService;
@@ -57,7 +57,7 @@ public class VedtakService {
             MeldingRepository meldingRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
             AuthService authService,
-            DokumentClient dokumentClient,
+            VeilarbdokumentClient dokumentClient,
             SafClient safClient,
             VeilederService veilederService,
             MalTypeService malTypeService,

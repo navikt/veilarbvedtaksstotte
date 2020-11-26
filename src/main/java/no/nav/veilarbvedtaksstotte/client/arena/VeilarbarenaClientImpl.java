@@ -16,13 +16,13 @@ import org.springframework.web.server.ResponseStatusException;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class ArenaClientImpl implements ArenaClient {
+public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
     private final String veilarbarenaUrl;
 
     private final OkHttpClient client;
 
-    public ArenaClientImpl(String veilarbarenaUrl) {
+    public VeilarbarenaClientImpl(String veilarbarenaUrl) {
         this.veilarbarenaUrl = veilarbarenaUrl;
         this.client = RestClient.baseClient();
     }

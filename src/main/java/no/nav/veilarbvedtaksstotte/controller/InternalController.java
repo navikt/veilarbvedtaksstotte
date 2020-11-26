@@ -6,14 +6,14 @@ import no.nav.common.health.selftest.SelfTestCheck;
 import no.nav.common.health.selftest.SelfTestUtils;
 import no.nav.common.health.selftest.SelftTestCheckResult;
 import no.nav.common.health.selftest.SelftestHtmlGenerator;
-import no.nav.veilarbvedtaksstotte.client.arena.ArenaClient;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
-import no.nav.veilarbvedtaksstotte.client.dokument.DokumentClient;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient;
-import no.nav.veilarbvedtaksstotte.client.oppfolging.OppfolgingClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
+import no.nav.veilarbvedtaksstotte.client.oppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringClient;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeiledereOgEnhetClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
@@ -41,9 +41,9 @@ public class InternalController {
 
     @Autowired
     public InternalController(
-            ArenaClient arenaClient, DokumentClient dokumentClient, EgenvurderingClient egenvurderingClient,
-            OppfolgingClient oppfolgingClient, VeilarbpersonClient veilarbpersonClient,
-            RegistreringClient registreringClient, SafClient safClient, VeiledereOgEnhetClient veiledereOgEnhetClient,
+            VeilarbarenaClient arenaClient, VeilarbdokumentClient dokumentClient, VeilarbvedtakinfoClient egenvurderingClient,
+            VeilarboppfolgingClient oppfolgingClient, VeilarbpersonClient veilarbpersonClient,
+            VeilarbregistreringClient registreringClient, SafClient safClient, VeilarbveilederClient veiledereOgEnhetClient,
             KafkaHelsesjekk kafkaHelsesjekk, DataSourceHealthIndicator dataSourceHealthIndicator
     ) {
         this.dataSourceHealthIndicator = dataSourceHealthIndicator;

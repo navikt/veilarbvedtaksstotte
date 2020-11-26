@@ -10,12 +10,12 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
-import no.nav.veilarbvedtaksstotte.client.arena.ArenaClient;
-import no.nav.veilarbvedtaksstotte.client.dokument.DokumentClient;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringClient;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
@@ -72,15 +72,15 @@ public class VedtakServiceTest {
     private static AuthService authService;
 
     private static VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
-    private static RegistreringClient registreringClient = mock(RegistreringClient.class);
-    private static EgenvurderingClient egenvurderingClient = mock(EgenvurderingClient.class);
+    private static VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
+    private static VeilarbvedtakinfoClient egenvurderingClient = mock(VeilarbvedtakinfoClient.class);
     private static VeilederService veilederService = mock(VeilederService.class);
     private static KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
-    private static DokumentClient dokumentClient = mock(DokumentClient.class);
+    private static VeilarbdokumentClient dokumentClient = mock(VeilarbdokumentClient.class);
     private static VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
     private static AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static VeilarbPep veilarbPep = mock(VeilarbPep.class);
-    private static ArenaClient arenaClient = mock(ArenaClient.class);
+    private static VeilarbarenaClient arenaClient = mock(VeilarbarenaClient.class);
     private static AbacClient abacClient = mock(AbacClient.class);
     private static MetricsService metricsService = mock(MetricsService.class);
 

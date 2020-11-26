@@ -16,13 +16,13 @@ import static no.nav.common.json.JsonUtils.fromJson;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class RegistreringClientImpl implements RegistreringClient {
+public class VeilarbregistreringClientImpl implements VeilarbregistreringClient {
 
     private final String veilarbregistreringUrl;
 
     private final OkHttpClient client;
 
-    public RegistreringClientImpl(String veilarbregistreringUrl) {
+    public VeilarbregistreringClientImpl(String veilarbregistreringUrl) {
         this.veilarbregistreringUrl = veilarbregistreringUrl;
         this.client = RestClient.baseClient();
     }

@@ -17,13 +17,13 @@ import org.springframework.http.HttpHeaders;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class VeiledereOgEnhetClientImpl implements VeiledereOgEnhetClient {
+public class VeilarbveilederClientImpl implements VeilarbveilederClient {
 
     private final String veilarbveilederUrl;
 
     private final OkHttpClient client;
 
-    public VeiledereOgEnhetClientImpl(String veilarbveilederUrl) {
+    public VeilarbveilederClientImpl(String veilarbveilederUrl) {
         this.veilarbveilederUrl = veilarbveilederUrl;
         this.client = RestClient.baseClient();
     }

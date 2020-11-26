@@ -14,13 +14,13 @@ import org.springframework.http.HttpHeaders;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class EgenvurderingClientImpl implements EgenvurderingClient {
+public class VeilarbvedtakinfoClientImpl implements VeilarbvedtakinfoClient {
 
     private final String veilarbvedtakInfoUrl;
 
     private final OkHttpClient client;
 
-    public EgenvurderingClientImpl(String veilarbvedtakInfoUrl) {
+    public VeilarbvedtakinfoClientImpl(String veilarbvedtakInfoUrl) {
         this.veilarbvedtakInfoUrl = veilarbvedtakInfoUrl;
         this.client = RestClient.baseClient();
     }

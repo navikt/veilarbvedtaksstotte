@@ -16,13 +16,13 @@ import org.springframework.http.HttpHeaders;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
-public class OppfolgingClientImpl implements OppfolgingClient {
+public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
 
     private final String veilarboppfolgingUrl;
 
     private final OkHttpClient client;
 
-    public OppfolgingClientImpl(String veilarboppfolgingUrl) {
+    public VeilarboppfolgingClientImpl(String veilarboppfolgingUrl) {
         this.veilarboppfolgingUrl = veilarboppfolgingUrl;
         this.client = RestClient.baseClient();
     }

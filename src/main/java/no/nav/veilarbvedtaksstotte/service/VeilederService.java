@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeiledereOgEnhetClient;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class VeilederService {
 
-    private final VeiledereOgEnhetClient veiledereOgEnhetClient;
+    private final VeilarbveilederClient veiledereOgEnhetClient;
 
     @Autowired
-    public VeilederService(VeiledereOgEnhetClient veiledereOgEnhetClient) {
+    public VeilederService(VeilarbveilederClient veiledereOgEnhetClient) {
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
     }
 

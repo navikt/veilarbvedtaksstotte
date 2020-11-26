@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.client.oppfolging;
 
 import no.nav.common.health.HealthCheck;
 
-public interface OppfolgingClient extends HealthCheck {
+public interface VeilarboppfolgingClient extends HealthCheck {
 
     String hentServicegruppe(String fnr);
 

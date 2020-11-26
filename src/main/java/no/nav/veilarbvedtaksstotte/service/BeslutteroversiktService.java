@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeiledereOgEnhetClient;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
@@ -22,14 +22,14 @@ public class BeslutteroversiktService {
 
     private final BeslutteroversiktRepository beslutteroversiktRepository;
 
-    private final VeiledereOgEnhetClient veiledereOgEnhetClient;
+    private final VeilarbveilederClient veiledereOgEnhetClient;
 
     private final AuthService authService;
 
     @Autowired
     public BeslutteroversiktService(
             BeslutteroversiktRepository beslutteroversiktRepository,
-            VeiledereOgEnhetClient veiledereOgEnhetClient,
+            VeilarbveilederClient veiledereOgEnhetClient,
             AuthService authService
     ) {
         this.beslutteroversiktRepository = beslutteroversiktRepository;
