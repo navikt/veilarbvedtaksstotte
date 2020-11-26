@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
-import no.nav.veilarbvedtaksstotte.client.api.oppfolging.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.oppfolging.OppfolgingPeriodeDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
