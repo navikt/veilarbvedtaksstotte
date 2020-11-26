@@ -1,7 +1,8 @@
-package no.nav.veilarbvedtaksstotte.domain.dialog;
+package no.nav.veilarbvedtaksstotte.controller.dto;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import no.nav.veilarbvedtaksstotte.domain.dialog.DialogMelding;
 
 @Data
 @Accessors(chain = true)
@@ -17,9 +18,9 @@ public class DialogMeldingDTO extends MeldingDTO {
     public static DialogMeldingDTO fraMelding(DialogMelding dialogMelding) {
         DialogMeldingDTO melding = new DialogMeldingDTO();
 
-        melding.melding = dialogMelding.melding;
-        melding.opprettet = dialogMelding.opprettet;
-        melding.opprettetAvIdent = dialogMelding.opprettetAvIdent;
+        melding.melding = dialogMelding.getMelding();
+        melding.opprettet = dialogMelding.getOpprettet();
+        melding.opprettetAvIdent = dialogMelding.getOpprettetAvIdent();
 
         return melding;
     }

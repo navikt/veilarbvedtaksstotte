@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.domain.dialog;
+package no.nav.veilarbvedtaksstotte.controller.dto;
 
 import lombok.Data;
 
