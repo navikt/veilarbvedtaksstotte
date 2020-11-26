@@ -1,7 +1,6 @@
-package no.nav.veilarbvedtaksstotte.client;
+package no.nav.veilarbvedtaksstotte.client.person;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.Rule;

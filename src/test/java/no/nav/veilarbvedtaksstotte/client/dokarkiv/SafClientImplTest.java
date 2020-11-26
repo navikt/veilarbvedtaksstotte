@@ -1,12 +1,9 @@
-package no.nav.veilarbvedtaksstotte.client;
+package no.nav.veilarbvedtaksstotte.client.dokarkiv;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.test.auth.AuthTestUtils;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClientImpl;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.Rule;
