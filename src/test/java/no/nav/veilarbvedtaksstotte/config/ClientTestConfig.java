@@ -4,8 +4,23 @@ import no.nav.common.client.pdl.AktorOppslagClient;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.api.*;
-import no.nav.veilarbvedtaksstotte.domain.*;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO;
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
+import no.nav.veilarbvedtaksstotte.client.oppfolging.VeilarboppfolgingClient;
+import no.nav.veilarbvedtaksstotte.client.oppfolging.OppfolgingDTO;
+import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -49,8 +64,8 @@ public class ClientTestConfig {
     }
 
     @Bean
-    public ArenaClient arenaClient() {
-        return new ArenaClient() {
+    public VeilarbarenaClient arenaClient() {
+        return new VeilarbarenaClient() {
             @Override
             public String oppfolgingsenhet(String fnr) {
                 return TEST_OPPFOLGINGSENHET_ID;
@@ -64,8 +79,8 @@ public class ClientTestConfig {
     }
 
     @Bean
-    public DokumentClient dokumentClient() {
-        return new DokumentClient() {
+    public VeilarbdokumentClient dokumentClient() {
+        return new VeilarbdokumentClient() {
             @Override
             public DokumentSendtDTO sendDokument(SendDokumentDTO sendDokumentDTO) {
                 return new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
@@ -84,8 +99,8 @@ public class ClientTestConfig {
     }
 
     @Bean
-    public EgenvurderingClient egenvurderingClient() {
-        return new EgenvurderingClient() {
+    public VeilarbvedtakinfoClient egenvurderingClient() {
+        return new VeilarbvedtakinfoClient() {
             @Override
             public String hentEgenvurdering(String fnr) {
                 return "{ \"testData\": \"Egenvurdering\"}";
@@ -99,8 +114,8 @@ public class ClientTestConfig {
     }
 
     @Bean
-    public OppfolgingClient oppfolgingClient() {
-        return new OppfolgingClient() {
+    public VeilarboppfolgingClient oppfolgingClient() {
+        return new VeilarboppfolgingClient() {
             @Override
             public String hentServicegruppe(String fnr) {
                 return "VURDU";
@@ -147,8 +162,8 @@ public class ClientTestConfig {
     }
 
     @Bean
-    public RegistreringClient registreringClient() {
-        return new RegistreringClient() {
+    public VeilarbregistreringClient registreringClient() {
+        return new VeilarbregistreringClient() {
             @Override
             public String hentRegistreringDataJson(String fnr) {
                 return null;
@@ -187,8 +202,8 @@ public class ClientTestConfig {
     }
 
     @Bean
-    public VeiledereOgEnhetClient veilederOgEnhetClient() {
-        return new VeiledereOgEnhetClient() {
+    public VeilarbveilederClient veilederOgEnhetClient() {
+        return new VeilarbveilederClient() {
             @Override
             public String hentEnhetNavn(String enhetId) {
                 return TEST_OPPFOLGINGSENHET_NAVN;

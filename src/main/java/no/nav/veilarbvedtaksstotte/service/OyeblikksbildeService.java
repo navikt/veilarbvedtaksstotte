@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.EgenvurderingClient;
-import no.nav.veilarbvedtaksstotte.client.api.RegistreringClient;
-import no.nav.veilarbvedtaksstotte.client.api.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.domain.Oyeblikksbilde;
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 
-import static no.nav.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType.*;
+import static no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType.*;
 
 
 @Service
@@ -23,8 +23,8 @@ public class OyeblikksbildeService {
     private final OyeblikksbildeRepository oyeblikksbildeRepository;
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final VeilarbpersonClient veilarbpersonClient;
-    private final RegistreringClient registreringClient;
-    private final EgenvurderingClient egenvurderingClient;
+    private final VeilarbregistreringClient registreringClient;
+    private final VeilarbvedtakinfoClient egenvurderingClient;
 
     @Autowired
     public OyeblikksbildeService(
@@ -32,8 +32,8 @@ public class OyeblikksbildeService {
             OyeblikksbildeRepository oyeblikksbildeRepository,
             VedtaksstotteRepository vedtaksstotteRepository,
             VeilarbpersonClient veilarbpersonClient,
-            RegistreringClient registreringClient,
-            EgenvurderingClient egenvurderingClient
+            VeilarbregistreringClient registreringClient,
+            VeilarbvedtakinfoClient egenvurderingClient
     ) {
         this.oyeblikksbildeRepository = oyeblikksbildeRepository;
         this.authService = authService;

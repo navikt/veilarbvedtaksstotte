@@ -1,12 +1,12 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.veilarbvedtaksstotte.domain.FeiletKafkaMelding;
-import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakSendt;
-import no.nav.veilarbvedtaksstotte.domain.KafkaVedtakStatusEndring;
-import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.enums.KafkaTopic;
-import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.kafka.dto.FeiletKafkaMelding;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaTopic;
+import no.nav.veilarbvedtaksstotte.kafka.dto.VedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;

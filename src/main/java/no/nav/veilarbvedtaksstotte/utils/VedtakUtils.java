@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;

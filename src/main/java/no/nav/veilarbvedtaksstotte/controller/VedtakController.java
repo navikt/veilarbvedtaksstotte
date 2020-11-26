@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
-import no.nav.veilarbvedtaksstotte.domain.ArkivertVedtak;
-import no.nav.veilarbvedtaksstotte.domain.Oyeblikksbilde;
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;

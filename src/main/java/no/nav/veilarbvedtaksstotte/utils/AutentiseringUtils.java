@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 
 public class AutentiseringUtils {
 

@@ -1,13 +1,13 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.domain.BeslutteroversiktBruker;
-import no.nav.veilarbvedtaksstotte.domain.PersonNavn;
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.Veileder;
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
+import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.enums.BeslutteroversiktStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;

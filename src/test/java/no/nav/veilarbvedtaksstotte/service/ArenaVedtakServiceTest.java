@@ -1,9 +1,9 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.SafClient;
-import no.nav.veilarbvedtaksstotte.client.api.VeiledereOgEnhetClient;
-import no.nav.veilarbvedtaksstotte.domain.ArkivertVedtak;
-import no.nav.veilarbvedtaksstotte.domain.Journalpost;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
+import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
 import org.junit.Test;
 
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 
 public class ArenaVedtakServiceTest {
 
-    private static VeiledereOgEnhetClient veiledereOgEnhetClient = mock(VeiledereOgEnhetClient.class);
+    private static VeilarbveilederClient veiledereOgEnhetClient = mock(VeilarbveilederClient.class);
 
     static {
         when(veiledereOgEnhetClient.hentEnhetNavn(any())).thenReturn("TEST");
