@@ -45,7 +45,7 @@ public class VeilarbvedtakinfoClientImpl implements VeilarbvedtakinfoClient {
 
     @Override
     public HealthCheckResult checkHealth() {
-        return HealthCheckUtils.pingUrl(joinPaths(veilarbvedtakInfoUrl, "/internal/isReady"), client);
+        return HealthCheckUtils.pingUrl(joinPaths(veilarbvedtakInfoUrl, "/internal/health/readiness"), client);
     }
 
 }
