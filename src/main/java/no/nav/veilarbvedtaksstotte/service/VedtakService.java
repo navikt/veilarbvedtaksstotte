@@ -2,13 +2,17 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.client.api.DokumentClient;
-import no.nav.veilarbvedtaksstotte.client.api.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.*;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
@@ -23,8 +27,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static no.nav.veilarbvedtaksstotte.domain.enums.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
-import static no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus.SENDT;
+import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
+import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 
 @Slf4j
@@ -37,7 +41,7 @@ public class VedtakService {
     private final MeldingRepository meldingRepository;
     private final BeslutteroversiktRepository beslutteroversiktRepository;
     private final AuthService authService;
-    private final DokumentClient dokumentClient;
+    private final VeilarbdokumentClient dokumentClient;
     private final SafClient safClient;
     private final VeilederService veilederService;
     private final MalTypeService malTypeService;
@@ -53,7 +57,7 @@ public class VedtakService {
             MeldingRepository meldingRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
             AuthService authService,
-            DokumentClient dokumentClient,
+            VeilarbdokumentClient dokumentClient,
             SafClient safClient,
             VeilederService veilederService,
             MalTypeService malTypeService,
@@ -157,7 +161,7 @@ public class VedtakService {
         meldingRepository.opprettSystemMelding(nyttUtkast.getId(), SystemMeldingType.UTKAST_OPPRETTET, innloggetVeilederIdent);
     }
 
-    public void oppdaterUtkast(long vedtakId, VedtakDTO vedtakDTO) {
+    public void oppdaterUtkast(long vedtakId, OppdaterUtkastDTO vedtakDTO) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilAktorId(utkast.getAktorId());
         authService.sjekkErAnsvarligVeilederFor(utkast);
@@ -173,7 +177,7 @@ public class VedtakService {
         });
     }
 
-    private void oppdaterUtkastFraDto(Vedtak utkast, VedtakDTO dto) {
+    private void oppdaterUtkastFraDto(Vedtak utkast, OppdaterUtkastDTO dto) {
         utkast.setInnsatsgruppe(dto.getInnsatsgruppe());
         utkast.setBegrunnelse(dto.getBegrunnelse());
         utkast.setOpplysninger(dto.getOpplysninger());

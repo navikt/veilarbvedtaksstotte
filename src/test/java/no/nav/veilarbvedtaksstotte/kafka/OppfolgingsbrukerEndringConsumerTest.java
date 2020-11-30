@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.kafka;
 
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig;
-import no.nav.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.junit.Test;
 import org.junit.runner.RunWith;

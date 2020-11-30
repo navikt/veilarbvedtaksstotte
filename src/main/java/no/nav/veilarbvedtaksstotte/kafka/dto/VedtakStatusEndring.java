@@ -1,0 +1,15 @@
+package no.nav.veilarbvedtaksstotte.kafka.dto;
+
+public enum VedtakStatusEndring {
+    UTKAST_OPPRETTET,
+    UTKAST_SLETTET,
+    VEDTAK_SENDT,
+    BESLUTTER_PROSESS_STARTET,
+    BESLUTTER_PROSESS_AVBRUTT,
+    BLI_BESLUTTER,
+    OVERTA_FOR_BESLUTTER,
+    OVERTA_FOR_VEILEDER,
+    GODKJENT_AV_BESLUTTER,
+    KLAR_TIL_BESLUTTER,
+    KLAR_TIL_VEILEDER
+}

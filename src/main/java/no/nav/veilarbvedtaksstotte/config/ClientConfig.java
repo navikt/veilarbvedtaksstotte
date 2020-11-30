@@ -1,8 +1,22 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.common.utils.EnvironmentUtils;
-import no.nav.veilarbvedtaksstotte.client.*;
-import no.nav.veilarbvedtaksstotte.client.api.*;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClientImpl;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl;
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClientImpl;
+import no.nav.veilarbvedtaksstotte.client.oppfolging.VeilarboppfolgingClient;
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClientImpl;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl;
+import no.nav.veilarbvedtaksstotte.client.oppfolging.VeilarboppfolgingClientImpl;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,23 +28,23 @@ import static no.nav.common.utils.UrlUtils.createNaisPreprodIngressUrl;
 public class ClientConfig {
 
     @Bean
-    public ArenaClient arenaClient() {
-        return new ArenaClientImpl(naisPreprodOrNaisAdeoIngress("veilarbarena",  true));
+    public VeilarbarenaClient arenaClient() {
+        return new VeilarbarenaClientImpl(naisPreprodOrNaisAdeoIngress("veilarbarena",  true));
     }
 
     @Bean
-    public DokumentClient dokumentClient() {
-        return new DokumentClientImpl(naisPreprodOrNaisAdeoIngress("veilarbdokument", true));
+    public VeilarbdokumentClient dokumentClient() {
+        return new VeilarbdokumentClientImpl(naisPreprodOrNaisAdeoIngress("veilarbdokument", true));
     }
 
     @Bean
-    public EgenvurderingClient egenvurderingClient() {
-        return new EgenvurderingClientImpl(naisPreprodOrNaisAdeoIngress("veilarbvedtakinfo", true));
+    public VeilarbvedtakinfoClient egenvurderingClient() {
+        return new VeilarbvedtakinfoClientImpl(naisPreprodOrNaisAdeoIngress("veilarbvedtakinfo", true));
     }
 
     @Bean
-    public OppfolgingClient oppfolgingClient() {
-        return new OppfolgingClientImpl(naisPreprodOrNaisAdeoIngress("veilarboppfolging", true));
+    public VeilarboppfolgingClient oppfolgingClient() {
+        return new VeilarboppfolgingClientImpl(naisPreprodOrNaisAdeoIngress("veilarboppfolging", true));
     }
 
     @Bean
@@ -39,8 +53,8 @@ public class ClientConfig {
     }
 
     @Bean
-    public RegistreringClient registreringClient() {
-        return new RegistreringClientImpl(naisPreprodOrNaisAdeoIngress("veilarbregistrering", true));
+    public VeilarbregistreringClient registreringClient() {
+        return new VeilarbregistreringClientImpl(naisPreprodOrNaisAdeoIngress("veilarbregistrering", true));
     }
 
     @Bean
@@ -49,8 +63,8 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeiledereOgEnhetClient veilederOgEnhetClient() {
-        return new VeiledereOgEnhetClientImpl(naisPreprodOrNaisAdeoIngress("veilarbveileder", true));
+    public VeilarbveilederClient veilederOgEnhetClient() {
+        return new VeilarbveilederClientImpl(naisPreprodOrNaisAdeoIngress("veilarbveileder", true));
     }
 
     private static String naisPreprodOrNaisAdeoIngress(String appName, boolean withAppContextPath) {

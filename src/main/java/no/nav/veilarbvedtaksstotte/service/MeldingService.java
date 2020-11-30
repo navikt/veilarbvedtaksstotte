@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.Veileder;
-import no.nav.veilarbvedtaksstotte.domain.dialog.DialogMeldingDTO;
-import no.nav.veilarbvedtaksstotte.domain.dialog.MeldingDTO;
-import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingDTO;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.controller.dto.DialogMeldingDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.MeldingDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SystemMeldingDTO;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.beans.factory.annotation.Autowired;

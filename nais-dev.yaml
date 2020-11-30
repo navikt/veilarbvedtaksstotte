@@ -11,6 +11,8 @@ spec:
   webproxy: true
   leaderElection: true
   ingresses:
+    - https://app.dev.adeo.no/veilarbvedtaksstotte
+    - https://app-q1.dev.adeo.no/veilarbvedtaksstotte
     - https://app-q1.adeo.no/veilarbvedtaksstotte
     - https://veilarbvedtaksstotte-q1.nais.preprod.local
   prometheus:

@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
-import no.nav.veilarbvedtaksstotte.domain.Kilde;
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Kilde;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;

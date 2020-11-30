@@ -10,13 +10,22 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
-import no.nav.veilarbvedtaksstotte.client.api.*;
-import no.nav.veilarbvedtaksstotte.domain.*;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.enums.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.enums.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.enums.OyeblikksbildeType;
-import no.nav.veilarbvedtaksstotte.domain.enums.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
@@ -63,15 +72,15 @@ public class VedtakServiceTest {
     private static AuthService authService;
 
     private static VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
-    private static RegistreringClient registreringClient = mock(RegistreringClient.class);
-    private static EgenvurderingClient egenvurderingClient = mock(EgenvurderingClient.class);
+    private static VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
+    private static VeilarbvedtakinfoClient egenvurderingClient = mock(VeilarbvedtakinfoClient.class);
     private static VeilederService veilederService = mock(VeilederService.class);
     private static KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
-    private static DokumentClient dokumentClient = mock(DokumentClient.class);
+    private static VeilarbdokumentClient dokumentClient = mock(VeilarbdokumentClient.class);
     private static VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
     private static AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static VeilarbPep veilarbPep = mock(VeilarbPep.class);
-    private static ArenaClient arenaClient = mock(ArenaClient.class);
+    private static VeilarbarenaClient arenaClient = mock(VeilarbarenaClient.class);
     private static AbacClient abacClient = mock(AbacClient.class);
     private static MetricsService metricsService = mock(MetricsService.class);
 
@@ -138,7 +147,7 @@ public class VedtakServiceTest {
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
             kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
-            VedtakDTO oppdaterDto = new VedtakDTO()
+            OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                     .setBegrunnelse("En begrunnelse")
                     .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
@@ -170,7 +179,7 @@ public class VedtakServiceTest {
         return vedtakList.get(0);
     }
 
-    private void assertOppdatertUtkast(VedtakDTO dto) {
+    private void assertOppdatertUtkast(OppdaterUtkastDTO dto) {
         Vedtak oppdatertUtkast = vedtakService.hentUtkast(TEST_FNR);
         assertEquals(dto.getHovedmal(), oppdatertUtkast.getHovedmal());
         assertEquals(dto.getBegrunnelse(), oppdatertUtkast.getBegrunnelse());
@@ -218,7 +227,7 @@ public class VedtakServiceTest {
 
             assertThatThrownBy(() -> {
                 vedtakService.fattVedtak(utkast.getId());
-                vedtakService.oppdaterUtkast(utkast.getId(), new VedtakDTO());
+                vedtakService.oppdaterUtkast(utkast.getId(), new OppdaterUtkastDTO());
             }
             ).isExactlyInstanceOf(ResponseStatusException.class);
         });
@@ -264,7 +273,7 @@ public class VedtakServiceTest {
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             vedtakService.oppdaterUtkast(utkast.getId(),
-                    new VedtakDTO()
+                    new OppdaterUtkastDTO()
                             .setBegrunnelse("begrunnelse")
                             .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                             .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
@@ -405,7 +414,7 @@ public class VedtakServiceTest {
             vedtakService.lagUtkast(TEST_FNR);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-            VedtakDTO oppdaterDto = new VedtakDTO()
+            OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                     .setBegrunnelse("En begrunnelse")
                     .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)

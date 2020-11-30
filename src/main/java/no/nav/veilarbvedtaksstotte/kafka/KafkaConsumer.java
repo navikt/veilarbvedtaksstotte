@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.domain.KafkaAvsluttOppfolging;
-import no.nav.veilarbvedtaksstotte.domain.KafkaOppfolgingsbrukerEndring;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;

@@ -1,7 +1,12 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.VeiledereOgEnhetClient;
-import no.nav.veilarbvedtaksstotte.domain.*;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,14 +22,14 @@ public class BeslutteroversiktService {
 
     private final BeslutteroversiktRepository beslutteroversiktRepository;
 
-    private final VeiledereOgEnhetClient veiledereOgEnhetClient;
+    private final VeilarbveilederClient veiledereOgEnhetClient;
 
     private final AuthService authService;
 
     @Autowired
     public BeslutteroversiktService(
             BeslutteroversiktRepository beslutteroversiktRepository,
-            VeiledereOgEnhetClient veiledereOgEnhetClient,
+            VeilarbveilederClient veiledereOgEnhetClient,
             AuthService authService
     ) {
         this.beslutteroversiktRepository = beslutteroversiktRepository;

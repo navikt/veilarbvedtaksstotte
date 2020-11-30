@@ -1,6 +1,10 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
-import no.nav.veilarbvedtaksstotte.domain.*;
+import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.BeslutterprosessStatusDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.LagUtkastDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,7 +48,7 @@ public class UtkastController {
     }
 
     @PutMapping("/{vedtakId}")
-    public void oppdaterUtkast(@PathVariable("vedtakId") long vedtakId, @RequestBody VedtakDTO vedtakDTO) {
+    public void oppdaterUtkast(@PathVariable("vedtakId") long vedtakId, @RequestBody OppdaterUtkastDTO vedtakDTO) {
         vedtakService.oppdaterUtkast(vedtakId, vedtakDTO);
     }
 

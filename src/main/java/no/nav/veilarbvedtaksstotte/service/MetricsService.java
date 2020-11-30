@@ -3,11 +3,11 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.metrics.Event;
 import no.nav.common.metrics.MetricsClient;
-import no.nav.veilarbvedtaksstotte.client.api.OppfolgingClient;
-import no.nav.veilarbvedtaksstotte.client.api.RegistreringClient;
-import no.nav.veilarbvedtaksstotte.domain.OppfolgingPeriodeDTO;
-import no.nav.veilarbvedtaksstotte.domain.RegistreringData;
-import no.nav.veilarbvedtaksstotte.domain.Vedtak;
+import no.nav.veilarbvedtaksstotte.client.oppfolging.VeilarboppfolgingClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.oppfolging.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,16 +31,16 @@ public class MetricsService {
 
     private final MetricsClient influxClient;
 
-    private final OppfolgingClient oppfolgingClient;
+    private final VeilarboppfolgingClient oppfolgingClient;
 
-    private final RegistreringClient registreringClient;
+    private final VeilarbregistreringClient registreringClient;
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
     @Autowired
     public MetricsService(MetricsClient influxClient,
-                          OppfolgingClient oppfolgingClient,
-                          RegistreringClient registreringClient,
+                          VeilarboppfolgingClient oppfolgingClient,
+                          VeilarbregistreringClient registreringClient,
                           VedtaksstotteRepository vedtaksstotteRepository)  {
         this.influxClient = influxClient;
         this.oppfolgingClient = oppfolgingClient;

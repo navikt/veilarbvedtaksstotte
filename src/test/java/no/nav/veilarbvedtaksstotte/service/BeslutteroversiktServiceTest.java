@@ -1,7 +1,12 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.api.VeiledereOgEnhetClient;
-import no.nav.veilarbvedtaksstotte.domain.*;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,7 +24,7 @@ public class BeslutteroversiktServiceTest {
 
     private final BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
 
-    private final VeiledereOgEnhetClient veiledereOgEnhetClient = mock(VeiledereOgEnhetClient.class);
+    private final VeilarbveilederClient veiledereOgEnhetClient = mock(VeilarbveilederClient.class);
 
     private final AuthService authService = mock(AuthService.class);
 
