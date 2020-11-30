@@ -54,7 +54,7 @@ public class VeilarbdokumentClientImpl implements VeilarbdokumentClient {
 
     @Override
     public HealthCheckResult checkHealth() {
-        return HealthCheckUtils.pingUrl(joinPaths(veilarbdokumentUrl, "/internal/isReady"), client);
+        return HealthCheckUtils.pingUrl(joinPaths(veilarbdokumentUrl, "/internal/health/readiness"), client);
     }
 
 }
