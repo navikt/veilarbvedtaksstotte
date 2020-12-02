@@ -25,7 +25,6 @@ class DokarkivClientImpl(val dokarkivUrl: String,
                 .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, opprettJournalpostDTO.toJson()))
                 .build()
 
-
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
             return response.deserializeJsonOrThrow()

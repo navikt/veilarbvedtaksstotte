@@ -62,7 +62,7 @@ class DokumentService(val veilarbdokumentClient: VeilarbdokumentClient,
                 DistribuerJournalpostDTO(
                         journalpostId = jounralpostId,
                         bestillendeFagsystem = "BD11", // veilarb-kode
-                        dokumentProdApp = "TODO"))
+                        dokumentProdApp = "VEILARB_VEDTAKSSTOTTE"))
     }
 
 }

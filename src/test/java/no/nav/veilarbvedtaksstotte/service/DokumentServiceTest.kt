@@ -13,9 +13,9 @@ import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl
 import org.junit.Assert.assertEquals
@@ -44,11 +44,7 @@ class DokumentServiceTest {
         val wiremockUrl = "http://localhost:" + getWireMockRule().port()
         dokarkivClient = DokarkivClientImpl(wiremockUrl, systemUserTokenProvider)
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl)
-        dokdistribusjonClient = object : DokdistribusjonClient {
-            override fun distribuerJournalpost(request: DistribuerJournalpostDTO): DistribuerJournalpostResponsDTO {
-                TODO("Not yet implemented")
-            }
-        }
+        dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl)
         dokumentService = DokumentService(veilarbdokumentClient, dokarkivClient, dokdistribusjonClient)
     }
 
@@ -134,5 +130,40 @@ class DokumentServiceTest {
                 dokumenter = listOf(OpprettetJournalpostDTO.DokumentInfoId("123")))
 
         assertEquals(forventetRespons, respons)
+    }
+
+    @Test
+    fun `distribuering av journalpost gir forventet innhold i request og response`() {
+        val forventetRequest =
+                """
+                {
+                    "bestillendeFagsystem": "BD11",
+                    "dokumentProdApp": "VEILARB_VEDTAKSSTOTTE",
+                    "journalpostId": "123"
+                }
+                """
+
+        val responsJson =
+                """
+                {
+                   "bestillingsId": "BESTILLINGS_ID"
+                } 
+                """
+
+        givenThat(
+                post(urlEqualTo("/rest/v1/distribuerjournalpost"))
+                        .withRequestBody(equalToJson(forventetRequest))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(201)
+                                        .withBody(responsJson))
+        )
+
+        val respons =
+                AuthContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
+                    dokumentService.distribuerJournalpost("123")
+                })
+
+        assertEquals(DistribuerJournalpostResponsDTO("BESTILLINGS_ID"),respons)
     }
 }
