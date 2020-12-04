@@ -7,6 +7,7 @@ import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO;
@@ -88,6 +89,11 @@ public class ClientTestConfig {
 
             @Override
             public byte[] produserDokumentUtkast(SendDokumentDTO sendDokumentDTO) {
+                return new byte[0];
+            }
+
+            @Override
+            public byte[] produserDokumentV2(ProduserDokumentV2DTO produserDokumentV2DTO) {
                 return new byte[0];
             }
 

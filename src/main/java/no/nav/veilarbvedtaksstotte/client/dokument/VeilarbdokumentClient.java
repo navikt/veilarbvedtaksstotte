@@ -8,4 +8,6 @@ public interface VeilarbdokumentClient extends HealthCheck {
 
     byte[] produserDokumentUtkast(SendDokumentDTO sendDokumentDTO);
 
+    byte[] produserDokumentV2(ProduserDokumentV2DTO produserDokumentV2DTO);
+
 }

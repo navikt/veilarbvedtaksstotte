@@ -30,7 +30,7 @@ class DokumentServiceTest {
     lateinit var veilarbdokumentClient: VeilarbdokumentClient
     lateinit var dokdistribusjonClient: DokdistribusjonClient
     lateinit var dokarkivClient: DokarkivClient
-    lateinit var dokumentService: DokumentService
+    lateinit var dokumentServiceV2: DokumentServiceV2
 
     private val wireMockRule = WireMockRule()
 
@@ -45,7 +45,7 @@ class DokumentServiceTest {
         dokarkivClient = DokarkivClientImpl(wiremockUrl, systemUserTokenProvider)
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl)
         dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl)
-        dokumentService = DokumentService(veilarbdokumentClient, dokarkivClient, dokdistribusjonClient)
+        dokumentServiceV2 = DokumentServiceV2(veilarbdokumentClient, dokarkivClient, dokdistribusjonClient)
     }
 
 
@@ -114,7 +114,7 @@ class DokumentServiceTest {
 
         val respons =
                 AuthContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                    dokumentService.journalforDokument(
+                    dokumentServiceV2.journalforDokument(
                             tittel = "Tittel",
                             enhetId = EnhetId("ENHET_ID"),
                             fnr = Fnr("fnr"),
@@ -161,7 +161,7 @@ class DokumentServiceTest {
 
         val respons =
                 AuthContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                    dokumentService.distribuerJournalpost("123")
+                    dokumentServiceV2.distribuerJournalpost("123")
                 })
 
         assertEquals(DistribuerJournalpostResponsDTO("BESTILLINGS_ID"),respons)

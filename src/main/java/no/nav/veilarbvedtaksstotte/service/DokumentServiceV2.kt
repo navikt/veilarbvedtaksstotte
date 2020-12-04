@@ -9,10 +9,12 @@ import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpost
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
+import org.springframework.stereotype.Service
 
-class DokumentService(val veilarbdokumentClient: VeilarbdokumentClient,
-                      val dokarkivClient: DokarkivClient,
-                      val dokdistribusjonClient: DokdistribusjonClient) {
+@Service
+class DokumentServiceV2(val veilarbdokumentClient: VeilarbdokumentClient,
+                        val dokarkivClient: DokarkivClient,
+                        val dokdistribusjonClient: DokdistribusjonClient) {
 
     fun journalforDokument(tittel: String,
                            enhetId: EnhetId,

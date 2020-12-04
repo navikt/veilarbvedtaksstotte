@@ -52,6 +52,21 @@ public class VeilarbdokumentClientImpl implements VeilarbdokumentClient {
         }
     }
 
+    @SneakyThrows
+    public byte[] produserDokumentV2(ProduserDokumentV2DTO produserDokumentV2DTO) {
+
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarbdokumentUrl, "/api/v2/produserdokument"))
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .post(RestUtils.toJsonRequestBody(produserDokumentV2DTO))
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            RestUtils.throwIfNotSuccessful(response);
+            return response.body().bytes();
+        }
+    }
+
     @Override
     public HealthCheckResult checkHealth() {
         return HealthCheckUtils.pingUrl(joinPaths(veilarbdokumentUrl, "/internal/health/readiness"), client);
