@@ -26,23 +26,25 @@ import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 @Repository
 public class VedtaksstotteRepository {
 
-    public final static String VEDTAK_TABLE           = "VEDTAK";
-    private final static String VEDTAK_ID             = "ID";
-    private final static String SENDER                = "SENDER";
-    private final static String AKTOR_ID              = "AKTOR_ID";
-    private final static String HOVEDMAL              = "HOVEDMAL";
-    private final static String INNSATSGRUPPE         = "INNSATSGRUPPE";
-    private final static String VEILEDER_IDENT        = "VEILEDER_IDENT";
-    private final static String OPPFOLGINGSENHET_ID   = "OPPFOLGINGSENHET_ID";
-    private final static String SIST_OPPDATERT        = "SIST_OPPDATERT";
-    private final static String BESLUTTER_IDENT       = "BESLUTTER_IDENT";
-    private final static String UTKAST_OPPRETTET      = "UTKAST_OPPRETTET";
-    private final static String BEGRUNNELSE           = "BEGRUNNELSE";
-    private final static String STATUS                = "STATUS";
-    private final static String DOKUMENT_ID           = "DOKUMENT_ID";
-    private final static String JOURNALPOST_ID        = "JOURNALPOST_ID";
-    private final static String GJELDENDE             = "GJELDENDE";
-    private final static String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
+    public final static String VEDTAK_TABLE                 = "VEDTAK";
+    private final static String VEDTAK_ID                   = "ID";
+    private final static String SENDER                      = "SENDER";
+    private final static String AKTOR_ID                    = "AKTOR_ID";
+    private final static String HOVEDMAL                    = "HOVEDMAL";
+    private final static String INNSATSGRUPPE               = "INNSATSGRUPPE";
+    private final static String VEILEDER_IDENT              = "VEILEDER_IDENT";
+    private final static String OPPFOLGINGSENHET_ID         = "OPPFOLGINGSENHET_ID";
+    private final static String SIST_OPPDATERT              = "SIST_OPPDATERT";
+    private final static String BESLUTTER_IDENT             = "BESLUTTER_IDENT";
+    private final static String UTKAST_OPPRETTET            = "UTKAST_OPPRETTET";
+    private final static String BEGRUNNELSE                 = "BEGRUNNELSE";
+    private final static String STATUS                      = "STATUS";
+    private final static String DOKUMENT_ID                 = "DOKUMENT_ID";
+    private final static String JOURNALPOST_ID              = "JOURNALPOST_ID";
+    private final static String JOURNALPOST_FERDIGSTILT     = "JOURNALPOST_ID";
+    private final static String DOKUMENT_BESTILLING_ID      = "DOKUMENT_BESTILLING_ID";
+    private final static String GJELDENDE                   = "GJELDENDE";
+    private final static String BESLUTTER_PROSESS_STATUS    = "BESLUTTER_PROSESS_STATUS";
 
     private final JdbcTemplate db;
     private final TransactionTemplate transactor;
@@ -185,6 +187,22 @@ public class VedtaksstotteRepository {
             String sql = format("UPDATE %s SET %s = ? WHERE %s = ?", VEDTAK_TABLE, SENDER, VEDTAK_ID);
             db.update(sql, sender, vedtakId);
         });
+    }
+
+    public void lagreJournalforingVedtak(long vedtakId, String journalpostId, String dokumentId, boolean journalpostFerdigstilt){
+        String sql = format(
+                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ?",
+                VEDTAK_TABLE, DOKUMENT_ID, JOURNALPOST_ID, JOURNALPOST_FERDIGSTILT, SIST_OPPDATERT, VEDTAK_ID
+        );
+        db.update(sql, dokumentId, journalpostId, journalpostFerdigstilt, vedtakId);
+    }
+
+    public void lagreDokumentbestillingsId(long vedtakId, String dokumentbestillingsId){
+        String sql = format(
+                "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ?",
+                VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, SIST_OPPDATERT, VEDTAK_ID
+        );
+        db.update(sql, dokumentbestillingsId, vedtakId);
     }
 
     @SneakyThrows

@@ -13,4 +13,24 @@ public class SendDokumentDTO {
     String enhetId;
     String begrunnelse;
     List<String> opplysninger;
+
+    public String getBrukerFnr() {
+        return this.brukerFnr;
+    }
+
+    public MalType getMalType() {
+        return this.malType;
+    }
+
+    public String getEnhetId() {
+        return this.enhetId;
+    }
+
+    public String getBegrunnelse() {
+        return this.begrunnelse;
+    }
+
+    public List<String> getOpplysninger() {
+        return this.opplysninger;
+    }
 }

@@ -5,8 +5,10 @@ import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
@@ -239,4 +241,23 @@ public class ClientTestConfig {
         };
     }
 
+    @Bean
+    public DokarkivClient dokarkivClient() {
+        return new DokarkivClient() {
+            @Override
+            public OpprettetJournalpostDTO opprettJournalpost(OpprettJournalpostDTO opprettJournalpostDTO) {
+                return null;
+            }
+        };
+    }
+
+    @Bean
+    public DokdistribusjonClient dokdistribusjonClient() {
+        return new DokdistribusjonClient() {
+            @Override
+            public DistribuerJournalpostResponsDTO distribuerJournalpost(DistribuerJournalpostDTO request) {
+                return null;
+            }
+        };
+    }
 }

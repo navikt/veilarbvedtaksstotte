@@ -16,6 +16,7 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl
+import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl
 import org.junit.Assert.assertEquals
@@ -25,7 +26,7 @@ import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
-class DokumentServiceTest {
+class DokumentServiceV2Test {
 
     lateinit var veilarbdokumentClient: VeilarbdokumentClient
     lateinit var dokdistribusjonClient: DokdistribusjonClient
@@ -75,7 +76,7 @@ class DokumentServiceTest {
                   "dokumenter": [
                     {
                       "tittel": "Tittel",
-                      "brevkode": "BREV_KODE",
+                      "brevkode": "SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID",
                       "dokumentvarianter": [
                         {
                           "filtype": "PDFA",
@@ -119,7 +120,7 @@ class DokumentServiceTest {
                             enhetId = EnhetId("ENHET_ID"),
                             fnr = Fnr("fnr"),
                             oppfolgingssak = "OPPF_SAK",
-                            brevkode = "BREV_KODE",
+                            malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
                             dokument = forventetDokument
                     )
                 })

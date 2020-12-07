@@ -8,52 +8,87 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
+import no.nav.veilarbvedtaksstotte.client.dokument.*
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
-class DokumentServiceV2(val veilarbdokumentClient: VeilarbdokumentClient,
-                        val dokarkivClient: DokarkivClient,
-                        val dokdistribusjonClient: DokdistribusjonClient) {
+class DokumentServiceV2(
+    val veilarbdokumentClient: VeilarbdokumentClient,
+    val dokarkivClient: DokarkivClient,
+    val dokdistribusjonClient: DokdistribusjonClient
+) {
 
-    fun journalforDokument(tittel: String,
-                           enhetId: EnhetId,
-                           fnr: Fnr,
-                           oppfolgingssak: String,
-                           brevkode: String,
-                           dokument: ByteArray): OpprettetJournalpostDTO {
+    val log = LoggerFactory.getLogger(DokumentServiceV2::class.java)
+
+    fun produserDokument(sendDokumentDTO: SendDokumentDTO, utkast: Boolean): ByteArray {
+        val produserDokumentV2DTO = sendDokumentDTO.let {
+            ProduserDokumentV2DTO()
+                .setBrukerFnr(it.getBrukerFnr())
+                .setMalType(it.malType)
+                .setEnhetId(it.enhetId)
+                .setBegrunnelse(it.begrunnelse)
+                .setOpplysninger(it.opplysninger)
+                .setUtkast(utkast)
+        }
+        return veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
+    }
+
+    fun produserOgJournalforDokument(sendDokumentDTO: SendDokumentDTO
+    ): OpprettetJournalpostDTO {
+        val dokument = produserDokument(sendDokumentDTO = sendDokumentDTO, utkast = false)
+        val tittel = TODO()
+        val oppfolgingssak = TODO()
+        return journalforDokument(
+            tittel = tittel,
+            enhetId = EnhetId(sendDokumentDTO.enhetId),
+            fnr = Fnr(sendDokumentDTO.brukerFnr),
+            oppfolgingssak = oppfolgingssak,
+            malType = sendDokumentDTO.malType,
+            dokument = dokument,
+        )
+    }
+
+    fun journalforDokument(
+        tittel: String,
+        enhetId: EnhetId,
+        fnr: Fnr,
+        oppfolgingssak: String,
+        malType: MalType,
+        dokument: ByteArray
+    ): OpprettetJournalpostDTO {
 
         val request = OpprettJournalpostDTO(
-                tittel = tittel,
-                journalpostType = OpprettJournalpostDTO.JournalpostType.UTGAAENDE,
-                tema = "OPP",
-                journalfoerendeEnhet = enhetId,
-                avsenderMottaker = OpprettJournalpostDTO.AvsenderMottaker(
-                        id = fnr.get(),
-                        idType = OpprettJournalpostDTO.AvsenderMottaker.IdType.FNR
-                ),
-                bruker = OpprettJournalpostDTO.Bruker(
-                        id = fnr.get(),
-                        idType = OpprettJournalpostDTO.Bruker.IdType.FNR
-                ),
-                OpprettJournalpostDTO.Sak(
-                        fagsakId = oppfolgingssak,
-                        fagsaksystem = "AO01", // Arena-kode
-                        sakstype = OpprettJournalpostDTO.Sak.Type.FAGSAK
-                ),
-                dokumenter = listOf(
-                        OpprettJournalpostDTO.Dokument(
-                                tittel = tittel,
-                                brevkode = brevkode,
-                                dokumentvarianter = listOf(
-                                        OpprettJournalpostDTO.DokumentVariant(
-                                                "PDFA",
-                                                fysiskDokument = dokument,
-                                                variantformat = "ARKIV"
-                                        )
-                                )
+            tittel = tittel,
+            journalpostType = OpprettJournalpostDTO.JournalpostType.UTGAAENDE,
+            tema = "OPP",
+            journalfoerendeEnhet = enhetId,
+            avsenderMottaker = OpprettJournalpostDTO.AvsenderMottaker(
+                id = fnr.get(),
+                idType = OpprettJournalpostDTO.AvsenderMottaker.IdType.FNR
+            ),
+            bruker = OpprettJournalpostDTO.Bruker(
+                id = fnr.get(),
+                idType = OpprettJournalpostDTO.Bruker.IdType.FNR
+            ),
+            OpprettJournalpostDTO.Sak(
+                fagsakId = oppfolgingssak,
+                fagsaksystem = "AO01", // Arena-kode
+                sakstype = OpprettJournalpostDTO.Sak.Type.FAGSAK
+            ),
+            dokumenter = listOf(
+                OpprettJournalpostDTO.Dokument(
+                    tittel = tittel,
+                    brevkode = malType.name,
+                    dokumentvarianter = listOf(
+                        OpprettJournalpostDTO.DokumentVariant(
+                            "PDFA",
+                            fysiskDokument = dokument,
+                            variantformat = "ARKIV"
                         )
+                    )
                 )
+            )
         )
 
         return dokarkivClient.opprettJournalpost(request)
@@ -61,10 +96,12 @@ class DokumentServiceV2(val veilarbdokumentClient: VeilarbdokumentClient,
 
     fun distribuerJournalpost(jounralpostId: String): DistribuerJournalpostResponsDTO {
         return dokdistribusjonClient.distribuerJournalpost(
-                DistribuerJournalpostDTO(
-                        journalpostId = jounralpostId,
-                        bestillendeFagsystem = "BD11", // veilarb-kode
-                        dokumentProdApp = "VEILARB_VEDTAKSSTOTTE"))
+            DistribuerJournalpostDTO(
+                journalpostId = jounralpostId,
+                bestillendeFagsystem = "BD11", // veilarb-kode
+                dokumentProdApp = "VEILARB_VEDTAKSSTOTTE" // for sporing og feilsøking
+            )
+        )
     }
 
 }

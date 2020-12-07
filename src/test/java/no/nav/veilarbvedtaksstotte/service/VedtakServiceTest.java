@@ -114,7 +114,9 @@ public class VedtakServiceTest {
                 malTypeService,
                 vedtakStatusEndringService,
                 metricsService,
-                transactor
+                transactor,
+                null,
+                null
         );
     }
 
