@@ -41,7 +41,7 @@ public class VedtaksstotteRepository {
     private final static String STATUS                      = "STATUS";
     private final static String DOKUMENT_ID                 = "DOKUMENT_ID";
     private final static String JOURNALPOST_ID              = "JOURNALPOST_ID";
-    private final static String JOURNALPOST_FERDIGSTILT     = "JOURNALPOST_ID";
+    private final static String JOURNALPOST_FERDIGSTILT     = "JOURNALPOST_FERDIGSTILT";
     private final static String DOKUMENT_BESTILLING_ID      = "DOKUMENT_BESTILLING_ID";
     private final static String GJELDENDE                   = "GJELDENDE";
     private final static String BESLUTTER_PROSESS_STATUS    = "BESLUTTER_PROSESS_STATUS";
