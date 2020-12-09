@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.config;
 import no.nav.common.client.pdl.AktorOppslagClient;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
@@ -70,8 +71,13 @@ public class ClientTestConfig {
     public VeilarbarenaClient arenaClient() {
         return new VeilarbarenaClient() {
             @Override
-            public String oppfolgingsenhet(String fnr) {
-                return TEST_OPPFOLGINGSENHET_ID;
+            public EnhetId oppfolgingsenhet(Fnr fnr) {
+                return EnhetId.of(TEST_OPPFOLGINGSENHET_ID);
+            }
+
+            @Override
+            public String oppfolgingssak(Fnr fnr) {
+                return TEST_OPPFOLGINGSSAK;
             }
 
             @Override

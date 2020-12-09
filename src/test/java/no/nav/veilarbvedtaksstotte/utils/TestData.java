@@ -15,6 +15,7 @@ public class TestData {
     public final static String TEST_IKKE_ANSVARLIG_VEILEDER_IDENT = "Z987654";
     public final static String TEST_VEILEDER_NAVN = "Veileder Veilederen";
     public final static String TEST_OPPFOLGINGSENHET_ID = "1234";
+    public final static String TEST_OPPFOLGINGSSAK = "SAK_1234";
     public final static String TEST_OPPFOLGINGSENHET_NAVN = "NAV Testheim";
     public final static String TEST_DIALOG_MELDING = "Dette er en melding";
 

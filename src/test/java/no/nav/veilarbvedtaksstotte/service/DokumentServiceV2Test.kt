@@ -10,6 +10,8 @@ import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
@@ -29,6 +31,7 @@ import org.mockito.Mockito.mock
 class DokumentServiceV2Test {
 
     lateinit var veilarbdokumentClient: VeilarbdokumentClient
+    lateinit var veilarbarenaClient: VeilarbarenaClient
     lateinit var dokdistribusjonClient: DokdistribusjonClient
     lateinit var dokarkivClient: DokarkivClient
     lateinit var dokumentServiceV2: DokumentServiceV2
@@ -45,8 +48,9 @@ class DokumentServiceV2Test {
         val wiremockUrl = "http://localhost:" + getWireMockRule().port()
         dokarkivClient = DokarkivClientImpl(wiremockUrl, systemUserTokenProvider)
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl)
+        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl)
         dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl)
-        dokumentServiceV2 = DokumentServiceV2(veilarbdokumentClient, dokarkivClient, dokdistribusjonClient)
+        dokumentServiceV2 = DokumentServiceV2(veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient)
     }
 
 

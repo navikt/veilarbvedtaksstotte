@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service
 @Service
 class DokumentServiceV2(
     val veilarbdokumentClient: VeilarbdokumentClient,
+    val veilarbarenaClient: VeilarbarenaClient,
     val dokarkivClient: DokarkivClient,
     val dokdistribusjonClient: DokdistribusjonClient
 ) {
@@ -38,7 +40,7 @@ class DokumentServiceV2(
     ): OpprettetJournalpostDTO {
         val dokument = produserDokument(sendDokumentDTO = sendDokumentDTO, utkast = false)
         val tittel = TODO()
-        val oppfolgingssak = TODO()
+        val oppfolgingssak = veilarbarenaClient.oppfolgingssak(Fnr.of(sendDokumentDTO.brukerFnr))
         return journalforDokument(
             tittel = tittel,
             enhetId = EnhetId(sendDokumentDTO.enhetId),

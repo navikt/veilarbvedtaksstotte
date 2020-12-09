@@ -7,6 +7,7 @@ import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.pdl.AktorOppslagClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
@@ -135,7 +136,7 @@ public class VedtakServiceTest {
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
         when(aktorOppslagClient.hentAktorId(Fnr.of(TEST_FNR))).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(Fnr.of(TEST_FNR));
-        when(arenaClient.oppfolgingsenhet(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSENHET_ID);
+        when(arenaClient.oppfolgingsenhet(Fnr.of(TEST_FNR))).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
     }
 
 
