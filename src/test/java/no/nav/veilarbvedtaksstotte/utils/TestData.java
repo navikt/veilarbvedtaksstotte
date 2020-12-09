@@ -23,6 +23,7 @@ public class TestData {
 
     public final static String TEST_JOURNALPOST_ID = "6723718";
     public final static String TEST_DOKUMENT_ID = "89704912";
+    public final static String TEST_DOKUMENT_BESTILLING_ID = "abc123-321cba";
 
     public final static String TEST_BEGRUNNELSE = "Dette er en begrunnelse";
 

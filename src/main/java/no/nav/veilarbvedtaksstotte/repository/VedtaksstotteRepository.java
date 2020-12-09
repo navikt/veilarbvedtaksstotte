@@ -222,6 +222,8 @@ public class VedtaksstotteRepository {
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
                 .setDokumentInfoId(rs.getString(DOKUMENT_ID))
+                .setJournalpostFerdigstilt(rs.getObject(JOURNALPOST_FERDIGSTILT, Boolean.class))
+                .setDokumentbestillingId(rs.getString(DOKUMENT_BESTILLING_ID))
                 .setSender(rs.getBoolean(SENDER))
                 .setBeslutterProsessStatus(EnumUtils.valueOf(BeslutterProsessStatus.class, rs.getString(BESLUTTER_PROSESS_STATUS)));
 

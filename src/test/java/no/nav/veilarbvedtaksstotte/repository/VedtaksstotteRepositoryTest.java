@@ -143,4 +143,41 @@ public class VedtaksstotteRepositoryTest {
 
     }
 
+    @Test
+    public void lagrer_journalforing_av_vedtak() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        vedtaksstotteRepository.lagreJournalforingVedtak(utkast.getId(), TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID, true);
+
+        Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        assertEquals(TEST_JOURNALPOST_ID, oppdatertUtkast.getJournalpostId());
+        assertEquals(TEST_DOKUMENT_ID, oppdatertUtkast.getDokumentInfoId());
+        assertTrue(oppdatertUtkast.getJournalpostFerdigstilt());
+    }
+
+    @Test
+    public void journalpost_ferdigstilt_settes_ikke_default_til_false_for_bakoverkompabilitet() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        assertNull(utkast.getJournalpostFerdigstilt());
+    }
+
+    @Test
+    public void lagrer_dokumentbestillings_id() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        vedtaksstotteRepository.lagreDokumentbestillingsId(utkast.getId(), TEST_DOKUMENT_BESTILLING_ID);
+
+        Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        assertEquals(TEST_DOKUMENT_BESTILLING_ID, oppdatertUtkast.getDokumentbestillingId());
+    }
+
 }
