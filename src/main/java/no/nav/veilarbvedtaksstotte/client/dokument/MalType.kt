@@ -1,8 +1,8 @@
-package no.nav.veilarbvedtaksstotte.client.dokument;
+package no.nav.veilarbvedtaksstotte.client.dokument
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonValue
 
-public enum MalType {
+enum class MalType(val navn: String) {
     STANDARD_INNSATS_SKAFFE_ARBEID_PROFILERING("STANDARD_INNSATS_SKAFFE_ARBEID_PROFILERING"),
     STANDARD_INNSATS_SKAFFE_ARBEID("STANDARD_INNSATS_SKAFFE_ARBEID"),
     STANDARD_INNSATS_BEHOLDE_ARBEID("STANDARD_INNSATS_BEHOLDE_ARBEID"),
@@ -13,16 +13,8 @@ public enum MalType {
     GRADERT_VARIG_TILPASSET_INNSATS("GRADERT_VARIG_TILPASSET_INNSATS"),
     VARIG_TILPASSET_INNSATS("VARIG_TILPASSET_INNSATS");
 
-    private final String name;
-
-    MalType(String name) {
-        this.name = name;
-    }
-
     @JsonValue
-    @Override
-    public String toString() {
-        return name;
+    override fun toString(): String {
+        return navn
     }
-
 }

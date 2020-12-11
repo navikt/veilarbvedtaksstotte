@@ -3,6 +3,8 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.featuretoggle.UnleashService;
+import no.nav.common.types.identer.EnhetId;
+import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
@@ -392,22 +394,24 @@ public class VedtakService {
     }
 
     private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, String fnr) {
-        return new SendDokumentDTO()
-                .setBegrunnelse(vedtak.getBegrunnelse())
-                .setEnhetId(vedtak.getOppfolgingsenhetId())
-                .setOpplysninger(vedtak.getOpplysninger())
-                .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak, fnr))
-                .setBrukerFnr(fnr);
+        return new SendDokumentDTO(
+                Fnr.of(fnr),
+                malTypeService.utledMalTypeFraVedtak(vedtak, fnr),
+                EnhetId.of(vedtak.getOppfolgingsenhetId()),
+                vedtak.getBegrunnelse(),
+                vedtak.getOpplysninger()
+        );
     }
 
     private ProduserDokumentV2DTO lagProduserDokumentDTO(Vedtak vedtak, String fnr, boolean utkast) {
-        return new ProduserDokumentV2DTO()
-                .setBegrunnelse(vedtak.getBegrunnelse())
-                .setEnhetId(vedtak.getOppfolgingsenhetId())
-                .setOpplysninger(vedtak.getOpplysninger())
-                .setMalType(malTypeService.utledMalTypeFraVedtak(vedtak, fnr))
-                .setBrukerFnr(fnr)
-                .setUtkast(utkast);
+        return new ProduserDokumentV2DTO(
+                Fnr.of(fnr),
+                malTypeService.utledMalTypeFraVedtak(vedtak, fnr),
+                EnhetId.of(vedtak.getOppfolgingsenhetId()),
+                vedtak.getBegrunnelse(),
+                vedtak.getOpplysninger(),
+                utkast
+        );
     }
 
     void validerUtkastForUtsending(Vedtak vedtak, Vedtak gjeldendeVedtak) {

@@ -25,13 +25,14 @@ class DokumentServiceV2(
 
     fun produserDokument(sendDokumentDTO: SendDokumentDTO, utkast: Boolean): ByteArray {
         val produserDokumentV2DTO = sendDokumentDTO.let {
-            ProduserDokumentV2DTO()
-                .setBrukerFnr(it.getBrukerFnr())
-                .setMalType(it.malType)
-                .setEnhetId(it.enhetId)
-                .setBegrunnelse(it.begrunnelse)
-                .setOpplysninger(it.opplysninger)
-                .setUtkast(utkast)
+            ProduserDokumentV2DTO(
+                brukerFnr = it.brukerFnr,
+                malType = it.malType,
+                enhetId = it.enhetId,
+                begrunnelse = it.begrunnelse,
+                opplysninger = it.opplysninger,
+                utkast = utkast
+            )
         }
         return veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
     }
@@ -40,11 +41,11 @@ class DokumentServiceV2(
     ): OpprettetJournalpostDTO {
         val dokument = produserDokument(sendDokumentDTO = sendDokumentDTO, utkast = false)
         val tittel = TODO()
-        val oppfolgingssak = veilarbarenaClient.oppfolgingssak(Fnr.of(sendDokumentDTO.brukerFnr))
+        val oppfolgingssak = veilarbarenaClient.oppfolgingssak(sendDokumentDTO.brukerFnr)
         return journalforDokument(
             tittel = tittel,
-            enhetId = EnhetId(sendDokumentDTO.enhetId),
-            fnr = Fnr(sendDokumentDTO.brukerFnr),
+            enhetId = sendDokumentDTO.enhetId,
+            fnr = sendDokumentDTO.brukerFnr,
             oppfolgingssak = oppfolgingssak,
             malType = sendDokumentDTO.malType,
             dokument = dokument,

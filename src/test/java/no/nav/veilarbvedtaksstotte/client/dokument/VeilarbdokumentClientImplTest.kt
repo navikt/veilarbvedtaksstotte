@@ -5,6 +5,8 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.UserRole
 import no.nav.common.test.auth.AuthTestUtils
+import no.nav.common.types.identer.EnhetId
+import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
@@ -19,18 +21,19 @@ class VeilarbdokumentClientImplTest {
 
     private val wireMockRule = WireMockRule()
 
-    val sendDokumentDTO: SendDokumentDTO = SendDokumentDTO()
-        .setBrukerFnr(TEST_FNR)
-        .setMalType(SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID)
-        .setEnhetId(TEST_OPPFOLGINGSENHET_ID)
-        .setBegrunnelse(TEST_BEGRUNNELSE)
-        .setOpplysninger(TEST_KILDER)
+    val sendDokumentDTO: SendDokumentDTO = SendDokumentDTO(
+        brukerFnr = Fnr(TEST_FNR),
+        malType = SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
+        enhetId = EnhetId(TEST_OPPFOLGINGSENHET_ID),
+        begrunnelse = TEST_BEGRUNNELSE,
+        opplysninger = TEST_KILDER,
+    )
 
     val forventetSendDokumentJson =
         """
             {
                 "brukerFnr": "$TEST_FNR",
-                "malType": "$SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID",
+                "malType": "SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID",
                 "enhetId": "$TEST_OPPFOLGINGSENHET_ID",
                 "begrunnelse": "$TEST_BEGRUNNELSE",
                 "opplysninger": ${TEST_KILDER.map { """"$it"""" }}
@@ -103,19 +106,20 @@ class VeilarbdokumentClientImplTest {
     fun `produser dokument gir forventet respons`() {
 
         val produserDokumentV2DTO =
-            ProduserDokumentV2DTO()
-                .setBrukerFnr(TEST_FNR)
-                .setMalType(SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID)
-                .setEnhetId(TEST_OPPFOLGINGSENHET_ID)
-                .setBegrunnelse(TEST_BEGRUNNELSE)
-                .setOpplysninger(TEST_KILDER)
-                .setUtkast(true)
+            ProduserDokumentV2DTO(
+                brukerFnr = Fnr(TEST_FNR),
+                malType = SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
+                enhetId = EnhetId(TEST_OPPFOLGINGSENHET_ID),
+                begrunnelse = TEST_BEGRUNNELSE,
+                opplysninger = TEST_KILDER,
+                utkast = true
+            )
 
         val forventetProduserDokumentV2Json =
             """
                 {
                     "brukerFnr": "$TEST_FNR",
-                    "malType": "$SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID",
+                    "malType": "SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID",
                     "enhetId": "$TEST_OPPFOLGINGSENHET_ID",
                     "begrunnelse": "$TEST_BEGRUNNELSE",
                     "opplysninger": ${TEST_KILDER.map { """"$it"""" }},
