@@ -41,7 +41,6 @@ public class VedtaksstotteRepository {
     private final static String STATUS                      = "STATUS";
     private final static String DOKUMENT_ID                 = "DOKUMENT_ID";
     private final static String JOURNALPOST_ID              = "JOURNALPOST_ID";
-    private final static String JOURNALPOST_FERDIGSTILT     = "JOURNALPOST_FERDIGSTILT";
     private final static String DOKUMENT_BESTILLING_ID      = "DOKUMENT_BESTILLING_ID";
     private final static String GJELDENDE                   = "GJELDENDE";
     private final static String BESLUTTER_PROSESS_STATUS    = "BESLUTTER_PROSESS_STATUS";
@@ -189,12 +188,12 @@ public class VedtaksstotteRepository {
         });
     }
 
-    public void lagreJournalforingVedtak(long vedtakId, String journalpostId, String dokumentId, boolean journalpostFerdigstilt){
+    public void lagreJournalforingVedtak(long vedtakId, String journalpostId, String dokumentId){
         String sql = format(
-                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ?",
-                VEDTAK_TABLE, DOKUMENT_ID, JOURNALPOST_ID, JOURNALPOST_FERDIGSTILT, SIST_OPPDATERT, VEDTAK_ID
+                "UPDATE %s SET %s = ?, %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ?",
+                VEDTAK_TABLE, DOKUMENT_ID, JOURNALPOST_ID, SIST_OPPDATERT, VEDTAK_ID
         );
-        db.update(sql, dokumentId, journalpostId, journalpostFerdigstilt, vedtakId);
+        db.update(sql, dokumentId, journalpostId, vedtakId);
     }
 
     public void lagreDokumentbestillingsId(long vedtakId, String dokumentbestillingsId){
@@ -222,7 +221,6 @@ public class VedtaksstotteRepository {
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
                 .setDokumentInfoId(rs.getString(DOKUMENT_ID))
-                .setJournalpostFerdigstilt(rs.getObject(JOURNALPOST_FERDIGSTILT, Boolean.class))
                 .setDokumentbestillingId(rs.getString(DOKUMENT_BESTILLING_ID))
                 .setSender(rs.getBoolean(SENDER))
                 .setBeslutterProsessStatus(EnumUtils.valueOf(BeslutterProsessStatus.class, rs.getString(BESLUTTER_PROSESS_STATUS)));

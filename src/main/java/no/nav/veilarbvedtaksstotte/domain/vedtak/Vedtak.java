@@ -28,7 +28,6 @@ public class Vedtak {
     List<String> opplysninger;
     String journalpostId;
     String dokumentInfoId;
-    Boolean journalpostFerdigstilt;
     String dokumentbestillingId;
     BeslutterProsessStatus beslutterProsessStatus;
 

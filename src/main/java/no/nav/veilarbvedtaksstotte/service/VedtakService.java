@@ -177,8 +177,7 @@ public class VedtakService {
                 "Journalføring utført: journalpostId=%s, dokumentInfoId=%s, ferdigstilt=%s",
                 journalpostId, dokumentInfoId, journalpostferdigstilt));
 
-        vedtaksstotteRepository.lagreJournalforingVedtak(
-                vedtakId, journalpostId, dokumentInfoId, journalpostferdigstilt);
+        vedtaksstotteRepository.lagreJournalforingVedtak(vedtakId, journalpostId, dokumentInfoId);
 
         if (!journalpostferdigstilt) {
             throw new RuntimeException("Journalpost ble ikke ferdigstilt");
