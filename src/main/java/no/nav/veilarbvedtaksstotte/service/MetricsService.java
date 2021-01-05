@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.metrics.Event;
 import no.nav.common.metrics.MetricsClient;
@@ -31,6 +32,8 @@ public class MetricsService {
 
     private final MetricsClient influxClient;
 
+    private final MeterRegistry meterRegistry;
+
     private final VeilarboppfolgingClient oppfolgingClient;
 
     private final VeilarbregistreringClient registreringClient;
@@ -39,10 +42,12 @@ public class MetricsService {
 
     @Autowired
     public MetricsService(MetricsClient influxClient,
+                          MeterRegistry meterRegistry,
                           VeilarboppfolgingClient oppfolgingClient,
                           VeilarbregistreringClient registreringClient,
                           VedtaksstotteRepository vedtaksstotteRepository)  {
         this.influxClient = influxClient;
+        this.meterRegistry = meterRegistry;
         this.oppfolgingClient = oppfolgingClient;
         this.registreringClient = registreringClient;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
@@ -173,5 +178,13 @@ public class MetricsService {
         event.addFieldToReport("antallTegn", antallTegn);
 
         influxClient.report(event);
+    }
+
+    public void rapporterFeilendeFerdigstillingAvJournalpost() {
+        meterRegistry.counter("feilende_ferdigstilling_av_journalpost").increment();
+    }
+
+    public void rapporterFeilendeDistribusjonAvJournalpost() {
+        meterRegistry.counter("feilende_distribusjon_av_journalpost").increment();
     }
 }

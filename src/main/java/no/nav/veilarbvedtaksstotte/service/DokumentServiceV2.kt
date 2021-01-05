@@ -40,7 +40,7 @@ class DokumentServiceV2(
     fun produserOgJournalforDokument(sendDokumentDTO: SendDokumentDTO
     ): OpprettetJournalpostDTO {
         val dokument = produserDokument(sendDokumentDTO = sendDokumentDTO, utkast = false)
-        val tittel = TODO()
+        val tittel = "14a Vedtak" // TODO skal være lik tittel i brev
         val oppfolgingssak = veilarbarenaClient.oppfolgingssak(sendDokumentDTO.brukerFnr)
         return journalforDokument(
             tittel = tittel,

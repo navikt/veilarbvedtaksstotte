@@ -7,7 +7,7 @@ data class ProduserDokumentV2DTO(
     val brukerFnr: Fnr,
     val malType: MalType,
     val enhetId: EnhetId,
-    val begrunnelse: String,
+    val begrunnelse: String?,
     val opplysninger: List<String>,
     val utkast: Boolean
 )

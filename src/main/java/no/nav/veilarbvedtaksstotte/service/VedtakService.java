@@ -170,7 +170,12 @@ public class VedtakService {
                 dokumentServiceV2.produserOgJournalforDokument(sendDokumentDTO);
 
         String journalpostId = journalpost.getJournalpostId();
-        String dokumentInfoId = journalpost.getDokumenter().get(0).getDokumentInfoId();
+        String dokumentInfoId = null;
+        if (journalpost.getDokumenter().isEmpty()) {
+            log.error("Ingen dokumentInfoId i respons fra journalføring");
+        } else {
+            dokumentInfoId = journalpost.getDokumenter().get(0).getDokumentInfoId();
+        }
         boolean journalpostferdigstilt = journalpost.getJournalpostferdigstilt();
 
         log.info(format(
@@ -180,15 +185,27 @@ public class VedtakService {
         vedtaksstotteRepository.lagreJournalforingVedtak(vedtakId, journalpostId, dokumentInfoId);
 
         if (!journalpostferdigstilt) {
-            throw new RuntimeException("Journalpost ble ikke ferdigstilt");
+            log.error("Journalpost ble ikke ferdigstilt. Må rettes manuelt.");
+            metricsService.rapporterFeilendeFerdigstillingAvJournalpost();
         }
 
-        DistribuerJournalpostResponsDTO distribuerJournalpostResponsDTO =
-                dokumentServiceV2.distribuerJournalpost(journalpost.getJournalpostId());
+        vedtaksstotteRepository.ferdigstillVedtakV2(vedtakId);
 
-        String bestillingsId = distribuerJournalpostResponsDTO.getBestillingsId();
-        log.info(format("Distribusjon av dokument bestilt: bestillingsId=%s", bestillingsId));
-        vedtaksstotteRepository.lagreDokumentbestillingsId(vedtakId, bestillingsId);
+        String bestillingsId = null;
+        try {
+            DistribuerJournalpostResponsDTO distribuerJournalpostResponsDTO =
+                    dokumentServiceV2.distribuerJournalpost(journalpost.getJournalpostId());
+
+            bestillingsId = distribuerJournalpostResponsDTO.getBestillingsId();
+            log.info(format("Distribusjon av dokument bestilt: bestillingsId=%s", bestillingsId));
+        } catch (RuntimeException e) {
+            log.error("Distribusjon av journalpost feilet. Må rettes manuelt.", e);
+            metricsService.rapporterFeilendeDistribusjonAvJournalpost();
+        }
+
+        if (bestillingsId != null) {
+            vedtaksstotteRepository.lagreDokumentbestillingsId(vedtakId, bestillingsId);
+        }
 
         return new DokumentSendtDTO(journalpostId, dokumentInfoId);
     }

@@ -190,18 +190,28 @@ public class VedtaksstotteRepository {
 
     public void lagreJournalforingVedtak(long vedtakId, String journalpostId, String dokumentId){
         String sql = format(
-                "UPDATE %s SET %s = ?, %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ?",
-                VEDTAK_TABLE, DOKUMENT_ID, JOURNALPOST_ID, SIST_OPPDATERT, VEDTAK_ID
+                "UPDATE %s SET %s = ?, %s = ? WHERE %s = ?",
+                VEDTAK_TABLE, DOKUMENT_ID, JOURNALPOST_ID, VEDTAK_ID
         );
         db.update(sql, dokumentId, journalpostId, vedtakId);
     }
 
     public void lagreDokumentbestillingsId(long vedtakId, String dokumentbestillingsId){
         String sql = format(
-                "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ?",
-                VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, SIST_OPPDATERT, VEDTAK_ID
+                "UPDATE %s SET %s = ? WHERE %s = ?",
+                VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, VEDTAK_ID
         );
         db.update(sql, dokumentbestillingsId, vedtakId);
+    }
+
+    public void ferdigstillVedtakV2(long vedtakId){
+        String sql = format(
+                "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP, %s = true WHERE %s = ?",
+                VEDTAK_TABLE, STATUS, SIST_OPPDATERT, GJELDENDE, VEDTAK_ID
+        );
+
+        db.update(sql, getName(VedtakStatus.SENDT), vedtakId
+        );
     }
 
     @SneakyThrows
