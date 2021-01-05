@@ -139,10 +139,13 @@ public class VedtakServiceTest {
     public void setup() {
         DbTestUtils.cleanupDb(db);
         reset(veilederService);
+        reset(veilarbdokumentClient);
+        reset(meldingRepository);
+        reset(unleashService);
+        reset(dokdistribusjonClient);
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
-        reset(veilarbdokumentClient);
         when(veilarbdokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
         when(kafkaTemplate.send(any(), any(), any())).thenReturn(new AsyncResult(null));
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR)).thenReturn(CV_DATA);
@@ -189,7 +192,7 @@ public class VedtakServiceTest {
                         TEST_JOURNALPOST_ID,
                         true,
                         Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
-        when(dokumentServiceV2.distribuerJournalpost(TEST_JOURNALPOST_ID))
+        when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
 
         fattVedtak();
@@ -268,7 +271,7 @@ public class VedtakServiceTest {
                         TEST_JOURNALPOST_ID,
                         false,
                         Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
-        when(dokumentServiceV2.distribuerJournalpost(TEST_JOURNALPOST_ID))
+        when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
 
         fattVedtak();
@@ -297,7 +300,7 @@ public class VedtakServiceTest {
                         TEST_JOURNALPOST_ID,
                         true,
                         Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
-        when(dokumentServiceV2.distribuerJournalpost(TEST_JOURNALPOST_ID))
+        when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenThrow(new RuntimeException());
 
         fattVedtak();

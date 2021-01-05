@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
 import no.nav.common.featuretoggle.UnleashService;
@@ -80,6 +82,11 @@ public class ApplicationTestConfig {
     @Bean
     public UnleashService unleashService() {
         return mock(UnleashService.class);
+    }
+
+    @Bean
+    public MeterRegistry meterRegistry() {
+        return new SimpleMeterRegistry();
     }
 
 }
