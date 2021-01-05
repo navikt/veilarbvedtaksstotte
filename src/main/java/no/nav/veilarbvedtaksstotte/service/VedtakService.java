@@ -103,7 +103,7 @@ public class VedtakService {
         flettInnVedtakInformasjon(vedtak);
 
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(vedtak.getAktorId());
-        validerUtkastForUtsending(vedtak, gjeldendeVedtak);
+        validerVedtakForFerdigstillingOgUtsending(vedtak, gjeldendeVedtak);
 
         return sendDokumentOgFerdigstill(vedtak, authKontekst);
     }
@@ -430,7 +430,11 @@ public class VedtakService {
         );
     }
 
-    void validerUtkastForUtsending(Vedtak vedtak, Vedtak gjeldendeVedtak) {
+    void validerVedtakForFerdigstillingOgUtsending(Vedtak vedtak, Vedtak gjeldendeVedtak) {
+
+        if (vedtak.getVedtakStatus() != VedtakStatus.UTKAST) {
+            throw new IllegalStateException("Vedtak har feil status, forventet status UTKAST");
+        }
 
         Innsatsgruppe innsatsgruppe = vedtak.getInnsatsgruppe();
 
@@ -469,6 +473,15 @@ public class VedtakService {
             throw new IllegalStateException("Vedtak mangler begrunnelse siden gjeldende vedtak er varig");
         } else if (harIkkeBegrunnelse && !erStandard) {
             throw new IllegalStateException("Vedtak mangler begrunnelse");
+        }
+
+        if (vedtak.getDokumentbestillingId() != null) {
+            throw new IllegalStateException("Vedtak er allerede distribuert til bruker");
+        }
+
+        if (vedtak.getJournalpostId() != null ||
+                vedtak.getDokumentInfoId() != null) {
+            throw new IllegalStateException("Vedtak er allerede journalført");
         }
 
     }
