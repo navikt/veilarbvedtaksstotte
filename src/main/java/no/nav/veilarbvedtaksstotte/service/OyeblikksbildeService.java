@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
@@ -47,6 +47,10 @@ public class OyeblikksbildeService {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilAktorId(vedtak.getAktorId());
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
+    }
+
+    public void slettOyeblikksbilde(long vedtakId) {
+        oyeblikksbildeRepository.slettOyeblikksbilder(vedtakId);
     }
 
     void lagreOyeblikksbilde(String fnr, long vedtakId) {

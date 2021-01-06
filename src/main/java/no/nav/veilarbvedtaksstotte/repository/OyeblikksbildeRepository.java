@@ -38,6 +38,10 @@ public class OyeblikksbildeRepository {
         oyeblikksbildeList.forEach(this::lagOyeblikksbilde);
     }
 
+    public void slettOyeblikksbilder(long vedtakId) {
+        db.update(format("DELETE FROM %s WHERE %s = %d", OYEBLIKKSBILDE_TABLE, VEDTAK_ID, vedtakId));
+    }
+
     private void lagOyeblikksbilde(Oyeblikksbilde oyeblikksbilde) {
         db.update(
         "INSERT INTO OYEBLIKKSBILDE (VEDTAK_ID, OYEBLIKKSBILDE_TYPE, JSON) VALUES (?,?::OYEBLIKKSBILDE_TYPE,?::json)",
