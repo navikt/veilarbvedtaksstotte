@@ -17,20 +17,20 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
@@ -106,7 +106,7 @@ public class VedtakServiceTest {
     public static void setupOnce() {
         db = SingletonPostgresContainer.init().getDb();
         transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
-        kilderRepository = new KilderRepository(db);
+        kilderRepository = spy(new KilderRepository(db));
         meldingRepository = spy(new MeldingRepository(db));
         vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
@@ -211,6 +211,54 @@ public class VedtakServiceTest {
         });
     }
 
+    @Test
+    public void oppdaterUtkast__skal_ikke_endre_kilder_hvis_ikke_endret() {
+        withContext(() -> {
+            gittTilgang();
+
+            vedtakService.lagUtkast(TEST_FNR);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+            List<String> kilder = List.of("test1", "test2");
+            kilderRepository.lagKilder(kilder, utkast.getId());
+
+            OppdaterUtkastDTO oppdaterUtkastDTO = new OppdaterUtkastDTO();
+            oppdaterUtkastDTO.setOpplysninger(kilder);
+
+            vedtakService.oppdaterUtkast(utkast.getId(), oppdaterUtkastDTO);
+
+            verify(kilderRepository, never())
+                    .slettKilder(utkast.getId());
+
+            verify(kilderRepository, times(1))
+                    .lagKilder(kilder, utkast.getId());
+        });
+    }
+
+    @Test
+    public void oppdaterUtkast__skal_endre_kilder_hvis_endret() {
+        withContext(() -> {
+            gittTilgang();
+
+            vedtakService.lagUtkast(TEST_FNR);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+            List<String> gamleKilder = List.of("test1", "test2");
+            List<String> nyeKilder = List.of("test1", "test3");
+            kilderRepository.lagKilder(gamleKilder, utkast.getId());
+
+            OppdaterUtkastDTO oppdaterUtkastDTO = new OppdaterUtkastDTO();
+            oppdaterUtkastDTO.setOpplysninger(nyeKilder);
+
+            vedtakService.oppdaterUtkast(utkast.getId(), oppdaterUtkastDTO);
+
+            verify(kilderRepository, times(1))
+                    .slettKilder(utkast.getId());
+
+            verify(kilderRepository, times(1))
+                    .lagKilder(nyeKilder, utkast.getId());
+        });
+    }
 
     @Test
     public void oppdaterUtkast__feiler_for_veileder_som_ikke_er_satt_pa_utkast() {

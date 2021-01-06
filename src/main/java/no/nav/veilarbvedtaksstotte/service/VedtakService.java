@@ -24,6 +24,7 @@ import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -256,12 +257,19 @@ public class VedtakService {
 
         oppdaterUtkastFraDto(utkast, vedtakDTO);
 
-        // TODO: Kan vurdere å sjekke hvilke repos som trengs å kalles basert på endringen som er gjort
+        List<String> utkastKilder = kilderRepository.hentKilderForVedtak(utkast.getId())
+                .stream()
+                .map(Kilde::getTekst)
+                .collect(Collectors.toList());
 
         transactor.executeWithoutResult((status) -> {
             vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
-            kilderRepository.slettKilder(utkast.getId());
-            kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
+
+            // Liten optimalisering for å slippe å slette og lage nye kilder når f.eks kun begrunnelse er endret
+            if (!VedtakUtils.erKilderLike(utkastKilder, vedtakDTO.getOpplysninger())) {
+                kilderRepository.slettKilder(utkast.getId());
+                kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
+            }
         });
     }
 
