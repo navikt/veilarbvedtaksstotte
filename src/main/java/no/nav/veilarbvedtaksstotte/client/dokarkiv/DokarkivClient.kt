@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.dokarkiv
 
-interface DokarkivClient {
+import no.nav.common.health.HealthCheck
+
+interface DokarkivClient : HealthCheck {
     fun opprettJournalpost(opprettJournalpostDTO: OpprettJournalpostDTO): OpprettetJournalpostDTO
 }

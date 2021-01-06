@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.dokdistfordeling
 
+import no.nav.common.health.HealthCheckResult
+import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.utils.UrlUtils.joinPaths
@@ -26,5 +28,9 @@ class DokdistribusjonClientImpl(val dokdistribusjonUrl: String) : Dokdistribusjo
             RestUtils.throwIfNotSuccessful(response)
             return response.deserializeJsonOrThrow()
         }
+    }
+
+    override fun checkHealth(): HealthCheckResult {
+        return HealthCheckUtils.pingUrl(joinPaths(dokdistribusjonUrl, "isReady"), client)
     }
 }

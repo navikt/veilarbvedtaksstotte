@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.dokarkiv
 
+import no.nav.common.health.HealthCheckResult
+import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.sts.SystemUserTokenProvider
@@ -29,5 +31,9 @@ class DokarkivClientImpl(val dokarkivUrl: String,
             RestUtils.throwIfNotSuccessful(response)
             return response.deserializeJsonOrThrow()
         }
+    }
+
+    override fun checkHealth(): HealthCheckResult {
+        return HealthCheckUtils.pingUrl(joinPaths(dokarkivUrl, "isReady"), client)
     }
 }

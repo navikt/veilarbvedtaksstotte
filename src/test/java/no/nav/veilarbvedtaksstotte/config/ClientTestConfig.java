@@ -25,9 +25,11 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -252,7 +254,15 @@ public class ClientTestConfig {
         return new DokarkivClient() {
             @Override
             public OpprettetJournalpostDTO opprettJournalpost(OpprettJournalpostDTO opprettJournalpostDTO) {
-                return null;
+                return new OpprettetJournalpostDTO(
+                        TEST_JOURNALPOST_ID,
+                        true,
+                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID)));
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
             }
         };
     }
@@ -262,7 +272,12 @@ public class ClientTestConfig {
         return new DokdistribusjonClient() {
             @Override
             public DistribuerJournalpostResponsDTO distribuerJournalpost(DistribuerJournalpostDTO request) {
-                return null;
+                return new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID);
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
             }
         };
     }
