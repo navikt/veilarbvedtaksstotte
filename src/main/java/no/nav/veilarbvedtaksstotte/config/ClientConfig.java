@@ -1,8 +1,13 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import no.nav.common.sts.SystemUserTokenProvider;
 import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClientImpl;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl;
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClientImpl;
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl;
@@ -65,6 +70,16 @@ public class ClientConfig {
     @Bean
     public VeilarbveilederClient veilederOgEnhetClient() {
         return new VeilarbveilederClientImpl(naisPreprodOrNaisAdeoIngress("veilarbveileder", true));
+    }
+
+    @Bean
+    public DokarkivClient dokarkivClient(SystemUserTokenProvider systemUserTokenProvider) {
+        return new DokarkivClientImpl(naisPreprodOrNaisAdeoIngress("dokarkiv", false), systemUserTokenProvider);
+    }
+
+    @Bean
+    public DokdistribusjonClient dokDistribusjonClient() {
+        return new DokdistribusjonClientImpl(naisPreprodOrNaisAdeoIngress("dokdistfordeling", false));
     }
 
     private static String naisPreprodOrNaisAdeoIngress(String appName, boolean withAppContextPath) {

@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.service;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -13,7 +14,7 @@ import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.G
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
 
-public class VedtakServiceValiderUtkastForUtsendingTest {
+public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
 
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
@@ -21,18 +22,29 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
     private static VedtakService vedtakService = new VedtakService(
             null, null,null,
             null, null, null,null,null,null,null,
-            null, null, null
+            null, null, null, null, null
     );
 
     @Test
     public void skal_ikke_feile_pa_gyldig_vedtak() {
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+    }
+
+    @Test
+    public void skal_feile_hvis_vedtak_status_ikke_er_utkast() {
+        exceptionRule.expectMessage("Vedtak har feil status, forventet status UTKAST");
+
+        Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.SENDT);
+
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
 
     @Test
@@ -40,11 +52,12 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         exceptionRule.expectMessage("Vedtak mangler innsatsgruppe");
 
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
 
     @Test
@@ -52,11 +65,12 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         exceptionRule.expectMessage("Vedtak er ikke godkjent av beslutter");
 
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
         vedtak.setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
 
-        vedtakService.validerUtkastForUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
 
     @Test
@@ -64,12 +78,13 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         exceptionRule.expectMessage("Vedtak kan ikke bli sendt uten beslutter");
 
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
 
     @Test
@@ -77,12 +92,13 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         exceptionRule.expectMessage("Vedtak kan ikke bli sendt uten beslutter");
 
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
 
     @Test
@@ -90,11 +106,12 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         exceptionRule.expectMessage("Vedtak mangler opplysninger");
 
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
 
-        vedtakService.validerUtkastForUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
 
     @Test
@@ -102,11 +119,12 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         exceptionRule.expectMessage("Vedtak mangler hovedmål");
 
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
 
     @Test
@@ -114,6 +132,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         exceptionRule.expectMessage("Vedtak med varig tilpasset innsats skal ikke ha hovedmål");
 
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
@@ -121,7 +140,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
 
-        vedtakService.validerUtkastForUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
 
     @Test
@@ -129,21 +148,23 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         exceptionRule.expectMessage("Vedtak mangler begrunnelse");
 
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.SITUASJONSBESTEMT_INNSATS);
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
 
     @Test
     public void skal_ikke_feile_hvis_vedtak_manger_begrunelse_og_er_standard() {
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerUtkastForUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
 
     @Test
@@ -151,6 +172,7 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         exceptionRule.expectMessage("Vedtak mangler begrunnelse siden gjeldende vedtak er varig");
 
         Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
@@ -158,7 +180,51 @@ public class VedtakServiceValiderUtkastForUtsendingTest {
         Vedtak gjeldendeVedtak = new Vedtak();
         gjeldendeVedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
-        vedtakService.validerUtkastForUtsending(vedtak, gjeldendeVedtak);
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, gjeldendeVedtak);
     }
 
+    @Test
+    public void skal_feile_hvis_vedtak_allerede_er_distribuert_til_bruker() {
+        exceptionRule.expectMessage("Vedtak er allerede distribuert til bruker");
+
+        Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
+        vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
+        vedtak.setBegrunnelse("Begrunnelse");
+        vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
+        vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
+        vedtak.setDokumentbestillingId("123");
+
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+    }
+
+    @Test
+    public void skal_feile_hvis_vedtak_allerede_har_journalpost_id() {
+        exceptionRule.expectMessage("Vedtak er allerede journalført");
+
+        Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
+        vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
+        vedtak.setBegrunnelse("Begrunnelse");
+        vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
+        vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
+        vedtak.setJournalpostId("123");
+
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+    }
+
+    @Test
+    public void skal_feile_hvis_vedtak_allerede_har_dokument_info_id() {
+        exceptionRule.expectMessage("Vedtak er allerede journalført");
+
+        Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
+        vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
+        vedtak.setBegrunnelse("Begrunnelse");
+        vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
+        vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
+        vedtak.setDokumentInfoId("123");
+
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+    }
 }

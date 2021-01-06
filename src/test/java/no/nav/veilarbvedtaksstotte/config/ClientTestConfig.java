@@ -3,10 +3,14 @@ package no.nav.veilarbvedtaksstotte.config;
 import no.nav.common.client.pdl.AktorOppslagClient;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO;
@@ -21,9 +25,11 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -67,8 +73,13 @@ public class ClientTestConfig {
     public VeilarbarenaClient arenaClient() {
         return new VeilarbarenaClient() {
             @Override
-            public String oppfolgingsenhet(String fnr) {
-                return TEST_OPPFOLGINGSENHET_ID;
+            public EnhetId oppfolgingsenhet(Fnr fnr) {
+                return EnhetId.of(TEST_OPPFOLGINGSENHET_ID);
+            }
+
+            @Override
+            public String oppfolgingssak(Fnr fnr) {
+                return TEST_OPPFOLGINGSSAK;
             }
 
             @Override
@@ -88,6 +99,11 @@ public class ClientTestConfig {
 
             @Override
             public byte[] produserDokumentUtkast(SendDokumentDTO sendDokumentDTO) {
+                return new byte[0];
+            }
+
+            @Override
+            public byte[] produserDokumentV2(ProduserDokumentV2DTO produserDokumentV2DTO) {
                 return new byte[0];
             }
 
@@ -233,4 +249,36 @@ public class ClientTestConfig {
         };
     }
 
+    @Bean
+    public DokarkivClient dokarkivClient() {
+        return new DokarkivClient() {
+            @Override
+            public OpprettetJournalpostDTO opprettJournalpost(OpprettJournalpostDTO opprettJournalpostDTO) {
+                return new OpprettetJournalpostDTO(
+                        TEST_JOURNALPOST_ID,
+                        true,
+                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID)));
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
+            }
+        };
+    }
+
+    @Bean
+    public DokdistribusjonClient dokdistribusjonClient() {
+        return new DokdistribusjonClient() {
+            @Override
+            public DistribuerJournalpostResponsDTO distribuerJournalpost(DistribuerJournalpostDTO request) {
+                return new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID);
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
+            }
+        };
+    }
 }

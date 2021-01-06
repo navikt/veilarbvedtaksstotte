@@ -175,13 +175,13 @@ public class AuthService {
     }
 
     private String sjekkTilgangTilEnhet(String fnr) {
-        String enhet = ofNullable(arenaClient.oppfolgingsenhet(fnr)).orElse("");
+        EnhetId enhet = ofNullable(arenaClient.oppfolgingsenhet(Fnr.of(fnr))).orElse(EnhetId.of(""));
 
-        if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(getInnloggetVeilederIdent()), EnhetId.of(enhet))) {
+        if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(getInnloggetVeilederIdent()), enhet)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        return enhet;
+        return enhet.get();
     }
 
 }

@@ -11,10 +11,11 @@ public class TestData {
 
     public final static String TEST_FNR = "fnr";
     public final static String TEST_AKTOR_ID = "123";
-    public final static String TEST_VEILEDER_IDENT = "Z12345";
+    public final static String TEST_VEILEDER_IDENT = "Z123456";
     public final static String TEST_IKKE_ANSVARLIG_VEILEDER_IDENT = "Z987654";
     public final static String TEST_VEILEDER_NAVN = "Veileder Veilederen";
     public final static String TEST_OPPFOLGINGSENHET_ID = "1234";
+    public final static String TEST_OPPFOLGINGSSAK = "SAK_1234";
     public final static String TEST_OPPFOLGINGSENHET_NAVN = "NAV Testheim";
     public final static String TEST_DIALOG_MELDING = "Dette er en melding";
 
@@ -22,6 +23,7 @@ public class TestData {
 
     public final static String TEST_JOURNALPOST_ID = "6723718";
     public final static String TEST_DOKUMENT_ID = "89704912";
+    public final static String TEST_DOKUMENT_BESTILLING_ID = "abc123-321cba";
 
     public final static String TEST_BEGRUNNELSE = "Dette er en begrunnelse";
 

@@ -17,7 +17,7 @@ public class PepMock implements Pep {
 
     @Override
     public boolean harVeilederTilgangTilEnhet(NavIdent navIdent, EnhetId enhetId) {
-        return false;
+        return true;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class PepMock implements Pep {
 
     @Override
     public boolean harVeilederTilgangTilPerson(NavIdent navIdent, ActionId actionId, EksternBrukerId eksternBrukerId) {
-        return false;
+        return true;
     }
 
     @Override

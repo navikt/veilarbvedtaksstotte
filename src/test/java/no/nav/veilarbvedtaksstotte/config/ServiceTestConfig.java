@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
         OyeblikksbildeService.class,
         VedtakService.class,
         VedtakStatusEndringService.class,
-        VeilederService.class
+        VeilederService.class,
+        DokumentServiceV2.class
 })
 public class ServiceTestConfig {}
