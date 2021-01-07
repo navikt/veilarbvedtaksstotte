@@ -302,7 +302,6 @@ public class VedtakService {
 
         transactor.executeWithoutResult((status) -> {
             meldingRepository.slettMeldinger(utkastId);
-            kilderRepository.slettKilder(utkastId);
             beslutteroversiktRepository.slettBruker(utkastId);
             kilderRepository.slettKilder(utkastId);
             oyeblikksbildeService.slettOyeblikksbilde(utkastId); // Utkast skal i teorien ikke ha oyeblikksbilde, men hvis det oppstår en feilsituasjon så er det mulig
@@ -383,10 +382,13 @@ public class VedtakService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Veileder er allerede ansvarlig for utkast");
         }
 
-        vedtaksstotteRepository.oppdaterUtkastVeileder(utkast.getId(), innloggetVeilederIdent);
-        beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
+        transactor.executeWithoutResult((status) -> {
+            vedtaksstotteRepository.oppdaterUtkastVeileder(utkast.getId(), innloggetVeilederIdent);
+            beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
+            meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_VEILEDER, innloggetVeilederIdent);
+        });
+
         vedtakStatusEndringService.tattOverForVeileder(utkast, innloggetVeilederIdent);
-        meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_VEILEDER, innloggetVeilederIdent);
     }
 
     private void flettInnOpplysinger(Vedtak vedtak) {
