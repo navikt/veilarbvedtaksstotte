@@ -7,15 +7,15 @@ import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
-import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO;
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
-import no.nav.veilarbvedtaksstotte.domain.*;
+import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
@@ -24,6 +24,7 @@ import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -256,12 +257,19 @@ public class VedtakService {
 
         oppdaterUtkastFraDto(utkast, vedtakDTO);
 
-        // TODO: Kan vurdere å sjekke hvilke repos som trengs å kalles basert på endringen som er gjort
+        List<String> utkastKilder = kilderRepository.hentKilderForVedtak(utkast.getId())
+                .stream()
+                .map(Kilde::getTekst)
+                .collect(Collectors.toList());
 
         transactor.executeWithoutResult((status) -> {
             vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
-            kilderRepository.slettKilder(utkast.getId());
-            kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
+
+            // Liten optimalisering for å slippe å slette og lage nye kilder når f.eks kun begrunnelse er endret
+            if (!VedtakUtils.erKilderLike(utkastKilder, vedtakDTO.getOpplysninger())) {
+                kilderRepository.slettKilder(utkast.getId());
+                kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
+            }
         });
     }
 
@@ -294,9 +302,9 @@ public class VedtakService {
 
         transactor.executeWithoutResult((status) -> {
             meldingRepository.slettMeldinger(utkastId);
-            kilderRepository.slettKilder(utkastId);
             beslutteroversiktRepository.slettBruker(utkastId);
             kilderRepository.slettKilder(utkastId);
+            oyeblikksbildeService.slettOyeblikksbilde(utkastId); // Utkast skal i teorien ikke ha oyeblikksbilde, men hvis det oppstår en feilsituasjon så er det mulig
             vedtaksstotteRepository.slettUtkast(utkastId);
         });
 
@@ -374,10 +382,13 @@ public class VedtakService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Veileder er allerede ansvarlig for utkast");
         }
 
-        vedtaksstotteRepository.oppdaterUtkastVeileder(utkast.getId(), innloggetVeilederIdent);
-        beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
+        transactor.executeWithoutResult((status) -> {
+            vedtaksstotteRepository.oppdaterUtkastVeileder(utkast.getId(), innloggetVeilederIdent);
+            beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
+            meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_VEILEDER, innloggetVeilederIdent);
+        });
+
         vedtakStatusEndringService.tattOverForVeileder(utkast, innloggetVeilederIdent);
-        meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_VEILEDER, innloggetVeilederIdent);
     }
 
     private void flettInnOpplysinger(Vedtak vedtak) {

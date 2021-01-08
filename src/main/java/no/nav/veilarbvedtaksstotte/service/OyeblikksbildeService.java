@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
@@ -49,6 +49,10 @@ public class OyeblikksbildeService {
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
     }
 
+    public void slettOyeblikksbilde(long vedtakId) {
+        oyeblikksbildeRepository.slettOyeblikksbilder(vedtakId);
+    }
+
     void lagreOyeblikksbilde(String fnr, long vedtakId) {
         final String cvOgJobbprofilData = veilarbpersonClient.hentCVOgJobbprofil(fnr);
         final String registreringData = registreringClient.hentRegistreringDataJson(fnr);
@@ -60,6 +64,6 @@ public class OyeblikksbildeService {
                 new Oyeblikksbilde(vedtakId, EGENVURDERING, egenvurderingData)
         );
 
-        oyeblikksbildeRepository.lagOyeblikksbilde(oyeblikksbilde);
+        oyeblikksbilde.forEach(oyeblikksbildeRepository::upsertOyeblikksbilde);
     }
 }

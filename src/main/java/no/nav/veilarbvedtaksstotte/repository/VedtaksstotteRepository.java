@@ -2,11 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static no.nav.veilarbvedtaksstotte.utils.DbUtils.firstInList;
+import static no.nav.veilarbvedtaksstotte.utils.DbUtils.queryForObjectOrNull;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
 @Repository
@@ -56,7 +52,7 @@ public class VedtaksstotteRepository {
 
     public Vedtak hentUtkast(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
-        return firstInList(db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.UTKAST)));
+        return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.UTKAST)));
     }
 
     public List<Vedtak> hentFattedeVedtak(String aktorId) {
@@ -91,7 +87,7 @@ public class VedtaksstotteRepository {
 
     public Vedtak hentVedtak(long vedtakId) {
         String sql = format("SELECT * FROM %s WHERE %s = ?", VEDTAK_TABLE, VEDTAK_ID);
-        return firstInList(db.query(sql, VedtaksstotteRepository::mapVedtak, vedtakId));
+        return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, vedtakId));
     }
 
     public void setBeslutterProsessStatus(long vedtakId, BeslutterProsessStatus beslutterProsessStatus) {
@@ -114,8 +110,7 @@ public class VedtaksstotteRepository {
 
     public Vedtak hentGjeldendeVedtak(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = true", VEDTAK_TABLE, AKTOR_ID, GJELDENDE);
-        List<Vedtak> vedtakListe = db.query(sql, new Object[]{aktorId}, VedtaksstotteRepository::mapVedtak);
-        return firstInList(vedtakListe);
+        return queryForObjectOrNull(() -> db.queryForObject(sql, new Object[]{aktorId}, VedtaksstotteRepository::mapVedtak));
     }
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
@@ -209,9 +204,7 @@ public class VedtaksstotteRepository {
                 "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP, %s = true WHERE %s = ?",
                 VEDTAK_TABLE, STATUS, SIST_OPPDATERT, GJELDENDE, VEDTAK_ID
         );
-
-        db.update(sql, getName(VedtakStatus.SENDT), vedtakId
-        );
+        db.update(sql, getName(VedtakStatus.SENDT), vedtakId);
     }
 
     @SneakyThrows
