@@ -21,7 +21,8 @@ data class OpprettJournalpostDTO(
 
     data class AvsenderMottaker(
             val id: String,
-            val idType: IdType
+            val idType: IdType,
+            val navn: String
     ) {
         enum class IdType(val value: String) {
             FNR("FNR"),

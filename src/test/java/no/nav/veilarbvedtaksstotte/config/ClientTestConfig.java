@@ -25,7 +25,6 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -157,11 +156,12 @@ public class ClientTestConfig {
         return new VeilarbpersonClient() {
             @Override
             public PersonNavn hentPersonNavn(String fnr) {
-                PersonNavn personNavn = new PersonNavn();
-                personNavn.setFornavn("TEST");
-                personNavn.setMellomnavn(null);
-                personNavn.setEtternavn("TESTERSEN");
-                personNavn.setSammensattNavn("TEST TESTERSEN");
+                PersonNavn personNavn = new PersonNavn(
+                        "TEST",
+                        null,
+                        "TESTERSEN",
+                        "TEST TESTERSEN"
+                );
                 return personNavn;
             }
 

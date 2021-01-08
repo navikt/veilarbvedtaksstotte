@@ -21,6 +21,9 @@ import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl
+import no.nav.veilarbvedtaksstotte.client.person.PersonNavn
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -32,6 +35,7 @@ class DokumentServiceV2Test {
 
     lateinit var veilarbdokumentClient: VeilarbdokumentClient
     lateinit var veilarbarenaClient: VeilarbarenaClient
+    lateinit var veilarbpersonClient: VeilarbpersonClient
     lateinit var dokdistribusjonClient: DokdistribusjonClient
     lateinit var dokarkivClient: DokarkivClient
     lateinit var dokumentServiceV2: DokumentServiceV2
@@ -49,8 +53,10 @@ class DokumentServiceV2Test {
         dokarkivClient = DokarkivClientImpl(wiremockUrl, systemUserTokenProvider)
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl)
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl)
+        veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl) { "TOKEN" }
         dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl)
-        dokumentServiceV2 = DokumentServiceV2(veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient)
+        dokumentServiceV2 = DokumentServiceV2(
+            veilarbdokumentClient, veilarbarenaClient, veilarbpersonClient, dokarkivClient, dokdistribusjonClient)
     }
 
 
@@ -66,7 +72,8 @@ class DokumentServiceV2Test {
                   "journalfoerendeEnhet": "ENHET_ID",
                   "avsenderMottaker": {
                     "id": "fnr",
-                    "idType": "FNR"
+                    "idType": "FNR",
+                    "navn": "Etternavn, Fornavn Mellomnavn"
                   },
                   "bruker": {
                     "id": "fnr",
@@ -123,9 +130,10 @@ class DokumentServiceV2Test {
                             tittel = "Tittel",
                             enhetId = EnhetId("ENHET_ID"),
                             fnr = Fnr("fnr"),
+                            personNavn = PersonNavn("Fornavn","Mellomnavn","Etternavn","Sammensatt Navn"),
                             oppfolgingssak = "OPPF_SAK",
                             malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
-                            dokument = forventetDokument
+                            dokument = forventetDokument,
                     )
                 })
 
@@ -135,6 +143,22 @@ class DokumentServiceV2Test {
                 dokumenter = listOf(OpprettetJournalpostDTO.DokumentInfoId("123")))
 
         assertEquals(forventetRespons, respons)
+    }
+
+    @Test
+    fun `formatter mottakernavn for journalpost riktig med mellomnavn`() {
+        val formattertNavn = dokumentServiceV2
+            .formatterMottakerNavnForJournalpost(
+                PersonNavn("Fornavn", "Mellomnavn", "Etternavn", null))
+        assertEquals("Etternavn, Fornavn Mellomnavn", formattertNavn)
+    }
+
+    @Test
+    fun `formatter mottakernavn for journalpost riktig uten mellomnavn`() {
+        val formattertNavn = dokumentServiceV2
+            .formatterMottakerNavnForJournalpost(
+                PersonNavn("Fornavn", null, "Etternavn", null))
+        assertEquals("Etternavn, Fornavn", formattertNavn)
     }
 
     @Test
