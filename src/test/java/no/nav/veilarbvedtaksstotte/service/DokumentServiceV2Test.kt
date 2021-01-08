@@ -109,7 +109,7 @@ class DokumentServiceV2Test {
         `when`(systemUserTokenProvider.getSystemUserToken()).thenReturn("SYSTEM_USER_TOKEN")
 
         givenThat(
-                post(urlEqualTo("/rest/journalpostapi/v1/journalpost"))
+                post(urlEqualTo("/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
                         .withRequestBody(equalToJson(forventetRequest))
                         .willReturn(
                                 aResponse()

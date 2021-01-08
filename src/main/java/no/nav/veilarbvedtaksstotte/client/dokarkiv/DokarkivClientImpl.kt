@@ -22,7 +22,7 @@ class DokarkivClientImpl(val dokarkivUrl: String,
 
     override fun opprettJournalpost(opprettJournalpostDTO: OpprettJournalpostDTO): OpprettetJournalpostDTO {
         val request = Request.Builder()
-                .url(joinPaths(dokarkivUrl, "/rest/journalpostapi/v1/journalpost"))
+                .url(joinPaths(dokarkivUrl, "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
                 .header("Nav-Consumer-Token", bearerToken(systemUserTokenProvider.getSystemUserToken()))
                 .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
                 .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, opprettJournalpostDTO.toJson()))
