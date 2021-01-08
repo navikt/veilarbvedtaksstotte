@@ -4,9 +4,11 @@ import com.zaxxer.hikari.HikariConfig;
 import lombok.SneakyThrows;
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil;
 import org.flywaydb.core.Flyway;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import javax.sql.DataSource;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static no.nav.common.utils.EnvironmentUtils.isProduction;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
@@ -17,8 +19,12 @@ public class DbUtils {
         return "{" + String.join(",", values) + "}";
     }
 
-    public static <T> T firstInList(List<T> listResult) {
-        return listResult == null || listResult.isEmpty() ? null : listResult.get(0);
+    public static <T> T queryForObjectOrNull(Supplier<T> query) {
+        try {
+            return query.get();
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     public static DataSource createDataSource(String dbUrl, DbRole dbRole) {
