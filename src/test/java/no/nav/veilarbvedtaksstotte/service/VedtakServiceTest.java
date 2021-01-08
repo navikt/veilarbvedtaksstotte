@@ -143,6 +143,7 @@ public class VedtakServiceTest {
         reset(meldingRepository);
         reset(unleashService);
         reset(dokdistribusjonClient);
+        reset(vedtakStatusEndringService);
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
@@ -559,8 +560,10 @@ public class VedtakServiceTest {
         withContext(() -> {
             gittTilgang();
             Vedtak sendtVedtak = hentVedtak();
+            assertTrue(sendtVedtak.isGjeldende());
             assertEquals(TEST_DOKUMENT_BESTILLING_ID, sendtVedtak.getDokumentbestillingId());
         });
+        verify(vedtakStatusEndringService).vedtakSendt(any(), any());
     }
 
     private void assertSendtVedtak() {
