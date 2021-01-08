@@ -6,7 +6,6 @@ import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
-import no.nav.veilarbvedtaksstotte.utils.RestClientUtils;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -14,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 
 import java.util.function.Supplier;
 
+import static no.nav.common.utils.AuthUtils.bearerToken;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 
 public class VeilarbpersonClientImpl implements VeilarbpersonClient {
@@ -34,7 +34,7 @@ public class VeilarbpersonClientImpl implements VeilarbpersonClient {
     public PersonNavn hentPersonNavn(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbpersonUrl, "/api/person/navn?fnr=" + fnr))
-                .header(HttpHeaders.AUTHORIZATION, RestClientUtils.bearerToken(userTokenSupplier.get()))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(userTokenSupplier.get()))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
@@ -47,7 +47,7 @@ public class VeilarbpersonClientImpl implements VeilarbpersonClient {
     public String hentCVOgJobbprofil(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbpersonUrl, "/api/person/cv_jobbprofil?fnr=" + fnr))
-                .header(HttpHeaders.AUTHORIZATION, RestClientUtils.bearerToken(userTokenSupplier.get()))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(userTokenSupplier.get()))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {

@@ -5,6 +5,7 @@ import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.sts.SystemUserTokenProvider
+import no.nav.common.utils.AuthUtils.bearerToken
 import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
@@ -22,7 +23,7 @@ class DokarkivClientImpl(val dokarkivUrl: String,
     override fun opprettJournalpost(opprettJournalpostDTO: OpprettJournalpostDTO): OpprettetJournalpostDTO {
         val request = Request.Builder()
                 .url(joinPaths(dokarkivUrl, "/rest/journalpostapi/v1/journalpost"))
-                .header("Nav-Consumer-Token", systemUserTokenProvider.getSystemUserToken())
+                .header("Nav-Consumer-Token", bearerToken(systemUserTokenProvider.getSystemUserToken()))
                 .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
                 .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, opprettJournalpostDTO.toJson()))
                 .build()
