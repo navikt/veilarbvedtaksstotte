@@ -190,7 +190,13 @@ public class VedtakService {
             metricsService.rapporterFeilendeFerdigstillingAvJournalpost();
         }
 
-        vedtaksstotteRepository.ferdigstillVedtakV2(vedtakId);
+        transactor.executeWithoutResult(status -> {
+            vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getAktorId());
+            vedtaksstotteRepository.ferdigstillVedtakV2(vedtakId);
+            beslutteroversiktRepository.slettBruker(vedtak.getId());
+        });
+
+        vedtakStatusEndringService.vedtakSendt(vedtak, authKontekst.getFnr());
 
         String bestillingsId = null;
         try {
