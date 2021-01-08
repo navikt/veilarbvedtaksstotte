@@ -350,6 +350,11 @@ public class VedtakService {
         return safClient.hentVedtakPdf(vedtak.getJournalpostId(), vedtak.getDokumentInfoId());
     }
 
+    public boolean erFattet(long vedtakId) {
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        return vedtak != null && vedtak.getVedtakStatus() == SENDT;
+    }
+
     public boolean harUtkast(String fnr) {
         String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
         return vedtaksstotteRepository.hentUtkast(aktorId) != null;
