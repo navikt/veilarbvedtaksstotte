@@ -64,6 +64,6 @@ public class OyeblikksbildeService {
                 new Oyeblikksbilde(vedtakId, EGENVURDERING, egenvurderingData)
         );
 
-        oyeblikksbildeRepository.lagOyeblikksbilde(oyeblikksbilde);
+        oyeblikksbilde.forEach(oyeblikksbildeRepository::upsertOyeblikksbilde);
     }
 }

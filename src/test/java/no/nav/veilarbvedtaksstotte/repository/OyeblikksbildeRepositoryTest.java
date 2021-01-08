@@ -12,7 +12,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.Collections;
 import java.util.List;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
@@ -23,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class OyeblikksbildeRepositoryTest {
 
     private final static String JSON_DATA = "{ \"data\": 42 }";
+    private final static String JSON_DATA2 = "{ \"data\": 123 }";
 
     private static JdbcTemplate db;
     private static TransactionTemplate transactor;
@@ -50,9 +50,7 @@ public class OyeblikksbildeRepositoryTest {
                 JSON_DATA
         );
 
-        List<Oyeblikksbilde> oyeblikksbilder = Collections.singletonList(oyeblikksbilde);
-
-        assertThrows(DataIntegrityViolationException.class, () -> oyeblikksbildeRepository.lagOyeblikksbilde(oyeblikksbilder));
+        assertThrows(DataIntegrityViolationException.class, () -> oyeblikksbildeRepository.upsertOyeblikksbilde(oyeblikksbilde));
     }
 
     @Test
@@ -66,12 +64,53 @@ public class OyeblikksbildeRepositoryTest {
                 JSON_DATA
         );
 
-        oyeblikksbildeRepository.lagOyeblikksbilde(Collections.singletonList(oyeblikksbilde));
+        oyeblikksbildeRepository.upsertOyeblikksbilde(oyeblikksbilde);
 
         List<Oyeblikksbilde> hentetOyeblikksbilder = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
 
         assertTrue(hentetOyeblikksbilder.size() > 0);
         assertEquals(oyeblikksbilde.getJson(), hentetOyeblikksbilder.get(0).getJson());
+    }
+
+    @Test
+    public void testLagFlereOyblikksbildeMedSammeType() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+
+        Oyeblikksbilde oyeblikksbildeRegInfoGammel = new Oyeblikksbilde(
+                vedtakId,
+                OyeblikksbildeType.REGISTRERINGSINFO,
+                JSON_DATA
+        );
+
+        Oyeblikksbilde oyeblikksbildeCV = new Oyeblikksbilde(
+                vedtakId,
+                OyeblikksbildeType.CV_OG_JOBBPROFIL,
+                JSON_DATA
+        );
+
+        Oyeblikksbilde oyeblikksbildeRegInfoNy = new Oyeblikksbilde(
+                vedtakId,
+                OyeblikksbildeType.REGISTRERINGSINFO,
+                JSON_DATA2
+        );
+
+        List.of(oyeblikksbildeRegInfoGammel, oyeblikksbildeCV).forEach(oyeblikksbildeRepository::upsertOyeblikksbilde);
+        oyeblikksbildeRepository.upsertOyeblikksbilde(oyeblikksbildeRegInfoNy);
+
+        List<Oyeblikksbilde> hentetOyeblikksbilder = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
+
+        assertEquals(2, hentetOyeblikksbilder.size());
+
+        assertEquals(hentetOyeblikksbilder.stream()
+                .filter(o -> o.getOyeblikksbildeType() == OyeblikksbildeType.REGISTRERINGSINFO)
+                .map(Oyeblikksbilde::getJson)
+                .findFirst().orElse(""), JSON_DATA2);
+
+        assertEquals(hentetOyeblikksbilder.stream()
+                .filter(o -> o.getOyeblikksbildeType() == OyeblikksbildeType.CV_OG_JOBBPROFIL)
+                .map(Oyeblikksbilde::getJson)
+                .findFirst().orElse(""), JSON_DATA);
     }
 
     @Test
@@ -92,7 +131,7 @@ public class OyeblikksbildeRepositoryTest {
         );
 
         List<Oyeblikksbilde> oyeblikksbilder = List.of(oyeblikksbilde1, oyeblikksbilde2);
-        oyeblikksbildeRepository.lagOyeblikksbilde(oyeblikksbilder);
+        oyeblikksbilder.forEach(oyeblikksbildeRepository::upsertOyeblikksbilde);
 
         oyeblikksbildeRepository.slettOyeblikksbilder(vedtakId);
 
