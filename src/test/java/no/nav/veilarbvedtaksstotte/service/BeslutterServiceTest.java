@@ -57,7 +57,7 @@ public class BeslutterServiceTest {
 
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn("VEILEDER"));
         when(veilederService.hentEnhetNavn(anyString())).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
-        when(veilarbpersonClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn().setFornavn("FORNAVN").setEtternavn("ETTERNAVN"));
+        when(veilarbpersonClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn("FORNAVN", null, "ETTERNAVN", null));
     }
 
     @Test
