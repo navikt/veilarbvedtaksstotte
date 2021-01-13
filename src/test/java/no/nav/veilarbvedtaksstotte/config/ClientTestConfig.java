@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import no.nav.common.client.pdl.AktorOppslagClient;
+import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.client.aktorregister.IdentOppslag;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
@@ -10,28 +11,27 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
-import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO;
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO;
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
-import no.nav.veilarbvedtaksstotte.client.oppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.oppfolging.OppfolgingDTO;
+import no.nav.veilarbvedtaksstotte.client.oppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 
@@ -39,8 +39,8 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 public class ClientTestConfig {
 
     @Bean
-    public AktorOppslagClient aktorOppslagClient() {
-        return new AktorOppslagClient() {
+    public AktorregisterClient aktorregisterClient() {
+        return new AktorregisterClient() {
             @Override
             public Fnr hentFnr(AktorId aktorId) {
                 return Fnr.of(TEST_FNR);
@@ -52,13 +52,18 @@ public class ClientTestConfig {
             }
 
             @Override
-            public Map<AktorId, Fnr> hentFnrBolk(List<AktorId> list) {
-                return Collections.emptyMap();
+            public List<IdentOppslag> hentFnr(List<AktorId> aktorIdListe) {
+                return Collections.emptyList();
             }
 
             @Override
-            public Map<Fnr, AktorId> hentAktorIdBolk(List<Fnr> list) {
-                return Collections.emptyMap();
+            public List<IdentOppslag> hentAktorId(List<Fnr> fnrListe) {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public List<AktorId> hentAktorIder(Fnr fnr) {
+                return Collections.emptyList();
             }
 
             @Override

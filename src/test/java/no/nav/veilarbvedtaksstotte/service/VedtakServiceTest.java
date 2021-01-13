@@ -4,7 +4,7 @@ import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.VeilarbPep;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.UserRole;
-import no.nav.common.client.pdl.AktorOppslagClient;
+import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.featuretoggle.UnleashService;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
@@ -90,7 +90,7 @@ public class VedtakServiceTest {
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
     private static final VeilarbvedtakinfoClient egenvurderingClient = mock(VeilarbvedtakinfoClient.class);
     private static final VeilarbdokumentClient veilarbdokumentClient = mock(VeilarbdokumentClient.class);
-    private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
+    private static final AktorregisterClient aktorregisterClient = mock(AktorregisterClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
     private static final AbacClient abacClient = mock(AbacClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
@@ -113,7 +113,7 @@ public class VedtakServiceTest {
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
-        authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaClient, abacClient, null));
+        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         dokumentServiceV2 = new DokumentServiceV2(
@@ -154,8 +154,8 @@ public class VedtakServiceTest {
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR)).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
-        when(aktorOppslagClient.hentAktorId(Fnr.of(TEST_FNR))).thenReturn(AktorId.of(TEST_AKTOR_ID));
-        when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(Fnr.of(TEST_FNR));
+        when(aktorregisterClient.hentAktorId(Fnr.of(TEST_FNR))).thenReturn(AktorId.of(TEST_AKTOR_ID));
+        when(aktorregisterClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(Fnr.of(TEST_FNR));
         when(veilarbarenaClient.oppfolgingsenhet(Fnr.of(TEST_FNR))).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
         when(veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))).thenReturn(TEST_OPPFOLGINGSSAK);
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
