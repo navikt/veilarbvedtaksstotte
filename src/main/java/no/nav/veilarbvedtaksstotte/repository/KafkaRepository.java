@@ -1,8 +1,9 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
-import no.nav.veilarbvedtaksstotte.kafka.dto.FeiletKafkaMelding;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaTopic;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
+import no.nav.veilarbvedtaksstotte.repository.domain.FeiletKafkaMelding;
+import no.nav.veilarbvedtaksstotte.repository.domain.MeldingType;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,6 +23,8 @@ public class KafkaRepository {
     private final static String TOPIC                                   = "TOPIC";
     private final static String KEY                                     = "KEY";
     private final static String PAYLOAD                                 = "PAYLOAD";
+    private final static String MESSAGE_TYPE                            = "MESSAGE_TYPE";
+    private final static String MESSAGE_OFFSET                          = "MESSAGE_OFFSET";
 
     private final JdbcTemplate db;
 
@@ -30,22 +33,31 @@ public class KafkaRepository {
         this.db = db;
     }
 
-    public void lagreFeiletKafkaMelding(KafkaTopic topic, String key, String jsonPayload) {
+    public void lagreFeiletProdusertKafkaMelding(KafkaTopics.Topic topic, String key, String jsonPayload) {
         String sql = format(
-                "INSERT INTO %s (%s, %s, %s) VALUES (?::KAFKA_TOPIC_TYPE, ?, ?::json)",
-                FEILET_KAFKA_MELDING_TABLE, TOPIC, KEY, PAYLOAD
+                "INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?::json, ?::KAFKA_MESSAGE_TYPE)",
+                FEILET_KAFKA_MELDING_TABLE, TOPIC, KEY, PAYLOAD, MESSAGE_TYPE
         );
 
-        db.update(sql, getName(topic), key, jsonPayload);
+        db.update(sql, getName(topic), key, jsonPayload, getName(MeldingType.PRODUCED));
     }
 
-    public List<FeiletKafkaMelding> hentFeiledeKafkaMeldinger(KafkaTopic topic) {
+    public void lagreFeiletKonsumertKafkaMelding(KafkaTopics.Topic topic, String key, String jsonPayload, long offset) {
         String sql = format(
-                "SELECT * FROM %s WHERE %s = ?::KAFKA_TOPIC_TYPE",
-                FEILET_KAFKA_MELDING_TABLE, TOPIC
+                "INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?::json, ?::KAFKA_MESSAGE_TYPE, ?)",
+                FEILET_KAFKA_MELDING_TABLE, TOPIC, KEY, PAYLOAD, MESSAGE_TYPE, MESSAGE_OFFSET
         );
 
-        return db.query(sql, new Object[]{getName(topic)}, KafkaRepository::mapFeiletKafkaMelding);
+        db.update(sql, getName(topic), key, jsonPayload, getName(MeldingType.CONSUMED), offset);
+    }
+
+    public List<FeiletKafkaMelding> hentFeiledeKafkaMeldinger(KafkaTopics.Topic topic, MeldingType type) {
+        String sql = format(
+                "SELECT * FROM %s WHERE %s = ? AND %s = ?::KAFKA_MESSAGE_TYPE",
+                FEILET_KAFKA_MELDING_TABLE, TOPIC, MESSAGE_TYPE
+        );
+
+        return db.query(sql, new Object[]{getName(topic), getName(type)}, KafkaRepository::mapFeiletKafkaMelding);
     }
 
     public void slettFeiletKafkaMelding(long feiletMeldingId) {
@@ -56,8 +68,10 @@ public class KafkaRepository {
     private static FeiletKafkaMelding mapFeiletKafkaMelding(ResultSet rs, int rowNum) {
         return new FeiletKafkaMelding()
                 .setId(rs.getLong(ID))
-                .setTopic(EnumUtils.valueOf(KafkaTopic.class, rs.getString(TOPIC)))
+                .setTopic(EnumUtils.valueOf(KafkaTopics.Topic.class, rs.getString(TOPIC)))
                 .setKey(rs.getString(KEY))
+                .setType(EnumUtils.valueOf(MeldingType.class, rs.getString(MESSAGE_TYPE)))
+                .setOffset(rs.getLong(MESSAGE_OFFSET))
                 .setJsonPayload(rs.getString(PAYLOAD));
     }
 

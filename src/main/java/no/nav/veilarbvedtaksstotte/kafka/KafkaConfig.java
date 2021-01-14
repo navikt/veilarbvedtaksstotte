@@ -1,8 +1,6 @@
-package no.nav.veilarbvedtaksstotte.config;
+package no.nav.veilarbvedtaksstotte.kafka;
 
 import no.nav.common.utils.Credentials;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -52,7 +50,8 @@ public class KafkaConfig {
     public KafkaListenerContainerFactory kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaConsumerProperties(brokersUrl, serviceUserCredentials)));
-        factory.setErrorHandler(kafkaHelsesjekk);
+        factory.setErrorHandler(new KafkaConsumerErrorHandler());
+        // TODO: Set error handler
         return factory;
     }
 
@@ -60,9 +59,11 @@ public class KafkaConfig {
     public KafkaTemplate<String, String> kafkaTemplate() {
         ProducerFactory<String, String> producerFactory = new DefaultKafkaProducerFactory<>(kafkaProducerProperties(brokersUrl, serviceUserCredentials));
         KafkaTemplate<String, String> template = new KafkaTemplate<>(producerFactory);
+
         LoggingProducerListener<String, String> producerListener = new LoggingProducerListener<>();
         producerListener.setIncludeContents(false);
         template.setProducerListener(producerListener);
+
         return template;
     }
 
@@ -79,7 +80,8 @@ public class KafkaConfig {
         HashMap<String, Object> props = kafkaBaseProperties(kafkaBrokersUrl, serviceUserCredentials);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "veilarbvedtaksstotte-consumer");
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 5000);
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 60 * 60 * 1000); // 1 hour
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         return props;
