@@ -12,6 +12,7 @@ import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
+import no.nav.common.utils.fn.UnsafeSupplier;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
@@ -38,7 +39,6 @@ import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -50,10 +50,10 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 import static no.nav.common.utils.EnvironmentUtils.NAIS_CLUSTER_NAME_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
@@ -145,6 +145,7 @@ public class VedtakServiceTest {
         reset(meldingRepository);
         reset(unleashService);
         reset(dokdistribusjonClient);
+        reset(dokarkivClient);
         reset(vedtakStatusEndringService);
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
@@ -385,21 +386,58 @@ public class VedtakServiceTest {
         });
     }
 
+    @Test
+    public void fattVedtak_v2_sender_ikke_mer_enn_en_gang() {
+        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
+        when(dokdistribusjonClient.distribuerJournalpost(any()))
+                .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
+        withContext(() -> {
+            gittTilgang();
+            gittUtkastKlarForUtsendelse();
+            gittVersjon2AvFattVedtak();
+
+            long id = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+
+            Stream<UnsafeSupplier<Future<?>>> stream = Stream.of(
+                    (UnsafeSupplier<Future<?>>) () -> sendVedtakAsynk(id),
+                    () -> sendVedtakAsynk(id),
+                    () -> sendVedtakAsynk(id),
+                    () -> sendVedtakAsynk(id)
+            ).parallel();
+
+            stream.forEach(f -> {
+                try {
+                    f.get().get();
+                } catch (Exception ignored) {
+                }
+            });
+
+            verify(dokarkivClient, times(1)).opprettJournalpost(any());
+            verify(dokdistribusjonClient, times(1)).distribuerJournalpost(any());
+        });
+    }
 
     @Test
-    @Ignore // TODO: Denne testen brekker pipelinen altfor ofte, må fikses
     public void fattVedtak_sender_ikke_mer_enn_en_gang() {
         withContext(() -> {
             gittTilgang();
             gittUtkastKlarForUtsendelse();
 
-            Future<?> submit1 = sendVedtakAsynk();
-            Future<?> submit2 = sendVedtakAsynk();
+            long id = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
-            assertThatThrownBy(() -> {
-                submit1.get();
-                submit2.get();
-            }).matches(x -> x instanceof ExecutionException && x.getCause() instanceof IllegalStateException);
+            Stream<UnsafeSupplier<Future<?>>> stream = Stream.of(
+                    (UnsafeSupplier<Future<?>>) () -> sendVedtakAsynk(id),
+                    () -> sendVedtakAsynk(id),
+                    () -> sendVedtakAsynk(id),
+                    () -> sendVedtakAsynk(id)
+            ).parallel();
+
+            stream.forEach(f -> {
+                try {
+                    f.get().get();
+                } catch (Exception ignored) {
+                }
+            });
 
             verify(veilarbdokumentClient, times(1)).sendDokument(any());
         });
@@ -588,17 +626,21 @@ public class VedtakServiceTest {
         });
     }
 
-    ExecutorService executorService = Executors.newFixedThreadPool(2);
+    ExecutorService executorService = Executors.newFixedThreadPool(3);
 
-    private Future<?> sendVedtakAsynk() {
+    private Future<?> sendVedtakAsynk(long id) {
         return executorService.submit(() -> {
             when(veilarbdokumentClient.sendDokument(any())).thenAnswer(invocation -> {
-                Thread.sleep(1000); // Simuler tregt API for å sende dokument
+                Thread.sleep(10); // Simuler tregt API for v1
                 return new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
             });
+
+            when(dokarkivClient.opprettJournalpost(any())).thenAnswer(invocation -> {
+                Thread.sleep(10); // Simuler tregt API for v2
+                return new OpprettetJournalpostDTO(TEST_JOURNALPOST_ID, true, List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID)));
+            });
             withContext(() -> {
-                Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-                vedtakService.fattVedtak(utkast.getId());
+                vedtakService.fattVedtak(id);
             });
         });
     }
