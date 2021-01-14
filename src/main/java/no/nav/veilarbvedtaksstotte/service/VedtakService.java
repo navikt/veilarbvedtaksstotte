@@ -113,7 +113,13 @@ public class VedtakService {
         if (brukNyDokIntegrasjon()) {
             log.info(format("Sender og ferdigstiller vedtak med nye integrasjoner (vedtak id = %s, aktør id = %s)",
                     vedtak.getId(), authKontekst.getAktorId()));
-            return sendDokumentOgFerdigstillV2(vedtak, authKontekst);
+            // Oppdaterer vedtak til "sender" tilstand for å redusere risiko for dupliserte utsendelser av dokument.
+            vedtaksstotteRepository.oppdaterSender(vedtak.getId(), true);
+            try {
+                return sendDokumentOgFerdigstillV2(vedtak, authKontekst);
+            } finally {
+                vedtaksstotteRepository.oppdaterSender(vedtak.getId(), false);
+            }
         } else {
             log.info(format("Sender og ferdigstiller vedtak med gammel integrasjon (vedtak id = %s, aktør id = %s)",
                     vedtak.getId(), authKontekst.getAktorId()));
