@@ -51,13 +51,13 @@ public class KafkaRepository {
         db.update(sql, getName(topic), key, jsonPayload, getName(MeldingType.CONSUMED), offset);
     }
 
-    public List<FeiletKafkaMelding> hentFeiledeKafkaMeldinger(KafkaTopics.Topic topic, MeldingType type) {
+    public List<FeiletKafkaMelding> hentFeiledeKafkaMeldinger(MeldingType type) {
         String sql = format(
-                "SELECT * FROM %s WHERE %s = ? AND %s = ?::KAFKA_MESSAGE_TYPE",
-                FEILET_KAFKA_MELDING_TABLE, TOPIC, MESSAGE_TYPE
+                "SELECT * FROM %s WHERE %s = ?::KAFKA_MESSAGE_TYPE",
+                FEILET_KAFKA_MELDING_TABLE, MESSAGE_TYPE
         );
 
-        return db.query(sql, new Object[]{getName(topic), getName(type)}, KafkaRepository::mapFeiletKafkaMelding);
+        return db.query(sql, new Object[]{getName(type)}, KafkaRepository::mapFeiletKafkaMelding);
     }
 
     public void slettFeiletKafkaMelding(long feiletMeldingId) {

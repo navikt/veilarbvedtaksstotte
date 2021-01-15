@@ -65,7 +65,6 @@ public class KafkaConsumer {
             log.error(format("topic=%s key=%s offset=%d - Konsumering av melding feilet.", topic, key, offset), exception);
 
             try {
-                // Map topic string to enum
                 kafkaRepository.lagreFeiletKonsumertKafkaMelding(kafkaTopics.strToTopic(topic), key, value, offset);
                 acknowledgment.acknowledge();
             } catch (Exception e) {

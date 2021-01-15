@@ -18,6 +18,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.LoggingProducerListener;
 
 import java.util.HashMap;
@@ -28,16 +29,13 @@ import static no.nav.veilarbvedtaksstotte.utils.KafkaUtils.requireKafkaTopicPref
 @Configuration
 public class KafkaConfig {
 
-    private final KafkaHelsesjekk kafkaHelsesjekk;
-
     private final Credentials serviceUserCredentials;
 
     @Value("${spring.kafka.bootstrap-servers}")
     String brokersUrl;
 
     @Autowired
-    public KafkaConfig(KafkaHelsesjekk kafkaHelsesjekk, Credentials serviceUserCredentials) {
-        this.kafkaHelsesjekk = kafkaHelsesjekk;
+    public KafkaConfig(Credentials serviceUserCredentials) {
         this.serviceUserCredentials = serviceUserCredentials;
     }
 
@@ -50,8 +48,7 @@ public class KafkaConfig {
     public KafkaListenerContainerFactory kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaConsumerProperties(brokersUrl, serviceUserCredentials)));
-        factory.setErrorHandler(new KafkaConsumerErrorHandler());
-        // TODO: Set error handler
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         return factory;
     }
 
@@ -80,7 +77,7 @@ public class KafkaConfig {
         HashMap<String, Object> props = kafkaBaseProperties(kafkaBrokersUrl, serviceUserCredentials);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "veilarbvedtaksstotte-consumer");
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 60 * 60 * 1000); // 1 hour
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 30 * 60 * 1000); // 30 minutes
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);

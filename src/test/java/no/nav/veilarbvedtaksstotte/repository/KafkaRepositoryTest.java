@@ -39,7 +39,7 @@ public class KafkaRepositoryTest {
 
         kafkaRepository.lagreFeiletProdusertKafkaMelding(KafkaTopics.Topic.VEDTAK_SENDT, key, jsonPayload);
 
-        List<FeiletKafkaMelding> feiledeVedtakSendt = kafkaRepository.hentFeiledeKafkaMeldinger(KafkaTopics.Topic.VEDTAK_SENDT, MeldingType.PRODUCED);
+        List<FeiletKafkaMelding> feiledeVedtakSendt = kafkaRepository.hentFeiledeKafkaMeldinger(MeldingType.PRODUCED);
 
         assertEquals(1, feiledeVedtakSendt.size());
         assertEquals(feiledeVedtakSendt.get(0).getKey(), key);
@@ -49,10 +49,10 @@ public class KafkaRepositoryTest {
     @Test
     public void skal_slette_feilet_melding() {
         kafkaRepository.lagreFeiletProdusertKafkaMelding(KafkaTopics.Topic.VEDTAK_SENDT, TEST_AKTOR_ID, "{}");
-        List<FeiletKafkaMelding> feiletKafkaMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(KafkaTopics.Topic.VEDTAK_SENDT, MeldingType.PRODUCED);
+        List<FeiletKafkaMelding> feiletKafkaMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(MeldingType.PRODUCED);
         kafkaRepository.slettFeiletKafkaMelding(feiletKafkaMeldinger.get(0).getId());
 
-        assertTrue(kafkaRepository.hentFeiledeKafkaMeldinger(KafkaTopics.Topic.VEDTAK_SENDT, MeldingType.PRODUCED).isEmpty());
+        assertTrue(kafkaRepository.hentFeiledeKafkaMeldinger(MeldingType.PRODUCED).isEmpty());
     }
 
 }
