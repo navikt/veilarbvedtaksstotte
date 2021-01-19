@@ -4,6 +4,7 @@ import no.nav.veilarbvedtaksstotte.kafka.KafkaConsumer;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -18,6 +19,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.LoggingProducerListener;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 
@@ -53,6 +55,7 @@ public class KafkaTestConfig {
     public KafkaListenerContainerFactory kafkaListenerContainerFactory(EmbeddedKafkaBroker embeddedKafkaBroker) {
         ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory(embeddedKafkaBroker.getBrokersAsString()));
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         return factory;
     }
 
@@ -70,9 +73,9 @@ public class KafkaTestConfig {
         props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaBrokersUrl);
         props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(GROUP_ID_CONFIG, "veilarbvedtaksstotte-consumer");
         props.put(AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(MAX_POLL_INTERVAL_MS_CONFIG, 1000);
 
         return new DefaultKafkaConsumerFactory<>(props);
     }
