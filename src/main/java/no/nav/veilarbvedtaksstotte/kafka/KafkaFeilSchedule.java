@@ -54,7 +54,7 @@ public class KafkaFeilSchedule {
     @Scheduled(fixedDelay = FIFTEEN_MINUTES, initialDelay = ONE_MINUTE)
     public void publiserFeiletKafkaMeldinger() {
         if (leaderElectionClient.isLeader()) {
-            List<FeiletKafkaMelding> feiledeMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(MeldingType.CONSUMED);
+            List<FeiletKafkaMelding> feiledeMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(MeldingType.PRODUCED);
             feiledeMeldinger.forEach(kafkaProducer::sendTidligereFeilet);
         }
     }
