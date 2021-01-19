@@ -11,7 +11,7 @@ import no.nav.common.abac.domain.response.Decision;
 import no.nav.common.abac.domain.response.XacmlResponse;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.UserRole;
-import no.nav.common.client.pdl.AktorOppslagClient;
+import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
@@ -35,7 +35,7 @@ import static java.util.Optional.ofNullable;
 @Service
 public class AuthService {
 
-    private final AktorOppslagClient aktorOppslagClient;
+    private final AktorregisterClient aktorregisterClient;
     private final Pep veilarbPep;
     private final VeilarbarenaClient arenaClient;
     private final AbacClient abacClient;
@@ -43,13 +43,13 @@ public class AuthService {
 
     @Autowired
     public AuthService(
-            AktorOppslagClient aktorOppslagClient,
+            AktorregisterClient aktorregisterClient,
             Pep veilarbPep,
             VeilarbarenaClient arenaClient,
             AbacClient abacClient,
             Credentials serviceUserCredentials
     ) {
-        this.aktorOppslagClient = aktorOppslagClient;
+        this.aktorregisterClient = aktorregisterClient;
         this.veilarbPep = veilarbPep;
         this.arenaClient = arenaClient;
         this.abacClient = abacClient;
@@ -59,7 +59,7 @@ public class AuthService {
     public AuthKontekst sjekkTilgangTilFnr(String fnr) {
         sjekkInternBruker();
 
-        AktorId aktorId = aktorOppslagClient.hentAktorId(Fnr.of(fnr));
+        AktorId aktorId = aktorregisterClient.hentAktorId(Fnr.of(fnr));
 
         if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(getInnloggetVeilederIdent()), ActionId.WRITE, aktorId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
@@ -76,7 +76,7 @@ public class AuthService {
     public AuthKontekst sjekkTilgangTilAktorId(String aktorId) {
         sjekkInternBruker();
 
-        String fnr = aktorOppslagClient.hentFnr(AktorId.of(aktorId)).get();
+        String fnr = aktorregisterClient.hentFnr(AktorId.of(aktorId)).get();
 
         if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(getInnloggetVeilederIdent()), ActionId.WRITE, AktorId.of(aktorId))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
@@ -104,7 +104,7 @@ public class AuthService {
     }
 
     public String getFnrOrThrow(String aktorId) {
-        return aktorOppslagClient.hentFnr(AktorId.of(aktorId)).get();
+        return aktorregisterClient.hentFnr(AktorId.of(aktorId)).get();
     }
 
     public void sjekkErAnsvarligVeilederFor(Vedtak vedtak) {
@@ -175,13 +175,13 @@ public class AuthService {
     }
 
     private String sjekkTilgangTilEnhet(String fnr) {
-        String enhet = ofNullable(arenaClient.oppfolgingsenhet(fnr)).orElse("");
+        EnhetId enhet = ofNullable(arenaClient.oppfolgingsenhet(Fnr.of(fnr))).orElse(EnhetId.of(""));
 
-        if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(getInnloggetVeilederIdent()), EnhetId.of(enhet))) {
+        if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(getInnloggetVeilederIdent()), enhet)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        return enhet;
+        return enhet.get();
     }
 
 }

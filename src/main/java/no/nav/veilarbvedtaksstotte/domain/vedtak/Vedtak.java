@@ -28,6 +28,7 @@ public class Vedtak {
     List<String> opplysninger;
     String journalpostId;
     String dokumentInfoId;
+    String dokumentbestillingId;
     BeslutterProsessStatus beslutterProsessStatus;
 
     @JsonIgnore

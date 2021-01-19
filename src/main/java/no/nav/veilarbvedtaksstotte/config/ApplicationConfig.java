@@ -5,9 +5,9 @@ import no.nav.common.abac.*;
 import no.nav.common.abac.audit.AuditLogger;
 import no.nav.common.abac.audit.NimbusSubjectProvider;
 import no.nav.common.abac.audit.SpringAuditRequestInfoSupplier;
-import no.nav.common.client.pdl.AktorOppslagClient;
-import no.nav.common.client.pdl.CachedAktorOppslagClient;
-import no.nav.common.client.pdl.PdlAktorOppslagClient;
+import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.client.aktorregister.AktorregisterHttpClient;
+import no.nav.common.client.aktorregister.CachedAktorregisterClient;
 import no.nav.common.featuretoggle.UnleashService;
 import no.nav.common.leaderelection.LeaderElectionClient;
 import no.nav.common.leaderelection.LeaderElectionHttpClient;
@@ -16,7 +16,6 @@ import no.nav.common.metrics.MetricsClient;
 import no.nav.common.sts.NaisSystemUserTokenProvider;
 import no.nav.common.sts.SystemUserTokenProvider;
 import no.nav.common.utils.Credentials;
-import no.nav.common.utils.EnvironmentUtils;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,8 +23,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import static no.nav.common.featuretoggle.UnleashServiceConfig.resolveFromEnvironment;
 import static no.nav.common.utils.NaisUtils.getCredentials;
-import static no.nav.common.utils.UrlUtils.createDevAdeoIngressUrl;
-import static no.nav.common.utils.UrlUtils.createNaisAdeoIngressUrl;
 
 @Slf4j
 @Configuration
@@ -61,14 +58,11 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public AktorOppslagClient aktorOppslagClient(SystemUserTokenProvider tokenProvider) {
-        String pdlUrl = EnvironmentUtils.isDevelopment().orElse(false)
-                ? createDevAdeoIngressUrl("pdl-api", false)
-                : createNaisAdeoIngressUrl("pdl-api", false);
-
-        return new CachedAktorOppslagClient(
-                new PdlAktorOppslagClient(pdlUrl, tokenProvider::getSystemUserToken, tokenProvider::getSystemUserToken)
+    public AktorregisterClient aktorregisterClient(EnvironmentProperties properties, SystemUserTokenProvider systemUserTokenProvider) {
+        AktorregisterClient aktorregisterClient = new AktorregisterHttpClient(
+                properties.getAktorregisterUrl(), APPLICATION_NAME, systemUserTokenProvider::getSystemUserToken
         );
+        return new CachedAktorregisterClient(aktorregisterClient);
     }
 
     @Bean

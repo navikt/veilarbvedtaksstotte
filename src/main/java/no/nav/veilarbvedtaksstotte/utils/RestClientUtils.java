@@ -4,6 +4,8 @@ import no.nav.common.auth.context.AuthContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import static no.nav.common.utils.AuthUtils.bearerToken;
+
 public class RestClientUtils {
 
     public static String authHeaderMedInnloggetBruker() {
@@ -13,9 +15,4 @@ public class RestClientUtils {
 
         return bearerToken(token);
     }
-
-    public static String bearerToken(String token) {
-        return "Bearer " + token;
-    }
-
 }

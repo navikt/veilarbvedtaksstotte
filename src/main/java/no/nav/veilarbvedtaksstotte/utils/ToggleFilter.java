@@ -6,12 +6,12 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+import static no.nav.veilarbvedtaksstotte.utils.Toggles.PTO_VEDTAKSSTOTTE_PILOT_TOGGLE;
+import static no.nav.veilarbvedtaksstotte.utils.Toggles.VEILARBVEDTAKSSTOTTE_ENABLED_TOGGLE;
+
 public class ToggleFilter implements Filter {
 
-    private static final String VEILARBVEDTAKSSTOTTE_ENABLED_TOGGLE = "veilarbvedtaksstotte.enabled";
-    private static final String PTO_VEDTAKSSTOTTE_PILOT_TOGGLE = "pto.vedtaksstotte.pilot";
-
-    private UnleashService unleashService;
+    private final UnleashService unleashService;
 
     public ToggleFilter(UnleashService unleashService) {
         this.unleashService = unleashService;

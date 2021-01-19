@@ -21,6 +21,8 @@ public class EnvironmentProperties {
 
     private String openAmRefreshUrl;
 
+    private String aktorregisterUrl;
+
     private String abacUrl;
 
     private String dbUrl;

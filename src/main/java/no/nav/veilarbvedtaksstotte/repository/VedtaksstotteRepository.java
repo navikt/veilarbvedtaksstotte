@@ -2,11 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,29 +16,30 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static no.nav.veilarbvedtaksstotte.utils.DbUtils.firstInList;
+import static no.nav.veilarbvedtaksstotte.utils.DbUtils.queryForObjectOrNull;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
 @Repository
 public class VedtaksstotteRepository {
 
-    public final static String VEDTAK_TABLE           = "VEDTAK";
-    private final static String VEDTAK_ID             = "ID";
-    private final static String SENDER                = "SENDER";
-    private final static String AKTOR_ID              = "AKTOR_ID";
-    private final static String HOVEDMAL              = "HOVEDMAL";
-    private final static String INNSATSGRUPPE         = "INNSATSGRUPPE";
-    private final static String VEILEDER_IDENT        = "VEILEDER_IDENT";
-    private final static String OPPFOLGINGSENHET_ID   = "OPPFOLGINGSENHET_ID";
-    private final static String SIST_OPPDATERT        = "SIST_OPPDATERT";
-    private final static String BESLUTTER_IDENT       = "BESLUTTER_IDENT";
-    private final static String UTKAST_OPPRETTET      = "UTKAST_OPPRETTET";
-    private final static String BEGRUNNELSE           = "BEGRUNNELSE";
-    private final static String STATUS                = "STATUS";
-    private final static String DOKUMENT_ID           = "DOKUMENT_ID";
-    private final static String JOURNALPOST_ID        = "JOURNALPOST_ID";
-    private final static String GJELDENDE             = "GJELDENDE";
-    private final static String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
+    public final static String VEDTAK_TABLE                 = "VEDTAK";
+    private final static String VEDTAK_ID                   = "ID";
+    private final static String SENDER                      = "SENDER";
+    private final static String AKTOR_ID                    = "AKTOR_ID";
+    private final static String HOVEDMAL                    = "HOVEDMAL";
+    private final static String INNSATSGRUPPE               = "INNSATSGRUPPE";
+    private final static String VEILEDER_IDENT              = "VEILEDER_IDENT";
+    private final static String OPPFOLGINGSENHET_ID         = "OPPFOLGINGSENHET_ID";
+    private final static String SIST_OPPDATERT              = "SIST_OPPDATERT";
+    private final static String BESLUTTER_IDENT             = "BESLUTTER_IDENT";
+    private final static String UTKAST_OPPRETTET            = "UTKAST_OPPRETTET";
+    private final static String BEGRUNNELSE                 = "BEGRUNNELSE";
+    private final static String STATUS                      = "STATUS";
+    private final static String DOKUMENT_ID                 = "DOKUMENT_ID";
+    private final static String JOURNALPOST_ID              = "JOURNALPOST_ID";
+    private final static String DOKUMENT_BESTILLING_ID      = "DOKUMENT_BESTILLING_ID";
+    private final static String GJELDENDE                   = "GJELDENDE";
+    private final static String BESLUTTER_PROSESS_STATUS    = "BESLUTTER_PROSESS_STATUS";
 
     private final JdbcTemplate db;
     private final TransactionTemplate transactor;
@@ -55,7 +52,7 @@ public class VedtaksstotteRepository {
 
     public Vedtak hentUtkast(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
-        return firstInList(db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.UTKAST)));
+        return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.UTKAST)));
     }
 
     public List<Vedtak> hentFattedeVedtak(String aktorId) {
@@ -90,7 +87,7 @@ public class VedtaksstotteRepository {
 
     public Vedtak hentVedtak(long vedtakId) {
         String sql = format("SELECT * FROM %s WHERE %s = ?", VEDTAK_TABLE, VEDTAK_ID);
-        return firstInList(db.query(sql, VedtaksstotteRepository::mapVedtak, vedtakId));
+        return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, vedtakId));
     }
 
     public void setBeslutterProsessStatus(long vedtakId, BeslutterProsessStatus beslutterProsessStatus) {
@@ -113,8 +110,7 @@ public class VedtaksstotteRepository {
 
     public Vedtak hentGjeldendeVedtak(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = true", VEDTAK_TABLE, AKTOR_ID, GJELDENDE);
-        List<Vedtak> vedtakListe = db.query(sql, new Object[]{aktorId}, VedtaksstotteRepository::mapVedtak);
-        return firstInList(vedtakListe);
+        return queryForObjectOrNull(() -> db.queryForObject(sql, new Object[]{aktorId}, VedtaksstotteRepository::mapVedtak));
     }
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
@@ -187,6 +183,30 @@ public class VedtaksstotteRepository {
         });
     }
 
+    public void lagreJournalforingVedtak(long vedtakId, String journalpostId, String dokumentId){
+        String sql = format(
+                "UPDATE %s SET %s = ?, %s = ? WHERE %s = ?",
+                VEDTAK_TABLE, DOKUMENT_ID, JOURNALPOST_ID, VEDTAK_ID
+        );
+        db.update(sql, dokumentId, journalpostId, vedtakId);
+    }
+
+    public void lagreDokumentbestillingsId(long vedtakId, String dokumentbestillingsId){
+        String sql = format(
+                "UPDATE %s SET %s = ? WHERE %s = ?",
+                VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, VEDTAK_ID
+        );
+        db.update(sql, dokumentbestillingsId, vedtakId);
+    }
+
+    public void ferdigstillVedtakV2(long vedtakId){
+        String sql = format(
+                "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP, %s = true WHERE %s = ?",
+                VEDTAK_TABLE, STATUS, SIST_OPPDATERT, GJELDENDE, VEDTAK_ID
+        );
+        db.update(sql, getName(VedtakStatus.SENDT), vedtakId);
+    }
+
     @SneakyThrows
     private static Vedtak mapVedtak(ResultSet rs, int row) {
         return new Vedtak()
@@ -204,6 +224,7 @@ public class VedtaksstotteRepository {
                 .setAktorId(rs.getString(AKTOR_ID))
                 .setJournalpostId(rs.getString(JOURNALPOST_ID))
                 .setDokumentInfoId(rs.getString(DOKUMENT_ID))
+                .setDokumentbestillingId(rs.getString(DOKUMENT_BESTILLING_ID))
                 .setSender(rs.getBoolean(SENDER))
                 .setBeslutterProsessStatus(EnumUtils.valueOf(BeslutterProsessStatus.class, rs.getString(BESLUTTER_PROSESS_STATUS)));
 

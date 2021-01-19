@@ -1,7 +1,10 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
+import no.nav.common.featuretoggle.UnleashService;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
@@ -18,6 +21,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
+
+import static org.mockito.Mockito.mock;
 
 
 @Configuration
@@ -72,6 +77,16 @@ public class ApplicationTestConfig {
     @Bean
     public JdbcTemplate jdbcTemplate(DataSource dataSource) {
         return new JdbcTemplate(dataSource);
+    }
+
+    @Bean
+    public UnleashService unleashService() {
+        return mock(UnleashService.class);
+    }
+
+    @Bean
+    public MeterRegistry meterRegistry() {
+        return new SimpleMeterRegistry();
     }
 
 }
