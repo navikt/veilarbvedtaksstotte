@@ -34,7 +34,7 @@ public class KafkaTopics {
         kafkaTopics.setEndringPaOppfolgingBruker("aapen-fo-endringPaaOppfoelgingsBruker-v1-" + topicPrefix);
         kafkaTopics.setVedtakSendt("aapen-oppfolging-vedtakSendt-v1-" + topicPrefix);
         kafkaTopics.setVedtakStatusEndring("aapen-oppfolging-vedtakStatusEndring-v1-" + topicPrefix);
-//        kafkaTopics.setArenaVedtak(); // TODO navn på topic
+        kafkaTopics.setArenaVedtak("TODO-arena-vedtak-topic-name"); // TODO riktig navn på topic
         return kafkaTopics;
     }
 
