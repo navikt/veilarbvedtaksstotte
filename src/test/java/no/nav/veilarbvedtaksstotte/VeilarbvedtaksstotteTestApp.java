@@ -11,7 +11,6 @@ public class VeilarbvedtaksstotteTestApp {
 
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(VeilarbvedtaksstotteTestApp.class);
-        application.setAdditionalProfiles("local");
         application.run(args);
     }
 
