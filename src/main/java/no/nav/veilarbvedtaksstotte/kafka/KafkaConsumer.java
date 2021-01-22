@@ -2,9 +2,11 @@ package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.utils.fn.UnsafeRunnable;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
+import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +15,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 import static java.lang.String.format;
-import static no.nav.common.json.JsonUtils.fromJson;
+import static no.nav.veilarbvedtaksstotte.utils.JsonUtils.fromJson;
 
 @Slf4j
 @Component
@@ -27,11 +29,17 @@ public class KafkaConsumer {
 
     private final KafkaRepository kafkaRepository;
 
+    private final ArenaVedtakService arenaVedtakService;
+
     @Autowired
-    public KafkaConsumer(KafkaTopics kafkaTopics, VedtakService vedtakService, KafkaRepository kafkaRepository) {
+    public KafkaConsumer(KafkaTopics kafkaTopics,
+                         VedtakService vedtakService,
+                         KafkaRepository kafkaRepository,
+                         ArenaVedtakService arenaVedtakService) {
         this.kafkaTopics = kafkaTopics;
         this.vedtakService = vedtakService;
         this.kafkaRepository = kafkaRepository;
+        this.arenaVedtakService = arenaVedtakService;
     }
 
     @KafkaListener(topics = "#{kafkaTopics.getEndringPaAvsluttOppfolging()}")
@@ -47,6 +55,14 @@ public class KafkaConsumer {
         consumeWithErrorHandling(() -> {
             KafkaOppfolgingsbrukerEndring melding = fromJson(record.value(), KafkaOppfolgingsbrukerEndring.class);
             vedtakService.behandleOppfolgingsbrukerEndring(melding);
+        }, record, acknowledgment);
+    }
+
+    @KafkaListener(topics = "#{kafkaTopics.getArenaVedtak()}")
+    public void consumeArenaVedtak(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
+        consumeWithErrorHandling(() -> {
+            ArenaVedtak arenaVedtak = fromJson(record.value(), ArenaVedtak.class);
+            arenaVedtakService.behandleVedtakFraArena(arenaVedtak);
         }, record, acknowledgment);
     }
 

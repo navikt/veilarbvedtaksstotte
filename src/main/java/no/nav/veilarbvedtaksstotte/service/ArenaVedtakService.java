@@ -3,6 +3,8 @@ package no.nav.veilarbvedtaksstotte.service;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +17,17 @@ import java.util.stream.Collectors;
 public class ArenaVedtakService {
 
     final static String JOURNALPOST_ARENA_VEDTAK_TITTEL = "Brev: Oppfølgingsvedtak (§14a)";
+    final static String VEILARBVEDAKSSTOTTE_MOD_USER = "VEILARBVEDAKSSTOTTE_MOD_USER"; // TODO riktig verdi
 
+    private ArenaVedtakRepository arenaVedtakRepository;
     private SafClient safClient;
     private AuthService authService;
 
     @Autowired
-    public ArenaVedtakService(SafClient safClient, AuthService authService) {
+    public ArenaVedtakService(ArenaVedtakRepository arenaVedtakRepository,
+                              SafClient safClient,
+                              AuthService authService) {
+        this.arenaVedtakRepository = arenaVedtakRepository;
         this.safClient = safClient;
         this.authService = authService;
     }
@@ -33,6 +40,21 @@ public class ArenaVedtakService {
     public byte[] hentVedtakPdf(String dokumentInfoId, String journalpostId) {
         // Tilgangskontroll gjøres av SAF
         return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
+    }
+
+    public void behandleVedtakFraArena(ArenaVedtak arenaVedtak) {
+
+        if (VEILARBVEDAKSSTOTTE_MOD_USER.equals(arenaVedtak.getModUser())) {
+            return;
+        }
+
+        ArenaVedtak eksisterendeVedtak = arenaVedtakRepository.hentVedtak(arenaVedtak.getFnr());
+
+        if (eksisterendeVedtak != null && !arenaVedtak.getFraDato().isAfter(eksisterendeVedtak.getFraDato())) {
+            return;
+        }
+
+        arenaVedtakRepository.upsertVedtak(arenaVedtak);
     }
 
     protected List<ArkivertVedtak> hentArkiverteVedtakFraArena(String fnr) {

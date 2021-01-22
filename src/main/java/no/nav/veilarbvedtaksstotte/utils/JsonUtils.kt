@@ -21,6 +21,11 @@ object JsonUtils {
         error.put(fieldName, value)
         return error.toString()
     }
+
+    @JvmStatic
+    fun <T> fromJson(json: String, valueClass: Class<T>): T {
+        return objectMapper.readValue(json, valueClass)
+    }
 }
 
 inline fun <reified T> Response.deserializeJson(): T? {

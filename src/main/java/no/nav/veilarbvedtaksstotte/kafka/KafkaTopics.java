@@ -14,7 +14,8 @@ public class KafkaTopics {
         VEDTAK_SENDT, // Produce
         VEDTAK_STATUS_ENDRING, // Produce
         ENDRING_PA_AVSLUTT_OPPFOLGING, // Consume
-        ENDRING_PA_OPPFOLGING_BRUKER // Consume
+        ENDRING_PA_OPPFOLGING_BRUKER, // Consume
+        ARENA_VEDTAK // Consume
     }
 
     private String vedtakSendt;
@@ -25,12 +26,15 @@ public class KafkaTopics {
 
     private String endringPaOppfolgingBruker;
 
+    private String arenaVedtak;
+
     public static KafkaTopics create(String topicPrefix) {
         KafkaTopics kafkaTopics = new KafkaTopics();
         kafkaTopics.setEndringPaAvsluttOppfolging("aapen-fo-endringPaaAvsluttOppfolging-v1-" + topicPrefix);
         kafkaTopics.setEndringPaOppfolgingBruker("aapen-fo-endringPaaOppfoelgingsBruker-v1-" + topicPrefix);
         kafkaTopics.setVedtakSendt("aapen-oppfolging-vedtakSendt-v1-" + topicPrefix);
         kafkaTopics.setVedtakStatusEndring("aapen-oppfolging-vedtakStatusEndring-v1-" + topicPrefix);
+//        kafkaTopics.setArenaVedtak(); // TODO navn på topic
         return kafkaTopics;
     }
 
@@ -39,7 +43,8 @@ public class KafkaTopics {
                 this.getEndringPaAvsluttOppfolging(),
                 this.getEndringPaOppfolgingBruker(),
                 this.getVedtakSendt(),
-                this.getVedtakStatusEndring()
+                this.getVedtakStatusEndring(),
+                this.getArenaVedtak()
         };
     }
 

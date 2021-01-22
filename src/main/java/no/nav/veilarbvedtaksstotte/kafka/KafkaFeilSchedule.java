@@ -2,11 +2,13 @@ package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.leaderelection.LeaderElectionClient;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
 import no.nav.veilarbvedtaksstotte.repository.domain.FeiletKafkaMelding;
 import no.nav.veilarbvedtaksstotte.repository.domain.MeldingType;
+import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,8 +17,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 import static java.lang.String.format;
-import static no.nav.common.json.JsonUtils.fromJson;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
+import static no.nav.veilarbvedtaksstotte.utils.JsonUtils.fromJson;
 
 @Slf4j
 @Component
@@ -36,19 +38,24 @@ public class KafkaFeilSchedule {
 
     private final VedtakService vedtakService;
 
+    private final ArenaVedtakService arenaVedtakService;
+
 
     @Autowired
     public KafkaFeilSchedule(
             LeaderElectionClient leaderElectionClient,
             KafkaRepository kafkaRepository,
             KafkaProducer kafkaProducer,
-            KafkaTopics kafkaTopics, VedtakService vedtakService
+            KafkaTopics kafkaTopics,
+            VedtakService vedtakService,
+            ArenaVedtakService arenaVedtakService
     ) {
         this.leaderElectionClient = leaderElectionClient;
         this.kafkaRepository = kafkaRepository;
         this.kafkaProducer = kafkaProducer;
         this.kafkaTopics = kafkaTopics;
         this.vedtakService = vedtakService;
+        this.arenaVedtakService = arenaVedtakService;
     }
 
     @Scheduled(fixedDelay = FIFTEEN_MINUTES, initialDelay = ONE_MINUTE)
@@ -72,7 +79,10 @@ public class KafkaFeilSchedule {
         String json = feiletKafkaMelding.getJsonPayload();
 
         try {
-            if (KafkaTopics.Topic.ENDRING_PA_AVSLUTT_OPPFOLGING.equals(topic)) {
+            if (KafkaTopics.Topic.ARENA_VEDTAK.equals(topic)) {
+                ArenaVedtak arenaVedtak = fromJson(json, ArenaVedtak.class);
+                arenaVedtakService.behandleVedtakFraArena(arenaVedtak);
+            } else if (KafkaTopics.Topic.ENDRING_PA_AVSLUTT_OPPFOLGING.equals(topic)) {
                 KafkaAvsluttOppfolging melding = fromJson(json, KafkaAvsluttOppfolging.class);
                 vedtakService.behandleAvsluttOppfolging(melding);
             } else if (KafkaTopics.Topic.ENDRING_PA_OPPFOLGING_BRUKER.equals(topic)) {
