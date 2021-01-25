@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.client.aktorregister.IdentOppslag;
+import no.nav.common.client.pdl.AktorOppslagClient;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 
@@ -64,6 +66,36 @@ public class ClientTestConfig {
             @Override
             public List<AktorId> hentAktorIder(Fnr fnr) {
                 return Collections.emptyList();
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
+            }
+        };
+    }
+
+    @Bean
+    public AktorOppslagClient aktorOppslagClient() {
+        return new AktorOppslagClient() {
+            @Override
+            public Fnr hentFnr(AktorId aktorId) {
+                return Fnr.of(TEST_FNR);
+            }
+
+            @Override
+            public AktorId hentAktorId(Fnr fnr) {
+                return AktorId.of(TEST_AKTOR_ID);
+            }
+
+            @Override
+            public Map<AktorId, Fnr> hentFnrBolk(List<AktorId> list) {
+                return Collections.emptyMap();
+            }
+
+            @Override
+            public Map<Fnr, AktorId> hentAktorIdBolk(List<Fnr> list) {
+                return Collections.emptyMap();
             }
 
             @Override

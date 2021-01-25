@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.kafka;
 
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
+import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +27,9 @@ public class AvsluttOppfolgingConsumerTest {
     @SpyBean
     VedtakService vedtakService;
 
+    @SpyBean
+    ArenaVedtakService arenaVedtakService;
+
     @Autowired
     KafkaTemplate<String, String> kafkaTemplate;
 
@@ -40,6 +44,10 @@ public class AvsluttOppfolgingConsumerTest {
 
         verifiserAsynkront(10, TimeUnit.SECONDS, () ->
                 verify(vedtakService).behandleAvsluttOppfolging(eq(melding))
+        );
+
+        verifiserAsynkront(10, TimeUnit.SECONDS, () ->
+                verify(arenaVedtakService).behandleAvsluttOppfolging(eq(melding))
         );
     }
 

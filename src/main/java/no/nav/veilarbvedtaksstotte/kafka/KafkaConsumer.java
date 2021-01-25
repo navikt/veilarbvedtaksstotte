@@ -47,6 +47,7 @@ public class KafkaConsumer {
         consumeWithErrorHandling(() -> {
             KafkaAvsluttOppfolging melding = fromJson(record.value(), KafkaAvsluttOppfolging.class);
             vedtakService.behandleAvsluttOppfolging(melding);
+            arenaVedtakService.behandleAvsluttOppfolging(melding);
         }, record, acknowledgment);
     }
 

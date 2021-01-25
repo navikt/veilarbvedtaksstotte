@@ -4,11 +4,16 @@ import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.utils.DbUtils
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
 import java.sql.ResultSet
 
 @Repository
 class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
+
+    val namedParameterJdbcTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
+
     val ARENA_VEDTAK_TABLE = "ARENA_VEDTAK"
 
     val FNR = "FNR"
@@ -44,6 +49,12 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
         return DbUtils.queryForObjectOrNull {
             jdbcTemplate.queryForObject(sql, this::arenaVedtakRowMapper, fnr.get())
         }
+    }
+
+    fun slettVedtak(fnrs: List<Fnr>): Int {
+        val parameters = MapSqlParameterSource("fnrs", fnrs.map { it.get() })
+        val sql = "DELETE FROM $ARENA_VEDTAK_TABLE WHERE $FNR IN(:fnrs)"
+        return namedParameterJdbcTemplate.update(sql, parameters)
     }
 
     private fun arenaVedtakRowMapper(rs: ResultSet, row: Int): ArenaVedtak {

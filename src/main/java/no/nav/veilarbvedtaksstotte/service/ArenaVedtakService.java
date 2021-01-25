@@ -1,9 +1,14 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import lombok.extern.slf4j.Slf4j;
+import no.nav.common.client.pdl.AktorOppslagClient;
+import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
+import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +18,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
+@Slf4j
 @Service
 public class ArenaVedtakService {
 
@@ -22,14 +30,17 @@ public class ArenaVedtakService {
     private ArenaVedtakRepository arenaVedtakRepository;
     private SafClient safClient;
     private AuthService authService;
+    private AktorOppslagClient aktorOppslagClient;
 
     @Autowired
     public ArenaVedtakService(ArenaVedtakRepository arenaVedtakRepository,
                               SafClient safClient,
-                              AuthService authService) {
+                              AuthService authService,
+                              AktorOppslagClient aktorOppslagClient) {
         this.arenaVedtakRepository = arenaVedtakRepository;
         this.safClient = safClient;
         this.authService = authService;
+        this.aktorOppslagClient = aktorOppslagClient;
     }
 
     public List<ArkivertVedtak> hentVedtakFraArena(String fnr) {
@@ -55,6 +66,15 @@ public class ArenaVedtakService {
         }
 
         arenaVedtakRepository.upsertVedtak(arenaVedtak);
+    }
+
+    public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
+        List<Fnr> fnr = List.of(aktorOppslagClient.hentFnr(AktorId.of(melding.getAktorId()))); // TODO hent alle identer
+        int antall = arenaVedtakRepository.slettVedtak(fnr);
+        if (antall > 0) {
+            log.info(format("Slettet %s kopi av vedtak fra Arena for aktorId=%s med avsluttet oppfølging",
+                    antall, melding.getAktorId()));
+        }
     }
 
     protected List<ArkivertVedtak> hentArkiverteVedtakFraArena(String fnr) {

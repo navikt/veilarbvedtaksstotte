@@ -37,7 +37,7 @@ public class ArenaVedtakServiceTest {
     public static void setup() {
         jdbcTemplate = SingletonPostgresContainer.init().getDb();
         arenaVedtakRepository = new ArenaVedtakRepository(jdbcTemplate);
-        service = new ArenaVedtakService(arenaVedtakRepository, safClient, null);
+        service = new ArenaVedtakService(arenaVedtakRepository, safClient, null, null);
         when(veiledereOgEnhetClient.hentEnhetNavn(any())).thenReturn("TEST");
     }
 
