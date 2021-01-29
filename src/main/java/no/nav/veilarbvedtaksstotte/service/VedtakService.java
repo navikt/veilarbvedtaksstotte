@@ -399,7 +399,12 @@ public class VedtakService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Veileder er allerede ansvarlig for utkast");
         }
 
+        boolean erAlleredeBeslutter = innloggetVeilederIdent.equals(utkast.getBeslutterIdent());
+
         transactor.executeWithoutResult((status) -> {
+            if (erAlleredeBeslutter) {
+                vedtaksstotteRepository.setBeslutter(utkast.getId(), null);
+            }
             vedtaksstotteRepository.oppdaterUtkastVeileder(utkast.getId(), innloggetVeilederIdent);
             beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
             meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_VEILEDER, innloggetVeilederIdent);

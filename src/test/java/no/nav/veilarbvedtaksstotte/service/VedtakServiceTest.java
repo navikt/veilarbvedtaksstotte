@@ -478,6 +478,19 @@ public class VedtakServiceTest {
     }
 
     @Test
+    public void taOverUtkast__fjerner_beslutter_hvis_veileder_er_beslutter() {
+        withContext(() -> {
+            gittTilgang();
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT + "tidligere", TEST_OPPFOLGINGSENHET_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            vedtaksstotteRepository.setBeslutter(utkast.getId(), TEST_VEILEDER_IDENT);
+
+            vedtakService.taOverUtkast(utkast.getId());
+            assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getBeslutterIdent());
+        });
+    }
+
+    @Test
     public void taOverUtkast__oppretter_system_melding() {
         withContext(() -> {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
