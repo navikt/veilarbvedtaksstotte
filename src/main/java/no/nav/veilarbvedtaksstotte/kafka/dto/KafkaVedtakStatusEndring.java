@@ -17,6 +17,8 @@ public class KafkaVedtakStatusEndring {
 
     VedtakStatusEndring vedtakStatusEndring;
 
+    String ansvarligVeilederForVedtak;
+
     LocalDateTime timestamp;
 
     @Data

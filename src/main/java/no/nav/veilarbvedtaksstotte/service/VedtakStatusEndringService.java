@@ -129,7 +129,8 @@ public class VedtakStatusEndringService {
         kafkaVedtakStatusEndring
             .setVedtakId(vedtak.getId())
             .setAktorId(vedtak.getAktorId())
-            .setTimestamp(LocalDateTime.now());
+            .setTimestamp(LocalDateTime.now())
+            .setAnsvarligVeilederForVedtak(vedtak.getVeilederIdent());
     }
 
 }
