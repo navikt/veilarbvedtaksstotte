@@ -1,11 +1,11 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.kafka.dto.VedtakStatusEndring;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,13 @@ public class VedtakStatusEndringService {
     }
 
     public void utkastOpprettet(Vedtak vedtak) {
-        kafkaProducer.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.UTKAST_OPPRETTET));
+        KafkaVedtakStatusEndring.UtkastOpprettet utkastOpprettet = new KafkaVedtakStatusEndring.UtkastOpprettet()
+                .setVeilederNavn(vedtak.getVeilederNavn())
+                .setVeilederIdent(vedtak.getVeilederIdent());
+
+        setStatusEndringData(utkastOpprettet, vedtak);
+
+        kafkaProducer.sendVedtakStatusEndring(utkastOpprettet);
     }
 
     public void utkastSlettet(Vedtak vedtak) {
