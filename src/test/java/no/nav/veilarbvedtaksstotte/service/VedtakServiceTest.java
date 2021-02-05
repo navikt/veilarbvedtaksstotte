@@ -294,7 +294,7 @@ public class VedtakServiceTest {
 
         meldingRepository.opprettDialogMelding(utkast.getId(), null, "Test");
 
-        vedtakService.slettUtkast(TEST_AKTOR_ID);
+        vedtakService.slettUtkast(utkast);
 
         assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
     }
@@ -308,8 +308,10 @@ public class VedtakServiceTest {
 
             when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
             assertThatThrownBy(() ->
-                    vedtakService.slettUtkast(TEST_FNR)
+                    vedtakService.slettUtkastSomVeileder(utkast.getId())
             ).isExactlyInstanceOf(ResponseStatusException.class);
         });
     }

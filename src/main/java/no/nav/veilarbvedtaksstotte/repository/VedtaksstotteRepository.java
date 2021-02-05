@@ -12,6 +12,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.ResultSet;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,6 +59,11 @@ public class VedtaksstotteRepository {
     public List<Vedtak> hentFattedeVedtak(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
         return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.SENDT));
+    }
+
+    public List<Vedtak> hentUtkastEldreEnn(ZonedDateTime dateTime) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s > ?", VEDTAK_TABLE, STATUS, SIST_OPPDATERT);
+        return db.query(sql, VedtaksstotteRepository::mapVedtak, getName(VedtakStatus.UTKAST), dateTime);
     }
 
     public Vedtak hentUtkastEllerFeil(String aktorId) {
