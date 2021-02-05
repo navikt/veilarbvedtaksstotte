@@ -376,9 +376,6 @@ public class VedtakService {
     }
 
     public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
-//        if (vedtaksstotteRepository.hentUtkast(melding.getAktorId()) != null) {
-//            slettUtkast(melding.getAktorId());
-//        }
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding.getAktorId());
     }
 

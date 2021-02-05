@@ -16,8 +16,7 @@ import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,15 +41,15 @@ public class SlettUtkastSchedule {
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
     @Scheduled(cron = EVERY_DAY_AT_1)
-    public void slettGamleUtkast() {
+    public void startSlettingAvGamleUtkast() {
         if (leaderElectionClient.isLeader()) {
             log.info("Starter jobb for å slette gamle utkast");
-            startSlettingAvGamleUtkast();
+            slettGamleUtkast();
         }
     }
 
-    private void startSlettingAvGamleUtkast() {
-        ZonedDateTime slettVedtakEtter = ZonedDateTime.now().minusDays(DAGER_FOR_SLETT_UTKAST);
+    void slettGamleUtkast() {
+        LocalDateTime slettVedtakEtter = LocalDateTime.now().minusDays(DAGER_FOR_SLETT_UTKAST);
         List<Vedtak> gamleUtkast = vedtaksstotteRepository.hentUtkastEldreEnn(slettVedtakEtter);
 
         log.info("Utkast eldre enn {} som kanskje skal slettes: {}", slettVedtakEtter, gamleUtkast.size());
@@ -68,7 +67,7 @@ public class SlettUtkastSchedule {
             Optional<OppfolgingPeriodeDTO> maybeSistePeriode = OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolging.getOppfolgingsPerioder());
 
             maybeSistePeriode.ifPresent(sistePeriode -> {
-                if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(sistePeriode.sluttDato.atZone(ZoneId.systemDefault()))) {
+                if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(sistePeriode.sluttDato)) {
                     log.info("Sletter utkast automatisk. aktorId={} ansvarligVeilederIdent={}", utkast.getAktorId(), utkast.getVeilederIdent());
                     vedtakService.slettUtkast(utkast);
                 }
