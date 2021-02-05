@@ -53,10 +53,14 @@ public class SlettUtkastSchedule {
         ZonedDateTime slettVedtakEtter = ZonedDateTime.now().minusDays(DAGER_FOR_SLETT_UTKAST);
         List<Vedtak> gamleUtkast = vedtaksstotteRepository.hentUtkastEldreEnn(slettVedtakEtter);
 
+        log.info("Utkast eldre enn {} som kanskje skal slettes: {}", slettVedtakEtter, gamleUtkast.size());
+
         // Hvis bruker ikke har et gjeldende vedtak så er de ikke under oppfølging
         List<Vedtak> gamleUtkastUtenforOppfolging = gamleUtkast.stream()
                 .filter(u -> vedtaksstotteRepository.hentGjeldendeVedtak(u.getAktorId()) == null)
                 .collect(Collectors.toList());
+
+        log.info("Utkast utenfor oppfølging: {}", gamleUtkastUtenforOppfolging.size());
 
         gamleUtkastUtenforOppfolging.forEach(utkast -> {
             Fnr fnr = aktorregisterClient.hentFnr(AktorId.of(utkast.getAktorId()));
@@ -65,6 +69,7 @@ public class SlettUtkastSchedule {
 
             maybeSistePeriode.ifPresent(sistePeriode -> {
                 if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(sistePeriode.sluttDato.atZone(ZoneId.systemDefault()))) {
+                    log.info("Sletter utkast automatisk. aktorId={} ansvarligVeilederIdent={}", utkast.getAktorId(), utkast.getVeilederIdent());
                     vedtakService.slettUtkast(utkast);
                 }
             });
