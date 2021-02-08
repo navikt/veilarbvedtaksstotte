@@ -7,7 +7,6 @@ public class SingletonPostgresContainer {
     public static PostgresContainer init() {
         if (postgresContainer == null) {
             postgresContainer = new PostgresContainer();
-            postgresContainer.getContainer().start();
             DbTestUtils.testMigrate(postgresContainer.getDataSource());
             setupShutdownHook();
         }
@@ -28,8 +27,8 @@ public class SingletonPostgresContainer {
 
     private static void setupShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (postgresContainer != null && postgresContainer.getContainer().isRunning()) {
-                postgresContainer.getContainer().stop();
+            if (postgresContainer != null) {
+                postgresContainer.stopContainer();
             }
         }));
     }

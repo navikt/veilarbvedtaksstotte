@@ -13,36 +13,39 @@ public class PostgresContainer {
     private final static String DB_USER = "postgres";
     private final static int DB_PORT = 5432;
 
-    private DataSource dataSource;
+    private final GenericContainer container;
 
-    private GenericContainer container = new GenericContainer(DB_IMAGE).withExposedPorts(DB_PORT);
+    private final DataSource dataSource;
 
-    private String getDbContainerUrl() {
-        String containerIp = container.getContainerIpAddress();
-        String containerPort = container.getFirstMappedPort().toString();
-        return String.format("jdbc:postgresql://%s:%s/postgres", containerIp, containerPort);
+    public PostgresContainer() {
+        container = new GenericContainer(DB_IMAGE).withExposedPorts(DB_PORT);
+        container.start(); // This will block until the container is started
+
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(getDbContainerUrl());
+        config.setMaximumPoolSize(1);
+        config.setMinimumIdle(1);
+        config.setUsername(DB_USER);
+
+        dataSource = new HikariDataSource(config);
     }
 
-    public GenericContainer getContainer() {
-        return container;
+    public void stopContainer() {
+        container.stop();
     }
 
     public DataSource getDataSource() {
-        if (dataSource == null) {
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(getDbContainerUrl());
-            config.setMaximumPoolSize(1);
-            config.setMinimumIdle(1);
-            config.setUsername(DB_USER);
-
-            dataSource = new HikariDataSource(config);
-        }
-
         return dataSource;
     }
 
     public JdbcTemplate getDb() {
         return new JdbcTemplate(getDataSource());
+    }
+
+    private String getDbContainerUrl() {
+        String containerIp = container.getContainerIpAddress();
+        String containerPort = container.getFirstMappedPort().toString();
+        return String.format("jdbc:postgresql://%s:%s/postgres", containerIp, containerPort);
     }
 
 }
