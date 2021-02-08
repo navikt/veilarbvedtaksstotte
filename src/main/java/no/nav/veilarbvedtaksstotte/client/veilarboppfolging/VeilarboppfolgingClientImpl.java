@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.oppfolging;
+package no.nav.veilarbvedtaksstotte.client.veilarboppfolging;
 
 import lombok.SneakyThrows;
 import no.nav.common.health.HealthCheckResult;

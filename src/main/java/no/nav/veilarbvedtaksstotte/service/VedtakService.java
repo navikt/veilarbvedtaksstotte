@@ -299,7 +299,7 @@ public class VedtakService {
         }
     }
 
-    public void slettUtkast(long vedtakId) {
+    public void slettUtkastSomVeileder(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentVedtak(vedtakId);
 
         if (utkast.getVedtakStatus() != VedtakStatus.UTKAST) {
@@ -307,13 +307,13 @@ public class VedtakService {
         }
 
         authService.sjekkTilgangTilAktorId(utkast.getAktorId());
-        slettUtkast(utkast.getAktorId());
+        authService.sjekkErAnsvarligVeilederFor(utkast);
+
+        slettUtkast(utkast);
     }
 
-    public void slettUtkast(String aktorId) {
-        Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+    public void slettUtkast(Vedtak utkast) {
         long utkastId = utkast.getId();
-        authService.sjekkErAnsvarligVeilederFor(utkast);
 
         transactor.executeWithoutResult((status) -> {
             meldingRepository.slettMeldinger(utkastId);
@@ -376,9 +376,6 @@ public class VedtakService {
     }
 
     public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
-        if (vedtaksstotteRepository.hentUtkast(melding.getAktorId()) != null) {
-            slettUtkast(melding.getAktorId());
-        }
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding.getAktorId());
     }
 
