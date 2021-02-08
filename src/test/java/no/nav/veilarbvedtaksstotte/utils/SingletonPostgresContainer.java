@@ -17,7 +17,6 @@ public class SingletonPostgresContainer {
     public static PostgresContainer init(String versjonPrefix) {
         if (postgresContainer == null) {
             postgresContainer = new PostgresContainer();
-            postgresContainer.getContainer().start();
             DbTestUtils.testMigrate(postgresContainer.getDataSource(), versjonPrefix);
             setupShutdownHook();
         }
