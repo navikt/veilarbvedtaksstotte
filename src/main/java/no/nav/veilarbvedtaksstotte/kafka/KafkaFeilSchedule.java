@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.job.JobRunner;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
@@ -54,16 +55,20 @@ public class KafkaFeilSchedule {
     @Scheduled(fixedDelay = FIFTEEN_MINUTES, initialDelay = ONE_MINUTE)
     public void publiserFeiletKafkaMeldinger() {
         if (leaderElectionClient.isLeader()) {
-            List<FeiletKafkaMelding> feiledeMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(MeldingType.PRODUCED);
-            feiledeMeldinger.forEach(kafkaProducer::sendTidligereFeilet);
+            JobRunner.run("publiser_feilet_kafka_meldinger", () -> {
+                List<FeiletKafkaMelding> feiledeMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(MeldingType.PRODUCED);
+                feiledeMeldinger.forEach(kafkaProducer::sendTidligereFeilet);
+            });
         }
     }
 
     @Scheduled(fixedDelay = FIFTEEN_MINUTES, initialDelay = ONE_MINUTE)
     public void konsumerFeiletKafkaMeldinger() {
         if (leaderElectionClient.isLeader()) {
-            List<FeiletKafkaMelding> feiledeMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(MeldingType.CONSUMED);
-            feiledeMeldinger.forEach(this::konsumerFeiletKafkaMelding);
+            JobRunner.run("konsumer_feilet_kafka_meldinger", () -> {
+                List<FeiletKafkaMelding> feiledeMeldinger = kafkaRepository.hentFeiledeKafkaMeldinger(MeldingType.CONSUMED);
+                feiledeMeldinger.forEach(this::konsumerFeiletKafkaMelding);
+            });
         }
     }
 

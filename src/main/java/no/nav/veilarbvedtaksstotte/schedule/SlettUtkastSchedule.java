@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.schedule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.job.JobRunner;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
@@ -43,8 +44,7 @@ public class SlettUtkastSchedule {
     @Scheduled(cron = EVERY_DAY_AT_1)
     public void startSlettingAvGamleUtkast() {
         if (leaderElectionClient.isLeader()) {
-            log.info("Starter jobb for å slette gamle utkast");
-            slettGamleUtkast();
+            JobRunner.run("slett_gamle_utkast", this::slettGamleUtkast);
         }
     }
 
