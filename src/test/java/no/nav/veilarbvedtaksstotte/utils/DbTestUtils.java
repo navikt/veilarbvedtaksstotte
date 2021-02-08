@@ -40,7 +40,7 @@ public class DbTestUtils {
 
     public static void testMigrate (DataSource dataSource, String versionPrefix) {
         Flyway.configure()
-                .sqlMigrationPrefix(versionPrefix)
+                .target(versionPrefix)
                 .dataSource(dataSource)
                 .baselineOnMigrate(true)
                 .load()
