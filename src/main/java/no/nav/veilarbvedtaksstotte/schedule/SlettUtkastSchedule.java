@@ -68,7 +68,7 @@ public class SlettUtkastSchedule {
 
             maybeSistePeriode.ifPresent(sistePeriode -> {
                 if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(sistePeriode.sluttDato)) {
-                    log.info("Sletter utkast automatisk. aktorId={} ansvarligVeilederIdent={}", utkast.getAktorId(), utkast.getVeilederIdent());
+                    log.info("Sletter utkast automatisk. aktorId={}", utkast.getAktorId());
                     vedtakService.slettUtkast(utkast);
                 }
             });
