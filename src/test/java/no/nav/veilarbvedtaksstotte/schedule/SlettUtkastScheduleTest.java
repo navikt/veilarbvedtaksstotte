@@ -41,7 +41,7 @@ public class SlettUtkastScheduleTest {
         Vedtak gammeltUtkast = new Vedtak();
         gammeltUtkast.setAktorId("22222222");
         gammeltUtkast.setVedtakStatus(VedtakStatus.UTKAST);
-        gammeltUtkast.setSistOppdatert(LocalDateTime.now().minusDays(30));
+        gammeltUtkast.setUtkastSistOppdatert(LocalDateTime.now().minusDays(30));
 
         OppfolgingPeriodeDTO oppfolgingPeriode = new OppfolgingPeriodeDTO();
         oppfolgingPeriode.setStartDato(LocalDateTime.now().minusDays(50));
@@ -65,7 +65,7 @@ public class SlettUtkastScheduleTest {
         Vedtak gammeltUtkast = new Vedtak();
         gammeltUtkast.setAktorId("22222222");
         gammeltUtkast.setVedtakStatus(VedtakStatus.UTKAST);
-        gammeltUtkast.setSistOppdatert(LocalDateTime.now().minusDays(30));
+        gammeltUtkast.setUtkastSistOppdatert(LocalDateTime.now().minusDays(30));
 
         OppfolgingPeriodeDTO oppfolgingPeriode = new OppfolgingPeriodeDTO();
         oppfolgingPeriode.setStartDato(LocalDateTime.now().minusDays(20));
