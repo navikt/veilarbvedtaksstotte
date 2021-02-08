@@ -54,12 +54,12 @@ public class SlettUtkastSchedule {
 
         log.info("Utkast eldre enn {} som kanskje skal slettes: {}", slettVedtakEtter, gamleUtkast.size());
 
-        // Hvis bruker ikke har et gjeldende vedtak så er de ikke under oppfølging
+        // Hvis bruker har et gjeldende vedtak så er de fortsatt under oppfølging og vi trenger ikke å slette utkastet
         List<Vedtak> gamleUtkastUtenforOppfolging = gamleUtkast.stream()
                 .filter(u -> vedtaksstotteRepository.hentGjeldendeVedtak(u.getAktorId()) == null)
                 .collect(Collectors.toList());
 
-        log.info("Utkast utenfor oppfølging: {}", gamleUtkastUtenforOppfolging.size());
+        log.info("Utkast for bruker som kanskje er utenfor oppfølging: {}", gamleUtkastUtenforOppfolging.size());
 
         gamleUtkastUtenforOppfolging.forEach(utkast -> {
             Fnr fnr = aktorregisterClient.hentFnr(AktorId.of(utkast.getAktorId()));
