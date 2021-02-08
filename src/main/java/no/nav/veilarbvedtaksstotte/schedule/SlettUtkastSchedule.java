@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.schedule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktorregister.AktorregisterClient;
-import no.nav.common.leaderelection.LeaderElectionClient;
+import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingDTO;

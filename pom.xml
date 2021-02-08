@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <common.version>2.2021.01.26_14.08-0d410b34f6a3</common.version>
+        <common.version>2.2021.02.08_08.29-beea07de78ad</common.version>
         <springfox.version>2.9.2</springfox.version>
         <kotlin.version>1.4.10</kotlin.version>
     </properties>
@@ -151,7 +151,7 @@
         <!-- Common Dependencies -->
         <dependency>
             <groupId>no.nav.common</groupId>
-            <artifactId>leader-election</artifactId>
+            <artifactId>job</artifactId>
             <version>${common.version}</version>
         </dependency>
         <dependency>

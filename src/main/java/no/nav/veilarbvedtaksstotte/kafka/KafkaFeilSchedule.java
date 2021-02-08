@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.common.leaderelection.LeaderElectionClient;
+import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
