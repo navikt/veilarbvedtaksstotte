@@ -215,7 +215,7 @@ public class VedtaksstotteRepository {
                 .setInnsatsgruppe(EnumUtils.valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
                 .setVedtakStatus(EnumUtils.valueOf(VedtakStatus.class, rs.getString(STATUS)))
                 .setBegrunnelse(rs.getString(BEGRUNNELSE))
-                .setSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
+                .setUtkastSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
                 .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
                 .setGjeldende(rs.getBoolean(GJELDENDE))
                 .setBeslutterIdent(rs.getString(BESLUTTER_IDENT))
