@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Component
 public class SlettUtkastSchedule {
 
-    private final static String EVERY_DAY_AT_1 = "0 1 * * *";
+    private final static String EVERY_DAY_AT_1 = "0 1 * * * *";
 
     private final static int DAGER_FOR_SLETT_UTKAST = 28;
 
