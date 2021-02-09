@@ -25,6 +25,8 @@ public class KafkaTopics {
 
     private String endringPaOppfolgingBruker;
 
+    private KafkaTopics() {}
+
     public static KafkaTopics create(String topicPrefix) {
         KafkaTopics kafkaTopics = new KafkaTopics();
         kafkaTopics.setEndringPaAvsluttOppfolging("aapen-fo-endringPaaAvsluttOppfolging-v1-" + topicPrefix);
