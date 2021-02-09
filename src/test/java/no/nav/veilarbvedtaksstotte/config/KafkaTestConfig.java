@@ -44,7 +44,7 @@ public class KafkaTestConfig {
 
     @Bean
     public EmbeddedKafkaBroker embeddedKafkaBroker() {
-        return new EmbeddedKafkaBroker(1, true, kafkaTopics.getAllTopics());
+        return new EmbeddedKafkaBroker(1, false, kafkaTopics.getAllTopics());
     }
 
     @Bean
@@ -83,6 +83,7 @@ public class KafkaTestConfig {
         props.put(ProducerConfig.CLIENT_ID_CONFIG, "veilarbvedtaksstotte-producer");
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 3000); // Prøv opptil 3 sekunder på å sende en melding
 
         return new DefaultKafkaProducerFactory<>(props);
     }

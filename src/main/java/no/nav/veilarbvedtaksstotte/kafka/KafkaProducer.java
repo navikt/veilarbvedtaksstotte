@@ -38,20 +38,28 @@ public class KafkaProducer {
     }
 
     public void sendTidligereFeilet(FeiletKafkaMelding feiletKafkaMelding) {
-        kafkaTemplate.send(kafkaTopics.topicToStr(feiletKafkaMelding.getTopic()), feiletKafkaMelding.getKey(), feiletKafkaMelding.getJsonPayload())
-                .addCallback(
-                        sendResult -> onSuccessTidligereFeilet(feiletKafkaMelding),
-                        throwable -> onErrorTidligereFeilet(feiletKafkaMelding, throwable)
-                );
+        try {
+            kafkaTemplate.send(kafkaTopics.topicToStr(feiletKafkaMelding.getTopic()), feiletKafkaMelding.getKey(), feiletKafkaMelding.getJsonPayload())
+                    .addCallback(
+                            sendResult -> onSuccessTidligereFeilet(feiletKafkaMelding),
+                            throwable -> onErrorTidligereFeilet(feiletKafkaMelding, throwable)
+                    );
+        } catch (Exception e) {
+            onErrorTidligereFeilet(feiletKafkaMelding, e);
+        }
     }
 
     private void send(KafkaTopics.Topic kafkaTopic, String key, String jsonPayload) {
         String topic = kafkaTopics.topicToStr(kafkaTopic);
-        kafkaTemplate.send(topic, key, jsonPayload)
-                .addCallback(
-                        sendResult -> onSuccess(topic, key),
-                        throwable -> onError(kafkaTopic, key, jsonPayload, throwable)
-                );
+        try {
+            kafkaTemplate.send(topic, key, jsonPayload)
+                    .addCallback(
+                            sendResult -> onSuccess(topic, key),
+                            throwable -> onError(kafkaTopic, key, jsonPayload, throwable)
+                    );
+        } catch (Exception e) {
+            onError(kafkaTopic, key, jsonPayload, e);
+        }
     }
 
     private void onSuccess(String topic, String key) {

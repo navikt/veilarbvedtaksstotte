@@ -39,6 +39,9 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ApplicationTestConfig.class)
@@ -284,6 +287,7 @@ public class KafkaProducerTest {
 
     @Test
     public void skal_produsere_tidligere_feilet_melding() throws InterruptedException {
+        long id = 42;
         String aktorId = "11111111";
         String veilederIdent = "Z1234";
         String veilederNavn = "Test Testersen";
@@ -296,7 +300,7 @@ public class KafkaProducerTest {
         String messageJson = JsonUtils.toJson(overtaForVeileder);
 
         FeiletKafkaMelding feiletKafkaMelding = new FeiletKafkaMelding()
-                .setId(42)
+                .setId(id)
                 .setJsonPayload(messageJson)
                 .setKey(aktorId)
                 .setOffset(1)
@@ -306,6 +310,8 @@ public class KafkaProducerTest {
         kafkaProducer.sendTidligereFeilet(feiletKafkaMelding);
 
         ConsumerRecord<String, String> received = consumerRecords.poll(10, TimeUnit.SECONDS);
+
+        verify(kafkaRepository, times(1)).slettFeiletKafkaMelding(eq(id));
 
         assertNotNull(received);
         assertEquals(aktorId, received.key());
