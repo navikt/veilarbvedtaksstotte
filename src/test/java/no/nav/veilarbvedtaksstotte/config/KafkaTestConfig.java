@@ -26,6 +26,9 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 
 import java.util.HashMap;
 
+import static no.nav.veilarbvedtaksstotte.kafka.KafkaConfig.CONSUMER_GROUP_ID;
+import static no.nav.veilarbvedtaksstotte.kafka.KafkaConfig.PRODUCER_GROUP_ID;
+
 @EnableKafka
 @Configuration
 @Import({
@@ -70,7 +73,7 @@ public class KafkaTestConfig {
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "veilarbvedtaksstotte-consumer");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, CONSUMER_GROUP_ID);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         return new DefaultKafkaConsumerFactory<>(props);
@@ -80,7 +83,7 @@ public class KafkaTestConfig {
         HashMap<String, Object> props = new HashMap<>();
         props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokersUrl);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
-        props.put(ProducerConfig.CLIENT_ID_CONFIG, "veilarbvedtaksstotte-producer");
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, PRODUCER_GROUP_ID);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 3000); // Prøv opptil 3 sekunder på å sende en melding

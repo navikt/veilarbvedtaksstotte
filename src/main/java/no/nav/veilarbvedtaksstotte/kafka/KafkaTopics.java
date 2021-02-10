@@ -51,16 +51,24 @@ public class KafkaTopics {
                 return vedtakSendt;
             case VEDTAK_STATUS_ENDRING:
                 return vedtakStatusEndring;
+            case ENDRING_PA_AVSLUTT_OPPFOLGING:
+                return endringPaAvsluttOppfolging;
+            case ENDRING_PA_OPPFOLGING_BRUKER:
+                return endringPaOppfolgingBruker;
             default:
                 throw new IllegalArgumentException(format("Klarte ikke å mappe %s til string", getName(topic)));
         }
     }
 
     public Topic strToTopic(String topicStr) {
-        if (topicStr.equals(vedtakSendt)) {
+        if (vedtakSendt.equals(topicStr)) {
             return Topic.VEDTAK_SENDT;
-        } else if (topicStr.equals(vedtakStatusEndring)) {
+        } else if (vedtakStatusEndring.equals(topicStr)) {
             return Topic.VEDTAK_STATUS_ENDRING;
+        } else if (endringPaAvsluttOppfolging.equals(topicStr)) {
+            return Topic.ENDRING_PA_AVSLUTT_OPPFOLGING;
+        } else if (endringPaOppfolgingBruker.equals(topicStr)) {
+            return Topic.ENDRING_PA_OPPFOLGING_BRUKER;
         }
 
         throw new IllegalArgumentException(format("Klarte ikke å mappe %s til enum", topicStr));
