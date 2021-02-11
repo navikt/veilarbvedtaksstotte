@@ -7,7 +7,7 @@ public class SingletonPostgresContainer {
     public static PostgresContainer init() {
         if (postgresContainer == null) {
             postgresContainer = new PostgresContainer();
-            DbTestUtils.testMigrate(postgresContainer.getDataSource());
+            DbTestUtils.testMigrate(postgresContainer.createDataSource());
             setupShutdownHook();
         }
 

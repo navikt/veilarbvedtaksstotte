@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -18,12 +19,15 @@ import java.util.concurrent.TimeUnit;
 
 import static no.nav.common.json.JsonUtils.toJson;
 import static no.nav.veilarbvedtaksstotte.utils.TestUtils.verifiserAsynkront;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ApplicationTestConfig.class)
 @ActiveProfiles("local")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class KafkaConsumerTest {
 
     @MockBean
@@ -42,7 +46,7 @@ public class KafkaConsumerTest {
         kafkaTemplate.send(kafkaTopics.getEndringPaAvsluttOppfolging(), toJson(melding));
 
         verifiserAsynkront(10, TimeUnit.SECONDS, () ->
-                verify(vedtakService).behandleAvsluttOppfolging(eq(melding))
+                verify(vedtakService, times(1)).behandleAvsluttOppfolging(any())
         );
     }
 
@@ -53,7 +57,7 @@ public class KafkaConsumerTest {
         kafkaTemplate.send(kafkaTopics.getEndringPaOppfolgingBruker(), toJson(melding));
 
         verifiserAsynkront(10, TimeUnit.SECONDS, () ->
-                verify(vedtakService).behandleOppfolgingsbrukerEndring(eq(melding))
+                verify(vedtakService, times(1)).behandleOppfolgingsbrukerEndring(eq(melding))
         );
     }
 

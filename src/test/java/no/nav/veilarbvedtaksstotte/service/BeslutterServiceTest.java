@@ -40,9 +40,9 @@ public class BeslutterServiceTest {
 
     private AuthService authService = mock(AuthService.class);
 
-    private JdbcTemplate db = SingletonPostgresContainer.init().getDb();
+    private JdbcTemplate db = SingletonPostgresContainer.init().createJdbcTemplate();
 
-    private TransactionTemplate transactor= new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
+    private TransactionTemplate transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
 
     private BeslutterService beslutterService = new BeslutterService(
             authService, vedtaksstotteRepository, vedtakStatusEndringService,

@@ -15,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.*;
 @RunWith(SpringRunner.class)
 @ActiveProfiles("local")
 @SpringBootTest(classes = ApplicationTestConfig.class)
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class KafkaConsumerFailTest {
 
     @MockBean
@@ -59,7 +60,7 @@ public class KafkaConsumerFailTest {
 
         String jsonPayload = JsonUtils.toJson(melding);
 
-        doThrow(new RuntimeException()).when(vedtakService).behandleAvsluttOppfolging(eq(melding));
+        doThrow(new RuntimeException()).when(vedtakService).behandleAvsluttOppfolging(any());
 
         kafkaTemplate.send(kafkaTopics.getEndringPaAvsluttOppfolging(), aktorId, toJson(melding));
 
@@ -94,7 +95,7 @@ public class KafkaConsumerFailTest {
         String aktorId = "111111111";
         KafkaAvsluttOppfolging melding = new KafkaAvsluttOppfolging(aktorId, ZonedDateTime.now());
 
-        doThrow(new RuntimeException()).when(vedtakService).behandleAvsluttOppfolging(eq(melding));
+        doThrow(new RuntimeException()).when(vedtakService).behandleAvsluttOppfolging(any());
 
         doThrow(new RuntimeException()).when(kafkaTopics).strToTopic(any());
 
