@@ -5,6 +5,7 @@ import no.nav.common.abac.VeilarbPep;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.client.pdl.AktorOppslagClient;
 import no.nav.common.featuretoggle.UnleashService;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
@@ -29,10 +30,7 @@ import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
@@ -47,6 +45,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -74,8 +73,10 @@ public class VedtakServiceTest {
     private static MeldingRepository meldingRepository;
     private static OyeblikksbildeRepository oyeblikksbildeRepository;
     private static BeslutteroversiktRepository beslutteroversiktRepository;
+    private static ArenaVedtakRepository arenaVedtakRepository;
 
     private static VedtakService vedtakService;
+    private static ArenaVedtakService arenaVedtakService;
     private static OyeblikksbildeService oyeblikksbildeService;
     private static MalTypeService malTypeService;
     private static AuthService authService;
@@ -91,6 +92,7 @@ public class VedtakServiceTest {
     private static final VeilarbvedtakinfoClient egenvurderingClient = mock(VeilarbvedtakinfoClient.class);
     private static final VeilarbdokumentClient veilarbdokumentClient = mock(VeilarbdokumentClient.class);
     private static final AktorregisterClient aktorregisterClient = mock(AktorregisterClient.class);
+    private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
     private static final AbacClient abacClient = mock(AbacClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
@@ -112,14 +114,17 @@ public class VedtakServiceTest {
         vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
+        arenaVedtakRepository = new ArenaVedtakRepository(db);
 
         authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null));
+        arenaVedtakService = new ArenaVedtakService(arenaVedtakRepository, null,authService, aktorOppslagClient);
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         dokumentServiceV2 = new DokumentServiceV2(
                 veilarbdokumentClient, veilarbarenaClient, veilarbpersonClient, dokarkivClient, dokdistribusjonClient);
         vedtakService = new VedtakService(
                 vedtaksstotteRepository,
+                arenaVedtakService,
                 kilderRepository,
                 oyeblikksbildeService,
                 meldingRepository,
@@ -151,15 +156,22 @@ public class VedtakServiceTest {
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
         when(veilarbdokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
+        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
         when(kafkaTemplate.send(any(), any(), any())).thenReturn(new AsyncResult(null));
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR)).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
         when(aktorregisterClient.hentAktorId(Fnr.of(TEST_FNR))).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorregisterClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(Fnr.of(TEST_FNR));
+        when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(Fnr.of(TEST_FNR));
         when(veilarbarenaClient.oppfolgingsenhet(Fnr.of(TEST_FNR))).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
         when(veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))).thenReturn(TEST_OPPFOLGINGSSAK);
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
+        when(dokarkivClient.opprettJournalpost(any()))
+                .thenReturn(new OpprettetJournalpostDTO(
+                        TEST_JOURNALPOST_ID,
+                        true,
+                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
     }
 
 
@@ -191,18 +203,33 @@ public class VedtakServiceTest {
         gittVersjon2AvFattVedtak();
         gittUtkastKlarForUtsendelse();
 
-        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
-        when(dokarkivClient.opprettJournalpost(any()))
-                .thenReturn(new OpprettetJournalpostDTO(
-                        TEST_JOURNALPOST_ID,
-                        true,
-                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
         when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
 
         fattVedtak();
 
         assertSendtVedtakV2();
+    }
+
+    @Test
+    public void fattVedtak__sletter_kopi_av_arena_vedtak() {
+        gittUtkastKlarForUtsendelse();
+        arenaVedtakRepository.upsertVedtak(
+                new ArenaVedtak(Fnr.of(TEST_FNR), ArenaVedtak.ArenaInnsatsgruppe.BATT, ArenaVedtak.ArenaHovedmal.BEHOLDE_ARBEID, LocalDateTime.now(), "MOD USER"));
+        assertNotNull(arenaVedtakRepository.hentVedtak(Fnr.of(TEST_FNR)));
+        fattVedtak();
+        assertNull(arenaVedtakRepository.hentVedtak(Fnr.of(TEST_FNR)));
+    }
+
+    @Test
+    public void fattVedtakV2__sletter_kopi_av_arena_vedtak() {
+        gittVersjon2AvFattVedtak();
+        gittUtkastKlarForUtsendelse();
+        arenaVedtakRepository.upsertVedtak(
+                new ArenaVedtak(Fnr.of(TEST_FNR), ArenaVedtak.ArenaInnsatsgruppe.BATT, ArenaVedtak.ArenaHovedmal.BEHOLDE_ARBEID, LocalDateTime.now(), "MOD USER"));
+        assertNotNull(arenaVedtakRepository.hentVedtak(Fnr.of(TEST_FNR)));
+        fattVedtak();
+        assertNull(arenaVedtakRepository.hentVedtak(Fnr.of(TEST_FNR)));
     }
 
     @Test
@@ -318,7 +345,6 @@ public class VedtakServiceTest {
         gittVersjon2AvFattVedtak();
         gittUtkastKlarForUtsendelse();
 
-        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
         when(dokarkivClient.opprettJournalpost(any()))
                 .thenReturn(new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
@@ -347,12 +373,6 @@ public class VedtakServiceTest {
         gittVersjon2AvFattVedtak();
         gittUtkastKlarForUtsendelse();
 
-        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
-        when(dokarkivClient.opprettJournalpost(any()))
-                .thenReturn(new OpprettetJournalpostDTO(
-                        TEST_JOURNALPOST_ID,
-                        true,
-                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
         when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenThrow(new RuntimeException());
 
@@ -388,7 +408,6 @@ public class VedtakServiceTest {
 
     @Test
     public void fattVedtak_v2_sender_ikke_mer_enn_en_gang() {
-        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
         when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
         withContext(() -> {

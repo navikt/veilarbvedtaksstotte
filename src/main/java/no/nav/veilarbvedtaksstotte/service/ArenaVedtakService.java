@@ -69,11 +69,15 @@ public class ArenaVedtakService {
     }
 
     public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
-        List<Fnr> fnr = List.of(aktorOppslagClient.hentFnr(AktorId.of(melding.getAktorId()))); // TODO hent alle identer
+        slettArenaVedtakKopi(AktorId.of(melding.getAktorId()));
+    }
+
+    public void slettArenaVedtakKopi(AktorId aktorId) {
+        List<Fnr> fnr = List.of(aktorOppslagClient.hentFnr(aktorId)); // TODO hent alle identer
         int antall = arenaVedtakRepository.slettVedtak(fnr);
         if (antall > 0) {
-            log.info(format("Slettet %s kopi av vedtak fra Arena for aktorId=%s med avsluttet oppfølging",
-                    antall, melding.getAktorId()));
+            log.info(format("Slettet %s kopi(er) av vedtak fra Arena for aktorId=%s",
+                    antall, aktorId));
         }
     }
 
