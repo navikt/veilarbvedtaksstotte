@@ -29,6 +29,10 @@ import static no.nav.veilarbvedtaksstotte.utils.KafkaUtils.requireKafkaTopicPref
 @Configuration
 public class KafkaConfig {
 
+    public final static String CONSUMER_GROUP_ID = "veilarbvedtaksstotte-consumer";
+
+    public final static String PRODUCER_GROUP_ID = "veilarbvedtaksstotte-producer";
+
     private final Credentials serviceUserCredentials;
 
     @Value("${spring.kafka.bootstrap-servers}")
@@ -75,7 +79,7 @@ public class KafkaConfig {
 
     private static HashMap<String, Object> kafkaConsumerProperties(String kafkaBrokersUrl, Credentials serviceUserCredentials) {
         HashMap<String, Object> props = kafkaBaseProperties(kafkaBrokersUrl, serviceUserCredentials);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "veilarbvedtaksstotte-consumer");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, CONSUMER_GROUP_ID);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 30 * 60 * 1000); // 30 minutes
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -87,7 +91,7 @@ public class KafkaConfig {
     private static HashMap<String, Object> kafkaProducerProperties (String kafkaBrokersUrl, Credentials serviceUserCredentials) {
         HashMap<String, Object> props = kafkaBaseProperties(kafkaBrokersUrl, serviceUserCredentials);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
-        props.put(ProducerConfig.CLIENT_ID_CONFIG, "veilarbvedtaksstotte-producer");
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, PRODUCER_GROUP_ID);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         return props;

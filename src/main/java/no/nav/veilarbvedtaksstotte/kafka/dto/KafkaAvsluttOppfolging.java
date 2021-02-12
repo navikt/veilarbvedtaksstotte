@@ -1,10 +1,11 @@
 package no.nav.veilarbvedtaksstotte.kafka.dto;
 
 import lombok.Value;
-import java.util.Date;
+
+import java.time.ZonedDateTime;
 
 @Value
 public class KafkaAvsluttOppfolging {
    String aktorId;
-   Date sluttdato;
+   ZonedDateTime sluttdato;
 }

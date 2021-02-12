@@ -15,31 +15,27 @@ public class PostgresContainer {
 
     private final GenericContainer container;
 
-    private final DataSource dataSource;
-
     public PostgresContainer() {
         container = new GenericContainer(DB_IMAGE).withExposedPorts(DB_PORT);
         container.start(); // This will block until the container is started
-
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(getDbContainerUrl());
-        config.setMaximumPoolSize(1);
-        config.setMinimumIdle(1);
-        config.setUsername(DB_USER);
-
-        dataSource = new HikariDataSource(config);
     }
 
     public void stopContainer() {
         container.stop();
     }
 
-    public DataSource getDataSource() {
-        return dataSource;
+    public DataSource createDataSource() {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(getDbContainerUrl());
+        config.setMaximumPoolSize(3);
+        config.setMinimumIdle(1);
+        config.setUsername(DB_USER);
+
+        return new HikariDataSource(config);
     }
 
-    public JdbcTemplate getDb() {
-        return new JdbcTemplate(getDataSource());
+    public JdbcTemplate createJdbcTemplate() {
+        return new JdbcTemplate(createDataSource());
     }
 
     private String getDbContainerUrl() {

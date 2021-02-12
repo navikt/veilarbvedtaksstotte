@@ -30,7 +30,7 @@ public class VedtaksstotteRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = SingletonPostgresContainer.init().getDb();
+        db = SingletonPostgresContainer.init().createJdbcTemplate();
         transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = new KilderRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);

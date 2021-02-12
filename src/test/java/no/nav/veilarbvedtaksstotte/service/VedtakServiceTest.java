@@ -106,7 +106,7 @@ public class VedtakServiceTest {
 
     @BeforeClass
     public static void setupOnce() {
-        db = SingletonPostgresContainer.init().getDb();
+        db = SingletonPostgresContainer.init().createJdbcTemplate();
         transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         kilderRepository = spy(new KilderRepository(db));
         meldingRepository = spy(new MeldingRepository(db));

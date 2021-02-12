@@ -66,7 +66,7 @@ public class ApplicationTestConfig {
 
     @Bean
     public DataSource dataSource() {
-        return SingletonPostgresContainer.init().getDataSource();
+        return SingletonPostgresContainer.init().createDataSource();
     }
 
     @Bean
