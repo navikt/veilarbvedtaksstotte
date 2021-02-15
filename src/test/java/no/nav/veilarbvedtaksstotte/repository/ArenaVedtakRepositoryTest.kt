@@ -19,7 +19,7 @@ class ArenaVedtakRepositoryTest {
         @BeforeClass
         @JvmStatic
         fun setup() {
-            jdbcTemplate = SingletonPostgresContainer.init().db
+            jdbcTemplate = SingletonPostgresContainer.init().createJdbcTemplate()
             arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
         }
     }

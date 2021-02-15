@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.job.JobRunner;
+import no.nav.common.utils.IdUtils;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
@@ -73,10 +75,13 @@ public class KafkaConsumer {
         String value = record.value();
         long offset = record.offset();
 
-        log.info("topic={} key={} offset={} - Konsumerer melding fra topic", topic, key, offset);
+        String jobName = "konsumer_" + topic;
+        String jobId = IdUtils.generateId();
+
+        log.info("topic={} key={} offset={} jobId={} - Konsumerer melding fra topic", topic, key, offset, jobId);
 
         try {
-            runnable.run();
+            JobRunner.run(jobName, jobId, runnable::run);
             acknowledgment.acknowledge();
         } catch (Exception exception) {
             log.error(format("topic=%s key=%s offset=%d - Konsumering av melding feilet.", topic, key, offset), exception);

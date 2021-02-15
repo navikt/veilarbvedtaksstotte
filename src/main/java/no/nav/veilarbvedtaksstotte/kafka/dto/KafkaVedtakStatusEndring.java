@@ -20,6 +20,14 @@ public class KafkaVedtakStatusEndring {
     LocalDateTime timestamp;
 
     @Data
+    public static class UtkastOpprettet extends KafkaVedtakStatusEndring {
+        public UtkastOpprettet() { vedtakStatusEndring = VedtakStatusEndring.UTKAST_OPPRETTET; }
+
+        String veilederIdent;
+        String veilederNavn;
+    }
+
+    @Data
     public static class VedtakSendt extends KafkaVedtakStatusEndring {
         public VedtakSendt() { vedtakStatusEndring = VedtakStatusEndring.VEDTAK_SENDT; }
 

@@ -67,7 +67,7 @@ public class UtkastController {
     }
 
     @DeleteMapping("/{vedtakId}")
-    public void deleteUtkast(@PathVariable("vedtakId") long vedtakId) { vedtakService.slettUtkast(vedtakId); }
+    public void deleteUtkast(@PathVariable("vedtakId") long vedtakId) { vedtakService.slettUtkastSomVeileder(vedtakId); }
 
     @PostMapping("/{vedtakId}/overta")
     public void oppdaterUtkast(@PathVariable("vedtakId") long vedtakId) {

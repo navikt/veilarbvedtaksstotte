@@ -249,20 +249,23 @@ public class VedtakService {
     public void lagUtkast(String fnr) {
         AuthKontekst authKontekst = authService.sjekkTilgangTilFnr(fnr);
         String aktorId = authKontekst.getAktorId();
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
-        if (utkast != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, format("Kan ikke lage nytt utkast, bruker med aktorId %s har allerede et aktivt utkast", aktorId));
+        if (vedtaksstotteRepository.hentUtkast(aktorId) != null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    format("Kan ikke lage nytt utkast, bruker med aktorId %s har allerede et aktivt utkast", aktorId)
+            );
         }
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
 
         vedtaksstotteRepository.opprettUtkast(aktorId, innloggetVeilederIdent, oppfolgingsenhetId);
-        vedtakStatusEndringService.utkastOpprettet(vedtaksstotteRepository.hentUtkast(aktorId));
 
-        Vedtak nyttUtkast = vedtaksstotteRepository.hentUtkast(aktorId);
-        meldingRepository.opprettSystemMelding(nyttUtkast.getId(), SystemMeldingType.UTKAST_OPPRETTET, innloggetVeilederIdent);
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
+
+        vedtakStatusEndringService.utkastOpprettet(utkast);
+        meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.UTKAST_OPPRETTET, innloggetVeilederIdent);
     }
 
     public void oppdaterUtkast(long vedtakId, OppdaterUtkastDTO vedtakDTO) {
@@ -299,7 +302,7 @@ public class VedtakService {
         }
     }
 
-    public void slettUtkast(long vedtakId) {
+    public void slettUtkastSomVeileder(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentVedtak(vedtakId);
 
         if (utkast.getVedtakStatus() != VedtakStatus.UTKAST) {
@@ -307,13 +310,13 @@ public class VedtakService {
         }
 
         authService.sjekkTilgangTilAktorId(utkast.getAktorId());
-        slettUtkast(utkast.getAktorId());
+        authService.sjekkErAnsvarligVeilederFor(utkast);
+
+        slettUtkast(utkast);
     }
 
-    public void slettUtkast(String aktorId) {
-        Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(aktorId);
+    public void slettUtkast(Vedtak utkast) {
         long utkastId = utkast.getId();
-        authService.sjekkErAnsvarligVeilederFor(utkast);
 
         transactor.executeWithoutResult((status) -> {
             meldingRepository.slettMeldinger(utkastId);
@@ -376,9 +379,6 @@ public class VedtakService {
     }
 
     public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
-        if (vedtaksstotteRepository.hentUtkast(melding.getAktorId()) != null) {
-            slettUtkast(melding.getAktorId());
-        }
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding.getAktorId());
     }
 
@@ -402,7 +402,12 @@ public class VedtakService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Veileder er allerede ansvarlig for utkast");
         }
 
+        boolean erAlleredeBeslutter = innloggetVeilederIdent.equals(utkast.getBeslutterIdent());
+
         transactor.executeWithoutResult((status) -> {
+            if (erAlleredeBeslutter) {
+                vedtaksstotteRepository.setBeslutter(utkast.getId(), null);
+            }
             vedtaksstotteRepository.oppdaterUtkastVeileder(utkast.getId(), innloggetVeilederIdent);
             beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
             meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_VEILEDER, innloggetVeilederIdent);

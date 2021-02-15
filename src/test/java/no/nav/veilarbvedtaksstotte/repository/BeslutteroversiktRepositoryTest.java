@@ -25,7 +25,7 @@ public class BeslutteroversiktRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = SingletonPostgresContainer.init().getDb();
+        db = SingletonPostgresContainer.init().createJdbcTemplate();
         transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
         vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);

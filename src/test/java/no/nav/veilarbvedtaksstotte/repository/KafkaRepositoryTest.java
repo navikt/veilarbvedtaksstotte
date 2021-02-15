@@ -23,7 +23,7 @@ public class KafkaRepositoryTest {
 
     @BeforeClass
     public static void setup() {
-        db = SingletonPostgresContainer.init().getDb();
+        db = SingletonPostgresContainer.init().createJdbcTemplate();
         kafkaRepository = new KafkaRepository(db);
     }
 

@@ -12,6 +12,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.ResultSet;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,14 +61,9 @@ public class VedtaksstotteRepository {
         return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.SENDT));
     }
 
-    public Vedtak hentUtkastEllerFeil(String aktorId) {
-        Vedtak utkast = hentUtkast(aktorId);
-
-        if (utkast == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke utkast");
-        }
-
-        return utkast;
+    public List<Vedtak> hentUtkastEldreEnn(LocalDateTime dateTime) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s > ?", VEDTAK_TABLE, STATUS, SIST_OPPDATERT);
+        return db.query(sql, VedtaksstotteRepository::mapVedtak, getName(VedtakStatus.UTKAST), dateTime);
     }
 
     public Vedtak hentUtkastEllerFeil(long vedtakId) {
