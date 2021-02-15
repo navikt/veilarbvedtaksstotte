@@ -7,7 +7,7 @@ data class ArenaVedtak(val fnr: Fnr,
                        val innsatsgruppe: ArenaInnsatsgruppe,
                        val hovedmal: ArenaHovedmal?,
                        val fraDato: LocalDateTime,
-                       val modUser: String) {
+                       val regUser: String) {
     enum class ArenaInnsatsgruppe {
         BATT, BFORM , IKVAL, VARIG
     }

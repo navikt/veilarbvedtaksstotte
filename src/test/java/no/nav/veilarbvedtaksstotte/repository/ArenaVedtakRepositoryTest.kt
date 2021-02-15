@@ -32,7 +32,7 @@ class ArenaVedtakRepositoryTest {
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFE_ARBEID,
             fraDato = LocalDateTime.now(),
-            modUser = "mod user"
+            regUser = "reg user"
         )
 
         arenaVedtakRepository.upsertVedtak(forventetOpprinneligVedtak)
@@ -46,7 +46,7 @@ class ArenaVedtakRepositoryTest {
                 innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.VARIG,
                 hovedmal = ArenaVedtak.ArenaHovedmal.OKE_DELTAKELSE,
                 fraDato = forventetOpprinneligVedtak.fraDato.plusDays(1),
-                modUser = "mod user 2"
+                regUser = "reg user 2"
             )
 
         arenaVedtakRepository.upsertVedtak(forventetOppdatertVedtak)
@@ -63,7 +63,7 @@ class ArenaVedtakRepositoryTest {
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFE_ARBEID,
             fraDato = LocalDateTime.now(),
-            modUser = "mod user"
+            regUser = "reg user"
         )
         val arenaVedtak2 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))
 
@@ -87,7 +87,7 @@ class ArenaVedtakRepositoryTest {
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFE_ARBEID,
             fraDato = LocalDateTime.now(),
-            modUser = "mod user"
+            regUser = "reg user"
         )
         val arenaVedtak2 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))
         val arenaVedtak3 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))

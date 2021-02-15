@@ -20,18 +20,18 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
     val INNSATSGRUPPE = "INNSATSGRUPPE"
     val HOVEDMAL = "HOVEDMAL"
     val FRA_DATO = "FRA_DATO" // TODO bedre navn?
-    val MOD_USER = "MOD_USER" // TODO må avklares
+    val REG_USER = "REG_USER"
 
     fun upsertVedtak(vedtak: ArenaVedtak) {
         val sql =
             """
-                INSERT INTO $ARENA_VEDTAK_TABLE ($FNR, $INNSATSGRUPPE, $HOVEDMAL, $FRA_DATO, $MOD_USER)
+                INSERT INTO $ARENA_VEDTAK_TABLE ($FNR, $INNSATSGRUPPE, $HOVEDMAL, $FRA_DATO, $REG_USER)
                 VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT ($FNR) DO UPDATE
                 SET $INNSATSGRUPPE   = EXCLUDED.$INNSATSGRUPPE,
                     $HOVEDMAL        = EXCLUDED.$HOVEDMAL,
                     $FRA_DATO        = EXCLUDED.$FRA_DATO,
-                    $MOD_USER        = EXCLUDED.$MOD_USER
+                    $REG_USER        = EXCLUDED.$REG_USER
             """
 
         jdbcTemplate.update(
@@ -40,7 +40,7 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
             vedtak.innsatsgruppe.name,
             vedtak.hovedmal?.name,
             vedtak.fraDato,
-            vedtak.modUser
+            vedtak.regUser
         )
     }
 
@@ -63,7 +63,7 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.valueOf(rs.getString(INNSATSGRUPPE)),
             hovedmal = rs.getString(HOVEDMAL)?.let { ArenaVedtak.ArenaHovedmal.valueOf(it) },
             fraDato = rs.getTimestamp(FRA_DATO).toLocalDateTime(),
-            modUser = rs.getString(MOD_USER)
+            regUser = rs.getString(REG_USER)
         )
     }
 }

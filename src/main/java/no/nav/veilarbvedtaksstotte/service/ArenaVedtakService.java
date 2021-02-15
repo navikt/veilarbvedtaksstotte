@@ -25,7 +25,7 @@ import static java.lang.String.format;
 public class ArenaVedtakService {
 
     final static String JOURNALPOST_ARENA_VEDTAK_TITTEL = "Brev: Oppfølgingsvedtak (§14a)";
-    final static String VEILARBVEDAKSSTOTTE_MOD_USER = "VEILARBVEDAKSSTOTTE_MOD_USER"; // TODO riktig verdi
+    final static String VEILARBVEDAKSSTOTTE_REG_USER = "MODIA";
 
     private ArenaVedtakRepository arenaVedtakRepository;
     private SafClient safClient;
@@ -55,7 +55,7 @@ public class ArenaVedtakService {
 
     public void behandleVedtakFraArena(ArenaVedtak arenaVedtak) {
 
-        if (VEILARBVEDAKSSTOTTE_MOD_USER.equals(arenaVedtak.getModUser())) {
+        if (VEILARBVEDAKSSTOTTE_REG_USER.equals(arenaVedtak.getRegUser())) {
             return;
         }
 

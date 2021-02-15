@@ -39,7 +39,7 @@ class ArenaVedtakConsumerTest {
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFE_ARBEID,
             fraDato = LocalDateTime.now(),
-            modUser = "mod user"
+            regUser = "reg user"
         )
 
         kafkaTemplate.send(kafkaTopics.arenaVedtak, JsonUtils.objectMapper.writeValueAsString(arenaVedtak))
