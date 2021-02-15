@@ -1,6 +1,21 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import no.nav.common.abac.AbacCachedClient;
+import no.nav.common.abac.AbacClient;
+import no.nav.common.abac.AbacHttpClient;
+import no.nav.common.client.aktoroppslag.AktorOppslagClient;
+import no.nav.common.client.aktoroppslag.CachedAktorOppslagClient;
+import no.nav.common.client.aktoroppslag.PdlAktorOppslagClient;
+import no.nav.common.client.aktoroppslag.ToggledAktorOppslagClient;
+import no.nav.common.client.aktorregister.AktorregisterHttpClient;
+import no.nav.common.featuretoggle.UnleashClient;
+import no.nav.common.featuretoggle.UnleashClientImpl;
+import no.nav.common.job.leader_election.LeaderElectionClient;
+import no.nav.common.job.leader_election.LeaderElectionHttpClient;
+import no.nav.common.metrics.InfluxClient;
+import no.nav.common.metrics.MetricsClient;
 import no.nav.common.sts.SystemUserTokenProvider;
+import no.nav.common.utils.Credentials;
 import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl;
@@ -23,11 +38,12 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
+import no.nav.veilarbvedtaksstotte.service.UnleashService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static no.nav.common.utils.UrlUtils.createNaisAdeoIngressUrl;
-import static no.nav.common.utils.UrlUtils.createNaisPreprodIngressUrl;
+import static no.nav.common.utils.UrlUtils.*;
+import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 
 @Configuration
 public class ClientConfig {
@@ -80,6 +96,49 @@ public class ClientConfig {
     @Bean
     public DokdistribusjonClient dokDistribusjonClient() {
         return new DokdistribusjonClientImpl(naisPreprodOrNaisAdeoIngress("dokdistfordeling", false));
+    }
+
+    @Bean
+    public AktorOppslagClient aktorOppslagClient(
+            EnvironmentProperties properties,
+            UnleashService unleashService,
+            SystemUserTokenProvider systemUserTokenProvider
+    ) {
+        String pdlUrl = createServiceUrl("pdl-api", "default", false);
+
+        PdlAktorOppslagClient pdlAktorOppslagClient = new PdlAktorOppslagClient(
+                pdlUrl,
+                systemUserTokenProvider::getSystemUserToken,
+                systemUserTokenProvider::getSystemUserToken
+        );
+
+        AktorregisterHttpClient aktorregisterClient = new AktorregisterHttpClient(
+                properties.getAktorregisterUrl(), APPLICATION_NAME, systemUserTokenProvider::getSystemUserToken
+        );
+
+        return new CachedAktorOppslagClient(
+                new ToggledAktorOppslagClient(aktorregisterClient, pdlAktorOppslagClient, unleashService::isPdlAktorOppslagEnabled)
+        );
+    }
+
+    @Bean
+    public UnleashClient unleashClient(EnvironmentProperties properties) {
+        return new UnleashClientImpl(properties.getUnleashUrl(), APPLICATION_NAME);
+    }
+
+    @Bean
+    public MetricsClient influxMetricsClient() {
+        return new InfluxClient();
+    }
+
+    @Bean
+    public LeaderElectionClient leaderElectionClient() {
+        return new LeaderElectionHttpClient();
+    }
+
+    @Bean
+    public AbacClient abacClient(EnvironmentProperties properties, Credentials serviceUserCredentials) {
+        return new AbacCachedClient(new AbacHttpClient(properties.getAbacUrl(), serviceUserCredentials.username, serviceUserCredentials.password));
     }
 
     private static String naisPreprodOrNaisAdeoIngress(String appName, boolean withAppContextPath) {
