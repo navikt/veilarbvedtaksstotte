@@ -56,7 +56,7 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
     @SneakyThrows
     public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(String fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/api/oppfolgingsperioder?fnr=" + fnr))
+                .url(joinPaths(veilarboppfolgingUrl, "/api/oppfolging/oppfolgingsperioder?fnr=" + fnr))
                 .header(HttpHeaders.AUTHORIZATION, bearerToken(systemTokenSupplier.get()))
                 .build();
 
