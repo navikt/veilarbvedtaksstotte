@@ -28,8 +28,10 @@ public class VedtakStatusEndringService {
     }
 
     public void utkastOpprettet(Vedtak vedtak) {
+        Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
+
         KafkaVedtakStatusEndring.UtkastOpprettet utkastOpprettet = new KafkaVedtakStatusEndring.UtkastOpprettet()
-                .setVeilederNavn(vedtak.getVeilederNavn())
+                .setVeilederNavn(veileder.getNavn())
                 .setVeilederIdent(vedtak.getVeilederIdent());
 
         setStatusEndringData(utkastOpprettet, vedtak);
