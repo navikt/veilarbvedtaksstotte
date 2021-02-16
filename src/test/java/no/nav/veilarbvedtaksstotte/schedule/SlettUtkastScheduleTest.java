@@ -4,7 +4,6 @@ import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -47,13 +46,10 @@ public class SlettUtkastScheduleTest {
         oppfolgingPeriode.setStartDato(LocalDateTime.now().minusDays(50));
         oppfolgingPeriode.setSluttDato(LocalDateTime.now().minusDays(30));
 
-        OppfolgingDTO oppfolging = new OppfolgingDTO();
-        oppfolging.setOppfolgingsPerioder(List.of(oppfolgingPeriode));
-
         when(vedtaksstotteRepository.hentUtkastEldreEnn(any())).thenReturn(List.of(gammeltUtkast));
         when(vedtaksstotteRepository.hentGjeldendeVedtak(any())).thenReturn(null);
         when(aktorregisterClient.hentFnr(any(AktorId.class))).thenReturn(Fnr.of("test"));
-        when(veilarboppfolgingClient.hentOppfolgingData(any())).thenReturn(oppfolging);
+        when(veilarboppfolgingClient.hentOppfolgingsperioder(any())).thenReturn(List.of(oppfolgingPeriode));
 
         slettUtkastSchedule.slettGamleUtkast();
 
@@ -71,13 +67,10 @@ public class SlettUtkastScheduleTest {
         oppfolgingPeriode.setStartDato(LocalDateTime.now().minusDays(20));
         oppfolgingPeriode.setSluttDato(LocalDateTime.now().minusDays(18));
 
-        OppfolgingDTO oppfolging = new OppfolgingDTO();
-        oppfolging.setOppfolgingsPerioder(List.of(oppfolgingPeriode));
-
         when(vedtaksstotteRepository.hentUtkastEldreEnn(any())).thenReturn(List.of(gammeltUtkast));
         when(vedtaksstotteRepository.hentGjeldendeVedtak(any())).thenReturn(null);
         when(aktorregisterClient.hentFnr(any(AktorId.class))).thenReturn(Fnr.of("test"));
-        when(veilarboppfolgingClient.hentOppfolgingData(any())).thenReturn(oppfolging);
+        when(veilarboppfolgingClient.hentOppfolgingsperioder(any())).thenReturn(List.of(oppfolgingPeriode));
 
         slettUtkastSchedule.slettGamleUtkast();
 

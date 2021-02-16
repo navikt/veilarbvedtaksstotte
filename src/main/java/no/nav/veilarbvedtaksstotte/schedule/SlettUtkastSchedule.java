@@ -7,7 +7,6 @@ import no.nav.common.job.JobRunner;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -63,8 +62,8 @@ public class SlettUtkastSchedule {
 
         gamleUtkastUtenforOppfolging.forEach(utkast -> {
             Fnr fnr = aktorregisterClient.hentFnr(AktorId.of(utkast.getAktorId()));
-            OppfolgingDTO oppfolging = veilarboppfolgingClient.hentOppfolgingData(fnr.get());
-            Optional<OppfolgingPeriodeDTO> maybeSistePeriode = OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolging.getOppfolgingsPerioder());
+            List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(fnr.get());
+            Optional<OppfolgingPeriodeDTO> maybeSistePeriode = OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder);
 
             maybeSistePeriode.ifPresent(sistePeriode -> {
                 if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(sistePeriode.sluttDato)) {

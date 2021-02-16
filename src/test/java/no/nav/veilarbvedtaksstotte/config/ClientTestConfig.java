@@ -20,6 +20,7 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
@@ -137,16 +138,15 @@ public class ClientTestConfig {
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {
             @Override
-            public String hentServicegruppe(String fnr) {
-                return "VURDU";
-            }
-
-            @Override
             public OppfolgingDTO hentOppfolgingData(String fnr) {
                 OppfolgingDTO oppfolgingDTO = new OppfolgingDTO();
                 oppfolgingDTO.setServicegruppe("VURDU");
-                oppfolgingDTO.setOppfolgingsPerioder(Collections.emptyList());
                 return oppfolgingDTO;
+            }
+
+            @Override
+            public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(String fnr) {
+                return Collections.emptyList();
             }
 
             @Override

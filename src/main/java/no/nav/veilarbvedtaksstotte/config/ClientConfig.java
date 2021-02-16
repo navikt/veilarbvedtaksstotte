@@ -64,8 +64,12 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarboppfolgingClient oppfolgingClient() {
-        return new VeilarboppfolgingClientImpl(naisPreprodOrNaisAdeoIngress("veilarboppfolging", true));
+    public VeilarboppfolgingClient oppfolgingClient(AuthService authService, SystemUserTokenProvider systemUserTokenProvider) {
+        return new VeilarboppfolgingClientImpl(
+                naisPreprodOrNaisAdeoIngress("veilarboppfolging", true),
+                authService::getInnloggetBrukerToken,
+                systemUserTokenProvider::getSystemUserToken
+        );
     }
 
     @Bean

@@ -13,8 +13,11 @@ import okhttp3.Response;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
+import java.util.List;
+import java.util.function.Supplier;
+
+import static no.nav.common.utils.AuthUtils.bearerToken;
 import static no.nav.common.utils.UrlUtils.joinPaths;
-import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
 public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
 
@@ -22,22 +25,15 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
 
     private final OkHttpClient client;
 
-    public VeilarboppfolgingClientImpl(String veilarboppfolgingUrl) {
+    private final Supplier<String> userTokenSupplier;
+
+    private final Supplier<String> systemTokenSupplier;
+
+    public VeilarboppfolgingClientImpl(String veilarboppfolgingUrl, Supplier<String> userTokenSupplier, Supplier<String> systemTokenSupplier) {
         this.veilarboppfolgingUrl = veilarboppfolgingUrl;
         this.client = RestClient.baseClient();
-    }
-
-    @SneakyThrows
-    public String hentServicegruppe(String fnr) {
-        Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/api/person/", fnr, "/oppfolgingsstatus"))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
-                .build();
-
-        try (Response response = RestClient.baseClient().newCall(request).execute()) {
-            RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseOrThrow(response, OppfolgingstatusDTO.class).getServicegruppe();
-        }
+        this.userTokenSupplier = userTokenSupplier;
+        this.systemTokenSupplier = systemTokenSupplier;
     }
 
     @Cacheable(CacheConfig.OPPFOLGING_CACHE_NAME)
@@ -45,13 +41,29 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
     public OppfolgingDTO hentOppfolgingData(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarboppfolgingUrl, "/api/oppfolging?fnr=" + fnr))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(userTokenSupplier.get()))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
             return RestUtils.getBodyStr(response)
                     .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingDTO.class))
+                    .orElseThrow(() -> new IllegalStateException("Unable to parse json"));
+        }
+    }
+
+    @Cacheable(CacheConfig.OPPFOLGINGPERIODE_CACHE_NAME)
+    @SneakyThrows
+    public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(String fnr) {
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarboppfolgingUrl, "/api/oppfolgingsperioder?fnr=" + fnr))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(systemTokenSupplier.get()))
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestUtils.throwIfNotSuccessful(response);
+            return RestUtils.getBodyStr(response)
+                    .map((bodyStr) -> JsonUtils.fromJsonArray(bodyStr, OppfolgingPeriodeDTO.class))
                     .orElseThrow(() -> new IllegalStateException("Unable to parse json"));
         }
     }
