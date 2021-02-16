@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.common.client.aktorregister.AktorregisterClient;
-import no.nav.common.client.aktorregister.IdentOppslag;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
@@ -32,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 
@@ -52,13 +52,13 @@ public class ClientTestConfig {
             }
 
             @Override
-            public List<IdentOppslag> hentFnr(List<AktorId> aktorIdListe) {
-                return Collections.emptyList();
+            public Map<AktorId, Fnr> hentFnrBolk(List<AktorId> list) {
+                return Collections.emptyMap();
             }
 
             @Override
-            public List<IdentOppslag> hentAktorId(List<Fnr> fnrListe) {
-                return Collections.emptyList();
+            public Map<Fnr, AktorId> hentAktorIdBolk(List<Fnr> list) {
+                return Collections.emptyMap();
             }
 
             @Override
