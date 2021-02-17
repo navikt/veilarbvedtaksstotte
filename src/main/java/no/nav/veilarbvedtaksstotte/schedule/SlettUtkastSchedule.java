@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.schedule;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.job.JobRunner;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
@@ -34,7 +34,7 @@ public class SlettUtkastSchedule {
 
     private final VeilarboppfolgingClient veilarboppfolgingClient;
 
-    private final AktorregisterClient aktorregisterClient;
+    private final AktorOppslagClient aktorOppslagClient;
 
     private final VedtakService vedtakService;
 
@@ -61,7 +61,7 @@ public class SlettUtkastSchedule {
         log.info("Utkast for bruker som kanskje er utenfor oppfølging: {}", gamleUtkastUtenforOppfolging.size());
 
         gamleUtkastUtenforOppfolging.forEach(utkast -> {
-            Fnr fnr = aktorregisterClient.hentFnr(AktorId.of(utkast.getAktorId()));
+            Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(utkast.getAktorId()));
             List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(fnr.get());
             Optional<OppfolgingPeriodeDTO> maybeSistePeriode = OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder);
 
