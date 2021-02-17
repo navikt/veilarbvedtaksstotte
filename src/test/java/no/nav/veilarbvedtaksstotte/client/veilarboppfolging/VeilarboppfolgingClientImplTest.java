@@ -32,15 +32,14 @@ public class VeilarboppfolgingClientImplTest {
     public void hentOppfolgingData__skal_lage_riktig_request_og_parse_response() {
         String response = TestUtils.readTestResourceFile("veilarboppfolging_hentOppfolgingData.json");
 
-        givenThat(get(urlEqualTo("/api/oppfolging?fnr=" + TEST_FNR))
-                .withQueryParam("fnr", equalTo(TEST_FNR))
+        givenThat(get(urlEqualTo("/api/person/" + TEST_FNR + "/oppfolgingsstatus"))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer USER_TOKEN"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody(response))
         );
 
-        OppfolgingDTO expectedData = new OppfolgingDTO();
+        OppfolgingsstatusDTO expectedData = new OppfolgingsstatusDTO();
         expectedData.setServicegruppe("VURDU");
 
         assertEquals(expectedData, veilarboppfolgingClient.hentOppfolgingData(TEST_FNR));

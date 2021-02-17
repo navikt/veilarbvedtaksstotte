@@ -38,16 +38,16 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
 
     @Cacheable(CacheConfig.OPPFOLGING_CACHE_NAME)
     @SneakyThrows
-    public OppfolgingDTO hentOppfolgingData(String fnr) {
+    public OppfolgingsstatusDTO hentOppfolgingData(String fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/api/oppfolging?fnr=" + fnr))
+                .url(joinPaths(veilarboppfolgingUrl, "/api/person/", fnr, "oppfolgingsstatus"))
                 .header(HttpHeaders.AUTHORIZATION, bearerToken(userTokenSupplier.get()))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
             return RestUtils.getBodyStr(response)
-                    .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingDTO.class))
+                    .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingsstatusDTO.class))
                     .orElseThrow(() -> new IllegalStateException("Unable to parse json"));
         }
     }

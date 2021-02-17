@@ -19,8 +19,8 @@ import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingsstatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
@@ -138,10 +138,10 @@ public class ClientTestConfig {
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {
             @Override
-            public OppfolgingDTO hentOppfolgingData(String fnr) {
-                OppfolgingDTO oppfolgingDTO = new OppfolgingDTO();
-                oppfolgingDTO.setServicegruppe("VURDU");
-                return oppfolgingDTO;
+            public OppfolgingsstatusDTO hentOppfolgingData(String fnr) {
+                OppfolgingsstatusDTO oppfolgingsstatusDTO = new OppfolgingsstatusDTO();
+                oppfolgingsstatusDTO.setServicegruppe("VURDU");
+                return oppfolgingsstatusDTO;
             }
 
             @Override
