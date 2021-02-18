@@ -19,6 +19,8 @@ public class CacheConfig {
     public static final String ENHET_NAVN_CACHE_NAME = "enhet-navn";
     public static final String REGISTRERING_CACHE_NAME = "registrering";
     public static final String OPPFOLGING_CACHE_NAME = "oppfolging";
+    public static final String OPPFOLGINGPERIODE_CACHE_NAME = "oppfolgingperiode";
+
 
     @Bean
     public Cache brukerEnhetCache() {
@@ -55,6 +57,14 @@ public class CacheConfig {
     @Bean
     public Cache oppfolgingCache() {
         return new CaffeineCache(OPPFOLGING_CACHE_NAME, Caffeine.newBuilder()
+                .expireAfterWrite(15, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .build());
+    }
+
+    @Bean
+    public Cache oppfolgingperiodeCache() {
+        return new CaffeineCache(OPPFOLGINGPERIODE_CACHE_NAME, Caffeine.newBuilder()
                 .expireAfterWrite(15, TimeUnit.MINUTES)
                 .maximumSize(1000)
                 .build());

@@ -4,9 +4,8 @@ import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.VeilarbPep;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.UserRole;
+import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.aktorregister.AktorregisterClient;
-import no.nav.common.client.pdl.AktorOppslagClient;
-import no.nav.common.featuretoggle.UnleashService;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
@@ -57,7 +56,6 @@ import java.util.stream.Stream;
 
 import static no.nav.common.utils.EnvironmentUtils.NAIS_CLUSTER_NAME_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
-import static no.nav.veilarbvedtaksstotte.utils.Toggles.VEILARBVEDTAKSSTOTTE_NY_DOK_INTEGRASJON_ENABLED_TOGGLE;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -604,7 +602,7 @@ public class VedtakServiceTest {
 
     private void gittVersjon2AvFattVedtak() {
         System.setProperty(NAIS_CLUSTER_NAME_PROPERTY_NAME, "dev-fss");
-        when(unleashService.isEnabled(VEILARBVEDTAKSSTOTTE_NY_DOK_INTEGRASJON_ENABLED_TOGGLE)).thenReturn(true);
+        when(unleashService.isNyDokIntegrasjonEnabled()).thenReturn(true);
     }
 
     private void assertNyttUtkast() {
