@@ -19,7 +19,7 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
     val FNR = "FNR"
     val INNSATSGRUPPE = "INNSATSGRUPPE"
     val HOVEDMAL = "HOVEDMAL"
-    val FRA_DATO = "FRA_DATO" // TODO bedre navn?
+    val FRA_DATO = "FRA_DATO"
     val REG_USER = "REG_USER"
 
     fun upsertVedtak(vedtak: ArenaVedtak) {

@@ -25,7 +25,7 @@ import static java.lang.String.format;
 public class ArenaVedtakService {
 
     final static String JOURNALPOST_ARENA_VEDTAK_TITTEL = "Brev: Oppfølgingsvedtak (§14a)";
-    final static String VEILARBVEDAKSSTOTTE_REG_USER = "MODIA";
+    final static String MODIA_REG_USER = "MODIA";
 
     private ArenaVedtakRepository arenaVedtakRepository;
     private SafClient safClient;
@@ -53,9 +53,17 @@ public class ArenaVedtakService {
         return safClient.hentVedtakPdf(journalpostId, dokumentInfoId);
     }
 
+    /**
+     * @param arenaVedtak Kafka-melding om vedtak fra Arena
+     *
+     * Behandling av Kafka-melding om vedtak fra Arena. Lagrer kun siste vedtak per fnr. For minst mulig logikk og
+     * for å unngå oppslag i andre tjenester i konsumering av Kafka-melding så:
+     *  - Tas det ikke høyde for endring av fnr her, dvs lagring per fnr og ikke per bruker
+     *  - Lagrer siste vedtak fra Arena selv om det finnes et nyere vedtak i denne løsningen
+     */
     public void behandleVedtakFraArena(ArenaVedtak arenaVedtak) {
 
-        if (VEILARBVEDAKSSTOTTE_REG_USER.equals(arenaVedtak.getRegUser())) {
+        if (MODIA_REG_USER.equals(arenaVedtak.getRegUser())) {
             return;
         }
 

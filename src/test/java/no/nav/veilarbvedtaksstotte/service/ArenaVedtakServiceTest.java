@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static no.nav.veilarbvedtaksstotte.service.ArenaVedtakService.VEILARBVEDAKSSTOTTE_REG_USER;
+import static no.nav.veilarbvedtaksstotte.service.ArenaVedtakService.MODIA_REG_USER;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.junit.Assert.*;
@@ -95,7 +95,7 @@ public class ArenaVedtakServiceTest {
                         ArenaVedtak.ArenaInnsatsgruppe.BATT,
                         ArenaVedtak.ArenaHovedmal.BEHOLDE_ARBEID,
                         LocalDateTime.now(),
-                        VEILARBVEDAKSSTOTTE_REG_USER
+                        MODIA_REG_USER
                 )
         );
 
