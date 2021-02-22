@@ -28,7 +28,7 @@ import static java.lang.String.format;
 @Component
 public class SlettUtkastSchedule {
 
-    private final static String EVERY_DAY_AT_1 = "0 1 * * * *";
+    private final static String EVERY_DAY_AT_01 = "0 0 1 * * *"; // 01:00
 
     private final static int DAGER_FOR_SLETT_UTKAST = 28;
 
@@ -42,7 +42,7 @@ public class SlettUtkastSchedule {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
-    @Scheduled(cron = EVERY_DAY_AT_1)
+    @Scheduled(cron = EVERY_DAY_AT_01)
     public void startSlettingAvGamleUtkast() {
         if (leaderElectionClient.isLeader()) {
             JobRunner.run("slett_gamle_utkast", this::slettGamleUtkast);
