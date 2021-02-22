@@ -116,8 +116,8 @@ public class VedtaksstotteRepository {
 
     public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
         String sql = format(
-                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP, %s = CURRENT_TIMESTAMP, %s = true, %s = false WHERE %s = ?",
-                VEDTAK_TABLE, STATUS, DOKUMENT_ID, JOURNALPOST_ID, VEDTAK_FATTET, UTKAST_SIST_OPPDATERT, GJELDENDE, SENDER, VEDTAK_ID
+                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP, %s = true, %s = false WHERE %s = ?",
+                VEDTAK_TABLE, STATUS, DOKUMENT_ID, JOURNALPOST_ID, VEDTAK_FATTET, GJELDENDE, SENDER, VEDTAK_ID
         );
 
         db.update(
@@ -199,7 +199,7 @@ public class VedtaksstotteRepository {
     public void ferdigstillVedtakV2(long vedtakId){
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP, %s = true WHERE %s = ?",
-                VEDTAK_TABLE, STATUS, UTKAST_SIST_OPPDATERT, GJELDENDE, VEDTAK_ID
+                VEDTAK_TABLE, STATUS, VEDTAK_FATTET, GJELDENDE, VEDTAK_ID
         );
         db.update(sql, getName(VedtakStatus.SENDT), vedtakId);
     }
