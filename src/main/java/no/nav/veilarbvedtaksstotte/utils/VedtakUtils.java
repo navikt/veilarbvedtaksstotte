@@ -13,7 +13,7 @@ public class VedtakUtils {
         if (alleVedtak.isEmpty()) return 0;
 
         return (int) alleVedtak.stream()
-                .filter(vedtak -> dato.isAfter(vedtak.getUtkastSistOppdatert()))
+                .filter(vedtak -> dato.isAfter(vedtak.getVedtakFattet()))
                 .count();
     }
 
