@@ -21,12 +21,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class SlettUtkastSchedule {
 
-    private final static String EVERY_DAY_AT_1 = "0 1 * * * *";
+    private final static String EVERY_DAY_AT_01 = "0 0 1 * * *"; // 01:00
 
     private final static int DAGER_FOR_SLETT_UTKAST = 28;
 
@@ -40,7 +42,7 @@ public class SlettUtkastSchedule {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
-    @Scheduled(cron = EVERY_DAY_AT_1)
+    @Scheduled(cron = EVERY_DAY_AT_01)
     public void startSlettingAvGamleUtkast() {
         if (leaderElectionClient.isLeader()) {
             JobRunner.run("slett_gamle_utkast", this::slettGamleUtkast);
@@ -61,16 +63,20 @@ public class SlettUtkastSchedule {
         log.info("Utkast for bruker som kanskje er utenfor oppfølging: {}", gamleUtkastUtenforOppfolging.size());
 
         gamleUtkastUtenforOppfolging.forEach(utkast -> {
-            Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(utkast.getAktorId()));
-            List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(fnr.get());
-            Optional<OppfolgingPeriodeDTO> maybeSistePeriode = OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder);
+            try {
+                Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(utkast.getAktorId()));
+                List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(fnr.get());
+                Optional<OppfolgingPeriodeDTO> maybeSistePeriode = OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder);
 
-            maybeSistePeriode.ifPresent(sistePeriode -> {
-                if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(sistePeriode.sluttDato)) {
-                    log.info("Sletter utkast automatisk. aktorId={}", utkast.getAktorId());
-                    vedtakService.slettUtkast(utkast);
-                }
-            });
+                maybeSistePeriode.ifPresent(sistePeriode -> {
+                    if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(sistePeriode.sluttDato)) {
+                        log.info("Sletter utkast automatisk. aktorId={}", utkast.getAktorId());
+                        vedtakService.slettUtkast(utkast);
+                    }
+                });
+            } catch(Exception e) {
+                log.error(format("Automatisk sletting av utkast for aktorId=%s feilet", utkast.getAktorId()), e);
+            }
         });
     }
 
