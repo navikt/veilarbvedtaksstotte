@@ -4,7 +4,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
-import no.nav.common.featuretoggle.UnleashService;
+import no.nav.common.featuretoggle.UnleashClient;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
@@ -66,7 +66,7 @@ public class ApplicationTestConfig {
 
     @Bean
     public DataSource dataSource() {
-        return SingletonPostgresContainer.init().getDataSource();
+        return SingletonPostgresContainer.init().createDataSource();
     }
 
     @Bean
@@ -80,8 +80,8 @@ public class ApplicationTestConfig {
     }
 
     @Bean
-    public UnleashService unleashService() {
-        return mock(UnleashService.class);
+    public UnleashClient unleashClient() {
+        return mock(UnleashClient.class);
     }
 
     @Bean

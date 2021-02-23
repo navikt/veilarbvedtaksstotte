@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.common.client.aktorregister.AktorregisterClient;
-import no.nav.common.client.aktorregister.IdentOppslag;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
@@ -16,12 +15,13 @@ import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
-import no.nav.veilarbvedtaksstotte.client.oppfolging.OppfolgingDTO;
-import no.nav.veilarbvedtaksstotte.client.oppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingsstatusDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 
@@ -52,13 +53,13 @@ public class ClientTestConfig {
             }
 
             @Override
-            public List<IdentOppslag> hentFnr(List<AktorId> aktorIdListe) {
-                return Collections.emptyList();
+            public Map<AktorId, Fnr> hentFnrBolk(List<AktorId> list) {
+                return Collections.emptyMap();
             }
 
             @Override
-            public List<IdentOppslag> hentAktorId(List<Fnr> fnrListe) {
-                return Collections.emptyList();
+            public Map<Fnr, AktorId> hentAktorIdBolk(List<Fnr> list) {
+                return Collections.emptyMap();
             }
 
             @Override
@@ -137,16 +138,15 @@ public class ClientTestConfig {
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {
             @Override
-            public String hentServicegruppe(String fnr) {
-                return "VURDU";
+            public OppfolgingsstatusDTO hentOppfolgingData(String fnr) {
+                OppfolgingsstatusDTO oppfolgingsstatusDTO = new OppfolgingsstatusDTO();
+                oppfolgingsstatusDTO.setServicegruppe("VURDU");
+                return oppfolgingsstatusDTO;
             }
 
             @Override
-            public OppfolgingDTO hentOppfolgingData(String fnr) {
-                OppfolgingDTO oppfolgingDTO = new OppfolgingDTO();
-                oppfolgingDTO.setServicegruppe("VURDU");
-                oppfolgingDTO.setOppfolgingsPerioder(Collections.emptyList());
-                return oppfolgingDTO;
+            public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(String fnr) {
+                return Collections.emptyList();
             }
 
             @Override

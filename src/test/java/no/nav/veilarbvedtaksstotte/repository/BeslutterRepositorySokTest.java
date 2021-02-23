@@ -26,7 +26,7 @@ public class BeslutterRepositorySokTest {
 
     @BeforeClass
     public static void setup() {
-        db = SingletonPostgresContainer.init().getDb();
+        db = SingletonPostgresContainer.init().createJdbcTemplate();
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
         DbTestUtils.cleanupDb(db);

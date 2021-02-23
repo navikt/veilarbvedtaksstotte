@@ -1,17 +1,16 @@
 package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.kafka.dto.FeiletKafkaMelding;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
+import no.nav.veilarbvedtaksstotte.repository.domain.FeiletKafkaMelding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import static java.lang.String.format;
 import static no.nav.common.json.JsonUtils.toJson;
-import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
 @Slf4j
 @Component
@@ -31,38 +30,35 @@ public class KafkaProducer {
     }
 
     public void sendVedtakStatusEndring(KafkaVedtakStatusEndring vedtakStatusEndring) {
-        send(KafkaTopic.VEDTAK_STATUS_ENDRING, vedtakStatusEndring.getAktorId(), toJson(vedtakStatusEndring));
+        send(KafkaTopics.Topic.VEDTAK_STATUS_ENDRING, vedtakStatusEndring.getAktorId(), toJson(vedtakStatusEndring));
     }
 
     public void sendVedtakSendt(KafkaVedtakSendt vedtakSendt) {
-        send(KafkaTopic.VEDTAK_SENDT, vedtakSendt.getAktorId(), toJson(vedtakSendt));
+        send(KafkaTopics.Topic.VEDTAK_SENDT, vedtakSendt.getAktorId(), toJson(vedtakSendt));
     }
 
     public void sendTidligereFeilet(FeiletKafkaMelding feiletKafkaMelding) {
-        kafkaTemplate.send(kafkaTopicToStr(feiletKafkaMelding.getTopic()), feiletKafkaMelding.getKey(), feiletKafkaMelding.getJsonPayload())
-                .addCallback(
-                        sendResult -> onSuccessTidligereFeilet(feiletKafkaMelding),
-                        throwable -> onErrorTidligereFeilet(feiletKafkaMelding, throwable)
-                );
+        try {
+            kafkaTemplate.send(kafkaTopics.topicToStr(feiletKafkaMelding.getTopic()), feiletKafkaMelding.getKey(), feiletKafkaMelding.getJsonPayload())
+                    .addCallback(
+                            sendResult -> onSuccessTidligereFeilet(feiletKafkaMelding),
+                            throwable -> onErrorTidligereFeilet(feiletKafkaMelding, throwable)
+                    );
+        } catch (Exception e) {
+            onErrorTidligereFeilet(feiletKafkaMelding, e);
+        }
     }
 
-    private void send(KafkaTopic kafkaTopic, String key, String jsonPayload) {
-        String topic = kafkaTopicToStr(kafkaTopic);
-        kafkaTemplate.send(topic, key, jsonPayload)
-                .addCallback(
-                        sendResult -> onSuccess(topic, key),
-                        throwable -> onError(kafkaTopic, key, jsonPayload, throwable)
-                );
-    }
-
-    private String kafkaTopicToStr(KafkaTopic topic) {
-        switch (topic) {
-            case VEDTAK_SENDT:
-                return kafkaTopics.getVedtakSendt();
-            case VEDTAK_STATUS_ENDRING:
-                return kafkaTopics.getVedtakStatusEndring();
-            default:
-                throw new IllegalArgumentException("Unknown topic " + getName(topic));
+    private void send(KafkaTopics.Topic kafkaTopic, String key, String jsonPayload) {
+        String topic = kafkaTopics.topicToStr(kafkaTopic);
+        try {
+            kafkaTemplate.send(topic, key, jsonPayload)
+                    .addCallback(
+                            sendResult -> onSuccess(topic, key),
+                            throwable -> onError(kafkaTopic, key, jsonPayload, throwable)
+                    );
+        } catch (Exception e) {
+            onError(kafkaTopic, key, jsonPayload, e);
         }
     }
 
@@ -70,13 +66,13 @@ public class KafkaProducer {
         log.info(format("Publiserte melding på topic %s med key %s", topic, key));
     }
 
-    private void onError(KafkaTopic topic, String key, String jsonPayload, Throwable throwable) {
-        log.error(format("Kunne ikke publisere melding på topic %s med key %s \nERROR: %s", kafkaTopicToStr(topic), key, throwable));
-        kafkaRepository.lagreFeiletKafkaMelding(topic, key, jsonPayload);
+    private void onError(KafkaTopics.Topic topic, String key, String jsonPayload, Throwable throwable) {
+        log.error(format("Kunne ikke publisere melding på topic %s med key %s \nERROR: %s", kafkaTopics.topicToStr(topic), key, throwable));
+        kafkaRepository.lagreFeiletProdusertKafkaMelding(topic, key, jsonPayload);
     }
 
     private void onSuccessTidligereFeilet(FeiletKafkaMelding feiletKafkaMelding) {
-        String topic =  kafkaTopicToStr(feiletKafkaMelding.getTopic());
+        String topic =  kafkaTopics.topicToStr(feiletKafkaMelding.getTopic());
         String key = feiletKafkaMelding.getKey();
 
         log.info(format("Publiserte tidligere feilet melding på topic %s med key %s", topic, key));
@@ -84,8 +80,8 @@ public class KafkaProducer {
     }
 
     private void onErrorTidligereFeilet(FeiletKafkaMelding feiletKafkaMelding, Throwable throwable) {
-        KafkaTopic kafkaTopic = feiletKafkaMelding.getTopic();
-        String topic = kafkaTopicToStr(kafkaTopic);
+        KafkaTopics.Topic kafkaTopic = feiletKafkaMelding.getTopic();
+        String topic = kafkaTopics.topicToStr(kafkaTopic);
         String key = feiletKafkaMelding.getKey();
 
         log.error(format("Kunne ikke publisere tidligere feilet melding på topic %s med key %s \nERROR: %s", topic, key, throwable));

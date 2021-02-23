@@ -43,7 +43,7 @@ class DokumentServiceV2(
     fun produserOgJournalforDokument(sendDokumentDTO: SendDokumentDTO
     ): OpprettetJournalpostDTO {
         val dokument = produserDokument(sendDokumentDTO = sendDokumentDTO, utkast = false)
-        val tittel = "14a Vedtak" // TODO skal være lik tittel i brev
+        val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
         val oppfolgingssak = veilarbarenaClient.oppfolgingssak(sendDokumentDTO.brukerFnr)
         val personNavn = veilarbpersonClient.hentPersonNavn(sendDokumentDTO.brukerFnr.get())
         return journalforDokument(

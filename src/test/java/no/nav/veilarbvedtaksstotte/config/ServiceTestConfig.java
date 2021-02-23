@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Import;
         VedtakService.class,
         VedtakStatusEndringService.class,
         VeilederService.class,
-        DokumentServiceV2.class
+        DokumentServiceV2.class,
+        UnleashService.class
 })
 public class ServiceTestConfig {}

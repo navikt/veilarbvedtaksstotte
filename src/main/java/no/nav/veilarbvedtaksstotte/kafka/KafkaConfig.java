@@ -1,8 +1,6 @@
-package no.nav.veilarbvedtaksstotte.config;
+package no.nav.veilarbvedtaksstotte.kafka;
 
 import no.nav.common.utils.Credentials;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -20,6 +18,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.LoggingProducerListener;
 
 import java.util.HashMap;
@@ -30,7 +29,9 @@ import static no.nav.veilarbvedtaksstotte.utils.KafkaUtils.requireKafkaTopicPref
 @Configuration
 public class KafkaConfig {
 
-    private final KafkaHelsesjekk kafkaHelsesjekk;
+    public final static String CONSUMER_GROUP_ID = "veilarbvedtaksstotte-consumer";
+
+    public final static String PRODUCER_GROUP_ID = "veilarbvedtaksstotte-producer";
 
     private final Credentials serviceUserCredentials;
 
@@ -38,8 +39,7 @@ public class KafkaConfig {
     String brokersUrl;
 
     @Autowired
-    public KafkaConfig(KafkaHelsesjekk kafkaHelsesjekk, Credentials serviceUserCredentials) {
-        this.kafkaHelsesjekk = kafkaHelsesjekk;
+    public KafkaConfig(Credentials serviceUserCredentials) {
         this.serviceUserCredentials = serviceUserCredentials;
     }
 
@@ -52,7 +52,7 @@ public class KafkaConfig {
     public KafkaListenerContainerFactory kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(kafkaConsumerProperties(brokersUrl, serviceUserCredentials)));
-        factory.setErrorHandler(kafkaHelsesjekk);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         return factory;
     }
 
@@ -60,9 +60,11 @@ public class KafkaConfig {
     public KafkaTemplate<String, String> kafkaTemplate() {
         ProducerFactory<String, String> producerFactory = new DefaultKafkaProducerFactory<>(kafkaProducerProperties(brokersUrl, serviceUserCredentials));
         KafkaTemplate<String, String> template = new KafkaTemplate<>(producerFactory);
+
         LoggingProducerListener<String, String> producerListener = new LoggingProducerListener<>();
         producerListener.setIncludeContents(false);
         template.setProducerListener(producerListener);
+
         return template;
     }
 
@@ -77,9 +79,10 @@ public class KafkaConfig {
 
     private static HashMap<String, Object> kafkaConsumerProperties(String kafkaBrokersUrl, Credentials serviceUserCredentials) {
         HashMap<String, Object> props = kafkaBaseProperties(kafkaBrokersUrl, serviceUserCredentials);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "veilarbvedtaksstotte-consumer");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, CONSUMER_GROUP_ID);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 5000);
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 30 * 60 * 1000); // 30 minutes
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         return props;
@@ -88,7 +91,7 @@ public class KafkaConfig {
     private static HashMap<String, Object> kafkaProducerProperties (String kafkaBrokersUrl, Credentials serviceUserCredentials) {
         HashMap<String, Object> props = kafkaBaseProperties(kafkaBrokersUrl, serviceUserCredentials);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
-        props.put(ProducerConfig.CLIENT_ID_CONFIG, "veilarbvedtaksstotte-producer");
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, PRODUCER_GROUP_ID);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         return props;
