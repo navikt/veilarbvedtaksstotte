@@ -4,6 +4,7 @@ import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
+import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,9 @@ public class KafkaConsumerTest {
     @MockBean
     ArenaVedtakService arenaVedtakService;
 
+    @MockBean
+    InnsatsbehovService innsatsbehovService;
+
     @Autowired
     KafkaTemplate<String, String> kafkaTemplate;
 
@@ -50,7 +54,7 @@ public class KafkaConsumerTest {
         kafkaTemplate.send(kafkaTopics.getEndringPaAvsluttOppfolging(), toJson(melding));
 
         verifiserAsynkront(10, TimeUnit.SECONDS, () ->
-                verify(vedtakService, times(1)).behandleAvsluttOppfolging(any())
+                verify(innsatsbehovService, times(1)).behandleAvsluttOppfolging(any())
         );
 
         verifiserAsynkront(10, TimeUnit.SECONDS, () ->

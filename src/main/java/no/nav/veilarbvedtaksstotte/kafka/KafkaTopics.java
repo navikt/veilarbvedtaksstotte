@@ -13,6 +13,7 @@ public class KafkaTopics {
     public enum Topic {
         VEDTAK_SENDT, // Produce
         VEDTAK_STATUS_ENDRING, // Produce
+        INNSATSBEHOV, // Produce
         ENDRING_PA_AVSLUTT_OPPFOLGING, // Consume
         ENDRING_PA_OPPFOLGING_BRUKER, // Consume
         ARENA_VEDTAK // Consume
@@ -21,6 +22,8 @@ public class KafkaTopics {
     private String vedtakSendt;
 
     private String vedtakStatusEndring;
+
+    private String innsatsbehov;
 
     private String endringPaAvsluttOppfolging;
 
@@ -36,7 +39,8 @@ public class KafkaTopics {
         kafkaTopics.setEndringPaOppfolgingBruker("aapen-fo-endringPaaOppfoelgingsBruker-v1-" + topicPrefix);
         kafkaTopics.setVedtakSendt("aapen-oppfolging-vedtakSendt-v1-" + topicPrefix);
         kafkaTopics.setVedtakStatusEndring("aapen-oppfolging-vedtakStatusEndring-v1-" + topicPrefix);
-        kafkaTopics.setArenaVedtak("TODO-arena-vedtak-topic-name"); // TODO riktig navn på topic
+        kafkaTopics.setArenaVedtak("aapen-arena-14aVedtakIverksatt-v1-" + topicPrefix);
+        kafkaTopics.setInnsatsbehov("aapen-oppfolging-innsatsbehov-v1-" + topicPrefix);
         return kafkaTopics;
     }
 
@@ -56,10 +60,14 @@ public class KafkaTopics {
                 return vedtakSendt;
             case VEDTAK_STATUS_ENDRING:
                 return vedtakStatusEndring;
+            case INNSATSBEHOV:
+                return innsatsbehov;
             case ENDRING_PA_AVSLUTT_OPPFOLGING:
                 return endringPaAvsluttOppfolging;
             case ENDRING_PA_OPPFOLGING_BRUKER:
                 return endringPaOppfolgingBruker;
+            case ARENA_VEDTAK:
+                return arenaVedtak;
             default:
                 throw new IllegalArgumentException(format("Klarte ikke å mappe %s til string", getName(topic)));
         }
@@ -74,6 +82,10 @@ public class KafkaTopics {
             return Topic.ENDRING_PA_AVSLUTT_OPPFOLGING;
         } else if (endringPaOppfolgingBruker.equals(topicStr)) {
             return Topic.ENDRING_PA_OPPFOLGING_BRUKER;
+        } else if(innsatsbehov.equals(topicStr)) {
+            return Topic.INNSATSBEHOV;
+        } else if(arenaVedtak.equals(topicStr)) {
+            return Topic.ARENA_VEDTAK;
         }
 
         throw new IllegalArgumentException(format("Klarte ikke å mappe %s til enum", topicStr));

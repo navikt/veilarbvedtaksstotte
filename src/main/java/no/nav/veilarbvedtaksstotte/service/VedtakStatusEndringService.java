@@ -1,6 +1,9 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
@@ -21,7 +24,9 @@ public class VedtakStatusEndringService {
     private final VeilederService veilederService;
 
     @Autowired
-    public VedtakStatusEndringService(KafkaProducer kafkaProducer, MetricsService metricsService, VeilederService veilederService) {
+    public VedtakStatusEndringService(KafkaProducer kafkaProducer,
+                                      MetricsService metricsService,
+                                      VeilederService veilederService) {
         this.kafkaProducer = kafkaProducer;
         this.metricsService = metricsService;
         this.veilederService = veilederService;
@@ -110,6 +115,13 @@ public class VedtakStatusEndringService {
 
         kafkaProducer.sendVedtakStatusEndring(statusEndring);
         kafkaProducer.sendVedtakSendt(lagKafkaVedtakSendt(vedtak));
+
+        // TODO flytt til InnsatsbehovService?
+        kafkaProducer.sendInnsatsbehov(
+                new Innsatsbehov(
+                        AktorId.of(vedtak.getAktorId()),
+                        vedtak.getInnsatsgruppe(),
+                        HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal())));
 
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr);

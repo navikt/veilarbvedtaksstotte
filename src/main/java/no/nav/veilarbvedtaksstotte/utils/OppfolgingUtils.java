@@ -41,4 +41,7 @@ public class OppfolgingUtils {
         });
     }
 
+    public static boolean erDatoInnenforOppfolgingsperiode(LocalDateTime dato, OppfolgingPeriodeDTO oppfolgingPeriode) {
+        throw new RuntimeException("TODO"); // TODO
+    }
 }

@@ -10,6 +10,7 @@ import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
 import no.nav.veilarbvedtaksstotte.repository.domain.FeiletKafkaMelding;
 import no.nav.veilarbvedtaksstotte.repository.domain.MeldingType;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
+import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -41,6 +42,8 @@ public class KafkaFeilSchedule {
 
     private final ArenaVedtakService arenaVedtakService;
 
+    private final InnsatsbehovService innsatsbehovService;
+
 
     @Autowired
     public KafkaFeilSchedule(
@@ -49,7 +52,8 @@ public class KafkaFeilSchedule {
             KafkaProducer kafkaProducer,
             KafkaTopics kafkaTopics,
             VedtakService vedtakService,
-            ArenaVedtakService arenaVedtakService
+            ArenaVedtakService arenaVedtakService,
+            InnsatsbehovService innsatsbehovService
     ) {
         this.leaderElectionClient = leaderElectionClient;
         this.kafkaRepository = kafkaRepository;
@@ -57,6 +61,7 @@ public class KafkaFeilSchedule {
         this.kafkaTopics = kafkaTopics;
         this.vedtakService = vedtakService;
         this.arenaVedtakService = arenaVedtakService;
+        this.innsatsbehovService = innsatsbehovService;
     }
 
     @Scheduled(fixedDelay = FIFTEEN_MINUTES, initialDelay = ONE_MINUTE)
@@ -89,7 +94,7 @@ public class KafkaFeilSchedule {
                 arenaVedtakService.behandleVedtakFraArena(arenaVedtak);
             } else if (KafkaTopics.Topic.ENDRING_PA_AVSLUTT_OPPFOLGING.equals(topic)) {
                 KafkaAvsluttOppfolging melding = fromJson(json, KafkaAvsluttOppfolging.class);
-                vedtakService.behandleAvsluttOppfolging(melding);
+                innsatsbehovService.behandleAvsluttOppfolging(melding);
             } else if (KafkaTopics.Topic.ENDRING_PA_OPPFOLGING_BRUKER.equals(topic)) {
                 KafkaOppfolgingsbrukerEndring melding = fromJson(json, KafkaOppfolgingsbrukerEndring.class);
                 vedtakService.behandleOppfolgingsbrukerEndring(melding);

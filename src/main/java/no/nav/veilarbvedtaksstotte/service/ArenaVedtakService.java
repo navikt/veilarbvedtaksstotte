@@ -56,9 +56,8 @@ public class ArenaVedtakService {
     /**
      * @param arenaVedtak Kafka-melding om vedtak fra Arena
      *
-     * Behandling av Kafka-melding om vedtak fra Arena. Lagrer kun siste vedtak per fnr. For minst mulig logikk og
-     * for å unngå oppslag i andre tjenester i konsumering av Kafka-melding så:
-     *  - Tas det ikke høyde for endring av fnr her, dvs lagring per fnr og ikke per bruker
+     * Behandling av Kafka-melding om vedtak fra Arena. Lagrer kun siste vedtak per fnr. For minst mulig logikk så:
+     *  - Tas det her ikke høyde for endring av fnr, dvs lagring per fnr og ikke per bruker
      *  - Lagrer siste vedtak fra Arena selv om det finnes et nyere vedtak i denne løsningen
      */
     public void behandleVedtakFraArena(ArenaVedtak arenaVedtak) {

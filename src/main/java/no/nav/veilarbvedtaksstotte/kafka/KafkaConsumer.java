@@ -8,7 +8,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
-import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
+import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,25 +31,24 @@ public class KafkaConsumer {
 
     private final KafkaRepository kafkaRepository;
 
-    private final ArenaVedtakService arenaVedtakService;
+    private final InnsatsbehovService innsatsbehovService;
 
     @Autowired
     public KafkaConsumer(KafkaTopics kafkaTopics,
                          VedtakService vedtakService,
                          KafkaRepository kafkaRepository,
-                         ArenaVedtakService arenaVedtakService) {
+                         InnsatsbehovService innsatsbehovService) {
         this.kafkaTopics = kafkaTopics;
         this.vedtakService = vedtakService;
         this.kafkaRepository = kafkaRepository;
-        this.arenaVedtakService = arenaVedtakService;
+        this.innsatsbehovService = innsatsbehovService;
     }
 
     @KafkaListener(topics = "#{kafkaTopics.getEndringPaAvsluttOppfolging()}")
     public void consumeEndringPaAvsluttOppfolging(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
         consumeWithErrorHandling(() -> {
             KafkaAvsluttOppfolging melding = fromJson(record.value(), KafkaAvsluttOppfolging.class);
-            vedtakService.behandleAvsluttOppfolging(melding);
-            arenaVedtakService.behandleAvsluttOppfolging(melding);
+            innsatsbehovService.behandleAvsluttOppfolging(melding);
         }, record, acknowledgment);
     }
 
@@ -65,7 +64,7 @@ public class KafkaConsumer {
     public void consumeArenaVedtak(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
         consumeWithErrorHandling(() -> {
             ArenaVedtak arenaVedtak = fromJson(record.value(), ArenaVedtak.class);
-            arenaVedtakService.behandleVedtakFraArena(arenaVedtak);
+            innsatsbehovService.behandleEndringFraArena(arenaVedtak);
         }, record, acknowledgment);
     }
 

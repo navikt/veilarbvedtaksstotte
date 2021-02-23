@@ -4,10 +4,10 @@ import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.utils.DbUtils
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
-import java.sql.ResultSet
 
 @Repository
 class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
@@ -47,8 +47,15 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
     fun hentVedtak(fnr: Fnr): ArenaVedtak? {
         val sql = "SELECT * FROM $ARENA_VEDTAK_TABLE WHERE $FNR = ?"
         return DbUtils.queryForObjectOrNull {
-            jdbcTemplate.queryForObject(sql, this::arenaVedtakRowMapper, fnr.get())
+            jdbcTemplate.queryForObject(sql, arenaVedtakRowMapper, fnr.get())
         }
+    }
+
+    fun hentVedtakListe(fnrs: List<Fnr>): List<ArenaVedtak> {
+        val parameters = MapSqlParameterSource("fnrs", fnrs.map { it.get() })
+        val sql = "SELECT * FROM $ARENA_VEDTAK_TABLE WHERE $FNR = IN(:fnrs)"
+
+        return namedParameterJdbcTemplate.query(sql, parameters, arenaVedtakRowMapper)
     }
 
     fun slettVedtak(fnrs: List<Fnr>): Int {
@@ -57,8 +64,8 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
         return namedParameterJdbcTemplate.update(sql, parameters)
     }
 
-    private fun arenaVedtakRowMapper(rs: ResultSet, row: Int): ArenaVedtak {
-        return ArenaVedtak(
+    private val arenaVedtakRowMapper: RowMapper<ArenaVedtak> = RowMapper { rs, _ ->
+        ArenaVedtak(
             fnr = Fnr(rs.getString(FNR)),
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.valueOf(rs.getString(INNSATSGRUPPE)),
             hovedmal = rs.getString(HOVEDMAL)?.let { ArenaVedtak.ArenaHovedmal.valueOf(it) },

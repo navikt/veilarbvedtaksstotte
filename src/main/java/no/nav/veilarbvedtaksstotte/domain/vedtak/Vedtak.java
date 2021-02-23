@@ -33,4 +33,88 @@ public class Vedtak {
 
     @JsonIgnore
     boolean sender;
+
+    public long getId() {
+        return this.id;
+    }
+
+    public String getAktorId() {
+        return this.aktorId;
+    }
+
+    public Hovedmal getHovedmal() {
+        return this.hovedmal;
+    }
+
+    public Innsatsgruppe getInnsatsgruppe() {
+        return this.innsatsgruppe;
+    }
+
+    public VedtakStatus getVedtakStatus() {
+        return this.vedtakStatus;
+    }
+
+    public LocalDateTime getSistOppdatert() {
+        return this.sistOppdatert;
+    }
+
+    public LocalDateTime getUtkastOpprettet() {
+        return this.utkastOpprettet;
+    }
+
+    public String getBegrunnelse() {
+        return this.begrunnelse;
+    }
+
+    public String getVeilederIdent() {
+        return this.veilederIdent;
+    }
+
+    public String getVeilederNavn() {
+        return this.veilederNavn;
+    }
+
+    public String getOppfolgingsenhetId() {
+        return this.oppfolgingsenhetId;
+    }
+
+    public String getOppfolgingsenhetNavn() {
+        return this.oppfolgingsenhetNavn;
+    }
+
+    public String getBeslutterIdent() {
+        return this.beslutterIdent;
+    }
+
+    public String getBeslutterNavn() {
+        return this.beslutterNavn;
+    }
+
+    public boolean isGjeldende() {
+        return this.gjeldende;
+    }
+
+    public List<String> getOpplysninger() {
+        return this.opplysninger;
+    }
+
+    public String getJournalpostId() {
+        return this.journalpostId;
+    }
+
+    public String getDokumentInfoId() {
+        return this.dokumentInfoId;
+    }
+
+    public String getDokumentbestillingId() {
+        return this.dokumentbestillingId;
+    }
+
+    public BeslutterProsessStatus getBeslutterProsessStatus() {
+        return this.beslutterProsessStatus;
+    }
+
+    public boolean isSender() {
+        return this.sender;
+    }
 }

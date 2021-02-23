@@ -4,6 +4,7 @@ import no.nav.common.json.JsonUtils;
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
+import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
@@ -44,6 +45,9 @@ public class KafkaConsumerFailTest {
     @MockBean
     VedtakService vedtakService;
 
+    @MockBean
+    InnsatsbehovService innsatsbehovService;
+
     @Autowired
     EmbeddedKafkaBroker embeddedKafkaBroker;
 
@@ -60,7 +64,7 @@ public class KafkaConsumerFailTest {
 
         String jsonPayload = JsonUtils.toJson(melding);
 
-        doThrow(new RuntimeException()).when(vedtakService).behandleAvsluttOppfolging(any());
+        doThrow(new RuntimeException()).when(innsatsbehovService).behandleAvsluttOppfolging(any());
 
         kafkaTemplate.send(kafkaTopics.getEndringPaAvsluttOppfolging(), aktorId, toJson(melding));
 
@@ -95,7 +99,7 @@ public class KafkaConsumerFailTest {
         String aktorId = "111111111";
         KafkaAvsluttOppfolging melding = new KafkaAvsluttOppfolging(aktorId, ZonedDateTime.now());
 
-        doThrow(new RuntimeException()).when(vedtakService).behandleAvsluttOppfolging(any());
+        doThrow(new RuntimeException()).when(innsatsbehovService).behandleAvsluttOppfolging(any());
 
         doThrow(new RuntimeException()).when(kafkaTopics).strToTopic(any());
 

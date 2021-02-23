@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.kafka;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
@@ -10,7 +11,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import static java.lang.String.format;
-import static no.nav.common.json.JsonUtils.toJson;
+import static no.nav.veilarbvedtaksstotte.utils.JsonUtilsKt.toJson;
 
 @Slf4j
 @Component
@@ -35,6 +36,10 @@ public class KafkaProducer {
 
     public void sendVedtakSendt(KafkaVedtakSendt vedtakSendt) {
         send(KafkaTopics.Topic.VEDTAK_SENDT, vedtakSendt.getAktorId(), toJson(vedtakSendt));
+    }
+
+    public void sendInnsatsbehov(Innsatsbehov innsatsbehov) {
+        send(KafkaTopics.Topic.INNSATSBEHOV, innsatsbehov.getAktorId().get(), toJson(innsatsbehov));
     }
 
     public void sendTidligereFeilet(FeiletKafkaMelding feiletKafkaMelding) {

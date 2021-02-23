@@ -141,6 +141,7 @@ public class VedtakService {
         transactor.executeWithoutResult((status) -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getAktorId());
             vedtaksstotteRepository.ferdigstillVedtak(vedtak.getId(), dokumentSendt);
+            // TODO flytt til InnsatsbehovService?
             arenaVedtakService.slettArenaVedtakKopi(AktorId.of(vedtak.getAktorId()));
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });
@@ -373,10 +374,6 @@ public class VedtakService {
     public boolean harUtkast(String fnr) {
         String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
         return vedtaksstotteRepository.hentUtkast(aktorId) != null;
-    }
-
-    public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding.getAktorId());
     }
 
     public void behandleOppfolgingsbrukerEndring(KafkaOppfolgingsbrukerEndring endring) {
