@@ -1,11 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
-import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
+import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
@@ -23,33 +22,32 @@ import java.util.*
 @Service
 class InnsatsbehovService(
     val authService: AuthService,
+    val brukerIdentService: BrukerIdentService,
     val vedtakRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
     val arenaVedtakService: ArenaVedtakService,
-    val aktorOppslagClient: AktorOppslagClient,
     val veilarboppfolgingClient: VeilarboppfolgingClient,
     val transactor: TransactionTemplate,
     val kafkaProducer: KafkaProducer
 ) {
 
-
     fun gjeldendeInnsatsbehov(fnr: Fnr): Innsatsbehov? {
-        val authKontekst: AuthKontekst = authService.sjekkTilgangTilFnr(fnr.get())
-        return gjeldendeInnsatsbehovMedKilder(fnr, AktorId(authKontekst.aktorId)).innsatsbehov
+        authService.sjekkTilgangTilFnr(fnr.get())
+        val identer = brukerIdentService.hentIdenter(fnr)
+        return gjeldendeInnsatsbehovMedKilder(identer).innsatsbehov
     }
 
-    data class InnsatsbehovMedKilder(
+    private data class InnsatsbehovMedKilder(
         val innsatsbehov: Innsatsbehov?,
         val fraArena: Boolean,
-        val vedtak: Vedtak?,
+        val gjeldendeVedtak: Vedtak?,
         val arenaVedtak: List<ArenaVedtak>
     )
 
-    fun gjeldendeInnsatsbehovMedKilder(fnr: Fnr, aktorId: AktorId): InnsatsbehovMedKilder {
+    private fun gjeldendeInnsatsbehovMedKilder(identer: BrukerIdenter): InnsatsbehovMedKilder {
 
-        val vedtak: Vedtak? = vedtakRepository.hentGjeldendeVedtak(aktorId.get())
-        val fnrs = java.util.List.of(fnr) // TODO hent alle identer
-        val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(fnrs)
+        val vedtak: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
+        val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
         if (vedtak == null && arenaVedtakListe.isEmpty()) {
             return InnsatsbehovMedKilder(null, false, null, arenaVedtakListe)
@@ -64,7 +62,7 @@ class InnsatsbehovService(
         ) {
             return InnsatsbehovMedKilder(
                 innsatsbehov = Innsatsbehov(
-                    aktorId = aktorId,
+                    aktorId = identer.aktorId,
                     innsatsgruppe = vedtak.innsatsgruppe,
                     hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.hovedmal)
                 ),
@@ -75,7 +73,7 @@ class InnsatsbehovService(
         } else if (arenaVedtak != null) {
             return InnsatsbehovMedKilder(
                 innsatsbehov = Innsatsbehov(
-                    aktorId = aktorId,
+                    aktorId = identer.aktorId,
                     innsatsgruppe = ArenaInnsatsgruppe.tilInnsatsgruppe(arenaVedtak.innsatsgruppe),
                     hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(arenaVedtak.hovedmal)
                 ),
@@ -112,23 +110,26 @@ class InnsatsbehovService(
     }
 
     fun behandleEndringFraArena(arenaVedtak: ArenaVedtak) {
-        transactor.executeWithoutResult {
-            arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
-            videreBehandling(arenaVedtak.fnr)
-        }
+        // Idempotent oppdatering/lagring av vedtak fra Arena
+        arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
+
+        // Kan gjøres uavhengig oppdatering/lagring, derfor ikke i samme transaksjon. Feilhåndtering her skjer indirekte
+        // via feilhåndtering av Kafka-meldinger som vil bli behandlet på nytt ved feil.
+        oppdaterInnsatsbehov(arenaVedtak.fnr)
     }
 
-    fun videreBehandling(fnr: Fnr) {
-        val aktorId = aktorOppslagClient.hentAktorId(fnr)
+    fun oppdaterInnsatsbehov(fnr: Fnr) {
+        val identer = brukerIdentService.hentIdenter(fnr)
+        val gjeldendeVedtakDetailed = gjeldendeInnsatsbehovMedKilder(identer)
 
-        val gjeldendeVedtakDetailed = gjeldendeInnsatsbehovMedKilder(fnr, aktorId)
-
-        oppdaterGjeldende(gjeldendeVedtakDetailed)
+        transactor.executeWithoutResult {
+            oppdaterGrunnlagForGjeldendeVedtak(gjeldendeVedtakDetailed)
+        }
 
         kafkaProducer.sendInnsatsbehov(gjeldendeVedtakDetailed.innsatsbehov)
     }
 
-    fun oppdaterGjeldende(innsatsbehovMedKilder: InnsatsbehovMedKilder) {
+    private fun oppdaterGrunnlagForGjeldendeVedtak(innsatsbehovMedKilder: InnsatsbehovMedKilder) {
         val (_, fraArena, vedtak, arenaVedtak) = innsatsbehovMedKilder
 
         if (fraArena) {
@@ -141,7 +142,7 @@ class InnsatsbehovService(
                 arenaVedtakRepository.slettVedtak(arenaVedtak.map { it.fnr }.filterNot { it == sisteVedtakFnr })
             }
         } else {
-            if(arenaVedtak.isNotEmpty()) {
+            if (arenaVedtak.isNotEmpty()) {
                 arenaVedtakRepository.slettVedtak(arenaVedtak.map { it.fnr })
             }
         }

@@ -25,9 +25,9 @@ data class Innsatsbehov(
             @JvmStatic
             fun fraArenaHovedmal(arenaHovedmal: ArenaHovedmal?): HovedmalMedOkeDeltakelse? =
                 when (arenaHovedmal) {
-                    ArenaHovedmal.SKAFFE_ARBEID -> HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
-                    ArenaHovedmal.BEHOLDE_ARBEID -> HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
-                    ArenaHovedmal.OKE_DELTAKELSE -> HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+                    ArenaHovedmal.SKAFFE_ARBEID -> SKAFFE_ARBEID
+                    ArenaHovedmal.BEHOLDE_ARBEID -> BEHOLDE_ARBEID
+                    ArenaHovedmal.OKE_DELTAKELSE -> OKE_DELTAKELSE
                     null -> null
                 }
         }
