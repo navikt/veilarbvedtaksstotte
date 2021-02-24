@@ -36,9 +36,6 @@ public class KafkaConsumerTest {
     VedtakService vedtakService;
 
     @MockBean
-    ArenaVedtakService arenaVedtakService;
-
-    @MockBean
     InnsatsbehovService innsatsbehovService;
 
     @Autowired
@@ -55,10 +52,6 @@ public class KafkaConsumerTest {
 
         verifiserAsynkront(10, TimeUnit.SECONDS, () ->
                 verify(innsatsbehovService, times(1)).behandleAvsluttOppfolging(any())
-        );
-
-        verifiserAsynkront(10, TimeUnit.SECONDS, () ->
-                verify(arenaVedtakService).behandleAvsluttOppfolging(any())
         );
     }
 

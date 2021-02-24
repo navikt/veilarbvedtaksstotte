@@ -15,6 +15,7 @@ import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.util.*
@@ -30,6 +31,8 @@ class InnsatsbehovService(
     val transactor: TransactionTemplate,
     val kafkaProducer: KafkaProducer
 ) {
+
+    val log = LoggerFactory.getLogger(InnsatsbehovService::class.java)
 
     fun gjeldendeInnsatsbehov(fnr: Fnr): Innsatsbehov? {
         authService.sjekkTilgangTilFnr(fnr.get())
@@ -149,10 +152,17 @@ class InnsatsbehovService(
     }
 
     fun behandleAvsluttOppfolging(melding: KafkaAvsluttOppfolging) {
+        val identer = brukerIdentService.hentIdenter(AktorId(melding.aktorId))
+
         transactor.executeWithoutResult {
             vedtakRepository.settGjeldendeVedtakTilHistorisk(melding.aktorId)
             arenaVedtakService.slettArenaVedtakKopi(AktorId.of(melding.aktorId))
+            val antall = arenaVedtakRepository.slettVedtak(identer.historiskeFnr.plus(identer.fnr))
+            if (antall > 0) {
+                log.info("Slettet $antall kopi(er) av vedtak fra Arena for aktorId=${identer.aktorId}")
+            }
         }
+
         kafkaProducer.sendInnsatsbehov(null)
     }
 }

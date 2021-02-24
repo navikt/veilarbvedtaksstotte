@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Import;
         VedtakStatusEndringService.class,
         VeilederService.class,
         DokumentServiceV2.class,
-        UnleashService.class
+        UnleashService.class,
+        InnsatsbehovService.class,
+        BrukerIdentService.class
 })
 public class ServiceTestConfig {}

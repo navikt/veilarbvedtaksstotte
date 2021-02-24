@@ -8,7 +8,6 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,10 +73,6 @@ public class ArenaVedtakService {
         }
 
         arenaVedtakRepository.upsertVedtak(arenaVedtak);
-    }
-
-    public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
-        slettArenaVedtakKopi(AktorId.of(melding.getAktorId()));
     }
 
     public void slettArenaVedtakKopi(AktorId aktorId) {
