@@ -153,5 +153,6 @@ class InnsatsbehovService(
             vedtakRepository.settGjeldendeVedtakTilHistorisk(melding.aktorId)
             arenaVedtakService.slettArenaVedtakKopi(AktorId.of(melding.aktorId))
         }
+        kafkaProducer.sendInnsatsbehov(null)
     }
 }

@@ -116,7 +116,6 @@ public class VedtakStatusEndringService {
         kafkaProducer.sendVedtakStatusEndring(statusEndring);
         kafkaProducer.sendVedtakSendt(lagKafkaVedtakSendt(vedtak));
 
-        // TODO flytt til InnsatsbehovService?
         kafkaProducer.sendInnsatsbehov(
                 new Innsatsbehov(
                         AktorId.of(vedtak.getAktorId()),

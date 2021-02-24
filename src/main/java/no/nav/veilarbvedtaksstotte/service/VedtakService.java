@@ -141,7 +141,6 @@ public class VedtakService {
         transactor.executeWithoutResult((status) -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getAktorId());
             vedtaksstotteRepository.ferdigstillVedtak(vedtak.getId(), dokumentSendt);
-            // TODO flytt til InnsatsbehovService?
             arenaVedtakService.slettArenaVedtakKopi(AktorId.of(vedtak.getAktorId()));
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });
