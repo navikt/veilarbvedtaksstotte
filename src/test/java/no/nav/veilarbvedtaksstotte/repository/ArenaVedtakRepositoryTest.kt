@@ -4,6 +4,7 @@ import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
+import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Test
@@ -81,6 +82,28 @@ class ArenaVedtakRepositoryTest {
     }
 
     @Test
+    fun `hent liste av arena-vedtak basert på liste av fnr`() {
+        val arenaVedtak1 = ArenaVedtak(
+            fnr = Fnr(randomNumeric(10)),
+            innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
+            hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFE_ARBEID,
+            fraDato = LocalDateTime.now(),
+            regUser = "reg user"
+        )
+        val arenaVedtak2 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))
+        val arenaVedtak3 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))
+        arenaVedtakRepository.upsertVedtak(arenaVedtak1)
+        arenaVedtakRepository.upsertVedtak(arenaVedtak2)
+        arenaVedtakRepository.upsertVedtak(arenaVedtak3)
+
+        val hentVedtakListe =
+            arenaVedtakRepository.hentVedtakListe(listOf(arenaVedtak1.fnr, arenaVedtak2.fnr, arenaVedtak3.fnr))
+
+
+        assertThat(hentVedtakListe, containsInAnyOrder(arenaVedtak1, arenaVedtak2, arenaVedtak3))
+    }
+
+    @Test
     fun `sletter arena-vedtak basert på liste av fnr`() {
         val arenaVedtak1 = ArenaVedtak(
             fnr = Fnr(randomNumeric(10)),
@@ -96,13 +119,13 @@ class ArenaVedtakRepositoryTest {
         arenaVedtakRepository.upsertVedtak(arenaVedtak2)
         arenaVedtakRepository.upsertVedtak(arenaVedtak3)
 
-        assertNotNull(arenaVedtakRepository.hentVedtak(arenaVedtak1.fnr))
-        assertNotNull(arenaVedtakRepository.hentVedtak(arenaVedtak2.fnr))
-        assertNotNull(arenaVedtakRepository.hentVedtak(arenaVedtak3.fnr))
+        assertEquals(arenaVedtak1, arenaVedtakRepository.hentVedtak(arenaVedtak1.fnr))
+        assertEquals(arenaVedtak2, arenaVedtakRepository.hentVedtak(arenaVedtak2.fnr))
+        assertEquals(arenaVedtak3, arenaVedtakRepository.hentVedtak(arenaVedtak3.fnr))
 
         val antall = arenaVedtakRepository.slettVedtak(listOf(arenaVedtak1.fnr, arenaVedtak3.fnr))
 
-        assertEquals(2, antall)
+        assertEquals("Antall slettet", 2, antall)
 
         assertNull(arenaVedtakRepository.hentVedtak(arenaVedtak1.fnr))
         assertNotNull(arenaVedtakRepository.hentVedtak(arenaVedtak2.fnr))

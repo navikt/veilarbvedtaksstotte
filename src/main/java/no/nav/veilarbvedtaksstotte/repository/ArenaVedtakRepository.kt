@@ -53,7 +53,7 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
 
     fun hentVedtakListe(fnrs: List<Fnr>): List<ArenaVedtak> {
         val parameters = MapSqlParameterSource("fnrs", fnrs.map { it.get() })
-        val sql = "SELECT * FROM $ARENA_VEDTAK_TABLE WHERE $FNR = IN(:fnrs)"
+        val sql = "SELECT * FROM $ARENA_VEDTAK_TABLE WHERE $FNR IN(:fnrs)"
 
         return namedParameterJdbcTemplate.query(sql, parameters, arenaVedtakRowMapper)
     }
