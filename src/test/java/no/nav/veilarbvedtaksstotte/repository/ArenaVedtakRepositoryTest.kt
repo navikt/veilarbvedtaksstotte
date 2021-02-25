@@ -97,10 +97,10 @@ class ArenaVedtakRepositoryTest {
         arenaVedtakRepository.upsertVedtak(arenaVedtak3)
 
         val hentVedtakListe =
-            arenaVedtakRepository.hentVedtakListe(listOf(arenaVedtak1.fnr, arenaVedtak2.fnr, arenaVedtak3.fnr))
+            arenaVedtakRepository.hentVedtakListe(listOf(arenaVedtak1.fnr, arenaVedtak3.fnr))
 
 
-        assertThat(hentVedtakListe, containsInAnyOrder(arenaVedtak1, arenaVedtak2, arenaVedtak3))
+        assertThat(hentVedtakListe, containsInAnyOrder(arenaVedtak1, arenaVedtak3))
     }
 
     @Test
