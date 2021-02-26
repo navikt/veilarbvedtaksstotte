@@ -43,6 +43,7 @@ public class OppfolgingUtilsTest {
 
         assertTrue("innenfor periode",
                 OppfolgingUtils.erDatoInnenforOppfolgingsperiode(now, periode(now.minusDays(1), now)));
+
         assertTrue("innenfor når dato er lik startdato",
                 OppfolgingUtils.erDatoInnenforOppfolgingsperiode(now, periode(now, now.plusDays(1))));
         assertTrue("innenfor når dato er lik sluttdato",
@@ -52,6 +53,11 @@ public class OppfolgingUtilsTest {
                 OppfolgingUtils.erDatoInnenforOppfolgingsperiode(now.minusDays(1).minusSeconds(1), periode(now.minusDays(1), now)));
         assertFalse("utenfor når dato er etter sluttdato",
                 OppfolgingUtils.erDatoInnenforOppfolgingsperiode(now.plusDays(1).plusSeconds(1), periode(now, now.plusDays(1))));
+
+        assertTrue("innenfor når dato er etter startdato og sluttdato er null",
+                OppfolgingUtils.erDatoInnenforOppfolgingsperiode(now, periode(now.minusDays(1), null)));
+        assertFalse("utenfor når dato er før startdato og sluttdato er null",
+                OppfolgingUtils.erDatoInnenforOppfolgingsperiode(now.minusDays(1).minusSeconds(1), periode(now.minusDays(1), null)));
     }
 
     private OppfolgingPeriodeDTO periode(LocalDateTime start, LocalDateTime slutt) {

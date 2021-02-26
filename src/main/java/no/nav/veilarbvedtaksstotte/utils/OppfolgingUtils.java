@@ -43,6 +43,8 @@ public class OppfolgingUtils {
 
     public static boolean erDatoInnenforOppfolgingsperiode(LocalDateTime dato,
                                                            OppfolgingPeriodeDTO oppfolgingPeriode) {
-        return !dato.isBefore(oppfolgingPeriode.getStartDato()) && !dato.isAfter(oppfolgingPeriode.getSluttDato());
+        return !dato.isBefore(oppfolgingPeriode.getStartDato()) &&
+                (oppfolgingPeriode.getSluttDato() == null || !dato.isAfter(oppfolgingPeriode.getSluttDato()));
+
     }
 }
