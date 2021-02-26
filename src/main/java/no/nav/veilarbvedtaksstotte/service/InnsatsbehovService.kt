@@ -91,20 +91,20 @@ class InnsatsbehovService(
     private fun sisteArenaVedtakInnenforGjeldendeOppfolgingsperiode(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {
         val sisteArenaVedtak = finnSisteArenaVedtak(arenaVedtakListe)
 
-        return if (sisteArenaVedtak != null) {
-            val oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(sisteArenaVedtak.fnr.get())
-            val sisteOppfolgingsperiode: OppfolgingPeriodeDTO? =
-                OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder).orElse(null)
+        if (sisteArenaVedtak == null) {
+            return null
+        }
 
-            if (sisteOppfolgingsperiode != null &&
-                OppfolgingUtils.erDatoInnenforOppfolgingsperiode(sisteArenaVedtak.fraDato, sisteOppfolgingsperiode)
-            ) {
-                sisteArenaVedtak
-            } else {
-                null
-            }
+        val oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(sisteArenaVedtak.fnr.get())
+        val sisteOppfolgingsperiode: OppfolgingPeriodeDTO? =
+            OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder).orElse(null)
+
+        if (sisteOppfolgingsperiode != null &&
+            OppfolgingUtils.erDatoInnenforOppfolgingsperiode(sisteArenaVedtak.fraDato, sisteOppfolgingsperiode)
+        ) {
+            return sisteArenaVedtak
         } else {
-            null
+            return null
         }
     }
 
@@ -116,8 +116,10 @@ class InnsatsbehovService(
         // Idempotent oppdatering/lagring av vedtak fra Arena
         arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
 
-        // Kan gjøres uavhengig oppdatering/lagring, derfor ikke i samme transaksjon. Feilhåndtering her skjer indirekte
-        // via feilhåndtering av Kafka-meldinger som vil bli behandlet på nytt ved feil.
+        // Oppdatering som følger kan gjøres uavhengig av idempotent oppdatering/lagring over. Derfor er ikke
+        // oppdateringene i samme transaksjon, og følgende oppdatering kunne f.eks. også vært kjørt uavhengig i en
+        // scheduled task. Feilhåndtering her skjer indirekte via feilhåndtering av Kafka-meldinger som vil bli
+        // behandlet på nytt ved feil.
         oppdaterInnsatsbehov(arenaVedtak.fnr)
     }
 

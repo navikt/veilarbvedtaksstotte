@@ -18,7 +18,6 @@ import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;

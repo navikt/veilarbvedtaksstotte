@@ -1,10 +1,14 @@
 package no.nav.veilarbvedtaksstotte.kafka
 
+import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
+import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.verifiserAsynkront
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.Test
@@ -26,6 +30,9 @@ class ArenaVedtakConsumerTest {
     @SpyBean
     lateinit var arenaVedtakService: ArenaVedtakService
 
+    @SpyBean
+    lateinit var kafkaProducer: KafkaProducer
+
     @Autowired
     lateinit var kafkaTemplate: KafkaTemplate<String, String>
 
@@ -33,7 +40,7 @@ class ArenaVedtakConsumerTest {
     lateinit var kafkaTopics: KafkaTopics
 
     @Test
-    fun `meldinger for vedtak fra arena blir konsumert`() {
+    fun `meldinger for vedtak fra arena blir konsumert og innsatsbehov blir sendt på kafka`() {
         val arenaVedtak = ArenaVedtak(
             fnr = Fnr(RandomStringUtils.randomNumeric(10)),
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
@@ -46,6 +53,12 @@ class ArenaVedtakConsumerTest {
 
         verifiserAsynkront(10, TimeUnit.SECONDS) {
             verify(arenaVedtakService).behandleVedtakFraArena(eq(arenaVedtak))
+            verify(kafkaProducer).sendInnsatsbehov(eq(
+                Innsatsbehov(
+                    aktorId = AktorId(TEST_AKTOR_ID),
+                    innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+                    hovedmal = Innsatsbehov.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+                )))
         }
     }
 }
