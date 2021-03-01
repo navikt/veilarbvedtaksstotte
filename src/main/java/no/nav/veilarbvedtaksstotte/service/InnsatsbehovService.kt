@@ -22,38 +22,43 @@ import java.util.*
 
 @Service
 class InnsatsbehovService(
-    val authService: AuthService,
-    val brukerIdentService: BrukerIdentService,
+    val transactor: TransactionTemplate,
+    val kafkaProducer: KafkaProducer,
     val vedtakRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
+    val authService: AuthService,
+    val brukerIdentService: BrukerIdentService,
     val arenaVedtakService: ArenaVedtakService,
     val veilarboppfolgingClient: VeilarboppfolgingClient,
-    val transactor: TransactionTemplate,
-    val kafkaProducer: KafkaProducer
 ) {
 
     val log = LoggerFactory.getLogger(InnsatsbehovService::class.java)
 
     fun gjeldendeInnsatsbehov(fnr: Fnr): Innsatsbehov? {
         authService.sjekkTilgangTilFnr(fnr.get())
-        val identer = brukerIdentService.hentIdenter(fnr)
+        val identer: BrukerIdenter = brukerIdentService.hentIdenter(fnr)
         return gjeldendeInnsatsbehovMedKilder(identer).innsatsbehov
     }
 
-    private data class InnsatsbehovMedKilder(
+    private data class InnsatsbehovMedGrunnlag(
         val innsatsbehov: Innsatsbehov?,
         val fraArena: Boolean,
         val gjeldendeVedtak: Vedtak?,
         val arenaVedtak: List<ArenaVedtak>
     )
 
-    private fun gjeldendeInnsatsbehovMedKilder(identer: BrukerIdenter): InnsatsbehovMedKilder {
+    private fun gjeldendeInnsatsbehovMedKilder(identer: BrukerIdenter): InnsatsbehovMedGrunnlag {
 
         val vedtak: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
         if (vedtak == null && arenaVedtakListe.isEmpty()) {
-            return InnsatsbehovMedKilder(null, false, null, arenaVedtakListe)
+            return InnsatsbehovMedGrunnlag(
+                innsatsbehov = null,
+                fraArena = false,
+                gjeldendeVedtak = null,
+                arenaVedtak = arenaVedtakListe
+            )
         }
 
         val arenaVedtak = sisteArenaVedtakInnenforGjeldendeOppfolgingsperiode(arenaVedtakListe)
@@ -63,29 +68,34 @@ class InnsatsbehovService(
             (vedtak != null && arenaVedtak != null &&
                     vedtak.sistOppdatert.isAfter(arenaVedtak.fraDato))
         ) {
-            return InnsatsbehovMedKilder(
+            return InnsatsbehovMedGrunnlag(
                 innsatsbehov = Innsatsbehov(
                     aktorId = identer.aktorId,
                     innsatsgruppe = vedtak.innsatsgruppe,
                     hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.hovedmal)
                 ),
                 fraArena = false,
-                vedtak,
-                arenaVedtakListe
+                gjeldendeVedtak = vedtak,
+                arenaVedtak = arenaVedtakListe
             )
         } else if (arenaVedtak != null) {
-            return InnsatsbehovMedKilder(
+            return InnsatsbehovMedGrunnlag(
                 innsatsbehov = Innsatsbehov(
                     aktorId = identer.aktorId,
                     innsatsgruppe = ArenaInnsatsgruppe.tilInnsatsgruppe(arenaVedtak.innsatsgruppe),
                     hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(arenaVedtak.hovedmal)
                 ),
                 fraArena = true,
-                vedtak,
-                arenaVedtakListe
+                gjeldendeVedtak = vedtak,
+                arenaVedtak = arenaVedtakListe
             )
         }
-        return InnsatsbehovMedKilder(null, false, vedtak, arenaVedtakListe)
+        return InnsatsbehovMedGrunnlag(
+            innsatsbehov = null,
+            fraArena = false,
+            gjeldendeVedtak = vedtak,
+            arenaVedtak = arenaVedtakListe
+        )
     }
 
     private fun sisteArenaVedtakInnenforGjeldendeOppfolgingsperiode(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {
@@ -100,6 +110,7 @@ class InnsatsbehovService(
             OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder).orElse(null)
 
         if (sisteOppfolgingsperiode != null &&
+            OppfolgingUtils.erOppfolgingsperiodeAktiv(sisteOppfolgingsperiode) &&
             OppfolgingUtils.erDatoInnenforOppfolgingsperiode(sisteArenaVedtak.fraDato, sisteOppfolgingsperiode)
         ) {
             return sisteArenaVedtak
@@ -134,21 +145,21 @@ class InnsatsbehovService(
         kafkaProducer.sendInnsatsbehov(gjeldendeVedtakDetailed.innsatsbehov)
     }
 
-    private fun oppdaterGrunnlagForGjeldendeVedtak(innsatsbehovMedKilder: InnsatsbehovMedKilder) {
-        val (_, fraArena, vedtak, arenaVedtak) = innsatsbehovMedKilder
+    private fun oppdaterGrunnlagForGjeldendeVedtak(innsatsbehovMedGrunnlag: InnsatsbehovMedGrunnlag) {
+        val (_, fraArena, vedtak, arenaVedtakListe) = innsatsbehovMedGrunnlag
 
         if (fraArena) {
             if (vedtak != null && vedtak.isGjeldende) {
                 vedtakRepository.settGjeldendeVedtakTilHistorisk(vedtak.aktorId)
             }
             // Håndterer endring av fnr for bruker
-            if (arenaVedtak.size > 1) {
-                val sisteVedtakFnr = finnSisteArenaVedtak(arenaVedtak)?.fnr
-                arenaVedtakRepository.slettVedtak(arenaVedtak.map { it.fnr }.filterNot { it == sisteVedtakFnr })
+            if (arenaVedtakListe.size > 1) {
+                val sisteVedtakFnr = finnSisteArenaVedtak(arenaVedtakListe)?.fnr
+                arenaVedtakRepository.slettVedtak(arenaVedtakListe.map { it.fnr }.filterNot { it == sisteVedtakFnr })
             }
         } else {
-            if (arenaVedtak.isNotEmpty()) {
-                arenaVedtakRepository.slettVedtak(arenaVedtak.map { it.fnr })
+            if (arenaVedtakListe.isNotEmpty()) {
+                arenaVedtakRepository.slettVedtak(arenaVedtakListe.map { it.fnr })
             }
         }
     }
@@ -158,13 +169,17 @@ class InnsatsbehovService(
 
         transactor.executeWithoutResult {
             vedtakRepository.settGjeldendeVedtakTilHistorisk(melding.aktorId)
-            arenaVedtakService.slettArenaVedtakKopi(AktorId.of(melding.aktorId))
-            val antall = arenaVedtakRepository.slettVedtak(identer.historiskeFnr.plus(identer.fnr))
-            if (antall > 0) {
-                log.info("Slettet $antall kopi(er) av vedtak fra Arena for aktorId=${identer.aktorId}")
-            }
+            slettArenaVedtakKopier(identer)
         }
 
         kafkaProducer.sendInnsatsbehov(null)
+    }
+
+    private fun slettArenaVedtakKopier(identer: BrukerIdenter) {
+
+        val antall = arenaVedtakRepository.slettVedtak(identer.historiskeFnr.plus(identer.fnr))
+        if (antall > 0) {
+            log.info("Slettet $antall kopi(er) av vedtak fra Arena for aktorId=${identer.aktorId}")
+        }
     }
 }

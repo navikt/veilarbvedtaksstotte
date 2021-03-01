@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse;
@@ -23,13 +24,17 @@ public class VedtakStatusEndringService {
 
     private final VeilederService veilederService;
 
+    private final InnsatsbehovService innsatsbehovService;
+
     @Autowired
     public VedtakStatusEndringService(KafkaProducer kafkaProducer,
                                       MetricsService metricsService,
-                                      VeilederService veilederService) {
+                                      VeilederService veilederService,
+                                      InnsatsbehovService innsatsbehovService) {
         this.kafkaProducer = kafkaProducer;
         this.metricsService = metricsService;
         this.veilederService = veilederService;
+        this.innsatsbehovService = innsatsbehovService;
     }
 
     public void utkastOpprettet(Vedtak vedtak) {
@@ -121,6 +126,9 @@ public class VedtakStatusEndringService {
                         AktorId.of(vedtak.getAktorId()),
                         vedtak.getInnsatsgruppe(),
                         HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal())));
+
+        // TODO Ingen feilhåndtering/retry her
+        innsatsbehovService.oppdaterInnsatsbehov(Fnr.of(fnr));
 
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr);

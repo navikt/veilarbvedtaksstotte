@@ -22,7 +22,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
     private static VedtakService vedtakService = new VedtakService(
             null, null,null, null,
             null, null, null,null,null,null,null,
-            null, null, null, null, null
+            null, null, null, null
     );
 
     @Test

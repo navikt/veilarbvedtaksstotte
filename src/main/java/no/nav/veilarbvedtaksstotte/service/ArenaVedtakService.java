@@ -1,9 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.common.client.aktoroppslag.AktorOppslagClient;
-import no.nav.common.types.identer.AktorId;
-import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
@@ -17,8 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
-
 @Slf4j
 @Service
 public class ArenaVedtakService {
@@ -29,17 +24,14 @@ public class ArenaVedtakService {
     private ArenaVedtakRepository arenaVedtakRepository;
     private SafClient safClient;
     private AuthService authService;
-    private AktorOppslagClient aktorOppslagClient;
 
     @Autowired
     public ArenaVedtakService(ArenaVedtakRepository arenaVedtakRepository,
                               SafClient safClient,
-                              AuthService authService,
-                              AktorOppslagClient aktorOppslagClient) {
+                              AuthService authService) {
         this.arenaVedtakRepository = arenaVedtakRepository;
         this.safClient = safClient;
         this.authService = authService;
-        this.aktorOppslagClient = aktorOppslagClient;
     }
 
     public List<ArkivertVedtak> hentVedtakFraArena(String fnr) {
@@ -73,15 +65,6 @@ public class ArenaVedtakService {
         }
 
         arenaVedtakRepository.upsertVedtak(arenaVedtak);
-    }
-
-    public void slettArenaVedtakKopi(AktorId aktorId) {
-        List<Fnr> fnr = List.of(aktorOppslagClient.hentFnr(aktorId)); // TODO hent alle identer
-        int antall = arenaVedtakRepository.slettVedtak(fnr);
-        if (antall > 0) {
-            log.info(format("Slettet %s kopi(er) av vedtak fra Arena for aktorId=%s",
-                    antall, aktorId));
-        }
     }
 
     protected List<ArkivertVedtak> hentArkiverteVedtakFraArena(String fnr) {

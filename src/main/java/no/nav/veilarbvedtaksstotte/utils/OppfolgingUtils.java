@@ -47,4 +47,10 @@ public class OppfolgingUtils {
                 (oppfolgingPeriode.getSluttDato() == null || !dato.isAfter(oppfolgingPeriode.getSluttDato()));
 
     }
+
+    public static boolean erOppfolgingsperiodeAktiv(OppfolgingPeriodeDTO oppfolgingPeriode) {
+        LocalDateTime now = LocalDateTime.now();
+        return !oppfolgingPeriode.getStartDato().isAfter(now) &&
+                (oppfolgingPeriode.getSluttDato() == null || !oppfolgingPeriode.getSluttDato().isBefore(now));
+    }
 }

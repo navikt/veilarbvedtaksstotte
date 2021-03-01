@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.EnvironmentUtils;
@@ -40,7 +39,6 @@ import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutt
 public class VedtakService {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
-    private final ArenaVedtakService arenaVedtakService;
     private final OyeblikksbildeService oyeblikksbildeService;
     private final KilderRepository kilderRepository;
     private final MeldingRepository meldingRepository;
@@ -59,7 +57,6 @@ public class VedtakService {
     @Autowired
     public VedtakService(
             VedtaksstotteRepository vedtaksstotteRepository,
-            ArenaVedtakService arenaVedtakService,
             KilderRepository kilderRepository,
             OyeblikksbildeService oyeblikksbildeService,
             MeldingRepository meldingRepository,
@@ -76,7 +73,6 @@ public class VedtakService {
             UnleashService unleashService
     ) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
-        this.arenaVedtakService = arenaVedtakService;
         this.kilderRepository = kilderRepository;
         this.oyeblikksbildeService = oyeblikksbildeService;
         this.meldingRepository = meldingRepository;
@@ -140,7 +136,6 @@ public class VedtakService {
         transactor.executeWithoutResult((status) -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getAktorId());
             vedtaksstotteRepository.ferdigstillVedtak(vedtak.getId(), dokumentSendt);
-            arenaVedtakService.slettArenaVedtakKopi(AktorId.of(vedtak.getAktorId()));
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });
 
@@ -197,7 +192,6 @@ public class VedtakService {
         transactor.executeWithoutResult(status -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getAktorId());
             vedtaksstotteRepository.ferdigstillVedtakV2(vedtakId);
-            arenaVedtakService.slettArenaVedtakKopi(AktorId.of(vedtak.getAktorId()));
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });
 
