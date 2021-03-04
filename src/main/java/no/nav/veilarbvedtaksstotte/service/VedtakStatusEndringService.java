@@ -125,7 +125,7 @@ public class VedtakStatusEndringService {
                 .setAktorId(vedtak.getAktorId())
                 .setHovedmal(vedtak.getHovedmal())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setVedtakSendt(vedtak.getUtkastSistOppdatert())
+                .setVedtakSendt(vedtak.getVedtakFattet())
                 .setEnhetId(vedtak.getOppfolgingsenhetId());
     }
 
