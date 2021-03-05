@@ -6,6 +6,7 @@ import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.kafka.dto.VedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +21,14 @@ public class VedtakStatusEndringService {
 
     private final VeilederService veilederService;
 
+    private final VedtaksstotteRepository vedtaksstotteRepository;
+
     @Autowired
-    public VedtakStatusEndringService(KafkaProducer kafkaProducer, MetricsService metricsService, VeilederService veilederService) {
+    public VedtakStatusEndringService(KafkaProducer kafkaProducer, MetricsService metricsService, VeilederService veilederService, VedtaksstotteRepository vedtaksstotteRepository) {
         this.kafkaProducer = kafkaProducer;
         this.metricsService = metricsService;
         this.veilederService = veilederService;
+        this.vedtaksstotteRepository = vedtaksstotteRepository;
     }
 
     public void utkastOpprettet(Vedtak vedtak) {
@@ -101,7 +105,8 @@ public class VedtakStatusEndringService {
         kafkaProducer.sendVedtakStatusEndring(overtaForVeileder);
     }
 
-    public void vedtakSendt(Vedtak vedtak, String fnr) {
+    public void vedtakSendt(Long vedtakId, String fnr) {
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         KafkaVedtakStatusEndring.VedtakSendt statusEndring = new KafkaVedtakStatusEndring.VedtakSendt()
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
                 .setHovedmal(vedtak.getHovedmal());
@@ -122,7 +127,7 @@ public class VedtakStatusEndringService {
                 .setAktorId(vedtak.getAktorId())
                 .setHovedmal(vedtak.getHovedmal())
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setVedtakSendt(vedtak.getSistOppdatert())
+                .setVedtakSendt(vedtak.getVedtakFattet())
                 .setEnhetId(vedtak.getOppfolgingsenhetId());
     }
 
