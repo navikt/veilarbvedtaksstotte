@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
@@ -146,40 +145,39 @@ class InnsatsbehovService(
     }
 
     private fun oppdaterGrunnlagForGjeldendeVedtak(innsatsbehovMedGrunnlag: InnsatsbehovMedGrunnlag) {
-        val (_, fraArena, vedtak, arenaVedtakListe) = innsatsbehovMedGrunnlag
+        val (innsatsbehov, fraArena, vedtak, arenaVedtakListe) = innsatsbehovMedGrunnlag
 
         if (fraArena) {
-            if (vedtak != null && vedtak.isGjeldende) {
-                vedtakRepository.settGjeldendeVedtakTilHistorisk(vedtak.aktorId)
-            }
-            // Håndterer endring av fnr for bruker
-            if (arenaVedtakListe.size > 1) {
-                val sisteVedtakFnr = finnSisteArenaVedtak(arenaVedtakListe)?.fnr
-                arenaVedtakRepository.slettVedtak(arenaVedtakListe.map { it.fnr }.filterNot { it == sisteVedtakFnr })
-            }
+            settVedtakTilHistorisk(vedtak)
+            slettGamleArenaVedtak(arenaVedtakListe)
+        } else if (innsatsbehov != null && arenaVedtakListe.isNotEmpty()) {
+            // Vedtak fra denne løsningen
+            arenaVedtakRepository.slettVedtak(arenaVedtakListe.map { it.fnr })
         } else {
-            if (arenaVedtakListe.isNotEmpty()) {
-                arenaVedtakRepository.slettVedtak(arenaVedtakListe.map { it.fnr })
-            }
+            // Ingen gjeldende vedtak
+            slettGamleArenaVedtak(arenaVedtakListe)
         }
     }
+
+    private fun settVedtakTilHistorisk(vedtak: Vedtak?) {
+        if (vedtak != null && vedtak.isGjeldende) {
+            vedtakRepository.settGjeldendeVedtakTilHistorisk(vedtak.aktorId)
+        }
+    }
+
+    private fun slettGamleArenaVedtak(arenaVedtakListe: List<ArenaVedtak>) {
+        // Håndterer endring av fnr for bruker
+        if (arenaVedtakListe.size > 1) {
+            val sisteVedtakFnr = finnSisteArenaVedtak(arenaVedtakListe)?.fnr
+            arenaVedtakRepository.slettVedtak(arenaVedtakListe.map { it.fnr }.filterNot { it == sisteVedtakFnr })
+        }
+    }
+
 
     fun behandleAvsluttOppfolging(melding: KafkaAvsluttOppfolging) {
-        val identer = brukerIdentService.hentIdenter(AktorId(melding.aktorId))
-
         transactor.executeWithoutResult {
             vedtakRepository.settGjeldendeVedtakTilHistorisk(melding.aktorId)
-            slettArenaVedtakKopier(identer)
         }
-
         kafkaProducer.sendInnsatsbehov(null)
-    }
-
-    private fun slettArenaVedtakKopier(identer: BrukerIdenter) {
-
-        val antall = arenaVedtakRepository.slettVedtak(identer.historiskeFnr.plus(identer.fnr))
-        if (antall > 0) {
-            log.info("Slettet $antall kopi(er) av vedtak fra Arena for aktorId=${identer.aktorId}")
-        }
     }
 }

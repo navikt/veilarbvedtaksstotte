@@ -93,7 +93,7 @@ class InnsatsbehovServiceTest {
     @Test
     fun `gjeldendeInnsatsbehov er null dersom ingen gjeldende vedtak fra denne løsningen og Arena`() {
 
-        val identer = gittBrukerIdenter()
+        val identer = gittBrukerIdenter(antallHistoriskeIdenter = 1)
 
         gittOppfolgingsperioder(
             identer,
@@ -106,6 +106,11 @@ class InnsatsbehovServiceTest {
             fraDato = LocalDateTime.now().minusDays(3)
         )
 
+        gittVedtakFraArenaDer(
+            fnr = identer.historiskeFnr[0],
+            fraDato = LocalDateTime.now().minusDays(3)
+        )
+
         gittFattetVedtakDer(
             aktorId = identer.aktorId,
             gjeldende = false
@@ -113,9 +118,10 @@ class InnsatsbehovServiceTest {
 
         `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
             identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 1,
+            `forventet antall vedtak fra Arena før opprydding` = 2,
             `forventet gjeldende vedtak fra denne løsningen før opprydding` = false,
-            `forventet vedtak fra Arena etter opprydding` = false,
+            // Beholder siste kopi fra Arena
+            `forventet vedtak fra Arena etter opprydding` = true,
             `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
             `forventet innsatsbehov` = null
         )
@@ -160,7 +166,8 @@ class InnsatsbehovServiceTest {
             identer = identer,
             `forventet antall vedtak fra Arena før opprydding` = 1,
             `forventet gjeldende vedtak fra denne løsningen før opprydding` = false,
-            `forventet vedtak fra Arena etter opprydding` = false,
+            // Beholder siste kopi fra Arena
+            `forventet vedtak fra Arena etter opprydding` = true,
             `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
             `forventet innsatsbehov` = null
         )
