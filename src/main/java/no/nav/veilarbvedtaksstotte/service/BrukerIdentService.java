@@ -3,9 +3,7 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.Value;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.pdl.PdlClient;
-import no.nav.common.client.utils.graphql.GraphqlRequestBuilder;
-import no.nav.common.client.utils.graphql.GraphqlResponse;
-import no.nav.common.client.utils.graphql.GraphqlUtils;
+import no.nav.common.client.utils.graphql.*;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EksternBrukerId;
 import no.nav.common.types.identer.Fnr;
@@ -63,14 +61,21 @@ public class BrukerIdentService {
         }
     }
 
+    @Value
     static class HentIdenterResponse extends GraphqlResponse<HentIdenterResponse.HentIdenterResponseData> {
-        private static class HentIdenterResponseData {
+        List<GraphqlError> errors;
+        HentIdenterResponseData data;
+
+        @Value
+        static class HentIdenterResponseData {
             IdenterResponseData hentIdenter;
 
-            private static class IdenterResponseData {
+            @Value
+            static class IdenterResponseData {
                 List<IdentData> identer;
 
-                private static class IdentData {
+                @Value
+                static class IdentData {
                     String ident;
                     String gruppe;
                     boolean historisk;
@@ -80,7 +85,7 @@ public class BrukerIdentService {
     }
 
     @Value
-    private static class HentIdentVariables {
+    static class HentIdentVariables {
         String ident;
     }
 

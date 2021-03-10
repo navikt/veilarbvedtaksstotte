@@ -1,5 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.common.client.pdl.PdlClient
+import no.nav.common.featuretoggle.UnleashClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient
@@ -16,6 +19,11 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
+import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdentVariables
+import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterResponse
+import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterResponse.HentIdenterResponseData
+import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterResponse.HentIdenterResponseData.IdenterResponseData
+import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterResponse.HentIdenterResponseData.IdenterResponseData.IdentData
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
@@ -23,6 +31,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
@@ -41,10 +50,14 @@ class InnsatsbehovServiceTest {
         val authService: AuthService = mock(AuthService::class.java)
         lateinit var arenaVedtakService: ArenaVedtakService
         lateinit var innsatsbehovService: InnsatsbehovService
+        lateinit var unleashService: UnleashService
+        lateinit var brukerIdentService: BrukerIdentService
 
-        // TODO ikke mock BrukerIdentService når den er implementert riktig
-        val brukerIdentService: BrukerIdentService = mock(BrukerIdentService::class.java)
-        val veilarboppfolgingClient: VeilarboppfolgingClient = mock(VeilarboppfolgingClient::class.java)
+        val veilarboppfolgingClient = mock(VeilarboppfolgingClient::class.java)
+        val unleashClient = mock(UnleashClient::class.java)
+        val pdlClient = mock(PdlClient::class.java)
+        val aktorOppslagClient = mock(AktorOppslagClient::class.java)
+
         val kafkaProducer = mock(KafkaProducer::class.java)
 
         @BeforeClass
@@ -56,8 +69,10 @@ class InnsatsbehovServiceTest {
             arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
             vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
 
-            arenaVedtakService = ArenaVedtakService(arenaVedtakRepository, mock(SafClient::class.java), authService)
+            unleashService = UnleashService(unleashClient)
 
+            arenaVedtakService = ArenaVedtakService(arenaVedtakRepository, mock(SafClient::class.java), authService)
+            brukerIdentService = BrukerIdentService(pdlClient, aktorOppslagClient, unleashService)
             innsatsbehovService = InnsatsbehovService(
                 authService = authService,
                 brukerIdentService = brukerIdentService,
@@ -73,6 +88,7 @@ class InnsatsbehovServiceTest {
 
     @Before
     fun before() {
+        reset(pdlClient)
         reset(kafkaProducer)
     }
 
@@ -93,7 +109,7 @@ class InnsatsbehovServiceTest {
     @Test
     fun `gjeldendeInnsatsbehov er null dersom ingen gjeldende vedtak fra denne løsningen og Arena`() {
 
-        val identer = gittBrukerIdenter(antallHistoriskeIdenter = 1)
+        val identer = gittBrukerIdenter(antallHistoriskeFnr = 1)
 
         gittOppfolgingsperioder(
             identer,
@@ -273,7 +289,7 @@ class InnsatsbehovServiceTest {
 
     @Test
     fun `gjeldendeInnsatsbehov er siste fra Arena innenfor oppfølgingsperiode når ingen vedtak i denne løsningen`() {
-        val identer = gittBrukerIdenter(antallHistoriskeIdenter = 3)
+        val identer = gittBrukerIdenter(antallHistoriskeFnr = 3)
 
         gittOppfolgingsperioder(
             identer,
@@ -310,7 +326,7 @@ class InnsatsbehovServiceTest {
 
     @Test
     fun `gjeldendeInnsatsbehov er siste fra Arena med gammelt fnr innenfor oppfølgingsperiode når ingen vedtak i denne løsningen`() {
-        val identer = gittBrukerIdenter(antallHistoriskeIdenter = 4)
+        val identer = gittBrukerIdenter(antallHistoriskeFnr = 4)
 
         gittOppfolgingsperioder(
             identer,
@@ -455,16 +471,37 @@ class InnsatsbehovServiceTest {
     }
 
 
-    private fun gittBrukerIdenter(antallHistoriskeIdenter: Int = 1): BrukerIdenter {
+    private fun gittBrukerIdenter(antallHistoriskeFnr: Int = 1): BrukerIdenter {
         val brukerIdenter = BrukerIdenter(
             fnr = Fnr(randomNumeric(10)),
             aktorId = AktorId(randomNumeric(5)),
-            historiskeFnr = (1..antallHistoriskeIdenter).map { Fnr(randomNumeric(10)) },
+            historiskeFnr = (1..antallHistoriskeFnr).map { Fnr(randomNumeric(10)) },
             historiskeAktorId = listOf()
         )
 
-        `when`(brukerIdentService.hentIdenter(brukerIdenter.fnr)).thenReturn(brukerIdenter)
-        `when`(brukerIdentService.hentIdenter(brukerIdenter.aktorId)).thenReturn(brukerIdenter)
+        val identerResponse = HentIdenterResponse(
+            null,
+            HentIdenterResponseData(
+                IdenterResponseData(
+                    brukerIdenter.historiskeFnr
+                        .map { IdentData(it.get(), "FOLKEREGISTERIDENT", true) }
+                        .plus(IdentData(brukerIdenter.fnr.get(), "FOLKEREGISTERIDENT", false))
+                        .plus(IdentData(brukerIdenter.aktorId.get(), "AKTORID", false))
+                )
+            )
+        )
+
+
+        `when`(
+            pdlClient.request(
+                ArgumentMatchers.argThat { x ->
+                    x.variables is HentIdentVariables &&
+                            ((x.variables as HentIdentVariables).ident == brukerIdenter.fnr.get() ||
+                                    (x.variables as HentIdentVariables).ident == brukerIdenter.aktorId.get())
+                },
+                ArgumentMatchers.eq(HentIdenterResponse::class.java)
+            )
+        ).thenReturn(identerResponse)
 
         return brukerIdenter
     }
@@ -510,7 +547,7 @@ class InnsatsbehovServiceTest {
         if (!gjeldende) {
             vedtakRepository.settGjeldendeVedtakTilHistorisk(aktorId.get())
         }
-        jdbcTemplate.update("UPDATE VEDTAK SET SIST_OPPDATERT = ? WHERE ID = ?", vedtakFattetDato, vedtak.id)
+        jdbcTemplate.update("UPDATE VEDTAK SET VEDTAK_FATTET = ? WHERE ID = ?", vedtakFattetDato, vedtak.id)
     }
 
     private fun lagOppfolgingsperiode(start: LocalDateTime, slutt: LocalDateTime?): OppfolgingPeriodeDTO {
