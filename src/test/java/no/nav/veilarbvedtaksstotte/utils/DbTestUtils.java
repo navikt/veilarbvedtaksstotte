@@ -38,6 +38,15 @@ public class DbTestUtils {
                 .migrate();
     }
 
+    public static void testMigrate (DataSource dataSource, String versionPrefix) {
+        Flyway.configure()
+                .target(versionPrefix)
+                .dataSource(dataSource)
+                .baselineOnMigrate(true)
+                .load()
+                .migrate();
+    }
+
     public static void cleanupDb(JdbcTemplate db) {
         ALL_TABLES.forEach((table) -> deleteAllFromTable(db, table));
     }

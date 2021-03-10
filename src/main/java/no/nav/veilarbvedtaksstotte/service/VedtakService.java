@@ -139,7 +139,7 @@ public class VedtakService {
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });
 
-        vedtakStatusEndringService.vedtakSendt(vedtak, authKontekst.getFnr());
+        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), authKontekst.getFnr());
 
         return dokumentSendt;
     }
@@ -195,7 +195,7 @@ public class VedtakService {
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });
 
-        vedtakStatusEndringService.vedtakSendt(vedtak, authKontekst.getFnr());
+        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), authKontekst.getFnr());
 
         String bestillingsId = null;
         try {

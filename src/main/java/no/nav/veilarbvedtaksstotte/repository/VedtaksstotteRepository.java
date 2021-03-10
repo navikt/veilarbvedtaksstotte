@@ -31,7 +31,8 @@ public class VedtaksstotteRepository {
     private final static String INNSATSGRUPPE               = "INNSATSGRUPPE";
     private final static String VEILEDER_IDENT              = "VEILEDER_IDENT";
     private final static String OPPFOLGINGSENHET_ID         = "OPPFOLGINGSENHET_ID";
-    private final static String SIST_OPPDATERT              = "SIST_OPPDATERT";
+    private final static String UTKAST_SIST_OPPDATERT       = "UTKAST_SIST_OPPDATERT";
+    private final static String VEDTAK_FATTET               = "VEDTAK_FATTET";
     private final static String BESLUTTER_IDENT             = "BESLUTTER_IDENT";
     private final static String UTKAST_OPPRETTET            = "UTKAST_OPPRETTET";
     private final static String BEGRUNNELSE                 = "BEGRUNNELSE";
@@ -62,7 +63,7 @@ public class VedtaksstotteRepository {
     }
 
     public List<Vedtak> hentUtkastEldreEnn(LocalDateTime dateTime) {
-        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s > ?", VEDTAK_TABLE, STATUS, SIST_OPPDATERT);
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s > ?", VEDTAK_TABLE, STATUS, UTKAST_SIST_OPPDATERT);
         return db.query(sql, VedtaksstotteRepository::mapVedtak, getName(VedtakStatus.UTKAST), dateTime);
     }
 
@@ -123,7 +124,7 @@ public class VedtaksstotteRepository {
     public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP, %s = true, %s = false WHERE %s = ?",
-                VEDTAK_TABLE, STATUS, DOKUMENT_ID, JOURNALPOST_ID, SIST_OPPDATERT, GJELDENDE, SENDER, VEDTAK_ID
+                VEDTAK_TABLE, STATUS, DOKUMENT_ID, JOURNALPOST_ID, VEDTAK_FATTET, GJELDENDE, SENDER, VEDTAK_ID
         );
 
         db.update(
@@ -135,7 +136,7 @@ public class VedtaksstotteRepository {
     public void oppdaterUtkast(long vedtakId, Vedtak vedtak) {
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ? AND %s = ?",
-                VEDTAK_TABLE, HOVEDMAL, INNSATSGRUPPE, BEGRUNNELSE, SIST_OPPDATERT, VEDTAK_ID, STATUS
+                VEDTAK_TABLE, HOVEDMAL, INNSATSGRUPPE, BEGRUNNELSE, UTKAST_SIST_OPPDATERT, VEDTAK_ID, STATUS
         );
 
         db.update(sql, getName(vedtak.getHovedmal()), getName(vedtak.getInnsatsgruppe()), vedtak.getBegrunnelse(), vedtakId, getName(VedtakStatus.UTKAST));
@@ -162,7 +163,7 @@ public class VedtaksstotteRepository {
     public void opprettUtkast(String aktorId, String veilederIdent, String oppfolgingsenhetId) {
         String sql = format(
                 "INSERT INTO %s(%s, %s, %s, %s, %s) values(?, ?, ?, ?, CURRENT_TIMESTAMP)",
-                VEDTAK_TABLE, AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, SIST_OPPDATERT
+                VEDTAK_TABLE, AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, UTKAST_SIST_OPPDATERT
         );
 
         db.update(sql, aktorId, veilederIdent, oppfolgingsenhetId, getName(VedtakStatus.UTKAST));
@@ -205,7 +206,7 @@ public class VedtaksstotteRepository {
     public void ferdigstillVedtakV2(long vedtakId){
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP, %s = true WHERE %s = ?",
-                VEDTAK_TABLE, STATUS, SIST_OPPDATERT, GJELDENDE, VEDTAK_ID
+                VEDTAK_TABLE, STATUS, VEDTAK_FATTET, GJELDENDE, VEDTAK_ID
         );
         db.update(sql, getName(VedtakStatus.SENDT), vedtakId);
     }
@@ -218,7 +219,8 @@ public class VedtaksstotteRepository {
                 .setInnsatsgruppe(EnumUtils.valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
                 .setVedtakStatus(EnumUtils.valueOf(VedtakStatus.class, rs.getString(STATUS)))
                 .setBegrunnelse(rs.getString(BEGRUNNELSE))
-                .setSistOppdatert(rs.getTimestamp(SIST_OPPDATERT).toLocalDateTime())
+                .setUtkastSistOppdatert(rs.getTimestamp(UTKAST_SIST_OPPDATERT).toLocalDateTime())
+                .setVedtakFattet(Optional.ofNullable(rs.getTimestamp(VEDTAK_FATTET)).isPresent()?rs.getTimestamp(VEDTAK_FATTET).toLocalDateTime():null)
                 .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
                 .setGjeldende(rs.getBoolean(GJELDENDE))
                 .setBeslutterIdent(rs.getString(BESLUTTER_IDENT))
