@@ -55,8 +55,12 @@ public class Vedtak {
         return this.vedtakStatus;
     }
 
-    public LocalDateTime getSistOppdatert() {
-        return this.sistOppdatert;
+    public LocalDateTime getUtkastSistOppdatert() {
+        return this.utkastSistOppdatert;
+    }
+
+    public LocalDateTime getVedtakFattet() {
+        return this.vedtakFattet;
     }
 
     public LocalDateTime getUtkastOpprettet() {

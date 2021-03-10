@@ -66,7 +66,7 @@ class InnsatsbehovService(
         if (
             (vedtak != null && arenaVedtak == null) ||
             (vedtak != null && arenaVedtak != null &&
-                    vedtak.sistOppdatert.isAfter(arenaVedtak.fraDato))
+                    vedtak.vedtakFattet.isAfter(arenaVedtak.fraDato))
         ) {
             return InnsatsbehovMedGrunnlag(
                 innsatsbehov = Innsatsbehov(

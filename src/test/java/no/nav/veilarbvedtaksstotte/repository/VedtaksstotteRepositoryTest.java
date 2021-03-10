@@ -18,8 +18,6 @@ import java.time.LocalDateTime;
 
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
-import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
-import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.UTKAST;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.Assert.*;
 
@@ -123,22 +121,6 @@ public class VedtaksstotteRepositoryTest {
         assertEquals(TEST_AKTOR_ID, utkast.getAktorId());
         assertEquals(TEST_VEILEDER_IDENT, utkast.getVeilederIdent());
         assertEquals(TEST_OPPFOLGINGSENHET_ID, utkast.getOppfolgingsenhetId());
-    }
-
-    @Test
-    public void testHenterSisteVedtak() {
-
-        LocalDateTime forventetDato = LocalDateTime.now().minusDays(1);
-
-        db.update("INSERT INTO VEDTAK (AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, SIST_OPPDATERT) VALUES (?, ?, ?, ?, ?)",
-                TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, SENDT.name(), forventetDato.minusDays(1));
-        db.update("INSERT INTO VEDTAK (AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, SIST_OPPDATERT) VALUES (?, ?, ?, ?, ?)",
-                TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, SENDT.name(), forventetDato);
-        db.update("INSERT INTO VEDTAK (AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, SIST_OPPDATERT) VALUES (?, ?, ?, ?, ?)",
-                TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, UTKAST.name(), forventetDato.plusDays(1));
-
-        assertEquals(forventetDato, vedtaksstotteRepository.hentSisteVedtak(TEST_AKTOR_ID).getSistOppdatert());
-
     }
 
     @Test
