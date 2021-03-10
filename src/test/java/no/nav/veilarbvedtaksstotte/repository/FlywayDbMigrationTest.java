@@ -27,7 +27,7 @@ public class FlywayDbMigrationTest {
     @Before
     public void steUp() {
         postgresContainer = new PostgresContainer();
-        db = postgresContainer.getDb();
+        db = postgresContainer.createJdbcTemplate();
     }
 
     @Test
@@ -69,7 +69,7 @@ public class FlywayDbMigrationTest {
     }
 
     private void prepareDatabasen(String versjonPrefix) {
-        DbTestUtils.testMigrate(postgresContainer.getDataSource(), versjonPrefix);
+        DbTestUtils.testMigrate(db.getDataSource(), versjonPrefix);
     }
 
     @AfterEach
