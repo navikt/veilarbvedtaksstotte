@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
@@ -133,8 +134,8 @@ class InnsatsbehovService(
         oppdaterInnsatsbehov(arenaVedtak.fnr)
     }
 
-    fun oppdaterInnsatsbehov(fnr: Fnr) {
-        val identer = brukerIdentService.hentIdenter(fnr)
+    fun oppdaterInnsatsbehov(brukerId: EksternBrukerId) {
+        val identer = brukerIdentService.hentIdenter(brukerId)
         val gjeldendeVedtakDetailed = gjeldendeInnsatsbehovMedKilder(identer)
 
         transactor.executeWithoutResult {
@@ -172,7 +173,6 @@ class InnsatsbehovService(
             arenaVedtakRepository.slettVedtak(arenaVedtakListe.map { it.fnr }.filterNot { it == sisteVedtakFnr })
         }
     }
-
 
     fun behandleAvsluttOppfolging(melding: KafkaAvsluttOppfolging) {
         transactor.executeWithoutResult {

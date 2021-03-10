@@ -6,5 +6,6 @@ import no.nav.common.types.identer.Fnr
 data class BrukerIdenter(
     val fnr: Fnr,
     val aktorId: AktorId,
-    val historiskeFnr: List<Fnr>
+    val historiskeFnr: List<Fnr>,
+    val historiskeAktorId: List<AktorId>
 )

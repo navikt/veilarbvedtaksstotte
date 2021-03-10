@@ -459,7 +459,8 @@ class InnsatsbehovServiceTest {
         val brukerIdenter = BrukerIdenter(
             fnr = Fnr(randomNumeric(10)),
             aktorId = AktorId(randomNumeric(5)),
-            historiskeFnr = (1..antallHistoriskeIdenter).map { Fnr(randomNumeric(10)) }
+            historiskeFnr = (1..antallHistoriskeIdenter).map { Fnr(randomNumeric(10)) },
+            historiskeAktorId = listOf()
         )
 
         `when`(brukerIdentService.hentIdenter(brukerIdenter.fnr)).thenReturn(brukerIdenter)
