@@ -27,19 +27,16 @@ public class VedtakStatusEndringService {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
-    private final InnsatsbehovService innsatsbehovService;
 
     @Autowired
     public VedtakStatusEndringService(KafkaProducer kafkaProducer,
                                       VedtaksstotteRepository vedtaksstotteRepository,
                                       MetricsService metricsService,
-                                      VeilederService veilederService,
-                                      InnsatsbehovService innsatsbehovService) {
+                                      VeilederService veilederService) {
         this.kafkaProducer = kafkaProducer;
         this.metricsService = metricsService;
         this.veilederService = veilederService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
-        this.innsatsbehovService = innsatsbehovService;
     }
 
     public void utkastOpprettet(Vedtak vedtak) {
@@ -116,7 +113,7 @@ public class VedtakStatusEndringService {
         kafkaProducer.sendVedtakStatusEndring(overtaForVeileder);
     }
 
-    public void vedtakSendt(Long vedtakId, String fnr) {
+    public void vedtakSendt(Long vedtakId, Fnr fnr) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         KafkaVedtakStatusEndring.VedtakSendt statusEndring = new KafkaVedtakStatusEndring.VedtakSendt()
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
@@ -133,12 +130,9 @@ public class VedtakStatusEndringService {
                         vedtak.getInnsatsgruppe(),
                         HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal())));
 
-        // TODO Ingen feilhåndtering/retry her
-        innsatsbehovService.oppdaterInnsatsbehov(Fnr.of(fnr));
-
         metricsService.rapporterVedtakSendt(vedtak);
-        metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr);
-        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr);
+        metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr.get());
+        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr.get());
     }
 
     private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {

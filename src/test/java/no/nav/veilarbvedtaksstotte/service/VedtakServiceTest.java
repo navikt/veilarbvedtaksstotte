@@ -25,6 +25,7 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
@@ -53,6 +54,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static no.nav.common.utils.EnvironmentUtils.NAIS_CLUSTER_NAME_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -83,6 +85,7 @@ public class VedtakServiceTest {
     private static final UnleashService unleashService = mock(UnleashService.class);
     private static final VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
     private static final VeilederService veilederService = mock(VeilederService.class);
+    private static final BrukerIdentService brukerIdentService = mock(BrukerIdentService.class);
 
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
@@ -118,21 +121,23 @@ public class VedtakServiceTest {
         dokumentServiceV2 = new DokumentServiceV2(
                 veilarbdokumentClient, veilarbarenaClient, veilarbpersonClient, dokarkivClient, dokdistribusjonClient);
         vedtakService = new VedtakService(
+                transactor,
                 vedtaksstotteRepository,
-                kilderRepository,
-                oyeblikksbildeService,
-                meldingRepository,
                 beslutteroversiktRepository,
-                authService,
+                kilderRepository,
+                meldingRepository,
+                arenaVedtakRepository,
                 veilarbdokumentClient,
                 null,
+                authService,
+                unleashService,
+                metricsService,
+                oyeblikksbildeService,
                 veilederService,
                 malTypeService,
                 vedtakStatusEndringService,
-                metricsService,
-                transactor,
                 dokumentServiceV2,
-                unleashService
+                brukerIdentService
         );
     }
 
@@ -157,6 +162,8 @@ public class VedtakServiceTest {
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
         when(aktorregisterClient.hentAktorId(Fnr.of(TEST_FNR))).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorregisterClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(Fnr.of(TEST_FNR));
+        when(brukerIdentService.hentIdenter(Fnr.of(TEST_FNR))).thenReturn(new BrukerIdenter(Fnr.of(TEST_FNR), AktorId.of(TEST_AKTOR_ID), emptyList(), emptyList()));
+        when(brukerIdentService.hentIdenter(AktorId.of(TEST_AKTOR_ID))).thenReturn(new BrukerIdenter(Fnr.of(TEST_FNR), AktorId.of(TEST_AKTOR_ID), emptyList(), emptyList()));
         when(veilarbarenaClient.oppfolgingsenhet(Fnr.of(TEST_FNR))).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
         when(veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))).thenReturn(TEST_OPPFOLGINGSSAK);
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));

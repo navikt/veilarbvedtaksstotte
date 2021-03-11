@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.EnvironmentUtils;
@@ -15,6 +16,7 @@ import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
+import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
@@ -27,9 +29,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
@@ -38,61 +41,81 @@ import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutt
 @Service
 public class VedtakService {
 
+    private final TransactionTemplate transactor;
+
     private final VedtaksstotteRepository vedtaksstotteRepository;
-    private final OyeblikksbildeService oyeblikksbildeService;
+    private final BeslutteroversiktRepository beslutteroversiktRepository;
     private final KilderRepository kilderRepository;
     private final MeldingRepository meldingRepository;
-    private final BeslutteroversiktRepository beslutteroversiktRepository;
-    private final AuthService authService;
+    private final ArenaVedtakRepository arenaVedtakRepository;
+
     private final VeilarbdokumentClient dokumentClient;
     private final SafClient safClient;
+
+    private final AuthService authService;
+    private final UnleashService unleashService;
+    private final MetricsService metricsService;
+
+    private final OyeblikksbildeService oyeblikksbildeService;
     private final VeilederService veilederService;
     private final MalTypeService malTypeService;
     private final VedtakStatusEndringService vedtakStatusEndringService;
-    private final MetricsService metricsService;
-    private final TransactionTemplate transactor;
     private final DokumentServiceV2 dokumentServiceV2;
-    private final UnleashService unleashService;
+    private final BrukerIdentService brukerIdentService;
 
     @Autowired
     public VedtakService(
+            TransactionTemplate transactor,
+
             VedtaksstotteRepository vedtaksstotteRepository,
-            KilderRepository kilderRepository,
-            OyeblikksbildeService oyeblikksbildeService,
-            MeldingRepository meldingRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
-            AuthService authService,
+            KilderRepository kilderRepository,
+            MeldingRepository meldingRepository,
+            ArenaVedtakRepository arenaVedtakRepository,
+
             VeilarbdokumentClient dokumentClient,
             SafClient safClient,
+
+            AuthService authService,
+            UnleashService unleashService,
+            MetricsService metricsService,
+
+            OyeblikksbildeService oyeblikksbildeService,
             VeilederService veilederService,
             MalTypeService malTypeService,
             VedtakStatusEndringService vedtakStatusEndringService,
-            MetricsService metricsService,
-            TransactionTemplate transactor,
             DokumentServiceV2 dokumentServiceV2,
-            UnleashService unleashService
+            BrukerIdentService brukerIdentService
     ) {
+        this.transactor = transactor;
+
         this.vedtaksstotteRepository = vedtaksstotteRepository;
-        this.kilderRepository = kilderRepository;
-        this.oyeblikksbildeService = oyeblikksbildeService;
-        this.meldingRepository = meldingRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
-        this.authService = authService;
+        this.kilderRepository = kilderRepository;
+        this.meldingRepository = meldingRepository;
+        this.arenaVedtakRepository = arenaVedtakRepository;
+
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
+
+        this.authService = authService;
+        this.unleashService = unleashService;
+        this.metricsService = metricsService;
+
+        this.oyeblikksbildeService = oyeblikksbildeService;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
         this.vedtakStatusEndringService = vedtakStatusEndringService;
-        this.metricsService = metricsService;
-        this.transactor = transactor;
         this.dokumentServiceV2 = dokumentServiceV2;
-        this.unleashService = unleashService;
+        this.brukerIdentService = brukerIdentService;
     }
 
     @SneakyThrows
     public DokumentSendtDTO fattVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        AuthKontekst authKontekst = authService.sjekkTilgangTilAktorId(vedtak.getAktorId());
+        BrukerIdenter brukerIdenter = brukerIdentService.hentIdenter(AktorId.of(vedtak.getAktorId()));
+
+        authService.sjekkTilgangTilBruker(brukerIdenter);
         authService.sjekkErAnsvarligVeilederFor(vedtak);
 
         flettInnVedtakInformasjon(vedtak);
@@ -100,24 +123,24 @@ public class VedtakService {
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(vedtak.getAktorId());
         validerVedtakForFerdigstillingOgUtsending(vedtak, gjeldendeVedtak);
 
-        return sendDokumentOgFerdigstill(vedtak, authKontekst);
+        return sendDokumentOgFerdigstill(vedtak, brukerIdenter);
     }
 
-    private DokumentSendtDTO sendDokumentOgFerdigstill(Vedtak vedtak, AuthKontekst authKontekst) {
+    private DokumentSendtDTO sendDokumentOgFerdigstill(Vedtak vedtak, BrukerIdenter brukerIdenter) {
         if (brukNyDokIntegrasjon()) {
             log.info(format("Sender og ferdigstiller vedtak med nye integrasjoner (vedtak id = %s, aktør id = %s)",
-                    vedtak.getId(), authKontekst.getAktorId()));
+                    vedtak.getId(), brukerIdenter.getAktorId()));
             // Oppdaterer vedtak til "sender" tilstand for å redusere risiko for dupliserte utsendelser av dokument.
             vedtaksstotteRepository.oppdaterSender(vedtak.getId(), true);
             try {
-                return sendDokumentOgFerdigstillV2(vedtak, authKontekst);
+                return sendDokumentOgFerdigstillV2(vedtak, brukerIdenter);
             } finally {
                 vedtaksstotteRepository.oppdaterSender(vedtak.getId(), false);
             }
         } else {
             log.info(format("Sender og ferdigstiller vedtak med gammel integrasjon (vedtak id = %s, aktør id = %s)",
-                    vedtak.getId(), authKontekst.getAktorId()));
-            return sendDokumentOgFerdigstillV1(vedtak, authKontekst);
+                    vedtak.getId(), brukerIdenter.getAktorId()));
+            return sendDokumentOgFerdigstillV1(vedtak, brukerIdenter);
         }
     }
 
@@ -125,10 +148,10 @@ public class VedtakService {
         return EnvironmentUtils.isDevelopment().orElse(false) && unleashService.isNyDokIntegrasjonEnabled();
     }
 
-    private DokumentSendtDTO sendDokumentOgFerdigstillV1(Vedtak vedtak, AuthKontekst authKontekst) {
-        oyeblikksbildeService.lagreOyeblikksbilde(authKontekst.getFnr(), vedtak.getId());
+    private DokumentSendtDTO sendDokumentOgFerdigstillV1(Vedtak vedtak, BrukerIdenter brukerIdenter) {
+        oyeblikksbildeService.lagreOyeblikksbilde(brukerIdenter.getFnr().get(), vedtak.getId());
 
-        DokumentSendtDTO dokumentSendt = sendDokument(vedtak, authKontekst.getFnr());
+        DokumentSendtDTO dokumentSendt = sendDokument(vedtak, brukerIdenter.getFnr());
 
         log.info(String.format("Dokument sendt: journalpostId=%s dokumentId=%s",
                 dokumentSendt.getJournalpostId(), dokumentSendt.getDokumentId()));
@@ -137,14 +160,15 @@ public class VedtakService {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getAktorId());
             vedtaksstotteRepository.ferdigstillVedtak(vedtak.getId(), dokumentSendt);
             beslutteroversiktRepository.slettBruker(vedtak.getId());
+            slettArenaVedtakKopier(brukerIdenter);
         });
 
-        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), authKontekst.getFnr());
+        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), brukerIdenter.getFnr());
 
         return dokumentSendt;
     }
 
-    private DokumentSendtDTO sendDokument(Vedtak vedtak, String fnr) {
+    private DokumentSendtDTO sendDokument(Vedtak vedtak, Fnr fnr) {
         // Oppdaterer vedtak til "sender" tilstand for å redusere risiko for dupliserte utsendelser av dokument.
         vedtaksstotteRepository.oppdaterSender(vedtak.getId(), true);
         try {
@@ -157,15 +181,15 @@ public class VedtakService {
         }
     }
 
-    private DokumentSendtDTO sendDokumentOgFerdigstillV2(Vedtak vedtak, AuthKontekst authKontekst) {
+    private DokumentSendtDTO sendDokumentOgFerdigstillV2(Vedtak vedtak, BrukerIdenter brukerIdenter) {
         long vedtakId = vedtak.getId();
 
-        oyeblikksbildeService.lagreOyeblikksbilde(authKontekst.getFnr(), vedtakId);
+        oyeblikksbildeService.lagreOyeblikksbilde(brukerIdenter.getFnr().get(), vedtakId);
 
         log.info(format("Journalfører og distribuerer dokument for vedtak med id=%s for aktør id=%s",
                 vedtakId, vedtak.getAktorId()));
 
-        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, authKontekst.getFnr());
+        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, brukerIdenter.getFnr());
         OpprettetJournalpostDTO journalpost =
                 dokumentServiceV2.produserOgJournalforDokument(sendDokumentDTO);
 
@@ -193,9 +217,10 @@ public class VedtakService {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getAktorId());
             vedtaksstotteRepository.ferdigstillVedtakV2(vedtakId);
             beslutteroversiktRepository.slettBruker(vedtak.getId());
+            slettArenaVedtakKopier(brukerIdenter);
         });
 
-        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), authKontekst.getFnr());
+        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), brukerIdenter.getFnr());
 
         String bestillingsId = null;
         try {
@@ -268,7 +293,7 @@ public class VedtakService {
         List<String> utkastKilder = kilderRepository.hentKilderForVedtak(utkast.getId())
                 .stream()
                 .map(Kilde::getTekst)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         transactor.executeWithoutResult((status) -> {
             vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
@@ -279,6 +304,13 @@ public class VedtakService {
                 kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
             }
         });
+    }
+
+    private void slettArenaVedtakKopier(BrukerIdenter brukerIdenter) {
+        arenaVedtakRepository.slettVedtak(
+                Stream.concat(brukerIdenter.getHistoriskeFnr().stream(), Stream.of(brukerIdenter.getFnr()))
+                        .collect(toList())
+        );
     }
 
     private void oppdaterUtkastFraDto(Vedtak utkast, OppdaterUtkastDTO dto) {
@@ -341,10 +373,10 @@ public class VedtakService {
         AuthKontekst authKontekst = authService.sjekkTilgangTilAktorId(utkast.getAktorId());
 
         if (brukNyDokIntegrasjon()) {
-            ProduserDokumentV2DTO produserDokumentV2DTO = lagProduserDokumentDTO(utkast, authKontekst.getFnr(), true);
+            ProduserDokumentV2DTO produserDokumentV2DTO = lagProduserDokumentDTO(utkast, Fnr.of(authKontekst.getFnr()), true);
             return dokumentClient.produserDokumentV2(produserDokumentV2DTO);
         } else {
-            SendDokumentDTO sendDokumentDTO = lagDokumentDTO(utkast, authKontekst.getFnr());
+            SendDokumentDTO sendDokumentDTO = lagDokumentDTO(utkast, Fnr.of(authKontekst.getFnr()));
             return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
         }
     }
@@ -407,7 +439,7 @@ public class VedtakService {
                 .hentKilderForVedtak(vedtak.getId())
                 .stream()
                 .map(Kilde::getTekst)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         vedtak.setOpplysninger(opplysninger);
     }
@@ -431,9 +463,9 @@ public class VedtakService {
         vedtak.setOppfolgingsenhetNavn(enhetNavn);
     }
 
-    private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, String fnr) {
+    private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, Fnr fnr) {
         return new SendDokumentDTO(
-                Fnr.of(fnr),
+                fnr,
                 malTypeService.utledMalTypeFraVedtak(vedtak, fnr),
                 EnhetId.of(vedtak.getOppfolgingsenhetId()),
                 vedtak.getBegrunnelse(),
@@ -441,9 +473,9 @@ public class VedtakService {
         );
     }
 
-    private ProduserDokumentV2DTO lagProduserDokumentDTO(Vedtak vedtak, String fnr, boolean utkast) {
+    private ProduserDokumentV2DTO lagProduserDokumentDTO(Vedtak vedtak, Fnr fnr, boolean utkast) {
         return new ProduserDokumentV2DTO(
-                Fnr.of(fnr),
+                fnr,
                 malTypeService.utledMalTypeFraVedtak(vedtak, fnr),
                 EnhetId.of(vedtak.getOppfolgingsenhetId()),
                 vedtak.getBegrunnelse(),
