@@ -11,7 +11,8 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.*
+import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
+import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse
@@ -27,7 +28,7 @@ import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterRespons
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -93,21 +94,51 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
-    fun `gjeldendeInnsatsbehov er null dersom det ikke finnes vedtak for bruker`() {
+    fun `innsatsbehov er null dersom, ny løsning har null, Arena har null`() {
         val identer = gittBrukerIdenter()
-
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 0,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = false,
-            `forventet vedtak fra Arena etter opprydding` = false,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
-            `forventet innsatsbehov` = null
-        )
+        assertAntallVedtakFraArena(identer, 0)
+        assertFattedeVedtakFraNyLøsning(identer, 0)
+        assertInnsatsbehov(identer, null)
     }
 
     @Test
-    fun `gjeldendeInnsatsbehov er null dersom ingen gjeldende vedtak fra denne løsningen og Arena`() {
+    fun `innsatsbehov er null dersom, ny løsning har null, Arena har gamle utenfor gjeldende oppfølgingsperiode`() {
+        val identer = gittBrukerIdenter()
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(4), LocalDateTime.now().minusDays(2)),
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(1), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now().minusDays(3)
+            )
+        )
+        assertAntallVedtakFraArena(identer, 1)
+        assertFattedeVedtakFraNyLøsning(identer, 0)
+        assertInnsatsbehov(identer, null)
+    }
+
+    @Test
+    fun `innsatsbehov er null dersom, ny løsning har ikke gjeldende, Arena har null`() {
+
+        val identer = gittBrukerIdenter()
+
+        gittFattetVedtakDer(
+            aktorId = identer.aktorId,
+            gjeldende = false
+        )
+
+        assertAntallVedtakFraArena(identer, 0)
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertInnsatsbehov(identer, null)
+    }
+
+    @Test
+    fun `innsatsbehov er null dersom, ny løsning har ikke gjeldende, Arena har gamle utenfor oppfølgingsperiode`() {
 
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 1)
 
@@ -117,14 +148,18 @@ class InnsatsbehovServiceTest {
             lagOppfolgingsperiode(LocalDateTime.now().minusDays(1), null)
         )
 
-        gittVedtakFraArenaDer(
-            fnr = identer.fnr,
-            fraDato = LocalDateTime.now().minusDays(3)
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now().minusDays(3)
+            )
         )
 
-        gittVedtakFraArenaDer(
-            fnr = identer.historiskeFnr[0],
-            fraDato = LocalDateTime.now().minusDays(3)
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.historiskeFnr[0],
+                fraDato = LocalDateTime.now().minusDays(3)
+            )
         )
 
         gittFattetVedtakDer(
@@ -132,239 +167,14 @@ class InnsatsbehovServiceTest {
             gjeldende = false
         )
 
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 2,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = false,
-            // Beholder siste kopi fra Arena
-            `forventet vedtak fra Arena etter opprydding` = true,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
-            `forventet innsatsbehov` = null
-        )
+        assertAntallVedtakFraArena(identer, 2)
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, false)
+        assertInnsatsbehov(identer, null)
     }
 
     @Test
-    fun `gjeldendeInnsatsbehov er null dersom ingen gjeldende vedtak fra denne løsning og ingen fra Arena`() {
-
-        val identer = gittBrukerIdenter()
-
-        gittFattetVedtakDer(
-            aktorId = identer.aktorId,
-            gjeldende = false
-        )
-
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 0,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = false,
-            `forventet vedtak fra Arena etter opprydding` = false,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
-            `forventet innsatsbehov` = null
-        )
-    }
-
-    @Test
-    fun `gjeldendeInnsatsbehov er null dersom ingen gjeldende vedtak fra Arena og ingen fra denne løsningen`() {
-        val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(4), LocalDateTime.now().minusDays(2)),
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(1), null)
-        )
-
-        gittVedtakFraArenaDer(
-            fnr = identer.fnr,
-            fraDato = LocalDateTime.now().minusDays(3)
-        )
-
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 1,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = false,
-            // Beholder siste kopi fra Arena
-            `forventet vedtak fra Arena etter opprydding` = true,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
-            `forventet innsatsbehov` = null
-        )
-    }
-
-    @Test
-    fun `gjeldendeInnsatsbehov er fra Arena dersom innenfor oppfølgingsperiode og ingen vedtak i denne løsningen`() {
-        val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), LocalDateTime.now().minusDays(3)),
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(2), null)
-        )
-
-        gittVedtakFraArenaDer(
-            fnr = identer.fnr,
-            fraDato = LocalDateTime.now().minusDays(1),
-            innsatsgruppe = ArenaInnsatsgruppe.BATT,
-            hovedmal = ArenaHovedmal.OKE_DELTAKELSE
-        )
-
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 1,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = false,
-            `forventet vedtak fra Arena etter opprydding` = true,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
-            `forventet innsatsbehov` = Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
-            )
-        )
-    }
-
-    @Test
-    fun `gjeldendeInnsatsbehov er fra Arena dersom innenfor oppfølgingsperiode og ikke gjeldende vedtak i denne løsningen`() {
-        val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
-        )
-
-        gittVedtakFraArenaDer(
-            fnr = identer.fnr,
-            fraDato = LocalDateTime.now().minusDays(4),
-            innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-            hovedmal = ArenaHovedmal.SKAFFE_ARBEID
-        )
-
-        gittFattetVedtakDer(
-            aktorId = identer.aktorId,
-            gjeldende = false
-        )
-
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 1,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = false,
-            `forventet vedtak fra Arena etter opprydding` = true,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
-            `forventet innsatsbehov` = Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
-            )
-        )
-    }
-
-    @Test
-    fun `gjeldendeInnsatsbehov er fra Arena dersom innenfor oppfølgingsperiode og nyere enn gjeldende vedtak i denne løsningen`() {
-        val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
-        )
-
-        gittVedtakFraArenaDer(
-            fnr = identer.fnr,
-            fraDato = LocalDateTime.now().minusDays(4),
-            innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-            hovedmal = ArenaHovedmal.SKAFFE_ARBEID
-        )
-
-        gittFattetVedtakDer(
-            aktorId = identer.aktorId,
-            innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
-            hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            gjeldende = true,
-            vedtakFattetDato = LocalDateTime.now().minusDays(5)
-        )
-
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 1,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = true,
-            `forventet vedtak fra Arena etter opprydding` = true,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
-            `forventet innsatsbehov` = Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
-            )
-        )
-    }
-
-    @Test
-    fun `gjeldendeInnsatsbehov er siste fra Arena innenfor oppfølgingsperiode når ingen vedtak i denne løsningen`() {
-        val identer = gittBrukerIdenter(antallHistoriskeFnr = 3)
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(10), null)
-        )
-
-        gittVedtakFraArenaDer(
-            fnr = identer.fnr,
-            fraDato = LocalDateTime.now().minusDays(4),
-            innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-            hovedmal = ArenaHovedmal.SKAFFE_ARBEID
-        )
-
-        identer.historiskeFnr.forEachIndexed { index, fnr ->
-            gittVedtakFraArenaDer(
-                fnr = fnr,
-                fraDato = LocalDateTime.now().minusDays(5 + index.toLong()),
-                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                hovedmal = ArenaHovedmal.OKE_DELTAKELSE
-            )
-        }
-
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 4,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = false,
-            `forventet vedtak fra Arena etter opprydding` = true,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
-            `forventet innsatsbehov` = Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
-            )
-        )
-    }
-
-    @Test
-    fun `gjeldendeInnsatsbehov er siste fra Arena med gammelt fnr innenfor oppfølgingsperiode når ingen vedtak i denne løsningen`() {
-        val identer = gittBrukerIdenter(antallHistoriskeFnr = 4)
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(10), null)
-        )
-
-        gittVedtakFraArenaDer(
-            fnr = identer.historiskeFnr[1],
-            fraDato = LocalDateTime.now().minusDays(4),
-            innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
-            hovedmal = ArenaHovedmal.BEHOLDE_ARBEID
-        )
-
-        identer.historiskeFnr.forEachIndexed { index, fnr ->
-            if (index != 1) {
-                gittVedtakFraArenaDer(
-                    fnr = fnr,
-                    fraDato = LocalDateTime.now().minusDays(5 + index.toLong()),
-                    innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                    hovedmal = ArenaHovedmal.OKE_DELTAKELSE
-                )
-            }
-        }
-
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 4,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = false,
-            `forventet vedtak fra Arena etter opprydding` = true,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = false,
-            `forventet innsatsbehov` = Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.STANDARD_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
-            )
-        )
-    }
-
-    @Test
-    fun `gjeldendeInnsatsbehov fra denne løsningen dersom ingen vedtak fra Arena`() {
+    fun `innsatsbehov fra ny løsning dersom, ny løsning har gjeldende, Arena har null`() {
 
         val identer = gittBrukerIdenter()
 
@@ -375,20 +185,53 @@ class InnsatsbehovServiceTest {
             gjeldende = true
         )
 
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 0,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = true,
-            `forventet vedtak fra Arena etter opprydding` = false,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = true,
-            `forventet innsatsbehov` = Innsatsbehov(
+        assertAntallVedtakFraArena(identer, 0)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
                 identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
             )
         )
     }
 
     @Test
-    fun `gjeldendeInnsatsbehov er gjeldende fra denne løsningen dersom nyere enn vedtak fra Arena`() {
+    fun `innsatsbehov fra ny løsning dersom, ny løsning har gjeldende, Arena har gammelt utenfor oppfølgingsperiode`() {
+        val identer = gittBrukerIdenter()
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(4), LocalDateTime.now().minusDays(2)),
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(1), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now().minusDays(3),
+                innsatsgruppe = ArenaInnsatsgruppe.IKVAL
+            )
+        )
+
+        gittFattetVedtakDer(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+            hovedmal = Hovedmal.BEHOLDE_ARBEID,
+            gjeldende = true
+        )
+
+        assertAntallVedtakFraArena(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
+            )
+        )
+    }
+
+    @Test
+    fun `innsatsbehov fra ny løsning dersom, ny løsning har gjeldende, Arena har eldre innenfor oppfølgingsperiode`() {
         val identer = gittBrukerIdenter()
 
         gittOppfolgingsperioder(
@@ -396,11 +239,13 @@ class InnsatsbehovServiceTest {
             lagOppfolgingsperiode(LocalDateTime.now().minusDays(10), null)
         )
 
-        gittVedtakFraArenaDer(
-            fnr = identer.fnr,
-            fraDato = LocalDateTime.now().minusDays(4),
-            innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-            hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now().minusDays(4),
+                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+            )
         )
 
         gittFattetVedtakDer(
@@ -411,65 +256,484 @@ class InnsatsbehovServiceTest {
             vedtakFattetDato = LocalDateTime.now().minusDays(3)
         )
 
-        `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-            identer = identer,
-            `forventet antall vedtak fra Arena før opprydding` = 1,
-            `forventet gjeldende vedtak fra denne løsningen før opprydding` = true,
-            `forventet vedtak fra Arena etter opprydding` = false,
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding` = true,
-            `forventet innsatsbehov` = Innsatsbehov(
+        assertAntallVedtakFraArena(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
                 identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
             )
         )
     }
 
-    fun `verifiser gjeldende innsatsbehov før og etter opprydding og utsending på Kafka`(
-        identer: BrukerIdenter,
-        `forventet antall vedtak fra Arena før opprydding`: Int,
-        `forventet gjeldende vedtak fra denne løsningen før opprydding`: Boolean,
-        `forventet vedtak fra Arena etter opprydding`: Boolean,
-        `forventet gjeldende vedtak fra denne løsningen etter opprydding`: Boolean,
-        `forventet innsatsbehov`: Innsatsbehov?
-    ) {
-        assertEquals(
-            "Antall vedtak fra Arena før opprydding",
-            `forventet antall vedtak fra Arena før opprydding`,
-            arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr)).size
-        )
-        assertEquals(
-            "Har lagret vedtak med gjeldende-flagg = true",
-            `forventet gjeldende vedtak fra denne løsningen før opprydding`,
-            vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()) != null
+    @Test
+    fun `innsatsbehov er fra Arena dersom, ny løsning har null, Arena har innenfor oppfølgingsperiode`() {
+        val identer = gittBrukerIdenter()
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), LocalDateTime.now().minusDays(3)),
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(2), null)
         )
 
-        assertEquals(
-            "Innsatsbehov før opprydding",
-            `forventet innsatsbehov`,
-            innsatsbehovService.gjeldendeInnsatsbehov(identer.fnr)
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now().minusDays(1),
+                innsatsgruppe = ArenaInnsatsgruppe.BATT,
+                hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+            )
         )
 
-        innsatsbehovService.oppdaterInnsatsbehov(identer.fnr)
-
-        verify(kafkaProducer).sendInnsatsbehov(eq(`forventet innsatsbehov`))
-
-        assertEquals(
-            "Har lagret vedtak fra Arena etter opprydding",
-            if (`forventet vedtak fra Arena etter opprydding`) 1 else 0,
-            arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr)).size
-        )
-        assertEquals(
-            "Har gjeldende vedtak fra denne løsningen etter opprydding",
-            `forventet gjeldende vedtak fra denne løsningen etter opprydding`,
-            vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()) != null
+        assertAntallVedtakFraArena(identer, 1)
+        assertFattedeVedtakFraNyLøsning(identer, 0)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+            )
         )
 
-        assertEquals(
-            "Innsatsbehov etter opprydding",
-            `forventet innsatsbehov`,
-            innsatsbehovService.gjeldendeInnsatsbehov(identer.fnr)
+    }
+
+    @Test
+    fun `innsatsbehov er fra Arena dersom, ny løsning har ikke gjeldende, Arena har innenfor oppfølgingsperiode`() {
+        val identer = gittBrukerIdenter()
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now().minusDays(4),
+                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+            )
+        )
+
+        gittFattetVedtakDer(
+            aktorId = identer.aktorId,
+            gjeldende = false
+        )
+
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertAntallVedtakFraArena(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, false)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+            )
         )
     }
 
+    @Test
+    fun `innsatsbehov er fra Arena dersom, ny løsning har gjeldende, Arena har nyere innenfor oppfølgingsperiode`() {
+        val identer = gittBrukerIdenter()
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now().minusDays(4),
+                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+            )
+        )
+
+        gittFattetVedtakDer(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+            hovedmal = Hovedmal.BEHOLDE_ARBEID,
+            gjeldende = true,
+            vedtakFattetDato = LocalDateTime.now().minusDays(5)
+        )
+
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertAntallVedtakFraArena(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+            )
+        )
+    }
+
+    @Test
+    fun `innsatsbehov er siste fra Arena dersom, ny løsning har null, Arena har også på historiske fnr innenfor samme oppfølgingsperiode`() {
+        val identer = gittBrukerIdenter(antallHistoriskeFnr = 3)
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(10), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now().minusDays(4),
+                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+            )
+        )
+
+        identer.historiskeFnr.forEachIndexed { index, fnr ->
+            lagre(
+                arenaVedtakDer(
+                    fnr = fnr,
+                    fraDato = LocalDateTime.now().minusDays(5 + index.toLong()),
+                    innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+                    hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+                )
+            )
+        }
+
+        assertFattedeVedtakFraNyLøsning(identer, 0)
+        assertAntallVedtakFraArena(identer, 4)
+        assertGjeldendeVedtakNyLøsning(identer, false)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+            )
+        )
+    }
+
+    @Test
+    fun `innsatsbehov er siste fra Arena dersom, ny løsning har null, Arena har bare på historiske fnr innenfor samme oppfølgingsperiode`() {
+        val identer = gittBrukerIdenter(antallHistoriskeFnr = 4)
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(10), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.historiskeFnr[1],
+                fraDato = LocalDateTime.now().minusDays(4),
+                innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
+                hovedmal = ArenaHovedmal.BEHOLDE_ARBEID
+            )
+        )
+
+        identer.historiskeFnr.forEachIndexed { index, fnr ->
+            if (index != 1) {
+                lagre(
+                    arenaVedtakDer(
+                        fnr = fnr,
+                        fraDato = LocalDateTime.now().minusDays(5 + index.toLong()),
+                        innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+                        hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+                    )
+                )
+            }
+        }
+
+        assertFattedeVedtakFraNyLøsning(identer, 0)
+        assertAntallVedtakFraArena(identer, 4)
+        assertGjeldendeVedtakNyLøsning(identer, false)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.STANDARD_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
+            )
+        )
+    }
+
+    @Test
+    fun `innsatsbehov oppdateres ved melding om nytt vedtak fra Arena`() {
+        val identer = gittBrukerIdenter()
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+        )
+
+        assertAntallVedtakFraArena(identer, 0)
+
+        innsatsbehovService.behandleEndringFraArena(
+            arenaVedtakDer(
+                fnr = identer.fnr, innsatsgruppe = ArenaInnsatsgruppe.BFORM, hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+            )
+        )
+
+        val forventetInnsatsbehov = Innsatsbehov(
+            identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+        )
+
+        verify(kafkaProducer).sendInnsatsbehov(eq(forventetInnsatsbehov))
+
+        assertInnsatsbehov(identer, forventetInnsatsbehov)
+    }
+
+    @Test
+    fun `innsatsbehov oppdateres ved melding om nytt vedtak fra Arena og setter gjeldende fra ny løsning til false`() {
+        val identer = gittBrukerIdenter()
+
+        gittFattetVedtakDer(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+            hovedmal = Hovedmal.BEHOLDE_ARBEID,
+            gjeldende = true,
+            vedtakFattetDato = LocalDateTime.now().minusDays(3)
+        )
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+        )
+
+        assertAntallVedtakFraArena(identer, 0)
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+
+        innsatsbehovService.behandleEndringFraArena(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+                hovedmal = ArenaHovedmal.OKE_DELTAKELSE,
+                fraDato = LocalDateTime.now().minusDays(2)
+            )
+        )
+
+        val forventetInnsatsbehov = Innsatsbehov(
+            identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+        )
+
+        verify(kafkaProducer).sendInnsatsbehov(eq(forventetInnsatsbehov))
+
+        assertInnsatsbehov(identer, forventetInnsatsbehov)
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, false)
+    }
+
+    @Test
+    fun `innsatsbehov oppdateres ikke dersom melding stammer fra ny løsning`() {
+        val identer = gittBrukerIdenter()
+
+        gittFattetVedtakDer(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+            hovedmal = Hovedmal.BEHOLDE_ARBEID,
+            gjeldende = true
+        )
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+        )
+
+        assertAntallVedtakFraArena(identer, 0)
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+
+        innsatsbehovService.behandleEndringFraArena(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                innsatsgruppe = ArenaInnsatsgruppe.BATT,
+                hovedmal = ArenaHovedmal.BEHOLDE_ARBEID,
+                regUser = "MODIA"
+            )
+        )
+
+        val forventetInnsatsbehov = Innsatsbehov(
+            identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
+        )
+
+        verify(kafkaProducer, never()).sendInnsatsbehov(any())
+
+        assertInnsatsbehov(identer, forventetInnsatsbehov)
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+    }
+
+    @Test
+    fun `innsatsbehov oppdateres ikke dersom bruker har nyere vedtak fra ny løsning`() {
+        val identer = gittBrukerIdenter()
+
+        gittFattetVedtakDer(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
+            hovedmal = Hovedmal.SKAFFE_ARBEID,
+            gjeldende = true,
+            vedtakFattetDato = LocalDateTime.now().minusDays(2)
+        )
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+        )
+
+        assertAntallVedtakFraArena(identer, 0)
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+
+        innsatsbehovService.behandleEndringFraArena(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+                hovedmal = ArenaHovedmal.BEHOLDE_ARBEID,
+                fraDato = LocalDateTime.now().minusDays(3)
+            )
+        )
+
+        val forventetInnsatsbehov = Innsatsbehov(
+            identer.aktorId, Innsatsgruppe.STANDARD_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+        )
+
+        verify(kafkaProducer, never()).sendInnsatsbehov(any())
+
+        assertInnsatsbehov(identer, forventetInnsatsbehov)
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+    }
+
+    @Test
+    fun `innsatsbehov oppdateres ikke dersom bruker har nyere vedtak fra Arena fra før`() {
+        val identer = gittBrukerIdenter()
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now(),
+                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+                hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+            )
+        )
+
+        assertAntallVedtakFraArena(identer, 1)
+
+        innsatsbehovService.behandleEndringFraArena(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now().minusDays(1),
+                innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
+                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+            )
+        )
+
+        verify(kafkaProducer, never()).sendInnsatsbehov(any())
+
+        assertInnsatsbehov(
+            identer, Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+            )
+        )
+    }
+
+    @Test
+    fun `innsatsbehov oppdateres ikke dersom bruker har nyere vedtak fra Arena fra før med annet fnr`() {
+        val identer = gittBrukerIdenter(antallHistoriskeFnr = 1)
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDateTime.now(),
+                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+                hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+            )
+        )
+
+        assertAntallVedtakFraArena(identer, 1)
+
+        innsatsbehovService.behandleEndringFraArena(
+            arenaVedtakDer(
+                fnr = identer.historiskeFnr[0],
+                fraDato = LocalDateTime.now().minusDays(1),
+                innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
+                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+            )
+        )
+
+        verify(kafkaProducer, never()).sendInnsatsbehov(any())
+
+        assertInnsatsbehov(
+            identer, Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+            )
+        )
+    }
+
+    @Test
+    fun `innsatsbehov oppdateres ikke dersom samme melding har blitt behandlet før`() {
+        val identer = gittBrukerIdenter()
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+        )
+
+        val arenaVedtak = arenaVedtakDer(
+            fnr = identer.fnr,
+            fraDato = LocalDateTime.now(),
+            innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+            hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+        )
+        lagre(arenaVedtak)
+
+        assertAntallVedtakFraArena(identer, 1)
+
+        innsatsbehovService.behandleEndringFraArena(arenaVedtak)
+
+        verify(kafkaProducer, never()).sendInnsatsbehov(any())
+
+        assertInnsatsbehov(
+            identer, Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+            )
+        )
+    }
+
+    fun assertFattedeVedtakFraNyLøsning(identer: BrukerIdenter, antall: Int) {
+        assertEquals(
+            "Antall vedtak fra ny løsning",
+            antall,
+            vedtakRepository.hentFattedeVedtak(identer.aktorId.get()).size
+        )
+    }
+
+    fun assertAntallVedtakFraArena(identer: BrukerIdenter, antall: Int) {
+        assertEquals(
+            "Antall vedtak fra Arena",
+            antall,
+            arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr)).size
+        )
+    }
+
+    fun assertGjeldendeVedtakNyLøsning(identer: BrukerIdenter, gjeldende: Boolean) {
+        assertEquals(
+            "Har lagret vedtak med gjeldende-flagg = true",
+            gjeldende,
+            vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()) != null
+        )
+    }
+
+    fun assertInnsatsbehov(identer: BrukerIdenter, forventet: Innsatsbehov?) {
+        assertEquals(
+            "Innsatsbehov",
+            forventet,
+            innsatsbehovService.gjeldendeInnsatsbehov(identer.fnr)
+        )
+    }
 
     private fun gittBrukerIdenter(antallHistoriskeFnr: Int = 1): BrukerIdenter {
         val brukerIdenter = BrukerIdenter(
@@ -496,8 +760,12 @@ class InnsatsbehovServiceTest {
             pdlClient.request(
                 ArgumentMatchers.argThat { x ->
                     x.variables is HentIdentVariables &&
-                            ((x.variables as HentIdentVariables).ident == brukerIdenter.fnr.get() ||
-                                    (x.variables as HentIdentVariables).ident == brukerIdenter.aktorId.get())
+                            brukerIdenter.historiskeFnr
+                                .plus(brukerIdenter.historiskeAktorId)
+                                .plus(brukerIdenter.fnr)
+                                .plus(brukerIdenter.aktorId)
+                                .map { it.get() }
+                                .contains((x.variables as HentIdentVariables).ident)
                 },
                 ArgumentMatchers.eq(HentIdenterResponse::class.java)
             )
@@ -512,9 +780,9 @@ class InnsatsbehovServiceTest {
         }
     }
 
-    private fun gittVedtakFraArenaDer(
+    private fun arenaVedtakDer(
         fnr: Fnr,
-        fraDato: LocalDateTime,
+        fraDato: LocalDateTime = LocalDateTime.now(),
         regUser: String = "REG USER",
         innsatsgruppe: ArenaInnsatsgruppe = ArenaInnsatsgruppe.BFORM,
         hovedmal: ArenaHovedmal = ArenaHovedmal.SKAFFE_ARBEID
@@ -526,6 +794,14 @@ class InnsatsbehovServiceTest {
             fraDato = fraDato,
             regUser = regUser
         )
+        return arenaVedtak
+    }
+
+
+    private fun lagre(
+        arenaVedtak: ArenaVedtak
+    ): ArenaVedtak {
+
         arenaVedtakRepository.upsertVedtak(arenaVedtak)
 
         return arenaVedtak

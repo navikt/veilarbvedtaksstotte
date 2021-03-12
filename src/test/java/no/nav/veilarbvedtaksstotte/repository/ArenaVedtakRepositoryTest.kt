@@ -102,33 +102,4 @@ class ArenaVedtakRepositoryTest {
 
         assertThat(hentVedtakListe, containsInAnyOrder(arenaVedtak1, arenaVedtak3))
     }
-
-    @Test
-    fun `sletter arena-vedtak basert på liste av fnr`() {
-        val arenaVedtak1 = ArenaVedtak(
-            fnr = Fnr(randomNumeric(10)),
-            innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
-            hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFE_ARBEID,
-            fraDato = LocalDateTime.now(),
-            regUser = "reg user"
-        )
-        val arenaVedtak2 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))
-        val arenaVedtak3 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))
-
-        arenaVedtakRepository.upsertVedtak(arenaVedtak1)
-        arenaVedtakRepository.upsertVedtak(arenaVedtak2)
-        arenaVedtakRepository.upsertVedtak(arenaVedtak3)
-
-        assertEquals(arenaVedtak1, arenaVedtakRepository.hentVedtak(arenaVedtak1.fnr))
-        assertEquals(arenaVedtak2, arenaVedtakRepository.hentVedtak(arenaVedtak2.fnr))
-        assertEquals(arenaVedtak3, arenaVedtakRepository.hentVedtak(arenaVedtak3.fnr))
-
-        val antall = arenaVedtakRepository.slettVedtak(listOf(arenaVedtak1.fnr, arenaVedtak3.fnr))
-
-        assertEquals("Antall slettet", 2, antall)
-
-        assertNull(arenaVedtakRepository.hentVedtak(arenaVedtak1.fnr))
-        assertNotNull(arenaVedtakRepository.hentVedtak(arenaVedtak2.fnr))
-        assertNull(arenaVedtakRepository.hentVedtak(arenaVedtak3.fnr))
-    }
 }

@@ -9,8 +9,8 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID
+import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.verifiserAsynkront
-import org.apache.commons.lang3.RandomStringUtils
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.eq
@@ -42,7 +42,7 @@ class ArenaVedtakConsumerTest {
     @Test
     fun `meldinger for vedtak fra arena blir konsumert og innsatsbehov blir sendt på kafka`() {
         val arenaVedtak = ArenaVedtak(
-            fnr = Fnr(RandomStringUtils.randomNumeric(10)),
+            fnr = Fnr(TEST_FNR),
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFE_ARBEID,
             fraDato = LocalDateTime.now(),

@@ -19,7 +19,6 @@ import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
-import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -66,7 +65,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        String enhet = sjekkTilgangTilEnhet(Fnr.of(fnr));
+        String enhet = sjekkTilgangTilEnhet(fnr);
 
         return new AuthKontekst()
                 .setFnr(fnr)
@@ -74,27 +73,20 @@ public class AuthService {
                 .setOppfolgingsenhet(enhet);
     }
 
-    public AuthKontekst sjekkTilgangTilBruker(BrukerIdenter brukerIdenter) {
-        return sjekkTilgangTil(brukerIdenter.getAktorId(), brukerIdenter.getFnr());
-    }
-
     public AuthKontekst sjekkTilgangTilAktorId(String aktorId) {
-        Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(aktorId));
-        return sjekkTilgangTil(AktorId.of(aktorId), fnr);
-    }
-
-    private AuthKontekst sjekkTilgangTil(AktorId aktorId, Fnr fnr) {
         sjekkInternBruker();
 
-        if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(getInnloggetVeilederIdent()), ActionId.WRITE, aktorId)) {
+        String fnr = aktorOppslagClient.hentFnr(AktorId.of(aktorId)).get();
+
+        if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(getInnloggetVeilederIdent()), ActionId.WRITE, AktorId.of(aktorId))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
         String enhet = sjekkTilgangTilEnhet(fnr);
 
         return new AuthKontekst()
-                .setFnr(fnr.get())
-                .setAktorId(aktorId.get())
+                .setFnr(fnr)
+                .setAktorId(aktorId)
                 .setOppfolgingsenhet(enhet);
     }
 
@@ -182,8 +174,8 @@ public class AuthService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke intern bruker"));
     }
 
-    private String sjekkTilgangTilEnhet(Fnr fnr) {
-        EnhetId enhet = ofNullable(arenaClient.oppfolgingsenhet(fnr)).orElse(EnhetId.of(""));
+    private String sjekkTilgangTilEnhet(String fnr) {
+        EnhetId enhet = ofNullable(arenaClient.oppfolgingsenhet(Fnr.of(fnr))).orElse(EnhetId.of(""));
 
         if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(getInnloggetVeilederIdent()), enhet)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);

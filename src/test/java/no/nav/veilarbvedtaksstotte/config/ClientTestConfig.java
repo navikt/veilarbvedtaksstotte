@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.client.pdl.PdlClient;
+import no.nav.common.client.pdl.PdlClientImpl;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
@@ -66,6 +68,25 @@ public class ClientTestConfig {
             @Override
             public List<AktorId> hentAktorIder(Fnr fnr) {
                 return Collections.emptyList();
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
+            }
+        };
+    }
+
+    @Bean
+    public PdlClient pdlClient() {
+        return new PdlClientImpl(null, null, null, null) {
+            @Override
+            public String rawRequest(String gqlRequestJson) {
+                return "{\"data\": {\"hentIdenter\": {\"identer\": [{\"ident\": \"" +
+                        TEST_FNR +
+                        "\", \"gruppe\": \"FOLKEREGISTERIDENT\", \"historisk\": false}, {\"ident\": \"" +
+                        TEST_AKTOR_ID +
+                        "\", \"gruppe\": \"AKTORID\", \"historisk\": false}]}}}";
             }
 
             @Override

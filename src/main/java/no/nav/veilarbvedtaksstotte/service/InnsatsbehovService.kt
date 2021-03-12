@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
@@ -49,10 +48,10 @@ class InnsatsbehovService(
 
     private fun gjeldendeInnsatsbehovMedKilder(identer: BrukerIdenter): InnsatsbehovMedGrunnlag {
 
-        val vedtak: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
+        val gjeldendeVedtak: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
-        if (vedtak == null && arenaVedtakListe.isEmpty()) {
+        if (gjeldendeVedtak == null && arenaVedtakListe.isEmpty()) {
             return InnsatsbehovMedGrunnlag(
                 innsatsbehov = null,
                 fraArena = false,
@@ -64,18 +63,18 @@ class InnsatsbehovService(
         val arenaVedtak = sisteArenaVedtakInnenforGjeldendeOppfolgingsperiode(arenaVedtakListe)
 
         if (
-            (vedtak != null && arenaVedtak == null) ||
-            (vedtak != null && arenaVedtak != null &&
-                    vedtak.vedtakFattet.isAfter(arenaVedtak.fraDato))
+            (gjeldendeVedtak != null && arenaVedtak == null) ||
+            (gjeldendeVedtak != null && arenaVedtak != null &&
+                    gjeldendeVedtak.vedtakFattet.isAfter(arenaVedtak.fraDato))
         ) {
             return InnsatsbehovMedGrunnlag(
                 innsatsbehov = Innsatsbehov(
                     aktorId = identer.aktorId,
-                    innsatsgruppe = vedtak.innsatsgruppe,
-                    hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.hovedmal)
+                    innsatsgruppe = gjeldendeVedtak.innsatsgruppe,
+                    hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(gjeldendeVedtak.hovedmal)
                 ),
                 fraArena = false,
-                gjeldendeVedtak = vedtak,
+                gjeldendeVedtak = gjeldendeVedtak,
                 arenaVedtak = arenaVedtakListe
             )
         } else if (arenaVedtak != null) {
@@ -86,14 +85,14 @@ class InnsatsbehovService(
                     hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(arenaVedtak.hovedmal)
                 ),
                 fraArena = true,
-                gjeldendeVedtak = vedtak,
+                gjeldendeVedtak = gjeldendeVedtak,
                 arenaVedtak = arenaVedtakListe
             )
         }
         return InnsatsbehovMedGrunnlag(
             innsatsbehov = null,
             fraArena = false,
-            gjeldendeVedtak = vedtak,
+            gjeldendeVedtak = gjeldendeVedtak,
             arenaVedtak = arenaVedtakListe
         )
     }
@@ -125,52 +124,29 @@ class InnsatsbehovService(
 
     fun behandleEndringFraArena(arenaVedtak: ArenaVedtak) {
         // Idempotent oppdatering/lagring av vedtak fra Arena
-        arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
+        val erEndret = arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
 
         // Oppdatering som følger kan gjøres uavhengig av idempotent oppdatering/lagring over. Derfor er ikke
         // oppdateringene i samme transaksjon, og følgende oppdatering kunne f.eks. også vært kjørt uavhengig i en
         // scheduled task. Feilhåndtering her skjer indirekte via feilhåndtering av Kafka-meldinger som vil bli
         // behandlet på nytt ved feil.
-        oppdaterInnsatsbehov(arenaVedtak.fnr)
-    }
-
-    fun oppdaterInnsatsbehov(brukerId: EksternBrukerId) {
-        val identer = brukerIdentService.hentIdenter(brukerId)
-        val gjeldendeVedtakDetailed = gjeldendeInnsatsbehovMedKilder(identer)
-
-        transactor.executeWithoutResult {
-            oppdaterGrunnlagForGjeldendeVedtak(gjeldendeVedtakDetailed)
-        }
-
-        kafkaProducer.sendInnsatsbehov(gjeldendeVedtakDetailed.innsatsbehov)
-    }
-
-    private fun oppdaterGrunnlagForGjeldendeVedtak(innsatsbehovMedGrunnlag: InnsatsbehovMedGrunnlag) {
-        val (innsatsbehov, fraArena, vedtak, arenaVedtakListe) = innsatsbehovMedGrunnlag
-
-        if (fraArena) {
-            settVedtakTilHistorisk(vedtak)
-            slettGamleArenaVedtak(arenaVedtakListe)
-        } else if (innsatsbehov != null && arenaVedtakListe.isNotEmpty()) {
-            // Vedtak fra denne løsningen
-            arenaVedtakRepository.slettVedtak(arenaVedtakListe.map { it.fnr })
-        } else {
-            // Ingen gjeldende vedtak
-            slettGamleArenaVedtak(arenaVedtakListe)
+        if (erEndret) {
+            oppdaterInnsatsbehov(arenaVedtak)
         }
     }
 
-    private fun settVedtakTilHistorisk(vedtak: Vedtak?) {
-        if (vedtak != null && vedtak.isGjeldende) {
-            vedtakRepository.settGjeldendeVedtakTilHistorisk(vedtak.aktorId)
-        }
-    }
+    private fun oppdaterInnsatsbehov(arenaVedtak: ArenaVedtak) {
+        val identer = brukerIdentService.hentIdenter(arenaVedtak.fnr)
+        val (innsatsbehov, fraArena, gjeldendeVedtak, arenaVedtakListe) = gjeldendeInnsatsbehovMedKilder(identer)
 
-    private fun slettGamleArenaVedtak(arenaVedtakListe: List<ArenaVedtak>) {
-        // Håndterer endring av fnr for bruker
-        if (arenaVedtakListe.size > 1) {
-            val sisteVedtakFnr = finnSisteArenaVedtak(arenaVedtakListe)?.fnr
-            arenaVedtakRepository.slettVedtak(arenaVedtakListe.map { it.fnr }.filterNot { it == sisteVedtakFnr })
+        if (fraArena && gjeldendeVedtak != null) {
+            vedtakRepository.settGjeldendeVedtakTilHistorisk(gjeldendeVedtak.aktorId)
+        }
+
+        if (fraArena &&
+            // hindrer at vi republiserer gjeldende innsatsbehov dersom eldre meldinger skulle blir konsumert:
+            finnSisteArenaVedtak(arenaVedtakListe) == arenaVedtak) {
+            kafkaProducer.sendInnsatsbehov(innsatsbehov)
         }
     }
 

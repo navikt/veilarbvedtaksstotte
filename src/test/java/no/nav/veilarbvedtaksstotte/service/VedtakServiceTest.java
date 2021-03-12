@@ -25,11 +25,13 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
-import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
@@ -45,7 +47,6 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +55,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
 import static no.nav.common.utils.EnvironmentUtils.NAIS_CLUSTER_NAME_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -73,7 +73,6 @@ public class VedtakServiceTest {
     private static MeldingRepository meldingRepository;
     private static OyeblikksbildeRepository oyeblikksbildeRepository;
     private static BeslutteroversiktRepository beslutteroversiktRepository;
-    private static ArenaVedtakRepository arenaVedtakRepository;
 
     private static VedtakService vedtakService;
     private static OyeblikksbildeService oyeblikksbildeService;
@@ -85,7 +84,6 @@ public class VedtakServiceTest {
     private static final UnleashService unleashService = mock(UnleashService.class);
     private static final VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
     private static final VeilederService veilederService = mock(VeilederService.class);
-    private static final BrukerIdentService brukerIdentService = mock(BrukerIdentService.class);
 
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
@@ -113,7 +111,6 @@ public class VedtakServiceTest {
         vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
-        arenaVedtakRepository = new ArenaVedtakRepository(db);
 
         authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
@@ -126,7 +123,6 @@ public class VedtakServiceTest {
                 beslutteroversiktRepository,
                 kilderRepository,
                 meldingRepository,
-                arenaVedtakRepository,
                 veilarbdokumentClient,
                 null,
                 authService,
@@ -136,8 +132,7 @@ public class VedtakServiceTest {
                 veilederService,
                 malTypeService,
                 vedtakStatusEndringService,
-                dokumentServiceV2,
-                brukerIdentService
+                dokumentServiceV2
         );
     }
 
@@ -162,8 +157,6 @@ public class VedtakServiceTest {
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
         when(aktorregisterClient.hentAktorId(Fnr.of(TEST_FNR))).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorregisterClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(Fnr.of(TEST_FNR));
-        when(brukerIdentService.hentIdenter(Fnr.of(TEST_FNR))).thenReturn(new BrukerIdenter(Fnr.of(TEST_FNR), AktorId.of(TEST_AKTOR_ID), emptyList(), emptyList()));
-        when(brukerIdentService.hentIdenter(AktorId.of(TEST_AKTOR_ID))).thenReturn(new BrukerIdenter(Fnr.of(TEST_FNR), AktorId.of(TEST_AKTOR_ID), emptyList(), emptyList()));
         when(veilarbarenaClient.oppfolgingsenhet(Fnr.of(TEST_FNR))).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
         when(veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))).thenReturn(TEST_OPPFOLGINGSSAK);
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
@@ -209,27 +202,6 @@ public class VedtakServiceTest {
         fattVedtak();
 
         assertSendtVedtakV2();
-    }
-
-    @Test
-    public void fattVedtak__sletter_kopi_av_arena_vedtak() {
-        gittUtkastKlarForUtsendelse();
-        arenaVedtakRepository.upsertVedtak(
-                new ArenaVedtak(Fnr.of(TEST_FNR), ArenaVedtak.ArenaInnsatsgruppe.BATT, ArenaVedtak.ArenaHovedmal.BEHOLDE_ARBEID, LocalDateTime.now(), "MOD USER"));
-        assertNotNull(arenaVedtakRepository.hentVedtak(Fnr.of(TEST_FNR)));
-        fattVedtak();
-        assertNull(arenaVedtakRepository.hentVedtak(Fnr.of(TEST_FNR)));
-    }
-
-    @Test
-    public void fattVedtakV2__sletter_kopi_av_arena_vedtak() {
-        gittVersjon2AvFattVedtak();
-        gittUtkastKlarForUtsendelse();
-        arenaVedtakRepository.upsertVedtak(
-                new ArenaVedtak(Fnr.of(TEST_FNR), ArenaVedtak.ArenaInnsatsgruppe.BATT, ArenaVedtak.ArenaHovedmal.BEHOLDE_ARBEID, LocalDateTime.now(), "MOD USER"));
-        assertNotNull(arenaVedtakRepository.hentVedtak(Fnr.of(TEST_FNR)));
-        fattVedtak();
-        assertNull(arenaVedtakRepository.hentVedtak(Fnr.of(TEST_FNR)));
     }
 
     @Test

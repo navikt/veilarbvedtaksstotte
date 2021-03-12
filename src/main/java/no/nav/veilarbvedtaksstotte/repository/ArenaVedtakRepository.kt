@@ -58,12 +58,6 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
         return namedParameterJdbcTemplate.query(sql, parameters, arenaVedtakRowMapper)
     }
 
-    fun slettVedtak(fnrs: List<Fnr>): Int {
-        val parameters = MapSqlParameterSource("fnrs", fnrs.map { it.get() })
-        val sql = "DELETE FROM $ARENA_VEDTAK_TABLE WHERE $FNR IN(:fnrs)"
-        return namedParameterJdbcTemplate.update(sql, parameters)
-    }
-
     private val arenaVedtakRowMapper: RowMapper<ArenaVedtak> = RowMapper { rs, _ ->
         ArenaVedtak(
             fnr = Fnr(rs.getString(FNR)),
