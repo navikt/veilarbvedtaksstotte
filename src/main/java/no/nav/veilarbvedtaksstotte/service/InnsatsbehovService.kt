@@ -17,6 +17,8 @@ import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.*
 
 @Service
@@ -65,7 +67,7 @@ class InnsatsbehovService(
         if (
             (gjeldendeVedtak != null && arenaVedtak == null) ||
             (gjeldendeVedtak != null && arenaVedtak != null &&
-                    gjeldendeVedtak.vedtakFattet.isAfter(arenaVedtak.fraDato))
+                    gjeldendeVedtak.vedtakFattet.isAfter(arenaVedtak.fattetTidspunkt()))
         ) {
             return InnsatsbehovMedGrunnlag(
                 innsatsbehov = Innsatsbehov(
@@ -110,12 +112,28 @@ class InnsatsbehovService(
 
         if (sisteOppfolgingsperiode != null &&
             OppfolgingUtils.erOppfolgingsperiodeAktiv(sisteOppfolgingsperiode) &&
-            OppfolgingUtils.erDatoInnenforOppfolgingsperiode(sisteArenaVedtak.fraDato, sisteOppfolgingsperiode)
+            innenforOppfolgingsperiode(sisteArenaVedtak, sisteOppfolgingsperiode)
         ) {
             return sisteArenaVedtak
         } else {
             return null
         }
+    }
+
+    private fun innenforOppfolgingsperiode(
+        arenaVedtak: ArenaVedtak,
+        sisteOppfolgingsperiode: OppfolgingPeriodeDTO
+    ): Boolean {
+
+        // Oppfolgingsperiode justert til å gjelde fra midnatt dersom vi ikke har tidspunkt for når vedtaket ble fattet
+        val oppfolgingsperiodeFraMidnatt =
+            OppfolgingPeriodeDTO(
+                LocalDateTime.of(sisteOppfolgingsperiode.startDato.toLocalDate(), LocalTime.MIDNIGHT),
+                sisteOppfolgingsperiode.sluttDato
+            )
+
+        return OppfolgingUtils
+            .erDatoInnenforOppfolgingsperiode(arenaVedtak.fattetTidspunkt(), oppfolgingsperiodeFraMidnatt)
     }
 
     private fun finnSisteArenaVedtak(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {
@@ -145,7 +163,8 @@ class InnsatsbehovService(
 
         if (fraArena &&
             // hindrer at vi republiserer gjeldende innsatsbehov dersom eldre meldinger skulle blir konsumert:
-            finnSisteArenaVedtak(arenaVedtakListe) == arenaVedtak) {
+            finnSisteArenaVedtak(arenaVedtakListe) == arenaVedtak
+        ) {
             kafkaProducer.sendInnsatsbehov(innsatsbehov)
         }
     }

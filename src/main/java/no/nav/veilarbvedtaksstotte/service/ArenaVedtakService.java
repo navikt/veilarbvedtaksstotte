@@ -50,8 +50,8 @@ public class ArenaVedtakService {
      *
      * Idempotent behandling av Kafka-melding om vedtak fra Arena. Lagrer kun siste vedtak per fnr.
      * For minst mulig logikk så:
-     *  - Tas det her ikke høyde for endring av fnr, dvs lagring per fnr og ikke per bruker
-     *  - Lagrer siste vedtak fra Arena selv om det finnes et nyere vedtak i denne løsningen
+     * - Tas det her ikke høyde for endring av fnr, dvs lagring per fnr og ikke per bruker
+     * - Lagrer siste vedtak fra Arena selv om det finnes et nyere vedtak i denne løsningen
      */
     public Boolean behandleVedtakFraArena(ArenaVedtak arenaVedtak) {
 
@@ -61,7 +61,9 @@ public class ArenaVedtakService {
 
         ArenaVedtak eksisterendeVedtak = arenaVedtakRepository.hentVedtak(arenaVedtak.getFnr());
 
-        if (eksisterendeVedtak != null && !arenaVedtak.getFraDato().isAfter(eksisterendeVedtak.getFraDato())) {
+        if (arenaVedtak.equals(eksisterendeVedtak) ||
+                eksisterendeVedtak != null &&
+                        eksisterendeVedtak.fattetTidspunkt().isAfter(arenaVedtak.fattetTidspunkt())) {
             return false;
         }
 

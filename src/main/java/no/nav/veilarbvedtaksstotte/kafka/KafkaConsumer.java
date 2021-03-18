@@ -5,6 +5,7 @@ import no.nav.common.job.JobRunner;
 import no.nav.common.utils.IdUtils;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
+import no.nav.veilarbvedtaksstotte.kafka.dto.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.KafkaRepository;
@@ -63,8 +64,15 @@ public class KafkaConsumer {
     @KafkaListener(topics = "#{kafkaTopics.getArenaVedtak()}")
     public void consumeArenaVedtak(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
         consumeWithErrorHandling(() -> {
-            ArenaVedtak arenaVedtak = fromJson(record.value(), ArenaVedtak.class);
-            innsatsbehovService.behandleEndringFraArena(arenaVedtak);
+            ArenaVedtakRecord arenaVedtakRecord = fromJson(record.value(), ArenaVedtakRecord.class);
+            ArenaVedtak arenaVedtak = ArenaVedtak.fraRecord(arenaVedtakRecord);
+            if (arenaVedtak != null) {
+                innsatsbehovService.behandleEndringFraArena(arenaVedtak);
+            } else {
+                log.info(format("Behandler ikke melding fra Arena med kvalifiseringsgruppe = %s og hovedmål = %s",
+                        arenaVedtakRecord.getAfter().getKvalifiseringsgruppe(),
+                        arenaVedtakRecord.getAfter().getHovedmal()));
+            }
         }, record, acknowledgment);
     }
 

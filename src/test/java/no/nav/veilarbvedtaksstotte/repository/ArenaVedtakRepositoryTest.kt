@@ -9,6 +9,7 @@ import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Test
 import org.springframework.jdbc.core.JdbcTemplate
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class ArenaVedtakRepositoryTest {
@@ -31,9 +32,10 @@ class ArenaVedtakRepositoryTest {
         val forventetOpprinneligVedtak = ArenaVedtak(
             fnr = fnr,
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
-            hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFE_ARBEID,
-            fraDato = LocalDateTime.now(),
-            regUser = "reg user"
+            hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
+            fraDato = LocalDate.now(),
+            regUser = "reg user",
+            operationTimestamp = LocalDateTime.now()
         )
 
         arenaVedtakRepository.upsertVedtak(forventetOpprinneligVedtak)
@@ -45,7 +47,7 @@ class ArenaVedtakRepositoryTest {
         val forventetOppdatertVedtak = forventetOpprinneligVedtak
             .copy(
                 innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaVedtak.ArenaHovedmal.OKE_DELTAKELSE,
+                hovedmal = ArenaVedtak.ArenaHovedmal.OKEDELT,
                 fraDato = forventetOpprinneligVedtak.fraDato.plusDays(1),
                 regUser = "reg user 2"
             )
@@ -62,9 +64,10 @@ class ArenaVedtakRepositoryTest {
         val arenaVedtak1 = ArenaVedtak(
             fnr = Fnr(randomNumeric(10)),
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
-            hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFE_ARBEID,
-            fraDato = LocalDateTime.now(),
-            regUser = "reg user"
+            hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
+            fraDato = LocalDate.now(),
+            regUser = "reg user",
+            operationTimestamp = LocalDateTime.now()
         )
         val arenaVedtak2 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))
 
@@ -86,9 +89,10 @@ class ArenaVedtakRepositoryTest {
         val arenaVedtak1 = ArenaVedtak(
             fnr = Fnr(randomNumeric(10)),
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BATT,
-            hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFE_ARBEID,
-            fraDato = LocalDateTime.now(),
-            regUser = "reg user"
+            hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
+            fraDato = LocalDate.now(),
+            regUser = "reg user",
+            operationTimestamp = LocalDateTime.now()
         )
         val arenaVedtak2 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))
         val arenaVedtak3 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))

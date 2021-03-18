@@ -37,6 +37,7 @@ import org.mockito.Mockito.*
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class InnsatsbehovServiceTest {
@@ -114,7 +115,7 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now().minusDays(3)
+                fraDato = LocalDate.now().minusDays(3)
             )
         )
         assertAntallVedtakFraArena(identer, 1)
@@ -151,14 +152,14 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now().minusDays(3)
+                fraDato = LocalDate.now().minusDays(3)
             )
         )
 
         lagre(
             arenaVedtakDer(
                 fnr = identer.historiskeFnr[0],
-                fraDato = LocalDateTime.now().minusDays(3)
+                fraDato = LocalDate.now().minusDays(3)
             )
         )
 
@@ -208,7 +209,7 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now().minusDays(3),
+                fraDato = LocalDate.now().minusDays(3),
                 innsatsgruppe = ArenaInnsatsgruppe.IKVAL
             )
         )
@@ -242,9 +243,9 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now().minusDays(4),
+                fraDato = LocalDate.now().minusDays(4),
                 innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+                hovedmal = ArenaHovedmal.SKAFFEA
             )
         )
 
@@ -279,9 +280,9 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now().minusDays(1),
+                fraDato = LocalDate.now().minusDays(1),
                 innsatsgruppe = ArenaInnsatsgruppe.BATT,
-                hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+                hovedmal = ArenaHovedmal.OKEDELT
             )
         )
 
@@ -308,9 +309,9 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now().minusDays(4),
+                fraDato = LocalDate.now().minusDays(4),
                 innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+                hovedmal = ArenaHovedmal.SKAFFEA
             )
         )
 
@@ -342,9 +343,9 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now().minusDays(4),
+                fraDato = LocalDate.now().minusDays(4),
                 innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+                hovedmal = ArenaHovedmal.SKAFFEA
             )
         )
 
@@ -379,9 +380,9 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now().minusDays(4),
+                fraDato = LocalDate.now().minusDays(4),
                 innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+                hovedmal = ArenaHovedmal.SKAFFEA
             )
         )
 
@@ -389,9 +390,9 @@ class InnsatsbehovServiceTest {
             lagre(
                 arenaVedtakDer(
                     fnr = fnr,
-                    fraDato = LocalDateTime.now().minusDays(5 + index.toLong()),
+                    fraDato = LocalDate.now().minusDays(5 + index.toLong()),
                     innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                    hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+                    hovedmal = ArenaHovedmal.OKEDELT
                 )
             )
         }
@@ -419,9 +420,9 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.historiskeFnr[1],
-                fraDato = LocalDateTime.now().minusDays(4),
+                fraDato = LocalDate.now().minusDays(4),
                 innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
-                hovedmal = ArenaHovedmal.BEHOLDE_ARBEID
+                hovedmal = ArenaHovedmal.BEHOLDEA
             )
         )
 
@@ -430,9 +431,9 @@ class InnsatsbehovServiceTest {
                 lagre(
                     arenaVedtakDer(
                         fnr = fnr,
-                        fraDato = LocalDateTime.now().minusDays(5 + index.toLong()),
+                        fraDato = LocalDate.now().minusDays(5 + index.toLong()),
                         innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                        hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+                        hovedmal = ArenaHovedmal.OKEDELT
                     )
                 )
             }
@@ -462,7 +463,7 @@ class InnsatsbehovServiceTest {
 
         innsatsbehovService.behandleEndringFraArena(
             arenaVedtakDer(
-                fnr = identer.fnr, innsatsgruppe = ArenaInnsatsgruppe.BFORM, hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+                fnr = identer.fnr, innsatsgruppe = ArenaInnsatsgruppe.BFORM, hovedmal = ArenaHovedmal.OKEDELT
             )
         )
 
@@ -500,8 +501,8 @@ class InnsatsbehovServiceTest {
             arenaVedtakDer(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                hovedmal = ArenaHovedmal.OKE_DELTAKELSE,
-                fraDato = LocalDateTime.now().minusDays(2)
+                hovedmal = ArenaHovedmal.OKEDELT,
+                fraDato = LocalDate.now().minusDays(2)
             )
         )
 
@@ -540,7 +541,7 @@ class InnsatsbehovServiceTest {
             arenaVedtakDer(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BATT,
-                hovedmal = ArenaHovedmal.BEHOLDE_ARBEID,
+                hovedmal = ArenaHovedmal.BEHOLDEA,
                 regUser = "MODIA"
             )
         )
@@ -581,8 +582,8 @@ class InnsatsbehovServiceTest {
             arenaVedtakDer(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                hovedmal = ArenaHovedmal.BEHOLDE_ARBEID,
-                fraDato = LocalDateTime.now().minusDays(3)
+                hovedmal = ArenaHovedmal.BEHOLDEA,
+                fraDato = LocalDate.now().minusDays(3)
             )
         )
 
@@ -609,9 +610,9 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now(),
+                fraDato = LocalDate.now(),
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+                hovedmal = ArenaHovedmal.OKEDELT
             )
         )
 
@@ -620,9 +621,9 @@ class InnsatsbehovServiceTest {
         innsatsbehovService.behandleEndringFraArena(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now().minusDays(1),
+                fraDato = LocalDate.now().minusDays(1),
                 innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
-                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+                hovedmal = ArenaHovedmal.SKAFFEA
             )
         )
 
@@ -647,9 +648,9 @@ class InnsatsbehovServiceTest {
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDateTime.now(),
+                fraDato = LocalDate.now(),
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+                hovedmal = ArenaHovedmal.OKEDELT
             )
         )
 
@@ -658,9 +659,9 @@ class InnsatsbehovServiceTest {
         innsatsbehovService.behandleEndringFraArena(
             arenaVedtakDer(
                 fnr = identer.historiskeFnr[0],
-                fraDato = LocalDateTime.now().minusDays(1),
+                fraDato = LocalDate.now().minusDays(1),
                 innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
-                hovedmal = ArenaHovedmal.SKAFFE_ARBEID
+                hovedmal = ArenaHovedmal.SKAFFEA
             )
         )
 
@@ -684,9 +685,9 @@ class InnsatsbehovServiceTest {
 
         val arenaVedtak = arenaVedtakDer(
             fnr = identer.fnr,
-            fraDato = LocalDateTime.now(),
+            fraDato = LocalDate.now(),
             innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-            hovedmal = ArenaHovedmal.OKE_DELTAKELSE
+            hovedmal = ArenaHovedmal.OKEDELT
         )
         lagre(arenaVedtak)
 
@@ -782,17 +783,19 @@ class InnsatsbehovServiceTest {
 
     private fun arenaVedtakDer(
         fnr: Fnr,
-        fraDato: LocalDateTime = LocalDateTime.now(),
+        fraDato: LocalDate = LocalDate.now(),
         regUser: String = "REG USER",
         innsatsgruppe: ArenaInnsatsgruppe = ArenaInnsatsgruppe.BFORM,
-        hovedmal: ArenaHovedmal = ArenaHovedmal.SKAFFE_ARBEID
+        hovedmal: ArenaHovedmal = ArenaHovedmal.SKAFFEA,
+        operationTimestamp: LocalDateTime = LocalDateTime.now()
     ): ArenaVedtak {
         val arenaVedtak = ArenaVedtak(
             fnr = fnr,
             innsatsgruppe = innsatsgruppe,
             hovedmal = hovedmal,
             fraDato = fraDato,
-            regUser = regUser
+            regUser = regUser,
+            operationTimestamp = operationTimestamp
         )
         return arenaVedtak
     }

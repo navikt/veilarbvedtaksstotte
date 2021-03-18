@@ -1,0 +1,14 @@
+{
+  "table": "TABELL",
+  "op_type": "I",
+  "op_ts": "2021-02-14 15:16:17.012300",
+  "current_ts": "2021-02-14T15:16:18.123000",
+  "pos": "00000000000000000001",
+  "after": {
+    "FODSELSNR": "11111111111",
+    "KVALIFISERINGSGRUPPEKODE": "BFORM",
+    "HOVEDMAALKODE": "SKAFFEA",
+    "REG_USER": "REGUSER",
+    "FRA_DATO": "2021-01-13 00:00:00"
+  }
+}

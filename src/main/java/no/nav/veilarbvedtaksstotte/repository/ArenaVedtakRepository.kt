@@ -21,17 +21,19 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
     val HOVEDMAL = "HOVEDMAL"
     val FRA_DATO = "FRA_DATO"
     val REG_USER = "REG_USER"
+    val OPERATION_TIMESTAMP = "OPERATION_TIMESTAMP"
 
     fun upsertVedtak(vedtak: ArenaVedtak) {
         val sql =
             """
-                INSERT INTO $ARENA_VEDTAK_TABLE ($FNR, $INNSATSGRUPPE, $HOVEDMAL, $FRA_DATO, $REG_USER)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO $ARENA_VEDTAK_TABLE ($FNR, $INNSATSGRUPPE, $HOVEDMAL, $FRA_DATO, $REG_USER, $OPERATION_TIMESTAMP)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON CONFLICT ($FNR) DO UPDATE
-                SET $INNSATSGRUPPE   = EXCLUDED.$INNSATSGRUPPE,
-                    $HOVEDMAL        = EXCLUDED.$HOVEDMAL,
-                    $FRA_DATO        = EXCLUDED.$FRA_DATO,
-                    $REG_USER        = EXCLUDED.$REG_USER
+                SET $INNSATSGRUPPE        = EXCLUDED.$INNSATSGRUPPE,
+                    $HOVEDMAL             = EXCLUDED.$HOVEDMAL,
+                    $FRA_DATO             = EXCLUDED.$FRA_DATO,
+                    $REG_USER             = EXCLUDED.$REG_USER,
+                    $OPERATION_TIMESTAMP  = EXCLUDED.$OPERATION_TIMESTAMP
             """
 
         jdbcTemplate.update(
@@ -40,7 +42,8 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
             vedtak.innsatsgruppe.name,
             vedtak.hovedmal?.name,
             vedtak.fraDato,
-            vedtak.regUser
+            vedtak.regUser,
+            vedtak.operationTimestamp
         )
     }
 
@@ -63,8 +66,9 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
             fnr = Fnr(rs.getString(FNR)),
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.valueOf(rs.getString(INNSATSGRUPPE)),
             hovedmal = rs.getString(HOVEDMAL)?.let { ArenaVedtak.ArenaHovedmal.valueOf(it) },
-            fraDato = rs.getTimestamp(FRA_DATO).toLocalDateTime(),
-            regUser = rs.getString(REG_USER)
+            fraDato = rs.getTimestamp(FRA_DATO).toLocalDateTime().toLocalDate(),
+            regUser = rs.getString(REG_USER),
+            operationTimestamp = rs.getTimestamp(OPERATION_TIMESTAMP).toLocalDateTime()
         )
     }
 }
