@@ -63,7 +63,7 @@ public class ArenaVedtakService {
 
         if (arenaVedtak.equals(eksisterendeVedtak) ||
                 eksisterendeVedtak != null &&
-                        eksisterendeVedtak.fattetTidspunkt().isAfter(arenaVedtak.fattetTidspunkt())) {
+                        eksisterendeVedtak.beregnetFattetTidspunkt().isAfter(arenaVedtak.beregnetFattetTidspunkt())) {
             return false;
         }
 

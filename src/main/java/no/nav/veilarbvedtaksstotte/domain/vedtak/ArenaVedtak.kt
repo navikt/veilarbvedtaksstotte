@@ -69,7 +69,7 @@ data class ArenaVedtak(
      * tid for å kunne finne ut hvilket vedtak som er det nyeste dersom det på samme dag fattes flere vedtak i Arena og
      * eventuelt i denne løsningen, for samme bruker.
      */
-    fun fattetTidspunkt(): LocalDateTime {
+    fun beregnetFattetTidspunkt(): LocalDateTime {
         if (operationTimestamp.toLocalDate().equals(fraDato)) {
             return operationTimestamp
         }

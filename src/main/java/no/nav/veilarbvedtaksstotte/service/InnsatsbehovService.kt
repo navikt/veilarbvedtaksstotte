@@ -64,10 +64,11 @@ class InnsatsbehovService(
 
         val arenaVedtak = sisteArenaVedtakInnenforGjeldendeOppfolgingsperiode(arenaVedtakListe)
 
+        // Gjeldende vedtak fra denne løsningen
         if (
             (gjeldendeVedtak != null && arenaVedtak == null) ||
             (gjeldendeVedtak != null && arenaVedtak != null &&
-                    gjeldendeVedtak.vedtakFattet.isAfter(arenaVedtak.fattetTidspunkt()))
+                    gjeldendeVedtak.vedtakFattet.isAfter(arenaVedtak.beregnetFattetTidspunkt()))
         ) {
             return InnsatsbehovMedGrunnlag(
                 innsatsbehov = Innsatsbehov(
@@ -79,6 +80,8 @@ class InnsatsbehovService(
                 gjeldendeVedtak = gjeldendeVedtak,
                 arenaVedtak = arenaVedtakListe
             )
+
+            // Gjeldende vedtak fra Arena
         } else if (arenaVedtak != null) {
             return InnsatsbehovMedGrunnlag(
                 innsatsbehov = Innsatsbehov(
@@ -91,6 +94,8 @@ class InnsatsbehovService(
                 arenaVedtak = arenaVedtakListe
             )
         }
+
+        // Ingen gjeldende vedtak
         return InnsatsbehovMedGrunnlag(
             innsatsbehov = null,
             fraArena = false,
@@ -125,7 +130,8 @@ class InnsatsbehovService(
         sisteOppfolgingsperiode: OppfolgingPeriodeDTO
     ): Boolean {
 
-        // Oppfolgingsperiode justert til å gjelde fra midnatt dersom vi ikke har tidspunkt for når vedtaket ble fattet
+        // Oppfolgingsperiode justert til å gjelde fra midnatt siden vi ikke kan beregne tidspunkt for når vedtaket ble
+        // fattet dersom ikke Kafka-melding sendes samme dag som vedtaket fattes og får operation timestamp som kan brukes.
         val oppfolgingsperiodeFraMidnatt =
             OppfolgingPeriodeDTO(
                 LocalDateTime.of(sisteOppfolgingsperiode.startDato.toLocalDate(), LocalTime.MIDNIGHT),
@@ -133,7 +139,7 @@ class InnsatsbehovService(
             )
 
         return OppfolgingUtils
-            .erDatoInnenforOppfolgingsperiode(arenaVedtak.fattetTidspunkt(), oppfolgingsperiodeFraMidnatt)
+            .erDatoInnenforOppfolgingsperiode(arenaVedtak.beregnetFattetTidspunkt(), oppfolgingsperiodeFraMidnatt)
     }
 
     private fun finnSisteArenaVedtak(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {

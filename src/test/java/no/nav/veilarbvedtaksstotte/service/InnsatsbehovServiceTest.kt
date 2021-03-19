@@ -268,6 +268,43 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
+    fun `innsatsbehov fra ny løsning dersom, ny løsning har gjeldende, Arena har eldre fra samme dag`() {
+        val identer = gittBrukerIdenter()
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(10), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDate.now().minusDays(3),
+                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+                hovedmal = ArenaHovedmal.SKAFFEA,
+                operationTimestamp = LocalDateTime.now().minusDays(3)
+            )
+        )
+
+        gittFattetVedtakDer(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+            hovedmal = Hovedmal.BEHOLDE_ARBEID,
+            gjeldende = true,
+            vedtakFattetDato = LocalDateTime.now().minusDays(3).plusMinutes(1)
+        )
+
+        assertAntallVedtakFraArena(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
+            )
+        )
+    }
+
+    @Test
     fun `innsatsbehov er fra Arena dersom, ny løsning har null, Arena har innenfor oppfølgingsperiode`() {
         val identer = gittBrukerIdenter()
 
@@ -355,6 +392,44 @@ class InnsatsbehovServiceTest {
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
             gjeldende = true,
             vedtakFattetDato = LocalDateTime.now().minusDays(5)
+        )
+
+        assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertAntallVedtakFraArena(identer, 1)
+        assertGjeldendeVedtakNyLøsning(identer, true)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+            )
+        )
+    }
+
+    @Test
+    fun `innsatsbehov er fra Arena dersom, ny løsning har gjeldende, Arena har nyere fra samme dag`() {
+        val identer = gittBrukerIdenter()
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = LocalDate.now().minusDays(4),
+                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+                hovedmal = ArenaHovedmal.SKAFFEA,
+                operationTimestamp = LocalDateTime.now().minusDays(4).plusMinutes(1)
+            )
+        )
+
+        gittFattetVedtakDer(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+            hovedmal = Hovedmal.BEHOLDE_ARBEID,
+            gjeldende = true,
+            vedtakFattetDato = LocalDateTime.now().minusDays(4)
         )
 
         assertFattedeVedtakFraNyLøsning(identer, 1)
