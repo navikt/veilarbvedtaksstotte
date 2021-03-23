@@ -31,9 +31,9 @@ import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.util.Map;
 
-import static no.nav.common.kafka.consumer.util.JsonTopicConsumer.jsonConsumer;
-import static no.nav.common.kafka.util.KafkaProperties.onPremByteProducerProperties;
-import static no.nav.common.kafka.util.KafkaProperties.onPremDefaultConsumerProperties;
+import static no.nav.common.kafka.consumer.util.ConsumerUtils.jsonConsumer;
+import static no.nav.common.kafka.util.KafkaPropertiesPreset.onPremByteProducerProperties;
+import static no.nav.common.kafka.util.KafkaPropertiesPreset.onPremDefaultConsumerProperties;
 
 @Configuration
 @EnableConfigurationProperties({KafkaProperties.class})
@@ -117,10 +117,12 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaProducerRecordProcessor producerRecordProcessor(LeaderElectionClient leaderElectionClient,
-                                                                KafkaProperties kafkaProperties,
-                                                                KafkaProducerRepository producerRepository,
-                                                                Credentials credentials) {
+    public KafkaProducerRecordProcessor producerRecordProcessor(
+            LeaderElectionClient leaderElectionClient,
+            KafkaProperties kafkaProperties,
+            KafkaProducerRepository producerRepository,
+            Credentials credentials
+    ) {
         KafkaProducerClient<byte[], byte[]> producerClient = KafkaProducerClientBuilder.<byte[], byte[]>builder()
                 .withProperties(onPremByteProducerProperties(PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials))
                 .build();
