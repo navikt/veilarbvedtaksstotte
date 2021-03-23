@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import net.javacrumbs.shedlock.core.LockProvider;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.kafka.consumer.KafkaConsumerClient;
@@ -81,13 +82,16 @@ public class KafkaConfig {
             Map<String, TopicConsumer<String, String>> topicConsumers,
             KafkaConsumerRepository kafkaConsumerRepository,
             Credentials credentials,
-            KafkaProperties kafkaProperties
+            KafkaProperties kafkaProperties,
+            MeterRegistry meterRegistry
     ) {
         return KafkaConsumerClientBuilder.<String, String>builder()
                 .withProps(onPremDefaultConsumerProperties(CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials))
                 .withRepository(kafkaConsumerRepository)
                 .withSerializers(new StringSerializer(), new StringSerializer())
                 .withStoreOnFailureConsumers(topicConsumers)
+                .withMetrics(meterRegistry)
+                .withLogging()
                 .build();
     }
 
@@ -121,10 +125,12 @@ public class KafkaConfig {
             LeaderElectionClient leaderElectionClient,
             KafkaProperties kafkaProperties,
             KafkaProducerRepository producerRepository,
-            Credentials credentials
+            Credentials credentials,
+            MeterRegistry meterRegistry
     ) {
         KafkaProducerClient<byte[], byte[]> producerClient = KafkaProducerClientBuilder.<byte[], byte[]>builder()
                 .withProperties(onPremByteProducerProperties(PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials))
+                .withMetrics(meterRegistry)
                 .build();
 
         return new KafkaProducerRecordProcessor(producerRepository, producerClient, leaderElectionClient);

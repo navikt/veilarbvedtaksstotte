@@ -42,8 +42,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -96,7 +94,6 @@ public class VedtakServiceTest {
     private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
 
     private static final VeilarbPep veilarbPep = mock(VeilarbPep.class);
-    private static final KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
 
     private static final String CV_DATA = "{\"cv\": \"cv\"}";
     private static final String REGISTRERING_DATA = "{\"registrering\": \"registrering\"}";
@@ -150,7 +147,6 @@ public class VedtakServiceTest {
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
         when(veilarbdokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
-        when(kafkaTemplate.send(any(), any(), any())).thenReturn(new AsyncResult(null));
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR)).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
