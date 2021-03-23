@@ -19,9 +19,12 @@ public class AdminController {
 
     private final TilgangskontrollService tilgangskontrollService;
 
+    private final AuthContextHolder authContextHolder;
+
     @Autowired
-    public AdminController(TilgangskontrollService tilgangskontrollService) {
+    public AdminController(TilgangskontrollService tilgangskontrollService, AuthContextHolder authContextHolder) {
         this.tilgangskontrollService = tilgangskontrollService;
+        this.authContextHolder = authContextHolder;
     }
 
     @GetMapping("/tilgang")
@@ -43,7 +46,8 @@ public class AdminController {
     }
 
     private void sjekkTilgangTilAdmin() {
-        String subject = AuthContextHolder.getSubject().orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        String subject = authContextHolder.getSubject()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
         if (!PTO_ADMIN_SERVICE_USER.equals(subject)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
