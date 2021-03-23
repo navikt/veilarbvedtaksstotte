@@ -14,6 +14,7 @@ import static no.nav.veilarbvedtaksstotte.repository.KilderRepository.KILDE_TABL
 import static no.nav.veilarbvedtaksstotte.repository.MeldingRepository.DIALOG_MELDING_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.MeldingRepository.SYSTEM_MELDING_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository.OYEBLIKKSBILDE_TABLE;
+import static no.nav.veilarbvedtaksstotte.repository.TilgangskontrollRepository.TILGANGSKONTROLL_ENHET_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.VEDTAK_TABLE;
 
 @Slf4j
@@ -21,6 +22,7 @@ public class DbTestUtils {
 
     // Rekkefølgen er viktig pga foreign key constraints
     private final static List<String> ALL_TABLES = Arrays.asList(
+            TILGANGSKONTROLL_ENHET_TABLE,
             KILDE_TABLE,
             FEILET_KAFKA_MELDING_TABLE,
             OYEBLIKKSBILDE_TABLE,
