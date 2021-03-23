@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.dokarkiv
 
+import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
@@ -15,18 +16,21 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.springframework.http.HttpHeaders
 
-class DokarkivClientImpl(val dokarkivUrl: String,
-                         val systemUserTokenProvider: SystemUserTokenProvider) : DokarkivClient {
+class DokarkivClientImpl(
+    val dokarkivUrl: String,
+    val systemUserTokenProvider: SystemUserTokenProvider,
+    val authContextHolder: AuthContextHolder
+) : DokarkivClient {
 
     val client: OkHttpClient = RestClient.baseClient()
 
     override fun opprettJournalpost(opprettJournalpostDTO: OpprettJournalpostDTO): OpprettetJournalpostDTO {
         val request = Request.Builder()
-                .url(joinPaths(dokarkivUrl, "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
-                .header("Nav-Consumer-Token", bearerToken(systemUserTokenProvider.getSystemUserToken()))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
-                .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, opprettJournalpostDTO.toJson()))
-                .build()
+            .url(joinPaths(dokarkivUrl, "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
+            .header("Nav-Consumer-Token", bearerToken(systemUserTokenProvider.getSystemUserToken()))
+            .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+            .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, opprettJournalpostDTO.toJson()))
+            .build()
 
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)

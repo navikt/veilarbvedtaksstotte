@@ -23,9 +23,12 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
 
     private final OkHttpClient client;
 
-    public VeilarbveilederClientImpl(String veilarbveilederUrl) {
+    private final AuthContextHolder authContextHolder;
+
+    public VeilarbveilederClientImpl(String veilarbveilederUrl, AuthContextHolder authContextHolder) {
         this.veilarbveilederUrl = veilarbveilederUrl;
         this.client = RestClient.baseClient();
+        this.authContextHolder = authContextHolder;
     }
 
     @Cacheable(CacheConfig.ENHET_NAVN_CACHE_NAME)
@@ -33,7 +36,7 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
     public String hentEnhetNavn(String enhetId) {
         Request request = new Request.Builder()
                 .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/enhet/", enhetId, "/navn"))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
@@ -47,7 +50,7 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
     public Veileder hentVeileder(String veilederIdent) {
         Request request = new Request.Builder()
                 .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/veileder/", veilederIdent))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
@@ -57,7 +60,7 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
     }
 
     public VeilederEnheterDTO hentInnloggetVeilederEnheter() {
-        String veilederIdent = AuthContextHolder
+        String veilederIdent = authContextHolder
                 .getNavIdent()
                 .orElseThrow(() -> new IllegalStateException("Fant ikke veileder ident"))
                 .get();
@@ -70,7 +73,7 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
     public VeilederEnheterDTO hentInnloggetVeilederEnheter(String veilederIdentUsedOnlyForCaching) {
         Request request = new Request.Builder()
                 .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/veileder/enheter"))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {

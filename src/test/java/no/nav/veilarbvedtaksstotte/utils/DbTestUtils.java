@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository.BESLUTTEROVERSIKT_BRUKER_TABLE;
-import static no.nav.veilarbvedtaksstotte.repository.KafkaRepository.FEILET_KAFKA_MELDING_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.KilderRepository.KILDE_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.MeldingRepository.DIALOG_MELDING_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.MeldingRepository.SYSTEM_MELDING_TABLE;
@@ -24,7 +23,6 @@ public class DbTestUtils {
     private final static List<String> ALL_TABLES = Arrays.asList(
             TILGANGSKONTROLL_ENHET_TABLE,
             KILDE_TABLE,
-            FEILET_KAFKA_MELDING_TABLE,
             OYEBLIKKSBILDE_TABLE,
             DIALOG_MELDING_TABLE,
             SYSTEM_MELDING_TABLE,
