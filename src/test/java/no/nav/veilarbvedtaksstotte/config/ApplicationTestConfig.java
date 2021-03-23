@@ -4,6 +4,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
+import no.nav.common.auth.context.AuthContextHolder;
+import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.featuretoggle.UnleashClient;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.utils.Credentials;
@@ -89,4 +91,8 @@ public class ApplicationTestConfig {
         return new SimpleMeterRegistry();
     }
 
+    @Bean
+    public AuthContextHolder authContextHolder() {
+        return AuthContextHolderThreadLocal.instance();
+    }
 }

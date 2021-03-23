@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.arena;
 
 import lombok.Value;
+import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
@@ -26,16 +27,20 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
     private final OkHttpClient client;
 
-    public VeilarbarenaClientImpl(String veilarbarenaUrl) {
+    private final AuthContextHolder authContextHolder;
+
+    public VeilarbarenaClientImpl(String veilarbarenaUrl,
+                                  AuthContextHolder authContextHolder) {
         this.veilarbarenaUrl = veilarbarenaUrl;
         this.client = RestClient.baseClient();
+        this.authContextHolder = authContextHolder;
     }
 
     @Cacheable(CacheConfig.BRUKER_ENHET_CACHE_NAME)
     public EnhetId oppfolgingsenhet(Fnr fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbarenaUrl, "/api/oppfolgingsbruker/", fnr.get()))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
@@ -56,7 +61,7 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
     public String oppfolgingssak(Fnr fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbarenaUrl, "api", "oppfolgingssak", fnr.get()))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
                 .build();
 
         try (Response response = client.newCall(request).execute()) {

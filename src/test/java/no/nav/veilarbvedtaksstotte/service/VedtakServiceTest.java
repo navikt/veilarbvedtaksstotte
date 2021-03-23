@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.VeilarbPep;
-import no.nav.common.auth.context.AuthContextHolder;
+import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.test.auth.AuthTestUtils;
@@ -112,7 +112,7 @@ public class VedtakServiceTest {
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
-        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null));
+        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null, AuthContextHolderThreadLocal.instance()));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         dokumentServiceV2 = new DokumentServiceV2(
@@ -557,7 +557,9 @@ public class VedtakServiceTest {
     }
 
     private void withContext(UnsafeRunnable runnable) {
-        AuthContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, TEST_VEILEDER_IDENT), runnable);
+        AuthContextHolderThreadLocal
+                .instance()
+                .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, TEST_VEILEDER_IDENT), runnable);
     }
 
     private void gittUtkastKlarForUtsendelse() {
