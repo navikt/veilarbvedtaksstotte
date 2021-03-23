@@ -180,4 +180,20 @@ public class VedtaksstotteRepositoryTest {
         assertEquals(TEST_DOKUMENT_BESTILLING_ID, oppdatertUtkast.getDokumentbestillingId());
     }
 
+    @Test
+    public void test_Ny_Vedtak_Kolon_Mapping() {
+        DokumentSendtDTO dokumentSendtDTO = new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
+
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        assertNotNull("UTKAST_SIST_OPPDATERT skal ikke vare null", utkast.getUtkastSistOppdatert());
+        vedtaksstotteRepository.ferdigstillVedtak(utkast.getId(), dokumentSendtDTO);
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID);
+
+        Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
+
+        assertNotNull(fattetVedtak);
+        assertNotNull("Vedtak Fattet tidspunkt kan ikke vare null", fattetVedtak.getVedtakFattet());
+    }
 }
