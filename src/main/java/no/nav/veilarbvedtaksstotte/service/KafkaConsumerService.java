@@ -2,15 +2,14 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class KafkaConsumerService {
-    final VedtakService vedtakService;
 
-    public KafkaConsumerService(VedtakService vedtakService) {
-        this.vedtakService = vedtakService;
-    }
+    @Autowired
+    private VedtakService vedtakService;
 
     public void behandleEndringPaAvsluttOppfolging(KafkaAvsluttOppfolging kafkaAvsluttOppfolging) {
         vedtakService.behandleAvsluttOppfolging(kafkaAvsluttOppfolging);
