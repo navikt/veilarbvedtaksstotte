@@ -40,6 +40,7 @@ public class AuthService {
     private final VeilarbarenaClient arenaClient;
     private final AbacClient abacClient;
     private final Credentials serviceUserCredentials;
+    private final AuthContextHolder authContextHolder;
 
     @Autowired
     public AuthService(
@@ -47,13 +48,15 @@ public class AuthService {
             Pep veilarbPep,
             VeilarbarenaClient arenaClient,
             AbacClient abacClient,
-            Credentials serviceUserCredentials
+            Credentials serviceUserCredentials,
+            AuthContextHolder authContextHolder
     ) {
         this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbPep = veilarbPep;
         this.arenaClient = arenaClient;
         this.abacClient = abacClient;
         this.serviceUserCredentials = serviceUserCredentials;
+        this.authContextHolder = authContextHolder;
     }
 
     public AuthKontekst sjekkTilgangTilFnr(String fnr) {
@@ -91,13 +94,13 @@ public class AuthService {
     }
 
     public String getInnloggetBrukerToken() {
-        return AuthContextHolder
+        return authContextHolder
                 .getIdTokenString()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bruker mangler token"));
     }
 
     public String getInnloggetVeilederIdent() {
-        return AuthContextHolder
+        return authContextHolder
                 .getNavIdent()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fant ikke ident for innlogget veileder"))
                 .get();
@@ -168,7 +171,7 @@ public class AuthService {
     }
 
     private void sjekkInternBruker() {
-        AuthContextHolder
+        authContextHolder
                 .getRole()
                 .filter(role -> role == UserRole.INTERN)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke intern bruker"));

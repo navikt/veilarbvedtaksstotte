@@ -4,10 +4,11 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
+import no.nav.common.auth.context.AuthContextHolder;
+import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.featuretoggle.UnleashClient;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.utils.Credentials;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaTopics;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock;
 import no.nav.veilarbvedtaksstotte.mock.PepMock;
@@ -33,16 +34,10 @@ import static org.mockito.Mockito.mock;
         ControllerTestConfig.class,
         RepositoryTestConfig.class,
         ServiceTestConfig.class,
-        KafkaTestConfig.class,
         FilterTestConfig.class,
         HealthConfig.class
 })
 public class ApplicationTestConfig {
-
-    @Bean
-    public KafkaTopics kafkaTopics() {
-        return KafkaTopics.create("local");
-    }
 
     @Bean
     public Credentials serviceUserCredentials() {
@@ -89,4 +84,8 @@ public class ApplicationTestConfig {
         return new SimpleMeterRegistry();
     }
 
+    @Bean
+    public AuthContextHolder authContextHolder() {
+        return AuthContextHolderThreadLocal.instance();
+    }
 }

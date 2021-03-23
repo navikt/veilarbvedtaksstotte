@@ -42,5 +42,14 @@ spec:
         mountPath: /var/run/secrets/nais.io/service_user
       - kvPath: /kv/preprod/fss/veilarbvedtaksstotte/q1
         mountPath: /var/run/secrets/nais.io/vault
+  env:
+    - name: ENDRING_PA_AVSLUTT_OPPFOLGING_TOPIC
+      value: aapen-fo-endringPaaAvsluttOppfolging-v1-q1
+    - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
+      value: aapen-fo-endringPaaOppfoelgingsBruker-v1-q1
+    - name: VEDTAK_SENDT_TOPIC
+      value: aapen-oppfolging-vedtakSendt-v1-q1
+    - name: VEDTAK_STATUS_ENDRING_TOPIC
+      value: aapen-oppfolging-vedtakStatusEndring-v1-q1
   envFrom:
     - configmap: pto-config

@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.egenvurdering;
 
 import lombok.SneakyThrows;
+import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
@@ -20,16 +21,19 @@ public class VeilarbvedtakinfoClientImpl implements VeilarbvedtakinfoClient {
 
     private final OkHttpClient client;
 
-    public VeilarbvedtakinfoClientImpl(String veilarbvedtakInfoUrl) {
+    private final AuthContextHolder authContextHolder;
+
+    public VeilarbvedtakinfoClientImpl(String veilarbvedtakInfoUrl, AuthContextHolder authContextHolder) {
         this.veilarbvedtakInfoUrl = veilarbvedtakInfoUrl;
         this.client = RestClient.baseClient();
+        this.authContextHolder = authContextHolder;
     }
 
     @SneakyThrows
     public String hentEgenvurdering(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbvedtakInfoUrl, "/api/behovsvurdering/besvarelse?fnr=" + fnr))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {

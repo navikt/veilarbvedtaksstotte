@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.client.dokument
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit.WireMockRule
-import no.nav.common.auth.context.AuthContextHolder
+import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.EnhetId
@@ -46,7 +46,7 @@ class VeilarbdokumentClientImplTest {
     @Before
     fun setup() {
         val wiremockUrl = "http://localhost:" + getWireMockRule().port()
-        veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl)
+        veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
     }
 
     @Test
@@ -64,7 +64,8 @@ class VeilarbdokumentClientImplTest {
                 )
         )
 
-        val respons = AuthContextHolder
+        val respons = AuthContextHolderThreadLocal
+            .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                 veilarbdokumentClient.produserDokumentUtkast(sendDokumentDTO)
             })
@@ -94,7 +95,8 @@ class VeilarbdokumentClientImplTest {
                 )
         )
 
-        val respons = AuthContextHolder
+        val respons = AuthContextHolderThreadLocal
+            .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                 veilarbdokumentClient.sendDokument(sendDokumentDTO)
             })
@@ -139,7 +141,8 @@ class VeilarbdokumentClientImplTest {
                 )
         )
 
-        val respons = AuthContextHolder
+        val respons = AuthContextHolderThreadLocal
+            .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                 veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
             })

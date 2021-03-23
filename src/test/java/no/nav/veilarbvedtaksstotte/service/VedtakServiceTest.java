@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.VeilarbPep;
-import no.nav.common.auth.context.AuthContextHolder;
+import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.test.auth.AuthTestUtils;
@@ -42,8 +42,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -96,7 +94,6 @@ public class VedtakServiceTest {
     private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
 
     private static final VeilarbPep veilarbPep = mock(VeilarbPep.class);
-    private static final KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
 
     private static final String CV_DATA = "{\"cv\": \"cv\"}";
     private static final String REGISTRERING_DATA = "{\"registrering\": \"registrering\"}";
@@ -112,7 +109,7 @@ public class VedtakServiceTest {
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
-        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null));
+        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null, AuthContextHolderThreadLocal.instance()));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         dokumentServiceV2 = new DokumentServiceV2(
@@ -150,7 +147,6 @@ public class VedtakServiceTest {
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
         when(veilarbdokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
-        when(kafkaTemplate.send(any(), any(), any())).thenReturn(new AsyncResult(null));
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR)).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
@@ -557,7 +553,9 @@ public class VedtakServiceTest {
     }
 
     private void withContext(UnsafeRunnable runnable) {
-        AuthContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, TEST_VEILEDER_IDENT), runnable);
+        AuthContextHolderThreadLocal
+                .instance()
+                .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, TEST_VEILEDER_IDENT), runnable);
     }
 
     private void gittUtkastKlarForUtsendelse() {
