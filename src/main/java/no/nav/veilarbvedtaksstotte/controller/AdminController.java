@@ -27,19 +27,19 @@ public class AdminController {
         this.authContextHolder = authContextHolder;
     }
 
-    @GetMapping("/tilgang")
+    @GetMapping("/utrulling")
     public List<UtrulletEnhet> hentAlleUtrullinger() {
         sjekkTilgangTilAdmin();
         return utrullingService.hentAlleUtrullinger();
     }
 
-    @PostMapping("/tilgang/{enhetId}")
+    @PostMapping("/utrulling/{enhetId}")
     public void leggTilUtrulling(@PathVariable EnhetId enhetId) {
         sjekkTilgangTilAdmin();
         utrullingService.leggTilUtrulling(enhetId);
     }
 
-    @DeleteMapping("/tilgang/{enhetId}")
+    @DeleteMapping("/utrulling/{enhetId}")
     public void fjernUtrulling(@PathVariable EnhetId enhetId) {
         sjekkTilgangTilAdmin();
         utrullingService.fjernUtrulling(enhetId);
