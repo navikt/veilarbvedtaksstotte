@@ -2,8 +2,8 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage;
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties;
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Service;
 

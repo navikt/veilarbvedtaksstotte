@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
-import no.nav.veilarbvedtaksstotte.kafka.dto.VedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

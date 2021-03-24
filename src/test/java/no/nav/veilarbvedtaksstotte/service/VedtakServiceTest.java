@@ -26,13 +26,13 @@ import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
