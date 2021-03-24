@@ -5,6 +5,6 @@ import lombok.Data;
 
 @AllArgsConstructor
 @Data
-public class HarTilgangDTO {
-    boolean harTilgang;
+public class UtrulletDTO {
+    boolean erUtrullet;
 }

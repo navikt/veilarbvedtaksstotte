@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Accessors(chain = true)
-public class EnhetTilgang {
+public class UtrulletEnhet {
     EnhetId enhetId;
     LocalDateTime createdAt;
 }

@@ -2,8 +2,8 @@ package no.nav.veilarbvedtaksstotte.controller;
 
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.types.identer.EnhetId;
-import no.nav.veilarbvedtaksstotte.repository.domain.EnhetTilgang;
-import no.nav.veilarbvedtaksstotte.service.TilgangskontrollService;
+import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
+import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,32 +17,32 @@ public class AdminController {
 
     private final static String PTO_ADMIN_SERVICE_USER = "srvpto-admin-api";
 
-    private final TilgangskontrollService tilgangskontrollService;
+    private final UtrullingService utrullingService;
 
     private final AuthContextHolder authContextHolder;
 
     @Autowired
-    public AdminController(TilgangskontrollService tilgangskontrollService, AuthContextHolder authContextHolder) {
-        this.tilgangskontrollService = tilgangskontrollService;
+    public AdminController(UtrullingService utrullingService, AuthContextHolder authContextHolder) {
+        this.utrullingService = utrullingService;
         this.authContextHolder = authContextHolder;
     }
 
     @GetMapping("/tilgang")
-    public List<EnhetTilgang> hentAlleTilganger() {
+    public List<UtrulletEnhet> hentAlleUtrullinger() {
         sjekkTilgangTilAdmin();
-        return tilgangskontrollService.hentAlleTilganger();
+        return utrullingService.hentAlleUtrullinger();
     }
 
     @PostMapping("/tilgang/{enhetId}")
-    public void leggTilTilgang(@PathVariable EnhetId enhetId) {
+    public void leggTilUtrulling(@PathVariable EnhetId enhetId) {
         sjekkTilgangTilAdmin();
-        tilgangskontrollService.lagNyTilgang(enhetId);
+        utrullingService.leggTilUtrulling(enhetId);
     }
 
     @DeleteMapping("/tilgang/{enhetId}")
-    public void fjernTilgang(@PathVariable EnhetId enhetId) {
+    public void fjernUtrulling(@PathVariable EnhetId enhetId) {
         sjekkTilgangTilAdmin();
-        tilgangskontrollService.fjernTilgang(enhetId);
+        utrullingService.fjernUtrulling(enhetId);
     }
 
     private void sjekkTilgangTilAdmin() {
