@@ -10,8 +10,10 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static no.nav.veilarbvedtaksstotte.utils.DbUtils.toPostgresArray;
 
 @Repository
 public class UtrullingRepository {
@@ -37,6 +39,13 @@ public class UtrullingRepository {
     public boolean erUtrullet(EnhetId enhetId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? LIMIT 1", UTRULLING_TABLE, ENHET_ID);
         List<UtrulletEnhet> tilgang = db.query(sql, UtrullingRepository::mapUtrulletEnhet, enhetId.get());
+        return !tilgang.isEmpty();
+    }
+
+    public boolean erMinstEnEnhetUtrullet(List<EnhetId> enhetIder) {
+        String sql = format("SELECT * FROM %s WHERE %s = ANY(?::varchar[]) LIMIT 1", UTRULLING_TABLE, ENHET_ID);
+        String enheter = toPostgresArray(enhetIder.stream().map(EnhetId::get).collect(Collectors.toList()));
+        List<UtrulletEnhet> tilgang = db.query(sql, UtrullingRepository::mapUtrulletEnhet, enheter);
         return !tilgang.isEmpty();
     }
 

@@ -13,7 +13,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class TilgangskontrollRepositoryTest {
+public class UtrullingRepositoryTest {
 
     private static JdbcTemplate db;
     private static UtrullingRepository utrullingRepository;
@@ -44,6 +44,22 @@ public class TilgangskontrollRepositoryTest {
     public void skal_ikke_ha_tilgang_hvis_tilgang_ikke_lagt_til() {
         utrullingRepository.leggTilUtrulling(EnhetId.of("1234"));
         assertFalse(utrullingRepository.erUtrullet(EnhetId.of("4321")));
+    }
+
+    @Test
+    public void skal_returnere_true_hvis_minst_en_enhet_er_utrullet() {
+        utrullingRepository.leggTilUtrulling(EnhetId.of("1234"));
+        utrullingRepository.leggTilUtrulling(EnhetId.of("4321"));
+
+        assertTrue(utrullingRepository.erMinstEnEnhetUtrullet(List.of(EnhetId.of("6666"), EnhetId.of("4321"))));
+    }
+
+    @Test
+    public void skal_returnere_false_hvis_ingen_enheter_er_utrullet() {
+        utrullingRepository.leggTilUtrulling(EnhetId.of("1234"));
+        utrullingRepository.leggTilUtrulling(EnhetId.of("4321"));
+
+        assertFalse(utrullingRepository.erMinstEnEnhetUtrullet(List.of(EnhetId.of("6666"), EnhetId.of("5555"))));
     }
 
     @Test

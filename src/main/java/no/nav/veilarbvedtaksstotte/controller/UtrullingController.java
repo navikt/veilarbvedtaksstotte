@@ -19,9 +19,14 @@ public class UtrullingController {
         this.utrullingService = utrullingService;
     }
 
-    @GetMapping("/tilhorerUtrulletKontor")
-    public boolean harTilgang(@RequestParam Fnr fnr) {
+    @GetMapping("/tilhorerBrukerUtrulletKontor")
+    public boolean tilhorerBrukerUtrulletKontor(@RequestParam Fnr fnr) {
         return utrullingService.tilhorerBrukerUtrulletKontor(fnr);
+    }
+
+    @GetMapping("/tilhorerVeilederUtrulletKontor")
+    public boolean tilhorerVeilederUtrulletKontor() {
+        return utrullingService.tilhorerInnloggetVeilederUtrulletKontor();
     }
 
 }
