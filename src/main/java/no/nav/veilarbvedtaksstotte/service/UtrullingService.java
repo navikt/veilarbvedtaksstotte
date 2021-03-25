@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.EnhetId;
+import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.repository.UtrullingRepository;
 import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +15,12 @@ public class UtrullingService {
 
     private final UtrullingRepository utrullingRepository;
 
+    private final VeilarbarenaClient veilarbarenaClient;
+
     @Autowired
-    public UtrullingService(UtrullingRepository utrullingRepository) {
+    public UtrullingService(UtrullingRepository utrullingRepository, VeilarbarenaClient veilarbarenaClient) {
         this.utrullingRepository = utrullingRepository;
+        this.veilarbarenaClient = veilarbarenaClient;
     }
 
     public List<UtrulletEnhet> hentAlleUtrullinger() {
@@ -32,6 +37,11 @@ public class UtrullingService {
 
     public boolean erUtrullet(EnhetId enhetId) {
         return utrullingRepository.erUtrullet(enhetId);
+    }
+
+    public boolean tilhorerBrukerUtrulletKontor(Fnr fnr) {
+        EnhetId oppfolgingsenhet = veilarbarenaClient.oppfolgingsenhet(fnr);
+        return utrullingRepository.erUtrullet(oppfolgingsenhet);
     }
 
 }
