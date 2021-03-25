@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/admin")
 public class AdminController {
 
-    private final static String PTO_ADMIN_SERVICE_USER = "srvpto-admin-api";
+    public final static String PTO_ADMIN_SERVICE_USER = "srvpto-admin-api";
 
     private final UtrullingService utrullingService;
 
