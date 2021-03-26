@@ -50,8 +50,12 @@ public class UtrullingService {
     }
 
     public boolean tilhorerBrukerUtrulletKontor(Fnr fnr) {
-        EnhetId oppfolgingsenhet = veilarbarenaClient.oppfolgingsenhet(fnr);
-        return utrullingRepository.erUtrullet(oppfolgingsenhet);
+        try {
+            EnhetId oppfolgingsenhet = veilarbarenaClient.oppfolgingsenhet(fnr);
+            return utrullingRepository.erUtrullet(oppfolgingsenhet);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean tilhorerInnloggetVeilederUtrulletKontor() {
