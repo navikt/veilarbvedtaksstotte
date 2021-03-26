@@ -92,6 +92,7 @@ public class VedtakServiceTest {
     private static final AbacClient abacClient = mock(AbacClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
     private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
+    private static final UtrullingService utrullingService = mock(UtrullingService.class);
     private static final KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
 
     private static final VeilarbPep veilarbPep = mock(VeilarbPep.class);
@@ -110,7 +111,7 @@ public class VedtakServiceTest {
         oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
         beslutteroversiktRepository = new BeslutteroversiktRepository(db);
 
-        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null, AuthContextHolderThreadLocal.instance()));
+        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         dokumentServiceV2 = new DokumentServiceV2(
@@ -542,6 +543,7 @@ public class VedtakServiceTest {
     }
 
     private void gittTilgang() {
+        when(utrullingService.erUtrullet(any())).thenReturn(true);
         when(veilarbPep.harVeilederTilgangTilPerson(any(NavIdent.class), any(), any())).thenReturn(true);
         when(veilarbPep.harVeilederTilgangTilEnhet(any(NavIdent.class), any())).thenReturn(true);
     }

@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Import;
         MeldingRepository.class,
         OyeblikksbildeRepository.class,
         VedtaksstotteRepository.class,
+        UtrullingRepository.class,
         ArenaVedtakRepository.class
 })
 public class RepositoryTestConfig {}
