@@ -1,8 +1,12 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.veilarbvedtaksstotte.service.*;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import static org.mockito.Mockito.mock;
 
 @Configuration
 @Import({
@@ -22,4 +26,10 @@ import org.springframework.context.annotation.Import;
         InnsatsbehovService.class,
         BrukerIdentService.class
 })
-public class ServiceTestConfig {}
+public class ServiceTestConfig {
+
+    @Bean
+    public KafkaProducerService kafkaProducerService() {
+        return mock(KafkaProducerService.class);
+    }
+}

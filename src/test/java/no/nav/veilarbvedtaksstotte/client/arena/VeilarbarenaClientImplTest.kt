@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.arena
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import no.nav.common.auth.context.AuthContextHolder
+import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.Fnr
@@ -26,7 +27,7 @@ class VeilarbarenaClientImplTest {
     @Before
     fun setup() {
         val wiremockUrl = "http://localhost:" + getWireMockRule().port()
-        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl)
+        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
     }
 
     @Test
@@ -48,7 +49,8 @@ class VeilarbarenaClientImplTest {
                 )
         )
 
-        val oppfolgingssak = AuthContextHolder
+        val oppfolgingssak = AuthContextHolderThreadLocal
+            .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                 veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))
             })
@@ -66,7 +68,8 @@ class VeilarbarenaClientImplTest {
                 )
         )
 
-        AuthContextHolder
+        AuthContextHolderThreadLocal
+            .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                 veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))
             })
@@ -82,7 +85,8 @@ class VeilarbarenaClientImplTest {
                 )
         )
 
-        AuthContextHolder
+        AuthContextHolderThreadLocal
+            .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                 veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))
             })

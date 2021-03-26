@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.domain.vedtak
 
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.kafka.dto.ArenaVedtakRecord
+import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.utils.DateFormatters.ISO_LOCAL_DATE_MIDNIGHT
 import no.nav.veilarbvedtaksstotte.utils.DateFormatters.ISO_LOCAL_DATE_TIME_WITHOUT_T
 import java.time.LocalDate

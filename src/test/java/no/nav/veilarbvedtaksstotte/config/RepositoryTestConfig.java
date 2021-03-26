@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import({
         BeslutteroversiktRepository.class,
-        KafkaRepository.class,
         KilderRepository.class,
         MeldingRepository.class,
         OyeblikksbildeRepository.class,

@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.client.registrering;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import no.nav.common.auth.context.AuthContextHolder;
+import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
@@ -25,7 +25,7 @@ public class VeilarbregistreringClientTest {
     @Before
     public void setup() {
         String apiUrl = "http://localhost:" + wireMockRule.port();
-        veilarbregistreringClient = new VeilarbregistreringClientImpl(apiUrl);
+        veilarbregistreringClient = new VeilarbregistreringClientImpl(apiUrl, AuthContextHolderThreadLocal.instance());
     }
 
     @Test
@@ -41,7 +41,8 @@ public class VeilarbregistreringClientTest {
                                         .withBody(response)
                         )
         );
-        RegistreringData registreringData = AuthContextHolder
+        RegistreringData registreringData = AuthContextHolderThreadLocal
+                .instance()
                 .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), () ->
                         veilarbregistreringClient.hentRegistreringData(TEST_FNR));
 

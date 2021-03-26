@@ -16,9 +16,13 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaOppfolgingsbrukerEndring;
-import no.nav.veilarbvedtaksstotte.repository.*;
+import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
+import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,6 +55,7 @@ public class VedtakService {
     private final AuthService authService;
     private final UnleashService unleashService;
     private final MetricsService metricsService;
+    private final KafkaProducerService kafkaProducerService;
 
     private final OyeblikksbildeService oyeblikksbildeService;
     private final VeilederService veilederService;
@@ -73,6 +78,7 @@ public class VedtakService {
             AuthService authService,
             UnleashService unleashService,
             MetricsService metricsService,
+            KafkaProducerService kafkaProducerService,
 
             OyeblikksbildeService oyeblikksbildeService,
             VeilederService veilederService,
@@ -93,6 +99,7 @@ public class VedtakService {
         this.authService = authService;
         this.unleashService = unleashService;
         this.metricsService = metricsService;
+        this.kafkaProducerService = kafkaProducerService;
 
         this.oyeblikksbildeService = oyeblikksbildeService;
         this.veilederService = veilederService;
@@ -378,6 +385,11 @@ public class VedtakService {
     public boolean harUtkast(String fnr) {
         String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
         return vedtaksstotteRepository.hentUtkast(aktorId) != null;
+    }
+
+    public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding.getAktorId());
+        kafkaProducerService.sendInnsatsbehov(null);
     }
 
     public void behandleOppfolgingsbrukerEndring(KafkaOppfolgingsbrukerEndring endring) {

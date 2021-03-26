@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.config;
 import no.nav.common.abac.AbacCachedClient;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.AbacHttpClient;
+import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.aktoroppslag.CachedAktorOppslagClient;
 import no.nav.common.client.aktoroppslag.PdlAktorOppslagClient;
@@ -51,18 +52,27 @@ import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_N
 public class ClientConfig {
 
     @Bean
-    public VeilarbarenaClient arenaClient() {
-        return new VeilarbarenaClientImpl(naisPreprodOrNaisAdeoIngress("veilarbarena",  true));
+    public VeilarbarenaClient arenaClient(AuthContextHolder authContextHolder) {
+        return new VeilarbarenaClientImpl(
+                naisPreprodOrNaisAdeoIngress("veilarbarena", true),
+                authContextHolder
+        );
     }
 
     @Bean
-    public VeilarbdokumentClient dokumentClient() {
-        return new VeilarbdokumentClientImpl(naisPreprodOrNaisAdeoIngress("veilarbdokument", true));
+    public VeilarbdokumentClient dokumentClient(AuthContextHolder authContextHolder) {
+        return new VeilarbdokumentClientImpl(
+                naisPreprodOrNaisAdeoIngress("veilarbdokument", true),
+                authContextHolder
+        );
     }
 
     @Bean
-    public VeilarbvedtakinfoClient egenvurderingClient() {
-        return new VeilarbvedtakinfoClientImpl(naisPreprodOrNaisAdeoIngress("veilarbvedtakinfo", true));
+    public VeilarbvedtakinfoClient egenvurderingClient(AuthContextHolder authContextHolder) {
+        return new VeilarbvedtakinfoClientImpl(
+                naisPreprodOrNaisAdeoIngress("veilarbvedtakinfo", true),
+                authContextHolder
+        );
     }
 
     @Bean
@@ -80,28 +90,44 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarbregistreringClient registreringClient() {
-        return new VeilarbregistreringClientImpl(naisPreprodOrNaisAdeoIngress("veilarbregistrering", true));
+    public VeilarbregistreringClient registreringClient(AuthContextHolder authContextHolder) {
+        return new VeilarbregistreringClientImpl(
+                naisPreprodOrNaisAdeoIngress("veilarbregistrering", true),
+                authContextHolder
+        );
     }
 
     @Bean
-    public SafClient safClient() {
-        return new SafClientImpl(naisPreprodOrNaisAdeoIngress("saf", false));
+    public SafClient safClient(AuthContextHolder authContextHolder) {
+        return new SafClientImpl(
+                naisPreprodOrNaisAdeoIngress("saf", false),
+                authContextHolder
+        );
     }
 
     @Bean
-    public VeilarbveilederClient veilederOgEnhetClient() {
-        return new VeilarbveilederClientImpl(naisPreprodOrNaisAdeoIngress("veilarbveileder", true));
+    public VeilarbveilederClient veilederOgEnhetClient(AuthContextHolder authContextHolder) {
+        return new VeilarbveilederClientImpl(
+                naisPreprodOrNaisAdeoIngress("veilarbveileder", true),
+                authContextHolder
+        );
     }
 
     @Bean
-    public DokarkivClient dokarkivClient(SystemUserTokenProvider systemUserTokenProvider) {
-        return new DokarkivClientImpl(naisPreprodOrNaisAdeoIngress("dokarkiv", false), systemUserTokenProvider);
+    public DokarkivClient dokarkivClient(SystemUserTokenProvider systemUserTokenProvider, AuthContextHolder authContextHolder) {
+        return new DokarkivClientImpl(
+                naisPreprodOrNaisAdeoIngress("dokarkiv", false),
+                systemUserTokenProvider,
+                authContextHolder
+        );
     }
 
     @Bean
-    public DokdistribusjonClient dokDistribusjonClient() {
-        return new DokdistribusjonClientImpl(naisPreprodOrNaisAdeoIngress("dokdistfordeling", false));
+    public DokdistribusjonClient dokDistribusjonClient(AuthContextHolder authContextHolder) {
+        return new DokdistribusjonClientImpl(
+                naisPreprodOrNaisAdeoIngress("dokdistfordeling", false),
+                authContextHolder
+        );
     }
 
     @Bean

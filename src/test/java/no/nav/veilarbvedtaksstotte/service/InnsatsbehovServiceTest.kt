@@ -17,7 +17,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
-import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdentVariables
@@ -60,7 +59,7 @@ class InnsatsbehovServiceTest {
         val pdlClient = mock(PdlClient::class.java)
         val aktorOppslagClient = mock(AktorOppslagClient::class.java)
 
-        val kafkaProducer = mock(KafkaProducer::class.java)
+        val kafkaProducerService = mock(KafkaProducerService::class.java)
 
         @BeforeClass
         @JvmStatic
@@ -83,7 +82,7 @@ class InnsatsbehovServiceTest {
                 arenaVedtakService = arenaVedtakService,
                 veilarboppfolgingClient = veilarboppfolgingClient,
                 transactor = transactor,
-                kafkaProducer = kafkaProducer
+                kafkaProducerService = kafkaProducerService
             )
         }
     }
@@ -91,7 +90,7 @@ class InnsatsbehovServiceTest {
     @Before
     fun before() {
         reset(pdlClient)
-        reset(kafkaProducer)
+        reset(kafkaProducerService)
     }
 
     @Test
@@ -546,7 +545,7 @@ class InnsatsbehovServiceTest {
             identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
         )
 
-        verify(kafkaProducer).sendInnsatsbehov(eq(forventetInnsatsbehov))
+        verify(kafkaProducerService).sendInnsatsbehov(eq(forventetInnsatsbehov))
 
         assertInnsatsbehov(identer, forventetInnsatsbehov)
     }
@@ -585,7 +584,7 @@ class InnsatsbehovServiceTest {
             identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
         )
 
-        verify(kafkaProducer).sendInnsatsbehov(eq(forventetInnsatsbehov))
+        verify(kafkaProducerService).sendInnsatsbehov(eq(forventetInnsatsbehov))
 
         assertInnsatsbehov(identer, forventetInnsatsbehov)
         assertFattedeVedtakFraNyLøsning(identer, 1)
@@ -625,7 +624,7 @@ class InnsatsbehovServiceTest {
             identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
         )
 
-        verify(kafkaProducer, never()).sendInnsatsbehov(any())
+        verify(kafkaProducerService, never()).sendInnsatsbehov(any())
 
         assertInnsatsbehov(identer, forventetInnsatsbehov)
         assertFattedeVedtakFraNyLøsning(identer, 1)
@@ -666,7 +665,7 @@ class InnsatsbehovServiceTest {
             identer.aktorId, Innsatsgruppe.STANDARD_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
         )
 
-        verify(kafkaProducer, never()).sendInnsatsbehov(any())
+        verify(kafkaProducerService, never()).sendInnsatsbehov(any())
 
         assertInnsatsbehov(identer, forventetInnsatsbehov)
         assertFattedeVedtakFraNyLøsning(identer, 1)
@@ -702,7 +701,7 @@ class InnsatsbehovServiceTest {
             )
         )
 
-        verify(kafkaProducer, never()).sendInnsatsbehov(any())
+        verify(kafkaProducerService, never()).sendInnsatsbehov(any())
 
         assertInnsatsbehov(
             identer, Innsatsbehov(
@@ -740,7 +739,7 @@ class InnsatsbehovServiceTest {
             )
         )
 
-        verify(kafkaProducer, never()).sendInnsatsbehov(any())
+        verify(kafkaProducerService, never()).sendInnsatsbehov(any())
 
         assertInnsatsbehov(
             identer, Innsatsbehov(
@@ -770,7 +769,7 @@ class InnsatsbehovServiceTest {
 
         innsatsbehovService.behandleEndringFraArena(arenaVedtak)
 
-        verify(kafkaProducer, never()).sendInnsatsbehov(any())
+        verify(kafkaProducerService, never()).sendInnsatsbehov(any())
 
         assertInnsatsbehov(
             identer, Innsatsbehov(

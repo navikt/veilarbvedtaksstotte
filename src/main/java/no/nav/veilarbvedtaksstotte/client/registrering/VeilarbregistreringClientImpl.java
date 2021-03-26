@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.registrering;
 
 import lombok.SneakyThrows;
+import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
@@ -22,9 +23,12 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
 
     private final OkHttpClient client;
 
-    public VeilarbregistreringClientImpl(String veilarbregistreringUrl) {
+    private final AuthContextHolder authContextHolder;
+
+    public VeilarbregistreringClientImpl(String veilarbregistreringUrl, AuthContextHolder authContextHolder) {
         this.veilarbregistreringUrl = veilarbregistreringUrl;
         this.client = RestClient.baseClient();
+        this.authContextHolder = authContextHolder;
     }
 
     @Cacheable(CacheConfig.REGISTRERING_CACHE_NAME)
@@ -32,7 +36,7 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
     public String hentRegistreringDataJson(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbregistreringUrl, "/api/registrering?fnr=" + fnr))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker())
+                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {

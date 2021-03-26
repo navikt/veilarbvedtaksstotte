@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.dokument
 
+import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
@@ -14,14 +15,17 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.springframework.http.HttpHeaders
 
-class VeilarbdokumentClientImpl(private val veilarbdokumentUrl: String) : VeilarbdokumentClient {
+class VeilarbdokumentClientImpl(
+    private val veilarbdokumentUrl: String,
+    val authContextHolder: AuthContextHolder
+) : VeilarbdokumentClient {
 
     val client: OkHttpClient = RestClient.baseClient()
 
     override fun sendDokument(sendDokumentDTO: SendDokumentDTO): DokumentSendtDTO {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbdokumentUrl, "/api/bestilldokument"))
-            .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker())
+            .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
             .post(RequestBody.create(MEDIA_TYPE_JSON, sendDokumentDTO.toJson()))
             .build()
 
@@ -34,7 +38,7 @@ class VeilarbdokumentClientImpl(private val veilarbdokumentUrl: String) : Veilar
     override fun produserDokumentUtkast(sendDokumentDTO: SendDokumentDTO): ByteArray {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbdokumentUrl, "/api/dokumentutkast"))
-            .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker())
+            .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
             .post(RequestBody.create(MEDIA_TYPE_JSON, sendDokumentDTO.toJson()))
             .build()
 
@@ -49,7 +53,7 @@ class VeilarbdokumentClientImpl(private val veilarbdokumentUrl: String) : Veilar
     override fun produserDokumentV2(produserDokumentV2DTO: ProduserDokumentV2DTO): ByteArray {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbdokumentUrl, "/api/v2/produserdokument"))
-            .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker())
+            .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
             .post(RequestBody.create(MEDIA_TYPE_JSON, produserDokumentV2DTO.toJson()))
             .build()
 

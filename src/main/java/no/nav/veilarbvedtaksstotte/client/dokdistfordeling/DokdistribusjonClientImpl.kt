@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.dokdistfordeling
 
+import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
@@ -13,16 +14,19 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.springframework.http.HttpHeaders
 
-class DokdistribusjonClientImpl(val dokdistribusjonUrl: String) : DokdistribusjonClient {
+class DokdistribusjonClientImpl(
+    val dokdistribusjonUrl: String,
+    val authContextHolder: AuthContextHolder
+) : DokdistribusjonClient {
 
     val client: OkHttpClient = RestClient.baseClient()
 
     override fun distribuerJournalpost(request: DistribuerJournalpostDTO): DistribuerJournalpostResponsDTO {
         val request = Request.Builder()
-                .url(joinPaths(dokdistribusjonUrl, "/rest/v1/distribuerjournalpost"))
-                .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker())
-                .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, request.toJson()))
-                .build()
+            .url(joinPaths(dokdistribusjonUrl, "/rest/v1/distribuerjournalpost"))
+            .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
+            .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, request.toJson()))
+            .build()
 
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)

@@ -9,8 +9,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
-import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaAvsluttOppfolging
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils
@@ -24,7 +22,7 @@ import java.util.*
 @Service
 class InnsatsbehovService(
     val transactor: TransactionTemplate,
-    val kafkaProducer: KafkaProducer,
+    val kafkaProducerService: KafkaProducerService,
     val vedtakRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
     val authService: AuthService,
@@ -171,14 +169,7 @@ class InnsatsbehovService(
             // hindrer at vi republiserer gjeldende innsatsbehov dersom eldre meldinger skulle blir konsumert:
             finnSisteArenaVedtak(arenaVedtakListe) == arenaVedtak
         ) {
-            kafkaProducer.sendInnsatsbehov(innsatsbehov)
+            kafkaProducerService.sendInnsatsbehov(innsatsbehov)
         }
-    }
-
-    fun behandleAvsluttOppfolging(melding: KafkaAvsluttOppfolging) {
-        transactor.executeWithoutResult {
-            vedtakRepository.settGjeldendeVedtakTilHistorisk(melding.aktorId)
-        }
-        kafkaProducer.sendInnsatsbehov(null)
     }
 }
