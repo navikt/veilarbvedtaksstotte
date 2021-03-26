@@ -13,6 +13,8 @@ public class TestUtils {
 
     private TestUtils(){}
 
+    public static final String KAFKA_IMAGE = "confluentinc/cp-kafka:5.4.3";
+
     @SneakyThrows
     public static String readTestResourceFile(String fileName) {
         URL fileUrl = TestUtils.class.getClassLoader().getResource(fileName);

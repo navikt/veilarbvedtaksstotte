@@ -15,11 +15,14 @@ import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.sts.NaisSystemUserTokenProvider;
 import no.nav.common.sts.SystemUserTokenProvider;
 import no.nav.common.utils.Credentials;
+import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import javax.annotation.PostConstruct;
 
 import static no.nav.common.utils.NaisUtils.getCredentials;
 
@@ -60,4 +63,8 @@ public class ApplicationConfig {
         return new JdbcTemplateLockProvider(jdbcTemplate);
     }
 
+    @PostConstruct
+    public void initJsonUtils() {
+        JsonUtils.init();
+    }
 }

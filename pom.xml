@@ -22,6 +22,7 @@
         <common.version>2.2021.03.25_08.38-b8175cc4d189</common.version>
         <springfox.version>2.9.2</springfox.version>
         <kotlin.version>1.4.10</kotlin.version>
+        <testcontainers.version>1.15.2</testcontainers.version>
     </properties>
 
     <build>
@@ -256,7 +257,13 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>1.15.1</version>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>kafka</artifactId>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
