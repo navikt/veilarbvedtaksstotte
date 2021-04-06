@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.service
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import com.nimbusds.jose.util.Base64
-import no.nav.common.auth.context.AuthContextHolder
+import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.sts.SystemUserTokenProvider
 import no.nav.common.test.auth.AuthTestUtils
@@ -50,13 +50,15 @@ class DokumentServiceV2Test {
     @Before
     fun setup() {
         val wiremockUrl = "http://localhost:" + getWireMockRule().port()
-        dokarkivClient = DokarkivClientImpl(wiremockUrl, systemUserTokenProvider)
-        veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl)
-        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl)
+        dokarkivClient =
+            DokarkivClientImpl(wiremockUrl, systemUserTokenProvider, AuthContextHolderThreadLocal.instance())
+        veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
+        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl) { "TOKEN" }
-        dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl)
+        dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         dokumentServiceV2 = DokumentServiceV2(
-            veilarbdokumentClient, veilarbarenaClient, veilarbpersonClient, dokarkivClient, dokdistribusjonClient)
+            veilarbdokumentClient, veilarbarenaClient, veilarbpersonClient, dokarkivClient, dokdistribusjonClient
+        )
     }
 
 
@@ -64,7 +66,7 @@ class DokumentServiceV2Test {
     fun `journalforing av dokument gir forventet innhold i request og response`() {
         val forventetDokument = "dokument".toByteArray()
         val forventetRequest =
-                """
+            """
                 {
                   "tittel": "Tittel",
                   "journalpostType": "UTGAAENDE",
@@ -101,7 +103,7 @@ class DokumentServiceV2Test {
             """.trimIndent()
 
         val responsJson =
-                """
+            """
                 {
                   "journalpostId": "JOURNALPOST_ID",
                   "journalpostferdigstilt": true,
@@ -116,31 +118,35 @@ class DokumentServiceV2Test {
         `when`(systemUserTokenProvider.getSystemUserToken()).thenReturn("SYSTEM_USER_TOKEN")
 
         givenThat(
-                post(urlEqualTo("/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
-                        .withRequestBody(equalToJson(forventetRequest))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(201)
-                                        .withBody(responsJson))
+            post(urlEqualTo("/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
+                .withRequestBody(equalToJson(forventetRequest))
+                .willReturn(
+                    aResponse()
+                        .withStatus(201)
+                        .withBody(responsJson)
+                )
         )
 
         val respons =
-                AuthContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
+            AuthContextHolderThreadLocal
+                .instance()
+                .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                     dokumentServiceV2.journalforDokument(
-                            tittel = "Tittel",
-                            enhetId = EnhetId("ENHET_ID"),
-                            fnr = Fnr("fnr"),
-                            personNavn = PersonNavn("Fornavn","Mellomnavn","Etternavn","Sammensatt Navn"),
-                            oppfolgingssak = "OPPF_SAK",
-                            malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
-                            dokument = forventetDokument,
+                        tittel = "Tittel",
+                        enhetId = EnhetId("ENHET_ID"),
+                        fnr = Fnr("fnr"),
+                        personNavn = PersonNavn("Fornavn", "Mellomnavn", "Etternavn", "Sammensatt Navn"),
+                        oppfolgingssak = "OPPF_SAK",
+                        malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
+                        dokument = forventetDokument,
                     )
                 })
 
         val forventetRespons = OpprettetJournalpostDTO(
-                journalpostId = "JOURNALPOST_ID",
-                journalpostferdigstilt = true,
-                dokumenter = listOf(OpprettetJournalpostDTO.DokumentInfoId("123")))
+            journalpostId = "JOURNALPOST_ID",
+            journalpostferdigstilt = true,
+            dokumenter = listOf(OpprettetJournalpostDTO.DokumentInfoId("123"))
+        )
 
         assertEquals(forventetRespons, respons)
     }
@@ -149,7 +155,8 @@ class DokumentServiceV2Test {
     fun `formatter mottakernavn for journalpost riktig med mellomnavn`() {
         val formattertNavn = dokumentServiceV2
             .formatterMottakerNavnForJournalpost(
-                PersonNavn("Fornavn", "Mellomnavn", "Etternavn", null))
+                PersonNavn("Fornavn", "Mellomnavn", "Etternavn", null)
+            )
         assertEquals("Etternavn, Fornavn Mellomnavn", formattertNavn)
     }
 
@@ -157,14 +164,15 @@ class DokumentServiceV2Test {
     fun `formatter mottakernavn for journalpost riktig uten mellomnavn`() {
         val formattertNavn = dokumentServiceV2
             .formatterMottakerNavnForJournalpost(
-                PersonNavn("Fornavn", null, "Etternavn", null))
+                PersonNavn("Fornavn", null, "Etternavn", null)
+            )
         assertEquals("Etternavn, Fornavn", formattertNavn)
     }
 
     @Test
     fun `distribuering av journalpost gir forventet innhold i request og response`() {
         val forventetRequest =
-                """
+            """
                 {
                     "bestillendeFagsystem": "BD11",
                     "dokumentProdApp": "VEILARB_VEDTAKSSTOTTE",
@@ -173,26 +181,29 @@ class DokumentServiceV2Test {
                 """
 
         val responsJson =
-                """
+            """
                 {
                    "bestillingsId": "BESTILLINGS_ID"
                 } 
                 """
 
         givenThat(
-                post(urlEqualTo("/rest/v1/distribuerjournalpost"))
-                        .withRequestBody(equalToJson(forventetRequest))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(201)
-                                        .withBody(responsJson))
+            post(urlEqualTo("/rest/v1/distribuerjournalpost"))
+                .withRequestBody(equalToJson(forventetRequest))
+                .willReturn(
+                    aResponse()
+                        .withStatus(201)
+                        .withBody(responsJson)
+                )
         )
 
         val respons =
-                AuthContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
+            AuthContextHolderThreadLocal
+                .instance()
+                .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                     dokumentServiceV2.distribuerJournalpost("123")
                 })
 
-        assertEquals(DistribuerJournalpostResponsDTO("BESTILLINGS_ID"),respons)
+        assertEquals(DistribuerJournalpostResponsDTO("BESTILLINGS_ID"), respons)
     }
 }

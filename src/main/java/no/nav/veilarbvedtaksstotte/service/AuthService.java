@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import lombok.extern.slf4j.Slf4j;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
 import no.nav.common.abac.constants.NavAttributter;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
+@Slf4j
 @Service
 public class AuthService {
 
@@ -40,6 +42,8 @@ public class AuthService {
     private final VeilarbarenaClient arenaClient;
     private final AbacClient abacClient;
     private final Credentials serviceUserCredentials;
+    private final AuthContextHolder authContextHolder;
+    private final UtrullingService utrullingService;
 
     @Autowired
     public AuthService(
@@ -47,13 +51,16 @@ public class AuthService {
             Pep veilarbPep,
             VeilarbarenaClient arenaClient,
             AbacClient abacClient,
-            Credentials serviceUserCredentials
-    ) {
+            Credentials serviceUserCredentials,
+            AuthContextHolder authContextHolder,
+            UtrullingService utrullingService) {
         this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbPep = veilarbPep;
         this.arenaClient = arenaClient;
         this.abacClient = abacClient;
         this.serviceUserCredentials = serviceUserCredentials;
+        this.authContextHolder = authContextHolder;
+        this.utrullingService = utrullingService;
     }
 
     public AuthKontekst sjekkTilgangTilFnr(String fnr) {
@@ -91,13 +98,13 @@ public class AuthService {
     }
 
     public String getInnloggetBrukerToken() {
-        return AuthContextHolder
+        return authContextHolder
                 .getIdTokenString()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bruker mangler token"));
     }
 
     public String getInnloggetVeilederIdent() {
-        return AuthContextHolder
+        return authContextHolder
                 .getNavIdent()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fant ikke ident for innlogget veileder"))
                 .get();
@@ -168,7 +175,7 @@ public class AuthService {
     }
 
     private void sjekkInternBruker() {
-        AuthContextHolder
+        authContextHolder
                 .getRole()
                 .filter(role -> role == UserRole.INTERN)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke intern bruker"));
@@ -176,6 +183,11 @@ public class AuthService {
 
     private String sjekkTilgangTilEnhet(String fnr) {
         EnhetId enhet = ofNullable(arenaClient.oppfolgingsenhet(Fnr.of(fnr))).orElse(EnhetId.of(""));
+
+        if (!utrullingService.erUtrullet(enhet)) {
+            log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten");
+        }
 
         if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(getInnloggetVeilederIdent()), enhet)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);

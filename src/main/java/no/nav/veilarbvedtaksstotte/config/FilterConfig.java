@@ -6,19 +6,29 @@ import no.nav.common.auth.oidc.filter.OidcAuthenticatorConfig;
 import no.nav.common.auth.utils.UserTokenFinder;
 import no.nav.common.log.LogFilter;
 import no.nav.common.rest.filter.SetStandardHttpHeadersFilter;
-import no.nav.veilarbvedtaksstotte.service.UnleashService;
-import no.nav.veilarbvedtaksstotte.utils.ToggleFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 import static no.nav.common.auth.Constants.*;
 import static no.nav.common.auth.oidc.filter.OidcAuthenticator.fromConfigs;
 import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 import static no.nav.common.utils.EnvironmentUtils.requireApplicationName;
+import static no.nav.veilarbvedtaksstotte.controller.AdminController.PTO_ADMIN_SERVICE_USER;
 
 @Configuration
 public class FilterConfig {
+
+    private final List<String> ALLOWED_SERVICE_USERS = List.of(PTO_ADMIN_SERVICE_USER);
+
+    private OidcAuthenticatorConfig naisStsAuthConfig(EnvironmentProperties properties) {
+        return new OidcAuthenticatorConfig()
+                .withDiscoveryUrl(properties.getStsDiscoveryUrl())
+                .withClientIds(ALLOWED_SERVICE_USERS)
+                .withUserRole(UserRole.SYSTEM);
+    }
 
     private OidcAuthenticatorConfig openAmAuthConfig(EnvironmentProperties properties) {
         return new OidcAuthenticatorConfig()
@@ -52,7 +62,7 @@ public class FilterConfig {
     public FilterRegistrationBean authenticationFilterRegistrationBean(EnvironmentProperties properties) {
         FilterRegistrationBean<OidcAuthenticationFilter> registration = new FilterRegistrationBean<>();
         OidcAuthenticationFilter authenticationFilter = new OidcAuthenticationFilter(
-                fromConfigs(openAmAuthConfig(properties), azureAdAuthConfig(properties))
+                fromConfigs(openAmAuthConfig(properties), azureAdAuthConfig(properties), naisStsAuthConfig(properties))
         );
 
         registration.setFilter(authenticationFilter);
@@ -67,15 +77,6 @@ public class FilterConfig {
         registration.setFilter(new SetStandardHttpHeadersFilter());
         registration.setOrder(3);
         registration.addUrlPatterns("/*");
-        return registration;
-    }
-
-    @Bean
-    public FilterRegistrationBean toggleFilterRegistrationBean(UnleashService unleashService) {
-        FilterRegistrationBean<ToggleFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new ToggleFilter(unleashService));
-        registration.setOrder(4);
-        registration.addUrlPatterns("/api/*");
         return registration;
     }
 

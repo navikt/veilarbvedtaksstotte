@@ -15,7 +15,7 @@ public class AuthServiceTest {
 
     @Test
     public void lagSjekkTilgangRequest__skal_lage_riktig_request() {
-        AuthService authService = new AuthService(null, null, null, null, null);
+        AuthService authService = new AuthService(null, null, null, null, null, null, null);
 
         XacmlRequest request = authService.lagSjekkTilgangRequest("srvtest", "Z1234", Arrays.asList("11111111111", "2222222222"));
 
@@ -27,7 +27,7 @@ public class AuthServiceTest {
 
     @Test
     public void mapBrukerTilgangRespons__skal_mappe_riktig() {
-        AuthService authService = new AuthService(null, null, null, null, null);
+        AuthService authService = new AuthService(null, null, null, null, null, null, null);
 
         String responseJson = TestUtils.readTestResourceFile("xacmlresponse-abac-tilgang.json");
         XacmlResponse response = XacmlMapper.mapRawResponse(responseJson);

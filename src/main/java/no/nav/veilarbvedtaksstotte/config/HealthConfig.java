@@ -12,7 +12,6 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaHelsesjekk;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.actuate.jdbc.DataSourceHealthIndicator;
@@ -40,7 +39,6 @@ public class HealthConfig {
                                          VeilarbregistreringClient registreringClient,
                                          SafClient safClient,
                                          VeilarbveilederClient veiledereOgEnhetClient,
-                                         KafkaHelsesjekk kafkaHelsesjekk,
                                          DataSourceHealthIndicator dataSourceHealthIndicator) {
 
         List<SelfTestCheck> selfTestChecks = Arrays.asList(
@@ -52,7 +50,6 @@ public class HealthConfig {
                 new SelfTestCheck("RegistreringClient", false, registreringClient),
                 new SelfTestCheck("SafClient", false, safClient),
                 new SelfTestCheck("VeilederOgEnhetClient", false, veiledereOgEnhetClient),
-                new SelfTestCheck("Kafka Consumer", false, kafkaHelsesjekk),
                 new SelfTestCheck("Ping database", true, () -> checkDbHealth(dataSourceHealthIndicator))
         );
 

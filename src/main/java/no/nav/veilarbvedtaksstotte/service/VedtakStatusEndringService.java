@@ -1,11 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.kafka.KafkaProducer;
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakSendt;
-import no.nav.veilarbvedtaksstotte.kafka.dto.KafkaVedtakStatusEndring;
-import no.nav.veilarbvedtaksstotte.kafka.dto.VedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 @Service
 public class VedtakStatusEndringService {
 
-    private final KafkaProducer kafkaProducer;
+    private final KafkaProducerService kafkaProducerService;
 
     private final MetricsService metricsService;
 
@@ -24,8 +23,8 @@ public class VedtakStatusEndringService {
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
     @Autowired
-    public VedtakStatusEndringService(KafkaProducer kafkaProducer, MetricsService metricsService, VeilederService veilederService, VedtaksstotteRepository vedtaksstotteRepository) {
-        this.kafkaProducer = kafkaProducer;
+    public VedtakStatusEndringService(KafkaProducerService kafkaProducerService, MetricsService metricsService, VeilederService veilederService, VedtaksstotteRepository vedtaksstotteRepository) {
+        this.kafkaProducerService = kafkaProducerService;
         this.metricsService = metricsService;
         this.veilederService = veilederService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
@@ -40,33 +39,33 @@ public class VedtakStatusEndringService {
 
         setStatusEndringData(utkastOpprettet, vedtak);
 
-        kafkaProducer.sendVedtakStatusEndring(utkastOpprettet);
+        kafkaProducerService.sendVedtakStatusEndring(utkastOpprettet);
     }
 
     public void utkastSlettet(Vedtak vedtak) {
-        kafkaProducer.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.UTKAST_SLETTET));
+        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.UTKAST_SLETTET));
         metricsService.rapporterUtkastSlettet();
     }
 
     public void beslutterProsessStartet(Vedtak vedtak) {
-        kafkaProducer.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.BESLUTTER_PROSESS_STARTET));
+        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.BESLUTTER_PROSESS_STARTET));
     }
 
     public void beslutterProsessAvbrutt(Vedtak vedtak) {
-        kafkaProducer.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.BESLUTTER_PROSESS_AVBRUTT));
+        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.BESLUTTER_PROSESS_AVBRUTT));
     }
 
     public void godkjentAvBeslutter(Vedtak vedtak) {
-        kafkaProducer.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.GODKJENT_AV_BESLUTTER));
+        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.GODKJENT_AV_BESLUTTER));
         metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(vedtak);
     }
 
     public void klarTilBeslutter(Vedtak vedtak) {
-        kafkaProducer.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.KLAR_TIL_BESLUTTER));
+        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.KLAR_TIL_BESLUTTER));
     }
 
     public void klarTilVeileder(Vedtak vedtak) {
-        kafkaProducer.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.KLAR_TIL_VEILEDER));
+        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.KLAR_TIL_VEILEDER));
     }
 
     public void blittBeslutter(Vedtak vedtak, String beslutterIdent) {
@@ -78,7 +77,7 @@ public class VedtakStatusEndringService {
 
         setStatusEndringData(bliBeslutter, vedtak);
 
-        kafkaProducer.sendVedtakStatusEndring(bliBeslutter);
+        kafkaProducerService.sendVedtakStatusEndring(bliBeslutter);
     }
 
     public void tattOverForBeslutter(Vedtak vedtak, String beslutterIdent) {
@@ -90,7 +89,7 @@ public class VedtakStatusEndringService {
 
         setStatusEndringData(overtaForBeslutter, vedtak);
 
-        kafkaProducer.sendVedtakStatusEndring(overtaForBeslutter);
+        kafkaProducerService.sendVedtakStatusEndring(overtaForBeslutter);
     }
 
     public void tattOverForVeileder(Vedtak vedtak, String veilederIdent) {
@@ -102,7 +101,7 @@ public class VedtakStatusEndringService {
 
         setStatusEndringData(overtaForVeileder, vedtak);
 
-        kafkaProducer.sendVedtakStatusEndring(overtaForVeileder);
+        kafkaProducerService.sendVedtakStatusEndring(overtaForVeileder);
     }
 
     public void vedtakSendt(Long vedtakId, String fnr) {
@@ -113,8 +112,8 @@ public class VedtakStatusEndringService {
 
         setStatusEndringData(statusEndring, vedtak);
 
-        kafkaProducer.sendVedtakStatusEndring(statusEndring);
-        kafkaProducer.sendVedtakSendt(lagKafkaVedtakSendt(vedtak));
+        kafkaProducerService.sendVedtakStatusEndring(statusEndring);
+        kafkaProducerService.sendVedtakSendt(lagKafkaVedtakSendt(vedtak));
 
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr);

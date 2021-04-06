@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.client.dokarkiv;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import no.nav.common.auth.context.AuthContextHolder;
+import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
@@ -23,7 +24,7 @@ public class SafClientImplTest {
     public void hentJournalposter__skalReturnereJournalposter() {
         String journalposterJson = TestUtils.readTestResourceFile("saf-client-journalposter.json");
         String apiUrl = "http://localhost:" + wireMockRule.port();
-        SafClient safClient = new SafClientImpl(apiUrl);
+        SafClient safClient = new SafClientImpl(apiUrl, AuthContextHolderThreadLocal.instance());
 
         givenThat(post(urlEqualTo("/graphql"))
                 .willReturn(aResponse()
@@ -32,7 +33,9 @@ public class SafClientImplTest {
         );
 
 
-        AuthContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), () -> {
+        AuthContextHolderThreadLocal
+                .instance()
+                .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), () -> {
             List<Journalpost> journalposter = safClient.hentJournalposter(TestData.TEST_FNR);
 
             assertTrue(journalposter.stream().anyMatch(j ->
@@ -47,7 +50,7 @@ public class SafClientImplTest {
     @Test(expected = RuntimeException.class)
     public void hentJournalposter__skalKasteExceptionPaErrorStatus() {
         String apiUrl = "http://localhost:" + wireMockRule.port();
-        SafClient safClient = new SafClientImpl(apiUrl);
+        SafClient safClient = new SafClientImpl(apiUrl, AuthContextHolderThreadLocal.instance());
 
         givenThat(post(urlEqualTo("/graphql")).willReturn(aResponse().withStatus(500)));
 
