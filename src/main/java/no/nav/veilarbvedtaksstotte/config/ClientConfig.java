@@ -9,6 +9,9 @@ import no.nav.common.client.aktoroppslag.CachedAktorOppslagClient;
 import no.nav.common.client.aktoroppslag.PdlAktorOppslagClient;
 import no.nav.common.client.aktoroppslag.ToggledAktorOppslagClient;
 import no.nav.common.client.aktorregister.AktorregisterHttpClient;
+import no.nav.common.client.norg2.CachedNorg2Client;
+import no.nav.common.client.norg2.Norg2Client;
+import no.nav.common.client.norg2.NorgHttp2Client;
 import no.nav.common.featuretoggle.UnleashClient;
 import no.nav.common.featuretoggle.UnleashClientImpl;
 import no.nav.common.job.leader_election.LeaderElectionClient;
@@ -164,6 +167,11 @@ public class ClientConfig {
     @Bean
     public LeaderElectionClient leaderElectionClient() {
         return new LeaderElectionHttpClient();
+    }
+
+    @Bean
+    public Norg2Client norg2Client(EnvironmentProperties properties) {
+        return new CachedNorg2Client(new NorgHttp2Client(properties.getNorg2Url()));
     }
 
     @Bean
