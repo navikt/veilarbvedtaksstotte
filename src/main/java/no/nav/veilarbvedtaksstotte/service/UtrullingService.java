@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.common.client.norg2.Norg2Client;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
@@ -22,15 +23,19 @@ public class UtrullingService {
 
     private final VeilarbveilederClient veilarbveilederClient;
 
+    private final Norg2Client norg2Client;
+
     @Autowired
     public UtrullingService(
             UtrullingRepository utrullingRepository,
             VeilarbarenaClient veilarbarenaClient,
-            VeilarbveilederClient veilarbveilederClient
+            VeilarbveilederClient veilarbveilederClient,
+            Norg2Client norg2Client
     ) {
         this.utrullingRepository = utrullingRepository;
         this.veilarbarenaClient = veilarbarenaClient;
         this.veilarbveilederClient = veilarbveilederClient;
+        this.norg2Client = norg2Client;
     }
 
     public List<UtrulletEnhet> hentAlleUtrullinger() {
@@ -38,7 +43,8 @@ public class UtrullingService {
     }
 
     public void leggTilUtrulling(EnhetId enhetId) {
-        utrullingRepository.leggTilUtrulling(enhetId);
+        String enhetNavn = norg2Client.hentEnhet(enhetId.get()).getNavn();
+        utrullingRepository.leggTilUtrulling(enhetId, enhetNavn);
     }
 
     public void fjernUtrulling(EnhetId enhetId) {
