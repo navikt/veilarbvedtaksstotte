@@ -126,8 +126,11 @@ class ArenaVedtakConsumerTest {
 
     @org.junit.After
     fun after() {
-        producer.close()
-        consumer.stop()
+        try {
+            producer.close()
+            consumer.stop()
+        } catch (e: Exception) {
+        }
     }
 
     @Test
