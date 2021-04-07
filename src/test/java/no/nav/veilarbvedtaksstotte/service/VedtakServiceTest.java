@@ -26,6 +26,7 @@ import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
@@ -45,6 +46,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -539,6 +541,23 @@ public class VedtakServiceTest {
             Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
             assertNotNull(oppdatertUtkast);
             assertEquals(nyEnhet, oppdatertUtkast.getOppfolgingsenhetId());
+        });
+    }
+
+    @Test
+    public void behandleAvsluttOppfolging_setter_gjeldende_til_false_og_sletter_kafka_innsatsbehov() {
+        withContext(() -> {
+            gittTilgang();
+            gittVersjon2AvFattVedtak();
+            gittUtkastKlarForUtsendelse();
+            fattVedtak();
+
+            assertTrue(hentVedtak().isGjeldende());
+
+            vedtakService.behandleAvsluttOppfolging(new KafkaAvsluttOppfolging(TEST_AKTOR_ID, ZonedDateTime.now()));
+
+            assertFalse(hentVedtak().isGjeldende());
+            verify(kafkaProducerService).slettInnsatsbehov(AktorId.of(TEST_AKTOR_ID));
         });
     }
 
