@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.EnvironmentUtils;
@@ -389,7 +390,7 @@ public class VedtakService {
 
     public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding.getAktorId());
-        kafkaProducerService.sendInnsatsbehov(null);
+        kafkaProducerService.slettInnsatsbehov(AktorId.of(melding.getAktorId()));
     }
 
     public void behandleOppfolgingsbrukerEndring(KafkaOppfolgingsbrukerEndring endring) {
