@@ -1,12 +1,10 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
+import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/utrulling")
@@ -27,6 +25,11 @@ public class UtrullingController {
     @GetMapping("/tilhorerVeilederUtrulletKontor")
     public boolean tilhorerVeilederUtrulletKontor() {
         return utrullingService.tilhorerInnloggetVeilederUtrulletKontor();
+    }
+
+    @GetMapping("/erUtrullet/{enhetId}")
+    public boolean erUtrullet(@PathVariable EnhetId enhetId) {
+        return utrullingService.erUtrullet(enhetId);
     }
 
 }
