@@ -146,15 +146,13 @@ class InnsatsbehovService(
 
     fun behandleEndringFraArena(arenaVedtak: ArenaVedtak) {
         // Idempotent oppdatering/lagring av vedtak fra Arena
-        val erEndret = arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
+        arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
 
         // Oppdatering som følger kan gjøres uavhengig av idempotent oppdatering/lagring over. Derfor er ikke
         // oppdateringene i samme transaksjon, og følgende oppdatering kunne f.eks. også vært kjørt uavhengig i en
         // scheduled task. Feilhåndtering her skjer indirekte via feilhåndtering av Kafka-meldinger som vil bli
         // behandlet på nytt ved feil.
-        if (erEndret) {
-            oppdaterInnsatsbehov(arenaVedtak)
-        }
+        oppdaterInnsatsbehov(arenaVedtak)
     }
 
     private fun oppdaterInnsatsbehov(arenaVedtak: ArenaVedtak) {
@@ -166,7 +164,7 @@ class InnsatsbehovService(
         }
 
         if (fraArena &&
-            // hindrer at vi republiserer gjeldende innsatsbehov dersom eldre meldinger skulle blir konsumert:
+            // hindrer at vi republiserer gjeldende innsatsbehov dersom eldre meldinger skulle bli konsumert:
             finnSisteArenaVedtak(arenaVedtakListe) == arenaVedtak
         ) {
             kafkaProducerService.sendInnsatsbehov(innsatsbehov)

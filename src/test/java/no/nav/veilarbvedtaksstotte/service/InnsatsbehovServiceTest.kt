@@ -769,8 +769,6 @@ class InnsatsbehovServiceTest {
 
         innsatsbehovService.behandleEndringFraArena(arenaVedtak)
 
-        verify(kafkaProducerService, never()).sendInnsatsbehov(any())
-
         assertInnsatsbehov(
             identer, Innsatsbehov(
                 identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
