@@ -9,6 +9,7 @@ import no.nav.common.kafka.consumer.feilhandtering.KafkaConsumerRecordProcessor;
 import no.nav.common.kafka.consumer.feilhandtering.KafkaConsumerRepository;
 import no.nav.common.kafka.consumer.feilhandtering.PostgresConsumerRepository;
 import no.nav.common.kafka.consumer.feilhandtering.StoredRecordConsumer;
+import no.nav.common.kafka.consumer.feilhandtering.util.KafkaConsumerRecordProcessorBuilder;
 import no.nav.common.kafka.consumer.util.ConsumerUtils;
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder;
 import no.nav.common.kafka.producer.KafkaProducerClient;
@@ -95,7 +96,6 @@ public class KafkaConfig {
                 .build();
     }
 
-
     @Bean
     public KafkaConsumerRecordProcessor consumerRecordProcessor(
             LockProvider lockProvider,
@@ -108,7 +108,12 @@ public class KafkaConfig {
                 new StringDeserializer()
         );
 
-        return new KafkaConsumerRecordProcessor(lockProvider, kafkaConsumerRepository, storedRecordConsumers);
+        return KafkaConsumerRecordProcessorBuilder
+                .builder()
+                .withLockProvider(lockProvider)
+                .withKafkaConsumerRepository(kafkaConsumerRepository)
+                .withRecordConsumers(storedRecordConsumers)
+                .build();
     }
 
     @Bean
