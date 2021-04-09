@@ -10,5 +10,6 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class UtrulletEnhet {
     EnhetId enhetId;
+    String navn;
     LocalDateTime createdAt;
 }

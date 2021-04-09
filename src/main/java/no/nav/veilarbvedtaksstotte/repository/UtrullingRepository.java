@@ -20,6 +20,7 @@ public class UtrullingRepository {
 
     public final static String UTRULLING_TABLE              = "UTRULLING";
     private final static String ENHET_ID                    = "ENHET_ID";
+    private final static String ENHET_NAVN                  = "ENHET_NAVN";
     private final static String CREATED_AT                  = "CREATED_AT";
 
     private final JdbcTemplate db;
@@ -29,10 +30,10 @@ public class UtrullingRepository {
         this.db = db;
     }
 
-    public void leggTilUtrulling(EnhetId enhetId) {
-        String sql = format("INSERT INTO %s(%s) values(?)", UTRULLING_TABLE, ENHET_ID);
+    public void leggTilUtrulling(EnhetId enhetId, String enhetNavn) {
+        String sql = format("INSERT INTO %s(%s, %s) values(?, ?)", UTRULLING_TABLE, ENHET_ID, ENHET_NAVN);
         try {
-            db.update(sql, enhetId.get());
+            db.update(sql, enhetId.get(), enhetNavn);
         } catch (DuplicateKeyException ignored) {}
     }
 
@@ -62,6 +63,7 @@ public class UtrullingRepository {
     private static UtrulletEnhet mapUtrulletEnhet(ResultSet rs, int row) {
         return new UtrulletEnhet()
                 .setEnhetId(EnhetId.of(rs.getString(ENHET_ID)))
+                .setNavn(rs.getString(ENHET_NAVN))
                 .setCreatedAt(rs.getTimestamp(CREATED_AT).toLocalDateTime());
     }
 

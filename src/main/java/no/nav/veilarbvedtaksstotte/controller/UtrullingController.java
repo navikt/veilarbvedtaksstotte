@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
+import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,11 @@ public class UtrullingController {
     @GetMapping("/tilhorerVeilederUtrulletKontor")
     public boolean tilhorerVeilederUtrulletKontor() {
         return utrullingService.tilhorerInnloggetVeilederUtrulletKontor();
+    }
+
+    @GetMapping("/erUtrullet")
+    public boolean erUtrullet(@RequestParam EnhetId enhetId) {
+        return utrullingService.erUtrullet(enhetId);
     }
 
 }

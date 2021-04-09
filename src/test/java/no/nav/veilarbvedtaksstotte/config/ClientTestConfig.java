@@ -3,6 +3,8 @@ package no.nav.veilarbvedtaksstotte.config;
 import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.client.pdl.PdlClient;
 import no.nav.common.client.pdl.PdlClientImpl;
+import no.nav.common.client.norg2.Enhet;
+import no.nav.common.client.norg2.Norg2Client;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
@@ -68,6 +70,31 @@ public class ClientTestConfig {
             @Override
             public List<AktorId> hentAktorIder(Fnr fnr) {
                 return Collections.emptyList();
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
+            }
+        };
+    }
+
+    @Bean
+    public Norg2Client norg2Client() {
+        return new Norg2Client() {
+            @Override
+            public List<Enhet> alleAktiveEnheter() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public Enhet hentEnhet(String s) {
+                return null;
+            }
+
+            @Override
+            public Enhet hentTilhorendeEnhet(String s) {
+                return null;
             }
 
             @Override
