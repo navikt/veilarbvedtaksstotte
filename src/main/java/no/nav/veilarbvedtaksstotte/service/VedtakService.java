@@ -16,8 +16,6 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
@@ -370,18 +368,6 @@ public class VedtakService {
     public boolean harUtkast(String fnr) {
         String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
         return vedtaksstotteRepository.hentUtkast(aktorId) != null;
-    }
-
-    public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding.getAktorId());
-    }
-
-    public void behandleOppfolgingsbrukerEndring(KafkaOppfolgingsbrukerEndring endring) {
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(endring.getAktorId());
-
-        if (utkast != null && !utkast.getOppfolgingsenhetId().equals(endring.getOppfolgingsenhetId())) {
-            vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), endring.getOppfolgingsenhetId());
-        }
     }
 
     public void taOverUtkast(long vedtakId) {

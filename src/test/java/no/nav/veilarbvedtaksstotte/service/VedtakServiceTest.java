@@ -26,7 +26,6 @@ import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
@@ -531,20 +530,6 @@ public class VedtakServiceTest {
             assertThatThrownBy(() ->
                     vedtakService.taOverUtkast(utkast.getId())
             ).isExactlyInstanceOf(ResponseStatusException.class);
-        });
-    }
-
-    @Test
-    public void behandleOppfolgingsbrukerEndring_endrer_oppfolgingsenhet() {
-        String nyEnhet = "4562";
-        withContext(() -> {
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-
-            vedtakService.behandleOppfolgingsbrukerEndring(new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, nyEnhet));
-
-            Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-            assertNotNull(oppdatertUtkast);
-            assertEquals(nyEnhet, oppdatertUtkast.getOppfolgingsenhetId());
         });
     }
 

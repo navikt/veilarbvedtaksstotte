@@ -1,25 +1,40 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import lombok.RequiredArgsConstructor;
+import no.nav.common.client.norg2.Enhet;
+import no.nav.common.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.stereotype.Service;
 
+@RequiredArgsConstructor
 @Service
 public class KafkaConsumerService {
-    private final VedtakService vedtakService;
 
-    @Autowired
-    public KafkaConsumerService(@Lazy VedtakService vedtakService) {
-        this.vedtakService = vedtakService;
-    }
+    private final VedtaksstotteRepository vedtaksstotteRepository;
+
+    private final BeslutteroversiktRepository beslutteroversiktRepository;
+
+    private final Norg2Client norg2Client;
 
     public void behandleEndringPaAvsluttOppfolging(KafkaAvsluttOppfolging kafkaAvsluttOppfolging) {
-        vedtakService.behandleAvsluttOppfolging(kafkaAvsluttOppfolging);
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(kafkaAvsluttOppfolging.getAktorId());
     }
 
     public void behandleEndringPaOppfolgingsbruker(KafkaOppfolgingsbrukerEndring kafkaOppfolgingsbrukerEndring) {
-        vedtakService.behandleOppfolgingsbrukerEndring(kafkaOppfolgingsbrukerEndring);
+        String aktorId = kafkaOppfolgingsbrukerEndring.getAktorId();
+        String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.getOppfolgingsenhetId();
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
+
+        if (utkast != null && !utkast.getOppfolgingsenhetId().equals(oppfolgingsenhetId)) {
+            Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
+            vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
+            beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
+        }
     }
+
 }
