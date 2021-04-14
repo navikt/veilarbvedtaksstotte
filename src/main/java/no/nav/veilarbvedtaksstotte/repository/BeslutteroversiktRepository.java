@@ -2,11 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import lombok.Value;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -95,6 +91,15 @@ public class BeslutteroversiktRepository {
         );
 
         db.update(sql, beslutterNavn, beslutterIdent, vedtakId);
+    }
+
+    public void oppdaterBrukerEnhet(long vedtakId, String enhetId, String enhetNavn) {
+        String sql = format(
+                "UPDATE %s SET %s = ?, %s = ? WHERE %s = ?",
+                BESLUTTEROVERSIKT_BRUKER_TABLE, BRUKER_OPPFOLGINGSENHET_ID, BRUKER_OPPFOLGINGSENHET_NAVN, VEDTAK_ID
+        );
+
+        db.update(sql, enhetId, enhetNavn, vedtakId);
     }
 
     public BrukereMedAntall sokEtterBrukere(BeslutteroversiktSok sok, String innloggetVeilederIdent) {

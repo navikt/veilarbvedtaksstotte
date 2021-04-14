@@ -111,6 +111,24 @@ public class BeslutteroversiktRepositoryTest {
         assertEquals("NY_BESLUTTER", oppdatertBruker.getBeslutterNavn());
     }
 
+    @Test
+    public void oppdaterBrukerEnhet__skal_oppdatere_enhet() {
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+
+        String nyEnhetId = "8888";
+        String nyEnhetNavn = "NAV Ny enhet";
+
+        BeslutteroversiktBruker nyBruker = lagBruker(vedtakId);
+
+        beslutteroversiktRepository.lagBruker(nyBruker);
+        beslutteroversiktRepository.oppdaterBrukerEnhet(vedtakId, nyEnhetId, nyEnhetNavn);
+
+        BeslutteroversiktBruker oppdatertBruker = beslutteroversiktRepository.finnBrukerForVedtak(vedtakId);
+
+        assertEquals(nyEnhetId, oppdatertBruker.getBrukerOppfolgingsenhetId());
+        assertEquals(nyEnhetNavn, oppdatertBruker.getBrukerOppfolgingsenhetNavn());
+    }
+
     private BeslutteroversiktBruker lagBruker(long vedtakId) {
         return new BeslutteroversiktBruker()
                 .setVedtakId(vedtakId)
