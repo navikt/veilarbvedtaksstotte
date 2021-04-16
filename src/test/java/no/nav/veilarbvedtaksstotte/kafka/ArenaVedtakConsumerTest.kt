@@ -1,10 +1,8 @@
 package no.nav.veilarbvedtaksstotte.kafka
 
-import no.nav.common.kafka.consumer.KafkaConsumerClient
-import no.nav.common.kafka.consumer.util.ConsumerUtils.jsonConsumer
-import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
+import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.After
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
@@ -14,40 +12,31 @@ import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
-import no.nav.veilarbvedtaksstotte.utils.TestUtils.KAFKA_IMAGE
 import no.nav.veilarbvedtaksstotte.utils.toJson
+import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
-import org.apache.kafka.clients.admin.KafkaAdminClient
-import org.apache.kafka.clients.admin.NewTopic
-import org.apache.kafka.clients.consumer.ConsumerConfig.*
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG
 import org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit4.SpringRunner
 import org.testcontainers.containers.KafkaContainer
-import org.testcontainers.utility.DockerImageName
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.*
-import java.util.List
-import java.util.Map
 import java.util.concurrent.TimeUnit
-import java.util.function.Consumer
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(classes = [ApplicationTestConfig::class])
@@ -55,82 +44,36 @@ import java.util.function.Consumer
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class ArenaVedtakConsumerTest {
 
-    companion object {
-        private val kafka: KafkaContainer = KafkaContainer(DockerImageName.parse(KAFKA_IMAGE))
+    @Autowired
+    lateinit var kafkaContainer: KafkaContainer
 
-        @ClassRule
-        fun getKafka() = kafka
-    }
-
-    val topicName = "topic-name"
+    @Autowired
+    lateinit var kafkaProperties: KafkaProperties
 
     lateinit var producer: KafkaProducer<String, String>
-    lateinit var consumer: KafkaConsumerClient<String, String>
 
     @MockBean
     lateinit var innsatsbehovService: InnsatsbehovService
 
+    @Autowired
     lateinit var kafkaConsumerService: KafkaConsumerService
 
     @Before
     fun setup() {
-
         JsonUtils.init()
-
-        getKafka().start()
-        val brokerUrl = getKafka().getBootstrapServers()
-
-        kafkaConsumerService = KafkaConsumerService(null, innsatsbehovService)
-
-        val admin = KafkaAdminClient.create(Map.of<String, Any>(BOOTSTRAP_SERVERS_CONFIG, brokerUrl))
-
-        admin.createTopics(
-            List.of(
-                NewTopic(topicName, 1, 1.toShort())
-            )
-        )
-
-        admin.close()
 
         producer = KafkaProducer(
             mapOf(
-                Pair(BOOTSTRAP_SERVERS_CONFIG, brokerUrl),
+                Pair(BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.getBootstrapServers()),
                 Pair(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java),
                 Pair(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
             )
         )
-
-        val consumerProps = Properties()
-        consumerProps.put(BOOTSTRAP_SERVERS_CONFIG, brokerUrl)
-        consumerProps.put(ENABLE_AUTO_COMMIT_CONFIG, false)
-        consumerProps.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java)
-        consumerProps.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java)
-        consumerProps.put(GROUP_ID_CONFIG, "test-consumer")
-        consumerProps.put(ENABLE_AUTO_COMMIT_CONFIG, false)
-        consumerProps.put(MAX_POLL_RECORDS_CONFIG, 5 * 60 * 1000)
-        consumerProps.put(AUTO_OFFSET_RESET_CONFIG, "earliest")
-
-        consumer = KafkaConsumerClientBuilder
-            .builder<String, String>()
-            .withConsumer(
-                topicName,
-                jsonConsumer(
-                    ArenaVedtakRecord::class.java,
-                    Consumer { record -> kafkaConsumerService.behandleArenaVedtak(record) })
-            )
-            .withProps(consumerProps)
-            .build()
-
-        consumer.start()
     }
 
     @org.junit.After
     fun after() {
-        try {
-            producer.close()
-            consumer.stop()
-        } catch (e: Exception) {
-        }
+        producer.close()
     }
 
     @Test
@@ -149,7 +92,7 @@ class ArenaVedtakConsumerTest {
                 .plus(12300, ChronoUnit.MICROS),
         )
 
-        producer.send(ProducerRecord(topicName, "key", readTestResourceFile))
+        producer.send(ProducerRecord(kafkaProperties.arenaVedtakTopic, "key", readTestResourceFile))
 
         TestUtils.verifiserAsynkront(
             10, TimeUnit.SECONDS
@@ -162,8 +105,9 @@ class ArenaVedtakConsumerTest {
     fun `konsumerer melding med gydlige verdier`() {
         ArenaInnsatsgruppe.values().map { it.name }.forEach { innsatsgruppe ->
             ArenaHovedmal.values().map { it.name }.plus(null).forEach { hovedmal ->
+
                 val forventetArenaVedtak = ArenaVedtak(
-                    fnr = Fnr("fnr"),
+                    fnr = Fnr(randomNumeric(4)),
                     innsatsgruppe = ArenaInnsatsgruppe.valueOf(innsatsgruppe),
                     hovedmal = hovedmal?.let { ArenaHovedmal.valueOf(it) },
                     fraDato = LocalDate.now(),
@@ -186,8 +130,7 @@ class ArenaVedtakConsumerTest {
                     )
                 )
 
-                producer.send(ProducerRecord(topicName, "key", arenaVedtakRecord.toJson()))
-
+                producer.send(ProducerRecord(kafkaProperties.arenaVedtakTopic, "key", arenaVedtakRecord.toJson()))
 
                 TestUtils.verifiserAsynkront(
                     10, TimeUnit.SECONDS

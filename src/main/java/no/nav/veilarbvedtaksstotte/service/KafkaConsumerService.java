@@ -20,7 +20,7 @@ public class KafkaConsumerService {
     @Autowired
     public KafkaConsumerService(
             @Lazy VedtakService vedtakService,
-            InnsatsbehovService innsatsbehovService
+            @Lazy InnsatsbehovService innsatsbehovService
     ) {
         this.vedtakService = vedtakService;
         this.innsatsbehovService = innsatsbehovService;
