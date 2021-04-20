@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.EnvironmentUtils;
@@ -17,8 +16,6 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
@@ -56,7 +53,6 @@ public class VedtakService {
     private final AuthService authService;
     private final UnleashService unleashService;
     private final MetricsService metricsService;
-    private final KafkaProducerService kafkaProducerService;
 
     private final OyeblikksbildeService oyeblikksbildeService;
     private final VeilederService veilederService;
@@ -79,7 +75,6 @@ public class VedtakService {
             AuthService authService,
             UnleashService unleashService,
             MetricsService metricsService,
-            KafkaProducerService kafkaProducerService,
 
             OyeblikksbildeService oyeblikksbildeService,
             VeilederService veilederService,
@@ -100,7 +95,6 @@ public class VedtakService {
         this.authService = authService;
         this.unleashService = unleashService;
         this.metricsService = metricsService;
-        this.kafkaProducerService = kafkaProducerService;
 
         this.oyeblikksbildeService = oyeblikksbildeService;
         this.veilederService = veilederService;
@@ -386,19 +380,6 @@ public class VedtakService {
     public boolean harUtkast(String fnr) {
         String aktorId = authService.sjekkTilgangTilFnr(fnr).getAktorId();
         return vedtaksstotteRepository.hentUtkast(aktorId) != null;
-    }
-
-    public void behandleAvsluttOppfolging(KafkaAvsluttOppfolging melding) {
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(melding.getAktorId());
-        kafkaProducerService.slettInnsatsbehov(AktorId.of(melding.getAktorId()));
-    }
-
-    public void behandleOppfolgingsbrukerEndring(KafkaOppfolgingsbrukerEndring endring) {
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(endring.getAktorId());
-
-        if (utkast != null && !utkast.getOppfolgingsenhetId().equals(endring.getOppfolgingsenhetId())) {
-            vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), endring.getOppfolgingsenhetId());
-        }
     }
 
     public void taOverUtkast(long vedtakId) {

@@ -26,8 +26,6 @@ import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
@@ -46,7 +44,6 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -95,7 +92,6 @@ public class VedtakServiceTest {
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
     private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
     private static final UtrullingService utrullingService = mock(UtrullingService.class);
-    private static final KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
 
     private static final VeilarbPep veilarbPep = mock(VeilarbPep.class);
 
@@ -129,7 +125,6 @@ public class VedtakServiceTest {
                 authService,
                 unleashService,
                 metricsService,
-                kafkaProducerService,
                 oyeblikksbildeService,
                 veilederService,
                 malTypeService,
@@ -527,37 +522,6 @@ public class VedtakServiceTest {
             assertThatThrownBy(() ->
                     vedtakService.taOverUtkast(utkast.getId())
             ).isExactlyInstanceOf(ResponseStatusException.class);
-        });
-    }
-
-    @Test
-    public void behandleOppfolgingsbrukerEndring_endrer_oppfolgingsenhet() {
-        String nyEnhet = "4562";
-        withContext(() -> {
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-
-            vedtakService.behandleOppfolgingsbrukerEndring(new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, nyEnhet));
-
-            Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-            assertNotNull(oppdatertUtkast);
-            assertEquals(nyEnhet, oppdatertUtkast.getOppfolgingsenhetId());
-        });
-    }
-
-    @Test
-    public void behandleAvsluttOppfolging_setter_gjeldende_til_false_og_sletter_kafka_innsatsbehov() {
-        withContext(() -> {
-            gittTilgang();
-            gittVersjon2AvFattVedtak();
-            gittUtkastKlarForUtsendelse();
-            fattVedtak();
-
-            assertTrue(hentVedtak().isGjeldende());
-
-            vedtakService.behandleAvsluttOppfolging(new KafkaAvsluttOppfolging(TEST_AKTOR_ID, ZonedDateTime.now()));
-
-            assertFalse(hentVedtak().isGjeldende());
-            verify(kafkaProducerService).slettInnsatsbehov(AktorId.of(TEST_AKTOR_ID));
         });
     }
 
