@@ -22,6 +22,11 @@
         <common.version>2.2021.04.08_11.42-d0c0afd39ca0</common.version>
         <springfox.version>2.9.2</springfox.version>
         <kotlin.version>1.4.10</kotlin.version>
+
+        <!--   Used by SonarCloud     -->
+        <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
+        <sonar.organization>navit</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <build>
