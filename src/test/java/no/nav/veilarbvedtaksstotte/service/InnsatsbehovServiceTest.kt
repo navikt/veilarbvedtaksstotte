@@ -748,34 +748,6 @@ class InnsatsbehovServiceTest {
         )
     }
 
-    @Test
-    fun `innsatsbehov oppdateres ikke dersom samme melding har blitt behandlet før`() {
-        val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
-        )
-
-        val arenaVedtak = arenaVedtakDer(
-            fnr = identer.fnr,
-            fraDato = LocalDate.now(),
-            innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-            hovedmal = ArenaHovedmal.OKEDELT
-        )
-        lagre(arenaVedtak)
-
-        assertAntallVedtakFraArena(identer, 1)
-
-        innsatsbehovService.behandleEndringFraArena(arenaVedtak)
-
-        assertInnsatsbehov(
-            identer, Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
-            )
-        )
-    }
-
     fun assertFattedeVedtakFraNyLøsning(identer: BrukerIdenter, antall: Int) {
         assertEquals(
             "Antall vedtak fra ny løsning",
