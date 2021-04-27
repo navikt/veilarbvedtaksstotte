@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.0.RELEASE</version>
+        <version>2.4.3</version>
         <relativePath/>
     </parent>
 
@@ -22,6 +22,11 @@
         <common.version>2.2021.04.08_11.42-d0c0afd39ca0</common.version>
         <springfox.version>2.9.2</springfox.version>
         <kotlin.version>1.4.10</kotlin.version>
+
+        <!--   Used by SonarCloud     -->
+        <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
+        <sonar.organization>navit</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <build>
@@ -141,12 +146,6 @@
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <!--  Overskriv gammel avhengighet fra nimbus -->
-        <dependency>
-            <groupId>net.minidev</groupId>
-            <artifactId>json-smart</artifactId>
-            <version>2.3</version>
         </dependency>
 
         <!-- Common Dependencies -->
