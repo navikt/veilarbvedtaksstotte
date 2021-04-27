@@ -37,7 +37,7 @@ public class BrukerIdentService {
     public BrukerIdenter hentIdenter(EksternBrukerId brukerId) {
         // Ønsker mulighet til å bruke aktorregister i testmiljø for verdikjedetest mot Arena
         if (EnvironmentUtils.isDevelopment().orElse(false) &&
-                unleashService.isPdlIdentOppslagDisabled()) {
+                unleashService.isPdlIdentOppslagMedHistoriskDisabled()) {
             return hentFraAktorregister(brukerId);
         } else {
             return hentFraPdl(brukerId);
