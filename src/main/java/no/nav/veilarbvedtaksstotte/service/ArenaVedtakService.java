@@ -61,9 +61,11 @@ public class ArenaVedtakService {
 
         ArenaVedtak eksisterendeVedtak = arenaVedtakRepository.hentVedtak(arenaVedtak.getFnr());
 
-        if (arenaVedtak.equals(eksisterendeVedtak) ||
-                eksisterendeVedtak != null &&
-                        eksisterendeVedtak.beregnetFattetTidspunkt().isAfter(arenaVedtak.beregnetFattetTidspunkt())) {
+        if (eksisterendeVedtak != null && (
+                eksisterendeVedtak.getHendelseId() == arenaVedtak.getHendelseId() ||
+                        eksisterendeVedtak.beregnetFattetTidspunkt().isAfter(arenaVedtak.beregnetFattetTidspunkt())
+        )
+        ) {
             return false;
         }
 

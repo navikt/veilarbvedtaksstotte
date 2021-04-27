@@ -13,9 +13,11 @@ data class ArenaVedtakRecord(
 )
 
 data class After(
+    @JsonAlias("VEDTAK_ID") val vedtakId: Long,
+    @JsonAlias("FRA_DATO") val fraDato: String?,
+    @JsonAlias("REG_USER") val regUser: String?,
     @JsonAlias("FODSELSNR") val fnr: String,
     @JsonAlias("KVALIFISERINGSGRUPPEKODE") val kvalifiseringsgruppe: String,
     @JsonAlias("HOVEDMAALKODE") val hovedmal: String?,
-    @JsonAlias("REG_USER") val regUser: String,
-    @JsonAlias("FRA_DATO") val fraDato: String
+    @JsonAlias("HENDELSE_ID") val hendelseId: Long
 )

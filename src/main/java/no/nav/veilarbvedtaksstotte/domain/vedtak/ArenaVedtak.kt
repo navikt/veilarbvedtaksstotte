@@ -14,7 +14,9 @@ data class ArenaVedtak(
     val hovedmal: ArenaHovedmal?,
     val fraDato: LocalDate,
     val regUser: String,
-    val operationTimestamp: LocalDateTime
+    val operationTimestamp: LocalDateTime,
+    val hendelseId: Long,
+    val vedtakId: Long
 ) {
 
     companion object {
@@ -23,13 +25,21 @@ data class ArenaVedtak(
             if (ArenaInnsatsgruppe.erGyldig(arenaVedtakRecord.after.kvalifiseringsgruppe) &&
                 (arenaVedtakRecord.after.hovedmal == null || ArenaHovedmal.erGyldig(arenaVedtakRecord.after.hovedmal))
             ) {
+                if (arenaVedtakRecord.after.fraDato == null) {
+                    throw IllegalArgumentException("Forventet fraDato i arenaVedtakRecord")
+                }
+                if (arenaVedtakRecord.after.regUser == null) {
+                    throw IllegalArgumentException("Forventet regUser i arenaVedtakRecord")
+                }
                 return ArenaVedtak(
                     fnr = Fnr(arenaVedtakRecord.after.fnr),
                     innsatsgruppe = ArenaInnsatsgruppe.valueOf(arenaVedtakRecord.after.kvalifiseringsgruppe),
                     hovedmal = arenaVedtakRecord.after.hovedmal?.let { ArenaHovedmal.valueOf(it) },
                     fraDato = LocalDate.parse(arenaVedtakRecord.after.fraDato, ISO_LOCAL_DATE_MIDNIGHT),
                     regUser = arenaVedtakRecord.after.regUser,
-                    operationTimestamp = LocalDateTime.parse(arenaVedtakRecord.opTs, ISO_LOCAL_DATE_TIME_WITHOUT_T)
+                    operationTimestamp = LocalDateTime.parse(arenaVedtakRecord.opTs, ISO_LOCAL_DATE_TIME_WITHOUT_T),
+                    hendelseId = arenaVedtakRecord.after.hendelseId,
+                    vedtakId = arenaVedtakRecord.after.vedtakId
                 )
             }
             return null

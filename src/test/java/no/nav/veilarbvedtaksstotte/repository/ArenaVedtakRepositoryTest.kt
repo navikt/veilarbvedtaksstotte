@@ -35,7 +35,9 @@ class ArenaVedtakRepositoryTest {
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
             fraDato = LocalDate.now(),
             regUser = "reg user",
-            operationTimestamp = LocalDateTime.now()
+            operationTimestamp = LocalDateTime.now(),
+            hendelseId = 12345,
+            vedtakId = 1
         )
 
         arenaVedtakRepository.upsertVedtak(forventetOpprinneligVedtak)
@@ -49,7 +51,10 @@ class ArenaVedtakRepositoryTest {
                 innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.VARIG,
                 hovedmal = ArenaVedtak.ArenaHovedmal.OKEDELT,
                 fraDato = forventetOpprinneligVedtak.fraDato.plusDays(1),
-                regUser = "reg user 2"
+                regUser = "reg user 2",
+                operationTimestamp = forventetOpprinneligVedtak.operationTimestamp.plusHours(2),
+                hendelseId = forventetOpprinneligVedtak.hendelseId + 1,
+                vedtakId = forventetOpprinneligVedtak.vedtakId + 2,
             )
 
         arenaVedtakRepository.upsertVedtak(forventetOppdatertVedtak)
@@ -67,7 +72,9 @@ class ArenaVedtakRepositoryTest {
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
             fraDato = LocalDate.now(),
             regUser = "reg user",
-            operationTimestamp = LocalDateTime.now()
+            operationTimestamp = LocalDateTime.now(),
+            hendelseId = 12345,
+            vedtakId = 1
         )
         val arenaVedtak2 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))
 
@@ -92,7 +99,9 @@ class ArenaVedtakRepositoryTest {
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
             fraDato = LocalDate.now(),
             regUser = "reg user",
-            operationTimestamp = LocalDateTime.now()
+            operationTimestamp = LocalDateTime.now(),
+            hendelseId = 12345,
+            vedtakId = 1
         )
         val arenaVedtak2 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))
         val arenaVedtak3 = arenaVedtak1.copy(fnr = Fnr(randomNumeric(10)))

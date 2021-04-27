@@ -81,7 +81,9 @@ public class ArenaVedtakServiceTest {
                         ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                         LocalDate.now(),
                         "reg user",
-                        LocalDateTime.now()
+                        LocalDateTime.now(),
+                        12345,
+                        1
                 )
         ));
 
@@ -98,7 +100,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                 LocalDate.now(),
                 "reg user",
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                1234,
+                1
         );
 
         ArenaVedtak arenaVedtak2 = new ArenaVedtak(
@@ -107,7 +111,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.SKAFFEA,
                 arenaVedtak1.getFraDato().plusDays(1),
                 "reg user",
-                arenaVedtak1.getOperationTimestamp()
+                arenaVedtak1.getOperationTimestamp(),
+                4321,
+                1
 
         );
 
@@ -130,7 +136,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                 LocalDate.now(),
                 "reg user",
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                1234,
+                1
         );
 
         ArenaVedtak arenaVedtak2 = new ArenaVedtak(
@@ -139,7 +147,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.SKAFFEA,
                 arenaVedtak1.getFraDato(),
                 "reg user",
-                arenaVedtak1.getOperationTimestamp().plusMinutes(1)
+                arenaVedtak1.getOperationTimestamp().plusMinutes(1),
+                4321,
+                1
 
         );
 
@@ -162,7 +172,9 @@ public class ArenaVedtakServiceTest {
                         ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                         LocalDate.now(),
                         MODIA_REG_USER,
-                        LocalDateTime.now()
+                        LocalDateTime.now(),
+                        12345,
+                        1
                 )
         ));
 
@@ -179,7 +191,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                 LocalDate.now().minusDays(1),
                 "reg user",
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                1234,
+                1
         );
 
         ArenaVedtak arenaVedtak2 = new ArenaVedtak(
@@ -188,7 +202,9 @@ public class ArenaVedtakServiceTest {
                 arenaVedtak1.getHovedmal(),
                 arenaVedtak1.getFraDato(),
                 arenaVedtak1.getRegUser(),
-                arenaVedtak1.getOperationTimestamp()
+                arenaVedtak1.getOperationTimestamp(),
+                1234,
+                1
         );
 
         assertTrue(service.behandleVedtakFraArena(arenaVedtak1));
@@ -200,6 +216,7 @@ public class ArenaVedtakServiceTest {
         assertEquals(arenaVedtak2, lagretArenaVedtak);
         assertEquals(arenaVedtak1, lagretArenaVedtak);
     }
+
     @Test
     public void behandleVedtakFraArena__overskriver_lagret_vedtak_med_vedtak_som_har_lik_dato_og_ulikt_innhold() {
         Fnr fnr = Fnr.of(randomNumeric(10));
@@ -209,7 +226,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                 LocalDate.now().minusDays(1),
                 "reg user",
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                1234,
+                1
         );
 
         ArenaVedtak arenaVedtak2 = new ArenaVedtak(
@@ -218,7 +237,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.SKAFFEA,
                 arenaVedtak1.getFraDato(),
                 "reg user",
-                arenaVedtak1.getOperationTimestamp()
+                arenaVedtak1.getOperationTimestamp(),
+                4321,
+                1
         );
 
         assertTrue(service.behandleVedtakFraArena(arenaVedtak1));
@@ -232,6 +253,41 @@ public class ArenaVedtakServiceTest {
     }
 
     @Test
+    public void behandleVedtakFraArena__overskriver_ikke_lagret_vedtak_med_vedtak_som_har_lik_hendelse_id_og_ulikt_innhold() {
+        Fnr fnr = Fnr.of(randomNumeric(10));
+        ArenaVedtak arenaVedtak1 = new ArenaVedtak(
+                fnr,
+                ArenaVedtak.ArenaInnsatsgruppe.BATT,
+                ArenaVedtak.ArenaHovedmal.BEHOLDEA,
+                LocalDate.now().minusDays(1),
+                "reg user",
+                LocalDateTime.now(),
+                12345,
+                1
+        );
+
+        ArenaVedtak arenaVedtak2 = new ArenaVedtak(
+                fnr,
+                ArenaVedtak.ArenaInnsatsgruppe.BFORM,
+                ArenaVedtak.ArenaHovedmal.SKAFFEA,
+                arenaVedtak1.getFraDato(),
+                "reg user",
+                LocalDateTime.now().plusDays(1),
+                arenaVedtak1.getHendelseId(),
+                arenaVedtak1.getVedtakId()
+        );
+
+        assertTrue(service.behandleVedtakFraArena(arenaVedtak1));
+        assertFalse(service.behandleVedtakFraArena(arenaVedtak2));
+
+        ArenaVedtak lagretArenaVedtak = arenaVedtakRepository.hentVedtak(fnr);
+
+
+        assertEquals(arenaVedtak1, lagretArenaVedtak);
+        assertNotEquals(arenaVedtak2, lagretArenaVedtak);
+    }
+
+    @Test
     public void behandleVedtakFraArena__overskriver_ikke_lagret_vedtak_med_vedtak_som_har_fra_eldre_dato() {
         Fnr fnr = Fnr.of(randomNumeric(10));
         ArenaVedtak arenaVedtak1 = new ArenaVedtak(
@@ -240,7 +296,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                 LocalDate.now(),
                 "reg user",
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                12345,
+                1
         );
 
         ArenaVedtak arenaVedtak2 = new ArenaVedtak(
@@ -249,8 +307,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.SKAFFEA,
                 arenaVedtak1.getFraDato().minusDays(1),
                 "reg user",
-                arenaVedtak1.getOperationTimestamp()
-
+                arenaVedtak1.getOperationTimestamp(),
+                12345,
+                1
         );
 
         assertTrue(service.behandleVedtakFraArena(arenaVedtak1));
@@ -272,7 +331,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                 LocalDate.now(),
                 "reg user",
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                12345,
+                1
         );
 
         ArenaVedtak arenaVedtak2 = new ArenaVedtak(
@@ -281,8 +342,9 @@ public class ArenaVedtakServiceTest {
                 ArenaVedtak.ArenaHovedmal.SKAFFEA,
                 arenaVedtak1.getFraDato(),
                 "reg user",
-                arenaVedtak1.getOperationTimestamp().minusMinutes(1)
-
+                arenaVedtak1.getOperationTimestamp().minusMinutes(1),
+                12345,
+                1
         );
 
         assertTrue(service.behandleVedtakFraArena(arenaVedtak1));

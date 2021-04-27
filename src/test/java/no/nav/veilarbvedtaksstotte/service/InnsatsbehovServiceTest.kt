@@ -859,7 +859,8 @@ class InnsatsbehovServiceTest {
         regUser: String = "REG USER",
         innsatsgruppe: ArenaInnsatsgruppe = ArenaInnsatsgruppe.BFORM,
         hovedmal: ArenaHovedmal = ArenaHovedmal.SKAFFEA,
-        operationTimestamp: LocalDateTime = LocalDateTime.now()
+        operationTimestamp: LocalDateTime = LocalDateTime.now(),
+        hendelseId: Long = 12345
     ): ArenaVedtak {
         val arenaVedtak = ArenaVedtak(
             fnr = fnr,
@@ -867,7 +868,9 @@ class InnsatsbehovServiceTest {
             hovedmal = hovedmal,
             fraDato = fraDato,
             regUser = regUser,
-            operationTimestamp = operationTimestamp
+            operationTimestamp = operationTimestamp,
+            hendelseId = hendelseId,
+            vedtakId = 1
         )
         return arenaVedtak
     }

@@ -33,6 +33,7 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit4.SpringRunner
 import org.testcontainers.containers.KafkaContainer
+import java.lang.IllegalArgumentException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -90,6 +91,8 @@ class ArenaVedtakConsumerTest {
             LocalDateTime
                 .of(2021, 2, 14, 15, 16, 17)
                 .plus(12300, ChronoUnit.MICROS),
+            hendelseId = 4321,
+            vedtakId = 1234
         )
 
         producer.send(ProducerRecord(kafkaProperties.arenaVedtakTopic, "key", readTestResourceFile))
@@ -113,21 +116,18 @@ class ArenaVedtakConsumerTest {
                     fraDato = LocalDate.now(),
                     regUser = "reguser",
                     operationTimestamp = LocalDateTime.now(),
+                    hendelseId = 1234,
+                    vedtakId = 1
                 )
-
-                val arenaVedtakRecord = ArenaVedtakRecord(
-                    table = "table",
-                    opType = "I",
-                    opTs = forventetArenaVedtak.operationTimestamp.toString().replace('T', ' '),
-                    currentTs = LocalDateTime.now().toString(),
-                    pos = "1",
-                    after = After(
-                        fnr = forventetArenaVedtak.fnr.get(),
-                        kvalifiseringsgruppe = innsatsgruppe,
-                        hovedmal = hovedmal,
-                        regUser = forventetArenaVedtak.regUser,
-                        fraDato = "${forventetArenaVedtak.fraDato} 00:00:00"
-                    )
+                val arenaVedtakRecord = arenaVedtakRecordMed(
+                    fnr = forventetArenaVedtak.fnr,
+                    kvalifiseringsgruppe = innsatsgruppe,
+                    hovedmal = hovedmal,
+                    opTs = forventetArenaVedtak.operationTimestamp,
+                    fraDato = forventetArenaVedtak.fraDato,
+                    regUser = forventetArenaVedtak.regUser,
+                    hendelseId = forventetArenaVedtak.hendelseId,
+                    vedtakId = forventetArenaVedtak.vedtakId
                 )
 
                 producer.send(ProducerRecord(kafkaProperties.arenaVedtakTopic, "key", arenaVedtakRecord.toJson()))
@@ -150,11 +150,13 @@ class ArenaVedtakConsumerTest {
             currentTs = LocalDateTime.now().toString(),
             pos = "1",
             after = After(
+                vedtakId = 321,
                 fnr = "1",
                 kvalifiseringsgruppe = "VURDI",
                 hovedmal = ArenaHovedmal.SKAFFEA.name,
                 regUser = "reguser",
-                fraDato = "${LocalDate.now()} 00:00:00"
+                fraDato = "${LocalDate.now()} 00:00:00",
+                hendelseId = 123
             )
         )
 
@@ -165,19 +167,38 @@ class ArenaVedtakConsumerTest {
 
     @Test
     fun `konsumerer ikke melding der hovedmal ikke er kjent`() {
-        val arenaVedtakRecord = ArenaVedtakRecord(
-            table = "table",
-            opType = "I",
-            opTs = LocalDateTime.now().toString().replace('T', ' '),
-            currentTs = LocalDateTime.now().toString(),
-            pos = "1",
-            after = After(
-                fnr = "1",
-                kvalifiseringsgruppe = ArenaInnsatsgruppe.BATT.name,
-                hovedmal = "FEIL",
-                regUser = "reguser",
-                fraDato = "${LocalDate.now()} 00:00:00"
-            )
+        val arenaVedtakRecord = arenaVedtakRecordMed(
+            fnr = Fnr("1"),
+            kvalifiseringsgruppe = ArenaInnsatsgruppe.BATT.name,
+            hovedmal = "FEIL",
+        )
+
+        kafkaConsumerService.behandleArenaVedtak(arenaVedtakRecord)
+
+        verify(innsatsbehovService, never()).behandleEndringFraArena(any())
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `feiler dersom fraDato mangler`() {
+        val arenaVedtakRecord = arenaVedtakRecordMed(
+            fnr = Fnr("1"),
+            kvalifiseringsgruppe = ArenaInnsatsgruppe.BATT.name,
+            hovedmal = ArenaHovedmal.BEHOLDEA.name,
+            fraDato = null
+        )
+
+        kafkaConsumerService.behandleArenaVedtak(arenaVedtakRecord)
+
+        verify(innsatsbehovService, never()).behandleEndringFraArena(any())
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `feiler dersom regUser mangler`() {
+        val arenaVedtakRecord = arenaVedtakRecordMed(
+            fnr = Fnr("1"),
+            kvalifiseringsgruppe = ArenaInnsatsgruppe.BATT.name,
+            hovedmal = ArenaHovedmal.BEHOLDEA.name,
+            regUser = null
         )
 
         kafkaConsumerService.behandleArenaVedtak(arenaVedtakRecord)
@@ -186,4 +207,33 @@ class ArenaVedtakConsumerTest {
     }
 
     private fun <T> any(): T = Mockito.any()
+
+    private fun arenaVedtakRecordMed(
+        fnr: Fnr,
+        kvalifiseringsgruppe: String,
+        hovedmal: String? = null,
+        opTs: LocalDateTime = LocalDateTime.now(),
+        currentTs: LocalDateTime = LocalDateTime.now(),
+        fraDato: LocalDate? = LocalDate.now(),
+        regUser: String? = "default reg user",
+        hendelseId: Long = 123,
+        vedtakId: Long = 321
+    ): ArenaVedtakRecord {
+        return ArenaVedtakRecord(
+            table = "table",
+            opType = "I",
+            opTs = opTs.toString().replace('T', ' '),
+            currentTs = currentTs.toString(),
+            pos = "1",
+            after = After(
+                vedtakId = vedtakId,
+                fraDato = fraDato?.let { "$it 00:00:00" },
+                regUser = regUser,
+                fnr = fnr.get(),
+                kvalifiseringsgruppe = kvalifiseringsgruppe,
+                hovedmal = hovedmal,
+                hendelseId = hendelseId
+            )
+        )
+    }
 }

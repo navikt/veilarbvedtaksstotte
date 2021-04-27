@@ -22,18 +22,22 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
     val FRA_DATO = "FRA_DATO"
     val REG_USER = "REG_USER"
     val OPERATION_TIMESTAMP = "OPERATION_TIMESTAMP"
+    val HENDELSE_ID = "HENDELSE_ID"
+    val VEDTAK_ID = "VEDTAK_ID"
 
     fun upsertVedtak(vedtak: ArenaVedtak) {
         val sql =
             """
-                INSERT INTO $ARENA_VEDTAK_TABLE ($FNR, $INNSATSGRUPPE, $HOVEDMAL, $FRA_DATO, $REG_USER, $OPERATION_TIMESTAMP)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO $ARENA_VEDTAK_TABLE ($FNR, $INNSATSGRUPPE, $HOVEDMAL, $FRA_DATO, $REG_USER, $OPERATION_TIMESTAMP, $HENDELSE_ID, $VEDTAK_ID)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT ($FNR) DO UPDATE
                 SET $INNSATSGRUPPE        = EXCLUDED.$INNSATSGRUPPE,
                     $HOVEDMAL             = EXCLUDED.$HOVEDMAL,
                     $FRA_DATO             = EXCLUDED.$FRA_DATO,
                     $REG_USER             = EXCLUDED.$REG_USER,
-                    $OPERATION_TIMESTAMP  = EXCLUDED.$OPERATION_TIMESTAMP
+                    $OPERATION_TIMESTAMP  = EXCLUDED.$OPERATION_TIMESTAMP,
+                    $HENDELSE_ID          = EXCLUDED.$HENDELSE_ID,
+                    $VEDTAK_ID            = EXCLUDED.$VEDTAK_ID
             """
 
         jdbcTemplate.update(
@@ -43,7 +47,9 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
             vedtak.hovedmal?.name,
             vedtak.fraDato,
             vedtak.regUser,
-            vedtak.operationTimestamp
+            vedtak.operationTimestamp,
+            vedtak.hendelseId,
+            vedtak.vedtakId
         )
     }
 
@@ -68,7 +74,9 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
             hovedmal = rs.getString(HOVEDMAL)?.let { ArenaVedtak.ArenaHovedmal.valueOf(it) },
             fraDato = rs.getTimestamp(FRA_DATO).toLocalDateTime().toLocalDate(),
             regUser = rs.getString(REG_USER),
-            operationTimestamp = rs.getTimestamp(OPERATION_TIMESTAMP).toLocalDateTime()
+            operationTimestamp = rs.getTimestamp(OPERATION_TIMESTAMP).toLocalDateTime(),
+            hendelseId = rs.getLong(HENDELSE_ID),
+            vedtakId = rs.getLong(VEDTAK_ID)
         )
     }
 }
