@@ -55,13 +55,13 @@ public class KafkaProducerService {
 
     private void sendInnsatsbehov(AktorId aktorId, Innsatsbehov innsatsbehov) {
         String json = innsatsbehov == null ? null : toJson(innsatsbehov);
-        ProducerRecord<String, String> record =
+        ProducerRecord<String, String> producerRecord =
                 toProducerRecord(
                         kafkaProperties.getInnsatsbehovTopic(),
                         aktorId.get(),
                         json
                 );
 
-        producerRecordStorage.store(record);
+        producerRecordStorage.store(producerRecord);
     }
 }
