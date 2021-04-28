@@ -63,6 +63,9 @@ public class BrukerIdentService {
 
     static class HentIdenterQuery {
 
+        private HentIdenterQuery() {
+        }
+
         @Value
         static class Variables {
             String ident;
