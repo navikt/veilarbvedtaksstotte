@@ -20,9 +20,8 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
     public ExpectedException exceptionRule = ExpectedException.none();
 
     private static VedtakService vedtakService = new VedtakService(
-            null, null,null,
-            null, null, null,null,null,null,null,
-            null, null, null, null, null
+            null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null
     );
 
     @Test

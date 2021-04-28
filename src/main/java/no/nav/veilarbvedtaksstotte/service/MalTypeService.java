@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -19,12 +20,12 @@ public class MalTypeService {
         this.registreringClient = registreringClient;
     }
 
-    public MalType utledMalTypeFraVedtak(Vedtak vedtak, String fnr) {
+    public MalType utledMalTypeFraVedtak(Vedtak vedtak, Fnr fnr) {
         Innsatsgruppe innsatsgruppe = vedtak.getInnsatsgruppe();
         Hovedmal hovedmal = vedtak.getHovedmal();
 
         if (Innsatsgruppe.STANDARD_INNSATS.equals(innsatsgruppe) && Hovedmal.SKAFFE_ARBEID.equals(hovedmal)) {
-            RegistreringData registreringData = registreringClient.hentRegistreringData(fnr);
+            RegistreringData registreringData = registreringClient.hentRegistreringData(fnr.get());
 
             if (registreringData != null) {
                 RegistreringData.Profilering profilering = registreringData.registrering.profilering;

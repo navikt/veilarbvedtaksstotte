@@ -107,7 +107,7 @@ public class VedtaksstotteRepository {
 
     public Vedtak hentGjeldendeVedtak(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = true", VEDTAK_TABLE, AKTOR_ID, GJELDENDE);
-        return queryForObjectOrNull(() -> db.queryForObject(sql, new Object[]{aktorId}, VedtaksstotteRepository::mapVedtak));
+        return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, aktorId));
     }
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {

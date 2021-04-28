@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.client.pdl.PdlClient;
+import no.nav.common.client.pdl.PdlClientImpl;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.client.norg2.Norg2Client;
 import no.nav.common.health.HealthCheckResult;
@@ -31,6 +33,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -92,6 +95,25 @@ public class ClientTestConfig {
             @Override
             public Enhet hentTilhorendeEnhet(String s) {
                 return null;
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
+            }
+        };
+    }
+
+    @Bean
+    public PdlClient pdlClient() {
+        return new PdlClientImpl(null, null, null, null) {
+            @Override
+            public String rawRequest(String gqlRequestJson) {
+                return "{\"data\": {\"hentIdenter\": {\"identer\": [{\"ident\": \"" +
+                        TEST_FNR +
+                        "\", \"gruppe\": \"FOLKEREGISTERIDENT\", \"historisk\": false}, {\"ident\": \"" +
+                        TEST_AKTOR_ID +
+                        "\", \"gruppe\": \"AKTORID\", \"historisk\": false}]}}}";
             }
 
             @Override
@@ -173,7 +195,9 @@ public class ClientTestConfig {
 
             @Override
             public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(String fnr) {
-                return Collections.emptyList();
+                OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
+                periode.setStartDato(LocalDateTime.now().minusDays(10));
+                return Collections.singletonList(periode);
             }
 
             @Override

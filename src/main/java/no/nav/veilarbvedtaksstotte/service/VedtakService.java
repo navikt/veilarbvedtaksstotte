@@ -40,55 +40,67 @@ import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutt
 @Service
 public class VedtakService {
 
+    private final TransactionTemplate transactor;
+
     private final VedtaksstotteRepository vedtaksstotteRepository;
-    private final OyeblikksbildeService oyeblikksbildeService;
+    private final BeslutteroversiktRepository beslutteroversiktRepository;
     private final KilderRepository kilderRepository;
     private final MeldingRepository meldingRepository;
-    private final BeslutteroversiktRepository beslutteroversiktRepository;
-    private final AuthService authService;
+
     private final VeilarbdokumentClient dokumentClient;
     private final SafClient safClient;
+
+    private final AuthService authService;
+    private final UnleashService unleashService;
+    private final MetricsService metricsService;
+
+    private final OyeblikksbildeService oyeblikksbildeService;
     private final VeilederService veilederService;
     private final MalTypeService malTypeService;
     private final VedtakStatusEndringService vedtakStatusEndringService;
-    private final MetricsService metricsService;
-    private final TransactionTemplate transactor;
     private final DokumentServiceV2 dokumentServiceV2;
-    private final UnleashService unleashService;
 
     @Autowired
     public VedtakService(
+            TransactionTemplate transactor,
+
             VedtaksstotteRepository vedtaksstotteRepository,
-            KilderRepository kilderRepository,
-            OyeblikksbildeService oyeblikksbildeService,
-            MeldingRepository meldingRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
-            AuthService authService,
+            KilderRepository kilderRepository,
+            MeldingRepository meldingRepository,
+
             VeilarbdokumentClient dokumentClient,
             SafClient safClient,
+
+            AuthService authService,
+            UnleashService unleashService,
+            MetricsService metricsService,
+
+            OyeblikksbildeService oyeblikksbildeService,
             VeilederService veilederService,
             MalTypeService malTypeService,
             VedtakStatusEndringService vedtakStatusEndringService,
-            MetricsService metricsService,
-            TransactionTemplate transactor,
-            DokumentServiceV2 dokumentServiceV2,
-            UnleashService unleashService
+            DokumentServiceV2 dokumentServiceV2
     ) {
+        this.transactor = transactor;
+
         this.vedtaksstotteRepository = vedtaksstotteRepository;
-        this.kilderRepository = kilderRepository;
-        this.oyeblikksbildeService = oyeblikksbildeService;
-        this.meldingRepository = meldingRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
-        this.authService = authService;
+        this.kilderRepository = kilderRepository;
+        this.meldingRepository = meldingRepository;
+
         this.dokumentClient = dokumentClient;
         this.safClient = safClient;
+
+        this.authService = authService;
+        this.unleashService = unleashService;
+        this.metricsService = metricsService;
+
+        this.oyeblikksbildeService = oyeblikksbildeService;
         this.veilederService = veilederService;
         this.malTypeService = malTypeService;
         this.vedtakStatusEndringService = vedtakStatusEndringService;
-        this.metricsService = metricsService;
-        this.transactor = transactor;
         this.dokumentServiceV2 = dokumentServiceV2;
-        this.unleashService = unleashService;
     }
 
     @SneakyThrows
@@ -141,7 +153,7 @@ public class VedtakService {
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });
 
-        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), authKontekst.getFnr());
+        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), Fnr.of(authKontekst.getFnr()));
 
         return dokumentSendt;
     }
@@ -197,7 +209,7 @@ public class VedtakService {
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });
 
-        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), authKontekst.getFnr());
+        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), Fnr.of(authKontekst.getFnr()));
 
         String bestillingsId = null;
         try {
@@ -428,7 +440,7 @@ public class VedtakService {
     private SendDokumentDTO lagDokumentDTO(Vedtak vedtak, String fnr) {
         return new SendDokumentDTO(
                 Fnr.of(fnr),
-                malTypeService.utledMalTypeFraVedtak(vedtak, fnr),
+                malTypeService.utledMalTypeFraVedtak(vedtak, Fnr.of(fnr)),
                 EnhetId.of(vedtak.getOppfolgingsenhetId()),
                 vedtak.getBegrunnelse(),
                 vedtak.getOpplysninger()
@@ -438,7 +450,7 @@ public class VedtakService {
     private ProduserDokumentV2DTO lagProduserDokumentDTO(Vedtak vedtak, String fnr, boolean utkast) {
         return new ProduserDokumentV2DTO(
                 Fnr.of(fnr),
-                malTypeService.utledMalTypeFraVedtak(vedtak, fnr),
+                malTypeService.utledMalTypeFraVedtak(vedtak, Fnr.of(fnr)),
                 EnhetId.of(vedtak.getOppfolgingsenhetId()),
                 vedtak.getBegrunnelse(),
                 vedtak.getOpplysninger(),
