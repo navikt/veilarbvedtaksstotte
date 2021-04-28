@@ -61,18 +61,23 @@ public class BrukerIdentService {
         }
     }
 
-    @Value
-    static class HentIdenterResponse extends GraphqlResponse<HentIdenterResponse.HentIdenterResponseData> {
-        List<GraphqlError> errors;
-        HentIdenterResponseData data;
+    static class HentIdenterQuery {
 
         @Value
-        static class HentIdenterResponseData {
-            IdenterResponseData hentIdenter;
+        static class Variables {
+            String ident;
+        }
+
+        @Value
+        static class Response extends GraphqlResponse<ResponseData> {}
+
+        @Value
+        static class ResponseData {
+            ResponseData.IdenterResponseData hentIdenter;
 
             @Value
             static class IdenterResponseData {
-                List<IdentData> identer;
+                List<ResponseData.IdenterResponseData.IdentData> identer;
 
                 @Value
                 static class IdentData {
@@ -84,12 +89,7 @@ public class BrukerIdentService {
         }
     }
 
-    @Value
-    static class HentIdentVariables {
-        String ident;
-    }
-
-    private final GraphqlRequestBuilder<HentIdentVariables> hentFnrRequestBuilder =
+    private final GraphqlRequestBuilder<HentIdenterQuery.Variables> hentFnrRequestBuilder =
             new GraphqlRequestBuilder<>("pdl/hent-identer-med-historikk.graphql");
 
     private final static String IDENT_GRUPPE_AKTORID = "AKTORID";
@@ -97,20 +97,20 @@ public class BrukerIdentService {
     private final static String IDENT_GRUPPE_FOLKEREGISTERIDENT = "FOLKEREGISTERIDENT";
 
     private BrukerIdenter hentFraPdl(EksternBrukerId brukerId) {
-        HentIdenterResponse response = pdlClient.request(
-                hentFnrRequestBuilder.buildRequest(new HentIdentVariables(brukerId.get())),
-                HentIdenterResponse.class
+        HentIdenterQuery.Response response = pdlClient.request(
+                hentFnrRequestBuilder.buildRequest(new HentIdenterQuery.Variables(brukerId.get())),
+                HentIdenterQuery.Response.class
         );
 
         GraphqlUtils.throwIfErrorOrMissingData(response);
 
-        List<HentIdenterResponse.HentIdenterResponseData.IdenterResponseData.IdentData> identer =
+        List<HentIdenterQuery.ResponseData.IdenterResponseData.IdentData> identer =
                 response.getData().hentIdenter.identer;
 
-        List<HentIdenterResponse.HentIdenterResponseData.IdenterResponseData.IdentData> folkeregisteridenter =
+        List<HentIdenterQuery.ResponseData.IdenterResponseData.IdentData> folkeregisteridenter =
                 identer.stream().filter(ident -> IDENT_GRUPPE_FOLKEREGISTERIDENT.equals(ident.gruppe)).collect(toList());
 
-        List<HentIdenterResponse.HentIdenterResponseData.IdenterResponseData.IdentData> aktorider =
+        List<HentIdenterQuery.ResponseData.IdenterResponseData.IdentData> aktorider =
                 identer.stream().filter(ident -> IDENT_GRUPPE_AKTORID.equals(ident.gruppe)).collect(toList());
 
         return new BrukerIdenter(

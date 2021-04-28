@@ -19,11 +19,9 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDelt
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
-import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdentVariables
-import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterResponse
-import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterResponse.HentIdenterResponseData
-import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterResponse.HentIdenterResponseData.IdenterResponseData
-import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterResponse.HentIdenterResponseData.IdenterResponseData.IdentData
+import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterQuery.*
+import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterQuery.ResponseData.IdenterResponseData
+import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterQuery.ResponseData.IdenterResponseData.IdentData
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
@@ -788,31 +786,28 @@ class InnsatsbehovServiceTest {
             historiskeAktorId = listOf()
         )
 
-        val identerResponse = HentIdenterResponse(
-            null,
-            HentIdenterResponseData(
-                IdenterResponseData(
-                    brukerIdenter.historiskeFnr
-                        .map { IdentData(it.get(), "FOLKEREGISTERIDENT", true) }
-                        .plus(IdentData(brukerIdenter.fnr.get(), "FOLKEREGISTERIDENT", false))
-                        .plus(IdentData(brukerIdenter.aktorId.get(), "AKTORID", false))
-                )
-            )
-        )
+
+        val identerResponse = Response()
+        identerResponse.data = ResponseData(IdenterResponseData(
+            brukerIdenter.historiskeFnr
+                .map { IdentData(it.get(), "FOLKEREGISTERIDENT", true) }
+                .plus(IdentData(brukerIdenter.fnr.get(), "FOLKEREGISTERIDENT", false))
+                .plus(IdentData(brukerIdenter.aktorId.get(), "AKTORID", false))
+        ))
 
 
         `when`(
             pdlClient.request(
                 ArgumentMatchers.argThat { x ->
-                    x.variables is HentIdentVariables &&
+                    x.variables is Variables &&
                             brukerIdenter.historiskeFnr
                                 .plus(brukerIdenter.historiskeAktorId)
                                 .plus(brukerIdenter.fnr)
                                 .plus(brukerIdenter.aktorId)
                                 .map { it.get() }
-                                .contains((x.variables as HentIdentVariables).ident)
+                                .contains((x.variables as Variables).ident)
                 },
-                ArgumentMatchers.eq(HentIdenterResponse::class.java)
+                ArgumentMatchers.eq(Response::class.java)
             )
         ).thenReturn(identerResponse)
 
