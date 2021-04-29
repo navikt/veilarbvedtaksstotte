@@ -93,7 +93,7 @@ class InnsatsbehovKafkaProducerTest {
         val konsumertMelding: AtomicReference<MutableMap<AktorId, Innsatsbehov?>> = AtomicReference(mutableMapOf())
 
         KafkaConsumerClientBuilder.builder<String, String>()
-            .withProps(kafkaTestConsumerProperties(kafkaContainer.bootstrapServers))
+            .withProperties(kafkaTestConsumerProperties(kafkaContainer.bootstrapServers))
             .withConsumer(
                 /*kafkaProperties.innsatsbehovTopic*/"innsatsbehovTopic",
                 JsonTopicConsumer(Innsatsbehov::class.java) { record, innsatsbehov: Innsatsbehov? ->
@@ -116,7 +116,7 @@ class InnsatsbehovKafkaProducerTest {
         }
     }
 
-    fun kafkaTestConsumerProperties(brokerUrl: String?): Properties? {
+    fun kafkaTestConsumerProperties(brokerUrl: String?): Properties {
         val props = Properties()
         props[CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG] = brokerUrl
         props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
