@@ -111,7 +111,6 @@ public class KafkaConfig {
                                 new StringSerializer(),
                                 new StringSerializer())
                 )
-                .withStoreOnFailureConsumers(topicConsumers)
                 .withMetrics(meterRegistry)
                 .withLogging()
                 .build();
