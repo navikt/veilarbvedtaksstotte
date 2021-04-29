@@ -104,7 +104,7 @@ public class KafkaTestConfig {
                 .build();
 
         return KafkaConsumerClientBuilder.<String, String>builder()
-                .withProps(properties)
+                .withProperties(properties)
                 .withRepository(kafkaConsumerRepository)
                 .withSerializers(new StringSerializer(), new StringSerializer())
                 .withStoreOnFailureConsumers(topicConsumers)

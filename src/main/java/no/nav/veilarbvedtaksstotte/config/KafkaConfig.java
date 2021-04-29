@@ -92,7 +92,7 @@ public class KafkaConfig {
             MeterRegistry meterRegistry
     ) {
         return KafkaConsumerClientBuilder.<String, String>builder()
-                .withProps(onPremDefaultConsumerProperties(CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials))
+                .withProperties(onPremDefaultConsumerProperties(CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials))
                 .withRepository(kafkaConsumerRepository)
                 .withSerializers(new StringSerializer(), new StringSerializer())
                 .withStoreOnFailureConsumer(
