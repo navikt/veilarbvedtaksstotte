@@ -12,12 +12,14 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDate
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
-import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.*
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 @Service
 class InnsatsbehovService(
@@ -132,12 +134,14 @@ class InnsatsbehovService(
         // fattet dersom ikke Kafka-melding sendes samme dag som vedtaket fattes og får operation timestamp som kan brukes.
         val oppfolgingsperiodeFraMidnatt =
             OppfolgingPeriodeDTO(
-                LocalDateTime.of(sisteOppfolgingsperiode.startDato.toLocalDate(), LocalTime.MIDNIGHT),
+                ZonedDateTime.of(toLocalDate(sisteOppfolgingsperiode.startDato), LocalTime.MIDNIGHT, ZoneId.systemDefault()),
                 sisteOppfolgingsperiode.sluttDato
             )
 
         return OppfolgingUtils
-            .erDatoInnenforOppfolgingsperiode(arenaVedtak.beregnetFattetTidspunkt(), oppfolgingsperiodeFraMidnatt)
+            .erDatoInnenforOppfolgingsperiode(
+                toZonedDateTime(arenaVedtak.beregnetFattetTidspunkt()), oppfolgingsperiodeFraMidnatt
+            )
     }
 
     private fun finnSisteArenaVedtak(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {

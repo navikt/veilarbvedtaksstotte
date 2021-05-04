@@ -3,11 +3,11 @@ package no.nav.veilarbvedtaksstotte.utils;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 import org.junit.Test;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static java.time.LocalDateTime.now;
+import static java.time.ZonedDateTime.now;
 import static org.junit.Assert.*;
 
 public class OppfolgingUtilsTest {
@@ -40,7 +40,7 @@ public class OppfolgingUtilsTest {
 
     @Test
     public void erDatoInnenforOppfolgingsperiode__riktig_svar_for_om_dato_er_innenfor_periode() {
-        LocalDateTime now = now();
+        ZonedDateTime now = now();
 
         assertTrue("innenfor periode",
                 OppfolgingUtils.erDatoInnenforOppfolgingsperiode(now, periode(now.minusDays(1), now)));
@@ -74,7 +74,7 @@ public class OppfolgingUtilsTest {
                 OppfolgingUtils.erOppfolgingsperiodeAktiv(periode(now().minusSeconds(20), now().minusSeconds(10))));
     }
 
-    private OppfolgingPeriodeDTO periode(LocalDateTime start, LocalDateTime slutt) {
+    private OppfolgingPeriodeDTO periode(ZonedDateTime start, ZonedDateTime slutt) {
         OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
         periode.setStartDato(start);
         periode.setSluttDato(slutt);

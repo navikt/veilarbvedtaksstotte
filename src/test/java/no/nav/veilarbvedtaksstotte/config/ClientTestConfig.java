@@ -33,7 +33,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -196,7 +196,7 @@ public class ClientTestConfig {
             @Override
             public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(String fnr) {
                 OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
-                periode.setStartDato(LocalDateTime.now().minusDays(10));
+                periode.setStartDato(ZonedDateTime.now().minusDays(10));
                 return Collections.singletonList(periode);
             }
 

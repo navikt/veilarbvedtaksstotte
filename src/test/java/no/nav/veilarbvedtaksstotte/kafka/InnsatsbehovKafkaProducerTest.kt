@@ -34,6 +34,8 @@ import org.springframework.test.context.junit4.SpringRunner
 import org.testcontainers.containers.KafkaContainer
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -84,7 +86,7 @@ class InnsatsbehovKafkaProducerTest {
 
         `when`(veilarboppfolgingClient.hentOppfolgingsperioder(arenaVedtak.fnr.get())).thenReturn(
             listOf(
-                OppfolgingPeriodeDTO(LocalDateTime.of(2021, 1, 11, 2, 1), null)
+                OppfolgingPeriodeDTO(ZonedDateTime.of(2021, 1, 11, 2, 1, 0, 0, ZoneId.systemDefault()), null)
             )
         )
 
