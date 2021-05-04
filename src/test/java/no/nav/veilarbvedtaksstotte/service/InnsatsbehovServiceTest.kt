@@ -36,6 +36,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 class InnsatsbehovServiceTest {
 
@@ -105,8 +106,8 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(4), LocalDateTime.now().minusDays(2)),
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(1), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(4), ZonedDateTime.now().minusDays(2)),
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(1), null)
         )
 
         lagre(
@@ -142,8 +143,8 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(4), LocalDateTime.now().minusDays(2)),
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(1), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(4), ZonedDateTime.now().minusDays(2)),
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(1), null)
         )
 
         lagre(
@@ -199,8 +200,8 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(4), LocalDateTime.now().minusDays(2)),
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(1), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(4), ZonedDateTime.now().minusDays(2)),
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(1), null)
         )
 
         lagre(
@@ -234,7 +235,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(10), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(10), null)
         )
 
         lagre(
@@ -270,7 +271,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(10), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(10), null)
         )
 
         lagre(
@@ -307,8 +308,8 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), LocalDateTime.now().minusDays(3)),
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(2), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), ZonedDateTime.now().minusDays(3)),
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(2), null)
         )
 
         lagre(
@@ -337,7 +338,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         lagre(
@@ -371,7 +372,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         lagre(
@@ -408,7 +409,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         lagre(
@@ -446,7 +447,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(10), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(10), null)
         )
 
         lagre(
@@ -486,7 +487,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(10), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(10), null)
         )
 
         lagre(
@@ -528,7 +529,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         assertAntallVedtakFraArena(identer, 0)
@@ -562,7 +563,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         assertAntallVedtakFraArena(identer, 0)
@@ -602,7 +603,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         assertAntallVedtakFraArena(identer, 0)
@@ -643,7 +644,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         assertAntallVedtakFraArena(identer, 0)
@@ -676,7 +677,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         lagre(
@@ -714,7 +715,7 @@ class InnsatsbehovServiceTest {
 
         gittOppfolgingsperioder(
             identer,
-            lagOppfolgingsperiode(LocalDateTime.now().minusDays(5), null)
+            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         lagre(
@@ -871,7 +872,7 @@ class InnsatsbehovServiceTest {
         jdbcTemplate.update("UPDATE VEDTAK SET VEDTAK_FATTET = ? WHERE ID = ?", vedtakFattetDato, vedtak.id)
     }
 
-    private fun lagOppfolgingsperiode(start: LocalDateTime, slutt: LocalDateTime?): OppfolgingPeriodeDTO {
+    private fun lagOppfolgingsperiode(start: ZonedDateTime, slutt: ZonedDateTime?): OppfolgingPeriodeDTO {
         val periode = OppfolgingPeriodeDTO()
         periode.setStartDato(start)
         periode.setSluttDato(slutt)
