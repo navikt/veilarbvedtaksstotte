@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
@@ -45,7 +46,7 @@ public class OyeblikksbildeService {
 
     public List<Oyeblikksbilde> hentOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilAktorId(vedtak.getAktorId());
+        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
     }
 

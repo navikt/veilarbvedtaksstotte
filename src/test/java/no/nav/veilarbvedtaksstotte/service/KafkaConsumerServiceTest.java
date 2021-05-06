@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.client.norg2.Norg2Client;
+import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.UtkastetVedtak;
@@ -19,7 +20,17 @@ public class KafkaConsumerServiceTest {
     private VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
     private BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
     private Norg2Client norg2Client = mock(Norg2Client.class);
-    private KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(vedtaksstotteRepository, beslutteroversiktRepository, norg2Client);
+
+    private InnsatsbehovService innsatsbehovService = mock(InnsatsbehovService.class);
+
+    private KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
+
+    private KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
+            innsatsbehovService,
+            kafkaProducerService,
+            vedtaksstotteRepository,
+            beslutteroversiktRepository,
+            norg2Client);
 
     @Test
     public void skal_behandle_endring_pa_avslutt_oppfolging() {
@@ -28,6 +39,7 @@ public class KafkaConsumerServiceTest {
         kafkaConsumerService.behandleEndringPaAvsluttOppfolging(new KafkaAvsluttOppfolging(aktorId, ZonedDateTime.now()));
 
         verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(eq(aktorId));
+        verify(kafkaProducerService).slettInnsatsbehov(AktorId.of(aktorId));
     }
 
     @Test

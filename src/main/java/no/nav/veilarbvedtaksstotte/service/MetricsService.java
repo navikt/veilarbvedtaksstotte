@@ -17,16 +17,14 @@ import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
+import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDateTime;
 import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.tellVedtakEtterDato;
 
 @Service
@@ -109,13 +107,13 @@ public class MetricsService {
             List<FattetVedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId);
             RegistreringData registreringData = registreringClient.hentRegistreringData(fnr);
             List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingsperioder(fnr);
-            Optional<LocalDateTime> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);
+            Optional<ZonedDateTime> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);
 
             if (startDato.isEmpty() || registreringData == null) {
                 return -1;
             }
 
-            if (tellVedtakEtterDato(vedtakTilBruker, startDato.get()) == 1) {
+            if (tellVedtakEtterDato(vedtakTilBruker, toLocalDateTime(startDato.get())) == 1) {
                 long registreringStart = localDateTimeToMillis(registreringData.registrering.opprettetDato);
                 return localDateTimeToMillis(LocalDateTime.now()) - registreringStart;
             }
@@ -137,7 +135,7 @@ public class MetricsService {
         if (erSykmeldtMedArbeidsgiver) {
             try {
                 List<OppfolgingPeriodeDTO> data = oppfolgingClient.hentOppfolgingsperioder(fnr);
-                Optional<LocalDateTime> oppolgingStartDato = OppfolgingUtils.getOppfolgingStartDato(data);
+                Optional<ZonedDateTime> oppolgingStartDato = OppfolgingUtils.getOppfolgingStartDato(data);
                 oppolgingStartDato.ifPresent(
                         startDato -> rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, startDato)
                 );
@@ -146,12 +144,12 @@ public class MetricsService {
 
     }
 
-    private void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, LocalDateTime oppfolgingStartDato) {
+    private void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, ZonedDateTime oppfolgingStartDato) {
         LocalDate vedtakSendtDato = LocalDate.now();
         Long diff = Duration.between(vedtakSendtDato.atStartOfDay(), oppfolgingStartDato).toDays();
         Event event = createMetricEvent("sykmeldt-uten-arbeidsgiver-vedtak-sendt");
         event.addFieldToReport("dagerBrukt", diff);
-        event.addFieldToReport("oppfolgingStartDato", oppfolgingStartDato.toString());
+        event.addFieldToReport("oppfolgingStartDato", toLocalDateTime(oppfolgingStartDato).toString());
         event.addFieldToReport("vedtakSendtDato", vedtakSendtDato.toString());
         event.addFieldToReport("enhetsId", vedtak.getOppfolgingsenhetId());
         influxClient.report(event);

@@ -9,6 +9,7 @@ import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
+import no.nav.common.types.identer.Fnr;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -50,7 +51,7 @@ public class SafClientImpl implements SafClient {
     }
 
     @SneakyThrows
-    public List<Journalpost> hentJournalposter(String fnr) {
+    public List<Journalpost> hentJournalposter(Fnr fnr) {
         GraphqlRequest graphqlRequest = new GraphqlRequest(createDokumentoversiktBrukerGqlStr(fnr));
 
         Request request = new Request.Builder()
@@ -84,7 +85,7 @@ public class SafClientImpl implements SafClient {
         return gson.fromJson(journalposterJson, Journalpost[].class);
     }
 
-    private String createDokumentoversiktBrukerGqlStr(String fnr) {
+    private String createDokumentoversiktBrukerGqlStr(Fnr fnr) {
         return String.format("{\n" +
                 "  dokumentoversiktBruker(brukerId: {id: \"%s\", type: FNR}, foerste: 50, tema: OPP) {\n" +
                 "    journalposter {\n" +
@@ -96,7 +97,7 @@ public class SafClientImpl implements SafClient {
                 "      }\n" +
                 "    }\n" +
                 "  }\n" +
-                "}", fnr);
+                "}", fnr.get());
     }
 
     private static class GraphqlRequest {

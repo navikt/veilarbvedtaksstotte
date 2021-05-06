@@ -7,7 +7,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -42,15 +43,15 @@ public class VeilarboppfolgingClientImplTest {
         OppfolgingsstatusDTO expectedData = new OppfolgingsstatusDTO();
         expectedData.setServicegruppe("VURDU");
 
-        assertEquals(expectedData, veilarboppfolgingClient.hentOppfolgingData(TEST_FNR));
+        assertEquals(expectedData, veilarboppfolgingClient.hentOppfolgingData(TEST_FNR.get()));
     }
 
     @Test
     public void hentOppfolgingsperioder__skal_lage_riktig_request_og_parse_response() {
         String response = TestUtils.readTestResourceFile("veilarboppfolging_hentOppfolgingsperioder.json");
 
-        givenThat(get(urlEqualTo("/api/oppfolging/oppfolgingsperioder?fnr=" + TEST_FNR))
-                .withQueryParam("fnr", equalTo(TEST_FNR))
+        givenThat(get(urlEqualTo("/api/oppfolging/oppfolgingsperioder?fnr=" + TEST_FNR.get()))
+                .withQueryParam("fnr", equalTo(TEST_FNR.get()))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer SYSTEM_TOKEN"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -58,14 +59,14 @@ public class VeilarboppfolgingClientImplTest {
         );
 
         OppfolgingPeriodeDTO expectedPeriode1 = new OppfolgingPeriodeDTO();
-        expectedPeriode1.setStartDato(LocalDateTime.of(2021, 1, 18, 9, 48, 58).plus(762, MILLIS));
-        expectedPeriode1.setSluttDato(LocalDateTime.of(2021, 2, 18, 9, 48, 58).plus(762, MILLIS));
+        expectedPeriode1.setStartDato(ZonedDateTime.of(2021, 5, 4, 9, 48, 58, 0, ZoneId.of("+2")).plus(762, MILLIS));
+        expectedPeriode1.setSluttDato(ZonedDateTime.of(2021, 6, 4, 9, 48, 58, 0, ZoneId.of("+2")).plus(762, MILLIS));
 
         OppfolgingPeriodeDTO expectedPeriode2 = new OppfolgingPeriodeDTO();
-        expectedPeriode2.setStartDato(LocalDateTime.of(2020, 1, 18, 9, 48, 58).plus(762, MILLIS));
-        expectedPeriode2.setSluttDato(LocalDateTime.of(2020, 2, 18, 9, 48, 58).plus(762, MILLIS));
+        expectedPeriode2.setStartDato(ZonedDateTime.of(2020, 5, 4, 9, 48, 58, 0, ZoneId.of("+2")).plus(762, MILLIS));
+        expectedPeriode2.setSluttDato(ZonedDateTime.of(2020, 6, 4, 9, 48, 58, 0, ZoneId.of("+2")).plus(762, MILLIS));
 
-        List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(TEST_FNR);
+        List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(TEST_FNR.get());
 
         assertEquals(2, oppfolgingsperioder.size());
         assertEquals(expectedPeriode1, oppfolgingsperioder.get(0));

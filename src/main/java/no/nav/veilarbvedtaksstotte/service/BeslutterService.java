@@ -1,9 +1,11 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
+import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
+import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
@@ -66,12 +68,12 @@ public class BeslutterService {
 
 	public void startBeslutterProsess(long vedtakId) {
 		UtkastetVedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-		authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+		authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
 		authService.sjekkErAnsvarligVeilederFor(utkast);
 
 		if (!InnsatsgruppeUtils.skalHaBeslutter(utkast.getInnsatsgruppe())) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-		}
+		    throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
 
 		if (erBeslutterProsessStartet(utkast.getBeslutterProsessStatus())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
@@ -85,7 +87,7 @@ public class BeslutterService {
 
 	public void avbrytBeslutterProsess(long vedtakId) {
 		UtkastetVedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-		authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+		authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
 		authService.sjekkErAnsvarligVeilederFor(utkast);
 
 		if (!erBeslutterProsessStartet(utkast.getBeslutterProsessStatus())) {
@@ -103,7 +105,7 @@ public class BeslutterService {
 
 	public void bliBeslutter(long vedtakId) {
 		Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-		authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+		authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
 
 		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
@@ -133,16 +135,16 @@ public class BeslutterService {
 
     public void setGodkjentAvBeslutter(long vedtakId) {
 		UtkastetVedtak utkast = (UtkastetVedtak) vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-		authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+		authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
 
-		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
+        String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
-		if (!erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kun beslutter kan godkjenne vedtak");
-		}
+        if (!erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kun beslutter kan godkjenne vedtak");
+        }
 
-		if (utkast.getBeslutterProsessStatus() == BeslutterProsessStatus.GODKJENT_AV_BESLUTTER) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        if (utkast.getBeslutterProsessStatus() == BeslutterProsessStatus.GODKJENT_AV_BESLUTTER) {
+	        throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
 		vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.GODKJENT_AV_BESLUTTER);
@@ -153,7 +155,7 @@ public class BeslutterService {
 
 	public void oppdaterBeslutterProsessStatus(long vedtakId) {
 		UtkastetVedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-		authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+		authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
 
 		String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 		BeslutterProsessStatus nyStatus;
@@ -184,7 +186,7 @@ public class BeslutterService {
 	}
 
 	private void leggTilBrukerIBeslutterOversikt(UtkastetVedtak vedtak) {
-		String brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
+		String brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId()).get();
 		Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
 		String enhetNavn = veilederService.hentEnhetNavn(vedtak.getOppfolgingsenhetId());
 		PersonNavn brukerNavn = veilarbpersonClient.hentPersonNavn(brukerFnr);

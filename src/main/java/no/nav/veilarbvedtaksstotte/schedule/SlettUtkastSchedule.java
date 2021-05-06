@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDateTime;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -69,7 +70,7 @@ public class SlettUtkastSchedule {
                 Optional<OppfolgingPeriodeDTO> maybeSistePeriode = OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder);
 
                 maybeSistePeriode.ifPresent(sistePeriode -> {
-                    if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(sistePeriode.sluttDato)) {
+                    if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(toLocalDateTime(sistePeriode.sluttDato))) {
                         log.info("Sletter utkast automatisk. aktorId={}", utkast.getAktorId());
                         vedtakService.slettUtkast(utkast);
                     }

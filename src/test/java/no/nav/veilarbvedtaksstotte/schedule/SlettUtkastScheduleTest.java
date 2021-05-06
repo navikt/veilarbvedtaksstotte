@@ -13,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -40,8 +41,8 @@ public class SlettUtkastScheduleTest {
         UtkastetVedtak gammeltUtkast = getGammelUtkastetVedtak();
 
         OppfolgingPeriodeDTO oppfolgingPeriode = new OppfolgingPeriodeDTO();
-        oppfolgingPeriode.setStartDato(LocalDateTime.now().minusDays(50));
-        oppfolgingPeriode.setSluttDato(LocalDateTime.now().minusDays(30));
+        oppfolgingPeriode.setStartDato(ZonedDateTime.now().minusDays(50));
+        oppfolgingPeriode.setSluttDato(ZonedDateTime.now().minusDays(30));
 
         when(vedtaksstotteRepository.hentUtkastEldreEnn(any())).thenReturn(List.of(gammeltUtkast));
         when(vedtaksstotteRepository.hentGjeldendeVedtak(any())).thenReturn(null);
@@ -58,8 +59,8 @@ public class SlettUtkastScheduleTest {
         UtkastetVedtak gammeltUtkast = getGammelUtkastetVedtak();
 
         OppfolgingPeriodeDTO oppfolgingPeriode = new OppfolgingPeriodeDTO();
-        oppfolgingPeriode.setStartDato(LocalDateTime.now().minusDays(20));
-        oppfolgingPeriode.setSluttDato(LocalDateTime.now().minusDays(18));
+        oppfolgingPeriode.setStartDato(ZonedDateTime.now().minusDays(20));
+        oppfolgingPeriode.setSluttDato(ZonedDateTime.now().minusDays(18));
 
         when(vedtaksstotteRepository.hentUtkastEldreEnn(any())).thenReturn(List.of(gammeltUtkast));
         when(vedtaksstotteRepository.hentGjeldendeVedtak(any())).thenReturn(null);

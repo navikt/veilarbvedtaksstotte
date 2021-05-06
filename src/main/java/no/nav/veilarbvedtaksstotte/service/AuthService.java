@@ -13,11 +13,9 @@ import no.nav.common.abac.domain.response.XacmlResponse;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
-import no.nav.common.types.identer.AktorId;
-import no.nav.common.types.identer.EnhetId;
-import no.nav.common.types.identer.Fnr;
-import no.nav.common.types.identer.NavIdent;
+import no.nav.common.types.identer.*;
 import no.nav.common.utils.Credentials;
+import no.nav.common.utils.Pair;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -29,6 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -63,37 +62,47 @@ public class AuthService {
         this.utrullingService = utrullingService;
     }
 
-    public AuthKontekst sjekkTilgangTilFnr(String fnr) {
+    public void sjekkTilgangTilBruker(Fnr fnr) {
+        sjekkTilgangTilBruker(() -> fnr, () -> aktorOppslagClient.hentAktorId(fnr));
+    }
+
+    public void sjekkTilgangTilBruker(AktorId aktorId) {
+        sjekkTilgangTilBruker(() -> aktorOppslagClient.hentFnr(aktorId), () -> aktorId);
+    }
+
+    public AuthKontekst sjekkTilgangTilBrukerOgEnhet(Fnr fnr) {
+        return sjekkTilgangTilBrukerOgEnhet(() -> fnr, () -> aktorOppslagClient.hentAktorId(fnr));
+    }
+
+    public AuthKontekst sjekkTilgangTilBrukerOgEnhet(AktorId aktorId) {
+        return sjekkTilgangTilBrukerOgEnhet(() -> aktorOppslagClient.hentFnr(aktorId), () -> aktorId);
+    }
+
+    private Pair<Fnr, AktorId> sjekkTilgangTilBruker(Supplier<Fnr> fnrSupplier, Supplier<AktorId> aktorIdSupplier) {
         sjekkInternBruker();
 
-        AktorId aktorId = aktorOppslagClient.hentAktorId(Fnr.of(fnr));
+        Fnr fnr = fnrSupplier.get();
+        AktorId aktorId = aktorIdSupplier.get();
 
         if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(getInnloggetVeilederIdent()), ActionId.WRITE, aktorId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        String enhet = sjekkTilgangTilEnhet(fnr);
-
-        return new AuthKontekst()
-                .setFnr(fnr)
-                .setAktorId(aktorId.get())
-                .setOppfolgingsenhet(enhet);
+        return Pair.of(fnr, aktorId);
     }
 
-    public AuthKontekst sjekkTilgangTilAktorId(String aktorId) {
-        sjekkInternBruker();
+    private AuthKontekst sjekkTilgangTilBrukerOgEnhet(Supplier<Fnr> fnrSupplier, Supplier<AktorId> aktorIdSupplier) {
 
-        String fnr = aktorOppslagClient.hentFnr(AktorId.of(aktorId)).get();
+        Pair<Fnr, AktorId> fnrAktorIdPair = sjekkTilgangTilBruker(fnrSupplier, aktorIdSupplier);
 
-        if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(getInnloggetVeilederIdent()), ActionId.WRITE, AktorId.of(aktorId))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
+        Fnr fnr = fnrAktorIdPair.getFirst();
+        AktorId aktorId = fnrAktorIdPair.getSecond();
 
-        String enhet = sjekkTilgangTilEnhet(fnr);
+        String enhet = sjekkTilgangTilEnhet(fnr.get());
 
         return new AuthKontekst()
-                .setFnr(fnr)
-                .setAktorId(aktorId)
+                .setFnr(fnr.get())
+                .setAktorId(aktorId.get())
                 .setOppfolgingsenhet(enhet);
     }
 
@@ -110,8 +119,8 @@ public class AuthService {
                 .get();
     }
 
-    public String getFnrOrThrow(String aktorId) {
-        return aktorOppslagClient.hentFnr(AktorId.of(aktorId)).get();
+    public Fnr getFnrOrThrow(String aktorId) {
+        return aktorOppslagClient.hentFnr(AktorId.of(aktorId));
     }
 
     public void sjekkErAnsvarligVeilederFor(Vedtak vedtak) {

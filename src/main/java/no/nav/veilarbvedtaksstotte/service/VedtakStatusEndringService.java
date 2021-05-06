@@ -1,6 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring;
@@ -24,8 +28,14 @@ public class VedtakStatusEndringService {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
+
     @Autowired
-    public VedtakStatusEndringService(KafkaProducerService kafkaProducerService, MetricsService metricsService, VeilederService veilederService, VedtaksstotteRepository vedtaksstotteRepository) {
+    public VedtakStatusEndringService(
+            KafkaProducerService kafkaProducerService,
+            MetricsService metricsService,
+            VeilederService veilederService,
+            VedtaksstotteRepository vedtaksstotteRepository
+    ) {
         this.kafkaProducerService = kafkaProducerService;
         this.metricsService = metricsService;
         this.veilederService = veilederService;
@@ -119,7 +129,7 @@ public class VedtakStatusEndringService {
         kafkaProducerService.sendVedtakStatusEndring(overtaForVeileder);
     }
 
-    public void vedtakSendt(Long vedtakId, String fnr) {
+    public void vedtakSendt(Long vedtakId, Fnr fnr) {
         UtkastetVedtak utkastetVedtak = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         KafkaVedtakStatusEndring.VedtakSendt statusEndring = new KafkaVedtakStatusEndring.VedtakSendt()
                 .setInnsatsgruppe(utkastetVedtak.getInnsatsgruppe())
@@ -133,6 +143,15 @@ public class VedtakStatusEndringService {
         metricsService.rapporterVedtakSendt(utkastetVedtak.getId());
         metricsService.rapporterTidFraRegistrering(utkastetVedtak, utkastetVedtak.getAktorId(), fnr);
         metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(utkastetVedtak, fnr);
+        kafkaProducerService.sendInnsatsbehov(
+                new Innsatsbehov(
+                        AktorId.of(utkastetVedtak.getAktorId()),
+                        utkastetVedtak.getInnsatsgruppe(),
+                        HovedmalMedOkeDeltakelse.fraHovedmal(utkastetVedtak.getHovedmal())));
+
+        metricsService.rapporterVedtakSendt(utkastetVedtak);
+        metricsService.rapporterTidFraRegistrering(utkastetVedtak, utkastetVedtak.getAktorId(), fnr.get());
+        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(utkastetVedtak, fnr.get());
     }
 
     private KafkaVedtakSendt lagKafkaVedtakSendt(long vedtakId) {

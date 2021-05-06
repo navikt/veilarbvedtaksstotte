@@ -2,18 +2,16 @@ package no.nav.veilarbvedtaksstotte.client.arena
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit.WireMockRule
-import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.test.auth.AuthTestUtils
-import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSSAK
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Assert.assertEquals
 
 class VeilarbarenaClientImplTest {
 
@@ -52,7 +50,7 @@ class VeilarbarenaClientImplTest {
         val oppfolgingssak = AuthContextHolderThreadLocal
             .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))
+                veilarbarenaClient.oppfolgingssak(TEST_FNR)
             })
 
         assertEquals(oppfolgingssak, TEST_OPPFOLGINGSSAK)
@@ -71,7 +69,7 @@ class VeilarbarenaClientImplTest {
         AuthContextHolderThreadLocal
             .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))
+                veilarbarenaClient.oppfolgingssak(TEST_FNR)
             })
     }
 
@@ -88,7 +86,7 @@ class VeilarbarenaClientImplTest {
         AuthContextHolderThreadLocal
             .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))
+                veilarbarenaClient.oppfolgingssak(TEST_FNR)
             })
     }
 }
