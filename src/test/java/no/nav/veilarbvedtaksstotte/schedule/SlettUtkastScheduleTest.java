@@ -6,7 +6,7 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.UtkastetVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
@@ -37,10 +37,7 @@ public class SlettUtkastScheduleTest {
 
     @Test
     public void slettGamleUtkast__skal_slette_gammelt_utkast() {
-        Vedtak gammeltUtkast = new Vedtak();
-        gammeltUtkast.setAktorId("22222222");
-        gammeltUtkast.setVedtakStatus(VedtakStatus.UTKAST);
-        gammeltUtkast.setUtkastSistOppdatert(LocalDateTime.now().minusDays(30));
+        UtkastetVedtak gammeltUtkast = getGammelUtkastetVedtak();
 
         OppfolgingPeriodeDTO oppfolgingPeriode = new OppfolgingPeriodeDTO();
         oppfolgingPeriode.setStartDato(LocalDateTime.now().minusDays(50));
@@ -58,10 +55,7 @@ public class SlettUtkastScheduleTest {
 
     @Test
     public void slettGamleUtkast__skal_ikke_slette_utkast_innenfor_28_dager() {
-        Vedtak gammeltUtkast = new Vedtak();
-        gammeltUtkast.setAktorId("22222222");
-        gammeltUtkast.setVedtakStatus(VedtakStatus.UTKAST);
-        gammeltUtkast.setUtkastSistOppdatert(LocalDateTime.now().minusDays(30));
+        UtkastetVedtak gammeltUtkast = getGammelUtkastetVedtak();
 
         OppfolgingPeriodeDTO oppfolgingPeriode = new OppfolgingPeriodeDTO();
         oppfolgingPeriode.setStartDato(LocalDateTime.now().minusDays(20));
@@ -77,4 +71,11 @@ public class SlettUtkastScheduleTest {
         verify(vedtakService, never()).slettUtkast(any());
     }
 
+    private UtkastetVedtak getGammelUtkastetVedtak() {
+        return UtkastetVedtak.builder()
+                .aktorId("22222222")
+                .vedtakStatus(VedtakStatus.UTKAST)
+                .sistOppdatert(LocalDateTime.now().minusDays(30))
+                .build();
+    }
 }

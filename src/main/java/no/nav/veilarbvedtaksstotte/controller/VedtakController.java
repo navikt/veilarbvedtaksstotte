@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.controller;
 
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.FattetVedtak;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
@@ -37,7 +37,7 @@ public class VedtakController {
     }
 
     @GetMapping("/fattet")
-    public List<Vedtak> hentFattedeVedtak(@RequestParam("fnr") String fnr) {
+    public List<FattetVedtak> hentFattedeVedtak(@RequestParam("fnr") String fnr) {
         return vedtakService.hentFattedeVedtak(fnr);
     }
 

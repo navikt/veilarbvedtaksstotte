@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.DbUtils.queryForObjectOrNull;
@@ -52,29 +53,74 @@ public class VedtaksstotteRepository {
         this.transactor = transactor;
     }
 
-    public Vedtak hentUtkast(String aktorId) {
+    public UtkastetVedtak hentUtkast(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
-        return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.UTKAST)));
-    }
+        VedtakEntity vedtakEntity = queryForObjectOrNull(() -> db.queryForObject(
+                sql,
+                VedtaksstotteRepository::mapVedtakEntity,
+                aktorId, getName(VedtakStatus.UTKAST)
+        ));
 
-    public List<Vedtak> hentFattedeVedtak(String aktorId) {
-        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
-        return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.SENDT));
-    }
-
-    public List<Vedtak> hentUtkastEldreEnn(LocalDateTime dateTime) {
-        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s > ?", VEDTAK_TABLE, STATUS, UTKAST_SIST_OPPDATERT);
-        return db.query(sql, VedtaksstotteRepository::mapVedtak, getName(VedtakStatus.UTKAST), dateTime);
-    }
-
-    public Vedtak hentUtkastEllerFeil(long vedtakId) {
-        Vedtak utkast = hentVedtak(vedtakId);
-
-        if (utkast == null || utkast.getVedtakStatus() != VedtakStatus.UTKAST) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke utkast");
+        if (vedtakEntity == null) {
+            return null;
         }
 
-        return utkast;
+        return mapUtkastVedtak(vedtakEntity);
+    }
+
+    public List<FattetVedtak> hentFattedeVedtak(String aktorId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
+        List<VedtakEntity> vedtakEntities = db.query(sql,
+                VedtaksstotteRepository::mapVedtakEntity,
+                aktorId,
+                getName(VedtakStatus.SENDT));
+
+        return vedtakEntities
+                .stream()
+                .map(VedtaksstotteRepository::mapFattetVedtak)
+                .collect(Collectors.toList());
+    }
+
+    public List<UtkastetVedtak> hentUtkastEldreEnn(LocalDateTime dateTime) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s > ?", VEDTAK_TABLE, STATUS, UTKAST_SIST_OPPDATERT);
+        List<VedtakEntity> vedtakEntities = db.query(sql,
+                VedtaksstotteRepository::mapVedtakEntity,
+                getName(VedtakStatus.UTKAST),
+                dateTime
+        );
+
+        return vedtakEntities
+                .stream()
+                .map(VedtaksstotteRepository::mapUtkastVedtak)
+                .collect(Collectors.toList());
+    }
+
+    public VedtakEntity hentVedtakEntity(long vedtakId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ?", VEDTAK_TABLE, VEDTAK_ID);
+        return queryForObjectOrNull(() -> db.queryForObject(
+                sql,
+                VedtaksstotteRepository::mapVedtakEntity,
+                vedtakId)
+        );
+    }
+
+    public UtkastetVedtak hentUtkastEllerFeil(long vedtakId) {
+        VedtakEntity vedtakEntity = hentVedtakEntity(vedtakId);
+
+        if (vedtakEntity == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke Utkastet Vedtak");
+        }
+        return mapUtkastVedtak(vedtakEntity);
+    }
+
+    public FattetVedtak hentFattetEllerFeil(long vedtakId) {
+        VedtakEntity vedtakEntity = hentVedtakEntity(vedtakId);
+
+        if (vedtakEntity == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke Fattet Vedtak");
+        }
+
+        return mapFattetVedtak(vedtakEntity);
     }
 
     public boolean slettUtkast(long vedtakId) {
@@ -196,7 +242,7 @@ public class VedtaksstotteRepository {
         db.update(sql, dokumentbestillingsId, vedtakId);
     }
 
-    public void ferdigstillVedtakV2(long vedtakId){
+    public void ferdigstillVedtakV2(long vedtakId) {
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP, %s = true WHERE %s = ?",
                 VEDTAK_TABLE, STATUS, VEDTAK_FATTET, GJELDENDE, VEDTAK_ID
@@ -205,26 +251,87 @@ public class VedtaksstotteRepository {
     }
 
     @SneakyThrows
-    private static Vedtak mapVedtak(ResultSet rs, int row) {
-        return new Vedtak()
-                .setId(rs.getLong(VEDTAK_ID))
-                .setHovedmal(EnumUtils.valueOf(Hovedmal.class, rs.getString(HOVEDMAL)))
-                .setInnsatsgruppe(EnumUtils.valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
-                .setVedtakStatus(EnumUtils.valueOf(VedtakStatus.class, rs.getString(STATUS)))
-                .setBegrunnelse(rs.getString(BEGRUNNELSE))
-                .setUtkastSistOppdatert(rs.getTimestamp(UTKAST_SIST_OPPDATERT).toLocalDateTime())
-                .setVedtakFattet(Optional.ofNullable(rs.getTimestamp(VEDTAK_FATTET)).isPresent()?rs.getTimestamp(VEDTAK_FATTET).toLocalDateTime():null)
-                .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
-                .setGjeldende(rs.getBoolean(GJELDENDE))
-                .setBeslutterIdent(rs.getString(BESLUTTER_IDENT))
-                .setOppfolgingsenhetId(rs.getString(OPPFOLGINGSENHET_ID))
-                .setVeilederIdent(rs.getString(VEILEDER_IDENT))
-                .setAktorId(rs.getString(AKTOR_ID))
-                .setJournalpostId(rs.getString(JOURNALPOST_ID))
-                .setDokumentInfoId(rs.getString(DOKUMENT_ID))
-                .setDokumentbestillingId(rs.getString(DOKUMENT_BESTILLING_ID))
-                .setSender(rs.getBoolean(SENDER))
-                .setBeslutterProsessStatus(EnumUtils.valueOf(BeslutterProsessStatus.class, rs.getString(BESLUTTER_PROSESS_STATUS)));
+    private static Vedtak mapVedtak(ResultSet rs, int rowId) {
+        VedtakEntity vedtakEntity = mapVedtakEntity(rs, rowId);
+        String vedtakStatus = vedtakEntity.getVedtakStatus().name();
 
+        switch (vedtakStatus) {
+            case "UTKAST":
+                return mapUtkastVedtak(vedtakEntity);
+
+            case "SENDT":
+                return mapFattetVedtak(vedtakEntity);
+            default:
+                return null;
+        }
+    }
+
+    @SneakyThrows
+    private static VedtakEntity mapVedtakEntity(ResultSet rs, int rowId) {
+        return VedtakEntity.builder()
+                .id(rs.getLong(VEDTAK_ID))
+                .aktorId(rs.getString(AKTOR_ID))
+                .hovedmal(EnumUtils.valueOf(Hovedmal.class, rs.getString(HOVEDMAL)))
+                .innsatsgruppe(EnumUtils.valueOf(Innsatsgruppe.class, rs.getString(INNSATSGRUPPE)))
+                .begrunnelse(rs.getString(BEGRUNNELSE))
+                .veilederIdent(rs.getString(VEILEDER_IDENT))
+                .oppfolgingsenhetId(rs.getString(OPPFOLGINGSENHET_ID))
+                .beslutterIdent(rs.getString(BESLUTTER_IDENT))
+                .vedtakStatus(VedtakStatus.valueOf(rs.getString(STATUS)))
+                .vedtakFattet(Optional.ofNullable(rs.getTimestamp(VEDTAK_FATTET)).isPresent() ? rs.getTimestamp(VEDTAK_FATTET).toLocalDateTime() : null)
+                .gjeldende(rs.getBoolean(GJELDENDE))
+                .journalpostId(rs.getString(JOURNALPOST_ID))
+                .dokumentInfoId(rs.getString(DOKUMENT_ID))
+                .dokumentbestillingId(rs.getString(DOKUMENT_BESTILLING_ID))
+                .sistOppdatert(rs.getTimestamp(UTKAST_SIST_OPPDATERT).toLocalDateTime())
+                .utkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
+                .beslutterProsessStatus(EnumUtils.valueOf(BeslutterProsessStatus.class, rs.getString(BESLUTTER_PROSESS_STATUS)))
+                .build();
+    }
+
+    @SneakyThrows
+    public static FattetVedtak mapFattetVedtak(VedtakEntity vedtakEntity) {
+        return FattetVedtak.builder()
+                .id(vedtakEntity.getId())
+                .aktorId(vedtakEntity.getAktorId())
+                .hovedmal(vedtakEntity.getHovedmal())
+                .innsatsgruppe(vedtakEntity.getInnsatsgruppe())
+                .veilederIdent(vedtakEntity.getVeilederIdent())
+                .veilederNavn(vedtakEntity.getVeilederNavn())
+                .oppfolgingsenhetId(vedtakEntity.getOppfolgingsenhetId())
+                .oppfolgingsenhetNavn(vedtakEntity.getOppfolgingsenhetNavn())
+                .opplysninger(vedtakEntity.getOpplysninger())
+                .begrunnelse(vedtakEntity.getBegrunnelse())
+                .beslutterIdent(vedtakEntity.getBeslutterIdent())
+                .beslutterNavn(vedtakEntity.getBeslutterNavn())
+                .vedtakFattet(vedtakEntity.getVedtakFattet())
+                .gjeldende(vedtakEntity.isGjeldende())
+                .dokumentbestillingId(vedtakEntity.getDokumentbestillingId())
+                .dokumentInfoId(vedtakEntity.getDokumentInfoId())
+                .journalpostId(vedtakEntity.getJournalpostId())
+                .vedtakStatus(vedtakEntity.getVedtakStatus())
+                .build();
+    }
+
+    @SneakyThrows
+    public static UtkastetVedtak mapUtkastVedtak(VedtakEntity vedtakEntity) {
+        return UtkastetVedtak.builder()
+                .id(vedtakEntity.getId())
+                .aktorId(vedtakEntity.getAktorId())
+                .hovedmal(vedtakEntity.getHovedmal())
+                .innsatsgruppe(vedtakEntity.getInnsatsgruppe())
+                .veilederIdent(vedtakEntity.getVeilederIdent())
+                .veilederNavn(vedtakEntity.getVeilederNavn())
+                .oppfolgingsenhetId(vedtakEntity.getOppfolgingsenhetId())
+                .oppfolgingsenhetNavn(vedtakEntity.getOppfolgingsenhetNavn())
+                .opplysninger(vedtakEntity.getOpplysninger())
+                .begrunnelse(vedtakEntity.getBegrunnelse())
+                .beslutterIdent(vedtakEntity.getBeslutterIdent())
+                .beslutterNavn(vedtakEntity.getBeslutterNavn())
+                .sistOppdatert(vedtakEntity.getSistOppdatert())
+                .utkastOpprettet(vedtakEntity.getUtkastOpprettet())
+                .beslutterProsessStatus(vedtakEntity.getBeslutterProsessStatus())
+                .vedtakStatus(vedtakEntity.getVedtakStatus())
+                .build();
     }
 }

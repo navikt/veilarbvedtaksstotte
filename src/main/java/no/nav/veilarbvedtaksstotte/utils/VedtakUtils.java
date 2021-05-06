@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.FattetVedtak;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public class VedtakUtils {
 
-    public static int tellVedtakEtterDato(List<Vedtak> alleVedtak, LocalDateTime dato) {
+    public static int tellVedtakEtterDato(List<FattetVedtak> alleVedtak, LocalDateTime dato) {
         if (alleVedtak.isEmpty()) return 0;
 
         return (int) alleVedtak.stream()

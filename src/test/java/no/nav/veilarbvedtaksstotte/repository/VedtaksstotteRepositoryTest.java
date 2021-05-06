@@ -1,10 +1,7 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
@@ -53,37 +50,37 @@ public class VedtaksstotteRepositoryTest {
     public void setGodkjentAvBeslutter_skal_sette_godkjent() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        UtkastetVedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), GODKJENT_AV_BESLUTTER);
 
-        Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        UtkastetVedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        assertEquals(true, oppdatertUtkast.getBeslutterProsessStatus() == GODKJENT_AV_BESLUTTER);
+        assertSame(oppdatertUtkast.getBeslutterProsessStatus(), GODKJENT_AV_BESLUTTER);
     }
 
     @Test
     public void skal_starteBeslutterProsess() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        UtkastetVedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), KLAR_TIL_BESLUTTER);
 
-        Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        UtkastetVedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        assertEquals(true,oppdatertUtkast.getBeslutterProsessStatus() == KLAR_TIL_BESLUTTER);
+        assertSame(oppdatertUtkast.getBeslutterProsessStatus(), KLAR_TIL_BESLUTTER);
     }
 
     @Test
     public void skal_sette_beslutter() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        UtkastetVedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         vedtaksstotteRepository.setBeslutter(utkast.getId(), TEST_BESLUTTER_IDENT);
 
-        Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        UtkastetVedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         assertEquals(TEST_BESLUTTER_IDENT, oppdatertUtkast.getBeslutterIdent());
     }
@@ -92,11 +89,11 @@ public class VedtaksstotteRepositoryTest {
     public void setBeslutterProsessStatus__skal_sette_status() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        UtkastetVedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
 
-        Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        UtkastetVedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         assertEquals(BeslutterProsessStatus.KLAR_TIL_BESLUTTER, oppdatertUtkast.getBeslutterProsessStatus());
     }
@@ -107,7 +104,8 @@ public class VedtaksstotteRepositoryTest {
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        vedtaksstotteRepository.slettUtkast(utkast.getId());
+        boolean isVedtakSlettet = vedtaksstotteRepository.slettUtkast(utkast.getId());
+        assertSame(true, isVedtakSlettet);
 
         assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
     }
@@ -134,7 +132,7 @@ public class VedtaksstotteRepositoryTest {
         DokumentSendtDTO dokumentSendtDTO = new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
 
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        UtkastetVedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         utkast.setBegrunnelse(TEST_BEGRUNNELSE);
         utkast.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
@@ -146,38 +144,11 @@ public class VedtaksstotteRepositoryTest {
 
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID);
 
-        Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
+        FattetVedtak fattetVedtak = vedtaksstotteRepository.hentFattetEllerFeil(utkast.getId());
 
         assertNotNull(fattetVedtak);
         assertFalse(fattetVedtak.isGjeldende());
 
-    }
-
-    @Test
-    public void lagrer_journalforing_av_vedtak() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-
-        vedtaksstotteRepository.lagreJournalforingVedtak(utkast.getId(), TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
-
-        Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-
-        assertEquals(TEST_JOURNALPOST_ID, oppdatertUtkast.getJournalpostId());
-        assertEquals(TEST_DOKUMENT_ID, oppdatertUtkast.getDokumentInfoId());
-    }
-
-    @Test
-    public void lagrer_dokumentbestillings_id() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-
-        vedtaksstotteRepository.lagreDokumentbestillingsId(utkast.getId(), TEST_DOKUMENT_BESTILLING_ID);
-
-        Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-
-        assertEquals(TEST_DOKUMENT_BESTILLING_ID, oppdatertUtkast.getDokumentbestillingId());
     }
 
     @Test
@@ -186,12 +157,12 @@ public class VedtaksstotteRepositoryTest {
 
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-        assertNotNull("UTKAST_SIST_OPPDATERT skal ikke vare null", utkast.getUtkastSistOppdatert());
+        UtkastetVedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        assertNotNull("UTKAST_SIST_OPPDATERT skal ikke vare null", utkast.getSistOppdatert());
         vedtaksstotteRepository.ferdigstillVedtak(utkast.getId(), dokumentSendtDTO);
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID);
 
-        Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
+        FattetVedtak fattetVedtak = vedtaksstotteRepository.hentFattetEllerFeil(utkast.getId());
 
         assertNotNull(fattetVedtak);
         assertNotNull("Vedtak Fattet tidspunkt kan ikke vare null", fattetVedtak.getVedtakFattet());

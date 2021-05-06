@@ -1,23 +1,21 @@
 package no.nav.veilarbvedtaksstotte.domain.vedtak;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.experimental.Accessors;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@Accessors(chain = true)
-public class Vedtak {
+@SuperBuilder
+@Getter
+@Setter
+@EqualsAndHashCode
+public abstract class Vedtak {
     long id;
     String aktorId;
     Hovedmal hovedmal;
     Innsatsgruppe innsatsgruppe;
-    VedtakStatus vedtakStatus;
-    LocalDateTime utkastSistOppdatert;
-    LocalDateTime vedtakFattet;
-    LocalDateTime utkastOpprettet;
     String begrunnelse;
     String veilederIdent;
     String veilederNavn;
@@ -25,13 +23,5 @@ public class Vedtak {
     String oppfolgingsenhetNavn;
     String beslutterIdent;
     String beslutterNavn;
-    boolean gjeldende;
     List<String> opplysninger;
-    String journalpostId;
-    String dokumentInfoId;
-    String dokumentbestillingId;
-    BeslutterProsessStatus beslutterProsessStatus;
-
-    @JsonIgnore
-    boolean sender;
 }

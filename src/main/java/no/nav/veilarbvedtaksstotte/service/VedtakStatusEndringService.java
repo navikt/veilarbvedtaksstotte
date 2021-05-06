@@ -4,7 +4,9 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.UtkastetVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.repository.VedtakEntity;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,30 +44,43 @@ public class VedtakStatusEndringService {
         kafkaProducerService.sendVedtakStatusEndring(utkastOpprettet);
     }
 
-    public void utkastSlettet(Vedtak vedtak) {
-        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.UTKAST_SLETTET));
+    public void utkastSlettet(UtkastetVedtak utkastetVedtak) {
+        kafkaProducerService.sendVedtakStatusEndring(
+                lagVedtakStatusEndring(utkastetVedtak, VedtakStatusEndring.UTKAST_SLETTET)
+        );
+
         metricsService.rapporterUtkastSlettet();
     }
 
-    public void beslutterProsessStartet(Vedtak vedtak) {
-        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.BESLUTTER_PROSESS_STARTET));
+    public void beslutterProsessStartet(UtkastetVedtak utkastetVedtak) {
+        kafkaProducerService.sendVedtakStatusEndring(
+                lagVedtakStatusEndring(utkastetVedtak, VedtakStatusEndring.BESLUTTER_PROSESS_STARTET)
+        );
     }
 
-    public void beslutterProsessAvbrutt(Vedtak vedtak) {
-        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.BESLUTTER_PROSESS_AVBRUTT));
+    public void beslutterProsessAvbrutt(UtkastetVedtak utkastetVedtak) {
+        kafkaProducerService.sendVedtakStatusEndring(
+                lagVedtakStatusEndring(utkastetVedtak, VedtakStatusEndring.BESLUTTER_PROSESS_AVBRUTT)
+        );
     }
 
-    public void godkjentAvBeslutter(Vedtak vedtak) {
-        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.GODKJENT_AV_BESLUTTER));
-        metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(vedtak);
+    public void godkjentAvBeslutter(UtkastetVedtak utkastetVedtak) {
+        kafkaProducerService.sendVedtakStatusEndring(
+                lagVedtakStatusEndring(utkastetVedtak, VedtakStatusEndring.GODKJENT_AV_BESLUTTER)
+        );
+        metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(utkastetVedtak);
     }
 
-    public void klarTilBeslutter(Vedtak vedtak) {
-        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.KLAR_TIL_BESLUTTER));
+    public void klarTilBeslutter(UtkastetVedtak utkastetVedtak) {
+        kafkaProducerService.sendVedtakStatusEndring(
+                lagVedtakStatusEndring(utkastetVedtak, VedtakStatusEndring.KLAR_TIL_BESLUTTER)
+        );
     }
 
-    public void klarTilVeileder(Vedtak vedtak) {
-        kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.KLAR_TIL_VEILEDER));
+    public void klarTilVeileder(UtkastetVedtak vedtak) {
+        kafkaProducerService.sendVedtakStatusEndring(
+                lagVedtakStatusEndring(vedtak, VedtakStatusEndring.KLAR_TIL_VEILEDER)
+        );
     }
 
     public void blittBeslutter(Vedtak vedtak, String beslutterIdent) {
@@ -105,32 +120,35 @@ public class VedtakStatusEndringService {
     }
 
     public void vedtakSendt(Long vedtakId, String fnr) {
-        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        UtkastetVedtak utkastetVedtak = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         KafkaVedtakStatusEndring.VedtakSendt statusEndring = new KafkaVedtakStatusEndring.VedtakSendt()
-                .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setHovedmal(vedtak.getHovedmal());
+                .setInnsatsgruppe(utkastetVedtak.getInnsatsgruppe())
+                .setHovedmal(utkastetVedtak.getHovedmal());
 
-        setStatusEndringData(statusEndring, vedtak);
+        setStatusEndringData(statusEndring, utkastetVedtak);
 
         kafkaProducerService.sendVedtakStatusEndring(statusEndring);
-        kafkaProducerService.sendVedtakSendt(lagKafkaVedtakSendt(vedtak));
+        kafkaProducerService.sendVedtakSendt(lagKafkaVedtakSendt(utkastetVedtak.getId()));
 
-        metricsService.rapporterVedtakSendt(vedtak);
-        metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr);
-        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr);
+        metricsService.rapporterVedtakSendt(utkastetVedtak.getId());
+        metricsService.rapporterTidFraRegistrering(utkastetVedtak, utkastetVedtak.getAktorId(), fnr);
+        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(utkastetVedtak, fnr);
     }
 
-    private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {
+    private KafkaVedtakSendt lagKafkaVedtakSendt(long vedtakId) {
+
+        VedtakEntity vedtakEntity = vedtaksstotteRepository.hentVedtakEntity(vedtakId);
+
         return new KafkaVedtakSendt()
-                .setId(vedtak.getId())
-                .setAktorId(vedtak.getAktorId())
-                .setHovedmal(vedtak.getHovedmal())
-                .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setVedtakSendt(vedtak.getVedtakFattet())
-                .setEnhetId(vedtak.getOppfolgingsenhetId());
+                .setId(vedtakEntity.getId())
+                .setAktorId(vedtakEntity.getAktorId())
+                .setHovedmal(vedtakEntity.getHovedmal())
+                .setInnsatsgruppe(vedtakEntity.getInnsatsgruppe())
+                .setVedtakSendt(vedtakEntity.getVedtakFattet())
+                .setEnhetId(vedtakEntity.getOppfolgingsenhetId());
     }
 
-    private KafkaVedtakStatusEndring lagVedtakStatusEndring(Vedtak vedtak, VedtakStatusEndring endring) {
+    private KafkaVedtakStatusEndring lagVedtakStatusEndring(UtkastetVedtak vedtak, VedtakStatusEndring endring) {
         KafkaVedtakStatusEndring statusEndring = new KafkaVedtakStatusEndring();
         statusEndring.setVedtakStatusEndring(endring);
         setStatusEndringData(statusEndring, vedtak);

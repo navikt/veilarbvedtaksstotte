@@ -28,10 +28,7 @@ import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
@@ -282,13 +279,13 @@ public class VedtakServiceTest {
     public void slettUtkast__skal_slette_utkast_med_data() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        UtkastetVedtak utkastetVedtak = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
+        kilderRepository.lagKilder(TEST_KILDER, utkastetVedtak.getId());
 
-        meldingRepository.opprettDialogMelding(utkast.getId(), null, "Test");
+        meldingRepository.opprettDialogMelding(utkastetVedtak.getId(), null, "Test");
 
-        vedtakService.slettUtkast(utkast);
+        vedtakService.slettUtkast(utkastetVedtak);
 
         assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
     }
@@ -455,7 +452,7 @@ public class VedtakServiceTest {
             assertThatThrownBy(() ->
                     vedtakService.fattVedtak(utkast.getId())).isExactlyInstanceOf(RuntimeException.class);
 
-            assertFalse(vedtaksstotteRepository.hentUtkastEllerFeil(utkast.getId()).isSender());
+            //assertFalse(vedtaksstotteRepository.hentUtkastEllerFeil(utkast.getId()).isSender());
         });
     }
 
@@ -509,7 +506,7 @@ public class VedtakServiceTest {
         withContext(() -> {
             assertThatThrownBy(() ->
                     vedtakService.taOverUtkast(123)
-            ).hasMessage("404 NOT_FOUND \"Fant ikke utkast\"");
+            ).hasMessage("404 NOT_FOUND \"Fant ikke Utkastet Vedtak\"");
         });
     }
 
@@ -525,7 +522,7 @@ public class VedtakServiceTest {
         withContext(() -> {
             gittTilgang();
             vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            UtkastetVedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             assertThatThrownBy(() ->
                     vedtakService.taOverUtkast(utkast.getId())
@@ -572,19 +569,17 @@ public class VedtakServiceTest {
     }
 
     private void assertNyttUtkast() {
-        Vedtak opprettetUtkast = vedtakService.hentUtkast(TEST_FNR);
+        UtkastetVedtak opprettetUtkast = vedtakService.hentUtkast(TEST_FNR);
         assertEquals(VedtakStatus.UTKAST, opprettetUtkast.getVedtakStatus());
         assertEquals(TEST_VEILEDER_IDENT, opprettetUtkast.getVeilederIdent());
         assertEquals(TEST_VEILEDER_NAVN, opprettetUtkast.getVeilederNavn());
         assertEquals(TEST_OPPFOLGINGSENHET_ID, opprettetUtkast.getOppfolgingsenhetId());
         assertEquals(TEST_OPPFOLGINGSENHET_NAVN, opprettetUtkast.getOppfolgingsenhetNavn());
-        assertFalse(opprettetUtkast.isGjeldende());
         assertEquals(opprettetUtkast.getOpplysninger().size(), 0);
-        assertFalse(opprettetUtkast.isSender());
     }
 
-    private Vedtak hentVedtak() {
-        List<Vedtak> vedtakList = vedtakService.hentFattedeVedtak(TEST_FNR);
+    private FattetVedtak hentVedtak() {
+        List<FattetVedtak> vedtakList = vedtakService.hentFattedeVedtak(TEST_FNR);
         assertEquals(vedtakList.size(), 1);
         return vedtakList.get(0);
     }
@@ -601,7 +596,7 @@ public class VedtakServiceTest {
         assertSendtVedtak();
         withContext(() -> {
             gittTilgang();
-            Vedtak sendtVedtak = hentVedtak();
+            FattetVedtak sendtVedtak = hentVedtak();
             assertTrue(sendtVedtak.isGjeldende());
             assertEquals(TEST_DOKUMENT_BESTILLING_ID, sendtVedtak.getDokumentbestillingId());
         });
@@ -611,12 +606,11 @@ public class VedtakServiceTest {
     private void assertSendtVedtak() {
         withContext(() -> {
             gittTilgang();
-            Vedtak sendtVedtak = hentVedtak();
+            FattetVedtak sendtVedtak = hentVedtak();
             assertEquals(VedtakStatus.SENDT, sendtVedtak.getVedtakStatus());
             assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
             assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
             assertTrue(sendtVedtak.isGjeldende());
-            assertFalse(sendtVedtak.isSender());
 
             List<Oyeblikksbilde> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(sendtVedtak.getId());
             assertThat(oyeblikksbilde, containsInAnyOrder(

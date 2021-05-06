@@ -8,7 +8,10 @@ import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.FattetVedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.UtkastetVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.repository.VedtakEntity;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +34,9 @@ import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.tellVedtakEtterDato;
 public class MetricsService {
 
     private final MetricsClient influxClient;
-
     private final MeterRegistry meterRegistry;
-
     private final VeilarboppfolgingClient oppfolgingClient;
-
     private final VeilarbregistreringClient registreringClient;
-
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
     @Autowired
@@ -66,19 +65,20 @@ public class MetricsService {
         influxClient.report(createMetricEvent("send-dokument"));
     }
 
-    public void rapporterVedtakSendt(Vedtak vedtak) {
+    public void rapporterVedtakSendt(long vedtakId) {
+        VedtakEntity vedtakEntity = vedtaksstotteRepository.hentVedtakEntity(vedtakId);
         Event event = createMetricEvent("vedtak-sendt");
-        long utkastOpprettetMillis = localDateTimeToMillis(vedtak.getUtkastOpprettet());
+        long utkastOpprettetMillis = localDateTimeToMillis(vedtakEntity.getUtkastOpprettet());
         long secondsUsed = (System.currentTimeMillis() - utkastOpprettetMillis) / 1000;
-        int begrunnelseLengde = vedtak.getBegrunnelse() != null ? vedtak.getBegrunnelse().length() : 0;
+        int begrunnelseLengde = vedtakEntity.getBegrunnelse() != null ? vedtakEntity.getBegrunnelse().length() : 0;
 
         event.addFieldToReport("sekunderBrukt", secondsUsed);
-        event.addFieldToReport("innsatsgruppe", getName(vedtak.getInnsatsgruppe()));
-        event.addFieldToReport("enhetsId", vedtak.getOppfolgingsenhetId());
+        event.addFieldToReport("innsatsgruppe", getName(vedtakEntity.getInnsatsgruppe()));
+        event.addFieldToReport("enhetsId", vedtakEntity.getOppfolgingsenhetId());
         event.addFieldToReport("begrunnelseLengde", begrunnelseLengde);
 
-        if (vedtak.getHovedmal() != null) {
-            event.addFieldToReport("hovedmal", vedtak.getHovedmal());
+        if (vedtakEntity.getHovedmal() != null) {
+            event.addFieldToReport("hovedmal", vedtakEntity.getHovedmal());
         }
 
         influxClient.report(event);
@@ -106,7 +106,7 @@ public class MetricsService {
      */
     private long finnTidFraRegistreringStartet(String aktorId, String fnr) {
         try {
-            List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId);
+            List<FattetVedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId);
             RegistreringData registreringData = registreringClient.hentRegistreringData(fnr);
             List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingsperioder(fnr);
             Optional<LocalDateTime> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);
@@ -161,10 +161,10 @@ public class MetricsService {
         influxClient.report(createMetricEvent("utkast-slettet"));
     }
 
-    public void rapporterTidMellomUtkastOpprettetTilGodkjent(Vedtak vedtak) {
+    public void rapporterTidMellomUtkastOpprettetTilGodkjent(UtkastetVedtak utkastetVedtak) {
         Event event = createMetricEvent("tid-mellom-utkast-opprettet-til-godkjent");
 
-        Long sekunderBrukt = Duration.between(vedtak.getUtkastOpprettet(), LocalDateTime.now()).getSeconds();
+        Long sekunderBrukt = Duration.between(utkastetVedtak.getUtkastOpprettet(), LocalDateTime.now()).getSeconds();
         event.addFieldToReport("sekunder", sekunderBrukt);
 
         influxClient.report(event);
