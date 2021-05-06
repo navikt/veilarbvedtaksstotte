@@ -39,7 +39,7 @@ public class VedtakController {
 
     @GetMapping("/fattet")
     public List<FattetVedtak> hentFattedeVedtak(@RequestParam("fnr") String fnr) {
-        return vedtakService.hentFattedeVedtak(fnr);
+        return vedtakService.hentFattedeVedtak(Fnr.ofValidFnr(fnr));
     }
 
     @GetMapping("{vedtakId}/oyeblikksbilde")
