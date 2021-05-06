@@ -20,6 +20,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Objects;
+
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.*;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,16 +29,16 @@ import static org.mockito.Mockito.*;
 
 public class BeslutterServiceTest {
 
-    private VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
-    private VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
-    private BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
-    private MeldingRepository meldingRepository = mock(MeldingRepository.class);
-    private VeilederService veilederService = mock(VeilederService.class);
-    private VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
-    private AuthService authService = mock(AuthService.class);
-    private JdbcTemplate db = SingletonPostgresContainer.init().createJdbcTemplate();
-    private TransactionTemplate transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
-    private BeslutterService beslutterService = new BeslutterService(
+    private final VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
+    private final VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
+    private final BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
+    private final MeldingRepository meldingRepository = mock(MeldingRepository.class);
+    private final VeilederService veilederService = mock(VeilederService.class);
+    private final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
+    private final AuthService authService = mock(AuthService.class);
+    private final JdbcTemplate db = SingletonPostgresContainer.init().createJdbcTemplate();
+    private final TransactionTemplate transactor = new TransactionTemplate(new DataSourceTransactionManager(Objects.requireNonNull(db.getDataSource())));
+    private final BeslutterService beslutterService = new BeslutterService(
             authService, vedtaksstotteRepository, vedtakStatusEndringService,
             beslutteroversiktRepository, meldingRepository, veilederService, veilarbpersonClient, transactor
     );
@@ -55,8 +57,8 @@ public class BeslutterServiceTest {
     @Test
     public void startBeslutterProsess__skal_starte_beslutter_prosess_hvis_ikke_startet() {
         UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .innsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
                 .aktorId(TEST_AKTOR_ID)
+                .innsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
                 .oppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .veilederIdent(TEST_VEILEDER_IDENT)
                 .build();
@@ -71,24 +73,19 @@ public class BeslutterServiceTest {
 
     @Test
     public void startBeslutterProsess__skal_ikke_starte_beslutter_prosess_hvis_allerede_startet() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .beslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_BESLUTTER)
-                .innsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakMedBeslutterProsessOgInnsatsGruppe(
+                Innsatsgruppe.VARIG_TILPASSET_INNSATS
+        );
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(utkastetVedtak);
 
-        assertThrows(ResponseStatusException.class, () ->  beslutterService.startBeslutterProsess(SOME_ID));
+        assertThrows(ResponseStatusException.class, () -> beslutterService.startBeslutterProsess(SOME_ID));
     }
 
     @Test
     public void startBeslutterProsess__skal_kaste_exception_hvis_feil_innsatsgruppe() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakForInnsatsGruppe(Innsatsgruppe.STANDARD_INNSATS);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(utkastetVedtak);
@@ -99,8 +96,8 @@ public class BeslutterServiceTest {
     @Test
     public void startBeslutterProsess__skal_opprette_system_melding() {
         UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .innsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
                 .aktorId(TEST_AKTOR_ID)
+                .innsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
                 .oppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .veilederIdent(TEST_VEILEDER_IDENT)
                 .build();
@@ -116,11 +113,9 @@ public class BeslutterServiceTest {
 
     @Test
     public void avbrytBeslutterProsess__skal_avbryte_beslutter_prosess_hvis_ikke_allerede_gjort() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                .beslutterProsessStatus(KLAR_TIL_BESLUTTER)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakMedBeslutterProsessOgInnsatsGruppe(
+                Innsatsgruppe.STANDARD_INNSATS
+        );
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(utkastetVedtak);
@@ -132,10 +127,7 @@ public class BeslutterServiceTest {
 
     @Test
     public void avbrytBeslutterProsess__skal_kaste_exception_hvis_feil_innsatsgruppe() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .innsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakForInnsatsGruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(utkastetVedtak);
@@ -146,9 +138,9 @@ public class BeslutterServiceTest {
     @Test
     public void avbrytBeslutterProsess__skal_opprette_system_melding() {
         UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                .beslutterProsessStatus(KLAR_TIL_BESLUTTER)
                 .aktorId(TEST_AKTOR_ID)
+                .beslutterProsessStatus(KLAR_TIL_BESLUTTER)
+                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
                 .oppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .veilederIdent(TEST_VEILEDER_IDENT)
                 .build();
@@ -164,10 +156,7 @@ public class BeslutterServiceTest {
 
     @Test
     public void bliBeslutter__skal_ta_over_som_beslutter() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakForInnsatsGruppe(Innsatsgruppe.STANDARD_INNSATS);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
@@ -182,8 +171,8 @@ public class BeslutterServiceTest {
     public void bliBeslutter__skal_kaste_exception_nar_veileder_er_ansvarlig() {
         UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
                 .aktorId(TEST_AKTOR_ID)
-                .veilederIdent(TEST_VEILEDER_IDENT)
                 .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                .veilederIdent(TEST_VEILEDER_IDENT)
                 .build();
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
@@ -210,10 +199,7 @@ public class BeslutterServiceTest {
 
     @Test
     public void bliBeslutter__skal_opprette_system_melding_bli_beslutter() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakForInnsatsGruppe(Innsatsgruppe.STANDARD_INNSATS);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
@@ -227,11 +213,7 @@ public class BeslutterServiceTest {
 
     @Test
     public void bliBeslutter__skal_opprette_system_melding_overta_for_beslutter() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                .beslutterIdent("TIDLIGERE BESLUTTER IDENT")
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakMedInnsatsOgBeslutterIdent("TIDLIGERE BESLUTTER IDENT");
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
@@ -245,11 +227,7 @@ public class BeslutterServiceTest {
 
     @Test
     public void godkjennVedtak__skal_sette_godkjent() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .beslutterIdent(TEST_VEILEDER_IDENT)
-                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakMedInnsatsOgBeslutterIdent(TEST_VEILEDER_IDENT);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
@@ -262,11 +240,7 @@ public class BeslutterServiceTest {
 
     @Test
     public void godkjennVedtak__skal_kaste_exception_hvis_ikke_beslutter() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .beslutterIdent(TEST_BESLUTTER_IDENT)
-                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakMedInnsatsOgBeslutterIdent(TEST_BESLUTTER_IDENT);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
@@ -277,11 +251,7 @@ public class BeslutterServiceTest {
 
     @Test
     public void godkjennVedtak__skal_opprette_system_melding() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .beslutterIdent(TEST_VEILEDER_IDENT)
-                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakMedInnsatsOgBeslutterIdent(TEST_VEILEDER_IDENT);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
@@ -295,12 +265,9 @@ public class BeslutterServiceTest {
 
     @Test
     public void oppdaterBeslutterProsessStatus__skal_sette_riktig_status_for_veileder() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .beslutterIdent(TEST_BESLUTTER_IDENT)
-                .veilederIdent(TEST_VEILEDER_IDENT)
-                .beslutterProsessStatus(KLAR_TIL_VEILEDER)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakMedBeslutterIdentOgProsessStatusOgVeilerIdent(
+                KLAR_TIL_VEILEDER
+        );
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
@@ -313,12 +280,9 @@ public class BeslutterServiceTest {
 
     @Test
     public void oppdaterBeslutterProsessStatus__skal_sette_riktig_status_for_beslutter() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .beslutterIdent(TEST_BESLUTTER_IDENT)
-                .veilederIdent(TEST_VEILEDER_IDENT)
-                .beslutterProsessStatus(KLAR_TIL_BESLUTTER)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakMedBeslutterIdentOgProsessStatusOgVeilerIdent(
+                KLAR_TIL_BESLUTTER
+        );
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
@@ -346,17 +310,50 @@ public class BeslutterServiceTest {
 
     @Test
     public void oppdaterBeslutterProsessStatus__skal_feile_hvis_bruker_ikke_er_beslutter_eller_veileder() {
-        UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
-                .aktorId(TEST_AKTOR_ID)
-                .beslutterIdent(TEST_BESLUTTER_IDENT)
-                .veilederIdent(TEST_VEILEDER_IDENT)
-                .beslutterProsessStatus(KLAR_TIL_VEILEDER)
-                .build();
+        UtkastetVedtak utkastetVedtak = getUtkastetVedtakMedBeslutterIdentOgProsessStatusOgVeilerIdent(
+                KLAR_TIL_VEILEDER
+        );
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID));
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_IKKE_ANSVARLIG_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(utkastetVedtak);
 
         assertThrows(ResponseStatusException.class, () -> beslutterService.oppdaterBeslutterProsessStatus(SOME_ID));
+    }
+
+    private UtkastetVedtak getUtkastetVedtakMedBeslutterIdentOgProsessStatusOgVeilerIdent(
+            BeslutterProsessStatus beslutterProsessStatus) {
+        return UtkastetVedtak.builder()
+                .aktorId(TEST_AKTOR_ID)
+                .beslutterIdent(no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT)
+                .beslutterProsessStatus(beslutterProsessStatus)
+                .veilederIdent(no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT)
+                .build();
+    }
+
+    private UtkastetVedtak getUtkastetVedtakForInnsatsGruppe(Innsatsgruppe innsatsgruppe) {
+        return UtkastetVedtak.builder()
+                .aktorId(TEST_AKTOR_ID)
+                .innsatsgruppe(innsatsgruppe)
+                .build();
+    }
+
+    private UtkastetVedtak getUtkastetVedtakMedInnsatsOgBeslutterIdent(
+            String beslutterIdent) {
+        return UtkastetVedtak.builder()
+                .aktorId(TEST_AKTOR_ID)
+                .innsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                .beslutterIdent(beslutterIdent)
+                .build();
+    }
+
+    private UtkastetVedtak getUtkastetVedtakMedBeslutterProsessOgInnsatsGruppe(
+            Innsatsgruppe innsatsgruppe
+    ) {
+        return UtkastetVedtak.builder()
+                .aktorId(TEST_AKTOR_ID)
+                .beslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_BESLUTTER)
+                .innsatsgruppe(innsatsgruppe)
+                .build();
     }
 }
