@@ -151,9 +151,16 @@ public class VedtaksstotteRepository {
         }
     }
 
-    public Vedtak hentGjeldendeVedtak(String aktorId) {
+    public FattetVedtak hentGjeldendeVedtak(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = true", VEDTAK_TABLE, AKTOR_ID, GJELDENDE);
-        return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, aktorId));
+
+        VedtakEntity vedtakEntity = queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtakEntity, aktorId));
+
+        if (vedtakEntity == null || VedtakStatus.UTKAST.equals(vedtakEntity.getVedtakStatus())) {
+            return null;
+        }
+
+        return mapFattetVedtak(vedtakEntity);
     }
 
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
