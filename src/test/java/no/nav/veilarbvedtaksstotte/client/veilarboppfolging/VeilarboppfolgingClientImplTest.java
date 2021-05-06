@@ -43,15 +43,15 @@ public class VeilarboppfolgingClientImplTest {
         OppfolgingsstatusDTO expectedData = new OppfolgingsstatusDTO();
         expectedData.setServicegruppe("VURDU");
 
-        assertEquals(expectedData, veilarboppfolgingClient.hentOppfolgingData(TEST_FNR));
+        assertEquals(expectedData, veilarboppfolgingClient.hentOppfolgingData(TEST_FNR.get()));
     }
 
     @Test
     public void hentOppfolgingsperioder__skal_lage_riktig_request_og_parse_response() {
         String response = TestUtils.readTestResourceFile("veilarboppfolging_hentOppfolgingsperioder.json");
 
-        givenThat(get(urlEqualTo("/api/oppfolging/oppfolgingsperioder?fnr=" + TEST_FNR))
-                .withQueryParam("fnr", equalTo(TEST_FNR))
+        givenThat(get(urlEqualTo("/api/oppfolging/oppfolgingsperioder?fnr=" + TEST_FNR.get()))
+                .withQueryParam("fnr", equalTo(TEST_FNR.get()))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer SYSTEM_TOKEN"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -66,7 +66,7 @@ public class VeilarboppfolgingClientImplTest {
         expectedPeriode2.setStartDato(ZonedDateTime.of(2020, 5, 4, 9, 48, 58, 0, ZoneId.of("+2")).plus(762, MILLIS));
         expectedPeriode2.setSluttDato(ZonedDateTime.of(2020, 6, 4, 9, 48, 58, 0, ZoneId.of("+2")).plus(762, MILLIS));
 
-        List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(TEST_FNR);
+        List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(TEST_FNR.get());
 
         assertEquals(2, oppfolgingsperioder.size());
         assertEquals(expectedPeriode1, oppfolgingsperioder.get(0));

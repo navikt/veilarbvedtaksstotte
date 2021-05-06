@@ -34,7 +34,7 @@ public class VeilarbregistreringClientTest {
         String response = TestUtils.readTestResourceFile("registrering.json");
 
         WireMock.givenThat(
-                WireMock.get(WireMock.urlEqualTo("/api/registrering?fnr=" + TEST_FNR))
+                WireMock.get(WireMock.urlEqualTo("/api/registrering?fnr=" + TEST_FNR.get()))
                         .willReturn(
                                 WireMock.aResponse()
                                         .withStatus(200)
@@ -44,7 +44,7 @@ public class VeilarbregistreringClientTest {
         RegistreringData registreringData = AuthContextHolderThreadLocal
                 .instance()
                 .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), () ->
-                        veilarbregistreringClient.hentRegistreringData(TEST_FNR));
+                        veilarbregistreringClient.hentRegistreringData(TEST_FNR.get()));
 
         assertEquals(registreringData, new RegistreringData(new RegistreringData.BrukerRegistrering(
                 LocalDateTime.of(2021, 1, 18, 9, 48, 58).plus(762, MILLIS),

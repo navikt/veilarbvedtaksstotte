@@ -36,7 +36,7 @@ class InnsatsbehovService(
     val log = LoggerFactory.getLogger(InnsatsbehovService::class.java)
 
     fun gjeldendeInnsatsbehov(fnr: Fnr): Innsatsbehov? {
-        authService.sjekkTilgangTilFnr(fnr.get())
+        authService.sjekkTilgangTilBruker(fnr)
         val identer: BrukerIdenter = brukerIdentService.hentIdenter(fnr)
         return gjeldendeInnsatsbehovMedKilder(identer).innsatsbehov
     }

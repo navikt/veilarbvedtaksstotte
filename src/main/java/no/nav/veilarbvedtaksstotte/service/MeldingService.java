@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.DialogMeldingDTO;
@@ -40,7 +41,7 @@ public class MeldingService {
 
     public void opprettBrukerDialogMelding(long vedtakId, String melding) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         meldingRepository.opprettDialogMelding(utkast.getId(), innloggetVeilederIdent, melding);
@@ -54,7 +55,7 @@ public class MeldingService {
 
     public List<MeldingDTO> hentMeldinger(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilAktorId(utkast.getAktorId());
+        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
 
         List<DialogMeldingDTO> dialogMeldinger = hentDialogMeldinger(utkast.getId());
         List<SystemMeldingDTO> systemMeldinger = hentSystemMeldinger(utkast.getId());
