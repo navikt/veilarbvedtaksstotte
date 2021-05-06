@@ -3,11 +3,11 @@ package no.nav.veilarbvedtaksstotte.service;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.UtkastetVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtakEntity;
@@ -141,15 +141,15 @@ public class VedtakStatusEndringService {
         kafkaProducerService.sendVedtakSendt(lagKafkaVedtakSendt(utkastetVedtak.getId()));
 
         metricsService.rapporterVedtakSendt(utkastetVedtak.getId());
-        metricsService.rapporterTidFraRegistrering(utkastetVedtak, utkastetVedtak.getAktorId(), fnr);
-        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(utkastetVedtak, fnr);
+        metricsService.rapporterTidFraRegistrering(utkastetVedtak, utkastetVedtak.getAktorId(), fnr.get());
+        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(utkastetVedtak, fnr.get());
         kafkaProducerService.sendInnsatsbehov(
                 new Innsatsbehov(
                         AktorId.of(utkastetVedtak.getAktorId()),
                         utkastetVedtak.getInnsatsgruppe(),
                         HovedmalMedOkeDeltakelse.fraHovedmal(utkastetVedtak.getHovedmal())));
 
-        metricsService.rapporterVedtakSendt(utkastetVedtak);
+        metricsService.rapporterVedtakSendt(utkastetVedtak.getId());
         metricsService.rapporterTidFraRegistrering(utkastetVedtak, utkastetVedtak.getAktorId(), fnr.get());
         metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(utkastetVedtak, fnr.get());
     }
