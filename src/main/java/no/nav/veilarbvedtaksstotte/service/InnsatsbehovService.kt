@@ -6,9 +6,9 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
+import no.nav.veilarbvedtaksstotte.domain.vedtak.FattetVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils
@@ -42,15 +42,15 @@ class InnsatsbehovService(
     }
 
     private data class InnsatsbehovMedGrunnlag(
-        val innsatsbehov: Innsatsbehov?,
-        val fraArena: Boolean,
-        val gjeldendeVedtak: Vedtak?,
-        val arenaVedtak: List<ArenaVedtak>
+            val innsatsbehov: Innsatsbehov?,
+            val fraArena: Boolean,
+            val gjeldendeVedtak: FattetVedtak?,
+            val arenaVedtak: List<ArenaVedtak>
     )
 
     private fun gjeldendeInnsatsbehovMedKilder(identer: BrukerIdenter): InnsatsbehovMedGrunnlag {
 
-        val gjeldendeVedtak: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
+        val gjeldendeVedtak: FattetVedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
         if (gjeldendeVedtak == null && arenaVedtakListe.isEmpty()) {
