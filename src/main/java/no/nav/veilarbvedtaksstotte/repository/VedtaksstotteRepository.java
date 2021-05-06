@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
@@ -22,6 +23,7 @@ import static no.nav.veilarbvedtaksstotte.utils.DbUtils.queryForObjectOrNull;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
 @Repository
+@Slf4j
 public class VedtaksstotteRepository {
 
     public final static String VEDTAK_TABLE                 = "VEDTAK";
@@ -62,6 +64,7 @@ public class VedtaksstotteRepository {
         ));
 
         if (vedtakEntity == null) {
+            log.warn("Fant ikke Utkastet Vedtak med aktor {}", aktorId);
             return null;
         }
 
@@ -108,6 +111,7 @@ public class VedtaksstotteRepository {
         VedtakEntity vedtakEntity = hentVedtakEntity(vedtakId);
 
         if (vedtakEntity == null) {
+            log.error("Fant ikke Utkastet Vedtak med id {}", vedtakId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke Utkastet Vedtak");
         }
         return mapUtkastVedtak(vedtakEntity);
@@ -117,6 +121,7 @@ public class VedtaksstotteRepository {
         VedtakEntity vedtakEntity = hentVedtakEntity(vedtakId);
 
         if (vedtakEntity == null) {
+            log.error("Fant ikke Fattet Vedtak med id {}", vedtakId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke Fattet Vedtak");
         }
 
@@ -138,6 +143,7 @@ public class VedtaksstotteRepository {
         long itemsUpdated = db.update(sql, getName(beslutterProsessStatus), vedtakId);
 
         if (itemsUpdated == 0) {
+            log.error("Fant ikke utkast å oppdatere beslutter prosess status for id {} og beslutter status {}", vedtakId, beslutterProsessStatus.name());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke utkast å oppdatere beslutter prosess status for " + vedtakId);
         }
     }
@@ -147,6 +153,7 @@ public class VedtaksstotteRepository {
         long itemsUpdated = db.update(sql, beslutterIdent, vedtakId);
 
         if (itemsUpdated == 0) {
+            log.error("Fant ikke utkast å sette beslutter for id {} ig beslutter {}", vedtakId, beslutterIdent);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke utkast å sette beslutter for " + vedtakId);
         }
     }
@@ -225,6 +232,7 @@ public class VedtaksstotteRepository {
                             .orElse(false);
 
             if (lagretSender == sender) {
+                log.error("Utkast med id {} er {} under sending", vedtakId, lagretSender ? "allerede" : "ikke");
                 throw new IllegalStateException(format("Utkast med id %s er %s under sending", vedtakId, lagretSender ? "allerede" : "ikke"));
             }
 
