@@ -153,7 +153,7 @@ public class VedtakService {
             beslutteroversiktRepository.slettBruker(utkastetVedtak.getId());
         });
 
-        vedtakStatusEndringService.vedtakSendt(utkastetVedtak.getId(), authKontekst.getFnr());
+        vedtakStatusEndringService.vedtakSendt(utkastetVedtak.getId(), Fnr.of(authKontekst.getFnr()));
 
         return dokumentSendt;
     }
