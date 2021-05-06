@@ -49,7 +49,7 @@ public class ClientTestConfig {
         return new AktorregisterClient() {
             @Override
             public Fnr hentFnr(AktorId aktorId) {
-                return Fnr.of(TEST_FNR);
+                return TEST_FNR;
             }
 
             @Override
@@ -89,7 +89,9 @@ public class ClientTestConfig {
 
             @Override
             public Enhet hentEnhet(String s) {
-                return null;
+                return new Enhet()
+                        .setEnhetId(Long.parseLong(TEST_OPPFOLGINGSENHET_ID))
+                        .setNavn(TEST_OPPFOLGINGSENHET_NAVN);
             }
 
             @Override
@@ -262,7 +264,7 @@ public class ClientTestConfig {
             }
 
             @Override
-            public List<Journalpost> hentJournalposter(String fnr) {
+            public List<Journalpost> hentJournalposter(Fnr fnr) {
                 return Collections.emptyList();
             }
 

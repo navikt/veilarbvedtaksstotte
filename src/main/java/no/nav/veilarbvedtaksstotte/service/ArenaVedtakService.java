@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
@@ -34,8 +35,8 @@ public class ArenaVedtakService {
         this.authService = authService;
     }
 
-    public List<ArkivertVedtak> hentVedtakFraArena(String fnr) {
-        authService.sjekkTilgangTilFnr(fnr);
+    public List<ArkivertVedtak> hentVedtakFraArena(Fnr fnr) {
+        authService.sjekkTilgangTilBrukerOgEnhet(fnr);
         return hentArkiverteVedtakFraArena(fnr);
     }
 
@@ -74,7 +75,7 @@ public class ArenaVedtakService {
         return true;
     }
 
-    protected List<ArkivertVedtak> hentArkiverteVedtakFraArena(String fnr) {
+    protected List<ArkivertVedtak> hentArkiverteVedtakFraArena(Fnr fnr) {
         return safClient.hentJournalposter(fnr)
                 .stream()
                 .filter(this::erVedtakFraArena)

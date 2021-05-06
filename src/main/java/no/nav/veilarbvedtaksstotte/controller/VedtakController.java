@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -37,7 +38,7 @@ public class VedtakController {
     }
 
     @GetMapping("/fattet")
-    public List<Vedtak> hentFattedeVedtak(@RequestParam("fnr") String fnr) {
+    public List<Vedtak> hentFattedeVedtak(@RequestParam("fnr") Fnr fnr) {
         return vedtakService.hentFattedeVedtak(fnr);
     }
 
@@ -47,7 +48,7 @@ public class VedtakController {
     }
 
     @GetMapping("/arena")
-    public List<ArkivertVedtak> hentVedtakFraArena(@RequestParam("fnr") String fnr) {
+    public List<ArkivertVedtak> hentVedtakFraArena(@RequestParam("fnr") Fnr fnr) {
         return arenaVedtakService.hentVedtakFraArena(fnr);
     }
 

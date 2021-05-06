@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
+import no.nav.common.types.identer.Fnr;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -9,7 +11,7 @@ public class TestData {
 
     public final static long SOME_ID = 42;
 
-    public final static String TEST_FNR = "fnr";
+    public final static Fnr TEST_FNR = Fnr.of("fnr");
     public final static String TEST_AKTOR_ID = "123";
     public final static String TEST_VEILEDER_IDENT = "Z123456";
     public final static String TEST_IKKE_ANSVARLIG_VEILEDER_IDENT = "Z987654";

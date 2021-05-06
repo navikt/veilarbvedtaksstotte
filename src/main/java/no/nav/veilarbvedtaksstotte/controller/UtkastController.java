@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.BeslutterprosessStatusDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.LagUtkastDTO;
@@ -25,7 +26,7 @@ public class UtkastController {
     }
 
     @GetMapping
-    public Vedtak hentUtkast(@RequestParam("fnr") String fnr) {
+    public Vedtak hentUtkast(@RequestParam("fnr") Fnr fnr) {
         return vedtakService.hentUtkast(fnr);
     }
 
@@ -54,7 +55,7 @@ public class UtkastController {
 
     // Brukes av veilarbvisittkfortfs (Skal fjernes)
     @GetMapping("{fnr}/harUtkast")
-    public boolean harUtkast(@PathVariable("fnr") String fnr) {
+    public boolean harUtkast(@PathVariable("fnr") Fnr fnr) {
         return vedtakService.harUtkast(fnr);
     }
 

@@ -45,7 +45,7 @@ class VeilarbpersonClientImplTest {
                         )
                 )
         )
-        val hentPersonNavn = veilarbpersonClient.hentPersonNavn(TEST_FNR)
+        val hentPersonNavn = veilarbpersonClient.hentPersonNavn(TEST_FNR.get())
         assertEquals(
             PersonNavn(
                 fornavn = "Fornavn",

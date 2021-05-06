@@ -136,7 +136,7 @@ public class BeslutteroversiktRepositoryTest {
                 .setBrukerEtternavn("etternavn")
                 .setBrukerOppfolgingsenhetNavn(TEST_OPPFOLGINGSENHET_NAVN)
                 .setBrukerOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
-                .setBrukerFnr(TEST_FNR)
+                .setBrukerFnr(TEST_FNR.get())
                 .setVedtakStartet(LocalDateTime.now())
                 .setStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER)
                 .setBeslutterNavn(TEST_BESLUTTER_NAVN)
