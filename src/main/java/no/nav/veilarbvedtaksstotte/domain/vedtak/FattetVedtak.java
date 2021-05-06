@@ -12,11 +12,10 @@ import java.time.LocalDateTime;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 public class FattetVedtak extends Vedtak {
-    LocalDateTime vedtakFattet;
-    boolean gjeldende;
+    public LocalDateTime vedtakFattet;
+    public boolean gjeldende;
     String journalpostId;
     String dokumentInfoId;
     String dokumentbestillingId;
     VedtakStatus vedtakStatus = VedtakStatus.SENDT;
-
 }

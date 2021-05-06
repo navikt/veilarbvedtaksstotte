@@ -13,9 +13,9 @@ import java.util.List;
 @EqualsAndHashCode
 public abstract class Vedtak {
     long id;
-    String aktorId;
-    Hovedmal hovedmal;
-    Innsatsgruppe innsatsgruppe;
+    public String aktorId;
+    public Hovedmal hovedmal;
+    public Innsatsgruppe innsatsgruppe;
     String begrunnelse;
     String veilederIdent;
     String veilederNavn;
