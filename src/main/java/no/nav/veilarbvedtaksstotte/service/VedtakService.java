@@ -22,6 +22,7 @@ import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.utils.ValidationUtils;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,8 +34,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
-import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 
 @Slf4j
 @Service
@@ -112,7 +111,7 @@ public class VedtakService {
         flettInnVedtakInformasjon(utkastetVedtak);
 
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(utkastetVedtak.getAktorId());
-        validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, gjeldendeVedtak);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, gjeldendeVedtak);
 
         return sendDokumentOgFerdigstill(utkastetVedtak, authKontekst);
     }
@@ -368,7 +367,7 @@ public class VedtakService {
 
     public byte[] hentVedtakPdf(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        if (vedtak == null || !(vedtak instanceof FattetVedtak)) {
+        if (!(vedtak instanceof FattetVedtak)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke fattet vedtak");
         }
 
@@ -379,7 +378,7 @@ public class VedtakService {
 
     public boolean erFattet(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        return (vedtak == null || !(vedtak instanceof FattetVedtak));
+        return (!(vedtak instanceof FattetVedtak));
     }
 
     public boolean harUtkast(Fnr fnr) {
@@ -461,52 +460,6 @@ public class VedtakService {
                 vedtak.getOpplysninger(),
                 utkast
         );
-    }
-
-    void validerVedtakForFerdigstillingOgUtsending(UtkastetVedtak vedtak, Vedtak gjeldendeVedtak) {
-
-        if (vedtak.getVedtakStatus() != VedtakStatus.UTKAST) {
-            throw new IllegalStateException("Vedtak har feil status, forventet status UTKAST");
-        }
-
-        Innsatsgruppe innsatsgruppe = vedtak.getInnsatsgruppe();
-
-        if (innsatsgruppe == null) {
-            throw new IllegalStateException("Vedtak mangler innsatsgruppe");
-        }
-
-        boolean isGodkjentAvBeslutter = vedtak.getBeslutterProsessStatus() == GODKJENT_AV_BESLUTTER;
-
-        if (skalHaBeslutter(innsatsgruppe)) {
-            if (vedtak.getBeslutterIdent() == null) {
-                throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
-            } else if (!isGodkjentAvBeslutter) {
-                throw new IllegalStateException("Vedtak er ikke godkjent av beslutter");
-            }
-        }
-
-        if (vedtak.getOpplysninger() == null || vedtak.getOpplysninger().isEmpty()) {
-            throw new IllegalStateException("Vedtak mangler opplysninger");
-        }
-
-        if (vedtak.getHovedmal() == null && innsatsgruppe != Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
-            throw new IllegalStateException("Vedtak mangler hovedmål");
-        } else if (vedtak.getHovedmal() != null && innsatsgruppe == Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
-            throw new IllegalStateException("Vedtak med varig tilpasset innsats skal ikke ha hovedmål");
-        }
-
-        boolean harIkkeBegrunnelse = vedtak.getBegrunnelse() == null || vedtak.getBegrunnelse().trim().isEmpty();
-        boolean erStandard = innsatsgruppe == Innsatsgruppe.STANDARD_INNSATS;
-        boolean erGjeldendeVedtakVarig =
-                gjeldendeVedtak != null &&
-                        (gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS ||
-                                gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
-
-        if (harIkkeBegrunnelse && erStandard && erGjeldendeVedtakVarig) {
-            throw new IllegalStateException("Vedtak mangler begrunnelse siden gjeldende vedtak er varig");
-        } else if (harIkkeBegrunnelse && !erStandard) {
-            throw new IllegalStateException("Vedtak mangler begrunnelse");
-        }
     }
 
 }

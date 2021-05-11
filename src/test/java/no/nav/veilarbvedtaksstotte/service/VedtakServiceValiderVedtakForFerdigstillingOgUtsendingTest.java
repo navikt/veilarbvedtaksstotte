@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
+import no.nav.veilarbvedtaksstotte.utils.ValidationUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -16,11 +17,6 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
 
-    private static VedtakService vedtakService = new VedtakService(
-            null, null, null, null, null, null, null,
-            null, null, null, null, null, null, null, null
-    );
-
     @Test
     public void skal_ikke_feile_pa_gyldig_vedtak() {
         UtkastetVedtak utkastetVedtak = UtkastetVedtak.builder()
@@ -31,7 +27,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .opplysninger(Arrays.asList("opplysning 1", "opplysning 2"))
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
     }
 
     @Test
@@ -45,7 +41,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .opplysninger(Arrays.asList("opplysning 1", "opplysning 2"))
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
     }
 
     @Test
@@ -59,7 +55,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .beslutterIdent(TEST_BESLUTTER_IDENT)
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
     }
 
     @Test
@@ -74,7 +70,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .opplysninger(Arrays.asList("opplysning 1", "opplysning 2"))
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
     }
 
     @Test
@@ -89,7 +85,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .opplysninger(Arrays.asList("opplysning 1", "opplysning 2"))
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
     }
 
     @Test
@@ -103,7 +99,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .hovedmal(Hovedmal.SKAFFE_ARBEID)
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
     }
 
     @Test
@@ -117,7 +113,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .opplysninger(Arrays.asList("opplysning 1", "opplysning 2"))
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
     }
 
     @Test
@@ -134,7 +130,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .beslutterIdent(TEST_BESLUTTER_IDENT)
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
     }
 
     @Test
@@ -148,7 +144,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .opplysninger(Arrays.asList("opplysning 1", "opplysning 2"))
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
     }
 
     @Test
@@ -160,7 +156,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .opplysninger(Arrays.asList("opplysning 1", "opplysning 2"))
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, null);
     }
 
     @Test
@@ -178,6 +174,6 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
                 .innsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
                 .build();
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, gjeldendeVedtak);
+        ValidationUtils.validerVedtakForFerdigstillingOgUtsending(utkastetVedtak, gjeldendeVedtak);
     }
 }
