@@ -34,9 +34,7 @@ import org.mockito.Mockito.*
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
+import java.time.*
 
 class InnsatsbehovServiceTest {
 
@@ -329,7 +327,36 @@ class InnsatsbehovServiceTest {
                 identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
             )
         )
+    }
 
+    @Test
+    fun `innsatsbehov er fra Arena dersom, ny løsning har null, Arena fra samme dag uten tidspunkt, samme dag som oppfølgingsperioden startet`() {
+        val identer = gittBrukerIdenter()
+
+        val localDate = LocalDate.now().minusDays(2)
+        val localDateTimeNoonNoon = LocalDateTime.of(localDate, LocalTime.NOON)
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(ZonedDateTime.of(localDateTimeNoonNoon, ZoneId.systemDefault()), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = localDate,
+                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+                hovedmal = ArenaHovedmal.OKEDELT
+            )
+        )
+        assertAntallVedtakFraArena(identer, 1)
+        assertFattedeVedtakFraNyLøsning(identer, 0)
+        assertInnsatsbehov(
+            identer,
+            Innsatsbehov(
+                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+            )
+        )
     }
 
     @Test
@@ -745,6 +772,90 @@ class InnsatsbehovServiceTest {
                 identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
             )
         )
+    }
+
+    @Test
+    fun `unntak, vedtak fra Arena er gjeldende dersom fraDato er før startdato på gjeldende oppfølgingsperiode fra 2017`() {
+            val identer = gittBrukerIdenter()
+
+            val periodeStartdato = LocalDate.of(2017, 12, 2)
+            val vedtakFraDato = periodeStartdato.minusDays(1)
+
+            gittOppfolgingsperioder(
+                identer,
+                lagOppfolgingsperiode(ZonedDateTime.of(periodeStartdato, LocalTime.MIDNIGHT, ZoneId.systemDefault()), null)
+            )
+
+            lagre(
+                arenaVedtakDer(
+                    fnr = identer.fnr,
+                    fraDato = vedtakFraDato,
+                    innsatsgruppe = ArenaInnsatsgruppe.BATT,
+                    hovedmal = ArenaHovedmal.OKEDELT
+                )
+            )
+
+            assertAntallVedtakFraArena(identer, 1)
+            assertFattedeVedtakFraNyLøsning(identer, 0)
+            assertInnsatsbehov(
+                identer,
+                Innsatsbehov(
+                    identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+                )
+            )
+    }
+
+    @Test
+    fun `unntak, vedtak fra Arena er ikke gjeldende dersom fraDato er før startdato på gjeldende oppfølgingsperiode fra etter 2017`() {
+        val identer = gittBrukerIdenter()
+
+        val vedtakFraDato = LocalDate.of(2017, 12, 1)
+        val periodeStartdato = LocalDate.of(2018, 1, 1)
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(ZonedDateTime.of(periodeStartdato, LocalTime.MIDNIGHT, ZoneId.systemDefault()), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = vedtakFraDato,
+                innsatsgruppe = ArenaInnsatsgruppe.BATT,
+                hovedmal = ArenaHovedmal.OKEDELT
+            )
+        )
+
+        assertAntallVedtakFraArena(identer, 1)
+        assertFattedeVedtakFraNyLøsning(identer, 0)
+        assertInnsatsbehov(identer, null)
+    }
+
+    @Test
+    fun `unntak, vedtak fra Arena er ikke gjeldende dersom fraDato er før startdato på ikke gjeldende oppfølgingsperiode fra 2017`() {
+        val identer = gittBrukerIdenter()
+
+        val periodeStartdato = LocalDate.of(2017, 12, 2)
+        val vedtakFraDato = periodeStartdato.minusDays(1)
+
+        gittOppfolgingsperioder(
+            identer,
+            lagOppfolgingsperiode(ZonedDateTime.of(periodeStartdato, LocalTime.MIDNIGHT, ZoneId.systemDefault()), ZonedDateTime.now().minusYears(1)),
+            lagOppfolgingsperiode(ZonedDateTime.now().minusYears(1).plusDays(1), null)
+        )
+
+        lagre(
+            arenaVedtakDer(
+                fnr = identer.fnr,
+                fraDato = vedtakFraDato,
+                innsatsgruppe = ArenaInnsatsgruppe.BATT,
+                hovedmal = ArenaHovedmal.OKEDELT
+            )
+        )
+
+        assertAntallVedtakFraArena(identer, 1)
+        assertFattedeVedtakFraNyLøsning(identer, 0)
+        assertInnsatsbehov(identer, null)
     }
 
     fun assertFattedeVedtakFraNyLøsning(identer: BrukerIdenter, antall: Int) {

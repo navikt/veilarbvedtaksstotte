@@ -17,9 +17,7 @@ import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.*
 
 @Service
 class InnsatsbehovService(
@@ -127,21 +125,32 @@ class InnsatsbehovService(
 
     private fun innenforOppfolgingsperiode(
         arenaVedtak: ArenaVedtak,
-        sisteOppfolgingsperiode: OppfolgingPeriodeDTO
+        oppfolgingsperiode: OppfolgingPeriodeDTO
     ): Boolean {
 
         // Oppfolgingsperiode justert til å gjelde fra midnatt siden vi ikke kan beregne tidspunkt for når vedtaket ble
         // fattet dersom ikke Kafka-melding sendes samme dag som vedtaket fattes og får operation timestamp som kan brukes.
         val oppfolgingsperiodeFraMidnatt =
             OppfolgingPeriodeDTO(
-                ZonedDateTime.of(toLocalDate(sisteOppfolgingsperiode.startDato), LocalTime.MIDNIGHT, ZoneId.systemDefault()),
-                sisteOppfolgingsperiode.sluttDato
+                ZonedDateTime.of(toLocalDate(oppfolgingsperiode.startDato), LocalTime.MIDNIGHT, ZoneId.systemDefault()),
+                oppfolgingsperiode.sluttDato
             )
 
         return OppfolgingUtils
             .erDatoInnenforOppfolgingsperiode(
-                toZonedDateTime(arenaVedtak.beregnetFattetTidspunkt()), oppfolgingsperiodeFraMidnatt
-            )
+                toZonedDateTime(LocalDateTime.of(arenaVedtak.fraDato, LocalTime.MIDNIGHT)), oppfolgingsperiodeFraMidnatt
+            ) || skalUnntakshandteresSomInnenforOppfolgingsperiode(arenaVedtak, oppfolgingsperiodeFraMidnatt)
+    }
+
+    // Unntakshåndtering for vedtak som er fattet i innen 2017 og som er eldre enn oppfølgingsperiodens startdato som
+    // også må være i 2017.
+    private fun skalUnntakshandteresSomInnenforOppfolgingsperiode(
+        arenaVedtak: ArenaVedtak,
+        oppfolgingsperiode: OppfolgingPeriodeDTO
+    ): Boolean {
+        return arenaVedtak.fraDato.year <= 2017 &&
+                oppfolgingsperiode.startDato.year == 2017 &&
+                toLocalDate(oppfolgingsperiode.startDato).isAfter(arenaVedtak.fraDato)
     }
 
     private fun finnSisteArenaVedtak(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {
