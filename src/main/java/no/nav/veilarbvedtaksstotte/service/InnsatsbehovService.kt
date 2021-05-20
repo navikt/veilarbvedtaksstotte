@@ -1,8 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
@@ -11,13 +9,9 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDelt
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
-import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils
-import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDate
-import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
-import java.time.*
 
 @Service
 class InnsatsbehovService(
@@ -27,130 +21,73 @@ class InnsatsbehovService(
     val arenaVedtakRepository: ArenaVedtakRepository,
     val authService: AuthService,
     val brukerIdentService: BrukerIdentService,
-    val arenaVedtakService: ArenaVedtakService,
-    val veilarboppfolgingClient: VeilarboppfolgingClient,
+    val arenaVedtakService: ArenaVedtakService
 ) {
 
     val log = LoggerFactory.getLogger(InnsatsbehovService::class.java)
 
-    fun gjeldendeInnsatsbehov(fnr: Fnr): Innsatsbehov? {
+    fun sisteInnsatsbehov(fnr: Fnr): Innsatsbehov? {
         authService.sjekkTilgangTilBruker(fnr)
         val identer: BrukerIdenter = brukerIdentService.hentIdenter(fnr)
-        return gjeldendeInnsatsbehovMedKilder(identer).innsatsbehov
+        return sisteInnsatsbehovMedKilder(identer).innsatsbehov
     }
 
     private data class InnsatsbehovMedGrunnlag(
         val innsatsbehov: Innsatsbehov?,
         val fraArena: Boolean,
-        val gjeldendeVedtak: Vedtak?,
         val arenaVedtak: List<ArenaVedtak>
     )
 
-    private fun gjeldendeInnsatsbehovMedKilder(identer: BrukerIdenter): InnsatsbehovMedGrunnlag {
+    private fun sisteInnsatsbehovMedKilder(identer: BrukerIdenter): InnsatsbehovMedGrunnlag {
 
-        val gjeldendeVedtak: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
+        val sisteVedtak: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId.get())
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
-        if (gjeldendeVedtak == null && arenaVedtakListe.isEmpty()) {
+        if (sisteVedtak == null && arenaVedtakListe.isEmpty()) {
             return InnsatsbehovMedGrunnlag(
                 innsatsbehov = null,
                 fraArena = false,
-                gjeldendeVedtak = null,
                 arenaVedtak = arenaVedtakListe
             )
         }
 
-        val arenaVedtak = sisteArenaVedtakInnenforGjeldendeOppfolgingsperiode(arenaVedtakListe)
+        val sisteArenaVedtak = finnSisteArenaVedtak(arenaVedtakListe)
 
-        // Gjeldende vedtak fra denne løsningen
+        // Siste vedtak fra denne løsningen
         if (
-            (gjeldendeVedtak != null && arenaVedtak == null) ||
-            (gjeldendeVedtak != null && arenaVedtak != null &&
-                    gjeldendeVedtak.vedtakFattet.isAfter(arenaVedtak.beregnetFattetTidspunkt()))
+            (sisteVedtak != null && sisteArenaVedtak == null) ||
+            (sisteVedtak != null && sisteArenaVedtak != null &&
+                    sisteVedtak.vedtakFattet.isAfter(sisteArenaVedtak.beregnetFattetTidspunkt()))
         ) {
             return InnsatsbehovMedGrunnlag(
                 innsatsbehov = Innsatsbehov(
                     aktorId = identer.aktorId,
-                    innsatsgruppe = gjeldendeVedtak.innsatsgruppe,
-                    hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(gjeldendeVedtak.hovedmal)
+                    innsatsgruppe = sisteVedtak.innsatsgruppe,
+                    hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(sisteVedtak.hovedmal)
                 ),
                 fraArena = false,
-                gjeldendeVedtak = gjeldendeVedtak,
                 arenaVedtak = arenaVedtakListe
             )
 
-            // Gjeldende vedtak fra Arena
-        } else if (arenaVedtak != null) {
+            // Siste vedtak fra Arena
+        } else if (sisteArenaVedtak != null) {
             return InnsatsbehovMedGrunnlag(
                 innsatsbehov = Innsatsbehov(
                     aktorId = identer.aktorId,
-                    innsatsgruppe = ArenaInnsatsgruppe.tilInnsatsgruppe(arenaVedtak.innsatsgruppe),
-                    hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(arenaVedtak.hovedmal)
+                    innsatsgruppe = ArenaInnsatsgruppe.tilInnsatsgruppe(sisteArenaVedtak.innsatsgruppe),
+                    hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(sisteArenaVedtak.hovedmal)
                 ),
                 fraArena = true,
-                gjeldendeVedtak = gjeldendeVedtak,
                 arenaVedtak = arenaVedtakListe
             )
         }
 
-        // Ingen gjeldende vedtak
+        // Ingen vedtak
         return InnsatsbehovMedGrunnlag(
             innsatsbehov = null,
             fraArena = false,
-            gjeldendeVedtak = gjeldendeVedtak,
             arenaVedtak = arenaVedtakListe
         )
-    }
-
-    private fun sisteArenaVedtakInnenforGjeldendeOppfolgingsperiode(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {
-        val sisteArenaVedtak = finnSisteArenaVedtak(arenaVedtakListe)
-
-        if (sisteArenaVedtak == null) {
-            return null
-        }
-
-        val oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(sisteArenaVedtak.fnr.get())
-        val sisteOppfolgingsperiode: OppfolgingPeriodeDTO? =
-            OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder).orElse(null)
-
-        if (sisteOppfolgingsperiode != null &&
-            OppfolgingUtils.erOppfolgingsperiodeAktiv(sisteOppfolgingsperiode) &&
-            innenforOppfolgingsperiode(sisteArenaVedtak, sisteOppfolgingsperiode)
-        ) {
-            return sisteArenaVedtak
-        } else {
-            return null
-        }
-    }
-
-    private fun innenforOppfolgingsperiode(
-        arenaVedtak: ArenaVedtak,
-        oppfolgingsperiode: OppfolgingPeriodeDTO
-    ): Boolean {
-
-        // Oppfolgingsperiode justert til å gjelde fra midnatt siden vi ikke kan beregne tidspunkt for når vedtaket ble
-        // fattet dersom ikke Kafka-melding sendes samme dag som vedtaket fattes og får operation timestamp som kan brukes.
-        val oppfolgingsperiodeFraMidnatt =
-            OppfolgingPeriodeDTO(
-                ZonedDateTime.of(toLocalDate(oppfolgingsperiode.startDato), LocalTime.MIDNIGHT, ZoneId.systemDefault()),
-                oppfolgingsperiode.sluttDato
-            )
-
-        return OppfolgingUtils
-            .erDatoInnenforOppfolgingsperiode(
-                toZonedDateTime(LocalDateTime.of(arenaVedtak.fraDato, LocalTime.MIDNIGHT)), oppfolgingsperiodeFraMidnatt
-            ) || skalUnntakshandteresSomInnenforOppfolgingsperiode(arenaVedtak, oppfolgingsperiodeFraMidnatt)
-    }
-
-    // Unntakshåndtering for vedtak som er fattet i innen 2017 og som er eldre enn oppfølgingsperiodens startdato som
-    // også må være i 2017.
-    private fun skalUnntakshandteresSomInnenforOppfolgingsperiode(
-        arenaVedtak: ArenaVedtak,
-        oppfolgingsperiode: OppfolgingPeriodeDTO
-    ): Boolean {
-        return arenaVedtak.fraDato.year <= 2017 &&
-                oppfolgingsperiode.startDato.year == 2017 &&
-                toLocalDate(oppfolgingsperiode.startDato).isAfter(arenaVedtak.fraDato)
     }
 
     private fun finnSisteArenaVedtak(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {
@@ -165,19 +102,15 @@ class InnsatsbehovService(
         // oppdateringene i samme transaksjon, og følgende oppdatering kunne f.eks. også vært kjørt uavhengig i en
         // scheduled task. Feilhåndtering her skjer indirekte via feilhåndtering av Kafka-meldinger som vil bli
         // behandlet på nytt ved feil.
-        oppdaterInnsatsbehov(arenaVedtak)
+        oppdaterKafkaInnsatsbehov(arenaVedtak)
     }
 
-    private fun oppdaterInnsatsbehov(arenaVedtak: ArenaVedtak) {
+    private fun oppdaterKafkaInnsatsbehov(arenaVedtak: ArenaVedtak) {
         val identer = brukerIdentService.hentIdenter(arenaVedtak.fnr)
-        val (innsatsbehov, fraArena, gjeldendeVedtak, arenaVedtakListe) = gjeldendeInnsatsbehovMedKilder(identer)
-
-        if (fraArena && gjeldendeVedtak != null) {
-            vedtakRepository.settGjeldendeVedtakTilHistorisk(gjeldendeVedtak.aktorId)
-        }
+        val (innsatsbehov, fraArena, arenaVedtakListe) = sisteInnsatsbehovMedKilder(identer)
 
         if (fraArena &&
-            // hindrer at vi republiserer gjeldende innsatsbehov dersom eldre meldinger skulle bli konsumert:
+            // hindrer at vi republiserer innsatsbehov dersom eldre meldinger skulle bli konsumert:
             finnSisteArenaVedtak(arenaVedtakListe) == arenaVedtak
         ) {
             kafkaProducerService.sendInnsatsbehov(innsatsbehov)

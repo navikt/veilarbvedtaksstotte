@@ -7,8 +7,6 @@ import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
@@ -34,7 +32,8 @@ import org.mockito.Mockito.*
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
-import java.time.*
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 class InnsatsbehovServiceTest {
 
@@ -51,7 +50,6 @@ class InnsatsbehovServiceTest {
         lateinit var unleashService: UnleashService
         lateinit var brukerIdentService: BrukerIdentService
 
-        val veilarboppfolgingClient = mock(VeilarboppfolgingClient::class.java)
         val unleashClient = mock(UnleashClient::class.java)
         val pdlClient = mock(PdlClient::class.java)
         val aktorOppslagClient = mock(AktorOppslagClient::class.java)
@@ -77,7 +75,6 @@ class InnsatsbehovServiceTest {
                 vedtakRepository = vedtakRepository,
                 arenaVedtakRepository = arenaVedtakRepository,
                 arenaVedtakService = arenaVedtakService,
-                veilarboppfolgingClient = veilarboppfolgingClient,
                 transactor = transactor,
                 kafkaProducerService = kafkaProducerService
             )
@@ -99,91 +96,17 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
-    fun `innsatsbehov er null dersom, ny løsning har null, Arena har gamle utenfor gjeldende oppfølgingsperiode`() {
-        val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(4), ZonedDateTime.now().minusDays(2)),
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(1), null)
-        )
-
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = LocalDate.now().minusDays(3)
-            )
-        )
-        assertAntallVedtakFraArena(identer, 1)
-        assertFattedeVedtakFraNyLøsning(identer, 0)
-        assertInnsatsbehov(identer, null)
-    }
-
-    @Test
-    fun `innsatsbehov er null dersom, ny løsning har ikke gjeldende, Arena har null`() {
-
-        val identer = gittBrukerIdenter()
-
-        gittFattetVedtakDer(
-            aktorId = identer.aktorId,
-            gjeldende = false
-        )
-
-        assertAntallVedtakFraArena(identer, 0)
-        assertFattedeVedtakFraNyLøsning(identer, 1)
-        assertInnsatsbehov(identer, null)
-    }
-
-    @Test
-    fun `innsatsbehov er null dersom, ny løsning har ikke gjeldende, Arena har gamle utenfor oppfølgingsperiode`() {
-
-        val identer = gittBrukerIdenter(antallHistoriskeFnr = 1)
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(4), ZonedDateTime.now().minusDays(2)),
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(1), null)
-        )
-
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = LocalDate.now().minusDays(3)
-            )
-        )
-
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.historiskeFnr[0],
-                fraDato = LocalDate.now().minusDays(3)
-            )
-        )
-
-        gittFattetVedtakDer(
-            aktorId = identer.aktorId,
-            gjeldende = false
-        )
-
-        assertAntallVedtakFraArena(identer, 2)
-        assertFattedeVedtakFraNyLøsning(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, false)
-        assertInnsatsbehov(identer, null)
-    }
-
-    @Test
-    fun `innsatsbehov fra ny løsning dersom, ny løsning har gjeldende, Arena har null`() {
+    fun `innsatsbehov fra ny løsning dersom, ny løsning har vedtak, Arena har null`() {
 
         val identer = gittBrukerIdenter()
 
         gittFattetVedtakDer(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
-            hovedmal = Hovedmal.SKAFFE_ARBEID,
-            gjeldende = true
+            hovedmal = Hovedmal.SKAFFE_ARBEID
         )
 
         assertAntallVedtakFraArena(identer, 0)
-        assertGjeldendeVedtakNyLøsning(identer, true)
         assertInnsatsbehov(
             identer,
             Innsatsbehov(
@@ -193,48 +116,8 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
-    fun `innsatsbehov fra ny løsning dersom, ny løsning har gjeldende, Arena har gammelt utenfor oppfølgingsperiode`() {
+    fun `innsatsbehov fra ny løsning dersom nyere vedtak fra ny løsning enn fra Arena`() {
         val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(4), ZonedDateTime.now().minusDays(2)),
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(1), null)
-        )
-
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = LocalDate.now().minusDays(3),
-                innsatsgruppe = ArenaInnsatsgruppe.IKVAL
-            )
-        )
-
-        gittFattetVedtakDer(
-            aktorId = identer.aktorId,
-            innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
-            hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            gjeldende = true
-        )
-
-        assertAntallVedtakFraArena(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, true)
-        assertInnsatsbehov(
-            identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
-            )
-        )
-    }
-
-    @Test
-    fun `innsatsbehov fra ny løsning dersom, ny løsning har gjeldende, Arena har eldre innenfor oppfølgingsperiode`() {
-        val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(10), null)
-        )
 
         lagre(
             arenaVedtakDer(
@@ -249,12 +132,10 @@ class InnsatsbehovServiceTest {
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            gjeldende = true,
             vedtakFattetDato = LocalDateTime.now().minusDays(3)
         )
 
         assertAntallVedtakFraArena(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, true)
         assertInnsatsbehov(
             identer,
             Innsatsbehov(
@@ -264,13 +145,8 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
-    fun `innsatsbehov fra ny løsning dersom, ny løsning har gjeldende, Arena har eldre fra samme dag`() {
+    fun `innsatsbehov fra ny løsning dersom, ny løsning har vedtak, Arena har eldre fra samme dag`() {
         val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(10), null)
-        )
 
         lagre(
             arenaVedtakDer(
@@ -286,12 +162,10 @@ class InnsatsbehovServiceTest {
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            gjeldende = true,
             vedtakFattetDato = LocalDateTime.now().minusDays(3).plusMinutes(1)
         )
 
         assertAntallVedtakFraArena(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, true)
         assertInnsatsbehov(
             identer,
             Innsatsbehov(
@@ -301,14 +175,8 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
-    fun `innsatsbehov er fra Arena dersom, ny løsning har null, Arena har innenfor oppfølgingsperiode`() {
+    fun `innsatsbehov er fra Arena dersom, ny løsning har null, Arena vedtak`() {
         val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), ZonedDateTime.now().minusDays(3)),
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(2), null)
-        )
 
         lagre(
             arenaVedtakDer(
@@ -330,77 +198,8 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
-    fun `innsatsbehov er fra Arena dersom, ny løsning har null, Arena fra samme dag uten tidspunkt, samme dag som oppfølgingsperioden startet`() {
+    fun `innsatsbehov er fra Arena dersom nyere vedtak fra Arena enn fra ny løsning`() {
         val identer = gittBrukerIdenter()
-
-        val localDate = LocalDate.now().minusDays(2)
-        val localDateTimeNoonNoon = LocalDateTime.of(localDate, LocalTime.NOON)
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.of(localDateTimeNoonNoon, ZoneId.systemDefault()), null)
-        )
-
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = localDate,
-                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                hovedmal = ArenaHovedmal.OKEDELT
-            )
-        )
-        assertAntallVedtakFraArena(identer, 1)
-        assertFattedeVedtakFraNyLøsning(identer, 0)
-        assertInnsatsbehov(
-            identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
-            )
-        )
-    }
-
-    @Test
-    fun `innsatsbehov er fra Arena dersom, ny løsning har ikke gjeldende, Arena har innenfor oppfølgingsperiode`() {
-        val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
-        )
-
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = LocalDate.now().minusDays(4),
-                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaHovedmal.SKAFFEA
-            )
-        )
-
-        gittFattetVedtakDer(
-            aktorId = identer.aktorId,
-            gjeldende = false
-        )
-
-        assertFattedeVedtakFraNyLøsning(identer, 1)
-        assertAntallVedtakFraArena(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, false)
-        assertInnsatsbehov(
-            identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
-            )
-        )
-    }
-
-    @Test
-    fun `innsatsbehov er fra Arena dersom, ny løsning har gjeldende, Arena har nyere innenfor oppfølgingsperiode`() {
-        val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
-        )
 
         lagre(
             arenaVedtakDer(
@@ -415,13 +214,11 @@ class InnsatsbehovServiceTest {
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            gjeldende = true,
             vedtakFattetDato = LocalDateTime.now().minusDays(5)
         )
 
         assertFattedeVedtakFraNyLøsning(identer, 1)
         assertAntallVedtakFraArena(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, true)
         assertInnsatsbehov(
             identer,
             Innsatsbehov(
@@ -431,13 +228,8 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
-    fun `innsatsbehov er fra Arena dersom, ny løsning har gjeldende, Arena har nyere fra samme dag`() {
+    fun `innsatsbehov er fra Arena dersom, ny løsning har vedtak, Arena har nyere fra samme dag`() {
         val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
-        )
 
         lagre(
             arenaVedtakDer(
@@ -453,13 +245,11 @@ class InnsatsbehovServiceTest {
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            gjeldende = true,
             vedtakFattetDato = LocalDateTime.now().minusDays(4)
         )
 
         assertFattedeVedtakFraNyLøsning(identer, 1)
         assertAntallVedtakFraArena(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, true)
         assertInnsatsbehov(
             identer,
             Innsatsbehov(
@@ -469,13 +259,8 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
-    fun `innsatsbehov er siste fra Arena dersom, ny løsning har null, Arena har også på historiske fnr innenfor samme oppfølgingsperiode`() {
+    fun `innsatsbehov er siste fra Arena dersom, ny løsning har null, Arena har også på historiske fnr`() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 3)
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(10), null)
-        )
 
         lagre(
             arenaVedtakDer(
@@ -499,7 +284,6 @@ class InnsatsbehovServiceTest {
 
         assertFattedeVedtakFraNyLøsning(identer, 0)
         assertAntallVedtakFraArena(identer, 4)
-        assertGjeldendeVedtakNyLøsning(identer, false)
         assertInnsatsbehov(
             identer,
             Innsatsbehov(
@@ -509,13 +293,8 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
-    fun `innsatsbehov er siste fra Arena dersom, ny løsning har null, Arena har bare på historiske fnr innenfor samme oppfølgingsperiode`() {
+    fun `innsatsbehov er siste fra Arena dersom, ny løsning har null, Arena har bare på historiske fnr`() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 4)
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(10), null)
-        )
 
         lagre(
             arenaVedtakDer(
@@ -541,7 +320,6 @@ class InnsatsbehovServiceTest {
 
         assertFattedeVedtakFraNyLøsning(identer, 0)
         assertAntallVedtakFraArena(identer, 4)
-        assertGjeldendeVedtakNyLøsning(identer, false)
         assertInnsatsbehov(
             identer,
             Innsatsbehov(
@@ -553,11 +331,6 @@ class InnsatsbehovServiceTest {
     @Test
     fun `innsatsbehov oppdateres ved melding om nytt vedtak fra Arena`() {
         val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
-        )
 
         assertAntallVedtakFraArena(identer, 0)
 
@@ -577,25 +350,18 @@ class InnsatsbehovServiceTest {
     }
 
     @Test
-    fun `innsatsbehov oppdateres ved melding om nytt vedtak fra Arena og setter gjeldende fra ny løsning til false`() {
+    fun `innsatsbehov oppdateres ved melding om nytt vedtak fra Arena som er nyere enn vedtak fra ny løsning`() {
         val identer = gittBrukerIdenter()
 
         gittFattetVedtakDer(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            gjeldende = true,
             vedtakFattetDato = LocalDateTime.now().minusDays(3)
-        )
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         assertAntallVedtakFraArena(identer, 0)
         assertFattedeVedtakFraNyLøsning(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, true)
 
         innsatsbehovService.behandleEndringFraArena(
             arenaVedtakDer(
@@ -614,7 +380,6 @@ class InnsatsbehovServiceTest {
 
         assertInnsatsbehov(identer, forventetInnsatsbehov)
         assertFattedeVedtakFraNyLøsning(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, false)
     }
 
     @Test
@@ -624,18 +389,11 @@ class InnsatsbehovServiceTest {
         gittFattetVedtakDer(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
-            hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            gjeldende = true
-        )
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
+            hovedmal = Hovedmal.BEHOLDE_ARBEID
         )
 
         assertAntallVedtakFraArena(identer, 0)
         assertFattedeVedtakFraNyLøsning(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, true)
 
         innsatsbehovService.behandleEndringFraArena(
             arenaVedtakDer(
@@ -654,7 +412,6 @@ class InnsatsbehovServiceTest {
 
         assertInnsatsbehov(identer, forventetInnsatsbehov)
         assertFattedeVedtakFraNyLøsning(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, true)
     }
 
     @Test
@@ -665,18 +422,11 @@ class InnsatsbehovServiceTest {
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = Hovedmal.SKAFFE_ARBEID,
-            gjeldende = true,
             vedtakFattetDato = LocalDateTime.now().minusDays(2)
-        )
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
         )
 
         assertAntallVedtakFraArena(identer, 0)
         assertFattedeVedtakFraNyLøsning(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, true)
 
         innsatsbehovService.behandleEndringFraArena(
             arenaVedtakDer(
@@ -695,17 +445,11 @@ class InnsatsbehovServiceTest {
 
         assertInnsatsbehov(identer, forventetInnsatsbehov)
         assertFattedeVedtakFraNyLøsning(identer, 1)
-        assertGjeldendeVedtakNyLøsning(identer, true)
     }
 
     @Test
     fun `innsatsbehov oppdateres ikke dersom bruker har nyere vedtak fra Arena fra før`() {
         val identer = gittBrukerIdenter()
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
-        )
 
         lagre(
             arenaVedtakDer(
@@ -740,11 +484,6 @@ class InnsatsbehovServiceTest {
     fun `innsatsbehov oppdateres ikke dersom bruker har nyere vedtak fra Arena fra før med annet fnr`() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 1)
 
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.now().minusDays(5), null)
-        )
-
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
@@ -774,90 +513,6 @@ class InnsatsbehovServiceTest {
         )
     }
 
-    @Test
-    fun `unntak, vedtak fra Arena er gjeldende dersom fraDato er før startdato på gjeldende oppfølgingsperiode fra 2017`() {
-            val identer = gittBrukerIdenter()
-
-            val periodeStartdato = LocalDate.of(2017, 12, 2)
-            val vedtakFraDato = periodeStartdato.minusDays(1)
-
-            gittOppfolgingsperioder(
-                identer,
-                lagOppfolgingsperiode(ZonedDateTime.of(periodeStartdato, LocalTime.MIDNIGHT, ZoneId.systemDefault()), null)
-            )
-
-            lagre(
-                arenaVedtakDer(
-                    fnr = identer.fnr,
-                    fraDato = vedtakFraDato,
-                    innsatsgruppe = ArenaInnsatsgruppe.BATT,
-                    hovedmal = ArenaHovedmal.OKEDELT
-                )
-            )
-
-            assertAntallVedtakFraArena(identer, 1)
-            assertFattedeVedtakFraNyLøsning(identer, 0)
-            assertInnsatsbehov(
-                identer,
-                Innsatsbehov(
-                    identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
-                )
-            )
-    }
-
-    @Test
-    fun `unntak, vedtak fra Arena er ikke gjeldende dersom fraDato er før startdato på gjeldende oppfølgingsperiode fra etter 2017`() {
-        val identer = gittBrukerIdenter()
-
-        val vedtakFraDato = LocalDate.of(2017, 12, 1)
-        val periodeStartdato = LocalDate.of(2018, 1, 1)
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.of(periodeStartdato, LocalTime.MIDNIGHT, ZoneId.systemDefault()), null)
-        )
-
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = vedtakFraDato,
-                innsatsgruppe = ArenaInnsatsgruppe.BATT,
-                hovedmal = ArenaHovedmal.OKEDELT
-            )
-        )
-
-        assertAntallVedtakFraArena(identer, 1)
-        assertFattedeVedtakFraNyLøsning(identer, 0)
-        assertInnsatsbehov(identer, null)
-    }
-
-    @Test
-    fun `unntak, vedtak fra Arena er ikke gjeldende dersom fraDato er før startdato på ikke gjeldende oppfølgingsperiode fra 2017`() {
-        val identer = gittBrukerIdenter()
-
-        val periodeStartdato = LocalDate.of(2017, 12, 2)
-        val vedtakFraDato = periodeStartdato.minusDays(1)
-
-        gittOppfolgingsperioder(
-            identer,
-            lagOppfolgingsperiode(ZonedDateTime.of(periodeStartdato, LocalTime.MIDNIGHT, ZoneId.systemDefault()), ZonedDateTime.now().minusYears(1)),
-            lagOppfolgingsperiode(ZonedDateTime.now().minusYears(1).plusDays(1), null)
-        )
-
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = vedtakFraDato,
-                innsatsgruppe = ArenaInnsatsgruppe.BATT,
-                hovedmal = ArenaHovedmal.OKEDELT
-            )
-        )
-
-        assertAntallVedtakFraArena(identer, 1)
-        assertFattedeVedtakFraNyLøsning(identer, 0)
-        assertInnsatsbehov(identer, null)
-    }
-
     fun assertFattedeVedtakFraNyLøsning(identer: BrukerIdenter, antall: Int) {
         assertEquals(
             "Antall vedtak fra ny løsning",
@@ -874,19 +529,11 @@ class InnsatsbehovServiceTest {
         )
     }
 
-    fun assertGjeldendeVedtakNyLøsning(identer: BrukerIdenter, gjeldende: Boolean) {
-        assertEquals(
-            "Har lagret vedtak med gjeldende-flagg = true",
-            gjeldende,
-            vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()) != null
-        )
-    }
-
     fun assertInnsatsbehov(identer: BrukerIdenter, forventet: Innsatsbehov?) {
         assertEquals(
             "Innsatsbehov",
             forventet,
-            innsatsbehovService.gjeldendeInnsatsbehov(identer.fnr)
+            innsatsbehovService.sisteInnsatsbehov(identer.fnr)
         )
     }
 
@@ -926,12 +573,6 @@ class InnsatsbehovServiceTest {
         return brukerIdenter
     }
 
-    private fun gittOppfolgingsperioder(identer: BrukerIdenter, vararg perioder: OppfolgingPeriodeDTO) {
-        identer.historiskeFnr.plus(identer.fnr).forEach {
-            `when`(veilarboppfolgingClient.hentOppfolgingsperioder(it.get())).thenReturn(perioder.asList())
-        }
-    }
-
     private fun arenaVedtakDer(
         fnr: Fnr,
         fraDato: LocalDate = LocalDate.now(),
@@ -968,25 +609,14 @@ class InnsatsbehovServiceTest {
         aktorId: AktorId,
         innsatsgruppe: Innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
         hovedmal: Hovedmal = Hovedmal.SKAFFE_ARBEID,
-        gjeldende: Boolean,
         vedtakFattetDato: LocalDateTime = LocalDateTime.now()
     ) {
         vedtakRepository.opprettUtkast(aktorId.get(), TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID)
         val vedtak = vedtakRepository.hentUtkast(aktorId.get())
-        vedtak.setInnsatsgruppe(innsatsgruppe)
-        vedtak.setHovedmal(hovedmal)
+        vedtak.innsatsgruppe = innsatsgruppe
+        vedtak.hovedmal = hovedmal
         vedtakRepository.oppdaterUtkast(vedtak.id, vedtak)
         vedtakRepository.ferdigstillVedtak(vedtak.id, DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID))
-        if (!gjeldende) {
-            vedtakRepository.settGjeldendeVedtakTilHistorisk(aktorId.get())
-        }
         jdbcTemplate.update("UPDATE VEDTAK SET VEDTAK_FATTET = ? WHERE ID = ?", vedtakFattetDato, vedtak.id)
-    }
-
-    private fun lagOppfolgingsperiode(start: ZonedDateTime, slutt: ZonedDateTime?): OppfolgingPeriodeDTO {
-        val periode = OppfolgingPeriodeDTO()
-        periode.setStartDato(start)
-        periode.setSluttDato(slutt)
-        return periode
     }
 }

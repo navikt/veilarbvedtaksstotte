@@ -16,7 +16,7 @@ class InnsatsbehovController(val innsatsbehovService: InnsatsbehovService) {
 
     @GetMapping
     fun hentInnsatsbehov(@RequestParam("fnr") fnr: Fnr): ResponseEntity<InnsatsbehovDTO> {
-        return innsatsbehovService.gjeldendeInnsatsbehov(fnr)
+        return innsatsbehovService.sisteInnsatsbehov(fnr)
             ?.let { ResponseEntity(InnsatsbehovDTO.fraInnsatsbehov(it), HttpStatus.OK) }
             ?: ResponseEntity(HttpStatus.NO_CONTENT)
     }
