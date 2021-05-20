@@ -110,6 +110,11 @@ public class VedtaksstotteRepository {
         return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, aktorId));
     }
 
+    public Vedtak hentSisteVedtak(String aktorId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ? ORDER BY %s DESC LIMIT 1", VEDTAK_TABLE, AKTOR_ID, STATUS, VEDTAK_FATTET);
+        return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, aktorId, VedtakStatus.SENDT.name()));
+    }
+
     public void settGjeldendeVedtakTilHistorisk(String aktorId) {
        db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
     }

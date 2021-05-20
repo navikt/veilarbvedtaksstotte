@@ -40,17 +40,4 @@ public class OppfolgingUtils {
             return 0;
         });
     }
-
-    public static boolean erDatoInnenforOppfolgingsperiode(ZonedDateTime dato,
-                                                           OppfolgingPeriodeDTO oppfolgingPeriode) {
-        return !dato.isBefore(oppfolgingPeriode.getStartDato()) &&
-                (oppfolgingPeriode.getSluttDato() == null || !dato.isAfter(oppfolgingPeriode.getSluttDato()));
-
-    }
-
-    public static boolean erOppfolgingsperiodeAktiv(OppfolgingPeriodeDTO oppfolgingPeriode) {
-        ZonedDateTime now = ZonedDateTime.now();
-        return !oppfolgingPeriode.getStartDato().isAfter(now) &&
-                (oppfolgingPeriode.getSluttDato() == null || !oppfolgingPeriode.getSluttDato().isBefore(now));
-    }
 }

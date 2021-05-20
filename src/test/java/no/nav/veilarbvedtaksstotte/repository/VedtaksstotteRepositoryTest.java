@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
+import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
+import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.UTKAST;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.Assert.*;
 
@@ -195,5 +197,22 @@ public class VedtaksstotteRepositoryTest {
 
         assertNotNull(fattetVedtak);
         assertNotNull("Vedtak Fattet tidspunkt kan ikke vare null", fattetVedtak.getVedtakFattet());
+    }
+
+    @Test
+    public void henterSisteVedtak() {
+        String sql =
+                "INSERT INTO VEDTAK(AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, UTKAST_SIST_OPPDATERT, VEDTAK_FATTET)"
+                        + " values(?, ?, ?, ?, ?, ?)";
+        LocalDateTime now = LocalDateTime.now();
+        db.update(sql, TEST_AKTOR_ID, "veileder1", TEST_OPPFOLGINGSENHET_ID, SENDT.name(), now.minusDays(2), now.minusDays(2));
+        db.update(sql, TEST_AKTOR_ID, "veileder2", TEST_OPPFOLGINGSENHET_ID, SENDT.name(), now.minusDays(1), now.minusDays(1));
+        db.update(sql, TEST_AKTOR_ID, "veileder3", TEST_OPPFOLGINGSENHET_ID, SENDT.name(), now.minusDays(3), now.minusDays(3));
+        db.update(sql, TEST_AKTOR_ID, "veileder4", TEST_OPPFOLGINGSENHET_ID, UTKAST.name(), now, now);
+
+        Vedtak vedtak = vedtaksstotteRepository.hentSisteVedtak(TEST_AKTOR_ID);
+
+        assertNotNull(vedtak);
+        assertEquals("veileder2", vedtak.getVeilederIdent());
     }
 }
