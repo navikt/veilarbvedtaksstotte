@@ -48,7 +48,6 @@ public class KafkaConsumerService {
 
     public void behandleEndringPaAvsluttOppfolging(KafkaAvsluttOppfolging kafkaAvsluttOppfolging) {
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(kafkaAvsluttOppfolging.getAktorId());
-        kafkaProducerService.slettInnsatsbehov(AktorId.of(kafkaAvsluttOppfolging.getAktorId()));
     }
 
     public void behandleEndringPaOppfolgingsbruker(KafkaOppfolgingsbrukerEndring kafkaOppfolgingsbrukerEndring) {

@@ -41,7 +41,6 @@ public class KafkaConsumerServiceTest {
         kafkaConsumerService.behandleEndringPaAvsluttOppfolging(new KafkaAvsluttOppfolging(aktorId, ZonedDateTime.now()));
 
         verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(eq(aktorId));
-        verify(kafkaProducerService).slettInnsatsbehov(AktorId.of(aktorId));
     }
 
     @Test

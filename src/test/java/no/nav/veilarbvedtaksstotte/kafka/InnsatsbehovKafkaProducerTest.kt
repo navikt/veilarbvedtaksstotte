@@ -64,7 +64,7 @@ class InnsatsbehovKafkaProducerTest {
     lateinit var kafkaProducerService: KafkaProducerService
 
     @Test
-    fun `produserer melding for endring av innsatsbehov med nytt innsatsbehov og tombstone (null) for sletting`() {
+    fun `produserer melding for endring av innsatsbehov med nytt innsatsbehov`() {
         val aktorId = AktorId("123123")
         val arenaVedtak = ArenaVedtak(
             fnr = Fnr("11111111111"),
@@ -109,12 +109,6 @@ class InnsatsbehovKafkaProducerTest {
                 Innsatsbehov(aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, SKAFFE_ARBEID),
                 konsumertMelding.get()[aktorId]
             )
-        }
-
-        kafkaProducerService.slettInnsatsbehov(aktorId)
-
-        TestUtils.verifiserAsynkront(10, TimeUnit.SECONDS) {
-            assertNull(konsumertMelding.get()[aktorId])
         }
     }
 
