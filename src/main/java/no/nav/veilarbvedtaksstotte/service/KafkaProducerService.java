@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage;
-import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
@@ -24,42 +23,33 @@ public class KafkaProducerService {
     }
 
     public void sendVedtakStatusEndring(KafkaVedtakStatusEndring vedtakStatusEndring) {
-        ProducerRecord<String, String> record =
+        ProducerRecord<String, String> producerRecord =
                 toJsonProducerRecord(
                         kafkaProperties.getVedtakStatusEndringTopic(),
                         vedtakStatusEndring.getAktorId(),
                         vedtakStatusEndring
                 );
 
-        producerRecordStorage.store(record);
+        producerRecordStorage.store(producerRecord);
     }
 
     public void sendVedtakSendt(KafkaVedtakSendt vedtakSendt) {
-        ProducerRecord<String, String> record =
+        ProducerRecord<String, String> producerRecord =
                 toJsonProducerRecord(
                         kafkaProperties.getVedtakSendtTopic(),
                         vedtakSendt.getAktorId(),
                         vedtakSendt
                 );
 
-        producerRecordStorage.store(record);
-    }
-
-    public void slettInnsatsbehov(AktorId aktorId) {
-        sendInnsatsbehov(aktorId, null);
+        producerRecordStorage.store(producerRecord);
     }
 
     public void sendInnsatsbehov(Innsatsbehov innsatsbehov) {
-        sendInnsatsbehov(innsatsbehov.getAktorId(), innsatsbehov);
-    }
-
-    private void sendInnsatsbehov(AktorId aktorId, Innsatsbehov innsatsbehov) {
-        String json = innsatsbehov == null ? null : toJson(innsatsbehov);
         ProducerRecord<String, String> producerRecord =
                 toProducerRecord(
                         kafkaProperties.getInnsatsbehovTopic(),
-                        aktorId.get(),
-                        json
+                        innsatsbehov.getAktorId().get(),
+                        toJson(innsatsbehov)
                 );
 
         producerRecordStorage.store(producerRecord);

@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import no.nav.common.json.JsonUtils
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
 import no.nav.common.types.identer.AktorId
@@ -45,15 +44,6 @@ class KafkaProducerServiceTest {
         kafkaProperties.vedtakStatusEndringTopic = "vedtakStatusEndringTopic"
         MockitoAnnotations.initMocks(this);
         kafkaProducerService = KafkaProducerService(producerRecordStorage, kafkaProperties)
-    }
-
-    @Test
-    fun `lagrer forventet record verdi for sletting av innsatsbehov`() {
-        kafkaProducerService.slettInnsatsbehov(AktorId(TEST_AKTOR_ID))
-
-        verify(producerRecordStorage).store(argumentCaptor.capture())
-
-        assertNull(argumentCaptor.value.value())
     }
 
     @Test
