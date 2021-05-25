@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Import;
         VedtakController.class,
         UtkastController.class,
         UtrullingController.class,
-        AdminController.class
+        AdminController.class,
+        InnsatsbehovController.class
 })
 public class ControllerTestConfig {}

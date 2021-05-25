@@ -21,7 +21,9 @@ import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
+import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService;
+import no.nav.veilarbvedtaksstotte.utils.StoreOnFailureArenaTopicConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +76,10 @@ public class KafkaConfig {
                 jsonConsumer(KafkaAvsluttOppfolging.class, kafkaConsumerService::behandleEndringPaAvsluttOppfolging),
 
                 kafkaProperties.endringPaOppfolgingsBrukerTopic,
-                jsonConsumer(KafkaOppfolgingsbrukerEndring.class, kafkaConsumerService::behandleEndringPaOppfolgingsbruker)
+                jsonConsumer(KafkaOppfolgingsbrukerEndring.class, kafkaConsumerService::behandleEndringPaOppfolgingsbruker),
+
+                kafkaProperties.arenaVedtakTopic,
+                jsonConsumer(ArenaVedtakRecord.class, kafkaConsumerService::behandleArenaVedtak)
         );
     }
 
@@ -87,10 +92,25 @@ public class KafkaConfig {
             MeterRegistry meterRegistry
     ) {
         return KafkaConsumerClientBuilder.<String, String>builder()
-                .withProps(onPremDefaultConsumerProperties(CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials))
+                .withProperties(onPremDefaultConsumerProperties(CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials))
                 .withRepository(kafkaConsumerRepository)
                 .withSerializers(new StringSerializer(), new StringSerializer())
-                .withStoreOnFailureConsumers(topicConsumers)
+                .withStoreOnFailureConsumer(
+                        kafkaProperties.endringPaAvsluttOppfolgingTopic,
+                        topicConsumers.get(kafkaProperties.endringPaAvsluttOppfolgingTopic)
+                )
+                .withStoreOnFailureConsumer(
+                        kafkaProperties.endringPaOppfolgingsBrukerTopic,
+                        topicConsumers.get(kafkaProperties.endringPaOppfolgingsBrukerTopic)
+                )
+                .withConsumer(
+                        kafkaProperties.arenaVedtakTopic,
+                        new StoreOnFailureArenaTopicConsumer<>(
+                                topicConsumers.get(kafkaProperties.arenaVedtakTopic),
+                                kafkaConsumerRepository,
+                                new StringSerializer(),
+                                new StringSerializer())
+                )
                 .withMetrics(meterRegistry)
                 .withLogging()
                 .build();

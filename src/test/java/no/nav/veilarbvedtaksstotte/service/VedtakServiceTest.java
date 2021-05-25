@@ -115,21 +115,21 @@ public class VedtakServiceTest {
         dokumentServiceV2 = new DokumentServiceV2(
                 veilarbdokumentClient, veilarbarenaClient, veilarbpersonClient, dokarkivClient, dokdistribusjonClient);
         vedtakService = new VedtakService(
+                transactor,
                 vedtaksstotteRepository,
-                kilderRepository,
-                oyeblikksbildeService,
-                meldingRepository,
                 beslutteroversiktRepository,
-                authService,
+                kilderRepository,
+                meldingRepository,
                 veilarbdokumentClient,
                 null,
+                authService,
+                unleashService,
+                metricsService,
+                oyeblikksbildeService,
                 veilederService,
                 malTypeService,
                 vedtakStatusEndringService,
-                metricsService,
-                transactor,
-                dokumentServiceV2,
-                unleashService
+                dokumentServiceV2
         );
     }
 
@@ -147,14 +147,20 @@ public class VedtakServiceTest {
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
         when(veilarbdokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
-        when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR)).thenReturn(CV_DATA);
-        when(registreringClient.hentRegistreringDataJson(TEST_FNR)).thenReturn(REGISTRERING_DATA);
-        when(egenvurderingClient.hentEgenvurdering(TEST_FNR)).thenReturn(EGENVURDERING_DATA);
-        when(aktorregisterClient.hentAktorId(Fnr.of(TEST_FNR))).thenReturn(AktorId.of(TEST_AKTOR_ID));
-        when(aktorregisterClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(Fnr.of(TEST_FNR));
-        when(veilarbarenaClient.oppfolgingsenhet(Fnr.of(TEST_FNR))).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
-        when(veilarbarenaClient.oppfolgingssak(Fnr.of(TEST_FNR))).thenReturn(TEST_OPPFOLGINGSSAK);
-        when(veilarbpersonClient.hentPersonNavn(TEST_FNR)).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
+        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
+        when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(CV_DATA);
+        when(registreringClient.hentRegistreringDataJson(TEST_FNR.get())).thenReturn(REGISTRERING_DATA);
+        when(egenvurderingClient.hentEgenvurdering(TEST_FNR.get())).thenReturn(EGENVURDERING_DATA);
+        when(aktorregisterClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
+        when(aktorregisterClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
+        when(veilarbarenaClient.oppfolgingsenhet(TEST_FNR)).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
+        when(veilarbarenaClient.oppfolgingssak(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSSAK);
+        when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
+        when(dokarkivClient.opprettJournalpost(any()))
+                .thenReturn(new OpprettetJournalpostDTO(
+                        TEST_JOURNALPOST_ID,
+                        true,
+                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
     }
 
 
@@ -186,12 +192,6 @@ public class VedtakServiceTest {
         gittVersjon2AvFattVedtak();
         gittUtkastKlarForUtsendelse();
 
-        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
-        when(dokarkivClient.opprettJournalpost(any()))
-                .thenReturn(new OpprettetJournalpostDTO(
-                        TEST_JOURNALPOST_ID,
-                        true,
-                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
         when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
 
@@ -315,7 +315,6 @@ public class VedtakServiceTest {
         gittVersjon2AvFattVedtak();
         gittUtkastKlarForUtsendelse();
 
-        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
         when(dokarkivClient.opprettJournalpost(any()))
                 .thenReturn(new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
@@ -344,12 +343,6 @@ public class VedtakServiceTest {
         gittVersjon2AvFattVedtak();
         gittUtkastKlarForUtsendelse();
 
-        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
-        when(dokarkivClient.opprettJournalpost(any()))
-                .thenReturn(new OpprettetJournalpostDTO(
-                        TEST_JOURNALPOST_ID,
-                        true,
-                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
         when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenThrow(new RuntimeException());
 
@@ -386,7 +379,6 @@ public class VedtakServiceTest {
     @Test
     @Ignore // Testen er ustabil på GHA
     public void fattVedtak_v2_sender_ikke_mer_enn_en_gang() {
-        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
         when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
         withContext(() -> {

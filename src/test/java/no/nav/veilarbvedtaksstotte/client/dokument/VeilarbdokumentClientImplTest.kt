@@ -22,7 +22,7 @@ class VeilarbdokumentClientImplTest {
     private val wireMockRule = WireMockRule()
 
     val sendDokumentDTO: SendDokumentDTO = SendDokumentDTO(
-        brukerFnr = Fnr(TEST_FNR),
+        brukerFnr = TEST_FNR,
         malType = SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
         enhetId = EnhetId(TEST_OPPFOLGINGSENHET_ID),
         begrunnelse = TEST_BEGRUNNELSE,
@@ -109,7 +109,7 @@ class VeilarbdokumentClientImplTest {
 
         val produserDokumentV2DTO =
             ProduserDokumentV2DTO(
-                brukerFnr = Fnr(TEST_FNR),
+                brukerFnr = TEST_FNR,
                 malType = SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
                 enhetId = EnhetId(TEST_OPPFOLGINGSENHET_ID),
                 begrunnelse = TEST_BEGRUNNELSE,

@@ -81,7 +81,7 @@ class DokumentServiceV2(
                 id = fnr.get(),
                 idType = OpprettJournalpostDTO.Bruker.IdType.FNR
             ),
-            OpprettJournalpostDTO.Sak(
+                sak = OpprettJournalpostDTO.Sak(
                 fagsakId = oppfolgingssak,
                 fagsaksystem = "AO01", // Arena-kode
                 sakstype = OpprettJournalpostDTO.Sak.Type.FAGSAK

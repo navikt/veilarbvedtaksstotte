@@ -2,11 +2,14 @@ package no.nav.veilarbvedtaksstotte.config;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import net.javacrumbs.shedlock.core.LockProvider;
+import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.featuretoggle.UnleashClient;
+import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
@@ -35,7 +38,8 @@ import static org.mockito.Mockito.mock;
         RepositoryTestConfig.class,
         ServiceTestConfig.class,
         FilterTestConfig.class,
-        HealthConfig.class
+        HealthConfig.class,
+        KafkaTestConfig.class
 })
 public class ApplicationTestConfig {
 
@@ -87,5 +91,15 @@ public class ApplicationTestConfig {
     @Bean
     public AuthContextHolder authContextHolder() {
         return AuthContextHolderThreadLocal.instance();
+    }
+
+    @Bean
+    public LeaderElectionClient leaderElectionClient() {
+        return () -> true;
+    }
+
+    @Bean
+    public LockProvider lockProvider(JdbcTemplate jdbcTemplate) {
+        return new JdbcTemplateLockProvider(jdbcTemplate);
     }
 }

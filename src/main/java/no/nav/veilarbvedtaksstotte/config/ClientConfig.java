@@ -9,6 +9,8 @@ import no.nav.common.client.aktoroppslag.CachedAktorOppslagClient;
 import no.nav.common.client.aktoroppslag.PdlAktorOppslagClient;
 import no.nav.common.client.aktoroppslag.ToggledAktorOppslagClient;
 import no.nav.common.client.aktorregister.AktorregisterHttpClient;
+import no.nav.common.client.pdl.PdlClient;
+import no.nav.common.client.pdl.PdlClientImpl;
 import no.nav.common.client.norg2.CachedNorg2Client;
 import no.nav.common.client.norg2.Norg2Client;
 import no.nav.common.client.norg2.NorgHttp2Client;
@@ -132,18 +134,24 @@ public class ClientConfig {
     }
 
     @Bean
+    public PdlClient pdlClient(SystemUserTokenProvider systemUserTokenProvider) {
+        String pdlUrl = createServiceUrl("pdl-api", "default", false);
+
+        return new PdlClientImpl(
+                pdlUrl,
+                systemUserTokenProvider::getSystemUserToken,
+                systemUserTokenProvider::getSystemUserToken);
+    }
+
+    @Bean
     public AktorOppslagClient aktorOppslagClient(
             EnvironmentProperties properties,
             UnleashService unleashService,
-            SystemUserTokenProvider systemUserTokenProvider
+            SystemUserTokenProvider systemUserTokenProvider,
+            PdlClient pdlClient
     ) {
-        String pdlUrl = createServiceUrl("pdl-api", "default", false);
 
-        PdlAktorOppslagClient pdlAktorOppslagClient = new PdlAktorOppslagClient(
-                pdlUrl,
-                systemUserTokenProvider::getSystemUserToken,
-                systemUserTokenProvider::getSystemUserToken
-        );
+        PdlAktorOppslagClient pdlAktorOppslagClient = new PdlAktorOppslagClient(pdlClient);
 
         AktorregisterHttpClient aktorregisterClient = new AktorregisterHttpClient(
                 properties.getAktorregisterUrl(), APPLICATION_NAME, systemUserTokenProvider::getSystemUserToken

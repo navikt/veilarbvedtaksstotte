@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.utils;
 
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,7 +12,7 @@ public class OppfolgingUtils {
         return servicegruppe.equals("VURDU");
     }
 
-    public static Optional<LocalDateTime> getOppfolgingStartDato(List<OppfolgingPeriodeDTO> oppfolgingPerioder) {
+    public static Optional<ZonedDateTime> getOppfolgingStartDato(List<OppfolgingPeriodeDTO> oppfolgingPerioder) {
         return oppfolgingPerioder.stream()
                 .filter(oppfolgingPeriode -> oppfolgingPeriode.getSluttDato() == null)
                 .map(OppfolgingPeriodeDTO::getStartDato)
@@ -40,5 +40,4 @@ public class OppfolgingUtils {
             return 0;
         });
     }
-
 }
