@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import lombok.extern.slf4j.Slf4j
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 
 @Service
+@Slf4j
 class InnsatsbehovService(
     val transactor: TransactionTemplate,
     val kafkaProducerService: KafkaProducerService,
@@ -109,11 +111,16 @@ class InnsatsbehovService(
         val identer = brukerIdentService.hentIdenter(arenaVedtak.fnr)
         val (innsatsbehov, fraArena, arenaVedtakListe) = sisteInnsatsbehovMedKilder(identer)
 
-        if (fraArena &&
-            // hindrer at vi republiserer innsatsbehov dersom eldre meldinger skulle bli konsumert:
-            finnSisteArenaVedtak(arenaVedtakListe) == arenaVedtak
-        ) {
+        // hindrer at vi republiserer innsatsbehov dersom eldre meldinger skulle bli konsumert:
+        val sisteFraArena = finnSisteArenaVedtak(arenaVedtakListe)
+        val erSisteFraArena = fraArena && sisteFraArena == arenaVedtak
+
+        if (erSisteFraArena) {
             kafkaProducerService.sendInnsatsbehov(innsatsbehov)
+        } else {
+            log.info("""Publiserer ikke innsatsbehov basert på behandlet melding (fraArena=$fraArena, erSisteFraArena=$erSisteFraArena)
+                |Behandlet melding har hendelseId=${arenaVedtak.hendelseId}
+                |Siste melding har hendelseId=${sisteFraArena?.hendelseId}""".trimMargin())
         }
     }
 }

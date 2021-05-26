@@ -57,6 +57,7 @@ public class ArenaVedtakService {
     public Boolean behandleVedtakFraArena(ArenaVedtak arenaVedtak) {
 
         if (MODIA_REG_USER.equals(arenaVedtak.getRegUser())) {
+            log.info("Oppdaterer ikke vedtak fra Arena med hendelsesId={} der regUser={}", arenaVedtak.getHendelseId(), MODIA_REG_USER);
             return false;
         }
 
@@ -67,9 +68,17 @@ public class ArenaVedtakService {
                         eksisterendeVedtak.beregnetFattetTidspunkt().isAfter(arenaVedtak.beregnetFattetTidspunkt())
         )
         ) {
+            log.info("Oppdaterer ikke vedtak fra Arena med hendelsesId={} og beregnetFattetTidspunkt={}. " +
+                            "Har allerede lagret Arena vedtak med hendelsesId={} og beregnetFattetTidspunkt={}",
+                    arenaVedtak.getHendelseId(),
+                    arenaVedtak.beregnetFattetTidspunkt(),
+                    eksisterendeVedtak.getHendelseId(),
+                    eksisterendeVedtak.beregnetFattetTidspunkt()
+            );
             return false;
         }
 
+        log.info("Upsert Arena vedtak for bruker. Har tidligere vedtak: {}", eksisterendeVedtak != null);
         arenaVedtakRepository.upsertVedtak(arenaVedtak);
 
         return true;
