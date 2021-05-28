@@ -1,16 +1,11 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.*;
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,19 +14,17 @@ import java.util.List;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
 import static org.junit.Assert.assertEquals;
 
-public class BeslutterRepositorySokTest {
+public class BeslutterRepositorySokTest extends DatabaseTest {
 
-    private static JdbcTemplate db;
     private static BeslutteroversiktRepository beslutteroversiktRepository;
 
     @BeforeClass
     public static void setup() {
-        db = SingletonPostgresContainer.init().createJdbcTemplate();
-        beslutteroversiktRepository = new BeslutteroversiktRepository(db);
+        beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
-        DbTestUtils.cleanupDb(db);
+        DbTestUtils.cleanupDb(jdbcTemplate);
         String beslutteroversiktBrukereSql = TestUtils.readTestResourceFile("beslutteroversikt-brukere.sql");
-        db.execute(beslutteroversiktBrukereSql);
+        jdbcTemplate.execute(beslutteroversiktBrukereSql);
     }
 
     @Test

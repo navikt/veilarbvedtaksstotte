@@ -3,38 +3,31 @@ package no.nav.veilarbvedtaksstotte.repository;
 import no.nav.veilarbvedtaksstotte.domain.dialog.DialogMelding;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMelding;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class MeldingRepositoryTest {
+public class MeldingRepositoryTest extends DatabaseTest {
 
-    private static JdbcTemplate db;
     private static MeldingRepository meldingRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
-    private static TransactionTemplate transactor;
 
     @BeforeClass
     public static void setup() {
-        db = SingletonPostgresContainer.init().createJdbcTemplate();
-        transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
-        meldingRepository = new MeldingRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
+        meldingRepository = new MeldingRepository(jdbcTemplate);
+        vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
     }
 
     @Before
     public void cleanup() {
-        DbTestUtils.cleanupDb(db);
+        DbTestUtils.cleanupDb(jdbcTemplate);
     }
 
     @Test

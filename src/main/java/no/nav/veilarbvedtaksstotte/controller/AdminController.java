@@ -1,8 +1,10 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
 import no.nav.common.auth.context.AuthContextHolder;
+import no.nav.common.job.JobRunner;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
+import no.nav.veilarbvedtaksstotte.service.KafkaRepubliseringService;
 import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,10 +23,15 @@ public class AdminController {
 
     private final AuthContextHolder authContextHolder;
 
+    private final KafkaRepubliseringService kafkaRepubliseringService;
+
     @Autowired
-    public AdminController(UtrullingService utrullingService, AuthContextHolder authContextHolder) {
+    public AdminController(UtrullingService utrullingService,
+                           AuthContextHolder authContextHolder,
+                           KafkaRepubliseringService kafkaRepubliseringService) {
         this.utrullingService = utrullingService;
         this.authContextHolder = authContextHolder;
+        this.kafkaRepubliseringService = kafkaRepubliseringService;
     }
 
     @GetMapping("/utrulling")
@@ -43,6 +50,12 @@ public class AdminController {
     public void fjernUtrulling(@PathVariable EnhetId enhetId) {
         sjekkTilgangTilAdmin();
         utrullingService.fjernUtrulling(enhetId);
+    }
+
+    @PostMapping("/republiser/innsatsbehovVedtaksstotte")
+    public String republiserInnsatsbehov() {
+        sjekkTilgangTilAdmin();
+        return JobRunner.runAsync(kafkaRepubliseringService::republiserInnsatsbehovVedtaksstotte);
     }
 
     private void sjekkTilgangTilAdmin() {
