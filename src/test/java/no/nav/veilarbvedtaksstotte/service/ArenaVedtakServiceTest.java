@@ -1,17 +1,16 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository;
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,17 +25,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ArenaVedtakServiceTest {
+public class ArenaVedtakServiceTest extends DatabaseTest {
 
     private static ArenaVedtakService service;
-    private static JdbcTemplate jdbcTemplate;
     private static ArenaVedtakRepository arenaVedtakRepository;
-    private static VeilarbveilederClient veiledereOgEnhetClient = mock(VeilarbveilederClient.class);
-    private static SafClient safClient = mock(SafClient.class);
+    private static final VeilarbveilederClient veiledereOgEnhetClient = mock(VeilarbveilederClient.class);
+    private static final SafClient safClient = mock(SafClient.class);
 
     @BeforeClass
     public static void setup() {
-        jdbcTemplate = SingletonPostgresContainer.init().createJdbcTemplate();
         arenaVedtakRepository = new ArenaVedtakRepository(jdbcTemplate);
         service = new ArenaVedtakService(arenaVedtakRepository, safClient, null);
         when(veiledereOgEnhetClient.hentEnhetNavn(any())).thenReturn("TEST");

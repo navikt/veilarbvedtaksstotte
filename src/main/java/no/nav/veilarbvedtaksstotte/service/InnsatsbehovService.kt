@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import lombok.extern.slf4j.Slf4j
+import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 
 @Service
-@Slf4j
 class InnsatsbehovService(
     val transactor: TransactionTemplate,
     val kafkaProducerService: KafkaProducerService,
@@ -122,5 +121,12 @@ class InnsatsbehovService(
                 |Behandlet melding har hendelseId=${arenaVedtak.hendelseId}
                 |Siste melding har hendelseId=${sisteFraArena?.hendelseId}""".trimMargin())
         }
+    }
+
+    fun republiserKafkaInnsatsbehov(eksernBrukerId: EksternBrukerId) {
+        val identer = brukerIdentService.hentIdenter(eksernBrukerId)
+        val (innsatsbehov, fraArena) = sisteInnsatsbehovMedKilder(identer)
+        kafkaProducerService.sendInnsatsbehov(innsatsbehov)
+        log.info("Innsatsbehov republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte" )
     }
 }

@@ -2,20 +2,18 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.common.types.identer.EnhetId;
 import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class UtrullingRepositoryTest {
+public class UtrullingRepositoryTest extends DatabaseTest {
 
-    private static JdbcTemplate db;
     private static UtrullingRepository utrullingRepository;
     
     private final EnhetId TEST_ENHET_1_ID = EnhetId.of("1234");
@@ -26,13 +24,12 @@ public class UtrullingRepositoryTest {
     
     @BeforeClass
     public static void init() {
-        db = SingletonPostgresContainer.init().createJdbcTemplate();
-        utrullingRepository = new UtrullingRepository(db);
+        utrullingRepository = new UtrullingRepository(jdbcTemplate);
     }
 
     @Before
     public void setup() {
-        DbTestUtils.cleanupDb(db);
+        DbTestUtils.cleanupDb(jdbcTemplate);
     }
 
     @Test

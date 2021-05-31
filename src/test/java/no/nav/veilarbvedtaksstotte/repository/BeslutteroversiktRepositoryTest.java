@@ -2,38 +2,31 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.Assert.*;
 
-public class BeslutteroversiktRepositoryTest {
+public class BeslutteroversiktRepositoryTest extends DatabaseTest {
 
-    private static JdbcTemplate db;
     private static VedtaksstotteRepository vedtaksstotteRepository;
     private static BeslutteroversiktRepository beslutteroversiktRepository;
-    private static TransactionTemplate transactor;
 
     @BeforeClass
     public static void setup() {
-        db = SingletonPostgresContainer.init().createJdbcTemplate();
-        transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
-        beslutteroversiktRepository = new BeslutteroversiktRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
+        beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
+        vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
     }
 
     @Before
     public void cleanup() {
-        DbTestUtils.cleanupDb(db);
+        DbTestUtils.cleanupDb(jdbcTemplate);
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
     }
 

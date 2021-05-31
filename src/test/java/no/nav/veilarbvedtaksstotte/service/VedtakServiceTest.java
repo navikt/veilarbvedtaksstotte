@@ -8,7 +8,6 @@ import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
-import no.nav.common.types.identer.Fnr;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.common.utils.fn.UnsafeSupplier;
@@ -33,15 +32,12 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.repository.*;
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
@@ -60,10 +56,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-public class VedtakServiceTest {
-
-    private static JdbcTemplate db;
-    private static TransactionTemplate transactor;
+public class VedtakServiceTest extends DatabaseTest {
 
     private static VedtaksstotteRepository vedtaksstotteRepository;
     private static KilderRepository kilderRepository;
@@ -101,13 +94,11 @@ public class VedtakServiceTest {
 
     @BeforeClass
     public static void setupOnce() {
-        db = SingletonPostgresContainer.init().createJdbcTemplate();
-        transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
-        kilderRepository = spy(new KilderRepository(db));
-        meldingRepository = spy(new MeldingRepository(db));
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
-        oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
-        beslutteroversiktRepository = new BeslutteroversiktRepository(db);
+        kilderRepository = spy(new KilderRepository(jdbcTemplate));
+        meldingRepository = spy(new MeldingRepository(jdbcTemplate));
+        vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
+        oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
+        beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
         authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
@@ -135,7 +126,7 @@ public class VedtakServiceTest {
 
     @Before
     public void setup() {
-        DbTestUtils.cleanupDb(db);
+        DbTestUtils.cleanupDb(jdbcTemplate);
         reset(veilederService);
         reset(veilarbdokumentClient);
         reset(meldingRepository);

@@ -2,15 +2,12 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
@@ -19,27 +16,23 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class OyeblikksbildeRepositoryTest {
+public class OyeblikksbildeRepositoryTest extends DatabaseTest {
 
     private final static String JSON_DATA = "{ \"data\": 42 }";
     private final static String JSON_DATA2 = "{ \"data\": 123 }";
 
-    private static JdbcTemplate db;
-    private static TransactionTemplate transactor;
     private static OyeblikksbildeRepository oyeblikksbildeRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
-        db = SingletonPostgresContainer.init().createJdbcTemplate();
-        transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
-        oyeblikksbildeRepository = new OyeblikksbildeRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
+        oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
+        vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
     }
 
     @Before
     public void cleanup() {
-        DbTestUtils.cleanupDb(db);
+        DbTestUtils.cleanupDb(jdbcTemplate);
     }
 
     @Test
