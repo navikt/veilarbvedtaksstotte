@@ -211,11 +211,15 @@ public class VedtaksstotteRepository {
     }
 
 
-    public List<AktorId> hentUnikeBrukerePage(int offset, int pageSize) {
+    public List<AktorId> hentUnikeBrukereMedFattetVedtakPage(int offset, int pageSize) {
         String sql = format(
-                "SELECT DISTINCT %s FROM %S ORDER BY %s LIMIT %d OFFSET %d",
-                AKTOR_ID, VEDTAK_TABLE, AKTOR_ID, pageSize, offset);
-        return db.query(sql, (rs, rowNum) -> AktorId.of(rs.getString("aktor_id")));
+                "SELECT DISTINCT %s FROM %S WHERE %s = ? ORDER BY %s LIMIT %d OFFSET %d",
+                AKTOR_ID, VEDTAK_TABLE, STATUS, AKTOR_ID, pageSize, offset);
+        return db.query(
+                sql,
+                (rs, rowNum) -> AktorId.of(rs.getString("aktor_id")),
+                VedtakStatus.SENDT.name()
+        );
     }
 
     @SneakyThrows

@@ -31,28 +31,38 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
     @Test
     fun `republiserer innsatsbehov for alle brukere som har vedtak i denne løsningen`() {
         val antallBrukere = pageSize * 4 + 1
-        val aktorIder = (1..antallBrukere)
-            .map { AktorId(RandomStringUtils.randomNumeric(5)) }
+        val brukereMedFattetVedtak = lagTilfeldingeAktorIder(antallBrukere)
 
         DbTestUtils.cleanupDb(jdbcTemplate)
-        aktorIder.map { lagVedtak(it) }
+        brukereMedFattetVedtak.map { lagVedtak(it, true) }
+
+        // brukere uten fattet vedtak
+        lagTilfeldingeAktorIder(2).map { lagVedtak(it, false) }
 
         kafkaRepubliseringService.republiserInnsatsbehovVedtaksstotte()
 
         verify(innsatsbehovService, times(antallBrukere)).republiserKafkaInnsatsbehov(any())
-        aktorIder.forEach {
+        brukereMedFattetVedtak.forEach {
             verify(innsatsbehovService).republiserKafkaInnsatsbehov(it)
         }
     }
 
+    private fun lagTilfeldingeAktorIder(antall: Int): List<AktorId> {
+        return (1..antall)
+            .map { AktorId(RandomStringUtils.randomNumeric(5)) }
+    }
+
     private fun <T> any(): T = Mockito.any()
-    private fun lagVedtak(aktorId: AktorId) {
+
+    private fun lagVedtak(aktorId: AktorId, ferdigstill: Boolean) {
         vedtaksstotteRepository.opprettUtkast(aktorId.get(), "veileder", "1234")
         val utkast = vedtaksstotteRepository.hentUtkast(aktorId.get())
-        vedtaksstotteRepository.ferdigstillVedtak(
-            utkast.id,
-            DokumentSendtDTO("journalpostId", "dokumentId")
-        )
+        if (ferdigstill) {
+            vedtaksstotteRepository.ferdigstillVedtak(
+                utkast.id,
+                DokumentSendtDTO("journalpostId", "dokumentId")
+            )
+        }
     }
 
     class KafkaRepubliseringServiceOverridePageSize(

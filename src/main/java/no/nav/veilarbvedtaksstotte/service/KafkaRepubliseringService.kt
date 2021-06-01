@@ -24,7 +24,7 @@ class KafkaRepubliseringService(
         var currentOffset = 0;
 
         while (true) {
-            val unikeAktorIder = vedtaksstotteRepository.hentUnikeBrukerePage(currentOffset, pageSize);
+            val unikeAktorIder = vedtaksstotteRepository.hentUnikeBrukereMedFattetVedtakPage(currentOffset, pageSize);
 
             if (unikeAktorIder.isEmpty()) {
                 break;
