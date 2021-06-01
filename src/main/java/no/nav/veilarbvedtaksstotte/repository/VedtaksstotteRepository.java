@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
+import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
@@ -207,6 +208,18 @@ public class VedtaksstotteRepository {
                 VEDTAK_TABLE, STATUS, VEDTAK_FATTET, GJELDENDE, VEDTAK_ID
         );
         db.update(sql, getName(VedtakStatus.SENDT), vedtakId);
+    }
+
+
+    public List<AktorId> hentUnikeBrukereMedFattetVedtakPage(int offset, int pageSize) {
+        String sql = format(
+                "SELECT DISTINCT %s FROM %S WHERE %s = ? ORDER BY %s LIMIT %d OFFSET %d",
+                AKTOR_ID, VEDTAK_TABLE, STATUS, AKTOR_ID, pageSize, offset);
+        return db.query(
+                sql,
+                (rs, rowNum) -> AktorId.of(rs.getString("aktor_id")),
+                VedtakStatus.SENDT.name()
+        );
     }
 
     @SneakyThrows

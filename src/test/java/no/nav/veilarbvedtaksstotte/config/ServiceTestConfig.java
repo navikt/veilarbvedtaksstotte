@@ -23,7 +23,8 @@ import org.springframework.context.annotation.Import;
         InnsatsbehovService.class,
         BrukerIdentService.class,
         KafkaProducerService.class,
-        KafkaConsumerService.class
+        KafkaConsumerService.class,
+        KafkaRepubliseringService.class
 })
 public class ServiceTestConfig {
 }

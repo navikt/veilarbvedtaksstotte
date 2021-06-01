@@ -20,7 +20,7 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterQuery.*
 import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterQuery.ResponseData.IdenterResponseData
 import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterQuery.ResponseData.IdenterResponseData.IdentData
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.junit.Assert.assertEquals
@@ -29,17 +29,12 @@ import org.junit.BeforeClass
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.datasource.DataSourceTransactionManager
-import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class InnsatsbehovServiceTest {
+class InnsatsbehovServiceTest : DatabaseTest() {
 
     companion object {
-        lateinit var jdbcTemplate: JdbcTemplate
-        lateinit var transactor: TransactionTemplate
 
         lateinit var arenaVedtakRepository: ArenaVedtakRepository
         lateinit var vedtakRepository: VedtaksstotteRepository
@@ -59,9 +54,6 @@ class InnsatsbehovServiceTest {
         @BeforeClass
         @JvmStatic
         fun setup() {
-            jdbcTemplate = SingletonPostgresContainer.init().createJdbcTemplate()
-            transactor = TransactionTemplate(DataSourceTransactionManager(jdbcTemplate.dataSource!!))
-
             arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
             vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
 

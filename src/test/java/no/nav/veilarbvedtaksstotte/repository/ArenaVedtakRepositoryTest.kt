@@ -2,28 +2,23 @@ package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.hamcrest.Matchers.containsInAnyOrder
-import org.junit.Assert.*
-import org.junit.BeforeClass
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThat
+import org.junit.Before
 import org.junit.Test
-import org.springframework.jdbc.core.JdbcTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class ArenaVedtakRepositoryTest {
+class ArenaVedtakRepositoryTest : DatabaseTest() {
 
-    companion object {
-        lateinit var jdbcTemplate: JdbcTemplate
-        lateinit var arenaVedtakRepository: ArenaVedtakRepository
+    lateinit var arenaVedtakRepository: ArenaVedtakRepository
 
-        @BeforeClass
-        @JvmStatic
-        fun setup() {
-            jdbcTemplate = SingletonPostgresContainer.init().createJdbcTemplate()
-            arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
-        }
+    @Before
+    fun setup() {
+        arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
     }
 
     @Test

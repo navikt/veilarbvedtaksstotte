@@ -5,14 +5,11 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 
@@ -23,24 +20,20 @@ import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.UTKAST;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.Assert.*;
 
-public class VedtaksstotteRepositoryTest {
+public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
-    private static JdbcTemplate db;
-    private static TransactionTemplate transactor;
     private static KilderRepository kilderRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
     @BeforeClass
     public static void setup() {
-        db = SingletonPostgresContainer.init().createJdbcTemplate();
-        transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
-        kilderRepository = new KilderRepository(db);
-        vedtaksstotteRepository = new VedtaksstotteRepository(db, transactor);
+        kilderRepository = new KilderRepository(jdbcTemplate);
+        vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
     }
 
     @Before
     public void cleanup() {
-        DbTestUtils.cleanupDb(db);
+        DbTestUtils.cleanupDb(jdbcTemplate);
     }
 
     @Test
@@ -205,10 +198,10 @@ public class VedtaksstotteRepositoryTest {
                 "INSERT INTO VEDTAK(AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, UTKAST_SIST_OPPDATERT, VEDTAK_FATTET)"
                         + " values(?, ?, ?, ?, ?, ?)";
         LocalDateTime now = LocalDateTime.now();
-        db.update(sql, TEST_AKTOR_ID, "veileder1", TEST_OPPFOLGINGSENHET_ID, SENDT.name(), now.minusDays(2), now.minusDays(2));
-        db.update(sql, TEST_AKTOR_ID, "veileder2", TEST_OPPFOLGINGSENHET_ID, SENDT.name(), now.minusDays(1), now.minusDays(1));
-        db.update(sql, TEST_AKTOR_ID, "veileder3", TEST_OPPFOLGINGSENHET_ID, SENDT.name(), now.minusDays(3), now.minusDays(3));
-        db.update(sql, TEST_AKTOR_ID, "veileder4", TEST_OPPFOLGINGSENHET_ID, UTKAST.name(), now, now);
+        jdbcTemplate.update(sql, TEST_AKTOR_ID, "veileder1", TEST_OPPFOLGINGSENHET_ID, SENDT.name(), now.minusDays(2), now.minusDays(2));
+        jdbcTemplate.update(sql, TEST_AKTOR_ID, "veileder2", TEST_OPPFOLGINGSENHET_ID, SENDT.name(), now.minusDays(1), now.minusDays(1));
+        jdbcTemplate.update(sql, TEST_AKTOR_ID, "veileder3", TEST_OPPFOLGINGSENHET_ID, SENDT.name(), now.minusDays(3), now.minusDays(3));
+        jdbcTemplate.update(sql, TEST_AKTOR_ID, "veileder4", TEST_OPPFOLGINGSENHET_ID, UTKAST.name(), now, now);
 
         Vedtak vedtak = vedtaksstotteRepository.hentSisteVedtak(TEST_AKTOR_ID);
 
