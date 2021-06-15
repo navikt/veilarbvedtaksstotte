@@ -17,7 +17,10 @@ public class KafkaProducerService {
     final KafkaProducerRecordStorage<String, String> producerRecordStorage;
     final KafkaProperties kafkaProperties;
 
-    public KafkaProducerService(KafkaProducerRecordStorage<String, String> producerRecordStorage, KafkaProperties kafkaProperties) {
+    public KafkaProducerService(
+            KafkaProducerRecordStorage<String, String> producerRecordStorage,
+            KafkaProperties kafkaProperties
+    ) {
         this.producerRecordStorage = producerRecordStorage;
         this.kafkaProperties = kafkaProperties;
     }

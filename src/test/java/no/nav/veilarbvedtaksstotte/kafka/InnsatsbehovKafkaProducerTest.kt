@@ -1,8 +1,9 @@
 package no.nav.veilarbvedtaksstotte.kafka
 
 import no.nav.common.kafka.consumer.ConsumeStatus
-import no.nav.common.kafka.consumer.util.JsonTopicConsumer
+import no.nav.common.kafka.consumer.TopicConsumer
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
+import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
@@ -19,9 +20,8 @@ import no.nav.veilarbvedtaksstotte.service.KafkaProducerService
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
@@ -94,15 +94,22 @@ class InnsatsbehovKafkaProducerTest {
 
         val konsumertMelding: AtomicReference<MutableMap<AktorId, Innsatsbehov?>> = AtomicReference(mutableMapOf())
 
-        KafkaConsumerClientBuilder.builder<String, String>()
+        KafkaConsumerClientBuilder.builder()
             .withProperties(kafkaTestConsumerProperties(kafkaContainer.bootstrapServers))
-            .withConsumer(
-                /*kafkaProperties.innsatsbehovTopic*/"innsatsbehovTopic",
-                JsonTopicConsumer(Innsatsbehov::class.java) { record, innsatsbehov: Innsatsbehov? ->
-                    konsumertMelding.get().set(AktorId(record.key()), innsatsbehov)
-                    ConsumeStatus.OK
-                }
-            ).build().start()
+            .withTopicConfig(
+                KafkaConsumerClientBuilder.TopicConfig<String, Innsatsbehov>()
+                    .withConsumerConfig(
+                        "innsatsbehovTopic",
+                        Deserializers.stringDeserializer(),
+                        Deserializers.jsonDeserializer(Innsatsbehov::class.java),
+                        TopicConsumer { record ->
+                            konsumertMelding.get().set(AktorId(record.key()), record.value())
+                            ConsumeStatus.OK
+                        }
+                    )
+            )
+            .build()
+            .start()
 
         TestUtils.verifiserAsynkront(10, TimeUnit.SECONDS) {
             assertEquals(
@@ -115,8 +122,8 @@ class InnsatsbehovKafkaProducerTest {
     fun kafkaTestConsumerProperties(brokerUrl: String?): Properties {
         val props = Properties()
         props[CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG] = brokerUrl
-        props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+        props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = ByteArrayDeserializer::class.java
+        props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = ByteArrayDeserializer::class.java
         props[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = false
         props[ConsumerConfig.GROUP_ID_CONFIG] = "test-consumer"
         props[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 5 * 60 * 1000

@@ -17,13 +17,15 @@ import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mock
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnitRunner
 import java.time.LocalDateTime
 
+@RunWith(MockitoJUnitRunner::class)
 class KafkaProducerServiceTest {
 
     @Mock
@@ -42,7 +44,6 @@ class KafkaProducerServiceTest {
         kafkaProperties.innsatsbehovTopic = "innsatsbehovTopic"
         kafkaProperties.vedtakSendtTopic = "vedtakSendtTopic"
         kafkaProperties.vedtakStatusEndringTopic = "vedtakStatusEndringTopic"
-        MockitoAnnotations.initMocks(this);
         kafkaProducerService = KafkaProducerService(producerRecordStorage, kafkaProperties)
     }
 

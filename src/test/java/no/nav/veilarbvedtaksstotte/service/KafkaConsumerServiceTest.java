@@ -2,12 +2,12 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.client.norg2.Norg2Client;
-import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.Test;
 
 import java.time.ZonedDateTime;
@@ -17,19 +17,16 @@ import static org.mockito.Mockito.*;
 
 public class KafkaConsumerServiceTest {
 
-    private VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
+    private final VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
 
-    private BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
+    private final BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
 
-    private Norg2Client norg2Client = mock(Norg2Client.class);
+    private final Norg2Client norg2Client = mock(Norg2Client.class);
 
-    private InnsatsbehovService innsatsbehovService = mock(InnsatsbehovService.class);
+    private final InnsatsbehovService innsatsbehovService = mock(InnsatsbehovService.class);
 
-    private KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
-
-    private KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
+    private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             innsatsbehovService,
-            kafkaProducerService,
             vedtaksstotteRepository,
             beslutteroversiktRepository,
             norg2Client);
@@ -38,7 +35,8 @@ public class KafkaConsumerServiceTest {
     public void skal_behandle_endring_pa_avslutt_oppfolging() {
         String aktorId = "1234";
 
-        kafkaConsumerService.behandleEndringPaAvsluttOppfolging(new KafkaAvsluttOppfolging(aktorId, ZonedDateTime.now()));
+        kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
+                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(aktorId, ZonedDateTime.now())));
 
         verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(eq(aktorId));
     }
@@ -51,7 +49,8 @@ public class KafkaConsumerServiceTest {
 
         when(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(new Vedtak().setOppfolgingsenhetId(enhet));
 
-        kafkaConsumerService.behandleEndringPaOppfolgingsbruker(new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, enhet));
+        kafkaConsumerService.behandleEndringPaOppfolgingsbruker(
+                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, enhet)));
 
         verify(norg2Client, never()).hentEnhet(enhet);
         verify(vedtaksstotteRepository, never()).oppdaterUtkastEnhet(anyLong(), anyString());
@@ -67,7 +66,8 @@ public class KafkaConsumerServiceTest {
         when(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(new Vedtak().setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID));
         when(norg2Client.hentEnhet(nyEnhet)).thenReturn(new Enhet().setNavn("TEST"));
 
-        kafkaConsumerService.behandleEndringPaOppfolgingsbruker(new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, nyEnhet));
+        kafkaConsumerService.behandleEndringPaOppfolgingsbruker(
+                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, nyEnhet)));
 
         verify(norg2Client, times(1)).hentEnhet(nyEnhet);
         verify(vedtaksstotteRepository, times(1)).oppdaterUtkastEnhet(anyLong(), eq(nyEnhet));

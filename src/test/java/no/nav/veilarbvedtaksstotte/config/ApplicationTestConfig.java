@@ -2,8 +2,6 @@ package no.nav.veilarbvedtaksstotte.config;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import net.javacrumbs.shedlock.core.LockProvider;
-import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
 import no.nav.common.auth.context.AuthContextHolder;
@@ -98,8 +96,4 @@ public class ApplicationTestConfig {
         return () -> true;
     }
 
-    @Bean
-    public LockProvider lockProvider(JdbcTemplate jdbcTemplate) {
-        return new JdbcTemplateLockProvider(jdbcTemplate);
-    }
 }
