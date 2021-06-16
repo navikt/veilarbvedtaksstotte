@@ -8,12 +8,15 @@ import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.featuretoggle.UnleashClient;
 import no.nav.common.job.leader_election.LeaderElectionClient;
+import no.nav.common.kafka.util.KafkaPropertiesBuilder;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock;
 import no.nav.veilarbvedtaksstotte.mock.PepMock;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,9 +24,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import javax.sql.DataSource;
 
+import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.CONSUMER_GROUP_ID;
+import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.PRODUCER_CLIENT_ID;
 import static org.mockito.Mockito.mock;
 
 
@@ -37,9 +44,11 @@ import static org.mockito.Mockito.mock;
         ServiceTestConfig.class,
         FilterTestConfig.class,
         HealthConfig.class,
-        KafkaTestConfig.class
+        KafkaConfig.class
 })
 public class ApplicationTestConfig {
+
+    public static final String KAFKA_IMAGE = "confluentinc/cp-kafka:5.4.3";
 
     @Bean
     public Credentials serviceUserCredentials() {
@@ -96,4 +105,30 @@ public class ApplicationTestConfig {
         return () -> true;
     }
 
+    @Bean
+    public KafkaContainer kafkaContainer() {
+        KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse(KAFKA_IMAGE));
+        kafkaContainer.start();
+        return kafkaContainer;
+    }
+
+    @Bean
+    public KafkaConfig.EnvironmentContext kafkaConfigEnvContext(KafkaContainer kafkaContainer) {
+        return new KafkaConfig.EnvironmentContext()
+                .setConsumerClientProperties(
+                        KafkaPropertiesBuilder.consumerBuilder()
+                                .withBaseProperties(1000)
+                                .withConsumerGroupId(CONSUMER_GROUP_ID)
+                                .withBrokerUrl(kafkaContainer.getBootstrapServers())
+                                .withDeserializers(ByteArrayDeserializer.class, ByteArrayDeserializer.class)
+                                .build())
+                .setProducerClientProperties(
+                        KafkaPropertiesBuilder.producerBuilder()
+                                .withBaseProperties()
+                                .withProducerId(PRODUCER_CLIENT_ID)
+                                .withBrokerUrl(kafkaContainer.getBootstrapServers())
+                                .withSerializers(ByteArraySerializer.class, ByteArraySerializer.class)
+                                .build()
+                );
+    }
 }

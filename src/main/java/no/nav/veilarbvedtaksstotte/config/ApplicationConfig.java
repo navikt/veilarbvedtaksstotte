@@ -21,6 +21,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 
+import static no.nav.common.kafka.util.KafkaPropertiesPreset.onPremByteProducerProperties;
+import static no.nav.common.kafka.util.KafkaPropertiesPreset.onPremDefaultConsumerProperties;
 import static no.nav.common.utils.NaisUtils.getCredentials;
 
 @Slf4j
@@ -53,6 +55,22 @@ public class ApplicationConfig {
     @Bean
     public AuthContextHolder authContextHolder() {
         return AuthContextHolderThreadLocal.instance();
+    }
+
+    @Bean
+    public KafkaConfig.EnvironmentContext kafkaConfigEnvContext(KafkaProperties kafkaProperties,
+                                                                Credentials credentials) {
+        return new KafkaConfig.EnvironmentContext()
+                .setConsumerClientProperties(
+                        onPremDefaultConsumerProperties(
+                                KafkaConfig.CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials
+                        )
+                )
+                .setProducerClientProperties(
+                        onPremByteProducerProperties(
+                                KafkaConfig.PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials
+                        )
+                );
     }
 
     @PostConstruct

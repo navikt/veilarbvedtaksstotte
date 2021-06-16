@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import lombok.Data;
+import lombok.experimental.Accessors;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.kafka.consumer.KafkaConsumerClient;
@@ -17,14 +19,12 @@ import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage;
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRepository;
 import no.nav.common.kafka.producer.feilhandtering.PostgresProducerRepository;
 import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder;
-import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService;
 import no.nav.veilarbvedtaksstotte.utils.StoreOnFailureArenaTopicConsumer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,12 +35,16 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import static no.nav.common.kafka.util.KafkaPropertiesPreset.onPremByteProducerProperties;
-import static no.nav.common.kafka.util.KafkaPropertiesPreset.onPremDefaultConsumerProperties;
-
 @Configuration
 @EnableConfigurationProperties({KafkaProperties.class})
 public class KafkaConfig {
+
+    @Data
+    @Accessors(chain = true)
+    public static class EnvironmentContext {
+        Properties consumerClientProperties;
+        Properties producerClientProperties;
+    }
 
     public final static String CONSUMER_GROUP_ID = "veilarbvedtaksstotte-consumer";
     public final static String PRODUCER_CLIENT_ID = "veilarbvedtaksstotte-producer";
@@ -51,12 +55,12 @@ public class KafkaConfig {
     private final KafkaProducerRecordStorage producerRecordStorage;
 
     public KafkaConfig(
+            EnvironmentContext environmentContext,
             LeaderElectionClient leaderElectionClient,
             JdbcTemplate jdbcTemplate,
             KafkaConsumerService kafkaConsumerService,
             KafkaProperties kafkaProperties,
-            MeterRegistry meterRegistry,
-            Credentials credentials
+            MeterRegistry meterRegistry
     ) {
 
         var consumerRepository = new PostgresConsumerRepository(jdbcTemplate.getDataSource());
@@ -65,7 +69,7 @@ public class KafkaConfig {
         var topicConfigs = getTopicConfigs(kafkaConsumerService, kafkaProperties, meterRegistry, consumerRepository);
 
         consumerClient = KafkaConsumerClientBuilder.builder()
-                .withProperties(onPremDefaultConsumerProperties(CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials))
+                .withProperties(environmentContext.getConsumerClientProperties())
                 .withTopicConfigs(topicConfigs)
                 .build();
 
@@ -74,7 +78,7 @@ public class KafkaConfig {
         producerRecordStorage = getProducerRecordStorage(producerRepository);
 
         producerRecordProcessor = getProducerRecordProcessor(
-                onPremByteProducerProperties(PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials),
+                environmentContext.getProducerClientProperties(),
                 leaderElectionClient,
                 producerRepository,
                 meterRegistry
