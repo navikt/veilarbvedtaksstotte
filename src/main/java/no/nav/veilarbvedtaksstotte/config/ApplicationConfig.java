@@ -21,9 +21,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 
-import static no.nav.common.kafka.util.KafkaPropertiesPreset.onPremByteProducerProperties;
-import static no.nav.common.kafka.util.KafkaPropertiesPreset.onPremDefaultConsumerProperties;
+import static no.nav.common.kafka.util.KafkaPropertiesPreset.*;
 import static no.nav.common.utils.NaisUtils.getCredentials;
+import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.PRODUCER_CLIENT_ID;
 
 @Slf4j
 @Configuration
@@ -61,16 +61,17 @@ public class ApplicationConfig {
     public KafkaConfig.EnvironmentContext kafkaConfigEnvContext(KafkaProperties kafkaProperties,
                                                                 Credentials credentials) {
         return new KafkaConfig.EnvironmentContext()
-                .setConsumerClientProperties(
+                .setOnPremConsumerClientProperties(
                         onPremDefaultConsumerProperties(
                                 KafkaConfig.CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials
                         )
                 )
-                .setProducerClientProperties(
+                .setOnPremProducerClientProperties(
                         onPremByteProducerProperties(
-                                KafkaConfig.PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials
+                                PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials
                         )
-                );
+                )
+                .setAivenProducerClientProperties(aivenByteProducerProperties(PRODUCER_CLIENT_ID));
     }
 
     @PostConstruct

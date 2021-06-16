@@ -29,6 +29,8 @@ import org.testcontainers.utility.DockerImageName;
 
 import javax.sql.DataSource;
 
+import java.util.Properties;
+
 import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.CONSUMER_GROUP_ID;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.PRODUCER_CLIENT_ID;
 import static org.mockito.Mockito.mock;
@@ -114,21 +116,23 @@ public class ApplicationTestConfig {
 
     @Bean
     public KafkaConfig.EnvironmentContext kafkaConfigEnvContext(KafkaContainer kafkaContainer) {
+        Properties consumerProperties = KafkaPropertiesBuilder.consumerBuilder()
+                .withBaseProperties(1000)
+                .withConsumerGroupId(CONSUMER_GROUP_ID)
+                .withBrokerUrl(kafkaContainer.getBootstrapServers())
+                .withDeserializers(ByteArrayDeserializer.class, ByteArrayDeserializer.class)
+                .build();
+
+        Properties producerProperties = KafkaPropertiesBuilder.producerBuilder()
+                .withBaseProperties()
+                .withProducerId(PRODUCER_CLIENT_ID)
+                .withBrokerUrl(kafkaContainer.getBootstrapServers())
+                .withSerializers(ByteArraySerializer.class, ByteArraySerializer.class)
+                .build();
+
         return new KafkaConfig.EnvironmentContext()
-                .setConsumerClientProperties(
-                        KafkaPropertiesBuilder.consumerBuilder()
-                                .withBaseProperties(1000)
-                                .withConsumerGroupId(CONSUMER_GROUP_ID)
-                                .withBrokerUrl(kafkaContainer.getBootstrapServers())
-                                .withDeserializers(ByteArrayDeserializer.class, ByteArrayDeserializer.class)
-                                .build())
-                .setProducerClientProperties(
-                        KafkaPropertiesBuilder.producerBuilder()
-                                .withBaseProperties()
-                                .withProducerId(PRODUCER_CLIENT_ID)
-                                .withBrokerUrl(kafkaContainer.getBootstrapServers())
-                                .withSerializers(ByteArraySerializer.class, ByteArraySerializer.class)
-                                .build()
-                );
+                .setOnPremConsumerClientProperties(consumerProperties)
+                .setOnPremProducerClientProperties(producerProperties)
+                .setAivenProducerClientProperties(producerProperties);
     }
 }

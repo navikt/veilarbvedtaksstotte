@@ -42,8 +42,9 @@ public class KafkaConfig {
     @Data
     @Accessors(chain = true)
     public static class EnvironmentContext {
-        Properties consumerClientProperties;
-        Properties producerClientProperties;
+        Properties onPremConsumerClientProperties;
+        Properties onPremProducerClientProperties;
+        Properties aivenProducerClientProperties;
     }
 
     public final static String CONSUMER_GROUP_ID = "veilarbvedtaksstotte-consumer";
@@ -51,7 +52,8 @@ public class KafkaConfig {
 
     private final KafkaConsumerClient consumerClient;
     private final KafkaConsumerRecordProcessor consumerRecordProcessor;
-    private final KafkaProducerRecordProcessor producerRecordProcessor;
+    private final KafkaProducerRecordProcessor onPremProducerRecordProcessor;
+    private final KafkaProducerRecordProcessor aivenProducerRecordProcessor;
     private final KafkaProducerRecordStorage producerRecordStorage;
 
     public KafkaConfig(
@@ -69,7 +71,7 @@ public class KafkaConfig {
         var topicConfigs = getTopicConfigs(kafkaConsumerService, kafkaProperties, meterRegistry, consumerRepository);
 
         consumerClient = KafkaConsumerClientBuilder.builder()
-                .withProperties(environmentContext.getConsumerClientProperties())
+                .withProperties(environmentContext.getOnPremConsumerClientProperties())
                 .withTopicConfigs(topicConfigs)
                 .build();
 
@@ -77,29 +79,47 @@ public class KafkaConfig {
 
         producerRecordStorage = getProducerRecordStorage(producerRepository);
 
-        producerRecordProcessor = getProducerRecordProcessor(
-                environmentContext.getProducerClientProperties(),
+        onPremProducerRecordProcessor = getProducerRecordProcessor(
+                environmentContext.getOnPremProducerClientProperties(),
                 leaderElectionClient,
                 producerRepository,
-                meterRegistry
+                meterRegistry,
+                List.of(
+                        kafkaProperties.getEndringPaAvsluttOppfolgingTopic(),
+                        kafkaProperties.getEndringPaOppfolgingsBrukerTopic(),
+                        kafkaProperties.getVedtakSendtTopic(),
+                        kafkaProperties.getVedtakStatusEndringTopic(),
+                        kafkaProperties.getArenaVedtakTopic()
+                )
+        );
+
+        aivenProducerRecordProcessor = getProducerRecordProcessor(
+                environmentContext.getAivenProducerClientProperties(),
+                leaderElectionClient,
+                producerRepository,
+                meterRegistry,
+                List.of(
+                        kafkaProperties.getInnsatsbehovTopic()
+                )
         );
     }
 
-    protected static KafkaProducerRecordProcessor getProducerRecordProcessor(
+    private static KafkaProducerRecordProcessor getProducerRecordProcessor(
             Properties properties,
             LeaderElectionClient leaderElectionClient,
             PostgresProducerRepository producerRepository,
-            MeterRegistry meterRegistry) {
+            MeterRegistry meterRegistry,
+            List<String> topicWhitelist) {
 
         var producerClient = KafkaProducerClientBuilder.<byte[], byte[]>builder()
                 .withProperties(properties)
                 .withMetrics(meterRegistry)
                 .build();
 
-        return new KafkaProducerRecordProcessor(producerRepository, producerClient, leaderElectionClient);
+        return new KafkaProducerRecordProcessor(producerRepository, producerClient, leaderElectionClient, topicWhitelist);
     }
 
-    protected static KafkaConsumerRecordProcessor getConsumerRecordProcessor(
+    private static KafkaConsumerRecordProcessor getConsumerRecordProcessor(
             JdbcTemplate jdbcTemplate,
             PostgresConsumerRepository consumerRepository,
             List<KafkaConsumerClientBuilder.TopicConfig<?, ?>> topicConfigs
@@ -112,13 +132,13 @@ public class KafkaConfig {
                 .build();
     }
 
-    protected static KafkaProducerRecordStorage getProducerRecordStorage(
+    private static KafkaProducerRecordStorage getProducerRecordStorage(
             KafkaProducerRepository producerRepository
     ) {
         return new KafkaProducerRecordStorage(producerRepository);
     }
 
-    protected static List<TopicConsumerConfig<?, ?>> getConsumerConfigsWithStoreOnFailure(
+    private static List<TopicConsumerConfig<?, ?>> getConsumerConfigsWithStoreOnFailure(
             List<KafkaConsumerClientBuilder.TopicConfig<?, ?>> topicConfigs
     ) {
         // Ville normalt filtrert consumers der .getConsumerRepository() != null (fra
@@ -131,7 +151,7 @@ public class KafkaConfig {
                 .collect(Collectors.toList());
     }
 
-    protected static List<KafkaConsumerClientBuilder.TopicConfig<?, ?>> getTopicConfigs(
+    private static List<KafkaConsumerClientBuilder.TopicConfig<?, ?>> getTopicConfigs(
             KafkaConsumerService kafkaConsumerService,
             KafkaProperties kafkaProperties,
             MeterRegistry meterRegistry,
@@ -196,6 +216,7 @@ public class KafkaConfig {
     public void start() {
         consumerClient.start();
         consumerRecordProcessor.start();
-        producerRecordProcessor.start();
+        onPremProducerRecordProcessor.start();
+        aivenProducerRecordProcessor.start();
     }
 }
