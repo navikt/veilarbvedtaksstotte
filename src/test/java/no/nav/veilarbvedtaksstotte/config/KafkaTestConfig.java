@@ -33,7 +33,7 @@ public class KafkaTestConfig {
     private final KafkaConsumerClient consumerClient;
     private final KafkaConsumerRecordProcessor consumerRecordProcessor;
     private final KafkaProducerRecordProcessor producerRecordProcessor;
-    private final KafkaProducerRecordStorage<String, String> producerRecordStorage;
+    private final KafkaProducerRecordStorage producerRecordStorage;
     private final KafkaContainer kafkaContainer;
 
 
@@ -85,7 +85,7 @@ public class KafkaTestConfig {
     }
 
     @Bean
-    public KafkaProducerRecordStorage<String, String> producerRecordStorage() {
+    public KafkaProducerRecordStorage producerRecordStorage() {
         return producerRecordStorage;
     }
 

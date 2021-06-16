@@ -48,7 +48,7 @@ public class KafkaConfig {
     private final KafkaConsumerClient consumerClient;
     private final KafkaConsumerRecordProcessor consumerRecordProcessor;
     private final KafkaProducerRecordProcessor producerRecordProcessor;
-    private final KafkaProducerRecordStorage<String, String> producerRecordStorage;
+    private final KafkaProducerRecordStorage producerRecordStorage;
 
     public KafkaConfig(
             LeaderElectionClient leaderElectionClient,
@@ -108,14 +108,10 @@ public class KafkaConfig {
                 .build();
     }
 
-    protected static KafkaProducerRecordStorage<String, String> getProducerRecordStorage(
+    protected static KafkaProducerRecordStorage getProducerRecordStorage(
             KafkaProducerRepository producerRepository
     ) {
-        return new KafkaProducerRecordStorage<>(
-                producerRepository,
-                new StringSerializer(),
-                new StringSerializer()
-        );
+        return new KafkaProducerRecordStorage(producerRepository);
     }
 
     protected static List<TopicConsumerConfig<?, ?>> getConsumerConfigsWithStoreOnFailure(
@@ -188,7 +184,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaProducerRecordStorage<String, String> kafkaProducerRecordStorage() {
+    public KafkaProducerRecordStorage kafkaProducerRecordStorage() {
         return producerRecordStorage;
     }
 

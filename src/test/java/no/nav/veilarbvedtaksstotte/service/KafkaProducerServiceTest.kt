@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import org.junit.Assert.assertEquals
-import no.nav.common.json.JsonUtils
+import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
 import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
@@ -13,8 +12,10 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
+import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,10 +30,10 @@ import java.time.LocalDateTime
 class KafkaProducerServiceTest {
 
     @Mock
-    lateinit var producerRecordStorage: KafkaProducerRecordStorage<String, String>
+    lateinit var producerRecordStorage: KafkaProducerRecordStorage
 
     @Captor
-    lateinit var argumentCaptor: ArgumentCaptor<ProducerRecord<String, String>>
+    lateinit var argumentCaptor: ArgumentCaptor<ProducerRecord<ByteArray, ByteArray>>
 
     lateinit var kafkaProducerService: KafkaProducerService
 
@@ -67,7 +68,7 @@ class KafkaProducerServiceTest {
             }
         """
 
-        assertEqualJson(forventet, argumentCaptor.value.value())
+        assertEqualJson(forventet, deserialize(argumentCaptor.value.value()))
     }
 
     @Test
@@ -95,7 +96,7 @@ class KafkaProducerServiceTest {
             }
         """
 
-        assertEqualJson(forventet, argumentCaptor.value.value())
+        assertEqualJson(forventet, deserialize(argumentCaptor.value.value()))
     }
 
     @Test
@@ -123,10 +124,15 @@ class KafkaProducerServiceTest {
             }
         """
 
-        assertEqualJson(forventet, argumentCaptor.value.value())
+        assertEqualJson(forventet, deserialize(argumentCaptor.value.value()))
     }
 
     fun assertEqualJson(expexted: String, actual: String) {
-        assertEquals(JsonUtils.getMapper().readTree(expexted), JsonUtils.getMapper().readTree(actual))
+        assertEquals(JsonUtils.objectMapper.readTree(expexted), JsonUtils.objectMapper.readTree(actual))
+    }
+
+    fun deserialize(bytes: ByteArray): String {
+        val deserializer = stringDeserializer()
+        return deserializer.deserialize("", bytes)
     }
 }
