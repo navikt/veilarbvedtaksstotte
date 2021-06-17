@@ -112,7 +112,7 @@ class InnsatsbehovService(
 
         // hindrer at vi republiserer innsatsbehov dersom eldre meldinger skulle bli konsumert:
         val sisteFraArena = finnSisteArenaVedtak(arenaVedtakListe)
-        val erSisteFraArena = fraArena && sisteFraArena == arenaVedtak
+        val erSisteFraArena = fraArena && sisteFraArena?.hendelseId == arenaVedtak.hendelseId
 
         if (erSisteFraArena) {
             kafkaProducerService.sendInnsatsbehov(innsatsbehov)

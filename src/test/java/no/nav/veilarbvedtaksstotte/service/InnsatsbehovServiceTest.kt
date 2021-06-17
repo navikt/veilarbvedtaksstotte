@@ -31,6 +31,7 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.random.Random.Default.nextLong
 
 class InnsatsbehovServiceTest : DatabaseTest() {
 
@@ -572,7 +573,7 @@ class InnsatsbehovServiceTest : DatabaseTest() {
         innsatsgruppe: ArenaInnsatsgruppe = ArenaInnsatsgruppe.BFORM,
         hovedmal: ArenaHovedmal = ArenaHovedmal.SKAFFEA,
         operationTimestamp: LocalDateTime = LocalDateTime.now(),
-        hendelseId: Long = 12345
+        hendelseId: Long = nextLong()
     ): ArenaVedtak {
         val arenaVedtak = ArenaVedtak(
             fnr = fnr,
