@@ -14,6 +14,7 @@ import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock;
 import no.nav.veilarbvedtaksstotte.mock.PepMock;
+import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -27,6 +28,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 import java.util.Properties;
@@ -134,5 +136,10 @@ public class ApplicationTestConfig {
                 .setOnPremConsumerClientProperties(consumerProperties)
                 .setOnPremProducerClientProperties(producerProperties)
                 .setAivenProducerClientProperties(producerProperties);
+    }
+
+    @PostConstruct
+    public void initJsonUtils() {
+        JsonUtils.init();
     }
 }

@@ -10,7 +10,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
-import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
@@ -62,8 +61,6 @@ class ArenaVedtakConsumerTest {
 
     @Before
     fun setup() {
-        JsonUtils.init()
-
         producer = KafkaProducer(
             mapOf(
                 Pair(BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.getBootstrapServers()),

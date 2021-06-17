@@ -18,6 +18,7 @@ import no.nav.veilarbvedtaksstotte.service.BrukerIdentService
 import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService
 import no.nav.veilarbvedtaksstotte.service.KafkaProducerService
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
+import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
@@ -65,9 +66,9 @@ class InnsatsbehovKafkaProducerTest {
 
     @Test
     fun `produserer melding for endring av innsatsbehov med nytt innsatsbehov`() {
-        val aktorId = AktorId("123123")
+        val aktorId = AktorId(randomNumeric(10))
         val arenaVedtak = ArenaVedtak(
-            fnr = Fnr("11111111111"),
+            fnr = Fnr(randomNumeric(10)),
             innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BFORM,
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
             fraDato = LocalDate.of(2021, 1, 13),
