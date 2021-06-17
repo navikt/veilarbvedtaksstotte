@@ -40,6 +40,8 @@ spec:
         mountPath: /var/run/secrets/nais.io/service_user
       - kvPath: /kv/prod/fss/veilarbvedtaksstotte/default
         mountPath: /var/run/secrets/nais.io/vault
+  kafka:
+    pool: nav-prod
   env:
     - name: ENDRING_PA_AVSLUTT_OPPFOLGING_TOPIC
       value: aapen-fo-endringPaaAvsluttOppfolging-v1-p
