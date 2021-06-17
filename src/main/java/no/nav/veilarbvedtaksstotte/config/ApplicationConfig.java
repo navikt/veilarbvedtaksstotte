@@ -1,8 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.core.LockProvider;
-import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
 import no.nav.common.abac.VeilarbPep;
@@ -19,12 +17,13 @@ import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 
+import static no.nav.common.kafka.util.KafkaPropertiesPreset.*;
 import static no.nav.common.utils.NaisUtils.getCredentials;
+import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.PRODUCER_CLIENT_ID;
 
 @Slf4j
 @Configuration
@@ -59,8 +58,20 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public LockProvider lockProvider(JdbcTemplate jdbcTemplate) {
-        return new JdbcTemplateLockProvider(jdbcTemplate);
+    public KafkaConfig.EnvironmentContext kafkaConfigEnvContext(KafkaProperties kafkaProperties,
+                                                                Credentials credentials) {
+        return new KafkaConfig.EnvironmentContext()
+                .setOnPremConsumerClientProperties(
+                        onPremDefaultConsumerProperties(
+                                KafkaConfig.CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials
+                        )
+                )
+                .setOnPremProducerClientProperties(
+                        onPremByteProducerProperties(
+                                PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials
+                        )
+                )
+                .setAivenProducerClientProperties(aivenByteProducerProperties(PRODUCER_CLIENT_ID));
     }
 
     @PostConstruct

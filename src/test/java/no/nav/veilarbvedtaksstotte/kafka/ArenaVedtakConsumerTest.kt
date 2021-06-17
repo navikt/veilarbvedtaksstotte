@@ -10,11 +10,11 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
-import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG
 import org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG
@@ -61,8 +61,6 @@ class ArenaVedtakConsumerTest {
 
     @Before
     fun setup() {
-        JsonUtils.init()
-
         producer = KafkaProducer(
             mapOf(
                 Pair(BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.getBootstrapServers()),
@@ -160,7 +158,7 @@ class ArenaVedtakConsumerTest {
             )
         )
 
-        kafkaConsumerService.behandleArenaVedtak(arenaVedtakRecord)
+        kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
 
         verify(innsatsbehovService, never()).behandleEndringFraArena(any())
     }
@@ -173,7 +171,7 @@ class ArenaVedtakConsumerTest {
             hovedmal = "FEIL",
         )
 
-        kafkaConsumerService.behandleArenaVedtak(arenaVedtakRecord)
+        kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
 
         verify(innsatsbehovService, never()).behandleEndringFraArena(any())
     }
@@ -187,7 +185,7 @@ class ArenaVedtakConsumerTest {
             fraDato = null
         )
 
-        kafkaConsumerService.behandleArenaVedtak(arenaVedtakRecord)
+        kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
 
         verify(innsatsbehovService, never()).behandleEndringFraArena(any())
     }
@@ -201,7 +199,7 @@ class ArenaVedtakConsumerTest {
             regUser = null
         )
 
-        kafkaConsumerService.behandleArenaVedtak(arenaVedtakRecord)
+        kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
 
         verify(innsatsbehovService, never()).behandleEndringFraArena(any())
     }
@@ -236,4 +234,6 @@ class ArenaVedtakConsumerTest {
             )
         )
     }
+
+    private fun <V> kafkaRecord(value: V) = ConsumerRecord("", 0, 0, "", value)
 }
