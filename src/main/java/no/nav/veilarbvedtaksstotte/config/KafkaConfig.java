@@ -89,7 +89,8 @@ public class KafkaConfig {
                         kafkaProperties.getEndringPaOppfolgingsBrukerTopic(),
                         kafkaProperties.getVedtakSendtTopic(),
                         kafkaProperties.getVedtakStatusEndringTopic(),
-                        kafkaProperties.getArenaVedtakTopic()
+                        kafkaProperties.getArenaVedtakTopic(),
+                        kafkaProperties.getInnsatsbehovOnPremTopic()
                 )
         );
 
