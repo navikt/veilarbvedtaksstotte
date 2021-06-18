@@ -86,8 +86,7 @@ public class KafkaConfig {
                 meterRegistry,
                 List.of(
                         kafkaProperties.getVedtakSendtTopic(),
-                        kafkaProperties.getVedtakStatusEndringTopic(),
-                        kafkaProperties.getInnsatsbehovOnPremTopic()
+                        kafkaProperties.getVedtakStatusEndringTopic()
                 )
         );
 
