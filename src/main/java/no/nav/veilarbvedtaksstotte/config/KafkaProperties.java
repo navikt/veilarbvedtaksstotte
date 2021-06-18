@@ -15,5 +15,4 @@ public class KafkaProperties {
     String vedtakStatusEndringTopic;
     String arenaVedtakTopic;
     String innsatsbehovTopic;
-    String innsatsbehovOnPremTopic;
 }
