@@ -5,40 +5,31 @@ import no.nav.common.kafka.consumer.TopicConsumer;
 import no.nav.common.kafka.consumer.feilhandtering.KafkaConsumerRepository;
 import no.nav.common.kafka.consumer.util.ConsumerUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.serialization.Serializer;
 
-public class StoreOnFailureArenaTopicConsumer<K, V> implements TopicConsumer<K, V> {
+public class StoreOnFailureArenaTopicConsumer implements TopicConsumer<byte[], byte[]> {
 
-    private final TopicConsumer<K, V> consumer;
+    private final TopicConsumer<byte[], byte[]> topicConsumer;
 
     private final KafkaConsumerRepository consumerRepository;
 
-    private final Serializer<K> keySerializer;
-
-    private final Serializer<V> valueSerializer;
-
     public StoreOnFailureArenaTopicConsumer(
-            TopicConsumer<K, V> consumer,
-            KafkaConsumerRepository consumerRepository,
-            Serializer<K> keySerializer,
-            Serializer<V> valueSerializer
+            TopicConsumer<byte[], byte[]> topicConsumer,
+            KafkaConsumerRepository consumerRepository
     ) {
-        this.keySerializer = keySerializer;
-        this.valueSerializer = valueSerializer;
-        this.consumer = consumer;
+        this.topicConsumer = topicConsumer;
         this.consumerRepository = consumerRepository;
     }
 
     @Override
-    public ConsumeStatus consume(ConsumerRecord<K, V> record) {
+    public ConsumeStatus consume(ConsumerRecord<byte[], byte[]> consumerRecord) {
 
-        ConsumeStatus status = ConsumerUtils.safeConsume(consumer, record);
+        ConsumeStatus status = ConsumerUtils.safeConsume(topicConsumer, consumerRecord);
 
         if (status == ConsumeStatus.OK) {
             return ConsumeStatus.OK;
         }
 
-        consumerRepository.storeRecord(ConsumerUtils.mapToStoredRecord(record, keySerializer, valueSerializer));
+        consumerRepository.storeRecord(ConsumerUtils.mapToStoredRecord(consumerRecord));
         return ConsumeStatus.OK;
     }
 }

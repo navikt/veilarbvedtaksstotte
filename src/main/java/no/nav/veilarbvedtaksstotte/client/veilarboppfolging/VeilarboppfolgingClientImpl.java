@@ -70,7 +70,7 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
 
     @Override
     public HealthCheckResult checkHealth() {
-        return HealthCheckUtils.pingUrl(joinPaths(veilarboppfolgingUrl, "/internal/isReady"), client);
+        return HealthCheckUtils.pingUrl(joinPaths(veilarboppfolgingUrl, "/api/ping"), client);
     }
 
 }

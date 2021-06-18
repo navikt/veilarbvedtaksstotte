@@ -8,49 +8,50 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Service;
 
-import static no.nav.common.kafka.producer.util.ProducerUtils.toJsonProducerRecord;
-import static no.nav.common.kafka.producer.util.ProducerUtils.toProducerRecord;
-import static no.nav.veilarbvedtaksstotte.utils.JsonUtilsKt.toJson;
+import static no.nav.common.kafka.producer.util.ProducerUtils.*;
 
 @Service
 public class KafkaProducerService {
-    final KafkaProducerRecordStorage<String, String> producerRecordStorage;
+    final KafkaProducerRecordStorage producerRecordStorage;
     final KafkaProperties kafkaProperties;
 
-    public KafkaProducerService(KafkaProducerRecordStorage<String, String> producerRecordStorage, KafkaProperties kafkaProperties) {
+    public KafkaProducerService(
+            KafkaProducerRecordStorage producerRecordStorage,
+            KafkaProperties kafkaProperties
+    ) {
         this.producerRecordStorage = producerRecordStorage;
         this.kafkaProperties = kafkaProperties;
     }
 
     public void sendVedtakStatusEndring(KafkaVedtakStatusEndring vedtakStatusEndring) {
-        ProducerRecord<String, String> producerRecord =
-                toJsonProducerRecord(
-                        kafkaProperties.getVedtakStatusEndringTopic(),
-                        vedtakStatusEndring.getAktorId(),
-                        vedtakStatusEndring
-                );
+        ProducerRecord<byte[], byte[]> producerRecord =
+                serializeJsonRecord(
+                        new ProducerRecord<>(
+                                kafkaProperties.getVedtakStatusEndringTopic(),
+                                vedtakStatusEndring.getAktorId(),
+                                vedtakStatusEndring));
 
         producerRecordStorage.store(producerRecord);
     }
 
     public void sendVedtakSendt(KafkaVedtakSendt vedtakSendt) {
-        ProducerRecord<String, String> producerRecord =
-                toJsonProducerRecord(
-                        kafkaProperties.getVedtakSendtTopic(),
-                        vedtakSendt.getAktorId(),
-                        vedtakSendt
-                );
+        ProducerRecord<byte[], byte[]> producerRecord =
+                serializeJsonRecord(
+                        new ProducerRecord<>(
+                                kafkaProperties.getVedtakSendtTopic(),
+                                vedtakSendt.getAktorId(),
+                                vedtakSendt));
 
         producerRecordStorage.store(producerRecord);
     }
 
     public void sendInnsatsbehov(Innsatsbehov innsatsbehov) {
-        ProducerRecord<String, String> producerRecord =
-                toProducerRecord(
-                        kafkaProperties.getInnsatsbehovTopic(),
-                        innsatsbehov.getAktorId().get(),
-                        toJson(innsatsbehov)
-                );
+        ProducerRecord<byte[], byte[]> producerRecord =
+                serializeJsonRecord(
+                        new ProducerRecord<>(
+                                kafkaProperties.getInnsatsbehovTopic(),
+                                innsatsbehov.getAktorId().get(),
+                                innsatsbehov));
 
         producerRecordStorage.store(producerRecord);
     }
