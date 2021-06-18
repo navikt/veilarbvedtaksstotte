@@ -55,7 +55,5 @@ spec:
       value: aapen-oppfolging-vedtakStatusEndring-v1-q1
     - name: ARENA_VEDTAK_TOPIC
       value: aapen-arena-14aVedtakIverksatt-v1-q1
-    - name: INNSATSBEHOV_TOPIC
-      value: aapen-oppfolging-innsatsbehov-v1-dev
   envFrom:
     - configmap: pto-config
