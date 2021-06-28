@@ -1,8 +1,9 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
@@ -21,7 +22,7 @@ class InnsatsbehovService(
     val vedtakRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
     val authService: AuthService,
-    val brukerIdentService: BrukerIdentService,
+    val aktorOppslagClient: AktorOppslagClient,
     val arenaVedtakService: ArenaVedtakService
 ) {
 
@@ -29,7 +30,7 @@ class InnsatsbehovService(
 
     fun sisteInnsatsbehov(fnr: Fnr): Innsatsbehov? {
         authService.sjekkTilgangTilBruker(fnr)
-        val identer: BrukerIdenter = brukerIdentService.hentIdenter(fnr)
+        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
         return sisteInnsatsbehovMedKilder(identer).innsatsbehov
     }
 
@@ -107,7 +108,7 @@ class InnsatsbehovService(
     }
 
     private fun oppdaterKafkaInnsatsbehov(arenaVedtak: ArenaVedtak) {
-        val identer = brukerIdentService.hentIdenter(arenaVedtak.fnr)
+        val identer = aktorOppslagClient.hentIdenter(arenaVedtak.fnr)
         val (innsatsbehov, fraArena, arenaVedtakListe) = sisteInnsatsbehovMedKilder(identer)
 
         // hindrer at vi republiserer innsatsbehov dersom eldre meldinger skulle bli konsumert:
@@ -124,7 +125,7 @@ class InnsatsbehovService(
     }
 
     fun republiserKafkaInnsatsbehov(eksernBrukerId: EksternBrukerId) {
-        val identer = brukerIdentService.hentIdenter(eksernBrukerId)
+        val identer = aktorOppslagClient.hentIdenter(eksernBrukerId)
         val (innsatsbehov, fraArena) = sisteInnsatsbehovMedKilder(identer)
         kafkaProducerService.sendInnsatsbehov(innsatsbehov)
         log.info("Innsatsbehov republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte" )

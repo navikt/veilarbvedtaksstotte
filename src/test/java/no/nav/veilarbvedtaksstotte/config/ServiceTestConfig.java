@@ -21,7 +21,6 @@ import org.springframework.context.annotation.Import;
         UnleashService.class,
         UtrullingService.class,
         InnsatsbehovService.class,
-        BrukerIdentService.class,
         KafkaProducerService.class,
         KafkaConsumerService.class,
         KafkaRepubliseringService.class
