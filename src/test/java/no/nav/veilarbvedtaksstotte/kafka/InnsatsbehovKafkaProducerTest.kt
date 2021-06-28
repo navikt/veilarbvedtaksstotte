@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.kafka
 
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.kafka.consumer.ConsumeStatus
 import no.nav.common.kafka.consumer.TopicConsumer
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
@@ -9,12 +11,10 @@ import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
-import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
-import no.nav.veilarbvedtaksstotte.service.BrukerIdentService
 import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService
 import no.nav.veilarbvedtaksstotte.service.KafkaProducerService
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
@@ -56,7 +56,7 @@ class InnsatsbehovKafkaProducerTest {
     lateinit var innsatsbehovService: InnsatsbehovService
 
     @MockBean
-    lateinit var brukerIdentService: BrukerIdentService
+    lateinit var aktorOppslagClient: AktorOppslagClient
 
     @MockBean
     lateinit var veilarboppfolgingClient: VeilarboppfolgingClient
@@ -81,7 +81,7 @@ class InnsatsbehovKafkaProducerTest {
             vedtakId = 1234
         )
 
-        `when`(brukerIdentService.hentIdenter(arenaVedtak.fnr)).thenReturn(
+        `when`(aktorOppslagClient.hentIdenter(arenaVedtak.fnr)).thenReturn(
             BrukerIdenter(arenaVedtak.fnr, aktorId, emptyList(), emptyList())
         )
 
