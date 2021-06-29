@@ -1,13 +1,13 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.client.pdl.PdlClient
 import no.nav.common.featuretoggle.UnleashClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO
-import no.nav.veilarbvedtaksstotte.domain.BrukerIdenter
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
@@ -17,9 +17,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDelt
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
-import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterQuery.*
-import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterQuery.ResponseData.IdenterResponseData
-import no.nav.veilarbvedtaksstotte.service.BrukerIdentService.HentIdenterQuery.ResponseData.IdenterResponseData.IdentData
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
@@ -44,7 +41,6 @@ class InnsatsbehovServiceTest : DatabaseTest() {
         lateinit var arenaVedtakService: ArenaVedtakService
         lateinit var innsatsbehovService: InnsatsbehovService
         lateinit var unleashService: UnleashService
-        lateinit var brukerIdentService: BrukerIdentService
 
         val unleashClient = mock(UnleashClient::class.java)
         val pdlClient = mock(PdlClient::class.java)
@@ -61,10 +57,9 @@ class InnsatsbehovServiceTest : DatabaseTest() {
             unleashService = UnleashService(unleashClient)
 
             arenaVedtakService = ArenaVedtakService(arenaVedtakRepository, mock(SafClient::class.java), authService)
-            brukerIdentService = BrukerIdentService(pdlClient, aktorOppslagClient, unleashService)
             innsatsbehovService = InnsatsbehovService(
                 authService = authService,
-                brukerIdentService = brukerIdentService,
+                aktorOppslagClient = aktorOppslagClient,
                 vedtakRepository = vedtakRepository,
                 arenaVedtakRepository = arenaVedtakRepository,
                 arenaVedtakService = arenaVedtakService,
@@ -532,36 +527,19 @@ class InnsatsbehovServiceTest : DatabaseTest() {
 
     private fun gittBrukerIdenter(antallHistoriskeFnr: Int = 1): BrukerIdenter {
         val brukerIdenter = BrukerIdenter(
-            fnr = Fnr(randomNumeric(10)),
-            aktorId = AktorId(randomNumeric(5)),
-            historiskeFnr = (1..antallHistoriskeFnr).map { Fnr(randomNumeric(10)) },
-            historiskeAktorId = listOf()
+            Fnr(randomNumeric(10)),
+            AktorId(randomNumeric(5)),
+            (1..antallHistoriskeFnr).map { Fnr(randomNumeric(10)) },
+            listOf()
         )
 
-
-        val identerResponse = Response()
-        identerResponse.data = ResponseData(IdenterResponseData(
+        `when`(aktorOppslagClient.hentIdenter(ArgumentMatchers.argThat{ arg ->
             brukerIdenter.historiskeFnr
-                .map { IdentData(it.get(), "FOLKEREGISTERIDENT", true) }
-                .plus(IdentData(brukerIdenter.fnr.get(), "FOLKEREGISTERIDENT", false))
-                .plus(IdentData(brukerIdenter.aktorId.get(), "AKTORID", false))
-        ))
-
-
-        `when`(
-            pdlClient.request(
-                ArgumentMatchers.argThat { x ->
-                    x.variables is Variables &&
-                            brukerIdenter.historiskeFnr
-                                .plus(brukerIdenter.historiskeAktorId)
-                                .plus(brukerIdenter.fnr)
-                                .plus(brukerIdenter.aktorId)
-                                .map { it.get() }
-                                .contains((x.variables as Variables).ident)
-                },
-                ArgumentMatchers.eq(Response::class.java)
-            )
-        ).thenReturn(identerResponse)
+                .plus(brukerIdenter.historiskeAktorId)
+                .plus(brukerIdenter.fnr)
+                .plus(brukerIdenter.aktorId)
+                .contains(arg)
+        })).thenReturn(brukerIdenter)
 
         return brukerIdenter
     }
