@@ -8,7 +8,6 @@ import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.kafka.consumer.KafkaConsumerClient;
 import no.nav.common.kafka.consumer.feilhandtering.KafkaConsumerRecordProcessor;
 import no.nav.common.kafka.consumer.feilhandtering.KafkaConsumerRepository;
-import no.nav.common.kafka.consumer.feilhandtering.PostgresConsumerRepository;
 import no.nav.common.kafka.consumer.feilhandtering.util.KafkaConsumerRecordProcessorBuilder;
 import no.nav.common.kafka.consumer.util.ConsumerUtils;
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder;
@@ -17,8 +16,9 @@ import no.nav.common.kafka.consumer.util.deserializer.Deserializers;
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordProcessor;
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage;
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRepository;
-import no.nav.common.kafka.producer.feilhandtering.PostgresProducerRepository;
 import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder;
+import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository;
+import no.nav.common.kafka.spring.PostgresJdbcTemplateProducerRepository;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
@@ -65,8 +65,8 @@ public class KafkaConfig {
             MeterRegistry meterRegistry
     ) {
 
-        var consumerRepository = new PostgresConsumerRepository(jdbcTemplate.getDataSource());
-        var producerRepository = new PostgresProducerRepository(jdbcTemplate.getDataSource());
+        var consumerRepository = new PostgresJdbcTemplateConsumerRepository(jdbcTemplate);
+        var producerRepository = new PostgresJdbcTemplateProducerRepository(jdbcTemplate);
 
         var topicConfigs = getTopicConfigs(kafkaConsumerService, kafkaProperties, meterRegistry, consumerRepository);
 
@@ -104,7 +104,7 @@ public class KafkaConfig {
     private static KafkaProducerRecordProcessor getProducerRecordProcessor(
             Properties properties,
             LeaderElectionClient leaderElectionClient,
-            PostgresProducerRepository producerRepository,
+            PostgresJdbcTemplateProducerRepository producerRepository,
             MeterRegistry meterRegistry,
             List<String> topicWhitelist) {
 
@@ -118,7 +118,7 @@ public class KafkaConfig {
 
     private static KafkaConsumerRecordProcessor getConsumerRecordProcessor(
             JdbcTemplate jdbcTemplate,
-            PostgresConsumerRepository consumerRepository,
+            PostgresJdbcTemplateConsumerRepository consumerRepository,
             List<KafkaConsumerClientBuilder.TopicConfig<?, ?>> topicConfigs
     ) {
         return KafkaConsumerRecordProcessorBuilder
@@ -152,7 +152,7 @@ public class KafkaConfig {
             KafkaConsumerService kafkaConsumerService,
             KafkaProperties kafkaProperties,
             MeterRegistry meterRegistry,
-            PostgresConsumerRepository consumerRepository) {
+            PostgresJdbcTemplateConsumerRepository consumerRepository) {
         return List.of(
                 getArenaVedtakTopicConfig(kafkaProperties, kafkaConsumerService, meterRegistry, consumerRepository),
                 new KafkaConsumerClientBuilder.TopicConfig<String, KafkaAvsluttOppfolging>()
