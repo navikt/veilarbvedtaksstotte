@@ -23,10 +23,10 @@ public class KafkaConsumerServiceTest {
 
     private final Norg2Client norg2Client = mock(Norg2Client.class);
 
-    private final InnsatsbehovService innsatsbehovService = mock(InnsatsbehovService.class);
+    private final Siste14aVedtakService siste14aVedtakService = mock(Siste14aVedtakService.class);
 
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
-            innsatsbehovService,
+            siste14aVedtakService,
             vedtaksstotteRepository,
             beslutteroversiktRepository,
             norg2Client);

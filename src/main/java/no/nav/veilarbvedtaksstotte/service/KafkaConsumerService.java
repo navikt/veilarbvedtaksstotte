@@ -21,7 +21,7 @@ import static java.lang.String.format;
 @Slf4j
 public class KafkaConsumerService {
 
-    private final InnsatsbehovService innsatsbehovService;
+    private final Siste14aVedtakService siste14aVedtakService;
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
@@ -31,12 +31,12 @@ public class KafkaConsumerService {
 
     @Autowired
     public KafkaConsumerService(
-            @Lazy InnsatsbehovService innsatsbehovService,
+            @Lazy Siste14aVedtakService siste14aVedtakService,
             VedtaksstotteRepository vedtaksstotteRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
             Norg2Client norg2Client
     ) {
-        this.innsatsbehovService = innsatsbehovService;
+        this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.norg2Client = norg2Client;
@@ -62,7 +62,7 @@ public class KafkaConsumerService {
     public void behandleArenaVedtak(ConsumerRecord<String, ArenaVedtakRecord> arenaVedtakRecord) {
         ArenaVedtak arenaVedtak = ArenaVedtak.fraRecord(arenaVedtakRecord.value());
         if (arenaVedtak != null) {
-            innsatsbehovService.behandleEndringFraArena(arenaVedtak);
+            siste14aVedtakService.behandleEndringFraArena(arenaVedtak);
         } else {
             log.info(format("Behandler ikke melding fra Arena med kvalifiseringsgruppe = %s og hovedmål = %s",
                     arenaVedtakRecord.value().getAfter().getKvalifiseringsgruppe(),

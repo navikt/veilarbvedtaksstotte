@@ -6,17 +6,18 @@ import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 
 @Service
-class InnsatsbehovService(
+class Siste14aVedtakService(
     val transactor: TransactionTemplate,
     val kafkaProducerService: KafkaProducerService,
     val vedtakRepository: VedtaksstotteRepository,
@@ -26,29 +27,27 @@ class InnsatsbehovService(
     val arenaVedtakService: ArenaVedtakService
 ) {
 
-    val log = LoggerFactory.getLogger(InnsatsbehovService::class.java)
+    val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
 
-    fun sisteInnsatsbehov(fnr: Fnr): Innsatsbehov? {
+    fun siste14aVedtak(fnr: Fnr): Siste14aVedtak? {
         authService.sjekkTilgangTilBruker(fnr)
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
-        return sisteInnsatsbehovMedKilder(identer).innsatsbehov
+        return siste14aVedtakMedKilder(identer).siste14aVedtak
     }
 
-    private data class InnsatsbehovMedGrunnlag(
-        val innsatsbehov: Innsatsbehov?,
-        val fraArena: Boolean,
+    private data class Siste14aVedtakMedGrunnlag(
+        val siste14aVedtak: Siste14aVedtak?,
         val arenaVedtak: List<ArenaVedtak>
     )
 
-    private fun sisteInnsatsbehovMedKilder(identer: BrukerIdenter): InnsatsbehovMedGrunnlag {
+    private fun siste14aVedtakMedKilder(identer: BrukerIdenter): Siste14aVedtakMedGrunnlag {
 
         val sisteVedtak: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId.get())
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
         if (sisteVedtak == null && arenaVedtakListe.isEmpty()) {
-            return InnsatsbehovMedGrunnlag(
-                innsatsbehov = null,
-                fraArena = false,
+            return Siste14aVedtakMedGrunnlag(
+                siste14aVedtak = null,
                 arenaVedtak = arenaVedtakListe
             )
         }
@@ -61,33 +60,34 @@ class InnsatsbehovService(
             (sisteVedtak != null && sisteArenaVedtak != null &&
                     sisteVedtak.vedtakFattet.isAfter(sisteArenaVedtak.beregnetFattetTidspunkt()))
         ) {
-            return InnsatsbehovMedGrunnlag(
-                innsatsbehov = Innsatsbehov(
+            return Siste14aVedtakMedGrunnlag(
+                siste14aVedtak = Siste14aVedtak(
                     aktorId = identer.aktorId,
                     innsatsgruppe = sisteVedtak.innsatsgruppe,
-                    hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(sisteVedtak.hovedmal)
+                    hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(sisteVedtak.hovedmal),
+                    fattetDato = toZonedDateTime(sisteVedtak.vedtakFattet),
+                    fraArena = false,
                 ),
-                fraArena = false,
                 arenaVedtak = arenaVedtakListe
             )
 
             // Siste vedtak fra Arena
         } else if (sisteArenaVedtak != null) {
-            return InnsatsbehovMedGrunnlag(
-                innsatsbehov = Innsatsbehov(
+            return Siste14aVedtakMedGrunnlag(
+                siste14aVedtak = Siste14aVedtak(
                     aktorId = identer.aktorId,
                     innsatsgruppe = ArenaInnsatsgruppe.tilInnsatsgruppe(sisteArenaVedtak.innsatsgruppe),
-                    hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(sisteArenaVedtak.hovedmal)
+                    hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(sisteArenaVedtak.hovedmal),
+                    fattetDato = toZonedDateTime(sisteArenaVedtak.fraDato.atStartOfDay()),
+                    fraArena = true,
                 ),
-                fraArena = true,
                 arenaVedtak = arenaVedtakListe
             )
         }
 
         // Ingen vedtak
-        return InnsatsbehovMedGrunnlag(
-            innsatsbehov = null,
-            fraArena = false,
+        return Siste14aVedtakMedGrunnlag(
+            siste14aVedtak = null,
             arenaVedtak = arenaVedtakListe
         )
     }
@@ -104,30 +104,32 @@ class InnsatsbehovService(
         // oppdateringene i samme transaksjon, og følgende oppdatering kunne f.eks. også vært kjørt uavhengig i en
         // scheduled task. Feilhåndtering her skjer indirekte via feilhåndtering av Kafka-meldinger som vil bli
         // behandlet på nytt ved feil.
-        oppdaterKafkaInnsatsbehov(arenaVedtak)
+        oppdaterKafkaSiste14aVedtak(arenaVedtak)
     }
 
-    private fun oppdaterKafkaInnsatsbehov(arenaVedtak: ArenaVedtak) {
+    private fun oppdaterKafkaSiste14aVedtak(arenaVedtak: ArenaVedtak) {
         val identer = aktorOppslagClient.hentIdenter(arenaVedtak.fnr)
-        val (innsatsbehov, fraArena, arenaVedtakListe) = sisteInnsatsbehovMedKilder(identer)
+        val (siste14aVedtak, arenaVedtakListe) = siste14aVedtakMedKilder(identer)
+        val fraArena = siste14aVedtak?.fraArena ?: false
 
-        // hindrer at vi republiserer innsatsbehov dersom eldre meldinger skulle bli konsumert:
+        // hindrer at vi republiserer siste14aVedtak dersom eldre meldinger skulle bli konsumert:
         val sisteFraArena = finnSisteArenaVedtak(arenaVedtakListe)
         val erSisteFraArena = fraArena && sisteFraArena?.hendelseId == arenaVedtak.hendelseId
 
         if (erSisteFraArena) {
-            kafkaProducerService.sendInnsatsbehov(innsatsbehov)
+            kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
         } else {
-            log.info("""Publiserer ikke innsatsbehov basert på behandlet melding (fraArena=$fraArena, erSisteFraArena=$erSisteFraArena)
+            log.info("""Publiserer ikke siste 14a vedtak basert på behandlet melding (fraArena=$fraArena, erSisteFraArena=$erSisteFraArena)
                 |Behandlet melding har hendelseId=${arenaVedtak.hendelseId}
                 |Siste melding har hendelseId=${sisteFraArena?.hendelseId}""".trimMargin())
         }
     }
 
-    fun republiserKafkaInnsatsbehov(eksernBrukerId: EksternBrukerId) {
+    fun republiserKafkaSiste14aVedtak(eksernBrukerId: EksternBrukerId) {
         val identer = aktorOppslagClient.hentIdenter(eksernBrukerId)
-        val (innsatsbehov, fraArena) = sisteInnsatsbehovMedKilder(identer)
-        kafkaProducerService.sendInnsatsbehov(innsatsbehov)
-        log.info("Innsatsbehov republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte" )
+        val (siste14aVedtak) = siste14aVedtakMedKilder(identer)
+        val fraArena = siste14aVedtak?.fraArena ?: false
+        kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
+        log.info("Siste 14a vedtak republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte" )
     }
 }
