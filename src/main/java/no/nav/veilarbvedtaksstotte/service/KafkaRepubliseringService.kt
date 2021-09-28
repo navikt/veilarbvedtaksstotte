@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 @Service
 class KafkaRepubliseringService(
     val vedtaksstotteRepository: VedtaksstotteRepository,
-    val innsatsbehovService: InnsatsbehovService
+    val siste14aVedtakService: Siste14aVedtakService
 ) {
 
     val log: Logger = LoggerFactory.getLogger(KafkaRepubliseringService::class.java)
@@ -16,11 +16,11 @@ class KafkaRepubliseringService(
     val pageSize = 1000;
 
     /**
-     * Republiserer innsatsbehov for brukere som har fått vedtak i vedtaksstøtte (denne løsningen). Republiserer ikke
-     * for brukere som bare har vedtak i Arena, men dersom en bruker har vedtak i denne løsningen og et nyere i Arena,
-     * så vil innsatsbehovet fra vedtak i Arena bli republisert.
+     * Republiserer siste 14a vedtak for brukere som har fått vedtak i vedtaksstøtte (denne løsningen). Republiserer
+     * ikke for brukere som bare har vedtak i Arena, men dersom en bruker har vedtak i denne løsningen og et nyere i
+     * Arena, så vil vedtak fra Arena bli republisert.
      */
-    fun republiserInnsatsbehovVedtaksstotte() {
+    fun republiserSiste14aVedtakFraVedtaksstotte() {
         var currentOffset = 0;
 
         while (true) {
@@ -33,12 +33,12 @@ class KafkaRepubliseringService(
             currentOffset += unikeAktorIder.size;
 
             log.info(
-                "Republiserer innsatsbehov for brukere som har vedtak i vedtaksstøtte. CurrentOffset={} BatchSize={}",
+                "Republiserer siste 14a vedtak for brukere som har vedtak i vedtaksstøtte. CurrentOffset={} BatchSize={}",
                 currentOffset,
                 unikeAktorIder.size
             )
 
-            unikeAktorIder.forEach { aktorId -> innsatsbehovService.republiserKafkaInnsatsbehov(aktorId) }
+            unikeAktorIder.forEach { aktorId -> siste14aVedtakService.republiserKafkaSiste14aVedtak(aktorId) }
         }
     }
 }

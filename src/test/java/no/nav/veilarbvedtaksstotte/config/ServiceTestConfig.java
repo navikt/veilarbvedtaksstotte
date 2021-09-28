@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Import;
         DokumentServiceV2.class,
         UnleashService.class,
         UtrullingService.class,
-        InnsatsbehovService.class,
+        Siste14aVedtakService.class,
         KafkaProducerService.class,
         KafkaConsumerService.class,
         KafkaRepubliseringService.class

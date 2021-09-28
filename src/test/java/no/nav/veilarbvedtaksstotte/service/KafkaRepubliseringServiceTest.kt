@@ -13,7 +13,7 @@ import org.mockito.Mockito.*
 
 class KafkaRepubliseringServiceTest : DatabaseTest() {
 
-    lateinit var innsatsbehovService: InnsatsbehovService
+    lateinit var siste14aVedtakService: Siste14aVedtakService
     lateinit var vedtaksstotteRepository: VedtaksstotteRepository
     lateinit var kafkaRepubliseringService: KafkaRepubliseringService
 
@@ -22,14 +22,14 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
     @Before
     fun setup() {
         vedtaksstotteRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
-        innsatsbehovService = mock(InnsatsbehovService::class.java)
+        siste14aVedtakService = mock(Siste14aVedtakService::class.java)
         kafkaRepubliseringService = KafkaRepubliseringServiceOverridePageSize(
-            vedtaksstotteRepository, innsatsbehovService, pageSize
+            vedtaksstotteRepository, siste14aVedtakService, pageSize
         )
     }
 
     @Test
-    fun `republiserer innsatsbehov for alle brukere som har vedtak i denne løsningen`() {
+    fun `republiserer siste 14a vedtak for alle brukere som har vedtak i denne løsningen`() {
         val antallBrukere = pageSize * 4 + 1
         val brukereMedFattetVedtak = lagTilfeldingeAktorIder(antallBrukere)
 
@@ -39,11 +39,11 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
         // brukere uten fattet vedtak
         lagTilfeldingeAktorIder(2).map { lagVedtak(it, false) }
 
-        kafkaRepubliseringService.republiserInnsatsbehovVedtaksstotte()
+        kafkaRepubliseringService.republiserSiste14aVedtakFraVedtaksstotte()
 
-        verify(innsatsbehovService, times(antallBrukere)).republiserKafkaInnsatsbehov(any())
+        verify(siste14aVedtakService, times(antallBrukere)).republiserKafkaSiste14aVedtak(any())
         brukereMedFattetVedtak.forEach {
-            verify(innsatsbehovService).republiserKafkaInnsatsbehov(it)
+            verify(siste14aVedtakService).republiserKafkaSiste14aVedtak(it)
         }
     }
 
@@ -67,7 +67,7 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
 
     class KafkaRepubliseringServiceOverridePageSize(
         override val vedtaksstotteRepository: VedtaksstotteRepository,
-        override val innsatsbehovService: InnsatsbehovService,
+        override val siste14aVedtakService: Siste14aVedtakService,
         override val pageSize: Int
-    ) : KafkaRepubliseringService(vedtaksstotteRepository, innsatsbehovService)
+    ) : KafkaRepubliseringService(vedtaksstotteRepository, siste14aVedtakService)
 }

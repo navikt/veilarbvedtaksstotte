@@ -12,13 +12,14 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -30,7 +31,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.random.Random.Default.nextLong
 
-class InnsatsbehovServiceTest : DatabaseTest() {
+class Siste14aVedtakServiceTest : DatabaseTest() {
 
     companion object {
 
@@ -39,7 +40,7 @@ class InnsatsbehovServiceTest : DatabaseTest() {
 
         val authService: AuthService = mock(AuthService::class.java)
         lateinit var arenaVedtakService: ArenaVedtakService
-        lateinit var innsatsbehovService: InnsatsbehovService
+        lateinit var siste14aVedtakService: Siste14aVedtakService
         lateinit var unleashService: UnleashService
 
         val unleashClient = mock(UnleashClient::class.java)
@@ -57,7 +58,7 @@ class InnsatsbehovServiceTest : DatabaseTest() {
             unleashService = UnleashService(unleashClient)
 
             arenaVedtakService = ArenaVedtakService(arenaVedtakRepository, mock(SafClient::class.java), authService)
-            innsatsbehovService = InnsatsbehovService(
+            siste14aVedtakService = Siste14aVedtakService(
                 authService = authService,
                 aktorOppslagClient = aktorOppslagClient,
                 vedtakRepository = vedtakRepository,
@@ -76,36 +77,44 @@ class InnsatsbehovServiceTest : DatabaseTest() {
     }
 
     @Test
-    fun `innsatsbehov er null dersom, ny løsning har null, Arena har null`() {
+    fun `siste 14a vedtak er null dersom, ny løsning har null, Arena har null`() {
         val identer = gittBrukerIdenter()
         assertAntallVedtakFraArena(identer, 0)
         assertFattedeVedtakFraNyLøsning(identer, 0)
-        assertInnsatsbehov(identer, null)
+        assertSiste14aVedtak(identer, null)
     }
 
     @Test
-    fun `innsatsbehov fra ny løsning dersom, ny løsning har vedtak, Arena har null`() {
+    fun `siste 14a vedtak fra ny løsning dersom, ny løsning har vedtak, Arena har null`() {
 
         val identer = gittBrukerIdenter()
+
+        val fattetDato = LocalDateTime.now()
 
         gittFattetVedtakDer(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
-            hovedmal = Hovedmal.SKAFFE_ARBEID
+            hovedmal = Hovedmal.SKAFFE_ARBEID,
+            vedtakFattetDato = fattetDato
         )
 
         assertAntallVedtakFraArena(identer, 0)
-        assertInnsatsbehov(
+        assertSiste14aVedtak(
             identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+            Siste14aVedtak(
+                aktorId = identer.aktorId,
+                innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+                hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
+                fattetDato = toZonedDateTime(fattetDato),
+                fraArena = false
             )
         )
     }
 
     @Test
-    fun `innsatsbehov fra ny løsning dersom nyere vedtak fra ny løsning enn fra Arena`() {
+    fun `siste 14a vedtak fra ny løsning dersom nyere vedtak fra ny løsning enn fra Arena`() {
         val identer = gittBrukerIdenter()
+        val fattetDato = LocalDateTime.now().minusDays(3)
 
         lagre(
             arenaVedtakDer(
@@ -120,21 +129,24 @@ class InnsatsbehovServiceTest : DatabaseTest() {
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            vedtakFattetDato = LocalDateTime.now().minusDays(3)
+            vedtakFattetDato = fattetDato
         )
 
         assertAntallVedtakFraArena(identer, 1)
-        assertInnsatsbehov(
-            identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
+        assertSiste14aVedtak(
+            identer = identer,
+            forventet = Siste14aVedtak(
+                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID,
+                fattetDato = toZonedDateTime(fattetDato),
+                fraArena = false
             )
         )
     }
 
     @Test
-    fun `innsatsbehov fra ny løsning dersom, ny løsning har vedtak, Arena har eldre fra samme dag`() {
+    fun `siste 14a vedtak fra ny løsning dersom, ny løsning har vedtak, Arena har eldre fra samme dag`() {
         val identer = gittBrukerIdenter()
+        val fattetDato = LocalDateTime.now().minusDays(3).plusMinutes(1)
 
         lagre(
             arenaVedtakDer(
@@ -150,26 +162,31 @@ class InnsatsbehovServiceTest : DatabaseTest() {
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            vedtakFattetDato = LocalDateTime.now().minusDays(3).plusMinutes(1)
+            vedtakFattetDato = fattetDato
         )
 
         assertAntallVedtakFraArena(identer, 1)
-        assertInnsatsbehov(
+        assertSiste14aVedtak(
             identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
+            Siste14aVedtak(
+                aktorId = identer.aktorId,
+                innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+                hovedmal = HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID,
+                fattetDato = toZonedDateTime(fattetDato),
+                fraArena = false
             )
         )
     }
 
     @Test
-    fun `innsatsbehov er fra Arena dersom, ny løsning har null, Arena vedtak`() {
+    fun `siste 14a vedtak er fra Arena dersom, ny løsning har null, Arena vedtak`() {
         val identer = gittBrukerIdenter()
+        val fattetDato = LocalDate.now().minusDays(1)
 
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDate.now().minusDays(1),
+                fraDato = fattetDato,
                 innsatsgruppe = ArenaInnsatsgruppe.BATT,
                 hovedmal = ArenaHovedmal.OKEDELT
             )
@@ -177,22 +194,27 @@ class InnsatsbehovServiceTest : DatabaseTest() {
 
         assertAntallVedtakFraArena(identer, 1)
         assertFattedeVedtakFraNyLøsning(identer, 0)
-        assertInnsatsbehov(
+        assertSiste14aVedtak(
             identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+            Siste14aVedtak(
+                aktorId = identer.aktorId,
+                innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+                hovedmal = HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
+                fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+                fraArena = true
             )
         )
     }
 
     @Test
-    fun `innsatsbehov er fra Arena dersom nyere vedtak fra Arena enn fra ny løsning`() {
+    fun `siste 14a vedtak er fra Arena dersom nyere vedtak fra Arena enn fra ny løsning`() {
         val identer = gittBrukerIdenter()
+        val fattetDato = LocalDate.now().minusDays(4)
 
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDate.now().minusDays(4),
+                fraDato = fattetDato,
                 innsatsgruppe = ArenaInnsatsgruppe.VARIG,
                 hovedmal = ArenaHovedmal.SKAFFEA
             )
@@ -207,22 +229,25 @@ class InnsatsbehovServiceTest : DatabaseTest() {
 
         assertFattedeVedtakFraNyLøsning(identer, 1)
         assertAntallVedtakFraArena(identer, 1)
-        assertInnsatsbehov(
+        assertSiste14aVedtak(
             identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+            Siste14aVedtak(
+                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
+                fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+                fraArena = true
             )
         )
     }
 
     @Test
-    fun `innsatsbehov er fra Arena dersom, ny løsning har vedtak, Arena har nyere fra samme dag`() {
+    fun `siste 14a vedtak er fra Arena dersom, ny løsning har vedtak, Arena har nyere fra samme dag`() {
         val identer = gittBrukerIdenter()
+        val fattetDato = LocalDate.now().minusDays(4)
 
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDate.now().minusDays(4),
+                fraDato = fattetDato,
                 innsatsgruppe = ArenaInnsatsgruppe.VARIG,
                 hovedmal = ArenaHovedmal.SKAFFEA,
                 operationTimestamp = LocalDateTime.now().minusDays(4).plusMinutes(1)
@@ -238,22 +263,25 @@ class InnsatsbehovServiceTest : DatabaseTest() {
 
         assertFattedeVedtakFraNyLøsning(identer, 1)
         assertAntallVedtakFraArena(identer, 1)
-        assertInnsatsbehov(
+        assertSiste14aVedtak(
             identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+            Siste14aVedtak(
+                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
+                fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+                fraArena = true
             )
         )
     }
 
     @Test
-    fun `innsatsbehov er siste fra Arena dersom, ny løsning har null, Arena har også på historiske fnr`() {
+    fun `siste 14a vedtak er siste fra Arena dersom, ny løsning har null, Arena har også på historiske fnr`() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 3)
+        val fattetDato = LocalDate.now().minusDays(4)
 
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDate.now().minusDays(4),
+                fraDato = fattetDato,
                 innsatsgruppe = ArenaInnsatsgruppe.VARIG,
                 hovedmal = ArenaHovedmal.SKAFFEA
             )
@@ -272,22 +300,25 @@ class InnsatsbehovServiceTest : DatabaseTest() {
 
         assertFattedeVedtakFraNyLøsning(identer, 0)
         assertAntallVedtakFraArena(identer, 4)
-        assertInnsatsbehov(
+        assertSiste14aVedtak(
             identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+            Siste14aVedtak(
+                identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
+                fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+                fraArena = true
             )
         )
     }
 
     @Test
-    fun `innsatsbehov er siste fra Arena dersom, ny løsning har null, Arena har bare på historiske fnr`() {
+    fun `siste 14a vedtak er siste fra Arena dersom, ny løsning har null, Arena har bare på historiske fnr`() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 4)
+        val fattetDato = LocalDate.now().minusDays(4)
 
         lagre(
             arenaVedtakDer(
                 fnr = identer.historiskeFnr[1],
-                fraDato = LocalDate.now().minusDays(4),
+                fraDato = fattetDato,
                 innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
                 hovedmal = ArenaHovedmal.BEHOLDEA
             )
@@ -308,38 +339,49 @@ class InnsatsbehovServiceTest : DatabaseTest() {
 
         assertFattedeVedtakFraNyLøsning(identer, 0)
         assertAntallVedtakFraArena(identer, 4)
-        assertInnsatsbehov(
+        assertSiste14aVedtak(
             identer,
-            Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.STANDARD_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
+            Siste14aVedtak(
+                identer.aktorId, Innsatsgruppe.STANDARD_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID,
+                fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+                fraArena = true
             )
         )
     }
 
     @Test
-    fun `innsatsbehov oppdateres ved melding om nytt vedtak fra Arena`() {
+    fun `siste 14a vedtak oppdateres ved melding om nytt vedtak fra Arena`() {
         val identer = gittBrukerIdenter()
+        val fattetDato = LocalDate.now()
 
         assertAntallVedtakFraArena(identer, 0)
 
-        innsatsbehovService.behandleEndringFraArena(
+        siste14aVedtakService.behandleEndringFraArena(
             arenaVedtakDer(
-                fnr = identer.fnr, innsatsgruppe = ArenaInnsatsgruppe.BFORM, hovedmal = ArenaHovedmal.OKEDELT
+                fnr = identer.fnr,
+                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+                hovedmal = ArenaHovedmal.OKEDELT,
+                fraDato = fattetDato
             )
         )
 
-        val forventetInnsatsbehov = Innsatsbehov(
-            identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+        val forventetSiste14aVedtak = Siste14aVedtak(
+            identer.aktorId,
+            Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+            HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
+            fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+            fraArena = true
         )
 
-        verify(kafkaProducerService).sendInnsatsbehov(eq(forventetInnsatsbehov))
+        verify(kafkaProducerService).sendSiste14aVedtak(eq(forventetSiste14aVedtak))
 
-        assertInnsatsbehov(identer, forventetInnsatsbehov)
+        assertSiste14aVedtak(identer, forventetSiste14aVedtak)
     }
 
     @Test
-    fun `innsatsbehov oppdateres ved melding om nytt vedtak fra Arena som er nyere enn vedtak fra ny løsning`() {
+    fun `siste 14a vedtak oppdateres ved melding om nytt vedtak fra Arena som er nyere enn vedtak fra ny løsning`() {
         val identer = gittBrukerIdenter()
+        val fattetDato = LocalDate.now().minusDays(2)
 
         gittFattetVedtakDer(
             aktorId = identer.aktorId,
@@ -351,39 +393,43 @@ class InnsatsbehovServiceTest : DatabaseTest() {
         assertAntallVedtakFraArena(identer, 0)
         assertFattedeVedtakFraNyLøsning(identer, 1)
 
-        innsatsbehovService.behandleEndringFraArena(
+        siste14aVedtakService.behandleEndringFraArena(
             arenaVedtakDer(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
                 hovedmal = ArenaHovedmal.OKEDELT,
-                fraDato = LocalDate.now().minusDays(2)
+                fraDato = fattetDato
             )
         )
 
-        val forventetInnsatsbehov = Innsatsbehov(
-            identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+        val forventetSiste14aVedtak = Siste14aVedtak(
+            identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
+            fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+            fraArena = true
         )
 
-        verify(kafkaProducerService).sendInnsatsbehov(eq(forventetInnsatsbehov))
+        verify(kafkaProducerService).sendSiste14aVedtak(eq(forventetSiste14aVedtak))
 
-        assertInnsatsbehov(identer, forventetInnsatsbehov)
+        assertSiste14aVedtak(identer, forventetSiste14aVedtak)
         assertFattedeVedtakFraNyLøsning(identer, 1)
     }
 
     @Test
-    fun `innsatsbehov oppdateres ikke dersom melding stammer fra ny løsning`() {
+    fun `siste 14a vedtak oppdateres ikke dersom melding stammer fra ny løsning`() {
         val identer = gittBrukerIdenter()
+        val fattetDato = LocalDateTime.now()
 
         gittFattetVedtakDer(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
-            hovedmal = Hovedmal.BEHOLDE_ARBEID
+            hovedmal = Hovedmal.BEHOLDE_ARBEID,
+            vedtakFattetDato = fattetDato
         )
 
         assertAntallVedtakFraArena(identer, 0)
         assertFattedeVedtakFraNyLøsning(identer, 1)
 
-        innsatsbehovService.behandleEndringFraArena(
+        siste14aVedtakService.behandleEndringFraArena(
             arenaVedtakDer(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BATT,
@@ -392,31 +438,36 @@ class InnsatsbehovServiceTest : DatabaseTest() {
             )
         )
 
-        val forventetInnsatsbehov = Innsatsbehov(
-            identer.aktorId, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID
+        val forventetSiste14aVedtak = Siste14aVedtak(
+            identer.aktorId,
+            Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+            HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID,
+            fattetDato = toZonedDateTime(fattetDato),
+            fraArena = false
         )
 
-        verify(kafkaProducerService, never()).sendInnsatsbehov(any())
+        verify(kafkaProducerService, never()).sendSiste14aVedtak(any())
 
-        assertInnsatsbehov(identer, forventetInnsatsbehov)
+        assertSiste14aVedtak(identer, forventetSiste14aVedtak)
         assertFattedeVedtakFraNyLøsning(identer, 1)
     }
 
     @Test
-    fun `innsatsbehov oppdateres ikke dersom bruker har nyere vedtak fra ny løsning`() {
+    fun `siste 14a vedtak oppdateres ikke dersom bruker har nyere vedtak fra ny løsning`() {
         val identer = gittBrukerIdenter()
+        val fattetDato = LocalDateTime.now().minusDays(2)
 
         gittFattetVedtakDer(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = Hovedmal.SKAFFE_ARBEID,
-            vedtakFattetDato = LocalDateTime.now().minusDays(2)
+            vedtakFattetDato = fattetDato
         )
 
         assertAntallVedtakFraArena(identer, 0)
         assertFattedeVedtakFraNyLøsning(identer, 1)
 
-        innsatsbehovService.behandleEndringFraArena(
+        siste14aVedtakService.behandleEndringFraArena(
             arenaVedtakDer(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
@@ -425,24 +476,28 @@ class InnsatsbehovServiceTest : DatabaseTest() {
             )
         )
 
-        val forventetInnsatsbehov = Innsatsbehov(
-            identer.aktorId, Innsatsgruppe.STANDARD_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+        val forventetSiste14aVedtak = Siste14aVedtak(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
+            hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
+            fattetDato = toZonedDateTime(fattetDato),
+            fraArena = false
         )
 
-        verify(kafkaProducerService, never()).sendInnsatsbehov(any())
+        verify(kafkaProducerService, never()).sendSiste14aVedtak(any())
 
-        assertInnsatsbehov(identer, forventetInnsatsbehov)
+        assertSiste14aVedtak(identer, forventetSiste14aVedtak)
         assertFattedeVedtakFraNyLøsning(identer, 1)
     }
 
     @Test
-    fun `innsatsbehov oppdateres ikke dersom bruker har nyere vedtak fra Arena fra før`() {
+    fun `siste 14a vedtak oppdateres ikke dersom bruker har nyere vedtak fra Arena fra før`() {
         val identer = gittBrukerIdenter()
-
+        val fattetDato = LocalDate.now()
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDate.now(),
+                fraDato = fattetDato,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
                 hovedmal = ArenaHovedmal.OKEDELT
             )
@@ -450,7 +505,7 @@ class InnsatsbehovServiceTest : DatabaseTest() {
 
         assertAntallVedtakFraArena(identer, 1)
 
-        innsatsbehovService.behandleEndringFraArena(
+        siste14aVedtakService.behandleEndringFraArena(
             arenaVedtakDer(
                 fnr = identer.fnr,
                 fraDato = LocalDate.now().minusDays(1),
@@ -459,23 +514,28 @@ class InnsatsbehovServiceTest : DatabaseTest() {
             )
         )
 
-        verify(kafkaProducerService, never()).sendInnsatsbehov(any())
+        verify(kafkaProducerService, never()).sendSiste14aVedtak(any())
 
-        assertInnsatsbehov(
-            identer, Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+        assertSiste14aVedtak(
+            identer, Siste14aVedtak(
+                aktorId = identer.aktorId,
+                innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+                hovedmal = HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
+                fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+                fraArena = true
             )
         )
     }
 
     @Test
-    fun `innsatsbehov oppdateres ikke dersom bruker har nyere vedtak fra Arena fra før med annet fnr`() {
+    fun `siste 14a vedtak oppdateres ikke dersom bruker har nyere vedtak fra Arena fra før med annet fnr`() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 1)
+        val fattetDato = LocalDate.now()
 
         lagre(
             arenaVedtakDer(
                 fnr = identer.fnr,
-                fraDato = LocalDate.now(),
+                fraDato = fattetDato,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
                 hovedmal = ArenaHovedmal.OKEDELT
             )
@@ -483,7 +543,7 @@ class InnsatsbehovServiceTest : DatabaseTest() {
 
         assertAntallVedtakFraArena(identer, 1)
 
-        innsatsbehovService.behandleEndringFraArena(
+        siste14aVedtakService.behandleEndringFraArena(
             arenaVedtakDer(
                 fnr = identer.historiskeFnr[0],
                 fraDato = LocalDate.now().minusDays(1),
@@ -492,11 +552,15 @@ class InnsatsbehovServiceTest : DatabaseTest() {
             )
         )
 
-        verify(kafkaProducerService, never()).sendInnsatsbehov(any())
+        verify(kafkaProducerService, never()).sendSiste14aVedtak(any())
 
-        assertInnsatsbehov(
-            identer, Innsatsbehov(
-                identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE
+        assertSiste14aVedtak(
+            identer, Siste14aVedtak(
+                identer.aktorId,
+                Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+                HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
+                fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+                fraArena = true
             )
         )
     }
@@ -517,11 +581,11 @@ class InnsatsbehovServiceTest : DatabaseTest() {
         )
     }
 
-    fun assertInnsatsbehov(identer: BrukerIdenter, forventet: Innsatsbehov?) {
+    fun assertSiste14aVedtak(identer: BrukerIdenter, forventet: Siste14aVedtak?) {
         assertEquals(
-            "Innsatsbehov",
+            "Siste 14a vedtak",
             forventet,
-            innsatsbehovService.sisteInnsatsbehov(identer.fnr)
+            siste14aVedtakService.siste14aVedtak(identer.fnr)
         )
     }
 
@@ -533,7 +597,7 @@ class InnsatsbehovServiceTest : DatabaseTest() {
             listOf()
         )
 
-        `when`(aktorOppslagClient.hentIdenter(ArgumentMatchers.argThat{ arg ->
+        `when`(aktorOppslagClient.hentIdenter(ArgumentMatchers.argThat { arg ->
             brukerIdenter.historiskeFnr
                 .plus(brukerIdenter.historiskeAktorId)
                 .plus(brukerIdenter.fnr)
