@@ -8,7 +8,7 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
-import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService
+import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.toJson
@@ -54,7 +54,7 @@ class ArenaVedtakConsumerTest {
     lateinit var producer: KafkaProducer<String, String>
 
     @MockBean
-    lateinit var innsatsbehovService: InnsatsbehovService
+    lateinit var siste14aVedtakService: Siste14aVedtakService
 
     @Autowired
     lateinit var kafkaConsumerService: KafkaConsumerService
@@ -98,7 +98,7 @@ class ArenaVedtakConsumerTest {
         TestUtils.verifiserAsynkront(
             10, TimeUnit.SECONDS
         ) {
-            verify(innsatsbehovService).behandleEndringFraArena(forventetArenaVedtak)
+            verify(siste14aVedtakService).behandleEndringFraArena(forventetArenaVedtak)
         }
     }
 
@@ -133,7 +133,7 @@ class ArenaVedtakConsumerTest {
                 TestUtils.verifiserAsynkront(
                     10, TimeUnit.SECONDS
                 ) {
-                    verify(innsatsbehovService).behandleEndringFraArena(forventetArenaVedtak)
+                    verify(siste14aVedtakService).behandleEndringFraArena(forventetArenaVedtak)
                 }
             }
         }
@@ -160,7 +160,7 @@ class ArenaVedtakConsumerTest {
 
         kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
 
-        verify(innsatsbehovService, never()).behandleEndringFraArena(any())
+        verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
     }
 
     @Test
@@ -173,7 +173,7 @@ class ArenaVedtakConsumerTest {
 
         kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
 
-        verify(innsatsbehovService, never()).behandleEndringFraArena(any())
+        verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -187,7 +187,7 @@ class ArenaVedtakConsumerTest {
 
         kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
 
-        verify(innsatsbehovService, never()).behandleEndringFraArena(any())
+        verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -201,7 +201,7 @@ class ArenaVedtakConsumerTest {
 
         kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
 
-        verify(innsatsbehovService, never()).behandleEndringFraArena(any())
+        verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
     }
 
     private fun <T> any(): T = Mockito.any()

@@ -52,10 +52,10 @@ public class AdminController {
         utrullingService.fjernUtrulling(enhetId);
     }
 
-    @PostMapping("/republiser/innsatsbehovVedtaksstotte")
-    public String republiserInnsatsbehov() {
+    @PostMapping("/republiser/siste-14a-vedtak-fra-vedtaksstotte")
+    public String republiserSiste14aVedtakFraVedtaksstotte() {
         sjekkTilgangTilAdmin();
-        return JobRunner.runAsync(kafkaRepubliseringService::republiserInnsatsbehovVedtaksstotte);
+        return JobRunner.runAsync(kafkaRepubliseringService::republiserSiste14aVedtakFraVedtaksstotte);
     }
 
     private void sjekkTilgangTilAdmin() {

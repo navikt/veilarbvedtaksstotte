@@ -8,8 +8,8 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal.BEHOLDE_ARBEID
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
@@ -25,6 +25,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @RunWith(MockitoJUnitRunner::class)
 class KafkaProducerServiceTest {
@@ -42,21 +43,23 @@ class KafkaProducerServiceTest {
     @Before
     fun setup() {
         kafkaProperties = KafkaProperties()
-        kafkaProperties.innsatsbehovTopic = "innsatsbehovTopic"
+        kafkaProperties.siste14aVedtakTopic = "siste14aVedtakTopic"
         kafkaProperties.vedtakSendtTopic = "vedtakSendtTopic"
         kafkaProperties.vedtakStatusEndringTopic = "vedtakStatusEndringTopic"
         kafkaProducerService = KafkaProducerService(producerRecordStorage, kafkaProperties)
     }
 
     @Test
-    fun `lagrer forventet record verdi for oppdatering av innsatsbehov`() {
-        kafkaProducerService.sendInnsatsbehov(
-            Innsatsbehov(
-                aktorId = AktorId(TEST_AKTOR_ID),
-                innsatsgruppe = STANDARD_INNSATS,
-                hovedmal = SKAFFE_ARBEID
-            )
+    fun `lagrer forventet record verdi for oppdatering av siste vedtak`() {
+        val siste14aVedtak = Siste14aVedtak(
+            aktorId = AktorId(TEST_AKTOR_ID),
+            innsatsgruppe = STANDARD_INNSATS,
+            hovedmal = SKAFFE_ARBEID,
+            fattetDato = ZonedDateTime.parse("2021-09-08T09:29:20.398043+02:00"),
+            fraArena = false
         )
+
+        kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
 
         verify(producerRecordStorage).store(argumentCaptor.capture())
 
@@ -64,7 +67,9 @@ class KafkaProducerServiceTest {
             {
               "aktorId": "123",
               "innsatsgruppe": "STANDARD_INNSATS",
-              "hovedmal": "SKAFFE_ARBEID"
+              "hovedmal": "SKAFFE_ARBEID",
+              "fattetDato": "2021-09-08T09:29:20.398043+02:00",
+              "fraArena": false
             }
         """
 
