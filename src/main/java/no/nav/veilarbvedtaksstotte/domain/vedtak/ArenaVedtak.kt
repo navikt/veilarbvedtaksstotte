@@ -76,8 +76,8 @@ data class ArenaVedtak(
 
     /**
      * Siden ArenaVedtak.fraDato har ikke tid, så brukes ArenaVedtak.operationTimestamp fra Kafka-melding til å legge på
-     * tid for å kunne finne ut hvilket vedtak som er det nyeste dersom det på samme dag fattes flere vedtak i Arena og
-     * eventuelt i denne løsningen, for samme bruker.
+     * tid for å kunne finne ut hvilket vedtak som er det nyeste dersom det på samme dag fattes vedtak både i Arena og i
+     * denne løsningen, for samme bruker.
      */
     fun beregnetFattetTidspunkt(): LocalDateTime {
         if (operationTimestamp.toLocalDate().equals(fraDato)) {

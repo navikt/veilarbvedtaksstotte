@@ -63,17 +63,15 @@ public class ArenaVedtakService {
 
         ArenaVedtak eksisterendeVedtak = arenaVedtakRepository.hentVedtak(arenaVedtak.getFnr());
 
-        if (eksisterendeVedtak != null && (
-                eksisterendeVedtak.getHendelseId() == arenaVedtak.getHendelseId() ||
-                        eksisterendeVedtak.beregnetFattetTidspunkt().isAfter(arenaVedtak.beregnetFattetTidspunkt())
-        )
+        if (eksisterendeVedtak != null &&
+                eksisterendeVedtak.getHendelseId() >= arenaVedtak.getHendelseId()
         ) {
-            log.info("Oppdaterer ikke vedtak fra Arena med hendelsesId={} og beregnetFattetTidspunkt={}. " +
-                            "Har allerede lagret Arena vedtak med hendelsesId={} og beregnetFattetTidspunkt={}",
+            log.info("Oppdaterer ikke vedtak fra Arena med hendelseId={} og fraDato={}. " +
+                            "Har allerede lagret Arena vedtak med hendelseId={} og fraDato={}",
                     arenaVedtak.getHendelseId(),
-                    arenaVedtak.beregnetFattetTidspunkt(),
+                    arenaVedtak.getFraDato(),
                     eksisterendeVedtak.getHendelseId(),
-                    eksisterendeVedtak.beregnetFattetTidspunkt()
+                    eksisterendeVedtak.getFraDato()
             );
             return false;
         }
