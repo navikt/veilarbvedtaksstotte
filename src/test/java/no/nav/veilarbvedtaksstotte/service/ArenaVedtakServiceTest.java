@@ -89,7 +89,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
     }
 
     @Test
-    public void behandleVedtakFraArena__overskriver_lagret_vedtak_med_vedtak_som_har_nyere_fra_dato() {
+    public void behandleVedtakFraArena__overskriver_lagret_vedtak_med_vedtak_som_har_nyere_hendelse_id() {
         Fnr fnr = Fnr.of(randomNumeric(10));
         ArenaVedtak arenaVedtak1 = new ArenaVedtak(
                 fnr,
@@ -97,43 +97,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
                 ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                 LocalDate.now(),
                 "reg user",
-                LocalDateTime.now().plusDays(3),
-                1234,
-                1
-        );
-
-        ArenaVedtak arenaVedtak2 = new ArenaVedtak(
-                fnr,
-                ArenaVedtak.ArenaInnsatsgruppe.BFORM,
-                ArenaVedtak.ArenaHovedmal.SKAFFEA,
-                arenaVedtak1.getFraDato().plusDays(1),
-                "reg user",
-                arenaVedtak1.getOperationTimestamp(),
-                4321,
-                1
-
-        );
-
-        assertTrue(service.behandleVedtakFraArena(arenaVedtak1));
-        assertTrue(service.behandleVedtakFraArena(arenaVedtak2));
-
-        ArenaVedtak lagretArenaVedtak = arenaVedtakRepository.hentVedtak(fnr);
-
-
-        assertEquals(arenaVedtak2, lagretArenaVedtak);
-        assertNotEquals(arenaVedtak1, lagretArenaVedtak);
-    }
-
-    @Test
-    public void behandleVedtakFraArena__overskriver_lagret_vedtak_med_vedtak_som_har_nyere_operation_timestamp() {
-        Fnr fnr = Fnr.of(randomNumeric(10));
-        ArenaVedtak arenaVedtak1 = new ArenaVedtak(
-                fnr,
-                ArenaVedtak.ArenaInnsatsgruppe.BATT,
-                ArenaVedtak.ArenaHovedmal.BEHOLDEA,
-                LocalDate.now(),
-                "reg user",
-                LocalDateTime.now(),
+                LocalDate.now().atStartOfDay(),
                 1234,
                 1
         );
@@ -144,8 +108,8 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
                 ArenaVedtak.ArenaHovedmal.SKAFFEA,
                 arenaVedtak1.getFraDato(),
                 "reg user",
-                arenaVedtak1.getOperationTimestamp().plusMinutes(1),
-                4321,
+                arenaVedtak1.getOperationTimestamp(),
+                1235,
                 1
 
         );
@@ -180,7 +144,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
     }
 
     @Test
-    public void behandleVedtakFraArena__overskriver_ikke_lagret_vedtak_med_vedtak_som_har_lik_dato_og_lik_hendelses_id() {
+    public void behandleVedtakFraArena__overskriver_ikke_lagret_vedtak_med_vedtak_som_har_lik_hendelses_id() {
         Fnr fnr = Fnr.of(randomNumeric(10));
         ArenaVedtak arenaVedtak1 = new ArenaVedtak(
                 fnr,
@@ -215,7 +179,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
     }
 
     @Test
-    public void behandleVedtakFraArena__overskriver_lagret_vedtak_med_vedtak_som_har_lik_dato_og_ulik_hendelses_id() {
+    public void behandleVedtakFraArena__overskriver_lagret_vedtak_med_vedtak_som_har_lik_dato_og_hoyere_hendelses_id() {
         Fnr fnr = Fnr.of(randomNumeric(10));
         ArenaVedtak arenaVedtak1 = new ArenaVedtak(
                 fnr,
@@ -282,76 +246,6 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
 
         assertEquals(arenaVedtak1, lagretArenaVedtak);
         assertNotEquals(arenaVedtak2, lagretArenaVedtak);
-    }
-
-    @Test
-    public void behandleVedtakFraArena__overskriver_ikke_lagret_vedtak_med_vedtak_som_har_fra_eldre_dato() {
-        Fnr fnr = Fnr.of(randomNumeric(10));
-        ArenaVedtak arenaVedtak1 = new ArenaVedtak(
-                fnr,
-                ArenaVedtak.ArenaInnsatsgruppe.BATT,
-                ArenaVedtak.ArenaHovedmal.BEHOLDEA,
-                LocalDate.now(),
-                "reg user",
-                LocalDateTime.now(),
-                12345,
-                1
-        );
-
-        ArenaVedtak arenaVedtak2 = new ArenaVedtak(
-                fnr,
-                ArenaVedtak.ArenaInnsatsgruppe.BFORM,
-                ArenaVedtak.ArenaHovedmal.SKAFFEA,
-                arenaVedtak1.getFraDato().minusDays(1),
-                "reg user",
-                arenaVedtak1.getOperationTimestamp(),
-                12346,
-                1
-        );
-
-        assertTrue(service.behandleVedtakFraArena(arenaVedtak1));
-        assertFalse(service.behandleVedtakFraArena(arenaVedtak2));
-
-        ArenaVedtak lagretArenaVedtak = arenaVedtakRepository.hentVedtak(fnr);
-
-
-        assertNotEquals(arenaVedtak2, lagretArenaVedtak);
-        assertEquals(arenaVedtak1, lagretArenaVedtak);
-    }
-
-    @Test
-    public void behandleVedtakFraArena__overskriver_ikke_lagret_vedtak_med_vedtak_som_har_eldre_operation_timestamp() {
-        Fnr fnr = Fnr.of(randomNumeric(10));
-        ArenaVedtak arenaVedtak1 = new ArenaVedtak(
-                fnr,
-                ArenaVedtak.ArenaInnsatsgruppe.BATT,
-                ArenaVedtak.ArenaHovedmal.BEHOLDEA,
-                LocalDate.now(),
-                "reg user",
-                LocalDateTime.now(),
-                12345,
-                1
-        );
-
-        ArenaVedtak arenaVedtak2 = new ArenaVedtak(
-                fnr,
-                ArenaVedtak.ArenaInnsatsgruppe.BFORM,
-                ArenaVedtak.ArenaHovedmal.SKAFFEA,
-                arenaVedtak1.getFraDato(),
-                "reg user",
-                arenaVedtak1.getOperationTimestamp().minusMinutes(1),
-                12346,
-                1
-        );
-
-        assertTrue(service.behandleVedtakFraArena(arenaVedtak1));
-        assertFalse(service.behandleVedtakFraArena(arenaVedtak2));
-
-        ArenaVedtak lagretArenaVedtak = arenaVedtakRepository.hentVedtak(fnr);
-
-
-        assertNotEquals(arenaVedtak2, lagretArenaVedtak);
-        assertEquals(arenaVedtak1, lagretArenaVedtak);
     }
 
     private Journalpost lagJournalpost(String tittel) {
