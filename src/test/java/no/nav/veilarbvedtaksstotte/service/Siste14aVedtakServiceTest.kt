@@ -499,7 +499,8 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
                 fnr = identer.fnr,
                 fraDato = fattetDato,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                hovedmal = ArenaHovedmal.OKEDELT
+                hovedmal = ArenaHovedmal.OKEDELT,
+                hendelseId = 6
             )
         )
 
@@ -510,7 +511,8 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
                 fnr = identer.fnr,
                 fraDato = LocalDate.now().minusDays(1),
                 innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
-                hovedmal = ArenaHovedmal.SKAFFEA
+                hovedmal = ArenaHovedmal.SKAFFEA,
+                hendelseId = 5
             )
         )
 
