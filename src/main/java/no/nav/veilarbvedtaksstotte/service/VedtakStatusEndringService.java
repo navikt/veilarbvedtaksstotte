@@ -3,8 +3,8 @@ package no.nav.veilarbvedtaksstotte.service;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring;
@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+
+import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime;
 
 @Service
 public class VedtakStatusEndringService {
@@ -125,11 +127,13 @@ public class VedtakStatusEndringService {
         kafkaProducerService.sendVedtakStatusEndring(statusEndring);
         kafkaProducerService.sendVedtakSendt(lagKafkaVedtakSendt(vedtak));
 
-        kafkaProducerService.sendInnsatsbehov(
-                new Innsatsbehov(
+        kafkaProducerService.sendSiste14aVedtak(
+                new Siste14aVedtak(
                         AktorId.of(vedtak.getAktorId()),
                         vedtak.getInnsatsgruppe(),
-                        HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal())));
+                        HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal()),
+                        toZonedDateTime(vedtak.getVedtakFattet()),
+                        false));
 
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr.get());

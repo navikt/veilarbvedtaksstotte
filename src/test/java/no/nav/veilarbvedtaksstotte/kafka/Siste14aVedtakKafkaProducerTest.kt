@@ -12,17 +12,18 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsbehov.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
-import no.nav.veilarbvedtaksstotte.service.InnsatsbehovService
+import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
 import no.nav.veilarbvedtaksstotte.service.KafkaProducerService
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
-import org.junit.Assert.assertEquals
+import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
@@ -47,13 +48,13 @@ import kotlin.collections.set
 @SpringBootTest(classes = [ApplicationTestConfig::class])
 @ActiveProfiles("local")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class InnsatsbehovKafkaProducerTest {
+class Siste14aVedtakKafkaProducerTest {
 
     @Autowired
     lateinit var kafkaContainer: KafkaContainer
 
     @Autowired
-    lateinit var innsatsbehovService: InnsatsbehovService
+    lateinit var siste14aVedtakService: Siste14aVedtakService
 
     @MockBean
     lateinit var aktorOppslagClient: AktorOppslagClient
@@ -65,7 +66,7 @@ class InnsatsbehovKafkaProducerTest {
     lateinit var kafkaProducerService: KafkaProducerService
 
     @Test
-    fun `produserer melding for endring av innsatsbehov med nytt innsatsbehov`() {
+    fun `produserer melding for siste 14a vedtak basert på nytt vedtak`() {
         val aktorId = AktorId(randomNumeric(10))
         val arenaVedtak = ArenaVedtak(
             fnr = Fnr(randomNumeric(10)),
@@ -91,20 +92,20 @@ class InnsatsbehovKafkaProducerTest {
             )
         )
 
-        innsatsbehovService.behandleEndringFraArena(arenaVedtak)
+        siste14aVedtakService.behandleEndringFraArena(arenaVedtak)
 
-        val konsumertMelding: AtomicReference<MutableMap<AktorId, Innsatsbehov?>> = AtomicReference(mutableMapOf())
+        val konsumerteMeldinger: AtomicReference<MutableMap<AktorId, Siste14aVedtak?>> = AtomicReference(mutableMapOf())
 
         KafkaConsumerClientBuilder.builder()
             .withProperties(kafkaTestConsumerProperties(kafkaContainer.bootstrapServers))
             .withTopicConfig(
-                KafkaConsumerClientBuilder.TopicConfig<String, Innsatsbehov>()
+                KafkaConsumerClientBuilder.TopicConfig<String, Siste14aVedtak>()
                     .withConsumerConfig(
-                        "innsatsbehovTopic",
+                        "siste14aVedtakTopic",
                         Deserializers.stringDeserializer(),
-                        Deserializers.jsonDeserializer(Innsatsbehov::class.java),
+                        Deserializers.jsonDeserializer(Siste14aVedtak::class.java),
                         TopicConsumer { record ->
-                            konsumertMelding.get().set(AktorId(record.key()), record.value())
+                            konsumerteMeldinger.get().set(AktorId(record.key()), record.value())
                             ConsumeStatus.OK
                         }
                     )
@@ -113,10 +114,14 @@ class InnsatsbehovKafkaProducerTest {
             .start()
 
         TestUtils.verifiserAsynkront(10, TimeUnit.SECONDS) {
-            assertEquals(
-                Innsatsbehov(aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, SKAFFE_ARBEID),
-                konsumertMelding.get()[aktorId]
-            )
+            val konsumertMelding = konsumerteMeldinger.get()[aktorId]
+
+            assertNotNull(konsumertMelding)
+            assertEquals(aktorId, konsumertMelding!!.aktorId)
+            assertEquals(Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, konsumertMelding.innsatsgruppe)
+            assertEquals(SKAFFE_ARBEID, konsumertMelding.hovedmal)
+            assertEquals(arenaVedtak.fraDato, TimeUtils.toLocalDate(konsumertMelding.fattetDato))
+            assertTrue(konsumertMelding.fraArena)
         }
     }
 

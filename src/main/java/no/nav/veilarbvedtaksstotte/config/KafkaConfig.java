@@ -96,7 +96,7 @@ public class KafkaConfig {
                 producerRepository,
                 meterRegistry,
                 List.of(
-                        kafkaProperties.getInnsatsbehovTopic()
+                        kafkaProperties.getSiste14aVedtakTopic()
                 )
         );
     }
