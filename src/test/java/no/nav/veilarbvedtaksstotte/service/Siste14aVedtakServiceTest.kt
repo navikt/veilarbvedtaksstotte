@@ -21,7 +21,7 @@ import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
-import org.junit.Assert.assertEquals
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -379,7 +379,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
     }
 
     @Test
-    fun `siste 14a vedtak oppdateres ved melding om nytt vedtak fra Arena som er nyere enn vedtak fra ny løsning`() {
+    fun `siste 14a vedtak oppdateres ved melding om nytt vedtak fra Arena som er nyere enn gjeldende vedtak fra ny løsning som settes til historisk`() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now().minusDays(2)
 
@@ -392,6 +392,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
 
         assertAntallVedtakFraArena(identer, 0)
         assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertNotNull(vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()))
 
         siste14aVedtakService.behandleEndringFraArena(
             arenaVedtakDer(
@@ -412,6 +413,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
 
         assertSiste14aVedtak(identer, forventetSiste14aVedtak)
         assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertNull(vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()))
     }
 
     @Test
