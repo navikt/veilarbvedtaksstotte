@@ -104,10 +104,10 @@ class Siste14aVedtakService(
         // oppdateringene i samme transaksjon, og følgende oppdatering kunne f.eks. også vært kjørt uavhengig i en
         // scheduled task. Feilhåndtering her skjer indirekte via feilhåndtering av Kafka-meldinger som vil bli
         // behandlet på nytt ved feil.
-        oppdaterKafkaSiste14aVedtak(arenaVedtak)
+        sendSiste14aVedtakPaKafkaOgSettVedtakTilHistorisk(arenaVedtak)
     }
 
-    private fun oppdaterKafkaSiste14aVedtak(arenaVedtak: ArenaVedtak) {
+    private fun sendSiste14aVedtakPaKafkaOgSettVedtakTilHistorisk(arenaVedtak: ArenaVedtak) {
         val identer = aktorOppslagClient.hentIdenter(arenaVedtak.fnr)
         val (siste14aVedtak, arenaVedtakListe) = siste14aVedtakMedKilder(identer)
         val fraArena = siste14aVedtak?.fraArena ?: false
@@ -117,11 +117,21 @@ class Siste14aVedtakService(
         val erSisteFraArena = fraArena && sisteFraArena?.hendelseId == arenaVedtak.hendelseId
 
         if (erSisteFraArena) {
-            kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
+            transactor.executeWithoutResult {
+                kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
+                if (vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()) != null) {
+                    log.info(
+                        "Setter gjeldende vedtak for aktorId=${identer.aktorId.get()} fra vedtaksstøtte til historisk pga. nyere vedtak fra Arena"
+                    )
+                    vedtakRepository.settGjeldendeVedtakTilHistorisk(identer.aktorId.get())
+                }
+            }
         } else {
-            log.info("""Publiserer ikke siste 14a vedtak basert på behandlet melding (fraArena=$fraArena, erSisteFraArena=$erSisteFraArena)
+            log.info(
+                """Publiserer ikke siste 14a vedtak basert på behandlet melding (fraArena=$fraArena, erSisteFraArena=$erSisteFraArena)
                 |Behandlet melding har hendelseId=${arenaVedtak.hendelseId}
-                |Siste melding har hendelseId=${sisteFraArena?.hendelseId}""".trimMargin())
+                |Siste melding har hendelseId=${sisteFraArena?.hendelseId}""".trimMargin()
+            )
         }
     }
 
