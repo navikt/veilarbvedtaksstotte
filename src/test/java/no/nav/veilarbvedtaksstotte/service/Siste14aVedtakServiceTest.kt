@@ -455,7 +455,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
     }
 
     @Test
-    fun `siste 14a vedtak oppdateres ikke dersom bruker har nyere vedtak fra ny løsning`() {
+    fun `siste 14a vedtak oppdateres ikke dersom bruker har nyere vedtak fra ny løsning som beholdes som gjeldende`() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDateTime.now().minusDays(2)
 
@@ -468,6 +468,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
 
         assertAntallVedtakFraArena(identer, 0)
         assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertNotNull(vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()))
 
         siste14aVedtakService.behandleEndringFraArena(
             arenaVedtakDer(
@@ -490,6 +491,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
 
         assertSiste14aVedtak(identer, forventetSiste14aVedtak)
         assertFattedeVedtakFraNyLøsning(identer, 1)
+        assertNotNull(vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()))
     }
 
     @Test
