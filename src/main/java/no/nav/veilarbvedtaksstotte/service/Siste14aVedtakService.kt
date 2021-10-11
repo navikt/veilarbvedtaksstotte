@@ -97,17 +97,24 @@ class Siste14aVedtakService(
     }
 
     fun behandleEndringFraArena(arenaVedtak: ArenaVedtak) {
-        // Idempotent oppdatering/lagring av vedtak fra Arena
-        arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
+        // Feilhåndtering her skjer indirekte via feilhåndtering i Kafka-konsument, slik at meldinger vil bli behandlet
+        // på nytt ved feil. Derfor gjøres idempotent oppdatering/lagring under i samme transaksjon som videre
+        // oppdateringer i `settVedtakTilHistoriskOgSendSiste14aVedtakPaKafka`, slik at `harOppdatertVedtakFraArena`
+        // er riktig selv ved ved retries i feilhåndteringen til Kafka-konsumenten.
+        transactor.executeWithoutResult {
+            // Idempotent oppdatering/lagring av vedtak fra Arena
+            val harOppdatertVedtakFraArena = arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
 
-        // Oppdatering som følger kan gjøres uavhengig av idempotent oppdatering/lagring over. Derfor er ikke
-        // oppdateringene i samme transaksjon, og følgende oppdatering kunne f.eks. også vært kjørt uavhengig i en
-        // scheduled task. Feilhåndtering her skjer indirekte via feilhåndtering av Kafka-meldinger som vil bli
-        // behandlet på nytt ved feil.
-        sendSiste14aVedtakPaKafkaOgSettVedtakTilHistorisk(arenaVedtak)
+            // Oppdateringer som følger kunne vært gjort uavhengig av idempotent oppdatering/lagring over, og kunne
+            // blitt utført uavhengig f.eks. i en scheduled task. Ved å sjekke om `arenaVedtak` har ført til en
+            // oppdatering over, unngår man å behandle gamle meldinger ved ny last på topic.
+            if (harOppdatertVedtakFraArena) {
+                settVedtakTilHistoriskOgSendSiste14aVedtakPaKafka(arenaVedtak)
+            }
+        }
     }
 
-    private fun sendSiste14aVedtakPaKafkaOgSettVedtakTilHistorisk(arenaVedtak: ArenaVedtak) {
+    private fun settVedtakTilHistoriskOgSendSiste14aVedtakPaKafka(arenaVedtak: ArenaVedtak) {
         val identer = aktorOppslagClient.hentIdenter(arenaVedtak.fnr)
         val (siste14aVedtak, arenaVedtakListe) = siste14aVedtakMedKilder(identer)
         val fraArena = siste14aVedtak?.fraArena ?: false
@@ -117,15 +124,8 @@ class Siste14aVedtakService(
         val erSisteFraArena = fraArena && sisteFraArena?.hendelseId == arenaVedtak.hendelseId
 
         if (erSisteFraArena) {
-            transactor.executeWithoutResult {
-                kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
-                if (vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()) != null) {
-                    log.info(
-                        "Setter gjeldende vedtak for aktorId=${identer.aktorId.get()} fra vedtaksstøtte til historisk pga. nyere vedtak fra Arena"
-                    )
-                    vedtakRepository.settGjeldendeVedtakTilHistorisk(identer.aktorId.get())
-                }
-            }
+            setGjeldendeVedtakTilHistorisk(identer)
+            kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
         } else {
             log.info(
                 """Publiserer ikke siste 14a vedtak basert på behandlet melding (fraArena=$fraArena, erSisteFraArena=$erSisteFraArena)
@@ -135,11 +135,20 @@ class Siste14aVedtakService(
         }
     }
 
+    private fun setGjeldendeVedtakTilHistorisk(identer: BrukerIdenter) {
+        if (vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()) != null) {
+            log.info(
+                "Setter gjeldende vedtak for aktorId=${identer.aktorId.get()} fra vedtaksstøtte til historisk pga. nyere vedtak fra Arena"
+            )
+            vedtakRepository.settGjeldendeVedtakTilHistorisk(identer.aktorId.get())
+        }
+    }
+
     fun republiserKafkaSiste14aVedtak(eksernBrukerId: EksternBrukerId) {
         val identer = aktorOppslagClient.hentIdenter(eksernBrukerId)
         val (siste14aVedtak) = siste14aVedtakMedKilder(identer)
         val fraArena = siste14aVedtak?.fraArena ?: false
         kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
-        log.info("Siste 14a vedtak republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte" )
+        log.info("Siste 14a vedtak republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte")
     }
 }
