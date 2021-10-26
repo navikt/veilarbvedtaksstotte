@@ -1,27 +1,26 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import lombok.RequiredArgsConstructor;
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage;
+import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvh;
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.stereotype.Service;
 
-import static no.nav.common.kafka.producer.util.ProducerUtils.*;
+import static no.nav.common.kafka.producer.util.ProducerUtils.serializeJsonRecord;
+import static no.nav.common.kafka.producer.util.ProducerUtils.serializeRecord;
 
 @Service
+@RequiredArgsConstructor
 public class KafkaProducerService {
     final KafkaProducerRecordStorage producerRecordStorage;
     final KafkaProperties kafkaProperties;
-
-    public KafkaProducerService(
-            KafkaProducerRecordStorage producerRecordStorage,
-            KafkaProperties kafkaProperties
-    ) {
-        this.producerRecordStorage = producerRecordStorage;
-        this.kafkaProperties = kafkaProperties;
-    }
+    final KafkaAvroSerializer kafkaAvroSerializer;
 
     public void sendVedtakStatusEndring(KafkaVedtakStatusEndring vedtakStatusEndring) {
         ProducerRecord<byte[], byte[]> producerRecord =
@@ -54,5 +53,22 @@ public class KafkaProducerService {
                                 siste14aVedtak));
 
         producerRecordStorage.store(producerRecord);
+    }
+
+    public void sendVedtakFattetDvh(Vedtak14aFattetDvh vedtak14aFattetDvh) {
+        ProducerRecord<byte[], byte[]> producerRecord =
+                serializeAvroRecord(
+                        new ProducerRecord<>(
+                                kafkaProperties.getVedtakFattetDvhTopic(),
+                                vedtak14aFattetDvh.getAktorId().toString(),
+                                vedtak14aFattetDvh
+                        )
+                );
+
+        producerRecordStorage.store(producerRecord);
+    }
+
+    private  ProducerRecord<byte[], byte[]> serializeAvroRecord(ProducerRecord<String, Object> record) {
+        return serializeRecord(record, new StringSerializer(), kafkaAvroSerializer);
     }
 }

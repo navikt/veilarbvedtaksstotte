@@ -1,9 +1,6 @@
 package no.nav.veilarbvedtaksstotte.utils
 
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.*
 
 object TimeUtils {
     @JvmStatic
@@ -19,5 +16,10 @@ object TimeUtils {
     @JvmStatic
     fun toZonedDateTime(localDateTime: LocalDateTime): ZonedDateTime {
         return ZonedDateTime.of(localDateTime, ZoneId.systemDefault())
+    }
+
+    @JvmStatic
+    fun toInstant(localDateTime: LocalDateTime): Instant {
+        return toZonedDateTime(localDateTime).toInstant()
     }
 }

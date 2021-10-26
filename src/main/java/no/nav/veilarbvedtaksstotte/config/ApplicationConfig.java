@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
@@ -20,8 +21,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.Map;
 
+import static java.lang.String.format;
+import static no.nav.common.kafka.util.KafkaEnvironmentVariables.*;
 import static no.nav.common.kafka.util.KafkaPropertiesPreset.*;
+import static no.nav.common.utils.EnvironmentUtils.getRequiredProperty;
 import static no.nav.common.utils.NaisUtils.getCredentials;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.PRODUCER_CLIENT_ID;
 
@@ -60,6 +66,15 @@ public class ApplicationConfig {
     @Bean
     public KafkaConfig.EnvironmentContext kafkaConfigEnvContext(KafkaProperties kafkaProperties,
                                                                 Credentials credentials) {
+
+        Map<String, Object> schemaRegistryConfig = new HashMap<>();
+        schemaRegistryConfig.put(SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO");
+        schemaRegistryConfig.put(SchemaRegistryClientConfig.USER_INFO_CONFIG,
+                format("%s:%s",
+                        getRequiredProperty(KAFKA_SCHEMA_REGISTRY_USER),
+                        getRequiredProperty(KAFKA_SCHEMA_REGISTRY_PASSWORD))
+        );
+
         return new KafkaConfig.EnvironmentContext()
                 .setOnPremConsumerClientProperties(
                         onPremDefaultConsumerProperties(
@@ -71,7 +86,9 @@ public class ApplicationConfig {
                                 PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials
                         )
                 )
-                .setAivenProducerClientProperties(aivenByteProducerProperties(PRODUCER_CLIENT_ID));
+                .setAivenProducerClientProperties(aivenByteProducerProperties(PRODUCER_CLIENT_ID))
+                .setSchemaRegistryUrl(getRequiredProperty(KAFKA_SCHEMA_REGISTRY))
+                .setSchemaRegistryConfig(schemaRegistryConfig);
     }
 
     @PostConstruct

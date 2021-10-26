@@ -46,7 +46,7 @@ class KafkaProducerServiceTest {
         kafkaProperties.siste14aVedtakTopic = "siste14aVedtakTopic"
         kafkaProperties.vedtakSendtTopic = "vedtakSendtTopic"
         kafkaProperties.vedtakStatusEndringTopic = "vedtakStatusEndringTopic"
-        kafkaProducerService = KafkaProducerService(producerRecordStorage, kafkaProperties)
+        kafkaProducerService = KafkaProducerService(producerRecordStorage, kafkaProperties, null)
     }
 
     @Test

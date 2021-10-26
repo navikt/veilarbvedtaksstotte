@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -32,6 +34,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -45,6 +48,8 @@ public class KafkaConfig {
         Properties onPremConsumerClientProperties;
         Properties onPremProducerClientProperties;
         Properties aivenProducerClientProperties;
+        String schemaRegistryUrl;
+        Map<String, ?> schemaRegistryConfig;
     }
 
     public final static String CONSUMER_GROUP_ID = "veilarbvedtaksstotte-consumer";
@@ -96,7 +101,8 @@ public class KafkaConfig {
                 producerRepository,
                 meterRegistry,
                 List.of(
-                        kafkaProperties.getSiste14aVedtakTopic()
+                        kafkaProperties.getSiste14aVedtakTopic(),
+                        kafkaProperties.getVedtakFattetDvhTopic()
                 )
         );
     }
@@ -207,6 +213,17 @@ public class KafkaConfig {
     @Bean
     public KafkaProducerRecordStorage kafkaProducerRecordStorage() {
         return producerRecordStorage;
+    }
+
+    @Bean
+    public KafkaAvroSerializer getKafkaAvroSerializer(EnvironmentContext environmentContext) {
+        var schemaRegistryClient = new CachedSchemaRegistryClient(
+                environmentContext.getSchemaRegistryUrl(),
+                100,
+                environmentContext.schemaRegistryConfig
+        );
+
+        return new KafkaAvroSerializer(schemaRegistryClient);
     }
 
     @PostConstruct

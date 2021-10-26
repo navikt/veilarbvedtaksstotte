@@ -30,6 +30,13 @@
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>jitpack</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <build>
         <finalName>veilarbvedtaksstotte</finalName>
         <plugins>
@@ -86,6 +93,11 @@
             <artifactId>jackson-module-kotlin</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.navikt</groupId>
+            <artifactId>pto-schema</artifactId>
+            <version>1.2021.10.20_12.32-2c14462ba05f</version>
+        </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>

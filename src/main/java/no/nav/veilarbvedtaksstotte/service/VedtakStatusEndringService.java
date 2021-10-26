@@ -2,7 +2,12 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvh;
+import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhHovedmalKode;
+import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhInnsatsgruppeKode;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
@@ -15,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toInstant;
 import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime;
 
 @Service
@@ -135,9 +141,58 @@ public class VedtakStatusEndringService {
                         toZonedDateTime(vedtak.getVedtakFattet()),
                         false));
 
+        kafkaProducerService.sendVedtakFattetDvh(
+                Vedtak14aFattetDvh.newBuilder()
+                        .setId(vedtakId)
+                        .setAktorId(vedtak.getAktorId())
+                        .setHovedmalKode(mapHovedmalTilAvroType(vedtak.getHovedmal()))
+                        .setInnsatsgruppeKode(mapInnsatsgruppeTilAvroType(vedtak.getInnsatsgruppe()))
+                        .setVedtakFattet(toInstant(vedtak.getVedtakFattet()))
+                        .setOppfolgingsenhetId(vedtak.getOppfolgingsenhetId())
+                        .setVeilederIdent(vedtak.getVeilederIdent())
+                        .setBeslutterIdent(vedtak.getBeslutterIdent())
+                        .build()
+        );
+
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr.get());
         metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr.get());
+    }
+
+    private static Vedtak14aFattetDvhHovedmalKode mapHovedmalTilAvroType(Hovedmal hovedmal) {
+        if (hovedmal == null) {
+            return null;
+        }
+
+        switch (hovedmal) {
+            case SKAFFE_ARBEID:
+                return Vedtak14aFattetDvhHovedmalKode.SKAFFE_ARBEID;
+            case BEHOLDE_ARBEID:
+                return Vedtak14aFattetDvhHovedmalKode.BEHOLDE_ARBEID;
+        }
+
+        throw new IllegalStateException("Manglende mapping av hovedmål");
+    }
+
+    private static Vedtak14aFattetDvhInnsatsgruppeKode mapInnsatsgruppeTilAvroType(Innsatsgruppe innsatsgruppe) {
+        if (innsatsgruppe == null) {
+            return null;
+        }
+
+        switch (innsatsgruppe) {
+            case STANDARD_INNSATS:
+                return Vedtak14aFattetDvhInnsatsgruppeKode.STANDARD_INNSATS;
+            case SITUASJONSBESTEMT_INNSATS:
+                return Vedtak14aFattetDvhInnsatsgruppeKode.SITUASJONSBESTEMT_INNSATS;
+            case SPESIELT_TILPASSET_INNSATS:
+                return Vedtak14aFattetDvhInnsatsgruppeKode.SPESIELT_TILPASSET_INNSATS;
+            case GRADERT_VARIG_TILPASSET_INNSATS:
+                return Vedtak14aFattetDvhInnsatsgruppeKode.GRADERT_VARIG_TILPASSET_INNSATS;
+            case VARIG_TILPASSET_INNSATS:
+                return Vedtak14aFattetDvhInnsatsgruppeKode.VARIG_TILPASSET_INNSATS;
+        }
+
+        throw new IllegalStateException("Manglende mapping av innsatsgruppe");
     }
 
     private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {
