@@ -32,6 +32,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,12 @@ public class KafkaConfig {
         Properties onPremConsumerClientProperties;
         Properties onPremProducerClientProperties;
         Properties aivenProducerClientProperties;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public static class KafkaAvroContext {
+        Map<String, ?> config;
     }
 
     public final static String CONSUMER_GROUP_ID = "veilarbvedtaksstotte-consumer";
@@ -96,7 +103,8 @@ public class KafkaConfig {
                 producerRepository,
                 meterRegistry,
                 List.of(
-                        kafkaProperties.getSiste14aVedtakTopic()
+                        kafkaProperties.getSiste14aVedtakTopic(),
+                        kafkaProperties.getVedtakFattetDvhTopic()
                 )
         );
     }
