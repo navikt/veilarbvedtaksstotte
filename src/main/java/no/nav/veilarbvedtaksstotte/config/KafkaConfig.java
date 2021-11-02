@@ -1,7 +1,5 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
-import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -48,8 +46,12 @@ public class KafkaConfig {
         Properties onPremConsumerClientProperties;
         Properties onPremProducerClientProperties;
         Properties aivenProducerClientProperties;
-        String schemaRegistryUrl;
-        Map<String, ?> schemaRegistryConfig;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public static class KafkaAvroContext {
+        Map<String, ?> config;
     }
 
     public final static String CONSUMER_GROUP_ID = "veilarbvedtaksstotte-consumer";
@@ -213,17 +215,6 @@ public class KafkaConfig {
     @Bean
     public KafkaProducerRecordStorage kafkaProducerRecordStorage() {
         return producerRecordStorage;
-    }
-
-    @Bean
-    public KafkaAvroSerializer getKafkaAvroSerializer(EnvironmentContext environmentContext) {
-        var schemaRegistryClient = new CachedSchemaRegistryClient(
-                environmentContext.getSchemaRegistryUrl(),
-                100,
-                environmentContext.schemaRegistryConfig
-        );
-
-        return new KafkaAvroSerializer(schemaRegistryClient);
     }
 
     @PostConstruct

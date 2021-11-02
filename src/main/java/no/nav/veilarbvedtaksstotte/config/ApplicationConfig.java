@@ -24,6 +24,7 @@ import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static java.lang.String.format;
 import static no.nav.common.kafka.util.KafkaEnvironmentVariables.*;
 import static no.nav.common.kafka.util.KafkaPropertiesPreset.*;
@@ -66,15 +67,6 @@ public class ApplicationConfig {
     @Bean
     public KafkaConfig.EnvironmentContext kafkaConfigEnvContext(KafkaProperties kafkaProperties,
                                                                 Credentials credentials) {
-
-        Map<String, Object> schemaRegistryConfig = new HashMap<>();
-        schemaRegistryConfig.put(SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO");
-        schemaRegistryConfig.put(SchemaRegistryClientConfig.USER_INFO_CONFIG,
-                format("%s:%s",
-                        getRequiredProperty(KAFKA_SCHEMA_REGISTRY_USER),
-                        getRequiredProperty(KAFKA_SCHEMA_REGISTRY_PASSWORD))
-        );
-
         return new KafkaConfig.EnvironmentContext()
                 .setOnPremConsumerClientProperties(
                         onPremDefaultConsumerProperties(
@@ -86,9 +78,21 @@ public class ApplicationConfig {
                                 PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials
                         )
                 )
-                .setAivenProducerClientProperties(aivenByteProducerProperties(PRODUCER_CLIENT_ID))
-                .setSchemaRegistryUrl(getRequiredProperty(KAFKA_SCHEMA_REGISTRY))
-                .setSchemaRegistryConfig(schemaRegistryConfig);
+                .setAivenProducerClientProperties(aivenByteProducerProperties(PRODUCER_CLIENT_ID));
+    }
+
+    @Bean
+    public KafkaConfig.KafkaAvroContext kafkaAvroContext() {
+        Map<String, Object> schemaRegistryConfig = new HashMap<>();
+        schemaRegistryConfig.put(SCHEMA_REGISTRY_URL_CONFIG, getRequiredProperty(KAFKA_SCHEMA_REGISTRY));
+        schemaRegistryConfig.put(SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO");
+        schemaRegistryConfig.put(SchemaRegistryClientConfig.USER_INFO_CONFIG,
+                format("%s:%s",
+                        getRequiredProperty(KAFKA_SCHEMA_REGISTRY_USER),
+                        getRequiredProperty(KAFKA_SCHEMA_REGISTRY_PASSWORD))
+        );
+
+        return new KafkaConfig.KafkaAvroContext().setConfig(schemaRegistryConfig);
     }
 
     @PostConstruct
