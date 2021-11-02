@@ -83,7 +83,7 @@ public class KafkaProducerService {
         }
     }
 
-    private  ProducerRecord<byte[], byte[]> serializeAvroRecord(ProducerRecord<String, Object> record) {
-        return serializeRecord(record, new StringSerializer(), kafkaAvroSerializer);
+    private  ProducerRecord<byte[], byte[]> serializeAvroRecord(ProducerRecord<String, Object> producerRecord) {
+        return serializeRecord(producerRecord, new StringSerializer(), kafkaAvroSerializer);
     }
 }

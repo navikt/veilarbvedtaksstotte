@@ -169,9 +169,9 @@ public class VedtakStatusEndringService {
                 return Vedtak14aFattetDvhHovedmalKode.SKAFFE_ARBEID;
             case BEHOLDE_ARBEID:
                 return Vedtak14aFattetDvhHovedmalKode.BEHOLDE_ARBEID;
+            default:
+                throw new IllegalStateException("Manglende mapping av hovedmål");
         }
-
-        throw new IllegalStateException("Manglende mapping av hovedmål");
     }
 
     private static Vedtak14aFattetDvhInnsatsgruppeKode mapInnsatsgruppeTilAvroType(Innsatsgruppe innsatsgruppe) {
@@ -190,9 +190,9 @@ public class VedtakStatusEndringService {
                 return Vedtak14aFattetDvhInnsatsgruppeKode.GRADERT_VARIG_TILPASSET_INNSATS;
             case VARIG_TILPASSET_INNSATS:
                 return Vedtak14aFattetDvhInnsatsgruppeKode.VARIG_TILPASSET_INNSATS;
+            default:
+                throw new IllegalStateException("Manglende mapping av innsatsgruppe");
         }
-
-        throw new IllegalStateException("Manglende mapping av innsatsgruppe");
     }
 
     private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {
@@ -214,9 +214,9 @@ public class VedtakStatusEndringService {
 
     private <T extends KafkaVedtakStatusEndring> void setStatusEndringData(T kafkaVedtakStatusEndring, Vedtak vedtak) {
         kafkaVedtakStatusEndring
-            .setVedtakId(vedtak.getId())
-            .setAktorId(vedtak.getAktorId())
-            .setTimestamp(LocalDateTime.now());
+                .setVedtakId(vedtak.getId())
+                .setAktorId(vedtak.getAktorId())
+                .setTimestamp(LocalDateTime.now());
     }
 
 }
