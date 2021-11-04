@@ -1,53 +1,62 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
 import no.nav.common.types.identer.AktorId
+import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvh
+import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhHovedmalKode
+import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhInnsatsgruppeKode
+import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
+import no.nav.veilarbvedtaksstotte.config.KafkaConfig
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal.BEHOLDE_ARBEID
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toInstant
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
-import org.mockito.Mock
 import org.mockito.Mockito.verify
-import org.mockito.junit.MockitoJUnitRunner
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.junit4.SpringRunner
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
-@RunWith(MockitoJUnitRunner::class)
+@RunWith(SpringRunner::class)
+@SpringBootTest(classes = [ApplicationTestConfig::class])
+@ActiveProfiles("local")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class KafkaProducerServiceTest {
 
-    @Mock
+    @MockBean
     lateinit var producerRecordStorage: KafkaProducerRecordStorage
 
     @Captor
     lateinit var argumentCaptor: ArgumentCaptor<ProducerRecord<ByteArray, ByteArray>>
 
+    @Autowired
     lateinit var kafkaProducerService: KafkaProducerService
 
-    lateinit var kafkaProperties: KafkaProperties
+    @Autowired
+    lateinit var kafkaAvroContext: KafkaConfig.KafkaAvroContext
 
-    @Before
-    fun setup() {
-        kafkaProperties = KafkaProperties()
-        kafkaProperties.siste14aVedtakTopic = "siste14aVedtakTopic"
-        kafkaProperties.vedtakSendtTopic = "vedtakSendtTopic"
-        kafkaProperties.vedtakStatusEndringTopic = "vedtakStatusEndringTopic"
-        kafkaProducerService = KafkaProducerService(producerRecordStorage, kafkaProperties)
-    }
+    @Autowired
+    lateinit var kafkaProperties: KafkaProperties
 
     @Test
     fun `lagrer forventet record verdi for oppdatering av siste vedtak`() {
@@ -130,6 +139,30 @@ class KafkaProducerServiceTest {
         """
 
         assertEqualJson(forventet, deserialize(argumentCaptor.value.value()))
+    }
+
+    @Test
+    fun `lagrer forventet record verdi for sending av vedtak til dvh`() {
+        val vedtak14aFattetDvh = Vedtak14aFattetDvh()
+        vedtak14aFattetDvh.setId(123)
+        vedtak14aFattetDvh.setVedtakFattet(toInstant(LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234)))
+        vedtak14aFattetDvh.setInnsatsgruppeKode(Vedtak14aFattetDvhInnsatsgruppeKode.SITUASJONSBESTEMT_INNSATS)
+        vedtak14aFattetDvh.setHovedmalKode(Vedtak14aFattetDvhHovedmalKode.SKAFFE_ARBEID)
+        vedtak14aFattetDvh.setAktorId(TEST_AKTOR_ID)
+        vedtak14aFattetDvh.setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
+        vedtak14aFattetDvh.setVeilederIdent("324")
+        vedtak14aFattetDvh.setBeslutterIdent("678")
+
+        kafkaProducerService.sendVedtakFattetDvh(vedtak14aFattetDvh)
+
+        verify(producerRecordStorage).store(argumentCaptor.capture())
+
+        val deserializer = KafkaAvroDeserializer(null, kafkaAvroContext.config)
+
+        val resultat = deserializer
+            .deserialize(kafkaProperties.vedtakFattetDvhTopic, argumentCaptor.value.value()) as Vedtak14aFattetDvh
+
+        assertEquals(vedtak14aFattetDvh, resultat)
     }
 
     fun assertEqualJson(expexted: String, actual: String) {
