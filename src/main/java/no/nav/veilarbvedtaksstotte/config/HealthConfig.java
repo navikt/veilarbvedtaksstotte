@@ -47,7 +47,7 @@ public class HealthConfig {
                 new SelfTestCheck("EgenvurderingClient", false, egenvurderingClient),
                 new SelfTestCheck("OppfolgingClient", false, oppfolgingClient),
                 new SelfTestCheck("PersonClient", false, veilarbpersonClient),
-                new SelfTestCheck("RegistreringClient", false, registreringClient),
+                new SelfTestCheck("RegistreringClient (via veilarbperson)", false, registreringClient),
                 new SelfTestCheck("SafClient", false, safClient),
                 new SelfTestCheck("VeilederOgEnhetClient", false, veiledereOgEnhetClient),
                 new SelfTestCheck("Ping database", true, () -> checkDbHealth(dataSourceHealthIndicator))
