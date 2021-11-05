@@ -34,7 +34,7 @@ public class VeilarbregistreringClientTest {
         String response = TestUtils.readTestResourceFile("registrering.json");
 
         WireMock.givenThat(
-                WireMock.get(WireMock.urlEqualTo("/api/registrering?fnr=" + TEST_FNR.get()))
+                WireMock.get(WireMock.urlEqualTo("/api/person/registrering?fnr=" + TEST_FNR.get()))
                         .willReturn(
                                 WireMock.aResponse()
                                         .withStatus(200)

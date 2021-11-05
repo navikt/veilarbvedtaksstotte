@@ -19,14 +19,15 @@ import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInn
 
 public class VeilarbregistreringClientImpl implements VeilarbregistreringClient {
 
-    private final String veilarbregistreringUrl;
+    // Bruker veilarbperson som proxy til veilarbregistrering, som kaller videre med AAD token
+    private final String veilarbpersonUrl;
 
     private final OkHttpClient client;
 
     private final AuthContextHolder authContextHolder;
 
-    public VeilarbregistreringClientImpl(String veilarbregistreringUrl, AuthContextHolder authContextHolder) {
-        this.veilarbregistreringUrl = veilarbregistreringUrl;
+    public VeilarbregistreringClientImpl(String veilarbpersonUrl, AuthContextHolder authContextHolder) {
+        this.veilarbpersonUrl = veilarbpersonUrl;
         this.client = RestClient.baseClient();
         this.authContextHolder = authContextHolder;
     }
@@ -35,7 +36,7 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
     @SneakyThrows
     public String hentRegistreringDataJson(String fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarbregistreringUrl, "/api/registrering?fnr=" + fnr))
+                .url(joinPaths(veilarbpersonUrl, "/api/person/registrering?fnr=" + fnr))
                 .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
                 .build();
 
@@ -58,7 +59,7 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
 
     @Override
     public HealthCheckResult checkHealth() {
-        return HealthCheckUtils.pingUrl(joinPaths(veilarbregistreringUrl, "/internal/isReady"), client);
+        return HealthCheckUtils.pingUrl(joinPaths(veilarbpersonUrl, "/internal/isAlive"), client);
     }
 
 }

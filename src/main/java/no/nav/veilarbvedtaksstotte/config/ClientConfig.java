@@ -91,7 +91,7 @@ public class ClientConfig {
     @Bean
     public VeilarbregistreringClient registreringClient(AuthContextHolder authContextHolder) {
         return new VeilarbregistreringClientImpl(
-                naisPreprodOrNaisAdeoIngress("veilarbregistrering", true),
+                naisPreprodOrNaisAdeoIngress("veilarbperson", true),
                 authContextHolder
         );
     }
