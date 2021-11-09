@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import no.nav.common.abac.AbacClient;
@@ -31,6 +33,7 @@ import org.testcontainers.utility.DockerImageName;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
+import java.util.Map;
 import java.util.Properties;
 
 import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.CONSUMER_GROUP_ID;
@@ -136,6 +139,13 @@ public class ApplicationTestConfig {
                 .setOnPremConsumerClientProperties(consumerProperties)
                 .setOnPremProducerClientProperties(producerProperties)
                 .setAivenProducerClientProperties(producerProperties);
+    }
+
+    @Bean
+    public KafkaConfig.KafkaAvroContext kafkaAvroContext() {
+        return new KafkaConfig.KafkaAvroContext().setConfig(
+                Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://testurl",
+                        KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true));
     }
 
     @PostConstruct
