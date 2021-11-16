@@ -7,9 +7,7 @@ import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.kafka.consumer.KafkaConsumerClient;
 import no.nav.common.kafka.consumer.feilhandtering.KafkaConsumerRecordProcessor;
-import no.nav.common.kafka.consumer.feilhandtering.KafkaConsumerRepository;
 import no.nav.common.kafka.consumer.feilhandtering.util.KafkaConsumerRecordProcessorBuilder;
-import no.nav.common.kafka.consumer.util.ConsumerUtils;
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder;
 import no.nav.common.kafka.consumer.util.TopicConsumerConfig;
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers;
@@ -23,8 +21,7 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService;
-import no.nav.veilarbvedtaksstotte.utils.StoreOnFailureArenaTopicConsumer;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import no.nav.veilarbvedtaksstotte.service.UnleashService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -69,7 +66,8 @@ public class KafkaConfig {
             JdbcTemplate jdbcTemplate,
             KafkaConsumerService kafkaConsumerService,
             KafkaProperties kafkaProperties,
-            MeterRegistry meterRegistry
+            MeterRegistry meterRegistry,
+            UnleashService unleashService
     ) {
 
         var consumerRepository = new PostgresJdbcTemplateConsumerRepository(jdbcTemplate);
@@ -80,6 +78,7 @@ public class KafkaConfig {
         consumerClient = KafkaConsumerClientBuilder.builder()
                 .withProperties(environmentContext.getOnPremConsumerClientProperties())
                 .withTopicConfigs(topicConfigs)
+                .withToggle(unleashService::isKafkaKonsumeringSkruddAv)
                 .build();
 
         consumerRecordProcessor = getConsumerRecordProcessor(jdbcTemplate, consumerRepository, topicConfigs);
@@ -162,7 +161,19 @@ public class KafkaConfig {
             MeterRegistry meterRegistry,
             PostgresJdbcTemplateConsumerRepository consumerRepository) {
         return List.of(
-                getArenaVedtakTopicConfig(kafkaProperties, kafkaConsumerService, meterRegistry, consumerRepository),
+                new KafkaConsumerClientBuilder.TopicConfig<String, ArenaVedtakRecord>()
+                        .withLogging()
+                        .withMetrics(meterRegistry)
+                        // Warning: Denne topicen bruker dato og tid som key, med presisjon på sekund. Det betyr at
+                        // meldinger for forskjellige brukere innenfor samme sekund kan blokkere for hverandre dersom
+                        // en melding feiler.
+                        .withStoreOnFailure(consumerRepository)
+                        .withConsumerConfig(
+                                kafkaProperties.getArenaVedtakTopic(),
+                                Deserializers.stringDeserializer(),
+                                Deserializers.jsonDeserializer(ArenaVedtakRecord.class),
+                                kafkaConsumerService::behandleArenaVedtak
+                        ),
                 new KafkaConsumerClientBuilder.TopicConfig<String, KafkaAvsluttOppfolging>()
                         .withLogging()
                         .withMetrics(meterRegistry)
@@ -184,32 +195,6 @@ public class KafkaConfig {
                                 kafkaConsumerService::behandleEndringPaOppfolgingsbruker
                         )
         );
-    }
-
-    private static KafkaConsumerClientBuilder.TopicConfig<byte[], byte[]> getArenaVedtakTopicConfig(
-            KafkaProperties kafkaProperties,
-            KafkaConsumerService kafkaConsumerService,
-            MeterRegistry meterRegistry,
-            KafkaConsumerRepository consumerRepository
-    ) {
-
-        var arenaTopicConsumerConfig = new TopicConsumerConfig<>(
-                kafkaProperties.getArenaVedtakTopic(),
-                Deserializers.stringDeserializer(),
-                Deserializers.jsonDeserializer(ArenaVedtakRecord.class),
-                ConsumerUtils.toTopicConsumer(kafkaConsumerService::behandleArenaVedtak)
-        );
-
-        return new KafkaConsumerClientBuilder.TopicConfig<byte[], byte[]>()
-                .withLogging()
-                .withMetrics(meterRegistry)
-                .withConsumerConfig(
-                        arenaTopicConsumerConfig.getTopic(),
-                        new ByteArrayDeserializer(),
-                        new ByteArrayDeserializer(),
-                        new StoreOnFailureArenaTopicConsumer(
-                                ConsumerUtils.createTopicConsumer(arenaTopicConsumerConfig),
-                                consumerRepository));
     }
 
     @Bean
