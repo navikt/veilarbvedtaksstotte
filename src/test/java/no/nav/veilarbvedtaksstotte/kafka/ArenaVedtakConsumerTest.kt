@@ -8,8 +8,8 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
-import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
+import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
@@ -28,12 +28,11 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit4.SpringRunner
 import org.testcontainers.containers.KafkaContainer
-import java.lang.IllegalArgumentException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -53,7 +52,7 @@ class ArenaVedtakConsumerTest {
 
     lateinit var producer: KafkaProducer<String, String>
 
-    @MockBean
+    @SpyBean
     lateinit var siste14aVedtakService: Siste14aVedtakService
 
     @Autowired
