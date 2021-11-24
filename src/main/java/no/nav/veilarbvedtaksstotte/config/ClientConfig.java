@@ -131,7 +131,7 @@ public class ClientConfig {
 
     @Bean
     public PdlClient pdlClient(SystemUserTokenProvider systemUserTokenProvider) {
-        String pdlUrl = createServiceUrl("pdl-api", "default", false);
+        String pdlUrl = internalDevOrProdIngress("pdl-api");
 
         return new PdlClientImpl(
                 pdlUrl,
@@ -189,4 +189,9 @@ public class ClientConfig {
                 : createNaisAdeoIngressUrl(appName, withAppContextPath);
     }
 
+    private static String internalDevOrProdIngress(String appName) {
+        return EnvironmentUtils.isDevelopment().orElse(false)
+                ? createDevInternalIngressUrl(appName)
+                : createProdInternalIngressUrl(appName);
+    }
 }
