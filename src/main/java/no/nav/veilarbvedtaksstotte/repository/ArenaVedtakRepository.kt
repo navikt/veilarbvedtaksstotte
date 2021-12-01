@@ -67,6 +67,12 @@ class ArenaVedtakRepository(val jdbcTemplate: JdbcTemplate) {
         return namedParameterJdbcTemplate.query(sql, parameters, arenaVedtakRowMapper)
     }
 
+    fun hentUnikeBrukereMedVedtak(): List<Fnr> {
+        val sql = "SELECT DISTINCT $FNR FROM $ARENA_VEDTAK_TABLE"
+
+        return jdbcTemplate.query(sql) { rs, _ -> Fnr(rs.getString(FNR)) }
+    }
+
     private val arenaVedtakRowMapper: RowMapper<ArenaVedtak> = RowMapper { rs, _ ->
         ArenaVedtak(
             fnr = Fnr(rs.getString(FNR)),

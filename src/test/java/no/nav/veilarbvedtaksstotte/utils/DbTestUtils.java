@@ -27,7 +27,8 @@ public class DbTestUtils {
             DIALOG_MELDING_TABLE,
             SYSTEM_MELDING_TABLE,
             BESLUTTEROVERSIKT_BRUKER_TABLE,
-            VEDTAK_TABLE
+            VEDTAK_TABLE,
+            "ARENA_VEDTAK"
     );
 
     public static void testMigrate (DataSource dataSource) {
