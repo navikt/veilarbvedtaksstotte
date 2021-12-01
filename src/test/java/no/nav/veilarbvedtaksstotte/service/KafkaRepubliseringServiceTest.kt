@@ -38,23 +38,6 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
     }
 
     @Test
-    fun `republiserer siste 14a vedtak for alle brukere som har vedtak i denne løsningen`() {
-        val brukereMedFattetVedtak = lagTilfeldingeAktorIder(tilfeldigAntall())
-
-        brukereMedFattetVedtak.map { lagreVedtak(it, true) }
-
-        // brukere uten fattet vedtak
-        lagTilfeldingeAktorIder(tilfeldigAntall()).map { lagreVedtak(it, false) }
-
-        kafkaRepubliseringService.republiserSiste14aVedtakFraVedtaksstotte()
-
-        verify(siste14aVedtakService, times(brukereMedFattetVedtak.size)).republiserKafkaSiste14aVedtak(any())
-        brukereMedFattetVedtak.forEach {
-            verify(siste14aVedtakService).republiserKafkaSiste14aVedtak(it)
-        }
-    }
-
-    @Test
     fun `republiserer siste 14a vedtak for alle brukere som har vedtak i denne løsningen eller fra Arena`() {
         val brukereMedFattetVedtakFraDenneLøsningen = lagTilfeldingeAktorIder(tilfeldigAntall())
         brukereMedFattetVedtakFraDenneLøsningen.map { lagreVedtak(it, true) }
