@@ -17,7 +17,7 @@ class KafkaRepubliseringService(
 
     fun republiserSiste14aVedtak() {
 
-        val brukereFraVedtaksstotte = vedtaksstotteRepository.hentUnikeBrukereMedFattetVedtakPage()
+        val brukereFraVedtaksstotte = vedtaksstotteRepository.hentUnikeBrukereMedFattetVedtak()
         val brukereFraArena = arenaVedtakRepository.hentUnikeBrukereMedVedtak()
 
         val alleBrukere = brukereFraVedtaksstotte + brukereFraArena

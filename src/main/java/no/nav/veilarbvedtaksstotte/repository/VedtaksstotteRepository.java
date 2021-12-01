@@ -211,7 +211,7 @@ public class VedtaksstotteRepository {
     }
 
 
-    public List<AktorId> hentUnikeBrukereMedFattetVedtakPage() {
+    public List<AktorId> hentUnikeBrukereMedFattetVedtak() {
         String sql = format(
                 "SELECT DISTINCT %s FROM %S WHERE %s = ?",
                 AKTOR_ID, VEDTAK_TABLE, STATUS);
