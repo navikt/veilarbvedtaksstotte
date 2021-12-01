@@ -55,13 +55,19 @@ public class AdminController {
     @PostMapping("/republiser/siste-14a-vedtak-fra-vedtaksstotte")
     public String republiserSiste14aVedtakFraVedtaksstotte() {
         sjekkTilgangTilAdmin();
-        return JobRunner.runAsync(kafkaRepubliseringService::republiserSiste14aVedtakFraVedtaksstotte);
+        return JobRunner.runAsync(
+                "republiser-siste-14a-vedtak-fra-vedtaksstotte",
+                kafkaRepubliseringService::republiserSiste14aVedtakFraVedtaksstotte
+        );
     }
 
     @PostMapping("/republiser/siste-14a-vedtak")
     public String republiserSiste14aVedtak() {
         sjekkTilgangTilAdmin();
-        return JobRunner.runAsync(kafkaRepubliseringService::republiserSiste14aVedtak);
+        return JobRunner.runAsync(
+                "republiser-siste-14a-vedtak",
+                kafkaRepubliseringService::republiserSiste14aVedtak
+        );
     }
 
     private void sjekkTilgangTilAdmin() {
