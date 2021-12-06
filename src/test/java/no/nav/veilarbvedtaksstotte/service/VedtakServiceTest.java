@@ -7,6 +7,7 @@ import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.common.utils.fn.UnsafeSupplier;
@@ -81,6 +82,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final VeilarbdokumentClient veilarbdokumentClient = mock(VeilarbdokumentClient.class);
     private static final AktorregisterClient aktorregisterClient = mock(AktorregisterClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
+    private static final VeilarbarenaService veilarbarenaService = mock(VeilarbarenaService.class);
     private static final AbacClient abacClient = mock(AbacClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
     private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
@@ -100,7 +102,7 @@ public class VedtakServiceTest extends DatabaseTest {
         oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
-        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
+        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaService, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         dokumentServiceV2 = new DokumentServiceV2(
@@ -121,7 +123,7 @@ public class VedtakServiceTest extends DatabaseTest {
                 malTypeService,
                 vedtakStatusEndringService,
                 dokumentServiceV2,
-                veilarbarenaClient);
+                veilarbarenaService);
     }
 
     @Before
@@ -144,8 +146,10 @@ public class VedtakServiceTest extends DatabaseTest {
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR.get())).thenReturn(EGENVURDERING_DATA);
         when(aktorregisterClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorregisterClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
-        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn( new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL"));
+        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL"));
         when(veilarbarenaClient.oppfolgingssak(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSSAK);
+        when(veilarbarenaService.hentOppfolgingsenhet(TEST_FNR)).thenReturn(java.util.Optional.of(EnhetId.of(TEST_OPPFOLGINGSENHET_ID)));
+        when(veilarbarenaService.hentFormidlingsgruppekode(TEST_FNR)).thenReturn(java.util.Optional.of("IKVAL"));
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(dokarkivClient.opprettJournalpost(any()))
                 .thenReturn(new OpprettetJournalpostDTO(
@@ -156,7 +160,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @Test(expected = IllegalStateException.class)
     public void fattVedtak__skal_feile_hvis_iserv(){
-        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV"));
+        when(veilarbarenaService.hentFormidlingsgruppekode(TEST_FNR)).thenReturn(java.util.Optional.of("ISERV"));
 
         gittUtkastKlarForUtsendelse();
         fattVedtak();

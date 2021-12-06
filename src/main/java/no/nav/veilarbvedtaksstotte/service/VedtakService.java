@@ -67,7 +67,7 @@ public class VedtakService {
     private final MalTypeService malTypeService;
     private final VedtakStatusEndringService vedtakStatusEndringService;
     private final DokumentServiceV2 dokumentServiceV2;
-    private final VeilarbarenaClient veilarbarenaClient;
+    private final VeilarbarenaService veilarbarenaService;
 
     @Autowired
     public VedtakService(
@@ -90,7 +90,7 @@ public class VedtakService {
             MalTypeService malTypeService,
             VedtakStatusEndringService vedtakStatusEndringService,
             DokumentServiceV2 dokumentServiceV2,
-            VeilarbarenaClient veilarbarenaClient) {
+            VeilarbarenaService veilarbarenaService) {
         this.transactor = transactor;
 
         this.vedtaksstotteRepository = vedtaksstotteRepository;
@@ -110,7 +110,7 @@ public class VedtakService {
         this.malTypeService = malTypeService;
         this.vedtakStatusEndringService = vedtakStatusEndringService;
         this.dokumentServiceV2 = dokumentServiceV2;
-        this.veilarbarenaClient = veilarbarenaClient;
+        this.veilarbarenaService = veilarbarenaService;
     }
 
     @SneakyThrows
@@ -119,8 +119,7 @@ public class VedtakService {
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(vedtak);
 
-        if ("ISERV".equals(ofNullable(veilarbarenaClient.hentOppfolgingsbruker(Fnr.of(authKontekst.getFnr())))
-                .map(VeilarbArenaOppfolging::getFormidlingsgruppekode).orElse(""))) {
+        if ("ISERV".equals(veilarbarenaService.hentFormidlingsgruppekode(Fnr.of(authKontekst.getFnr())).orElse(""))) {
             throw new IllegalStateException("Bruker kan ikke ha status ISERV når vedtak fattes");
         }
 
