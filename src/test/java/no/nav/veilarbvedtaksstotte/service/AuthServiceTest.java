@@ -48,7 +48,7 @@ public class AuthServiceTest {
     public void setup() {
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
-        when(arenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn( new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV"));
+        when(arenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL"));
     }
 
     @Test

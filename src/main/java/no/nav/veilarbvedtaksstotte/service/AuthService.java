@@ -16,6 +16,7 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.types.identer.*;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.Pair;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -191,7 +192,9 @@ public class AuthService {
     }
 
     private String sjekkTilgangTilEnhet(String fnr) {
-        EnhetId enhet = ofNullable(oppfolgingsenhet(Fnr.of(fnr))).orElse(EnhetId.of(""));
+        EnhetId enhet = ofNullable(arenaClient.hentOppfolgingsbruker(Fnr.of(fnr)))
+                .map(VeilarbArenaOppfolging::getNavKontor)
+                .map(EnhetId::of).orElse(EnhetId.of(""));
 
         if (!utrullingService.erUtrullet(enhet)) {
             log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet);
@@ -204,9 +207,4 @@ public class AuthService {
 
         return enhet.get();
     }
-
-    public EnhetId oppfolgingsenhet(Fnr fnr) {
-        return EnhetId.of(arenaClient.hentOppfolgingsbruker(fnr).getNavKontor());
-    }
-
 }

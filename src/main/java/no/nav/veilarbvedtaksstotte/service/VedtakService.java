@@ -6,6 +6,7 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.EnvironmentUtils;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
@@ -117,7 +119,8 @@ public class VedtakService {
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(vedtak);
 
-        if ("ISERV".equals(veilarbarenaClient.hentOppfolgingsbruker(Fnr.of(authKontekst.getFnr())).getFormidlingsgruppekode())) {
+        if ("ISERV".equals(ofNullable(veilarbarenaClient.hentOppfolgingsbruker(Fnr.of(authKontekst.getFnr())))
+                .map(VeilarbArenaOppfolging::getFormidlingsgruppekode).orElse(""))) {
             throw new IllegalStateException("Bruker kan ikke ha status ISERV når vedtak fattes");
         }
 

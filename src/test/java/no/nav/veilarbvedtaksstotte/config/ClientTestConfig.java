@@ -114,7 +114,7 @@ public class ClientTestConfig {
         return new VeilarbarenaClient() {
             @Override
             public VeilarbArenaOppfolging hentOppfolgingsbruker(Fnr fnr) {
-                return new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV");
+                return new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL");
             }
 
             @Override

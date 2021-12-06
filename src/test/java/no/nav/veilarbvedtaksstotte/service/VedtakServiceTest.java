@@ -156,26 +156,10 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @Test(expected = IllegalStateException.class)
     public void fattVedtak__skal_feile_hvis_iserv(){
-        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn( new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV"));
+        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV"));
 
-        withContext(() -> {
-            gittTilgang();
-
-            vedtakService.lagUtkast(TEST_FNR);
-            assertNyttUtkast();
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-
-            OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
-                    .setHovedmal(Hovedmal.SKAFFE_ARBEID)
-                    .setBegrunnelse("En begrunnelse")
-                    .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                    .setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
-
-            vedtakService.oppdaterUtkast(utkast.getId(), oppdaterDto);
-            assertOppdatertUtkast(oppdaterDto);
-
-            vedtakService.fattVedtak(utkast.getId());
-        });
+        gittUtkastKlarForUtsendelse();
+        fattVedtak();
     }
 
 
