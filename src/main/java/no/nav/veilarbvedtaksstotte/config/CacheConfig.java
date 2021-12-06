@@ -24,7 +24,7 @@ public class CacheConfig {
     @Bean
     public Cache arenaBrukerCache() {
         return new CaffeineCache(ARENA_BRUKER_CACHE_NAME, Caffeine.newBuilder()
-                .expireAfterWrite(1, TimeUnit.HOURS)
+                .expireAfterWrite(10, TimeUnit.MINUTES)
                 .maximumSize(5000)
                 .build());
     }
