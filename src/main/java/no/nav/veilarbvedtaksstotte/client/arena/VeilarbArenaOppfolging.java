@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Value;
 
 @Value
-public class Oppfolgingsenhet {
+public class VeilarbArenaOppfolging {
     @JsonAlias("nav_kontor")
     String navKontor;
+    String formidlingsgruppekode;
 }

@@ -7,10 +7,10 @@ import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
-import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.common.utils.fn.UnsafeSupplier;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
@@ -120,8 +120,8 @@ public class VedtakServiceTest extends DatabaseTest {
                 veilederService,
                 malTypeService,
                 vedtakStatusEndringService,
-                dokumentServiceV2
-        );
+                dokumentServiceV2,
+                veilarbarenaClient);
     }
 
     @Before
@@ -144,7 +144,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR.get())).thenReturn(EGENVURDERING_DATA);
         when(aktorregisterClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorregisterClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
-        when(veilarbarenaClient.oppfolgingsenhet(TEST_FNR)).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
+        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn( new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL"));
         when(veilarbarenaClient.oppfolgingssak(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSSAK);
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(dokarkivClient.opprettJournalpost(any()))
@@ -152,6 +152,30 @@ public class VedtakServiceTest extends DatabaseTest {
                         TEST_JOURNALPOST_ID,
                         true,
                         Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void fattVedtak__skal_feile_hvis_iserv(){
+        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn( new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV"));
+
+        withContext(() -> {
+            gittTilgang();
+
+            vedtakService.lagUtkast(TEST_FNR);
+            assertNyttUtkast();
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+            OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
+                    .setHovedmal(Hovedmal.SKAFFE_ARBEID)
+                    .setBegrunnelse("En begrunnelse")
+                    .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                    .setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
+
+            vedtakService.oppdaterUtkast(utkast.getId(), oppdaterDto);
+            assertOppdatertUtkast(oppdaterDto);
+
+            vedtakService.fattVedtak(utkast.getId());
+        });
     }
 
 

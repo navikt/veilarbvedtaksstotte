@@ -191,7 +191,7 @@ public class AuthService {
     }
 
     private String sjekkTilgangTilEnhet(String fnr) {
-        EnhetId enhet = ofNullable(arenaClient.oppfolgingsenhet(Fnr.of(fnr))).orElse(EnhetId.of(""));
+        EnhetId enhet = ofNullable(oppfolgingsenhet(Fnr.of(fnr))).orElse(EnhetId.of(""));
 
         if (!utrullingService.erUtrullet(enhet)) {
             log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet);
@@ -203,6 +203,10 @@ public class AuthService {
         }
 
         return enhet.get();
+    }
+
+    public EnhetId oppfolgingsenhet(Fnr fnr) {
+        return EnhetId.of(arenaClient.hentOppfolgingsbruker(fnr).getNavKontor());
     }
 
 }

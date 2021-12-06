@@ -6,7 +6,7 @@ import no.nav.common.types.identer.Fnr;
 
 public interface VeilarbarenaClient extends HealthCheck {
 
-    EnhetId oppfolgingsenhet(Fnr fnr);
+    VeilarbArenaOppfolging hentOppfolgingsbruker(Fnr fnr);
 
     String oppfolgingssak(Fnr fnr);
 

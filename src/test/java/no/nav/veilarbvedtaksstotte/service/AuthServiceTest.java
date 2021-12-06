@@ -12,6 +12,7 @@ import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.utils.fn.UnsafeRunnable;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.hamcrest.Matchers;
@@ -19,6 +20,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
@@ -46,7 +48,7 @@ public class AuthServiceTest {
     public void setup() {
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
-        when(arenaClient.oppfolgingsenhet(TEST_FNR)).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
+        when(arenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn( new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV"));
     }
 
     @Test

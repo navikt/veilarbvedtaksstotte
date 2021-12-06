@@ -57,7 +57,7 @@ public class UtrullingService {
 
     public boolean tilhorerBrukerUtrulletKontor(Fnr fnr) {
         try {
-            EnhetId oppfolgingsenhet = veilarbarenaClient.oppfolgingsenhet(fnr);
+            EnhetId oppfolgingsenhet = EnhetId.of(veilarbarenaClient.hentOppfolgingsbruker(fnr).getNavKontor());
             return utrullingRepository.erUtrullet(oppfolgingsenhet);
         } catch (Exception e) {
             return false;
