@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -60,10 +61,12 @@ public class UtrullingService {
 
     public boolean tilhorerBrukerUtrulletKontor(Fnr fnr) {
         try {
-            EnhetId oppfolgingsenhet = ofNullable(veilarbarenaClient.hentOppfolgingsbruker(fnr))
+            return ofNullable(veilarbarenaClient.hentOppfolgingsbruker(fnr))
                     .map(VeilarbArenaOppfolging::getNavKontor)
-                    .map(EnhetId::of).orElse(EnhetId.of(""));
-            return utrullingRepository.erUtrullet(oppfolgingsenhet);
+                    .map(EnhetId::of)
+                    .map(utrullingRepository::erUtrullet)
+                    .orElse(false);
+
         } catch (Exception e) {
             return false;
         }

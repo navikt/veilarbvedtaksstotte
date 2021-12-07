@@ -29,5 +29,11 @@ public class VeilarbarenaService {
                 .map(VeilarbArenaOppfolging::getFormidlingsgruppekode);
     }
 
+    public boolean erBrukerInaktivIArena(Fnr fnr) {
+        return hentFormidlingsgruppekode(fnr)
+                .map("ISERV"::equals)
+                .orElse(false);
+    }
+
 
 }

@@ -119,7 +119,7 @@ public class VedtakService {
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(vedtak);
 
-        if ("ISERV".equals(veilarbarenaService.hentFormidlingsgruppekode(Fnr.of(authKontekst.getFnr())).orElse(""))) {
+        if (veilarbarenaService.erBrukerInaktivIArena(Fnr.of(authKontekst.getFnr()))) {
             throw new IllegalStateException("Bruker kan ikke ha status ISERV når vedtak fattes");
         }
 

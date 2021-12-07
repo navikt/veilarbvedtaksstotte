@@ -82,7 +82,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final VeilarbdokumentClient veilarbdokumentClient = mock(VeilarbdokumentClient.class);
     private static final AktorregisterClient aktorregisterClient = mock(AktorregisterClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
-    private static final VeilarbarenaService veilarbarenaService = mock(VeilarbarenaService.class);
     private static final AbacClient abacClient = mock(AbacClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
     private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
@@ -96,6 +95,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @BeforeClass
     public static void setupOnce() {
+        VeilarbarenaService veilarbarenaService = new VeilarbarenaService(veilarbarenaClient);
         kilderRepository = spy(new KilderRepository(jdbcTemplate));
         meldingRepository = spy(new MeldingRepository(jdbcTemplate));
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
@@ -148,8 +148,6 @@ public class VedtakServiceTest extends DatabaseTest {
         when(aktorregisterClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL"));
         when(veilarbarenaClient.oppfolgingssak(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSSAK);
-        when(veilarbarenaService.hentOppfolgingsenhet(TEST_FNR)).thenReturn(java.util.Optional.of(EnhetId.of(TEST_OPPFOLGINGSENHET_ID)));
-        when(veilarbarenaService.hentFormidlingsgruppekode(TEST_FNR)).thenReturn(java.util.Optional.of("IKVAL"));
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(dokarkivClient.opprettJournalpost(any()))
                 .thenReturn(new OpprettetJournalpostDTO(
@@ -160,8 +158,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @Test(expected = IllegalStateException.class)
     public void fattVedtak__skal_feile_hvis_iserv(){
-        when(veilarbarenaService.hentFormidlingsgruppekode(TEST_FNR)).thenReturn(java.util.Optional.of("ISERV"));
-
+        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV"));
         gittUtkastKlarForUtsendelse();
         fattVedtak();
     }
