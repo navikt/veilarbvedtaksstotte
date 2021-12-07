@@ -21,8 +21,8 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
 
     private static VedtakService vedtakService = new VedtakService(
             null, null, null, null, null, null, null,
-            null, null, null, null, null, null, null, null
-    );
+            null, null, null, null, null, null, null, null,
+            null);
 
     @Test
     public void skal_ikke_feile_pa_gyldig_vedtak() {

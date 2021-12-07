@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 @EnableCaching
 public class CacheConfig {
 
-    public static final String BRUKER_ENHET_CACHE_NAME = "bruker-enhet";
+    public static final String ARENA_BRUKER_CACHE_NAME = "arena-bruker";
     public static final String VEILEDER_ENHETER_CACHE_NAME = "veileder-enheter";
     public static final String VEILEDER_CACHE_NAME = "veileder";
     public static final String ENHET_NAVN_CACHE_NAME = "enhet-navn";
@@ -21,11 +21,10 @@ public class CacheConfig {
     public static final String OPPFOLGING_CACHE_NAME = "oppfolging";
     public static final String OPPFOLGINGPERIODE_CACHE_NAME = "oppfolgingperiode";
 
-
     @Bean
-    public Cache brukerEnhetCache() {
-        return new CaffeineCache(BRUKER_ENHET_CACHE_NAME, Caffeine.newBuilder()
-                .expireAfterWrite(1, TimeUnit.HOURS)
+    public Cache arenaBrukerCache() {
+        return new CaffeineCache(ARENA_BRUKER_CACHE_NAME, Caffeine.newBuilder()
+                .expireAfterWrite(10, TimeUnit.MINUTES)
                 .maximumSize(5000)
                 .build());
     }

@@ -6,17 +6,25 @@ import no.nav.common.abac.Pep;
 import no.nav.common.abac.constants.NavAttributter;
 import no.nav.common.abac.constants.StandardAttributter;
 import no.nav.common.abac.domain.Attribute;
-import no.nav.common.abac.domain.request.*;
+import no.nav.common.abac.domain.request.AccessSubject;
+import no.nav.common.abac.domain.request.Action;
+import no.nav.common.abac.domain.request.ActionId;
+import no.nav.common.abac.domain.request.Environment;
+import no.nav.common.abac.domain.request.Request;
+import no.nav.common.abac.domain.request.Resource;
+import no.nav.common.abac.domain.request.XacmlRequest;
 import no.nav.common.abac.domain.response.Category;
 import no.nav.common.abac.domain.response.Decision;
 import no.nav.common.abac.domain.response.XacmlResponse;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
-import no.nav.common.types.identer.*;
+import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.EnhetId;
+import no.nav.common.types.identer.Fnr;
+import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.Pair;
-import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +38,13 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static java.util.Optional.ofNullable;
-
 @Slf4j
 @Service
 public class AuthService {
 
     private final AktorOppslagClient aktorOppslagClient;
     private final Pep veilarbPep;
-    private final VeilarbarenaClient arenaClient;
+    private final VeilarbarenaService veilarbarenaService;
     private final AbacClient abacClient;
     private final Credentials serviceUserCredentials;
     private final AuthContextHolder authContextHolder;
@@ -48,14 +54,14 @@ public class AuthService {
     public AuthService(
             AktorOppslagClient aktorOppslagClient,
             Pep veilarbPep,
-            VeilarbarenaClient arenaClient,
+            VeilarbarenaService veilarbarenaService,
             AbacClient abacClient,
             Credentials serviceUserCredentials,
             AuthContextHolder authContextHolder,
             UtrullingService utrullingService) {
         this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbPep = veilarbPep;
-        this.arenaClient = arenaClient;
+        this.veilarbarenaService = veilarbarenaService;
         this.abacClient = abacClient;
         this.serviceUserCredentials = serviceUserCredentials;
         this.authContextHolder = authContextHolder;
@@ -191,7 +197,8 @@ public class AuthService {
     }
 
     private String sjekkTilgangTilEnhet(String fnr) {
-        EnhetId enhet = ofNullable(arenaClient.oppfolgingsenhet(Fnr.of(fnr))).orElse(EnhetId.of(""));
+        EnhetId enhet = veilarbarenaService.hentOppfolgingsenhet(Fnr.of(fnr))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker"));
 
         if (!utrullingService.erUtrullet(enhet)) {
             log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet);
@@ -204,5 +211,4 @@ public class AuthService {
 
         return enhet.get();
     }
-
 }

@@ -36,8 +36,8 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
         this.authContextHolder = authContextHolder;
     }
 
-    @Cacheable(CacheConfig.BRUKER_ENHET_CACHE_NAME)
-    public EnhetId oppfolgingsenhet(Fnr fnr) {
+    @Cacheable(CacheConfig.ARENA_BRUKER_CACHE_NAME)
+    public VeilarbArenaOppfolging hentOppfolgingsbruker(Fnr fnr){
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbarenaUrl, "/api/oppfolgingsbruker/", fnr.get()))
                 .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
@@ -45,8 +45,7 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
         try (Response response = client.newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            String navKontor = parseJsonResponseOrThrow(response, Oppfolgingsenhet.class).getNavKontor();
-            return EnhetId.of(navKontor);
+            return parseJsonResponseOrThrow(response, VeilarbArenaOppfolging.class);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Feil ved kall mot veilarbarena/oppfolgingsbruker");
         }

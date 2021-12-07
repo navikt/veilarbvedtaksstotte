@@ -11,6 +11,7 @@ import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.common.utils.fn.UnsafeSupplier;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
@@ -94,13 +95,14 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @BeforeClass
     public static void setupOnce() {
+        VeilarbarenaService veilarbarenaService = new VeilarbarenaService(veilarbarenaClient);
         kilderRepository = spy(new KilderRepository(jdbcTemplate));
         meldingRepository = spy(new MeldingRepository(jdbcTemplate));
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
         oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
-        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaClient, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
+        authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaService, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         dokumentServiceV2 = new DokumentServiceV2(
@@ -120,8 +122,8 @@ public class VedtakServiceTest extends DatabaseTest {
                 veilederService,
                 malTypeService,
                 vedtakStatusEndringService,
-                dokumentServiceV2
-        );
+                dokumentServiceV2,
+                veilarbarenaService);
     }
 
     @Before
@@ -144,7 +146,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR.get())).thenReturn(EGENVURDERING_DATA);
         when(aktorregisterClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorregisterClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
-        when(veilarbarenaClient.oppfolgingsenhet(TEST_FNR)).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
+        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL"));
         when(veilarbarenaClient.oppfolgingssak(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSSAK);
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(dokarkivClient.opprettJournalpost(any()))
@@ -152,6 +154,13 @@ public class VedtakServiceTest extends DatabaseTest {
                         TEST_JOURNALPOST_ID,
                         true,
                         Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void fattVedtak__skal_feile_hvis_iserv(){
+        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV"));
+        gittUtkastKlarForUtsendelse();
+        fattVedtak();
     }
 
 
