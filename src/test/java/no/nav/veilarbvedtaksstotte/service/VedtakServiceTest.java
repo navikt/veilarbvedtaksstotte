@@ -7,7 +7,6 @@ import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
-import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.common.utils.fn.UnsafeSupplier;
@@ -106,7 +105,7 @@ public class VedtakServiceTest extends DatabaseTest {
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         dokumentServiceV2 = new DokumentServiceV2(
-                veilarbdokumentClient, veilarbarenaClient, veilarbpersonClient, dokarkivClient, dokdistribusjonClient);
+                veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,

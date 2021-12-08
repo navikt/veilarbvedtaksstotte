@@ -10,8 +10,6 @@ import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpost
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokument.*
-import no.nav.veilarbvedtaksstotte.client.person.PersonNavn
-import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -19,7 +17,6 @@ import org.springframework.stereotype.Service
 class DokumentServiceV2(
     val veilarbdokumentClient: VeilarbdokumentClient,
     val veilarbarenaClient: VeilarbarenaClient,
-    val veilarbpersonClient: VeilarbpersonClient,
     val dokarkivClient: DokarkivClient,
     val dokdistribusjonClient: DokdistribusjonClient
 ) {
@@ -45,15 +42,13 @@ class DokumentServiceV2(
         val dokument = produserDokument(sendDokumentDTO = sendDokumentDTO, utkast = false)
         val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
         val oppfolgingssak = veilarbarenaClient.oppfolgingssak(sendDokumentDTO.brukerFnr)
-        val personNavn = veilarbpersonClient.hentPersonNavn(sendDokumentDTO.brukerFnr.get())
         return journalforDokument(
             tittel = tittel,
             enhetId = sendDokumentDTO.enhetId,
             fnr = sendDokumentDTO.brukerFnr,
             oppfolgingssak = oppfolgingssak,
             malType = sendDokumentDTO.malType,
-            dokument = dokument,
-            personNavn = personNavn
+            dokument = dokument
         )
     }
 
@@ -61,7 +56,6 @@ class DokumentServiceV2(
         tittel: String,
         enhetId: EnhetId,
         fnr: Fnr,
-        personNavn: PersonNavn,
         oppfolgingssak: String,
         malType: MalType,
         dokument: ByteArray
@@ -74,8 +68,7 @@ class DokumentServiceV2(
             journalfoerendeEnhet = enhetId,
             avsenderMottaker = OpprettJournalpostDTO.AvsenderMottaker(
                 id = fnr.get(),
-                idType = OpprettJournalpostDTO.AvsenderMottaker.IdType.FNR,
-                navn = formatterMottakerNavnForJournalpost(personNavn)
+                idType = OpprettJournalpostDTO.AvsenderMottaker.IdType.FNR
             ),
             bruker = OpprettJournalpostDTO.Bruker(
                 id = fnr.get(),
@@ -102,10 +95,6 @@ class DokumentServiceV2(
         )
 
         return dokarkivClient.opprettJournalpost(request)
-    }
-
-    fun formatterMottakerNavnForJournalpost(personNavn: PersonNavn): String {
-        return "${personNavn.etternavn}, ${personNavn.fornavn} ${personNavn.mellomnavn ?: ""}".trimEnd()
     }
 
     fun distribuerJournalpost(jounralpostId: String): DistribuerJournalpostResponsDTO {

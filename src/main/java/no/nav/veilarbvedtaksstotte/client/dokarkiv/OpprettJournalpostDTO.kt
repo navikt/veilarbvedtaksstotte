@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.dokarkiv
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include
 import no.nav.common.types.identer.EnhetId
 
 data class OpprettJournalpostDTO(
@@ -22,7 +24,9 @@ data class OpprettJournalpostDTO(
     data class AvsenderMottaker(
             val id: String,
             val idType: IdType,
-            val navn: String
+            // Det er ikke nødvendig å oppgi navn når idType=FNR. Tjenesten vil da utlede navnet fra PDL.
+            @JsonInclude(Include.NON_NULL)
+            val navn: String? = null
     ) {
         enum class IdType(val value: String) {
             FNR("FNR"),
