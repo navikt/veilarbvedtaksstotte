@@ -127,8 +127,12 @@ public class ClientConfig {
 
     @Bean
     public DokdistribusjonClient dokDistribusjonClient(AuthContextHolder authContextHolder) {
+        String url = isProduction()
+                ? createProdInternalIngressUrl("dokdistfordeling")
+                : createDevInternalIngressUrl("dokdistfordeling-q1");
+
         return new DokdistribusjonClientImpl(
-                naisPreprodOrNaisAdeoIngress("dokdistfordeling", false),
+                url,
                 authContextHolder
         );
     }
