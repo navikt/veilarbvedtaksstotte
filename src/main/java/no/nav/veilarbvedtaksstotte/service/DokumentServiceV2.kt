@@ -83,7 +83,7 @@ class DokumentServiceV2(
             ),
                 sak = OpprettJournalpostDTO.Sak(
                 fagsakId = oppfolgingssak,
-                fagsaksystem = "AO01", // Arena-kode
+                fagsaksystem = "AO01", // Arena-kode, siden oppfølgingssaken er fra Arena
                 sakstype = OpprettJournalpostDTO.Sak.Type.FAGSAK
             ),
             dokumenter = listOf(
