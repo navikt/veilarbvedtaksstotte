@@ -12,6 +12,7 @@ import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokument.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 @Service
 class DokumentServiceV2(
@@ -37,8 +38,7 @@ class DokumentServiceV2(
         return veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
     }
 
-    fun produserOgJournalforDokument(sendDokumentDTO: SendDokumentDTO
-    ): OpprettetJournalpostDTO {
+    fun produserOgJournalforDokument(sendDokumentDTO: SendDokumentDTO, referanse: UUID): OpprettetJournalpostDTO {
         val dokument = produserDokument(sendDokumentDTO = sendDokumentDTO, utkast = false)
         val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
         val oppfolgingssak = veilarbarenaClient.oppfolgingssak(sendDokumentDTO.brukerFnr)
@@ -48,7 +48,8 @@ class DokumentServiceV2(
             fnr = sendDokumentDTO.brukerFnr,
             oppfolgingssak = oppfolgingssak,
             malType = sendDokumentDTO.malType,
-            dokument = dokument
+            dokument = dokument,
+            referanse = referanse
         )
     }
 
@@ -58,7 +59,8 @@ class DokumentServiceV2(
         fnr: Fnr,
         oppfolgingssak: String,
         malType: MalType,
-        dokument: ByteArray
+        dokument: ByteArray,
+        referanse: UUID
     ): OpprettetJournalpostDTO {
 
         val request = OpprettJournalpostDTO(
@@ -66,6 +68,7 @@ class DokumentServiceV2(
             journalpostType = OpprettJournalpostDTO.JournalpostType.UTGAAENDE,
             tema = "OPP",
             journalfoerendeEnhet = enhetId,
+            eksternReferanseId = referanse.toString(),
             avsenderMottaker = OpprettJournalpostDTO.AvsenderMottaker(
                 id = fnr.get(),
                 idType = OpprettJournalpostDTO.AvsenderMottaker.IdType.FNR

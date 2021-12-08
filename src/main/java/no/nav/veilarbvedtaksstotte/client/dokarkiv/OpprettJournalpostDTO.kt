@@ -9,6 +9,7 @@ data class OpprettJournalpostDTO(
         val journalpostType: JournalpostType,
         val tema: String,
         val journalfoerendeEnhet: EnhetId,
+        val eksternReferanseId: String, // For duplikatkontroll
         val avsenderMottaker: AvsenderMottaker,
         val bruker: Bruker,
         val sak: Sak,

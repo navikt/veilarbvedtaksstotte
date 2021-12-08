@@ -16,6 +16,7 @@ import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.DbUtils.queryForObjectOrNull;
@@ -43,6 +44,7 @@ public class VedtaksstotteRepository {
     private final static String DOKUMENT_BESTILLING_ID      = "DOKUMENT_BESTILLING_ID";
     private final static String GJELDENDE                   = "GJELDENDE";
     private final static String BESLUTTER_PROSESS_STATUS    = "BESLUTTER_PROSESS_STATUS";
+    private final static String REFERANSE                   = "REFERANSE";
 
     private final JdbcTemplate db;
     private final TransactionTemplate transactor;
@@ -186,6 +188,16 @@ public class VedtaksstotteRepository {
         });
     }
 
+    public UUID opprettOgHentReferanse(long vedtakId) {
+        String update = format(
+                "UPDATE %s SET %s = ? WHERE %s = ? AND %s is null", VEDTAK_TABLE, REFERANSE, VEDTAK_ID, REFERANSE
+        );
+        db.update(update, UUID.randomUUID(), vedtakId);
+
+        String select = format("SELECT %s FROM %s WHERE %s = ?", REFERANSE, VEDTAK_TABLE, VEDTAK_ID);
+        return db.queryForObject(select, UUID.class, vedtakId);
+    }
+
     public void lagreJournalforingVedtak(long vedtakId, String journalpostId, String dokumentId){
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = ? WHERE %s = ?",
@@ -213,7 +225,7 @@ public class VedtaksstotteRepository {
 
     public List<AktorId> hentUnikeBrukereMedFattetVedtak() {
         String sql = format(
-                "SELECT DISTINCT %s FROM %S WHERE %s = ?",
+                "SELECT DISTINCT %s FROM %s WHERE %s = ?",
                 AKTOR_ID, VEDTAK_TABLE, STATUS);
 
         return db.query(

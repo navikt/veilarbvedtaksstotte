@@ -12,6 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
@@ -173,6 +174,18 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
         Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         assertEquals(TEST_DOKUMENT_BESTILLING_ID, oppdatertUtkast.getDokumentbestillingId());
+    }
+
+    @Test
+    public void oppretter_referanse_bare_en_gang() {
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        UUID referanse1 = vedtaksstotteRepository.opprettOgHentReferanse(utkast.getId());
+        UUID referanse2 = vedtaksstotteRepository.opprettOgHentReferanse(utkast.getId());
+
+        assertEquals(referanse1, referanse2);
     }
 
     @Test

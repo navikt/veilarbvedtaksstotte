@@ -6,8 +6,6 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.EnvironmentUtils;
-import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
-import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
@@ -36,10 +34,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
@@ -189,13 +187,14 @@ public class VedtakService {
         long vedtakId = vedtak.getId();
 
         oyeblikksbildeService.lagreOyeblikksbilde(authKontekst.getFnr(), vedtakId);
+        UUID referanse = vedtaksstotteRepository.opprettOgHentReferanse(vedtakId);
 
-        log.info(format("Journalfører og distribuerer dokument for vedtak med id=%s for aktør id=%s",
-                vedtakId, vedtak.getAktorId()));
+        log.info(format("Journalfører og distribuerer dokument for vedtak med id=%s og referanse=%s for aktør id=%s",
+                vedtakId, referanse, vedtak.getAktorId()));
 
         SendDokumentDTO sendDokumentDTO = lagDokumentDTO(vedtak, authKontekst.getFnr());
         OpprettetJournalpostDTO journalpost =
-                dokumentServiceV2.produserOgJournalforDokument(sendDokumentDTO);
+                dokumentServiceV2.produserOgJournalforDokument(sendDokumentDTO, referanse);
 
         String journalpostId = journalpost.getJournalpostId();
         String dokumentInfoId = null;

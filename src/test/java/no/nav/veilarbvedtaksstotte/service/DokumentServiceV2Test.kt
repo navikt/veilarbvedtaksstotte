@@ -28,6 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.util.*
 
 class DokumentServiceV2Test {
 
@@ -62,6 +63,7 @@ class DokumentServiceV2Test {
     @Test
     fun `journalforing av dokument gir forventet innhold i request og response`() {
         val forventetDokument = "dokument".toByteArray()
+        val referanse = UUID.randomUUID()
         val forventetRequest =
             """
                 {
@@ -69,6 +71,7 @@ class DokumentServiceV2Test {
                   "journalpostType": "UTGAAENDE",
                   "tema": "OPP",
                   "journalfoerendeEnhet": "ENHET_ID",
+                  "eksternReferanseId": "$referanse",
                   "avsenderMottaker": {
                     "id": "fnr",
                     "idType": "FNR"
@@ -134,6 +137,7 @@ class DokumentServiceV2Test {
                         oppfolgingssak = "OPPF_SAK",
                         malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
                         dokument = forventetDokument,
+                        referanse = referanse
                     )
                 })
 
