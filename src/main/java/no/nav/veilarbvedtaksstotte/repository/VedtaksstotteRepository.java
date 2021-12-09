@@ -25,26 +25,26 @@ import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 @Repository
 public class VedtaksstotteRepository {
 
-    public final static String VEDTAK_TABLE                 = "VEDTAK";
-    private final static String VEDTAK_ID                   = "ID";
-    private final static String SENDER                      = "SENDER";
-    private final static String AKTOR_ID                    = "AKTOR_ID";
-    private final static String HOVEDMAL                    = "HOVEDMAL";
-    private final static String INNSATSGRUPPE               = "INNSATSGRUPPE";
-    private final static String VEILEDER_IDENT              = "VEILEDER_IDENT";
-    private final static String OPPFOLGINGSENHET_ID         = "OPPFOLGINGSENHET_ID";
-    private final static String UTKAST_SIST_OPPDATERT       = "UTKAST_SIST_OPPDATERT";
-    private final static String VEDTAK_FATTET               = "VEDTAK_FATTET";
-    private final static String BESLUTTER_IDENT             = "BESLUTTER_IDENT";
-    private final static String UTKAST_OPPRETTET            = "UTKAST_OPPRETTET";
-    private final static String BEGRUNNELSE                 = "BEGRUNNELSE";
-    private final static String STATUS                      = "STATUS";
-    private final static String DOKUMENT_ID                 = "DOKUMENT_ID";
-    private final static String JOURNALPOST_ID              = "JOURNALPOST_ID";
-    private final static String DOKUMENT_BESTILLING_ID      = "DOKUMENT_BESTILLING_ID";
-    private final static String GJELDENDE                   = "GJELDENDE";
-    private final static String BESLUTTER_PROSESS_STATUS    = "BESLUTTER_PROSESS_STATUS";
-    private final static String REFERANSE                   = "REFERANSE";
+    public static final String VEDTAK_TABLE                 = "VEDTAK";
+    private static final String VEDTAK_ID                   = "ID";
+    private static final String SENDER                      = "SENDER";
+    private static final String AKTOR_ID                    = "AKTOR_ID";
+    private static final String HOVEDMAL                    = "HOVEDMAL";
+    private static final String INNSATSGRUPPE               = "INNSATSGRUPPE";
+    private static final String VEILEDER_IDENT              = "VEILEDER_IDENT";
+    private static final String OPPFOLGINGSENHET_ID         = "OPPFOLGINGSENHET_ID";
+    private static final String UTKAST_SIST_OPPDATERT       = "UTKAST_SIST_OPPDATERT";
+    private static final String VEDTAK_FATTET               = "VEDTAK_FATTET";
+    private static final String BESLUTTER_IDENT             = "BESLUTTER_IDENT";
+    private static final String UTKAST_OPPRETTET            = "UTKAST_OPPRETTET";
+    private static final String BEGRUNNELSE                 = "BEGRUNNELSE";
+    private static final String STATUS                      = "STATUS";
+    private static final String DOKUMENT_ID                 = "DOKUMENT_ID";
+    private static final String JOURNALPOST_ID              = "JOURNALPOST_ID";
+    private static final String DOKUMENT_BESTILLING_ID      = "DOKUMENT_BESTILLING_ID";
+    private static final String GJELDENDE                   = "GJELDENDE";
+    private static final String BESLUTTER_PROSESS_STATUS    = "BESLUTTER_PROSESS_STATUS";
+    private static final String REFERANSE                   = "REFERANSE";
 
     private final JdbcTemplate db;
     private final TransactionTemplate transactor;
