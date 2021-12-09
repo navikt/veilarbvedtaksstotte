@@ -1,11 +1,15 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import no.nav.common.featuretoggle.UnleashClient;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.selftest.SelfTestCheck;
 import no.nav.common.health.selftest.SelfTestChecks;
 import no.nav.common.health.selftest.SelfTestMeterBinder;
+import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
@@ -19,8 +23,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 public class HealthConfig {
@@ -39,9 +43,13 @@ public class HealthConfig {
                                          VeilarbregistreringClient registreringClient,
                                          SafClient safClient,
                                          VeilarbveilederClient veiledereOgEnhetClient,
+                                         DokarkivClient dokarkivClient,
+                                         DokdistribusjonClient dokdistribusjonClient,
+                                         UnleashClient unleashClient,
                                          DataSourceHealthIndicator dataSourceHealthIndicator) {
 
-        List<SelfTestCheck> selfTestChecks = Arrays.asList(
+
+        ArrayList<SelfTestCheck> selfTestChecks = new ArrayList<>(Arrays.asList(
                 new SelfTestCheck("ArenaClient", false, arenaClient),
                 new SelfTestCheck("DokumentClient", false, dokumentClient),
                 new SelfTestCheck("EgenvurderingClient", false, egenvurderingClient),
@@ -50,8 +58,15 @@ public class HealthConfig {
                 new SelfTestCheck("RegistreringClient (via veilarbperson)", false, registreringClient),
                 new SelfTestCheck("SafClient", false, safClient),
                 new SelfTestCheck("VeilederOgEnhetClient", false, veiledereOgEnhetClient),
+                new SelfTestCheck("UnleashClient", false, unleashClient),
                 new SelfTestCheck("Ping database", true, () -> checkDbHealth(dataSourceHealthIndicator))
-        );
+        ));
+
+        // TODO de to sjekkene skal alltid med når ny integrasjon brukes
+        if (EnvironmentUtils.isDevelopment().orElse(false)) {
+            selfTestChecks.add(new SelfTestCheck("DokarkivClient", false, dokarkivClient));
+            selfTestChecks.add(new SelfTestCheck("DokdistribusjonClient", false, dokdistribusjonClient));
+        }
 
         return new SelfTestChecks(selfTestChecks);
     }

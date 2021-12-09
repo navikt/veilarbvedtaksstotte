@@ -9,6 +9,7 @@ import no.nav.common.abac.Pep;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.featuretoggle.UnleashClient;
+import no.nav.common.health.HealthCheckResult;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.kafka.util.KafkaPropertiesBuilder;
 import no.nav.common.metrics.MetricsClient;
@@ -39,6 +40,7 @@ import java.util.Properties;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.CONSUMER_GROUP_ID;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.PRODUCER_CLIENT_ID;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 @Configuration
@@ -94,7 +96,9 @@ public class ApplicationTestConfig {
 
     @Bean
     public UnleashClient unleashClient() {
-        return mock(UnleashClient.class);
+        UnleashClient unleashClient = mock(UnleashClient.class);
+        when(unleashClient.checkHealth()).thenReturn(HealthCheckResult.healthy());
+        return unleashClient;
     }
 
     @Bean
