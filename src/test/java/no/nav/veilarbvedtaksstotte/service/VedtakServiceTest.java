@@ -376,10 +376,19 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     @Test
-    @Ignore // Testen er ustabil på GHA
     public void fattVedtak_v2_sender_ikke_mer_enn_en_gang() {
         when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
+        when(dokarkivClient.opprettJournalpost(any())).thenAnswer(invocation -> {
+                    Thread.sleep(10); // Simulerer tregt API
+                    return new OpprettetJournalpostDTO(
+                            TEST_JOURNALPOST_ID,
+                            true,
+                            List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))
+                    );
+                })
+                .thenThrow(new RuntimeException("Simulerer duplikatkontroll i dokarkiv"));
+
         withContext(() -> {
             gittTilgang();
             gittUtkastKlarForUtsendelse();
@@ -389,7 +398,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
             Stream<UnsafeSupplier<Future<?>>> stream = Stream.of(
                     (UnsafeSupplier<Future<?>>) () -> sendVedtakAsynk(id),
-                    () -> sendVedtakAsynk(id),
                     () -> sendVedtakAsynk(id),
                     () -> sendVedtakAsynk(id)
             ).parallel();
@@ -401,7 +409,6 @@ public class VedtakServiceTest extends DatabaseTest {
                 }
             });
 
-            verify(dokarkivClient, times(1)).opprettJournalpost(any());
             verify(dokdistribusjonClient, times(1)).distribuerJournalpost(any());
         });
     }
@@ -417,7 +424,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
             Stream<UnsafeSupplier<Future<?>>> stream = Stream.of(
                     (UnsafeSupplier<Future<?>>) () -> sendVedtakAsynk(id),
-                    () -> sendVedtakAsynk(id),
                     () -> sendVedtakAsynk(id),
                     () -> sendVedtakAsynk(id)
             ).parallel();
@@ -627,13 +633,7 @@ public class VedtakServiceTest extends DatabaseTest {
                 return new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
             });
 
-            when(dokarkivClient.opprettJournalpost(any())).thenAnswer(invocation -> {
-                Thread.sleep(10); // Simuler tregt API for v2
-                return new OpprettetJournalpostDTO(TEST_JOURNALPOST_ID, true, List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID)));
-            });
-            withContext(() -> {
-                vedtakService.fattVedtak(id);
-            });
+            withContext(() -> vedtakService.fattVedtak(id));
         });
     }
 }
