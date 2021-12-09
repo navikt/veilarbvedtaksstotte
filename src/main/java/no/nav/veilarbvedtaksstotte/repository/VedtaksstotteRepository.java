@@ -222,7 +222,6 @@ public class VedtaksstotteRepository {
         db.update(sql, getName(VedtakStatus.SENDT), vedtakId);
     }
 
-
     public List<AktorId> hentUnikeBrukereMedFattetVedtak() {
         String sql = format(
                 "SELECT DISTINCT %s FROM %s WHERE %s = ?",
@@ -233,6 +232,17 @@ public class VedtaksstotteRepository {
                 (rs, rowNum) -> AktorId.of(rs.getString("aktor_id")),
                 VedtakStatus.SENDT.name()
         );
+    }
+
+    public int hentAntallJournalforteVedtakUtenDokumentbestilling(LocalDateTime fra, LocalDateTime til) {
+        String sql =
+                "SELECT COUNT(*) FROM VEDTAK" +
+                        " WHERE JOURNALPOST_ID IS NOT NULL" +
+                        " AND DOKUMENT_BESTILLING_ID IS NULL" +
+                        " AND VEDTAK_FATTET >= ?" +
+                        " AND VEDTAK_FATTET <= ?";
+
+        return Optional.ofNullable(db.queryForObject(sql, Integer.class, fra, til)).orElse(0);
     }
 
     @SneakyThrows

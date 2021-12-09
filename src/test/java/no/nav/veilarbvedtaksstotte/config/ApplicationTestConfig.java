@@ -14,6 +14,7 @@ import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.kafka.util.KafkaPropertiesBuilder;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.utils.Credentials;
+import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock;
 import no.nav.veilarbvedtaksstotte.mock.PepMock;
@@ -53,7 +54,8 @@ import static org.mockito.Mockito.when;
         ServiceTestConfig.class,
         FilterTestConfig.class,
         HealthConfig.class,
-        KafkaConfig.class
+        KafkaConfig.class,
+        DokumentdistribusjonMeterBinder.class
 })
 public class ApplicationTestConfig {
 
