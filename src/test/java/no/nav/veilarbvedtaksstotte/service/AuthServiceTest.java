@@ -12,7 +12,6 @@ import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.utils.fn.UnsafeRunnable;
-import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -38,15 +37,15 @@ public class AuthServiceTest {
     AuthContextHolder authContextHolder = AuthContextHolderThreadLocal.instance();
     AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     Pep pep = mock(Pep.class);
-    VeilarbarenaClient arenaClient = mock(VeilarbarenaClient.class);
+    VeilarbarenaService veilarbarenaService = mock(VeilarbarenaService.class);
     UtrullingService utrullingService = mock(UtrullingService.class);
-    AuthService authService = new AuthService(aktorOppslagClient, pep, arenaClient, null, null, authContextHolder, utrullingService);
+    AuthService authService = new AuthService(aktorOppslagClient, pep, veilarbarenaService, null, null, authContextHolder, utrullingService);
 
     @Before
     public void setup() {
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
-        when(arenaClient.oppfolgingsenhet(TEST_FNR)).thenReturn(EnhetId.of(TEST_OPPFOLGINGSENHET_ID));
+        when(veilarbarenaService.hentOppfolgingsenhet(TEST_FNR)).thenReturn(java.util.Optional.of(EnhetId.of(TEST_OPPFOLGINGSENHET_ID)));
     }
 
     @Test

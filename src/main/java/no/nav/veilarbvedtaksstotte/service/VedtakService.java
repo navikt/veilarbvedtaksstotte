@@ -6,6 +6,8 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.EnvironmentUtils;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
@@ -17,7 +19,11 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Kilde;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
@@ -33,6 +39,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
@@ -60,6 +67,7 @@ public class VedtakService {
     private final MalTypeService malTypeService;
     private final VedtakStatusEndringService vedtakStatusEndringService;
     private final DokumentServiceV2 dokumentServiceV2;
+    private final VeilarbarenaService veilarbarenaService;
 
     @Autowired
     public VedtakService(
@@ -81,8 +89,8 @@ public class VedtakService {
             VeilederService veilederService,
             MalTypeService malTypeService,
             VedtakStatusEndringService vedtakStatusEndringService,
-            DokumentServiceV2 dokumentServiceV2
-    ) {
+            DokumentServiceV2 dokumentServiceV2,
+            VeilarbarenaService veilarbarenaService) {
         this.transactor = transactor;
 
         this.vedtaksstotteRepository = vedtaksstotteRepository;
@@ -102,6 +110,7 @@ public class VedtakService {
         this.malTypeService = malTypeService;
         this.vedtakStatusEndringService = vedtakStatusEndringService;
         this.dokumentServiceV2 = dokumentServiceV2;
+        this.veilarbarenaService = veilarbarenaService;
     }
 
     @SneakyThrows
@@ -109,6 +118,10 @@ public class VedtakService {
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(vedtak);
+
+        if (veilarbarenaService.erBrukerInaktivIArena(Fnr.of(authKontekst.getFnr()))) {
+            throw new IllegalStateException("Bruker kan ikke ha status ISERV når vedtak fattes");
+        }
 
         flettInnVedtakInformasjon(vedtak);
 

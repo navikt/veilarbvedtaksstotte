@@ -7,8 +7,8 @@ import no.nav.common.client.norg2.Norg2Client;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EksternBrukerId;
-import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO;
@@ -112,8 +112,8 @@ public class ClientTestConfig {
     public VeilarbarenaClient arenaClient() {
         return new VeilarbarenaClient() {
             @Override
-            public EnhetId oppfolgingsenhet(Fnr fnr) {
-                return EnhetId.of(TEST_OPPFOLGINGSENHET_ID);
+            public VeilarbArenaOppfolging hentOppfolgingsbruker(Fnr fnr) {
+                return new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL");
             }
 
             @Override

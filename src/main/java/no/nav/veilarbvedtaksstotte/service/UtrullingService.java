@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.service;
 import no.nav.common.client.norg2.Norg2Client;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 @Service
 public class UtrullingService {
@@ -57,8 +60,12 @@ public class UtrullingService {
 
     public boolean tilhorerBrukerUtrulletKontor(Fnr fnr) {
         try {
-            EnhetId oppfolgingsenhet = veilarbarenaClient.oppfolgingsenhet(fnr);
-            return utrullingRepository.erUtrullet(oppfolgingsenhet);
+            return ofNullable(veilarbarenaClient.hentOppfolgingsbruker(fnr))
+                    .map(VeilarbArenaOppfolging::getNavKontor)
+                    .map(EnhetId::of)
+                    .map(utrullingRepository::erUtrullet)
+                    .orElse(false);
+
         } catch (Exception e) {
             return false;
         }
