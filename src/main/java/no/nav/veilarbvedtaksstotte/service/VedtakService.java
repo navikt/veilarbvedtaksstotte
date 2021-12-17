@@ -433,8 +433,10 @@ public class VedtakService {
     }
 
     private void flettInnVeilederNavn(Vedtak vedtak) {
-        Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
-        vedtak.setVeilederNavn(veileder != null ? veileder.getNavn() : null);
+        veilederService
+                .hentVeilederEllerNull(vedtak.getVeilederIdent())
+                .map(Veileder::getNavn)
+                .ifPresent(vedtak::setVeilederNavn);
     }
 
     private void flettInnBeslutterNavn(Vedtak vedtak) {
@@ -442,8 +444,10 @@ public class VedtakService {
             return;
         }
 
-        Veileder beslutter = veilederService.hentVeileder(vedtak.getBeslutterIdent());
-        vedtak.setBeslutterNavn(beslutter != null ? beslutter.getNavn() : null);
+        veilederService
+                .hentVeilederEllerNull(vedtak.getBeslutterIdent())
+                .map(Veileder::getNavn)
+                .ifPresent(vedtak::setBeslutterNavn);
     }
 
     private void flettInnEnhetNavn(Vedtak vedtak) {
@@ -525,7 +529,6 @@ public class VedtakService {
                 vedtak.getDokumentInfoId() != null) {
             throw new IllegalStateException("Vedtak er allerede journalført");
         }
-
     }
 
 }
