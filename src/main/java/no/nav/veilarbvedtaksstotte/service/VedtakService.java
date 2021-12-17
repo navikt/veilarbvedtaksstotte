@@ -529,10 +529,6 @@ public class VedtakService {
                 vedtak.getDokumentInfoId() != null) {
             throw new IllegalStateException("Vedtak er allerede journalført");
         }
-
-        if (vedtak.getVeilederNavn() == null) {
-            throw new IllegalStateException("Veiledernavn mangler");
-        }
     }
 
 }
