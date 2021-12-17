@@ -31,6 +31,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
+        vedtak.setVeilederNavn("Vilde Veiledersen");
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
         vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
@@ -161,6 +162,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setVedtakStatus(VedtakStatus.UTKAST);
         vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
+        vedtak.setVeilederNavn("Vilde Veiledersen");
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
         vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
@@ -223,6 +225,20 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
         vedtak.setDokumentInfoId("123");
+
+        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+    }
+
+    @Test
+    public void skal_feile_hvis_veiledernavn_mangler() {
+        exceptionRule.expectMessage("Veiledernavn mangler");
+
+        Vedtak vedtak = new Vedtak();
+        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
+        vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
+        vedtak.setBegrunnelse("Begrunnelse");
+        vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
+        vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
         vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
     }
