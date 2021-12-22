@@ -17,4 +17,3 @@ mvn test
 # For lokal test kjøring kjør no.nav.veilarbvedtaksstotte.VeilarbvedtaksstotteTestApp.java
 # For å kjøre lokalt så husk å starte docker tjenestene først med "docker-compose up -d"
 ```
-
