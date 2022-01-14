@@ -9,10 +9,12 @@ import no.nav.common.abac.Pep;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.featuretoggle.UnleashClient;
+import no.nav.common.health.HealthCheckResult;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.kafka.util.KafkaPropertiesBuilder;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.utils.Credentials;
+import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock;
 import no.nav.veilarbvedtaksstotte.mock.PepMock;
@@ -39,6 +41,7 @@ import java.util.Properties;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.CONSUMER_GROUP_ID;
 import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.PRODUCER_CLIENT_ID;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 @Configuration
@@ -51,7 +54,8 @@ import static org.mockito.Mockito.mock;
         ServiceTestConfig.class,
         FilterTestConfig.class,
         HealthConfig.class,
-        KafkaConfig.class
+        KafkaConfig.class,
+        DokumentdistribusjonMeterBinder.class
 })
 public class ApplicationTestConfig {
 
@@ -94,7 +98,9 @@ public class ApplicationTestConfig {
 
     @Bean
     public UnleashClient unleashClient() {
-        return mock(UnleashClient.class);
+        UnleashClient unleashClient = mock(UnleashClient.class);
+        when(unleashClient.checkHealth()).thenReturn(HealthCheckResult.healthy());
+        return unleashClient;
     }
 
     @Bean

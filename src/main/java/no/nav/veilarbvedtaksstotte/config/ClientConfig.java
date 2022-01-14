@@ -114,8 +114,12 @@ public class ClientConfig {
 
     @Bean
     public DokarkivClient dokarkivClient(SystemUserTokenProvider systemUserTokenProvider, AuthContextHolder authContextHolder) {
+        String url = isProduction()
+                ? createProdInternalIngressUrl("dokarkiv")
+                : createDevInternalIngressUrl("dokarkiv-q1");
+
         return new DokarkivClientImpl(
-                naisPreprodOrNaisAdeoIngress("dokarkiv", false),
+                url,
                 systemUserTokenProvider,
                 authContextHolder
         );
@@ -123,8 +127,12 @@ public class ClientConfig {
 
     @Bean
     public DokdistribusjonClient dokDistribusjonClient(AuthContextHolder authContextHolder) {
+        String url = isProduction()
+                ? createProdInternalIngressUrl("dokdistfordeling")
+                : createDevInternalIngressUrl("dokdistfordeling-q1");
+
         return new DokdistribusjonClientImpl(
-                naisPreprodOrNaisAdeoIngress("dokdistfordeling", false),
+                url,
                 authContextHolder
         );
     }
@@ -183,15 +191,19 @@ public class ClientConfig {
         return new AbacCachedClient(new AbacHttpClient(properties.getAbacUrl(), serviceUserCredentials.username, serviceUserCredentials.password));
     }
 
+    private static boolean isProduction() {
+        return EnvironmentUtils.isProduction().orElseThrow();
+    }
+
     private static String naisPreprodOrNaisAdeoIngress(String appName, boolean withAppContextPath) {
-        return EnvironmentUtils.isDevelopment().orElse(false)
-                ? createNaisPreprodIngressUrl(appName, "q1", withAppContextPath)
-                : createNaisAdeoIngressUrl(appName, withAppContextPath);
+        return isProduction()
+                ? createNaisAdeoIngressUrl(appName, withAppContextPath)
+                : createNaisPreprodIngressUrl(appName, "q1", withAppContextPath);
     }
 
     private static String internalDevOrProdIngress(String appName) {
-        return EnvironmentUtils.isDevelopment().orElse(false)
-                ? createDevInternalIngressUrl(appName)
-                : createProdInternalIngressUrl(appName);
+        return isProduction()
+                ? createProdInternalIngressUrl(appName)
+                : createDevInternalIngressUrl(appName);
     }
 }

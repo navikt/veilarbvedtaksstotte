@@ -10,16 +10,14 @@ import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpost
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokument.*
-import no.nav.veilarbvedtaksstotte.client.person.PersonNavn
-import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 @Service
 class DokumentServiceV2(
     val veilarbdokumentClient: VeilarbdokumentClient,
     val veilarbarenaClient: VeilarbarenaClient,
-    val veilarbpersonClient: VeilarbpersonClient,
     val dokarkivClient: DokarkivClient,
     val dokdistribusjonClient: DokdistribusjonClient
 ) {
@@ -40,12 +38,10 @@ class DokumentServiceV2(
         return veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
     }
 
-    fun produserOgJournalforDokument(sendDokumentDTO: SendDokumentDTO
-    ): OpprettetJournalpostDTO {
+    fun produserOgJournalforDokument(sendDokumentDTO: SendDokumentDTO, referanse: UUID): OpprettetJournalpostDTO {
         val dokument = produserDokument(sendDokumentDTO = sendDokumentDTO, utkast = false)
         val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
         val oppfolgingssak = veilarbarenaClient.oppfolgingssak(sendDokumentDTO.brukerFnr)
-        val personNavn = veilarbpersonClient.hentPersonNavn(sendDokumentDTO.brukerFnr.get())
         return journalforDokument(
             tittel = tittel,
             enhetId = sendDokumentDTO.enhetId,
@@ -53,7 +49,7 @@ class DokumentServiceV2(
             oppfolgingssak = oppfolgingssak,
             malType = sendDokumentDTO.malType,
             dokument = dokument,
-            personNavn = personNavn
+            referanse = referanse
         )
     }
 
@@ -61,10 +57,10 @@ class DokumentServiceV2(
         tittel: String,
         enhetId: EnhetId,
         fnr: Fnr,
-        personNavn: PersonNavn,
         oppfolgingssak: String,
         malType: MalType,
-        dokument: ByteArray
+        dokument: ByteArray,
+        referanse: UUID
     ): OpprettetJournalpostDTO {
 
         val request = OpprettJournalpostDTO(
@@ -72,10 +68,10 @@ class DokumentServiceV2(
             journalpostType = OpprettJournalpostDTO.JournalpostType.UTGAAENDE,
             tema = "OPP",
             journalfoerendeEnhet = enhetId,
+            eksternReferanseId = referanse.toString(),
             avsenderMottaker = OpprettJournalpostDTO.AvsenderMottaker(
                 id = fnr.get(),
-                idType = OpprettJournalpostDTO.AvsenderMottaker.IdType.FNR,
-                navn = formatterMottakerNavnForJournalpost(personNavn)
+                idType = OpprettJournalpostDTO.AvsenderMottaker.IdType.FNR
             ),
             bruker = OpprettJournalpostDTO.Bruker(
                 id = fnr.get(),
@@ -83,7 +79,7 @@ class DokumentServiceV2(
             ),
                 sak = OpprettJournalpostDTO.Sak(
                 fagsakId = oppfolgingssak,
-                fagsaksystem = "AO01", // Arena-kode
+                fagsaksystem = "AO01", // Arena-kode, siden oppfølgingssaken er fra Arena
                 sakstype = OpprettJournalpostDTO.Sak.Type.FAGSAK
             ),
             dokumenter = listOf(
@@ -102,10 +98,6 @@ class DokumentServiceV2(
         )
 
         return dokarkivClient.opprettJournalpost(request)
-    }
-
-    fun formatterMottakerNavnForJournalpost(personNavn: PersonNavn): String {
-        return "${personNavn.etternavn}, ${personNavn.fornavn} ${personNavn.mellomnavn ?: ""}".trimEnd()
     }
 
     fun distribuerJournalpost(jounralpostId: String): DistribuerJournalpostResponsDTO {
