@@ -105,7 +105,7 @@ class DokumentServiceV2(
             DistribuerJournalpostDTO(
                 journalpostId = jounralpostId,
                 bestillendeFagsystem = "BD11", // veilarb-kode
-                dokumentProdApp = "VEILARB_VEDTAKSSTOTTE" // for sporing og feilsøking
+                dokumentProdApp = "VEILARB_VEDTAK14A" // for sporing og feilsøking
             )
         )
     }

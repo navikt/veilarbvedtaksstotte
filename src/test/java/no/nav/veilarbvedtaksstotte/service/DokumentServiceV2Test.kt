@@ -156,7 +156,7 @@ class DokumentServiceV2Test {
             """
                 {
                     "bestillendeFagsystem": "BD11",
-                    "dokumentProdApp": "VEILARB_VEDTAKSSTOTTE",
+                    "dokumentProdApp": "VEILARB_VEDTAK14A",
                     "journalpostId": "123"
                 }
                 """
