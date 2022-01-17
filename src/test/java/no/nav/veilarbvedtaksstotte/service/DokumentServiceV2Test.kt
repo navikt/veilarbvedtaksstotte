@@ -21,15 +21,14 @@ import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl
-import no.nav.veilarbvedtaksstotte.client.person.PersonNavn
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
-import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.util.*
 
 class DokumentServiceV2Test {
 
@@ -54,10 +53,9 @@ class DokumentServiceV2Test {
             DokarkivClientImpl(wiremockUrl, systemUserTokenProvider, AuthContextHolderThreadLocal.instance())
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
-        veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl) { "TOKEN" }
         dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         dokumentServiceV2 = DokumentServiceV2(
-            veilarbdokumentClient, veilarbarenaClient, veilarbpersonClient, dokarkivClient, dokdistribusjonClient
+            veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient
         )
     }
 
@@ -65,6 +63,7 @@ class DokumentServiceV2Test {
     @Test
     fun `journalforing av dokument gir forventet innhold i request og response`() {
         val forventetDokument = "dokument".toByteArray()
+        val referanse = UUID.randomUUID()
         val forventetRequest =
             """
                 {
@@ -72,10 +71,10 @@ class DokumentServiceV2Test {
                   "journalpostType": "UTGAAENDE",
                   "tema": "OPP",
                   "journalfoerendeEnhet": "ENHET_ID",
+                  "eksternReferanseId": "$referanse",
                   "avsenderMottaker": {
                     "id": "fnr",
-                    "idType": "FNR",
-                    "navn": "Etternavn, Fornavn Mellomnavn"
+                    "idType": "FNR"
                   },
                   "bruker": {
                     "id": "fnr",
@@ -135,10 +134,10 @@ class DokumentServiceV2Test {
                         tittel = "Tittel",
                         enhetId = EnhetId("ENHET_ID"),
                         fnr = Fnr("fnr"),
-                        personNavn = PersonNavn("Fornavn", "Mellomnavn", "Etternavn", "Sammensatt Navn"),
                         oppfolgingssak = "OPPF_SAK",
                         malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
                         dokument = forventetDokument,
+                        referanse = referanse
                     )
                 })
 
@@ -152,30 +151,12 @@ class DokumentServiceV2Test {
     }
 
     @Test
-    fun `formatter mottakernavn for journalpost riktig med mellomnavn`() {
-        val formattertNavn = dokumentServiceV2
-            .formatterMottakerNavnForJournalpost(
-                PersonNavn("Fornavn", "Mellomnavn", "Etternavn", null)
-            )
-        assertEquals("Etternavn, Fornavn Mellomnavn", formattertNavn)
-    }
-
-    @Test
-    fun `formatter mottakernavn for journalpost riktig uten mellomnavn`() {
-        val formattertNavn = dokumentServiceV2
-            .formatterMottakerNavnForJournalpost(
-                PersonNavn("Fornavn", null, "Etternavn", null)
-            )
-        assertEquals("Etternavn, Fornavn", formattertNavn)
-    }
-
-    @Test
     fun `distribuering av journalpost gir forventet innhold i request og response`() {
         val forventetRequest =
             """
                 {
                     "bestillendeFagsystem": "BD11",
-                    "dokumentProdApp": "VEILARB_VEDTAKSSTOTTE",
+                    "dokumentProdApp": "VEILARB_VEDTAK14A",
                     "journalpostId": "123"
                 }
                 """

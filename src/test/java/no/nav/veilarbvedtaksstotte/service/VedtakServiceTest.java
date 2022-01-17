@@ -7,7 +7,6 @@ import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktorregister.AktorregisterClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
-import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.common.utils.fn.UnsafeSupplier;
@@ -39,6 +38,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
@@ -107,7 +107,7 @@ public class VedtakServiceTest extends DatabaseTest {
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         dokumentServiceV2 = new DokumentServiceV2(
-                veilarbdokumentClient, veilarbarenaClient, veilarbpersonClient, dokarkivClient, dokdistribusjonClient);
+                veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,
@@ -159,7 +159,7 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void fattVedtak__skal_feile_hvis_iserv(){
+    public void fattVedtak__skal_feile_hvis_iserv() {
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV"));
         gittUtkastKlarForUtsendelse();
         fattVedtak();
@@ -379,10 +379,18 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     @Test
-    @Ignore // Testen er ustabil på GHA
     public void fattVedtak_v2_sender_ikke_mer_enn_en_gang() {
         when(dokdistribusjonClient.distribuerJournalpost(any()))
                 .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
+        when(dokarkivClient.opprettJournalpost(any()))
+                .thenAnswer(new AnswersWithDelay(10, // Simulerer tregt API
+                        invocation -> new OpprettetJournalpostDTO(
+                                TEST_JOURNALPOST_ID,
+                                true,
+                                List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))
+                        )))
+                .thenThrow(new RuntimeException("Simulerer duplikatkontroll i dokarkiv"));
+
         withContext(() -> {
             gittTilgang();
             gittUtkastKlarForUtsendelse();
@@ -392,7 +400,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
             Stream<UnsafeSupplier<Future<?>>> stream = Stream.of(
                     (UnsafeSupplier<Future<?>>) () -> sendVedtakAsynk(id),
-                    () -> sendVedtakAsynk(id),
                     () -> sendVedtakAsynk(id),
                     () -> sendVedtakAsynk(id)
             ).parallel();
@@ -404,7 +411,6 @@ public class VedtakServiceTest extends DatabaseTest {
                 }
             });
 
-            verify(dokarkivClient, times(1)).opprettJournalpost(any());
             verify(dokdistribusjonClient, times(1)).distribuerJournalpost(any());
         });
     }
@@ -412,6 +418,10 @@ public class VedtakServiceTest extends DatabaseTest {
     @Test
     @Ignore // Testen er ustabil på GHA
     public void fattVedtak_sender_ikke_mer_enn_en_gang() {
+        when(veilarbdokumentClient.sendDokument(any()))
+                .thenAnswer(new AnswersWithDelay(10, // Simulerer tregt API
+                        invocation -> new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID)));
+
         withContext(() -> {
             gittTilgang();
             gittUtkastKlarForUtsendelse();
@@ -420,7 +430,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
             Stream<UnsafeSupplier<Future<?>>> stream = Stream.of(
                     (UnsafeSupplier<Future<?>>) () -> sendVedtakAsynk(id),
-                    () -> sendVedtakAsynk(id),
                     () -> sendVedtakAsynk(id),
                     () -> sendVedtakAsynk(id)
             ).parallel();
@@ -624,19 +633,8 @@ public class VedtakServiceTest extends DatabaseTest {
     ExecutorService executorService = Executors.newFixedThreadPool(3);
 
     private Future<?> sendVedtakAsynk(long id) {
-        return executorService.submit(() -> {
-            when(veilarbdokumentClient.sendDokument(any())).thenAnswer(invocation -> {
-                Thread.sleep(10); // Simuler tregt API for v1
-                return new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
-            });
-
-            when(dokarkivClient.opprettJournalpost(any())).thenAnswer(invocation -> {
-                Thread.sleep(10); // Simuler tregt API for v2
-                return new OpprettetJournalpostDTO(TEST_JOURNALPOST_ID, true, List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID)));
-            });
-            withContext(() -> {
-                vedtakService.fattVedtak(id);
-            });
-        });
+        return executorService.submit(() ->
+                withContext(() ->
+                        vedtakService.fattVedtak(id)));
     }
 }
