@@ -32,13 +32,6 @@ public class KafkaProducerService {
     }
 
     public void sendVedtakStatusEndring(KafkaVedtakStatusEndring vedtakStatusEndring) {
-        ProducerRecord<byte[], byte[]> producerRecordOnPrem =
-                serializeJsonRecord(
-                        new ProducerRecord<>(
-                                kafkaProperties.getVedtakStatusEndringOnPremTopic(),
-                                vedtakStatusEndring.getAktorId(),
-                                vedtakStatusEndring));
-
         ProducerRecord<byte[], byte[]> producerRecord =
                 serializeJsonRecord(
                         new ProducerRecord<>(
@@ -46,7 +39,6 @@ public class KafkaProducerService {
                                 vedtakStatusEndring.getAktorId(),
                                 vedtakStatusEndring));
 
-        producerRecordStorage.store(producerRecordOnPrem);
         producerRecordStorage.store(producerRecord);
     }
 
