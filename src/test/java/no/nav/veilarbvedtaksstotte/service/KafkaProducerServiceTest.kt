@@ -36,6 +36,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit4.SpringRunner
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import org.mockito.Mockito.*
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(classes = [ApplicationTestConfig::class])
@@ -125,7 +126,7 @@ class KafkaProducerServiceTest {
 
         kafkaProducerService.sendVedtakStatusEndring(utkastOpprettet)
 
-        verify(producerRecordStorage).store(argumentCaptor.capture())
+        verify(producerRecordStorage, times(2)).store(argumentCaptor.capture())
 
         val forventet = """
             {
