@@ -92,7 +92,7 @@ public class KafkaConfig {
                 meterRegistry,
                 List.of(
                         kafkaProperties.getVedtakSendtTopic(),
-                        kafkaProperties.getVedtakStatusEndringTopic()
+                        kafkaProperties.getVedtakStatusEndringOnPremTopic()
                 )
         );
 
@@ -103,6 +103,7 @@ public class KafkaConfig {
                 meterRegistry,
                 List.of(
                         kafkaProperties.getSiste14aVedtakTopic(),
+                        kafkaProperties.getVedtakStatusEndringTopic(),
                         kafkaProperties.getVedtakFattetDvhTopic()
                 )
         );
