@@ -91,7 +91,8 @@ public class KafkaConfig {
                 producerRepository,
                 meterRegistry,
                 List.of(
-                        kafkaProperties.getVedtakSendtTopic()
+                        kafkaProperties.getVedtakSendtTopic(),
+                        kafkaProperties.getVedtakStatusEndringOnPremTopic()
                 )
         );
 
