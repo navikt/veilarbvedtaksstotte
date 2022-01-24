@@ -12,7 +12,6 @@ public class KafkaProperties {
     String endringPaAvsluttOppfolgingTopic;
     String endringPaOppfolgingsBrukerTopic;
     String vedtakSendtTopic;
-    String vedtakStatusEndringOnPremTopic;
     String vedtakStatusEndringTopic;
     String arenaVedtakTopic;
     String siste14aVedtakTopic;

@@ -49,8 +49,6 @@ spec:
       value: aapen-fo-endringPaaOppfoelgingsBruker-v1-p
     - name: VEDTAK_SENDT_TOPIC
       value: aapen-oppfolging-vedtakSendt-v1-p
-    - name: VEDTAK_STATUS_ENDRING_TOPIC
-      value: aapen-oppfolging-vedtakStatusEndring-v1-p
     - name: ARENA_VEDTAK_TOPIC
       value: aapen-arena-14aVedtakIverksatt-v1-p
   envFrom:
