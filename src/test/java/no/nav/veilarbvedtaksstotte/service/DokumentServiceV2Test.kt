@@ -42,6 +42,7 @@ class DokumentServiceV2Test {
     private val wireMockRule = WireMockRule()
 
     val systemUserTokenProvider: SystemUserTokenProvider = mock(SystemUserTokenProvider::class.java)
+    val serviceTokenSupplier: () -> String = { "" }
 
     @Rule
     fun getWireMockRule() = wireMockRule
@@ -53,7 +54,7 @@ class DokumentServiceV2Test {
             DokarkivClientImpl(wiremockUrl, systemUserTokenProvider, AuthContextHolderThreadLocal.instance())
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
-        dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
+        dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl, serviceTokenSupplier)
         dokumentServiceV2 = DokumentServiceV2(
             veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient
         )

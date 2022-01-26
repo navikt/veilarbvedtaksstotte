@@ -16,7 +16,9 @@ import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.job.leader_election.LeaderElectionHttpClient;
 import no.nav.common.metrics.InfluxClient;
 import no.nav.common.metrics.MetricsClient;
+import no.nav.common.sts.ServiceToServiceTokenProvider;
 import no.nav.common.sts.SystemUserTokenProvider;
+import no.nav.common.sts.utils.AzureAdServiceTokenProviderBuilder;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
@@ -43,6 +45,8 @@ import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.service.UnleashService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.function.Supplier;
 
 import static no.nav.common.utils.UrlUtils.*;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
@@ -126,15 +130,27 @@ public class ClientConfig {
     }
 
     @Bean
-    public DokdistribusjonClient dokDistribusjonClient(AuthContextHolder authContextHolder) {
+    public DokdistribusjonClient dokDistribusjonClient() {
         String url = isProduction()
                 ? createProdInternalIngressUrl("dokdistfordeling")
                 : createDevInternalIngressUrl("dokdistfordeling-q1");
 
+        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+
+        Supplier<String> serviceTokenSupplier = () -> serviceToServiceTokenProvider()
+                .getServiceToken("saf", "teamdokumenthandtering", safCluster);
+
         return new DokdistribusjonClientImpl(
                 url,
-                authContextHolder
+                serviceTokenSupplier
         );
+    }
+
+    @Bean
+    public ServiceToServiceTokenProvider serviceToServiceTokenProvider() {
+        return AzureAdServiceTokenProviderBuilder.builder()
+                .withEnvironmentDefaults()
+                .build();
     }
 
     @Bean

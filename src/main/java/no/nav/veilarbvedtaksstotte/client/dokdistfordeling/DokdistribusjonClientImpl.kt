@@ -1,22 +1,21 @@
 package no.nav.veilarbvedtaksstotte.client.dokdistfordeling
 
-import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.utils.UrlUtils.joinPaths
-import no.nav.veilarbvedtaksstotte.utils.RestClientUtils
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import org.springframework.http.HttpHeaders
+import java.util.function.Supplier
 
 class DokdistribusjonClientImpl(
-    val dokdistribusjonUrl: String,
-    val authContextHolder: AuthContextHolder
+    private val dokdistribusjonUrl: String,
+    private val serviceTokenSupplier: Supplier<String>
 ) : DokdistribusjonClient {
 
     val client: OkHttpClient = RestClient.baseClient()
@@ -24,7 +23,7 @@ class DokdistribusjonClientImpl(
     override fun distribuerJournalpost(request: DistribuerJournalpostDTO): DistribuerJournalpostResponsDTO {
         val request = Request.Builder()
             .url(joinPaths(dokdistribusjonUrl, "/rest/v1/distribuerjournalpost"))
-            .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
+            .header(HttpHeaders.AUTHORIZATION, serviceTokenSupplier.get())
             .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, request.toJson()))
             .build()
 
