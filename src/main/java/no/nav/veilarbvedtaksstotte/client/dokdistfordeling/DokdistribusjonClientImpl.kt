@@ -20,11 +20,11 @@ class DokdistribusjonClientImpl(
 
     val client: OkHttpClient = RestClient.baseClient()
 
-    override fun distribuerJournalpost(request: DistribuerJournalpostDTO): DistribuerJournalpostResponsDTO {
+    override fun distribuerJournalpost(dto: DistribuerJournalpostDTO): DistribuerJournalpostResponsDTO {
         val request = Request.Builder()
             .url(joinPaths(dokdistribusjonUrl, "/rest/v1/distribuerjournalpost"))
-            .header(HttpHeaders.AUTHORIZATION, serviceTokenSupplier.get())
-            .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, request.toJson()))
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + serviceTokenSupplier.get())
+            .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, dto.toJson()))
             .build()
 
         client.newCall(request).execute().use { response ->

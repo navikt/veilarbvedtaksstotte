@@ -312,7 +312,7 @@ public class ClientTestConfig {
     public DokdistribusjonClient dokdistribusjonClient() {
         return new DokdistribusjonClient() {
             @Override
-            public DistribuerJournalpostResponsDTO distribuerJournalpost(DistribuerJournalpostDTO request) {
+            public DistribuerJournalpostResponsDTO distribuerJournalpost(DistribuerJournalpostDTO dto) {
                 return new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID);
             }
 
