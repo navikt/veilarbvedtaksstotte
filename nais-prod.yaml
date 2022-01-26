@@ -51,5 +51,8 @@ spec:
       value: aapen-oppfolging-vedtakSendt-v1-p
     - name: ARENA_VEDTAK_TOPIC
       value: aapen-arena-14aVedtakIverksatt-v1-p
+  azure:
+    application:
+      enabled: true
   envFrom:
     - configmap: pto-config
