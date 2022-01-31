@@ -31,6 +31,11 @@
     </properties>
 
     <repositories>
+        <!-- Legger til central eksplisitt for prioritet over jitpack -->
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
         <repository>
             <id>jitpack</id>
             <url>https://jitpack.io</url>
@@ -122,6 +127,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.kagkarlsson</groupId>
+            <artifactId>db-scheduler-spring-boot-starter</artifactId>
+            <version>10.5</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>

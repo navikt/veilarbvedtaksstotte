@@ -1,10 +1,12 @@
 package no.nav.veilarbvedtaksstotte.schedule;
 
+import com.github.kagkarlsson.scheduler.task.Task;
+import com.github.kagkarlsson.scheduler.task.helper.Tasks;
+import com.github.kagkarlsson.scheduler.task.schedule.Schedules;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.job.JobRunner;
-import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
@@ -13,10 +15,11 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,8 +36,6 @@ public class SlettUtkastSchedule {
 
     private final static int DAGER_FOR_SLETT_UTKAST = 28;
 
-    private final LeaderElectionClient leaderElectionClient;
-
     private final VeilarboppfolgingClient veilarboppfolgingClient;
 
     private final AktorOppslagClient aktorOppslagClient;
@@ -43,11 +44,10 @@ public class SlettUtkastSchedule {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
-    @Scheduled(cron = EVERY_DAY_AT_01)
-    public void startSlettingAvGamleUtkast() {
-        if (leaderElectionClient.isLeader()) {
-            JobRunner.run("slett_gamle_utkast", this::slettGamleUtkast);
-        }
+    @Bean
+    Task<Void> startSlettingAvGamleUtkast() {
+        return Tasks.recurring("slett_gamle_utkast", Schedules.daily(LocalTime.of(1, 0)))
+                .execute((instance, ctx) -> JobRunner.run("slett_gamle_utkast", this::slettGamleUtkast));
     }
 
     void slettGamleUtkast() {

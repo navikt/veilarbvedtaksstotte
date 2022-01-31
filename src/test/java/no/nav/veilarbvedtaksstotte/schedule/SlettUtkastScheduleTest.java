@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.schedule;
 
 import no.nav.common.client.aktorregister.AktorregisterClient;
-import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
@@ -21,8 +20,6 @@ import static org.mockito.Mockito.*;
 
 public class SlettUtkastScheduleTest {
 
-    private LeaderElectionClient leaderElectionClient = mock(LeaderElectionClient.class);
-
     private VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
 
     private AktorregisterClient aktorregisterClient = mock(AktorregisterClient.class);
@@ -32,8 +29,10 @@ public class SlettUtkastScheduleTest {
     private VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
 
     private SlettUtkastSchedule slettUtkastSchedule = new SlettUtkastSchedule(
-            leaderElectionClient, veilarboppfolgingClient,
-            aktorregisterClient, vedtakService, vedtaksstotteRepository
+            veilarboppfolgingClient,
+            aktorregisterClient,
+            vedtakService,
+            vedtaksstotteRepository
     );
 
     @Test
