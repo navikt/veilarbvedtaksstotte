@@ -107,7 +107,7 @@ public class VedtakServiceTest extends DatabaseTest {
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         malTypeService = new MalTypeService(registreringClient);
         dokumentServiceV2 = new DokumentServiceV2(
-                veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient);
+                veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient, metricsService);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,

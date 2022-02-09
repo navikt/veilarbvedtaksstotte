@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
@@ -169,7 +170,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-        vedtaksstotteRepository.lagreDokumentbestillingsId(utkast.getId(), TEST_DOKUMENT_BESTILLING_ID);
+        vedtaksstotteRepository.lagreDokumentbestillingsId(utkast.getId(), new DistribusjonBestillingId.Uuid(TEST_DOKUMENT_BESTILLING_ID));
 
         Vedtak oppdatertUtkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 

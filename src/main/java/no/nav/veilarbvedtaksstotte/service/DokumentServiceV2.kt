@@ -7,9 +7,9 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokument.*
+import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -19,7 +19,8 @@ class DokumentServiceV2(
     val veilarbdokumentClient: VeilarbdokumentClient,
     val veilarbarenaClient: VeilarbarenaClient,
     val dokarkivClient: DokarkivClient,
-    val dokdistribusjonClient: DokdistribusjonClient
+    val dokdistribusjonClient: DokdistribusjonClient,
+    val metricsService: MetricsService
 ) {
 
     val log = LoggerFactory.getLogger(DokumentServiceV2::class.java)
@@ -77,7 +78,7 @@ class DokumentServiceV2(
                 id = fnr.get(),
                 idType = OpprettJournalpostDTO.Bruker.IdType.FNR
             ),
-                sak = OpprettJournalpostDTO.Sak(
+            sak = OpprettJournalpostDTO.Sak(
                 fagsakId = oppfolgingssak,
                 fagsaksystem = "AO01", // Arena-kode, siden oppfølgingssaken er fra Arena
                 sakstype = OpprettJournalpostDTO.Sak.Type.FAGSAK
@@ -100,14 +101,26 @@ class DokumentServiceV2(
         return dokarkivClient.opprettJournalpost(request)
     }
 
-    fun distribuerJournalpost(jounralpostId: String): DistribuerJournalpostResponsDTO {
-        return dokdistribusjonClient.distribuerJournalpost(
-            DistribuerJournalpostDTO(
-                journalpostId = jounralpostId,
-                bestillendeFagsystem = "BD11", // veilarb-kode
-                dokumentProdApp = "VEILARB_VEDTAK14A" // for sporing og feilsøking
+    fun distribuerJournalpost(jounralpostId: String): DistribusjonBestillingId {
+        try {
+            val respons = dokdistribusjonClient.distribuerJournalpost(
+                DistribuerJournalpostDTO(
+                    journalpostId = jounralpostId,
+                    bestillendeFagsystem = "BD11", // veilarb-kode
+                    dokumentProdApp = "VEILARB_VEDTAK14A" // for sporing og feilsøking
+                )
             )
-        )
+            return if (respons != null) {
+                log.info("Distribusjon av dokument bestilt med bestillingsId=${respons.bestillingsId}");
+                DistribusjonBestillingId.Uuid(respons.bestillingsId)
+            } else {
+                log.error("Ingen respons fra bestilling av distribusjon. bestillingsId settes til ${DistribusjonBestillingId.Feilet} og må rettes manuelt.")
+                DistribusjonBestillingId.Feilet
+            }
+        } catch (e: RuntimeException) {
+            log.error("Distribusjon av journalpost med journalpostId=$jounralpostId feilet", e);
+            metricsService.rapporterFeilendeDistribusjonAvJournalpost();
+            throw e;
+        }
     }
-
 }

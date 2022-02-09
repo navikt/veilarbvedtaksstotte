@@ -8,7 +8,6 @@ import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO;
@@ -16,12 +15,9 @@ import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
+import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Kilde;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
@@ -124,16 +120,16 @@ public class VedtakService {
         flettInnVedtakInformasjon(vedtak);
 
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(vedtak.getAktorId());
-        validerVedtakForFerdigstillingOgUtsending(vedtak, gjeldendeVedtak);
+        validerVedtakForFerdigstilling(vedtak, gjeldendeVedtak);
 
         return sendDokumentOgFerdigstill(vedtak, authKontekst);
     }
 
     private DokumentSendtDTO sendDokumentOgFerdigstill(Vedtak vedtak, AuthKontekst authKontekst) {
         if (brukNyDokIntegrasjon()) {
-            log.info(format("Sender og ferdigstiller vedtak med nye integrasjoner (vedtak id = %s, aktør id = %s)",
+            log.info(format("Journalfører og ferdigstiller vedtak med nye integrasjoner (vedtak id = %s, aktør id = %s)",
                     vedtak.getId(), authKontekst.getAktorId()));
-            return sendDokumentOgFerdigstillV2(vedtak, authKontekst);
+            return journalforOgFerdigstillV2(vedtak, authKontekst);
         } else {
             log.info(format("Sender og ferdigstiller vedtak med gammel integrasjon (vedtak id = %s, aktør id = %s)",
                     vedtak.getId(), authKontekst.getAktorId()));
@@ -177,7 +173,7 @@ public class VedtakService {
         }
     }
 
-    private DokumentSendtDTO sendDokumentOgFerdigstillV2(Vedtak vedtak, AuthKontekst authKontekst) {
+    private DokumentSendtDTO journalforOgFerdigstillV2(Vedtak vedtak, AuthKontekst authKontekst) {
         long vedtakId = vedtak.getId();
 
         oyeblikksbildeService.lagreOyeblikksbilde(authKontekst.getFnr(), vedtakId);
@@ -218,23 +214,26 @@ public class VedtakService {
 
         vedtakStatusEndringService.vedtakSendt(vedtak.getId(), Fnr.of(authKontekst.getFnr()));
 
-        String bestillingsId = null;
-        try {
-            DistribuerJournalpostResponsDTO distribuerJournalpostResponsDTO =
-                    dokumentServiceV2.distribuerJournalpost(journalpost.getJournalpostId());
-
-            bestillingsId = distribuerJournalpostResponsDTO.getBestillingsId();
-            log.info(format("Distribusjon av dokument bestilt: bestillingsId=%s", bestillingsId));
-        } catch (RuntimeException e) {
-            log.error("Distribusjon av journalpost feilet. Må rettes manuelt.", e);
-            metricsService.rapporterFeilendeDistribusjonAvJournalpost();
-        }
-
-        if (bestillingsId != null) {
-            vedtaksstotteRepository.lagreDokumentbestillingsId(vedtakId, bestillingsId);
-        }
-
         return new DokumentSendtDTO(journalpostId, dokumentInfoId);
+    }
+
+    public void distribuerVedtak(long vedtakId) {
+        // Oppdaterer vedtak til "sender" tilstand for å redusere risiko for dupliserte utsendelser av dokument.
+        vedtaksstotteRepository.oppdaterSender(vedtakId, true);
+
+        try {
+            Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+            validerVedtakForDistribusjon(vedtak);
+
+            DistribusjonBestillingId distribusjonBestillingId =
+                    dokumentServiceV2.distribuerJournalpost(vedtak.getJournalpostId());
+
+            vedtaksstotteRepository.lagreDokumentbestillingsId(vedtakId, distribusjonBestillingId);
+
+        } catch (Exception e) {
+            vedtaksstotteRepository.oppdaterSender(vedtakId, false);
+            throw e;
+        }
     }
 
     public BeslutterProsessStatus hentBeslutterprosessStatus(long vedtakId) {
@@ -469,7 +468,20 @@ public class VedtakService {
         );
     }
 
-    void validerVedtakForFerdigstillingOgUtsending(Vedtak vedtak, Vedtak gjeldendeVedtak) {
+    void validerVedtakForDistribusjon(Vedtak vedtak) {
+        if (vedtak.getJournalpostId() == null ||
+                vedtak.getDokumentInfoId() == null) {
+            throw new IllegalStateException(format(
+                    "Kan ikke distribuere vedtak med id %s som mangler journalpostId(%s) og/eller dokumentinfoId(%s)",
+                    vedtak.getId(), vedtak.getJournalpostId(),vedtak.getDokumentInfoId()));
+        } else if (vedtak.getDokumentbestillingId() != null){
+            throw new IllegalStateException(format(
+                    "Kan ikke distribuere vedtak med id %s som allerede har en dokumentbestillingId(%s)",
+                    vedtak.getId(), vedtak.getDokumentbestillingId()));
+        }
+    }
+
+    void validerVedtakForFerdigstilling(Vedtak vedtak, Vedtak gjeldendeVedtak) {
 
         if (vedtak.getVedtakStatus() != VedtakStatus.UTKAST) {
             throw new IllegalStateException("Vedtak har feil status, forventet status UTKAST");
@@ -512,10 +524,6 @@ public class VedtakService {
             throw new IllegalStateException("Vedtak mangler begrunnelse siden gjeldende vedtak er varig");
         } else if (harIkkeBegrunnelse && !erStandard) {
             throw new IllegalStateException("Vedtak mangler begrunnelse");
-        }
-
-        if (vedtak.getDokumentbestillingId() != null) {
-            throw new IllegalStateException("Vedtak er allerede distribuert til bruker");
         }
 
         if (vedtak.getJournalpostId() != null ||

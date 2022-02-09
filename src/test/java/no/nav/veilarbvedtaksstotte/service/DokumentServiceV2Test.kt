@@ -15,13 +15,11 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl
-import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -34,13 +32,13 @@ class DokumentServiceV2Test {
 
     lateinit var veilarbdokumentClient: VeilarbdokumentClient
     lateinit var veilarbarenaClient: VeilarbarenaClient
-    lateinit var veilarbpersonClient: VeilarbpersonClient
     lateinit var dokdistribusjonClient: DokdistribusjonClient
     lateinit var dokarkivClient: DokarkivClient
     lateinit var dokumentServiceV2: DokumentServiceV2
 
     private val wireMockRule = WireMockRule()
 
+    val metricsService: MetricsService = mock(MetricsService::class.java)
     val systemUserTokenProvider: SystemUserTokenProvider = mock(SystemUserTokenProvider::class.java)
     val serviceTokenSupplier: () -> String = { "" }
 
@@ -56,7 +54,7 @@ class DokumentServiceV2Test {
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl, serviceTokenSupplier)
         dokumentServiceV2 = DokumentServiceV2(
-            veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient
+            veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient, metricsService
         )
     }
 
@@ -186,6 +184,6 @@ class DokumentServiceV2Test {
                     dokumentServiceV2.distribuerJournalpost("123")
                 })
 
-        assertEquals(DistribuerJournalpostResponsDTO("BESTILLINGS_ID"), respons)
+        assertEquals("BESTILLINGS_ID", respons.id)
     }
 }
