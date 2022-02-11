@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.schedule
 
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
-import no.nav.veilarbvedtaksstotte.service.VedtakService
+import no.nav.veilarbvedtaksstotte.service.DistribusjonServiceV2
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -11,7 +11,7 @@ import org.springframework.transaction.support.TransactionTemplate
 @Component
 class DistribuerDokumentSchedule(
     val leaderElection: LeaderElectionClient,
-    val vedtakService: VedtakService,
+    val distribusjonServiceV2: DistribusjonServiceV2,
     val vedtaksstotteRepository: VedtaksstotteRepository,
     val transactor: TransactionTemplate
 ) {
@@ -31,7 +31,7 @@ class DistribuerDokumentSchedule(
 
             hentVedtakForDistribusjon.forEach {
                 try {
-                    vedtakService.distribuerVedtak(it)
+                    distribusjonServiceV2.distribuerVedtak(it)
                 } catch (e: RuntimeException) {
                     log.error("Distribusjon av vedtak med id ${it} feilet", e)
                 }

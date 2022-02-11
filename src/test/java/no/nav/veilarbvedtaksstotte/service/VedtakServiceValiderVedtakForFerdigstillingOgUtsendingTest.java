@@ -183,21 +183,6 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
     }
 
     @Test
-    public void skal_feile_hvis_vedtak_allerede_er_distribuert_til_bruker() {
-        exceptionRule.expectMessage("Vedtak er allerede distribuert til bruker");
-
-        Vedtak vedtak = new Vedtak();
-        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
-        vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
-        vedtak.setBegrunnelse("Begrunnelse");
-        vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
-        vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
-        vedtak.setDokumentbestillingId("123");
-
-        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
-    }
-
-    @Test
     public void skal_feile_hvis_vedtak_allerede_har_journalpost_id() {
         exceptionRule.expectMessage("Vedtak er allerede journalført");
 

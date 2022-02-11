@@ -6,21 +6,19 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
-import no.nav.veilarbvedtaksstotte.client.dokument.*
-import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
+import no.nav.veilarbvedtaksstotte.client.dokument.MalType
+import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO
+import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.UUID
+import java.util.*
 
 @Service
 class DokumentServiceV2(
     val veilarbdokumentClient: VeilarbdokumentClient,
     val veilarbarenaClient: VeilarbarenaClient,
     val dokarkivClient: DokarkivClient,
-    val dokdistribusjonClient: DokdistribusjonClient,
-    val metricsService: MetricsService
 ) {
 
     val log = LoggerFactory.getLogger(DokumentServiceV2::class.java)
@@ -99,28 +97,5 @@ class DokumentServiceV2(
         )
 
         return dokarkivClient.opprettJournalpost(request)
-    }
-
-    fun distribuerJournalpost(jounralpostId: String): DistribusjonBestillingId {
-        try {
-            val respons = dokdistribusjonClient.distribuerJournalpost(
-                DistribuerJournalpostDTO(
-                    journalpostId = jounralpostId,
-                    bestillendeFagsystem = "BD11", // veilarb-kode
-                    dokumentProdApp = "VEILARB_VEDTAK14A" // for sporing og feilsøking
-                )
-            )
-            return if (respons != null) {
-                log.info("Distribusjon av dokument bestilt med bestillingsId=${respons.bestillingsId}");
-                DistribusjonBestillingId.Uuid(respons.bestillingsId)
-            } else {
-                log.error("Ingen respons fra bestilling av distribusjon. bestillingsId settes til ${DistribusjonBestillingId.Feilet} og må rettes manuelt.")
-                DistribusjonBestillingId.Feilet
-            }
-        } catch (e: RuntimeException) {
-            log.error("Distribusjon av journalpost med journalpostId=$jounralpostId feilet", e);
-            metricsService.rapporterFeilendeDistribusjonAvJournalpost();
-            throw e;
-        }
     }
 }

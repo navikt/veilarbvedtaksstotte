@@ -15,7 +15,6 @@ import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
-import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
@@ -215,25 +214,6 @@ public class VedtakService {
         vedtakStatusEndringService.vedtakSendt(vedtak.getId(), Fnr.of(authKontekst.getFnr()));
 
         return new DokumentSendtDTO(journalpostId, dokumentInfoId);
-    }
-
-    public void distribuerVedtak(long vedtakId) {
-        // Oppdaterer vedtak til "sender" tilstand for å redusere risiko for dupliserte utsendelser av dokument.
-        vedtaksstotteRepository.oppdaterSender(vedtakId, true);
-
-        try {
-            Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-            validerVedtakForDistribusjon(vedtak);
-
-            DistribusjonBestillingId distribusjonBestillingId =
-                    dokumentServiceV2.distribuerJournalpost(vedtak.getJournalpostId());
-
-            vedtaksstotteRepository.lagreDokumentbestillingsId(vedtakId, distribusjonBestillingId);
-
-        } catch (Exception e) {
-            vedtaksstotteRepository.oppdaterSender(vedtakId, false);
-            throw e;
-        }
     }
 
     public BeslutterProsessStatus hentBeslutterprosessStatus(long vedtakId) {
@@ -466,19 +446,6 @@ public class VedtakService {
                 vedtak.getOpplysninger(),
                 utkast
         );
-    }
-
-    void validerVedtakForDistribusjon(Vedtak vedtak) {
-        if (vedtak.getJournalpostId() == null ||
-                vedtak.getDokumentInfoId() == null) {
-            throw new IllegalStateException(format(
-                    "Kan ikke distribuere vedtak med id %s som mangler journalpostId(%s) og/eller dokumentinfoId(%s)",
-                    vedtak.getId(), vedtak.getJournalpostId(),vedtak.getDokumentInfoId()));
-        } else if (vedtak.getDokumentbestillingId() != null){
-            throw new IllegalStateException(format(
-                    "Kan ikke distribuere vedtak med id %s som allerede har en dokumentbestillingId(%s)",
-                    vedtak.getId(), vedtak.getDokumentbestillingId()));
-        }
     }
 
     void validerVedtakForFerdigstilling(Vedtak vedtak, Vedtak gjeldendeVedtak) {
