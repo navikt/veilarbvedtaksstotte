@@ -190,7 +190,7 @@ public class VedtaksstotteRepository {
     }
 
     public List<Long> hentVedtakForDistribusjon(int antall) {
-        var sql = format("SELECT %s FROM %s WHERE %s IS NULL ORDER BY %s ASC LIMIT ?", VEDTAK_ID, VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, VEDTAK_FATTET);
+        var sql = format("SELECT %s FROM %s WHERE %s IS NULL AND %s IS NOT NULL ORDER BY %s ASC LIMIT ?", VEDTAK_ID, VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, VEDTAK_FATTET);
         return db.queryForList(sql, Long.class, antall);
     }
 
@@ -214,8 +214,8 @@ public class VedtaksstotteRepository {
 
     public void lagreDokumentbestillingsId(long vedtakId, DistribusjonBestillingId dokumentbestillingsId){
         String sql = format(
-                "UPDATE %s SET %s = ? WHERE %s = ?",
-                VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, VEDTAK_ID
+                "UPDATE %s SET %s = ?, %s = false WHERE %s = ?",
+                VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, SENDER, VEDTAK_ID
         );
         db.update(sql, dokumentbestillingsId.getId(), vedtakId);
     }

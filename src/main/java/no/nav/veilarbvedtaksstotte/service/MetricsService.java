@@ -177,12 +177,4 @@ public class MetricsService {
 
         influxClient.report(event);
     }
-
-    public void rapporterFeilendeFerdigstillingAvJournalpost() {
-        meterRegistry.counter("feilende_ferdigstilling_av_journalpost").increment();
-    }
-
-    public void rapporterFeilendeDistribusjonAvJournalpost() {
-        meterRegistry.counter("feilende_distribusjon_av_journalpost").increment();
-    }
 }

@@ -24,7 +24,7 @@ class DistribuerDokumentSchedule(
         if (leaderElection.isLeader) { // TODO toggle?
             val hentVedtakForDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentVedtakForDistribusjon(10)
             if (hentVedtakForDistribusjon.isNotEmpty()) {
-                log.info("Distribuerer ${hentVedtakForDistribusjon.size} vedtak med id: ${hentVedtakForDistribusjon.joinToString(",", "[", "]")}")
+                log.info("Distribuerer ${hentVedtakForDistribusjon.size} vedtak med id: ${hentVedtakForDistribusjon.joinToString(",", "{", "}")}")
             } else {
                 log.info("Ingen nye vedtak å distribuere")
             }

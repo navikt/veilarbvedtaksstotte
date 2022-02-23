@@ -24,6 +24,7 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
@@ -323,8 +324,6 @@ public class VedtakServiceTest extends DatabaseTest {
         fattVedtak();
 
         assertJournalførtOgFerdigstilltVedtakV2();
-
-        verify(metricsService).rapporterFeilendeFerdigstillingAvJournalpost();
     }
 
     private void fattVedtak() {
@@ -545,11 +544,14 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     private void assertJournalførtOgFerdigstilltVedtakV2() {
-        assertSendtVedtak();
         withContext(() -> {
             gittTilgang();
             Vedtak sendtVedtak = hentVedtak();
             assertTrue(sendtVedtak.isGjeldende());
+            assertEquals(VedtakStatus.SENDT, sendtVedtak.getVedtakStatus());
+            assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
+            assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
+            assertOyeblikksbildeForFattetVedtak(sendtVedtak.getId());
         });
         verify(vedtakStatusEndringService).vedtakSendt(any(), any());
     }
@@ -561,14 +563,20 @@ public class VedtakServiceTest extends DatabaseTest {
             assertEquals(VedtakStatus.SENDT, sendtVedtak.getVedtakStatus());
             assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
             assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
+            assertEquals(DistribusjonBestillingId.Mangler.INSTANCE.getId(), sendtVedtak.getDokumentbestillingId());
             assertTrue(sendtVedtak.isGjeldende());
             assertFalse(sendtVedtak.isSender());
+            assertOyeblikksbildeForFattetVedtak(sendtVedtak.getId());
+        });
+    }
 
-            List<Oyeblikksbilde> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(sendtVedtak.getId());
+    private void assertOyeblikksbildeForFattetVedtak(long vedtakId) {
+        withContext(() -> {
+            List<Oyeblikksbilde> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
             assertThat(oyeblikksbilde, containsInAnyOrder(
-                    equalTo(new Oyeblikksbilde(sendtVedtak.getId(), OyeblikksbildeType.REGISTRERINGSINFO, REGISTRERING_DATA)),
-                    equalTo(new Oyeblikksbilde(sendtVedtak.getId(), OyeblikksbildeType.CV_OG_JOBBPROFIL, CV_DATA)),
-                    equalTo(new Oyeblikksbilde(sendtVedtak.getId(), OyeblikksbildeType.EGENVURDERING, EGENVURDERING_DATA)))
+                    equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.REGISTRERINGSINFO, REGISTRERING_DATA)),
+                    equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.CV_OG_JOBBPROFIL, CV_DATA)),
+                    equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.EGENVURDERING, EGENVURDERING_DATA)))
             );
         });
     }

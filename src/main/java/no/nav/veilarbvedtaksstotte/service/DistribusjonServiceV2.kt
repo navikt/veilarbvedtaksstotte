@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class DistribusjonServiceV2(val vedtaksstotteRepository: VedtaksstotteRepository,
-                            val dokdistribusjonClient: DokdistribusjonClient,
-                            val metricsService: MetricsService) {
+                            val dokdistribusjonClient: DokdistribusjonClient) {
 
     val log = LoggerFactory.getLogger(DistribusjonServiceV2::class.java)
 
@@ -25,7 +24,11 @@ class DistribusjonServiceV2(val vedtaksstotteRepository: VedtaksstotteRepository
                 distribuerJournalpost(vedtak.journalpostId)
             vedtaksstotteRepository.lagreDokumentbestillingsId(vedtakId, distribusjonBestillingId)
         } catch (e: Exception) {
-            vedtaksstotteRepository.oppdaterSender(vedtakId, false)
+            try {
+                vedtaksstotteRepository.oppdaterSender(vedtakId, false)
+            } catch (e2: Exception) {
+                log.error("Kunne ikke oppdatere sender til false", e2)
+            }
             throw e
         }
     }
@@ -54,16 +57,15 @@ class DistribusjonServiceV2(val vedtaksstotteRepository: VedtaksstotteRepository
                     dokumentProdApp = "VEILARB_VEDTAK14A" // for sporing og feilsøking
                 )
             )
-            return if (respons != null) {
+            return if (respons?.bestillingsId != null) {
                 log.info("Distribusjon av dokument bestilt med bestillingsId=${respons.bestillingsId}");
                 DistribusjonBestillingId.Uuid(respons.bestillingsId)
             } else {
-                log.error("Ingen respons fra bestilling av distribusjon. bestillingsId settes til ${DistribusjonBestillingId.Feilet} og må rettes manuelt.")
+                log.error("Ikke forventet respons fra bestilling av distribusjon. bestillingsId settes til ${DistribusjonBestillingId.Feilet} og må rettes manuelt.")
                 DistribusjonBestillingId.Feilet
             }
         } catch (e: RuntimeException) {
             log.error("Distribusjon av journalpost med journalpostId=$jounralpostId feilet", e);
-            metricsService.rapporterFeilendeDistribusjonAvJournalpost();
             throw e;
         }
     }

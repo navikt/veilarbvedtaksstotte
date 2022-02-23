@@ -202,7 +202,6 @@ public class VedtakService {
 
         if (!journalpostferdigstilt) {
             log.error("Journalpost ble ikke ferdigstilt. Må rettes manuelt.");
-            metricsService.rapporterFeilendeFerdigstillingAvJournalpost();
         }
 
         transactor.executeWithoutResult(status -> {

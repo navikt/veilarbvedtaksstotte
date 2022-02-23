@@ -41,7 +41,8 @@ class DokdistribusjonClientImpl(
                             JsonUtils.objectMapper.readValue(it, DistribuerJournalpostResponsDTO::class.java)
                         }
                 }
-            } catch (e: RuntimeException) {
+            } catch (e: Exception) {
+                log.error("Klarte ikke lese respons", e)
                 null
             }
         }
