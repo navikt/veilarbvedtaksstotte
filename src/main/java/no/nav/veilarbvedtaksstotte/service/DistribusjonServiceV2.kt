@@ -58,10 +58,10 @@ class DistribusjonServiceV2(val vedtaksstotteRepository: VedtaksstotteRepository
                 )
             )
             return if (respons?.bestillingsId != null) {
-                log.info("Distribusjon av dokument bestilt med bestillingsId=${respons.bestillingsId}");
+                log.info("Distribusjon for journalpost med journalpostId=$jounralpostId bestilt med bestillingsId=${respons.bestillingsId}");
                 DistribusjonBestillingId.Uuid(respons.bestillingsId)
             } else {
-                log.error("Ikke forventet respons fra bestilling av distribusjon. bestillingsId settes til ${DistribusjonBestillingId.Feilet} og må rettes manuelt.")
+                log.error("Ikke forventet respons fra bestilling av distribusjon for journalpost med journalpostId=$jounralpostId. bestillingsId settes til ${DistribusjonBestillingId.Feilet} og må rettes manuelt.")
                 DistribusjonBestillingId.Feilet
             }
         } catch (e: RuntimeException) {

@@ -190,7 +190,11 @@ public class VedtaksstotteRepository {
     }
 
     public List<Long> hentVedtakForDistribusjon(int antall) {
-        var sql = format("SELECT %s FROM %s WHERE %s IS NULL AND %s IS NOT NULL ORDER BY %s ASC LIMIT ?", VEDTAK_ID, VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, VEDTAK_FATTET);
+        var sql = "SELECT ID FROM VEDTAK" +
+                " WHERE DOKUMENT_BESTILLING_ID IS NULL" +
+                " AND VEDTAK_FATTET IS NOT NULL" +
+                " AND JOURNALPOST_ID IS NOT NULL" +
+                " ORDER BY VEDTAK_FATTET ASC LIMIT ?";
         return db.queryForList(sql, Long.class, antall);
     }
 

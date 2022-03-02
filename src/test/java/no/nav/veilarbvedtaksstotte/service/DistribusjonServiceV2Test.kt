@@ -233,7 +233,6 @@ class DistribusjonServiceV2Test : DatabaseTest() {
             oppfolgingsenhet
         )
         val vedtak = vedtakRepository.hentUtkast(aktorId.get())
-        vedtakRepository.oppdaterUtkast(vedtak.id, vedtak)
         vedtakRepository.lagreJournalforingVedtak(vedtak.id, journalpostId, dokumentId)
         vedtakRepository.ferdigstillVedtakV2(vedtak.id)
         jdbcTemplate.update("UPDATE VEDTAK SET VEDTAK_FATTET = ? WHERE ID = ?", vedtakFattetDato, vedtak.id)
