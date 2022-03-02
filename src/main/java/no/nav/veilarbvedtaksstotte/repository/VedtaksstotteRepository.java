@@ -244,15 +244,24 @@ public class VedtaksstotteRepository {
         );
     }
 
-    public int hentAntallJournalforteVedtakUtenDokumentbestilling(LocalDateTime fra, LocalDateTime til) {
+    public int hentAntallJournalforteVedtakUtenDokumentbestilling(LocalDateTime til) {
         String sql =
                 "SELECT COUNT(*) FROM VEDTAK" +
                         " WHERE JOURNALPOST_ID IS NOT NULL" +
                         " AND DOKUMENT_BESTILLING_ID IS NULL" +
-                        " AND VEDTAK_FATTET >= ?" +
                         " AND VEDTAK_FATTET <= ?";
 
-        return Optional.ofNullable(db.queryForObject(sql, Integer.class, fra, til)).orElse(0);
+        return Optional.ofNullable(db.queryForObject(sql, Integer.class, til)).orElse(0);
+    }
+
+
+    public int hentAntallVedtakMedFeilendeDokumentbestilling() {
+        String sql =
+                "SELECT COUNT(*) FROM VEDTAK WHERE DOKUMENT_BESTILLING_ID = ?";
+
+        return Optional.ofNullable(
+                db.queryForObject(sql, Integer.class, DistribusjonBestillingId.Feilet.INSTANCE.getId())
+        ).orElse(0);
     }
 
     @SneakyThrows
