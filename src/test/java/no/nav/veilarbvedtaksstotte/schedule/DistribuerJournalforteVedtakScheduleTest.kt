@@ -20,14 +20,14 @@ import org.mockito.Mockito.*
 import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 
-class DistribuerDokumentScheduleTest : DatabaseTest() {
+class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
 
     lateinit var leaderElection: LeaderElectionClient
     lateinit var unleashService: UnleashService
     lateinit var dokdistribusjonClient: DokdistribusjonClient
     lateinit var distribusjonServiceV2: DistribusjonServiceV2
     lateinit var vedtakRepository: VedtaksstotteRepository
-    lateinit var distribuerDokumentSchedule: DistribuerDokumentSchedule
+    lateinit var distribuerJournalforteVedtakSchedule: DistribuerJournalforteVedtakSchedule
 
     @Before
     fun setup() {
@@ -36,7 +36,7 @@ class DistribuerDokumentScheduleTest : DatabaseTest() {
         dokdistribusjonClient = mock(DokdistribusjonClient::class.java)
         vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
         distribusjonServiceV2 = DistribusjonServiceV2(vedtakRepository, dokdistribusjonClient)
-        distribuerDokumentSchedule = DistribuerDokumentSchedule(
+        distribuerJournalforteVedtakSchedule = DistribuerJournalforteVedtakSchedule(
             leaderElection = leaderElection,
             distribusjonServiceV2 = distribusjonServiceV2,
             vedtaksstotteRepository = vedtakRepository,
@@ -71,17 +71,17 @@ class DistribuerDokumentScheduleTest : DatabaseTest() {
             )
         }
 
-        distribuerDokumentSchedule.distribuerJournalforteDokument()
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak()
         distribueresFørst.forEach { assertDistribuert(it) }
 
-        distribuerDokumentSchedule.distribuerJournalforteDokument()
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak()
         distribueresAndre.forEach { assertDistribuert(it) }
 
         verify(dokdistribusjonClient, times(distribueresFørst.size + distribueresAndre.size))
             .distribuerJournalpost(any())
 
         reset(dokdistribusjonClient)
-        distribuerDokumentSchedule.distribuerJournalforteDokument()
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak()
         verify(dokdistribusjonClient, never()).distribuerJournalpost(any())
     }
 
