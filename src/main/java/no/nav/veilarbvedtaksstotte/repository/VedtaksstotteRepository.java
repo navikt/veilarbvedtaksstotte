@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 import lombok.SneakyThrows;
 import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
+import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,15 +123,19 @@ public class VedtaksstotteRepository {
        db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
     }
 
-    public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO){
+    public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO) {
         String sql = format(
-                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP, %s = true, %s = false WHERE %s = ?",
-                VEDTAK_TABLE, STATUS, DOKUMENT_ID, JOURNALPOST_ID, VEDTAK_FATTET, GJELDENDE, SENDER, VEDTAK_ID
+                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP, %s = true, %s = false, %s = ? WHERE %s = ?",
+                VEDTAK_TABLE, STATUS, DOKUMENT_ID, JOURNALPOST_ID, VEDTAK_FATTET, GJELDENDE, SENDER, DOKUMENT_BESTILLING_ID, VEDTAK_ID
         );
 
         db.update(
-                sql, getName(VedtakStatus.SENDT),
-                dokumentSendtDTO.getDokumentId(), dokumentSendtDTO.getJournalpostId(), vedtakId
+                sql,
+                getName(VedtakStatus.SENDT),
+                dokumentSendtDTO.getDokumentId(),
+                dokumentSendtDTO.getJournalpostId(),
+                DistribusjonBestillingId.Mangler.INSTANCE.getId(),
+                vedtakId
         );
     }
 
