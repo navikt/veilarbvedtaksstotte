@@ -24,20 +24,24 @@ class DistribuerJournalforteVedtakSchedule(
     fun distribuerJournalforteVedtak() {
         if (leaderElection.isLeader && unleashService.isDokDistScheduleEnabled) {
             JobRunner.run("distribuer_journalforte_vedtak") {
-                val hentVedtakForDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentVedtakForDistribusjon(10)
-                if (hentVedtakForDistribusjon.isNotEmpty()) {
-                    log.info("Distribuerer ${hentVedtakForDistribusjon.size} vedtak med id: ${
-                        hentVedtakForDistribusjon.joinToString(",", "{", "}")
-                    }")
-                } else {
-                    log.info("Ingen nye vedtak å distribuere")
-                }
 
-                hentVedtakForDistribusjon.forEach {
-                    try {
-                        distribusjonServiceV2.distribuerVedtak(it)
-                    } catch (e: RuntimeException) {
-                        log.error("Distribusjon av vedtak med id ${it} feilet", e)
+                val hentVedtakForDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentVedtakForDistribusjon(10)
+
+                if (hentVedtakForDistribusjon.isEmpty()) {
+                    log.info("Ingen nye vedtak å distribuere")
+                } else {
+                    log.info(
+                        "Distribuerer ${hentVedtakForDistribusjon.size} vedtak med id: ${
+                            hentVedtakForDistribusjon.joinToString(", ", "{", "}")
+                        }"
+                    )
+
+                    hentVedtakForDistribusjon.forEach {
+                        try {
+                            distribusjonServiceV2.distribuerVedtak(it)
+                        } catch (e: RuntimeException) {
+                            log.error("Distribusjon av vedtak med id ${it} feilet", e)
+                        }
                     }
                 }
             }
