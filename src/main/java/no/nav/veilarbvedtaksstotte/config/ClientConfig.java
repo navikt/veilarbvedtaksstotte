@@ -5,7 +5,6 @@ import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.AbacHttpClient;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.client.aktoroppslag.*;
-import no.nav.common.client.pdl.PdlClient;
 import no.nav.common.client.pdl.PdlClientImpl;
 import no.nav.common.client.norg2.CachedNorg2Client;
 import no.nav.common.client.norg2.Norg2Client;
@@ -42,7 +41,6 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
-import no.nav.veilarbvedtaksstotte.service.UnleashService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -154,32 +152,17 @@ public class ClientConfig {
     }
 
     @Bean
-    public PdlClient pdlClient(SystemUserTokenProvider systemUserTokenProvider) {
-        String pdlUrl = internalDevOrProdIngress("pdl-api");
+    public AktorOppslagClient aktorOppslagClient(SystemUserTokenProvider systemUserTokenProvider) {
+        String pdlUrl = isProduction()
+                ? createProdInternalIngressUrl("pdl-api")
+                : createDevInternalIngressUrl("pdl-api-q1");
 
-        return new PdlClientImpl(
+        PdlClientImpl pdlClient = new PdlClientImpl(
                 pdlUrl,
                 systemUserTokenProvider::getSystemUserToken,
                 systemUserTokenProvider::getSystemUserToken);
-    }
 
-    @Bean
-    public AktorOppslagClient aktorOppslagClient(
-            EnvironmentProperties properties,
-            UnleashService unleashService,
-            SystemUserTokenProvider systemUserTokenProvider,
-            PdlClient pdlClient
-    ) {
-
-        PdlAktorOppslagClient pdlAktorOppslagClient = new PdlAktorOppslagClient(pdlClient);
-
-        AktorregisterHttpClient aktorregisterClient = new AktorregisterHttpClient(
-                properties.getAktorregisterUrl(), APPLICATION_NAME, systemUserTokenProvider::getSystemUserToken
-        );
-
-        return new CachedAktorOppslagClient(
-                new ToggledAktorOppslagClient(aktorregisterClient, pdlAktorOppslagClient, unleashService::isPdlAktorOppslagEnabled)
-        );
+        return new CachedAktorOppslagClient(new PdlAktorOppslagClient(pdlClient));
     }
 
     @Bean
