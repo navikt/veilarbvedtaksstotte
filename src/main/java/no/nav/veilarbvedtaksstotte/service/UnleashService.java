@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 public class UnleashService {
 
     private static final String VEILARBVEDTAKSSTOTTE_NY_DOK_INTEGRASJON_ENABLED_TOGGLE = "veilarbvedtaksstotte.ny.dok.integrasjon.enabled";
-    private static final String PDL_AKTOR_OPPSLAG = "veilarbvedtaksstotte.pdl-aktoroppslag";
     private static final String KAFKA_KONSUMERING_SKRUDD_AV = "veilarbvedtaksstotte.kafka-konsumering-skrudd-av";
 
     private final UnleashClient unleashClient;
@@ -20,10 +19,6 @@ public class UnleashService {
 
     public boolean isNyDokIntegrasjonEnabled() {
         return unleashClient.isEnabled(VEILARBVEDTAKSSTOTTE_NY_DOK_INTEGRASJON_ENABLED_TOGGLE);
-    }
-
-    public boolean isPdlAktorOppslagEnabled() {
-        return unleashClient.isEnabled(PDL_AKTOR_OPPSLAG);
     }
 
     public boolean isKafkaKonsumeringSkruddAv() {

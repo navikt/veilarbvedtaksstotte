@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.BrukerIdenter
-import no.nav.common.client.pdl.PdlClient
 import no.nav.common.featuretoggle.UnleashClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
@@ -44,7 +43,6 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         lateinit var unleashService: UnleashService
 
         val unleashClient = mock(UnleashClient::class.java)
-        val pdlClient = mock(PdlClient::class.java)
         val aktorOppslagClient = mock(AktorOppslagClient::class.java)
 
         val kafkaProducerService = mock(KafkaProducerService::class.java)
@@ -72,7 +70,6 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
 
     @Before
     fun before() {
-        reset(pdlClient)
         reset(kafkaProducerService)
     }
 
