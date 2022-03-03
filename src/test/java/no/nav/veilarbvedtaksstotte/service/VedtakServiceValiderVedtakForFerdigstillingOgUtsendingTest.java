@@ -33,7 +33,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -43,7 +43,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         Vedtak vedtak = new Vedtak();
         vedtak.setVedtakStatus(VedtakStatus.SENDT);
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -69,7 +69,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -83,7 +83,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -97,7 +97,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -110,7 +110,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setBegrunnelse("Begrunnelse");
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -139,7 +139,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
         vedtak.setBeslutterIdent(TEST_BESLUTTER_IDENT);
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -152,7 +152,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -163,7 +163,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -179,22 +179,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         Vedtak gjeldendeVedtak = new Vedtak();
         gjeldendeVedtak.setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, gjeldendeVedtak);
-    }
-
-    @Test
-    public void skal_feile_hvis_vedtak_allerede_er_distribuert_til_bruker() {
-        exceptionRule.expectMessage("Vedtak er allerede distribuert til bruker");
-
-        Vedtak vedtak = new Vedtak();
-        vedtak.setVedtakStatus(VedtakStatus.UTKAST);
-        vedtak.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
-        vedtak.setBegrunnelse("Begrunnelse");
-        vedtak.setHovedmal(Hovedmal.SKAFFE_ARBEID);
-        vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
-        vedtak.setDokumentbestillingId("123");
-
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, gjeldendeVedtak);
     }
 
     @Test
@@ -209,7 +194,7 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
         vedtak.setJournalpostId("123");
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 
     @Test
@@ -224,6 +209,6 @@ public class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
         vedtak.setDokumentInfoId("123");
 
-        vedtakService.validerVedtakForFerdigstillingOgUtsending(vedtak, null);
+        vedtakService.validerVedtakForFerdigstilling(vedtak, null);
     }
 }

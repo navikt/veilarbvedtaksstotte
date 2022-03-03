@@ -64,14 +64,10 @@ public class VedtakServiceTest extends DatabaseTest {
     private static VedtaksstotteRepository vedtaksstotteRepository;
     private static KilderRepository kilderRepository;
     private static MeldingRepository meldingRepository;
-    private static OyeblikksbildeRepository oyeblikksbildeRepository;
-    private static BeslutteroversiktRepository beslutteroversiktRepository;
 
     private static VedtakService vedtakService;
     private static OyeblikksbildeService oyeblikksbildeService;
-    private static MalTypeService malTypeService;
     private static AuthService authService;
-    private static DokumentServiceV2 dokumentServiceV2;
 
     private static final MetricsService metricsService = mock(MetricsService.class);
     private static final UnleashService unleashService = mock(UnleashService.class);
@@ -101,14 +97,13 @@ public class VedtakServiceTest extends DatabaseTest {
         kilderRepository = spy(new KilderRepository(jdbcTemplate));
         meldingRepository = spy(new MeldingRepository(jdbcTemplate));
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
-        oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
-        beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
+        OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
+        BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
         authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaService, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
-        malTypeService = new MalTypeService(registreringClient);
-        dokumentServiceV2 = new DokumentServiceV2(
-                veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient);
+        MalTypeService malTypeService = new MalTypeService(registreringClient);
+        DokumentServiceV2 dokumentServiceV2 = new DokumentServiceV2(veilarbdokumentClient, veilarbarenaClient, dokarkivClient);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,
@@ -200,7 +195,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
         fattVedtak();
 
-        assertSendtVedtakV2();
+        assertJournalførtOgFerdigstilltVedtakV2();
     }
 
     @Test
@@ -328,9 +323,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
         fattVedtak();
 
-        assertSendtVedtakV2();
-
-        verify(metricsService).rapporterFeilendeFerdigstillingAvJournalpost();
+        assertJournalførtOgFerdigstilltVedtakV2();
     }
 
     private void fattVedtak() {
@@ -339,30 +332,6 @@ public class VedtakServiceTest extends DatabaseTest {
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
             vedtakService.fattVedtak(utkast.getId());
         });
-    }
-
-    @Test
-    public void fattVedtakV2__ferdigstiller_vedtak_og_sender_metrikk_for_manuell_retting_dersom_distribusjon_feiler() {
-        gittVersjon2AvFattVedtak();
-        gittUtkastKlarForUtsendelse();
-
-        when(dokdistribusjonClient.distribuerJournalpost(any()))
-                .thenThrow(new RuntimeException());
-
-        fattVedtak();
-        withContext(() -> {
-            gittTilgang();
-            Vedtak sendtVedtak = hentVedtak();
-            assertTrue(sendtVedtak.isGjeldende());
-            assertNull(sendtVedtak.getDokumentbestillingId());
-            assertEquals(VedtakStatus.SENDT, sendtVedtak.getVedtakStatus());
-            assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
-            assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
-            assertOyeblikksbildeForFattetVedtak(sendtVedtak.getId());
-        });
-        verify(vedtakStatusEndringService).vedtakSendt(any(), any());
-
-        verify(metricsService).rapporterFeilendeDistribusjonAvJournalpost();
     }
 
     @Test
@@ -386,43 +355,6 @@ public class VedtakServiceTest extends DatabaseTest {
             assertThatThrownBy(() ->
                     vedtakService.fattVedtak(utkast.getId())
             ).isExactlyInstanceOf(ResponseStatusException.class);
-        });
-    }
-
-    @Test
-    public void fattVedtak_v2_sender_ikke_mer_enn_en_gang() {
-        when(dokdistribusjonClient.distribuerJournalpost(any()))
-                .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
-        when(dokarkivClient.opprettJournalpost(any()))
-                .thenAnswer(new AnswersWithDelay(10, // Simulerer tregt API
-                        invocation -> new OpprettetJournalpostDTO(
-                                TEST_JOURNALPOST_ID,
-                                true,
-                                List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))
-                        )))
-                .thenThrow(new RuntimeException("Simulerer duplikatkontroll i dokarkiv"));
-
-        withContext(() -> {
-            gittTilgang();
-            gittUtkastKlarForUtsendelse();
-            gittVersjon2AvFattVedtak();
-
-            long id = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
-
-            Stream<UnsafeSupplier<Future<?>>> stream = Stream.of(
-                    (UnsafeSupplier<Future<?>>) () -> sendVedtakAsynk(id),
-                    () -> sendVedtakAsynk(id),
-                    () -> sendVedtakAsynk(id)
-            ).parallel();
-
-            stream.forEach(f -> {
-                try {
-                    f.get().get();
-                } catch (Exception ignored) {
-                }
-            });
-
-            verify(dokdistribusjonClient, times(1)).distribuerJournalpost(any());
         });
     }
 
@@ -611,12 +543,11 @@ public class VedtakServiceTest extends DatabaseTest {
         assertThat(oppdatertUtkast.getOpplysninger(), containsInAnyOrder(dto.getOpplysninger().toArray(new String[0])));
     }
 
-    private void assertSendtVedtakV2() {
+    private void assertJournalførtOgFerdigstilltVedtakV2() {
         withContext(() -> {
             gittTilgang();
             Vedtak sendtVedtak = hentVedtak();
             assertTrue(sendtVedtak.isGjeldende());
-            assertEquals(TEST_DOKUMENT_BESTILLING_ID, sendtVedtak.getDokumentbestillingId());
             assertEquals(VedtakStatus.SENDT, sendtVedtak.getVedtakStatus());
             assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
             assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());

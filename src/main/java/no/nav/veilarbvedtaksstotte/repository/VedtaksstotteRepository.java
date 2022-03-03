@@ -193,6 +193,15 @@ public class VedtaksstotteRepository {
         });
     }
 
+    public List<Long> hentVedtakForDistribusjon(int antall) {
+        var sql = "SELECT ID FROM VEDTAK" +
+                " WHERE DOKUMENT_BESTILLING_ID IS NULL" +
+                " AND VEDTAK_FATTET IS NOT NULL" +
+                " AND JOURNALPOST_ID IS NOT NULL" +
+                " ORDER BY VEDTAK_FATTET ASC LIMIT ?";
+        return db.queryForList(sql, Long.class, antall);
+    }
+
     public UUID opprettOgHentReferanse(long vedtakId) {
         String update = format(
                 "UPDATE %s SET %s = ? WHERE %s = ? AND %s is null", VEDTAK_TABLE, REFERANSE, VEDTAK_ID, REFERANSE
@@ -211,12 +220,12 @@ public class VedtaksstotteRepository {
         db.update(sql, dokumentId, journalpostId, vedtakId);
     }
 
-    public void lagreDokumentbestillingsId(long vedtakId, String dokumentbestillingsId){
+    public void lagreDokumentbestillingsId(long vedtakId, DistribusjonBestillingId dokumentbestillingsId){
         String sql = format(
-                "UPDATE %s SET %s = ? WHERE %s = ?",
-                VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, VEDTAK_ID
+                "UPDATE %s SET %s = ?, %s = false WHERE %s = ?",
+                VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, SENDER, VEDTAK_ID
         );
-        db.update(sql, dokumentbestillingsId, vedtakId);
+        db.update(sql, dokumentbestillingsId.getId(), vedtakId);
     }
 
     public void ferdigstillVedtakV2(long vedtakId){
@@ -239,15 +248,24 @@ public class VedtaksstotteRepository {
         );
     }
 
-    public int hentAntallJournalforteVedtakUtenDokumentbestilling(LocalDateTime fra, LocalDateTime til) {
+    public int hentAntallJournalforteVedtakUtenDokumentbestilling(LocalDateTime til) {
         String sql =
                 "SELECT COUNT(*) FROM VEDTAK" +
                         " WHERE JOURNALPOST_ID IS NOT NULL" +
                         " AND DOKUMENT_BESTILLING_ID IS NULL" +
-                        " AND VEDTAK_FATTET >= ?" +
                         " AND VEDTAK_FATTET <= ?";
 
-        return Optional.ofNullable(db.queryForObject(sql, Integer.class, fra, til)).orElse(0);
+        return Optional.ofNullable(db.queryForObject(sql, Integer.class, til)).orElse(0);
+    }
+
+
+    public int hentAntallVedtakMedFeilendeDokumentbestilling() {
+        String sql =
+                "SELECT COUNT(*) FROM VEDTAK WHERE DOKUMENT_BESTILLING_ID = ?";
+
+        return Optional.ofNullable(
+                db.queryForObject(sql, Integer.class, DistribusjonBestillingId.Feilet.INSTANCE.getId())
+        ).orElse(0);
     }
 
     @SneakyThrows

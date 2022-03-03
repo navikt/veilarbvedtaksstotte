@@ -1,8 +1,11 @@
 package no.nav.veilarbvedtaksstotte.metrics
 
+import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
+import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Uuid
 import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
+import no.nav.veilarbvedtaksstotte.utils.DbTestUtils.cleanupDb
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -17,36 +20,51 @@ class DokumentdistribusjonMeterBinderTest : DatabaseTest() {
     fun setup() {
         vedtaksstotteRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
         dokumentdistribusjonMeterBinder = DokumentdistribusjonMeterBinder(vedtaksstotteRepository)
+        cleanupDb(jdbcTemplate)
     }
 
     @Test
-    fun `finner antall journalførte vedtak som ikke er distribuert fra en tid tilbake, frem til nå men med litt delay`() {
+    fun `finner antall journalførte vedtak som ikke er distribuert frem til nå men med litt delay`() {
         val now = LocalDateTime.now()
 
         // for kort tid siden:
-        lagreVedtak(now, erDistribuert = true)
-        lagreVedtak(now, erDistribuert = false)
+        lagreVedtak(now, dokumentBestillingId = Uuid(randomNumeric(10)))
+        lagreVedtak(now, dokumentBestillingId = null)
 
         // innenfor:
-        lagreVedtak(now.minusSeconds(65), erDistribuert = true)
-        lagreVedtak(now.minusSeconds(65), erDistribuert = false)
-        lagreVedtak(now.minusDays(2), erDistribuert = true)
-        lagreVedtak(now.minusDays(2), erDistribuert = false)
-
-        //for lenge siden:
-        lagreVedtak(now.minusDays(3).minusMinutes(1), erDistribuert = true)
-        lagreVedtak(now.minusDays(3).minusMinutes(1), erDistribuert = false)
+        lagreVedtak(now.minusSeconds(125), dokumentBestillingId = Uuid(randomNumeric(10)))
+        lagreVedtak(now.minusSeconds(125), dokumentBestillingId = null)
+        lagreVedtak(now.minusDays(2), dokumentBestillingId = Uuid(randomNumeric(10)))
+        lagreVedtak(now.minusDays(2), dokumentBestillingId = null)
 
         val antallJournalforteVedtakSomIkkeErDistribuert =
-            dokumentdistribusjonMeterBinder.antallJournalforteVedtakUtenDokumentbestilling(fra = now.minusDays(3))
+            dokumentdistribusjonMeterBinder.antallJournalforteVedtakUtenDokumentbestilling()
 
         assertEquals(2, antallJournalforteVedtakSomIkkeErDistribuert)
     }
 
-    private fun lagreVedtak(fattetDato: LocalDateTime, erDistribuert: Boolean) {
+    @Test
+    fun `finner antall vedtak som har feilende distribusjon`() {
+        val now = LocalDateTime.now()
+
+        lagreVedtak(now, dokumentBestillingId = Uuid(randomNumeric(10)))
+        lagreVedtak(now, dokumentBestillingId = DistribusjonBestillingId.Feilet)
+        lagreVedtak(now.minusSeconds(125), dokumentBestillingId = Uuid(randomNumeric(10)))
+        lagreVedtak(now.minusSeconds(125), dokumentBestillingId = DistribusjonBestillingId.Feilet)
+        lagreVedtak(now.minusSeconds(125), dokumentBestillingId = null)
+        lagreVedtak(now.minusDays(2), dokumentBestillingId = Uuid(randomNumeric(10)))
+        lagreVedtak(now.minusDays(2), dokumentBestillingId = DistribusjonBestillingId.Feilet)
+
+        val antallJournalforteVedtakSomIkkeErDistribuert =
+            dokumentdistribusjonMeterBinder.antallJournalforteVedtakMedFeiletDokumentbestilling()
+
+        assertEquals(3, antallJournalforteVedtakSomIkkeErDistribuert)
+    }
+
+
+    private fun lagreVedtak(fattetDato: LocalDateTime, dokumentBestillingId: DistribusjonBestillingId?) {
         val aktorId = randomNumeric(10)
         val journalpostId = randomNumeric(10)
-        val dokumentBestillingId = if (erDistribuert) randomNumeric(10) else null
 
         jdbcTemplate.update(
             """
@@ -55,8 +73,15 @@ class DokumentdistribusjonMeterBinderTest : DatabaseTest() {
                 JOURNALPOST_ID, DOKUMENT_BESTILLING_ID
             ) 
             VALUES(?, ?, ?, ?, ?, ?, ?, ?)
-        """, aktorId, "VEILEDER", "1234", VedtakStatus.SENDT.name, fattetDato, fattetDato,
-            journalpostId, dokumentBestillingId
+        """,
+            aktorId,
+            "VEILEDER",
+            "1234",
+            VedtakStatus.SENDT.name,
+            fattetDato,
+            fattetDato,
+            journalpostId,
+            dokumentBestillingId?.id
         )
     }
 }
