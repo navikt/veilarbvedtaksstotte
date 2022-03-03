@@ -154,32 +154,17 @@ public class ClientConfig {
     }
 
     @Bean
-    public PdlClient pdlClient(SystemUserTokenProvider systemUserTokenProvider) {
-        String pdlUrl = internalDevOrProdIngress("pdl-api");
+    public AktorOppslagClient aktorOppslagClient(SystemUserTokenProvider systemUserTokenProvider) {
+        String pdlUrl = isProduction()
+                ? createProdInternalIngressUrl("pdl-api")
+                : createDevInternalIngressUrl("pdl-api-q1");
 
-        return new PdlClientImpl(
+        PdlClientImpl pdlClient = new PdlClientImpl(
                 pdlUrl,
                 systemUserTokenProvider::getSystemUserToken,
                 systemUserTokenProvider::getSystemUserToken);
-    }
 
-    @Bean
-    public AktorOppslagClient aktorOppslagClient(
-            EnvironmentProperties properties,
-            UnleashService unleashService,
-            SystemUserTokenProvider systemUserTokenProvider,
-            PdlClient pdlClient
-    ) {
-
-        PdlAktorOppslagClient pdlAktorOppslagClient = new PdlAktorOppslagClient(pdlClient);
-
-        AktorregisterHttpClient aktorregisterClient = new AktorregisterHttpClient(
-                properties.getAktorregisterUrl(), APPLICATION_NAME, systemUserTokenProvider::getSystemUserToken
-        );
-
-        return new CachedAktorOppslagClient(
-                new ToggledAktorOppslagClient(aktorregisterClient, pdlAktorOppslagClient, unleashService::isPdlAktorOppslagEnabled)
-        );
+        return new CachedAktorOppslagClient(new PdlAktorOppslagClient(pdlClient));
     }
 
     @Bean
