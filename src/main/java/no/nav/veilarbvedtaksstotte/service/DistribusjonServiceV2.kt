@@ -54,7 +54,9 @@ class DistribusjonServiceV2(val vedtaksstotteRepository: VedtaksstotteRepository
                 DistribuerJournalpostDTO(
                     journalpostId = jounralpostId,
                     bestillendeFagsystem = "BD11", // veilarb-kode
-                    dokumentProdApp = "VEILARB_VEDTAK14A" // for sporing og feilsøking
+                    dokumentProdApp = "VEILARB_VEDTAK14A", // for sporing og feilsøking
+                    distribusjonstype = "VEDTAK", // Hva slags dokument som distribueres. "VEDTAK", "VIKTIG" eller "ANNET"
+                    distribusjonstidspunkt = "KJERNETID" // Når dokumentet kan distribueres. "UMIDDELBART" eller "KJERNETID"
                 )
             )
             return if (respons?.bestillingsId != null) {
