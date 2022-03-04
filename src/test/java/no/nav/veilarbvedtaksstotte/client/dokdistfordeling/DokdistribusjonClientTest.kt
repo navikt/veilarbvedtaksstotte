@@ -38,7 +38,9 @@ class DokdistribusjonClientTest {
                 {
                     "bestillendeFagsystem": "BD11",
                     "dokumentProdApp": "VEILARB_VEDTAK14A",
-                    "journalpostId": "123"
+                    "journalpostId": "123",
+                    "distribusjonstype": "VEDTAK",
+                    "distribusjonstidspunkt": "KJERNETID"
                 }
                 """
 
@@ -67,7 +69,9 @@ class DokdistribusjonClientTest {
                         DistribuerJournalpostDTO(
                             journalpostId = "123",
                             bestillendeFagsystem = "BD11",
-                            dokumentProdApp = "VEILARB_VEDTAK14A"
+                            dokumentProdApp = "VEILARB_VEDTAK14A",
+                            distribusjonstype = "VEDTAK",
+                            distribusjonstidspunkt = "KJERNETID"
                         )
                     )
                 })
