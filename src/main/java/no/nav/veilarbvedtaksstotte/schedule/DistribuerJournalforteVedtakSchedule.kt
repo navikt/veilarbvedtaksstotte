@@ -25,18 +25,18 @@ class DistribuerJournalforteVedtakSchedule(
         if (leaderElection.isLeader && unleashService.isDokDistScheduleEnabled) {
             JobRunner.run("distribuer_journalforte_vedtak") {
 
-                val hentVedtakForDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentVedtakForDistribusjon(10)
+                val vedtakForDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentVedtakForDistribusjon(10)
 
-                if (hentVedtakForDistribusjon.isEmpty()) {
+                if (vedtakForDistribusjon.isEmpty()) {
                     log.info("Ingen nye vedtak å distribuere")
                 } else {
                     log.info(
-                        "Distribuerer ${hentVedtakForDistribusjon.size} vedtak med id: ${
-                            hentVedtakForDistribusjon.joinToString(", ", "{", "}")
+                        "Distribuerer ${vedtakForDistribusjon.size} vedtak med id: ${
+                            vedtakForDistribusjon.joinToString(", ", "{", "}")
                         }"
                     )
 
-                    hentVedtakForDistribusjon.forEach {
+                    vedtakForDistribusjon.forEach {
                         try {
                             distribusjonServiceV2.distribuerVedtak(it)
                         } catch (e: RuntimeException) {
