@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Import;
         VeilarbarenaService.class,
         VeilederService.class,
         DokumentServiceV2.class,
+        DistribusjonServiceV2.class,
         UnleashService.class,
         UtrullingService.class,
         Siste14aVedtakService.class,

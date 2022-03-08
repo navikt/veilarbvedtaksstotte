@@ -15,13 +15,9 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl
-import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -34,15 +30,12 @@ class DokumentServiceV2Test {
 
     lateinit var veilarbdokumentClient: VeilarbdokumentClient
     lateinit var veilarbarenaClient: VeilarbarenaClient
-    lateinit var veilarbpersonClient: VeilarbpersonClient
-    lateinit var dokdistribusjonClient: DokdistribusjonClient
     lateinit var dokarkivClient: DokarkivClient
     lateinit var dokumentServiceV2: DokumentServiceV2
 
     private val wireMockRule = WireMockRule()
 
     val systemUserTokenProvider: SystemUserTokenProvider = mock(SystemUserTokenProvider::class.java)
-    val serviceTokenSupplier: () -> String = { "" }
 
     @Rule
     fun getWireMockRule() = wireMockRule
@@ -54,9 +47,8 @@ class DokumentServiceV2Test {
             DokarkivClientImpl(wiremockUrl, systemUserTokenProvider, AuthContextHolderThreadLocal.instance())
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
-        dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl, serviceTokenSupplier)
         dokumentServiceV2 = DokumentServiceV2(
-            veilarbdokumentClient, veilarbarenaClient, dokarkivClient, dokdistribusjonClient
+            veilarbdokumentClient, veilarbarenaClient, dokarkivClient
         )
     }
 
@@ -149,43 +141,5 @@ class DokumentServiceV2Test {
         )
 
         assertEquals(forventetRespons, respons)
-    }
-
-    @Test
-    fun `distribuering av journalpost gir forventet innhold i request og response`() {
-        val forventetRequest =
-            """
-                {
-                    "bestillendeFagsystem": "BD11",
-                    "dokumentProdApp": "VEILARB_VEDTAK14A",
-                    "journalpostId": "123"
-                }
-                """
-
-        val responsJson =
-            """
-                {
-                   "bestillingsId": "BESTILLINGS_ID"
-                } 
-                """
-
-        givenThat(
-            post(urlEqualTo("/rest/v1/distribuerjournalpost"))
-                .withRequestBody(equalToJson(forventetRequest))
-                .willReturn(
-                    aResponse()
-                        .withStatus(201)
-                        .withBody(responsJson)
-                )
-        )
-
-        val respons =
-            AuthContextHolderThreadLocal
-                .instance()
-                .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                    dokumentServiceV2.distribuerJournalpost("123")
-                })
-
-        assertEquals(DistribuerJournalpostResponsDTO("BESTILLINGS_ID"), respons)
     }
 }

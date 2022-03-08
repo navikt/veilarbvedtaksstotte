@@ -6,20 +6,19 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
-import no.nav.veilarbvedtaksstotte.client.dokument.*
+import no.nav.veilarbvedtaksstotte.client.dokument.MalType
+import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO
+import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO
+import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.UUID
+import java.util.*
 
 @Service
 class DokumentServiceV2(
     val veilarbdokumentClient: VeilarbdokumentClient,
     val veilarbarenaClient: VeilarbarenaClient,
     val dokarkivClient: DokarkivClient,
-    val dokdistribusjonClient: DokdistribusjonClient
 ) {
 
     val log = LoggerFactory.getLogger(DokumentServiceV2::class.java)
@@ -77,7 +76,7 @@ class DokumentServiceV2(
                 id = fnr.get(),
                 idType = OpprettJournalpostDTO.Bruker.IdType.FNR
             ),
-                sak = OpprettJournalpostDTO.Sak(
+            sak = OpprettJournalpostDTO.Sak(
                 fagsakId = oppfolgingssak,
                 fagsaksystem = "AO01", // Arena-kode, siden oppfølgingssaken er fra Arena
                 sakstype = OpprettJournalpostDTO.Sak.Type.FAGSAK
@@ -99,15 +98,4 @@ class DokumentServiceV2(
 
         return dokarkivClient.opprettJournalpost(request)
     }
-
-    fun distribuerJournalpost(jounralpostId: String): DistribuerJournalpostResponsDTO {
-        return dokdistribusjonClient.distribuerJournalpost(
-            DistribuerJournalpostDTO(
-                journalpostId = jounralpostId,
-                bestillendeFagsystem = "BD11", // veilarb-kode
-                dokumentProdApp = "VEILARB_VEDTAK14A" // for sporing og feilsøking
-            )
-        )
-    }
-
 }

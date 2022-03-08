@@ -5,7 +5,6 @@ import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.AbacHttpClient;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.client.aktoroppslag.*;
-import no.nav.common.client.pdl.PdlClient;
 import no.nav.common.client.pdl.PdlClientImpl;
 import no.nav.common.client.norg2.CachedNorg2Client;
 import no.nav.common.client.norg2.Norg2Client;
@@ -42,7 +41,6 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
-import no.nav.veilarbvedtaksstotte.service.UnleashService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
