@@ -6,9 +6,9 @@ import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.EnhetId
-import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID
+import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO.AdresseDTO
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -110,22 +110,42 @@ class VeilarbdokumentClientImplTest {
         val produserDokumentV2DTO =
             ProduserDokumentV2DTO(
                 brukerFnr = TEST_FNR,
+                navn = "Navn Navnesen",
                 malType = SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
                 enhetId = EnhetId(TEST_OPPFOLGINGSENHET_ID),
                 begrunnelse = TEST_BEGRUNNELSE,
                 opplysninger = TEST_KILDER,
-                utkast = true
+                utkast = true,
+                adresse = AdresseDTO(
+                            adresselinje1 = "Adresselinje 1",
+                            adresselinje2 = "Adresselinje 2",
+                            adresselinje3 = "Adresselinje 3",
+                            postnummer = "0000",
+                            poststed = "Sted",
+                            landkode = "NO",
+                            land = "Norge"
+                )
             )
 
         val forventetProduserDokumentV2Json =
             """
                 {
                     "brukerFnr": "$TEST_FNR",
+                    "navn": "Navn Navnesen",
                     "malType": "SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID",
                     "enhetId": "$TEST_OPPFOLGINGSENHET_ID",
                     "begrunnelse": "$TEST_BEGRUNNELSE",
                     "opplysninger": ${TEST_KILDER.map { """"$it"""" }},
-                    "utkast": true
+                    "utkast": true,
+                    "adresse": {
+                        "adresselinje1": "Adresselinje 1",
+                        "adresselinje2": "Adresselinje 2",
+                        "adresselinje3": "Adresselinje 3",
+                        "postnummer": "0000",
+                        "poststed": "Sted",
+                        "landkode": "NO",
+                        "land": "Norge"
+                    }
                 }
             """
 

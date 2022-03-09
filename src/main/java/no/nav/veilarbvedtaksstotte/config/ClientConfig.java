@@ -36,6 +36,8 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClientImpl;
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
@@ -125,6 +127,15 @@ public class ClientConfig {
                 systemUserTokenProvider,
                 authContextHolder
         );
+    }
+
+    @Bean
+    public RegoppslagClient regoppslagClient(SystemUserTokenProvider systemUserTokenProvider) {
+        String url = isProduction()
+                ? createProdInternalIngressUrl("regoppslag")
+                : createDevInternalIngressUrl("regoppslag-q1");
+
+        return new RegoppslagClientImpl(url, systemUserTokenProvider);
     }
 
     @Bean
