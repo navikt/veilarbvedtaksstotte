@@ -122,8 +122,7 @@ class VeilarbdokumentClientImplTest {
                             adresselinje3 = "Adresselinje 3",
                             postnummer = "0000",
                             poststed = "Sted",
-                            landkode = "NO",
-                            land = "Norge"
+                            land = "Sverige"
                 )
             )
 
@@ -143,8 +142,7 @@ class VeilarbdokumentClientImplTest {
                         "adresselinje3": "Adresselinje 3",
                         "postnummer": "0000",
                         "poststed": "Sted",
-                        "landkode": "NO",
-                        "land": "Norge"
+                        "land": "Sverige"
                     }
                 }
             """

@@ -7,6 +7,7 @@ import no.nav.common.auth.context.UserRole
 import no.nav.common.sts.SystemUserTokenProvider
 import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.utils.fn.UnsafeSupplier
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -81,8 +82,8 @@ class RegoppslagClientTest {
 
         val forventetRespons = RegoppslagResponseDTO(
             navn = "Navn Navnesen",
-            adresse = RegoppslagResponseDTO.RegoppslagAdresseResponseDTO(
-                type = "NORSKPOSTADRESSE",
+            adresse = RegoppslagResponseDTO.Adresse(
+                type = NORSKPOSTADRESSE,
                 adresselinje1 = "Adresselinje 1",
                 adresselinje2 = "Adresselinje 2",
                 adresselinje3 = "Adresselinje 3",

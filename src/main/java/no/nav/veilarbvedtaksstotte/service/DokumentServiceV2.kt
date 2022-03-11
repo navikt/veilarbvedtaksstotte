@@ -12,6 +12,7 @@ import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.UTENLANDSKPOSTADRESSE
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
@@ -48,8 +49,7 @@ class DokumentServiceV2(
                     adresselinje3 = postadresse.adresse.adresselinje3,
                     postnummer = postadresse.adresse.postnummer,
                     poststed = postadresse.adresse.poststed,
-                    landkode = postadresse.adresse.landkode,
-                    land = postadresse.adresse.land
+                    land = if (postadresse.adresse.type == UTENLANDSKPOSTADRESSE) postadresse.adresse.land else null
                 )
             )
 
