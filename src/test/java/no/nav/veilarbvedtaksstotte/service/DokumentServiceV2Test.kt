@@ -18,6 +18,8 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -30,6 +32,7 @@ class DokumentServiceV2Test {
 
     lateinit var veilarbdokumentClient: VeilarbdokumentClient
     lateinit var veilarbarenaClient: VeilarbarenaClient
+    lateinit var regoppslagClient: RegoppslagClient
     lateinit var dokarkivClient: DokarkivClient
     lateinit var dokumentServiceV2: DokumentServiceV2
 
@@ -43,12 +46,13 @@ class DokumentServiceV2Test {
     @Before
     fun setup() {
         val wiremockUrl = "http://localhost:" + getWireMockRule().port()
+        regoppslagClient = RegoppslagClientImpl(wiremockUrl, systemUserTokenProvider)
         dokarkivClient =
             DokarkivClientImpl(wiremockUrl, systemUserTokenProvider, AuthContextHolderThreadLocal.instance())
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         dokumentServiceV2 = DokumentServiceV2(
-            veilarbdokumentClient, veilarbarenaClient, dokarkivClient
+            regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient
         )
     }
 
