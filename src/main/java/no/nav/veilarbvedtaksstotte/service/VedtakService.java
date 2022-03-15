@@ -339,11 +339,10 @@ public class VedtakService {
         flettInnOpplysinger(utkast);
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
 
+        SendDokumentDTO sendDokumentDTO = lagDokumentDTO(utkast, authKontekst.getFnr());
         if (brukNyDokIntegrasjon()) {
-            ProduserDokumentV2DTO produserDokumentV2DTO = lagProduserDokumentDTO(utkast, authKontekst.getFnr(), true);
-            return dokumentClient.produserDokumentV2(produserDokumentV2DTO);
+            return dokumentServiceV2.produserDokument(sendDokumentDTO, true);
         } else {
-            SendDokumentDTO sendDokumentDTO = lagDokumentDTO(utkast, authKontekst.getFnr());
             return dokumentClient.produserDokumentUtkast(sendDokumentDTO);
         }
     }
@@ -433,17 +432,6 @@ public class VedtakService {
                 EnhetId.of(vedtak.getOppfolgingsenhetId()),
                 vedtak.getBegrunnelse(),
                 vedtak.getOpplysninger()
-        );
-    }
-
-    private ProduserDokumentV2DTO lagProduserDokumentDTO(Vedtak vedtak, String fnr, boolean utkast) {
-        return new ProduserDokumentV2DTO(
-                Fnr.of(fnr),
-                malTypeService.utledMalTypeFraVedtak(vedtak, Fnr.of(fnr)),
-                EnhetId.of(vedtak.getOppfolgingsenhetId()),
-                vedtak.getBegrunnelse(),
-                vedtak.getOpplysninger(),
-                utkast
         );
     }
 

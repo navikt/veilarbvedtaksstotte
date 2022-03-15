@@ -23,6 +23,9 @@ import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingsstatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
@@ -30,6 +33,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -304,6 +308,22 @@ public class ClientTestConfig {
             @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();
+            }
+        };
+    }
+
+    @Bean
+    public RegoppslagClient regoppslagClient() {
+        return new RegoppslagClient() {
+            @NotNull
+            @Override
+            public RegoppslagResponseDTO hentPostadresse(@NotNull RegoppslagRequestDTO dto) {
+                return null;
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return null;
             }
         };
     }

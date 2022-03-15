@@ -14,14 +14,15 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
 import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
@@ -52,6 +53,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 import static no.nav.common.utils.EnvironmentUtils.NAIS_CLUSTER_NAME_PROPERTY_NAME;
+import static no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -77,12 +79,12 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
     private static final VeilarbvedtakinfoClient egenvurderingClient = mock(VeilarbvedtakinfoClient.class);
+    private static final RegoppslagClient regoppslagClient = mock(RegoppslagClient.class);
     private static final VeilarbdokumentClient veilarbdokumentClient = mock(VeilarbdokumentClient.class);
     private static final AktorregisterClient aktorregisterClient = mock(AktorregisterClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
     private static final AbacClient abacClient = mock(AbacClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
-    private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
     private static final UtrullingService utrullingService = mock(UtrullingService.class);
 
     private static final VeilarbPep veilarbPep = mock(VeilarbPep.class);
@@ -103,7 +105,7 @@ public class VedtakServiceTest extends DatabaseTest {
         authService = spy(new AuthService(aktorregisterClient, veilarbPep, veilarbarenaService, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
-        DokumentServiceV2 dokumentServiceV2 = new DokumentServiceV2(veilarbdokumentClient, veilarbarenaClient, dokarkivClient);
+        DokumentServiceV2 dokumentServiceV2 = new DokumentServiceV2(regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,
@@ -130,7 +132,6 @@ public class VedtakServiceTest extends DatabaseTest {
         reset(veilarbdokumentClient);
         reset(meldingRepository);
         reset(unleashService);
-        reset(dokdistribusjonClient);
         reset(dokarkivClient);
         reset(vedtakStatusEndringService);
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
@@ -139,6 +140,8 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilederService.hentVeilederEllerNull(TEST_VEILEDER_IDENT)).thenReturn(Optional.of(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN)));
         when(veilarbdokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
         when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
+        when(regoppslagClient.hentPostadresse(any())).thenReturn(
+                new RegoppslagResponseDTO("", new Adresse(NORSKPOSTADRESSE, "", "", "", "", "", "", "")));
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(CV_DATA);
         when(registreringClient.hentRegistreringDataJson(TEST_FNR.get())).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR.get())).thenReturn(EGENVURDERING_DATA);
@@ -189,9 +192,6 @@ public class VedtakServiceTest extends DatabaseTest {
     public void fattVedtakV2__opprett_oppdater_og_send_vedtak() {
         gittVersjon2AvFattVedtak();
         gittUtkastKlarForUtsendelse();
-
-        when(dokdistribusjonClient.distribuerJournalpost(any()))
-                .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
 
         fattVedtak();
 
@@ -309,7 +309,7 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     @Test
-    public void fattVedtakV2__ferdigstiller_vedtak_og_sender_metrikk_for_manuell_retting_dersom_journalpost_ikke_er_ferdigstilt() {
+    public void fattVedtakV2__journalforer_og_ferdigstiller_vedtak() {
         gittVersjon2AvFattVedtak();
         gittUtkastKlarForUtsendelse();
 
@@ -318,8 +318,6 @@ public class VedtakServiceTest extends DatabaseTest {
                         TEST_JOURNALPOST_ID,
                         false,
                         Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
-        when(dokdistribusjonClient.distribuerJournalpost(any()))
-                .thenReturn(new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID));
 
         fattVedtak();
 

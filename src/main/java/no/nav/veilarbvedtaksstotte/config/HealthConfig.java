@@ -5,7 +5,6 @@ import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.selftest.SelfTestCheck;
 import no.nav.common.health.selftest.SelfTestChecks;
 import no.nav.common.health.selftest.SelfTestMeterBinder;
-import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
@@ -14,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import org.springframework.boot.actuate.health.Health;
@@ -45,6 +45,7 @@ public class HealthConfig {
                                          VeilarbveilederClient veiledereOgEnhetClient,
                                          DokarkivClient dokarkivClient,
                                          DokdistribusjonClient dokdistribusjonClient,
+                                         RegoppslagClient regoppslagClient,
                                          UnleashClient unleashClient,
                                          DataSourceHealthIndicator dataSourceHealthIndicator) {
 
@@ -59,14 +60,12 @@ public class HealthConfig {
                 new SelfTestCheck("SafClient", false, safClient),
                 new SelfTestCheck("VeilederOgEnhetClient", false, veiledereOgEnhetClient),
                 new SelfTestCheck("UnleashClient", false, unleashClient),
-                new SelfTestCheck("Ping database", true, () -> checkDbHealth(dataSourceHealthIndicator))
+                new SelfTestCheck("Ping database", true, () -> checkDbHealth(dataSourceHealthIndicator)),
+                new SelfTestCheck("DokarkivClient", false, dokarkivClient),
+                new SelfTestCheck("DokdistribusjonClient", false, dokdistribusjonClient),
+                new SelfTestCheck("RegoppslagClient", false, regoppslagClient)
         ));
 
-        // TODO de to sjekkene skal alltid med når ny integrasjon brukes
-        if (EnvironmentUtils.isDevelopment().orElse(false)) {
-            selfTestChecks.add(new SelfTestCheck("DokarkivClient", false, dokarkivClient));
-            selfTestChecks.add(new SelfTestCheck("DokdistribusjonClient", false, dokdistribusjonClient));
-        }
 
         return new SelfTestChecks(selfTestChecks);
     }

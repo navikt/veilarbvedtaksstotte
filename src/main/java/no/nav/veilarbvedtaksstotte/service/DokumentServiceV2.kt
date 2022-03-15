@@ -10,12 +10,16 @@ import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO
 import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO
+import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.UTENLANDSKPOSTADRESSE
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
 class DokumentServiceV2(
+    val regoppslagClient: RegoppslagClient,
     val veilarbdokumentClient: VeilarbdokumentClient,
     val veilarbarenaClient: VeilarbarenaClient,
     val dokarkivClient: DokarkivClient,
@@ -24,16 +28,31 @@ class DokumentServiceV2(
     val log = LoggerFactory.getLogger(DokumentServiceV2::class.java)
 
     fun produserDokument(sendDokumentDTO: SendDokumentDTO, utkast: Boolean): ByteArray {
-        val produserDokumentV2DTO = sendDokumentDTO.let {
-            ProduserDokumentV2DTO(
-                brukerFnr = it.brukerFnr,
-                malType = it.malType,
-                enhetId = it.enhetId,
-                begrunnelse = it.begrunnelse,
-                opplysninger = it.opplysninger,
-                utkast = utkast
+        val postadresse = regoppslagClient.hentPostadresse(
+            RegoppslagRequestDTO(
+                ident = sendDokumentDTO.brukerFnr.get(), tema = "OPP"
             )
-        }
+        )
+
+        val produserDokumentV2DTO =
+            ProduserDokumentV2DTO(
+                brukerFnr = sendDokumentDTO.brukerFnr,
+                navn = postadresse.navn,
+                malType = sendDokumentDTO.malType,
+                enhetId = sendDokumentDTO.enhetId,
+                begrunnelse = sendDokumentDTO.begrunnelse,
+                opplysninger = sendDokumentDTO.opplysninger,
+                utkast = utkast,
+                adresse = ProduserDokumentV2DTO.AdresseDTO(
+                    adresselinje1 = postadresse.adresse.adresselinje1,
+                    adresselinje2 = postadresse.adresse.adresselinje2,
+                    adresselinje3 = postadresse.adresse.adresselinje3,
+                    postnummer = postadresse.adresse.postnummer,
+                    poststed = postadresse.adresse.poststed,
+                    land = if (postadresse.adresse.type == UTENLANDSKPOSTADRESSE) postadresse.adresse.land else null
+                )
+            )
+
         return veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
     }
 
@@ -69,27 +88,20 @@ class DokumentServiceV2(
             journalfoerendeEnhet = enhetId,
             eksternReferanseId = referanse.toString(),
             avsenderMottaker = OpprettJournalpostDTO.AvsenderMottaker(
-                id = fnr.get(),
-                idType = OpprettJournalpostDTO.AvsenderMottaker.IdType.FNR
+                id = fnr.get(), idType = OpprettJournalpostDTO.AvsenderMottaker.IdType.FNR
             ),
             bruker = OpprettJournalpostDTO.Bruker(
-                id = fnr.get(),
-                idType = OpprettJournalpostDTO.Bruker.IdType.FNR
+                id = fnr.get(), idType = OpprettJournalpostDTO.Bruker.IdType.FNR
             ),
             sak = OpprettJournalpostDTO.Sak(
-                fagsakId = oppfolgingssak,
-                fagsaksystem = "AO01", // Arena-kode, siden oppfølgingssaken er fra Arena
+                fagsakId = oppfolgingssak, fagsaksystem = "AO01", // Arena-kode, siden oppfølgingssaken er fra Arena
                 sakstype = OpprettJournalpostDTO.Sak.Type.FAGSAK
             ),
             dokumenter = listOf(
                 OpprettJournalpostDTO.Dokument(
-                    tittel = tittel,
-                    brevkode = malType.name,
-                    dokumentvarianter = listOf(
+                    tittel = tittel, brevkode = malType.name, dokumentvarianter = listOf(
                         OpprettJournalpostDTO.DokumentVariant(
-                            "PDFA",
-                            fysiskDokument = dokument,
-                            variantformat = "ARKIV"
+                            "PDFA", fysiskDokument = dokument, variantformat = "ARKIV"
                         )
                     )
                 )
