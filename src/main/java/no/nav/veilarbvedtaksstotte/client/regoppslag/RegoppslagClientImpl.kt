@@ -5,6 +5,7 @@ import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.sts.SystemUserTokenProvider
+import no.nav.common.utils.AuthUtils
 import no.nav.common.utils.UrlUtils
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
@@ -23,7 +24,7 @@ class RegoppslagClientImpl(
     override fun hentPostadresse(dto: RegoppslagRequestDTO): RegoppslagResponseDTO {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(reguppslagUrl, "/rest/postadresse"))
-            .header(HttpHeaders.AUTHORIZATION, systemUserTokenProvider.getSystemUserToken())
+            .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(systemUserTokenProvider.getSystemUserToken()))
             .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, dto.toJson()))
             .build()
 
