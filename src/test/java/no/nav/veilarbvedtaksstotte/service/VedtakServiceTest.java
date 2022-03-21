@@ -52,7 +52,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
-import static no.nav.common.utils.EnvironmentUtils.NAIS_CLUSTER_NAME_PROPERTY_NAME;
 import static no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -167,6 +166,8 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @Test
     public void fattVedtak__opprett_oppdater_og_send_vedtak() {
+        gittVersjon1AvFattVedtak();
+
         withContext(() -> {
             gittTilgang();
 
@@ -390,6 +391,7 @@ public class VedtakServiceTest extends DatabaseTest {
     public void fattVedtak__korrekt_sender_tilstand_dersom_send_dokument_feiler() {
         when(veilarbdokumentClient.sendDokument(any())).thenThrow(new RuntimeException());
 
+        gittVersjon1AvFattVedtak();
         gittUtkastKlarForUtsendelse();
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
@@ -511,10 +513,12 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     private void gittVersjon2AvFattVedtak() {
-        System.setProperty(NAIS_CLUSTER_NAME_PROPERTY_NAME, "dev-fss");
-        when(unleashService.isNyDokIntegrasjonEnabled()).thenReturn(true);
+        when(unleashService.isNyDokIntegrasjonDisabled()).thenReturn(false);
     }
 
+    private void gittVersjon1AvFattVedtak() {
+        when(unleashService.isNyDokIntegrasjonDisabled()).thenReturn(true);
+    }
     private void assertNyttUtkast() {
         Vedtak opprettetUtkast = vedtakService.hentUtkast(TEST_FNR);
         assertEquals(VedtakStatus.UTKAST, opprettetUtkast.getVedtakStatus());
