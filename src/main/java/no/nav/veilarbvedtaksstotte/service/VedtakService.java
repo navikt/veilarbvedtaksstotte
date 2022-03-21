@@ -137,7 +137,7 @@ public class VedtakService {
     }
 
     private boolean brukNyDokIntegrasjon() {
-        return unleashService.isNyDokIntegrasjonEnabled();
+        return !unleashService.isNyDokIntegrasjonDisabled();
     }
 
     private DokumentSendtDTO sendDokumentOgFerdigstillV1(Vedtak vedtak, AuthKontekst authKontekst) {
