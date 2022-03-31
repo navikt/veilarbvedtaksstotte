@@ -106,7 +106,8 @@ public class BeslutteroversiktRepository {
         Object[] parameters = NO_PARAMETERS;
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);
 
-        Optional<SqlWithParameters> maybeFilterSqlWithParams = createFilterSqlWithParameters(sok.getFilter(), innloggetVeilederIdent);
+        Optional<SqlWithParameters> maybeFilterSqlWithParams =
+                createFilterSqlWithParameters(sok.getFilter(), innloggetVeilederIdent);
         Optional<String> maybeOrderBySql = lagOrderBySql(sok.getOrderByField(), sok.getOrderByDirection());
 
         if (maybeFilterSqlWithParams.isPresent()) {
@@ -120,7 +121,8 @@ public class BeslutteroversiktRepository {
         sqlBuilder.append(" ").append(lagPaginationSql(sok.getAntall(), sok.getFra()));
 
         long totaltAntallSokteBrukere = totaltAntallBrukereForSok(sok, innloggetVeilederIdent);
-        List<BeslutteroversiktBruker> brukere = db.query(sqlBuilder.toString(), parameters, BeslutteroversiktRepository::mapBeslutteroversiktBruker);
+        List<BeslutteroversiktBruker> brukere =
+                db.query(sqlBuilder.toString(), BeslutteroversiktRepository::mapBeslutteroversiktBruker, parameters);
 
         return new BrukereMedAntall(brukere, totaltAntallSokteBrukere);
     }
@@ -131,7 +133,8 @@ public class BeslutteroversiktRepository {
                 BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID
         );
 
-        List<BeslutteroversiktBruker> bruker = db.query(sql, new Object[]{vedtakId}, BeslutteroversiktRepository::mapBeslutteroversiktBruker);
+        List<BeslutteroversiktBruker> bruker =
+                db.query(sql, BeslutteroversiktRepository::mapBeslutteroversiktBruker, vedtakId);
         return bruker.isEmpty() ? null : bruker.get(0);
     }
 
@@ -151,7 +154,7 @@ public class BeslutteroversiktRepository {
             sqlBuilder.append(" ").append(filterSqlWithParams.sql);
         }
 
-        Long count = db.queryForObject(sqlBuilder.toString(), parameters, BeslutteroversiktRepository::mapCount);
+        Long count = db.queryForObject(sqlBuilder.toString(), BeslutteroversiktRepository::mapCount, parameters);
         return count == null ? 0 : count;
     }
 

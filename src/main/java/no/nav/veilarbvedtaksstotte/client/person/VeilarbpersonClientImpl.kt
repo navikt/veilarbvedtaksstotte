@@ -35,10 +35,10 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
             .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(userTokenSupplier.get()))
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
-            val responseBody = response.body()
-            return if (response.code() == 403 || response.code() == 401) {
+            val responseBody = response.body
+            return if (response.code == 403 || response.code == 401) {
                 return createNoDataStr("Bruker har ikke delt CV/jobbprofil med NAV")
-            } else if (response.code() == 204 || response.code() == 404 || responseBody == null) {
+            } else if (response.code == 204 || response.code == 404 || responseBody == null) {
                 createNoDataStr("Bruker har ikke fylt ut CV/jobbprofil")
             } else {
                 responseBody.string()

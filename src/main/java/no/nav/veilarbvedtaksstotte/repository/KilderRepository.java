@@ -47,7 +47,7 @@ public class KilderRepository {
         String sql = format("SELECT * FROM %s WHERE %s = SOME(?::bigint[])", KILDE_TABLE, VEDTAK_ID);
         List<String> strVedtakIder = vedtakIder.stream().map(String::valueOf).collect(Collectors.toList());
 
-        return db.query(sql, new Object[]{toPostgresArray(strVedtakIder)}, KilderRepository::mapKilder);
+        return db.query(sql, KilderRepository::mapKilder, toPostgresArray(strVedtakIder));
     }
 
     public void slettKilder(long vedtakId) {
