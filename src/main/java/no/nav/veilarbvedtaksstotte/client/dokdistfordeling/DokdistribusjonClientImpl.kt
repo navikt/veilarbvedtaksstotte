@@ -9,7 +9,7 @@ import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import java.util.function.Supplier
@@ -27,13 +27,13 @@ class DokdistribusjonClientImpl(
         val request = Request.Builder()
             .url(joinPaths(dokdistribusjonUrl, "/rest/v1/distribuerjournalpost"))
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + serviceTokenSupplier.get())
-            .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, dto.toJson()))
+            .post(dto.toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
 
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
             return try {
-                response.body().use { responseBody ->
+                response.body.use { responseBody ->
                     return responseBody
                         ?.string()
                         ?.let {

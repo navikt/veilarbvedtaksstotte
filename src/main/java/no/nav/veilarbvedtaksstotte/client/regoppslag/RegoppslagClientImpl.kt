@@ -11,7 +11,7 @@ import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.http.HttpHeaders
 
 class RegoppslagClientImpl(
@@ -25,7 +25,7 @@ class RegoppslagClientImpl(
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(reguppslagUrl, "/rest/postadresse"))
             .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(systemUserTokenProvider.getSystemUserToken()))
-            .post(RequestBody.create(RestUtils.MEDIA_TYPE_JSON, dto.toJson()))
+            .post(dto.toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
 
         client.newCall(request).execute().use { response ->

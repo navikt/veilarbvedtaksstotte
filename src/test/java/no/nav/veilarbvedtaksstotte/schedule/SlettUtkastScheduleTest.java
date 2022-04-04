@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.schedule;
 
-import no.nav.common.client.aktorregister.AktorregisterClient;
+import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
@@ -25,7 +25,7 @@ public class SlettUtkastScheduleTest {
 
     private VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
 
-    private AktorregisterClient aktorregisterClient = mock(AktorregisterClient.class);
+    private AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
 
     private VedtakService vedtakService = mock(VedtakService.class);
 
@@ -33,7 +33,7 @@ public class SlettUtkastScheduleTest {
 
     private SlettUtkastSchedule slettUtkastSchedule = new SlettUtkastSchedule(
             leaderElectionClient, veilarboppfolgingClient,
-            aktorregisterClient, vedtakService, vedtaksstotteRepository
+            aktorOppslagClient, vedtakService, vedtaksstotteRepository
     );
 
     @Test
@@ -49,7 +49,7 @@ public class SlettUtkastScheduleTest {
 
         when(vedtaksstotteRepository.hentUtkastEldreEnn(any())).thenReturn(List.of(gammeltUtkast));
         when(vedtaksstotteRepository.hentGjeldendeVedtak(any())).thenReturn(null);
-        when(aktorregisterClient.hentFnr(any(AktorId.class))).thenReturn(Fnr.of("test"));
+        when(aktorOppslagClient.hentFnr(any(AktorId.class))).thenReturn(Fnr.of("test"));
         when(veilarboppfolgingClient.hentOppfolgingsperioder(any())).thenReturn(List.of(oppfolgingPeriode));
 
         slettUtkastSchedule.slettGamleUtkast();
@@ -70,7 +70,7 @@ public class SlettUtkastScheduleTest {
 
         when(vedtaksstotteRepository.hentUtkastEldreEnn(any())).thenReturn(List.of(gammeltUtkast));
         when(vedtaksstotteRepository.hentGjeldendeVedtak(any())).thenReturn(null);
-        when(aktorregisterClient.hentFnr(any(AktorId.class))).thenReturn(Fnr.of("test"));
+        when(aktorOppslagClient.hentFnr(any(AktorId.class))).thenReturn(Fnr.of("test"));
         when(veilarboppfolgingClient.hentOppfolgingsperioder(any())).thenReturn(List.of(oppfolgingPeriode));
 
         slettUtkastSchedule.slettGamleUtkast();

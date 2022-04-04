@@ -435,7 +435,7 @@ public class VedtakService {
         );
     }
 
-    void validerVedtakForFerdigstilling(Vedtak vedtak, Vedtak gjeldendeVedtak) {
+    static void validerVedtakForFerdigstilling(Vedtak vedtak, Vedtak gjeldendeVedtak) {
 
         if (vedtak.getVedtakStatus() != VedtakStatus.UTKAST) {
             throw new IllegalStateException("Vedtak har feil status, forventet status UTKAST");

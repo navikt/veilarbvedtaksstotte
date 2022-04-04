@@ -12,7 +12,7 @@ import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.http.HttpHeaders
 
 class VeilarbdokumentClientImpl(
@@ -26,7 +26,7 @@ class VeilarbdokumentClientImpl(
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbdokumentUrl, "/api/bestilldokument"))
             .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
-            .post(RequestBody.create(MEDIA_TYPE_JSON, sendDokumentDTO.toJson()))
+            .post(sendDokumentDTO.toJson().toRequestBody(MEDIA_TYPE_JSON))
             .build()
 
         client.newCall(request).execute().use { response ->
@@ -39,14 +39,13 @@ class VeilarbdokumentClientImpl(
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbdokumentUrl, "/api/dokumentutkast"))
             .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
-            .post(RequestBody.create(MEDIA_TYPE_JSON, sendDokumentDTO.toJson()))
+            .post(sendDokumentDTO.toJson().toRequestBody(MEDIA_TYPE_JSON))
             .build()
 
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
-            val body = response.body()
-            return if (body != null) body.bytes() else
-                throw IllegalStateException("Generering av dokumentutkast feilet, tom respons.")
+            return response.body?.bytes()
+                ?: throw IllegalStateException("Generering av dokumentutkast feilet, tom respons.")
         }
     }
 
@@ -54,14 +53,13 @@ class VeilarbdokumentClientImpl(
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbdokumentUrl, "/api/v2/produserdokument"))
             .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
-            .post(RequestBody.create(MEDIA_TYPE_JSON, produserDokumentV2DTO.toJson()))
+            .post(produserDokumentV2DTO.toJson().toRequestBody(MEDIA_TYPE_JSON))
             .build()
 
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
-            val body = response.body()
-            return if (body != null) body.bytes() else
-                throw IllegalStateException("Generering av dokument feilet, tom respons.")
+            return response.body?.bytes()
+                ?: throw IllegalStateException("Generering av dokument feilet, tom respons.")
         }
     }
 
