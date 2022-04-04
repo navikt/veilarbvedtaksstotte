@@ -8,7 +8,8 @@ import okhttp3.Response
 
 object JsonUtils {
 
-    val objectMapper: ObjectMapper = no.nav.common.json.JsonUtils.getMapper().registerModule(KotlinModule())
+    val objectMapper: ObjectMapper =
+        no.nav.common.json.JsonUtils.getMapper().registerModule(KotlinModule.Builder().build())
 
     @JvmStatic
     fun init() {

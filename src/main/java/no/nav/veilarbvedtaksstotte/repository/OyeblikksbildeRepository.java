@@ -33,7 +33,7 @@ public class OyeblikksbildeRepository {
 
     public List<Oyeblikksbilde> hentOyeblikksbildeForVedtak(long vedtakId) {
         String sql = format("SELECT * FROM %s WHERE %s = ?", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
-        return db.query(sql, new Object[]{vedtakId}, OyeblikksbildeRepository::mapOyeblikksbilde);
+        return db.query(sql, OyeblikksbildeRepository::mapOyeblikksbilde, vedtakId);
     }
 
     public void slettOyeblikksbilder(long vedtakId) {

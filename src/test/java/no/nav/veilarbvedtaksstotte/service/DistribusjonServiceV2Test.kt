@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import no.nav.common.sts.SystemUserTokenProvider
@@ -12,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.Assert.*
@@ -272,14 +272,5 @@ class DistribusjonServiceV2Test : DatabaseTest() {
         val respons = DistribuerJournalpostResponsDTO(UUID.randomUUID().toString())
         gittResponseFraDistribuerjournalpost(respons = respons, status = 201, delay = delay)
         return respons
-    }
-
-    inline fun <reified T : Throwable> assertThrowsWithMessage(messsage: String, runnable: Runnable) {
-        val exception = assertThrows(
-            T::class.java
-        ) {
-            runnable.run()
-        }
-        assertEquals(messsage, exception.message)
     }
 }
