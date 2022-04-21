@@ -653,7 +653,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         vedtak.innsatsgruppe = innsatsgruppe
         vedtak.hovedmal = hovedmal
         vedtakRepository.oppdaterUtkast(vedtak.id, vedtak)
-        vedtakRepository.ferdigstillVedtakV2(vedtak.id)
+        vedtakRepository.ferdigstillVedtak(vedtak.id)
         jdbcTemplate.update("UPDATE VEDTAK SET VEDTAK_FATTET = ? WHERE ID = ?", vedtakFattetDato, vedtak.id)
     }
 }

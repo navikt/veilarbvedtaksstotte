@@ -136,7 +136,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
         kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
-        vedtaksstotteRepository.ferdigstillVedtakV2(utkast.getId());
+        vedtaksstotteRepository.ferdigstillVedtak(utkast.getId());
 
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID);
 
@@ -192,7 +192,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
         assertNotNull(utkast.getUtkastSistOppdatert());
-        vedtaksstotteRepository.ferdigstillVedtakV2(utkast.getId());
+        vedtaksstotteRepository.ferdigstillVedtak(utkast.getId());
 
         Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
 

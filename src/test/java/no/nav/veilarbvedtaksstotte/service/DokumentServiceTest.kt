@@ -30,7 +30,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.util.*
 
-class DokumentServiceV2Test {
+class DokumentServiceTest {
 
     lateinit var veilarbdokumentClient: VeilarbdokumentClient
     lateinit var veilarbarenaClient: VeilarbarenaClient
@@ -38,7 +38,7 @@ class DokumentServiceV2Test {
     lateinit var dokarkivClient: DokarkivClient
     lateinit var veilarbregistreringClient: VeilarbregistreringClient
     lateinit var malTypeService: MalTypeService
-    lateinit var dokumentServiceV2: DokumentServiceV2
+    lateinit var dokumentService: DokumentService
 
     private val wireMockRule = WireMockRule()
 
@@ -57,7 +57,7 @@ class DokumentServiceV2Test {
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl,AuthContextHolderThreadLocal.instance())
         malTypeService = MalTypeService(veilarbregistreringClient)
-        dokumentServiceV2 = DokumentServiceV2(
+        dokumentService = DokumentService(
             regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient, malTypeService
         )
     }
@@ -133,7 +133,7 @@ class DokumentServiceV2Test {
             AuthContextHolderThreadLocal
                 .instance()
                 .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                    dokumentServiceV2.journalforDokument(
+                    dokumentService.journalforDokument(
                         tittel = "Tittel",
                         enhetId = EnhetId("ENHET_ID"),
                         fnr = Fnr("fnr"),

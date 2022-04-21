@@ -80,7 +80,7 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
         vedtaksstotteRepository.opprettUtkast(aktorId.get(), "veileder", "1234")
         val utkast = vedtaksstotteRepository.hentUtkast(aktorId.get())
         if (ferdigstill) {
-            vedtaksstotteRepository.ferdigstillVedtakV2(utkast.id)
+            vedtaksstotteRepository.ferdigstillVedtak(utkast.id)
         }
     }
 

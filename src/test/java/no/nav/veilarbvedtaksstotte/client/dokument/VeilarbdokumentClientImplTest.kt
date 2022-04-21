@@ -8,7 +8,7 @@ import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID
-import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO.AdresseDTO
+import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO.AdresseDTO
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -33,8 +33,8 @@ class VeilarbdokumentClientImplTest {
     @Test
     fun `produser dokument gir forventet respons`() {
 
-        val produserDokumentV2DTO =
-            ProduserDokumentV2DTO(
+        val produserDokumentDTO =
+            ProduserDokumentDTO(
                 brukerFnr = TEST_FNR,
                 navn = "Navn Navnesen",
                 malType = SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
@@ -52,7 +52,7 @@ class VeilarbdokumentClientImplTest {
                 )
             )
 
-        val forventetProduserDokumentV2Json =
+        val forventetProduserDokumentJson =
             """
                 {
                     "brukerFnr": "$TEST_FNR",
@@ -77,7 +77,7 @@ class VeilarbdokumentClientImplTest {
 
         WireMock.givenThat(
             WireMock.post(WireMock.urlEqualTo("/api/v2/produserdokument"))
-                .withRequestBody(WireMock.equalToJson(forventetProduserDokumentV2Json))
+                .withRequestBody(WireMock.equalToJson(forventetProduserDokumentJson))
                 .willReturn(
                     WireMock.aResponse()
                         .withStatus(200)
@@ -88,7 +88,7 @@ class VeilarbdokumentClientImplTest {
         val respons = AuthContextHolderThreadLocal
             .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
+                veilarbdokumentClient.produserDokument(produserDokumentDTO)
             })
 
         assertEquals(dokumentRespons, respons.decodeToString())

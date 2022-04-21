@@ -95,7 +95,7 @@ public class VedtakServiceTest extends DatabaseTest {
         authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaService, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
-        DokumentServiceV2 dokumentServiceV2 = new DokumentServiceV2(regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient, malTypeService);
+        DokumentService dokumentService = new DokumentService(regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient, malTypeService);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,
@@ -107,7 +107,7 @@ public class VedtakServiceTest extends DatabaseTest {
                 oyeblikksbildeService,
                 veilederService,
                 vedtakStatusEndringService,
-                dokumentServiceV2,
+                dokumentService,
                 veilarbarenaService);
     }
 
@@ -124,7 +124,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
         when(veilederService.hentVeilederEllerNull(TEST_VEILEDER_IDENT)).thenReturn(Optional.of(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN)));
-        when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
+        when(veilarbdokumentClient.produserDokument(any())).thenReturn("dokument".getBytes());
         when(regoppslagClient.hentPostadresse(any())).thenReturn(
                 new RegoppslagResponseDTO("", new Adresse(NORSKPOSTADRESSE, "", "", "", "", "", "", "")));
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(CV_DATA);
@@ -170,17 +170,17 @@ public class VedtakServiceTest extends DatabaseTest {
             assertOppdatertUtkast(oppdaterDto);
 
             vedtakService.fattVedtak(utkast.getId());
-            assertJournalførtOgFerdigstilltVedtakV2();
+            assertJournalførtOgFerdigstilltVedtak();
         });
     }
 
     @Test
-    public void fattVedtakV2__opprett_oppdater_og_send_vedtak() {
+    public void fattVedtak__opprett_oppdater_og_send_vedtak() {
         gittUtkastKlarForUtsendelse();
 
         fattVedtak();
 
-        assertJournalførtOgFerdigstilltVedtakV2();
+        assertJournalførtOgFerdigstilltVedtak();
     }
 
     @Test
@@ -294,7 +294,7 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     @Test
-    public void fattVedtakV2__journalforer_og_ferdigstiller_vedtak() {
+    public void fattVedtak__journalforer_og_ferdigstiller_vedtak() {
         gittUtkastKlarForUtsendelse();
 
         when(dokarkivClient.opprettJournalpost(any()))
@@ -305,7 +305,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
         fattVedtak();
 
-        assertJournalførtOgFerdigstilltVedtakV2();
+        assertJournalførtOgFerdigstilltVedtak();
     }
 
     @Test
@@ -473,7 +473,7 @@ public class VedtakServiceTest extends DatabaseTest {
         assertThat(oppdatertUtkast.getOpplysninger(), containsInAnyOrder(dto.getOpplysninger().toArray(new String[0])));
     }
 
-    private void assertJournalførtOgFerdigstilltVedtakV2() {
+    private void assertJournalførtOgFerdigstilltVedtak() {
         withContext(() -> {
             gittTilgang();
             Vedtak sendtVedtak = hentVedtak();

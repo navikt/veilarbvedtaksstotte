@@ -7,7 +7,7 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
-import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO
+import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-class DokumentServiceV2(
+class DokumentService(
     val regoppslagClient: RegoppslagClient,
     val veilarbdokumentClient: VeilarbdokumentClient,
     val veilarbarenaClient: VeilarbarenaClient,
@@ -26,25 +26,25 @@ class DokumentServiceV2(
     val malTypeService: MalTypeService
 ) {
 
-    val log = LoggerFactory.getLogger(DokumentServiceV2::class.java)
+    val log = LoggerFactory.getLogger(DokumentService::class.java)
 
     fun produserDokumentutkast(vedtak: Vedtak, fnr: Fnr): ByteArray {
-        val produserDokumentV2DTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = true)
-        return veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
+        val produserDokumentDTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = true)
+        return veilarbdokumentClient.produserDokument(produserDokumentDTO)
     }
 
     fun produserOgJournalforDokument(vedtak: Vedtak, fnr: Fnr, referanse: UUID): OpprettetJournalpostDTO {
-        val produserDokumentV2DTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = false)
-        val dokument = veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
+        val produserDokumentDTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = false)
+        val dokument = veilarbdokumentClient.produserDokument(produserDokumentDTO)
         val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
         val oppfolgingssak = veilarbarenaClient.oppfolgingssak(fnr)
 
         return journalforDokument(
             tittel = tittel,
-            enhetId = produserDokumentV2DTO.enhetId,
+            enhetId = produserDokumentDTO.enhetId,
             fnr = fnr,
             oppfolgingssak = oppfolgingssak,
-            malType = produserDokumentV2DTO.malType,
+            malType = produserDokumentDTO.malType,
             dokument = dokument,
             referanse = referanse
         )
@@ -90,7 +90,7 @@ class DokumentServiceV2(
         return dokarkivClient.opprettJournalpost(request)
     }
 
-    private fun lagProduserDokumentDTO(vedtak: Vedtak, fnr: Fnr, utkast: Boolean): ProduserDokumentV2DTO {
+    private fun lagProduserDokumentDTO(vedtak: Vedtak, fnr: Fnr, utkast: Boolean): ProduserDokumentDTO {
         val postadresse = regoppslagClient.hentPostadresse(
             RegoppslagRequestDTO(
                 ident = fnr.get(), tema = "OPP"
@@ -98,7 +98,7 @@ class DokumentServiceV2(
         )
         val malType = malTypeService.utledMalTypeFraVedtak(vedtak, fnr)
 
-        return ProduserDokumentV2DTO(
+        return ProduserDokumentDTO(
             brukerFnr = fnr,
             navn = postadresse.navn,
             malType = malType,
@@ -106,7 +106,7 @@ class DokumentServiceV2(
             begrunnelse = vedtak.begrunnelse,
             opplysninger = vedtak.opplysninger,
             utkast = utkast,
-            adresse = ProduserDokumentV2DTO.AdresseDTO(
+            adresse = ProduserDokumentDTO.AdresseDTO(
                 adresselinje1 = postadresse.adresse.adresselinje1,
                 adresselinje2 = postadresse.adresse.adresselinje2,
                 adresselinje3 = postadresse.adresse.adresselinje3,

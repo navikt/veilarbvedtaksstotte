@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.service
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit.WireMockRule
-import no.nav.common.sts.SystemUserTokenProvider
 import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
@@ -18,7 +17,6 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.CountDownLatch
@@ -26,17 +24,16 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
-class DistribusjonServiceV2Test : DatabaseTest() {
+class DistribusjonServiceTest : DatabaseTest() {
 
 
     lateinit var vedtakRepository: VedtaksstotteRepository
     lateinit var dokdistribusjonClient: DokdistribusjonClient
-    lateinit var distribusjonServiceV2: DistribusjonServiceV2
+    lateinit var distribusjonService: DistribusjonService
     lateinit var wiremockUrl: String
 
     private val wireMockRule = WireMockRule()
 
-    val systemUserTokenProvider: SystemUserTokenProvider = mock(SystemUserTokenProvider::class.java)
     val serviceTokenSupplier: () -> String = { "" }
 
     @Rule
@@ -47,7 +44,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
         wiremockUrl = "http://localhost:" + getWireMockRule().port()
         vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
         dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl, serviceTokenSupplier)
-        distribusjonServiceV2 = DistribusjonServiceV2(
+        distribusjonService = DistribusjonService(
             vedtakRepository, dokdistribusjonClient
         )
     }
@@ -57,7 +54,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
         val vedtakId = gittFattetVedtakDer()
         val forventetBestillingId = gittOkResponseFraDistribuerjournalpost().bestillingsId
 
-        distribusjonServiceV2.distribuerVedtak(vedtakId)
+        distribusjonService.distribuerVedtak(vedtakId)
 
         val vedtak = vedtakRepository.hentVedtak(vedtakId)
 
@@ -70,11 +67,11 @@ class DistribusjonServiceV2Test : DatabaseTest() {
         val vedtakId = gittFattetVedtakDer()
         val bestillingsId = gittOkResponseFraDistribuerjournalpost().bestillingsId
 
-        distribusjonServiceV2.distribuerVedtak(vedtakId)
+        distribusjonService.distribuerVedtak(vedtakId)
         assertThrowsWithMessage<IllegalStateException>(
             "Kan ikke distribuere vedtak med id $vedtakId som allerede har en dokumentbestillingId($bestillingsId)",
         ) {
-            distribusjonServiceV2.distribuerVedtak(vedtakId)
+            distribusjonService.distribuerVedtak(vedtakId)
         }
     }
 
@@ -87,7 +84,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
         assertThrowsWithMessage<IllegalStateException>(
             "Kan ikke distribuere vedtak med id 123 som mangler journalpostId(null) og/eller dokumentinfoId(234)"
         ) {
-            distribusjonServiceV2.validerVedtakForDistribusjon(vedtak)
+            distribusjonService.validerVedtakForDistribusjon(vedtak)
         }
     }
 
@@ -100,7 +97,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
         assertThrowsWithMessage<IllegalStateException>(
             "Kan ikke distribuere vedtak med id 123 som mangler journalpostId(321) og/eller dokumentinfoId(null)"
         ) {
-            distribusjonServiceV2.validerVedtakForDistribusjon(vedtak)
+            distribusjonService.validerVedtakForDistribusjon(vedtak)
         }
     }
 
@@ -112,7 +109,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
         assertThrowsWithMessage<IllegalStateException>(
             "Kan ikke distribuere vedtak med id 123 som mangler journalpostId(null) og/eller dokumentinfoId(null)"
         ) {
-            distribusjonServiceV2.validerVedtakForDistribusjon(vedtak)
+            distribusjonService.validerVedtakForDistribusjon(vedtak)
         }
     }
 
@@ -127,7 +124,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
         assertThrowsWithMessage<IllegalStateException>(
             "Kan ikke distribuere vedtak med id 123 som allerede har en dokumentbestillingId(456)"
         ) {
-            distribusjonServiceV2.validerVedtakForDistribusjon(vedtak)
+            distribusjonService.validerVedtakForDistribusjon(vedtak)
         }
     }
 
@@ -147,7 +144,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
             assertThrowsWithMessage<RuntimeException>(
                 "Uventet status $status ved kall mot mot $wiremockUrl/rest/v1/distribuerjournalpost"
             ) {
-                distribusjonServiceV2.distribuerVedtak(vedtakId)
+                distribusjonService.distribuerVedtak(vedtakId)
             }
 
             val vedtakEtterFeiletForsøk = vedtakRepository.hentVedtak(vedtakId)
@@ -156,7 +153,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
         }
 
         gittOkResponseFraDistribuerjournalpost()
-        distribusjonServiceV2.distribuerVedtak(vedtakId)
+        distribusjonService.distribuerVedtak(vedtakId)
 
         val vedtakEtterVellykketForsøk = vedtakRepository.hentVedtak(vedtakId)
 
@@ -173,7 +170,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
 
             gittResponseFraDistribuerjournalpost(respons = respons, status = 201)
 
-            distribusjonServiceV2.distribuerVedtak(vedtakId)
+            distribusjonService.distribuerVedtak(vedtakId)
             val vedtakMedFeiletDistribusjon = vedtakRepository.hentVedtak(vedtakId)
 
             assertEquals(DistribusjonBestillingId.Feilet.id, vedtakMedFeiletDistribusjon.dokumentbestillingId)
@@ -182,7 +179,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
             assertThrowsWithMessage<IllegalStateException>(
                 "Kan ikke distribuere vedtak med id $vedtakId som allerede har en dokumentbestillingId(${DistribusjonBestillingId.Feilet.id})"
             ) {
-                distribusjonServiceV2.distribuerVedtak(vedtakId)
+                distribusjonService.distribuerVedtak(vedtakId)
             }
         }
     }
@@ -215,7 +212,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
 
     private fun distribuerVedtakAsynk(id: Long): Future<*>? {
         return executorService.submit {
-            distribusjonServiceV2.distribuerVedtak(id)
+            distribusjonService.distribuerVedtak(id)
         }
     }
 
@@ -234,7 +231,7 @@ class DistribusjonServiceV2Test : DatabaseTest() {
         )
         val vedtak = vedtakRepository.hentUtkast(aktorId.get())
         vedtakRepository.lagreJournalforingVedtak(vedtak.id, journalpostId, dokumentId)
-        vedtakRepository.ferdigstillVedtakV2(vedtak.id)
+        vedtakRepository.ferdigstillVedtak(vedtak.id)
         jdbcTemplate.update("UPDATE VEDTAK SET VEDTAK_FATTET = ? WHERE ID = ?", vedtakFattetDato, vedtak.id)
 
         return vedtak.id

@@ -49,7 +49,7 @@ public class VedtakService {
     private final OyeblikksbildeService oyeblikksbildeService;
     private final VeilederService veilederService;
     private final VedtakStatusEndringService vedtakStatusEndringService;
-    private final DokumentServiceV2 dokumentServiceV2;
+    private final DokumentService dokumentService;
     private final VeilarbarenaService veilarbarenaService;
 
     @Autowired
@@ -67,7 +67,7 @@ public class VedtakService {
             OyeblikksbildeService oyeblikksbildeService,
             VeilederService veilederService,
             VedtakStatusEndringService vedtakStatusEndringService,
-            DokumentServiceV2 dokumentServiceV2,
+            DokumentService dokumentService,
             VeilarbarenaService veilarbarenaService) {
         this.transactor = transactor;
 
@@ -83,7 +83,7 @@ public class VedtakService {
         this.oyeblikksbildeService = oyeblikksbildeService;
         this.veilederService = veilederService;
         this.vedtakStatusEndringService = vedtakStatusEndringService;
-        this.dokumentServiceV2 = dokumentServiceV2;
+        this.dokumentService = dokumentService;
         this.veilarbarenaService = veilarbarenaService;
     }
 
@@ -102,10 +102,10 @@ public class VedtakService {
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(vedtak.getAktorId());
         validerVedtakForFerdigstilling(vedtak, gjeldendeVedtak);
 
-        journalforOgFerdigstillV2(vedtak, authKontekst);
+        journalforOgFerdigstill(vedtak, authKontekst);
     }
 
-    private void journalforOgFerdigstillV2(Vedtak vedtak, AuthKontekst authKontekst) {
+    private void journalforOgFerdigstill(Vedtak vedtak, AuthKontekst authKontekst) {
         long vedtakId = vedtak.getId();
 
         oyeblikksbildeService.lagreOyeblikksbilde(authKontekst.getFnr(), vedtakId);
@@ -116,7 +116,7 @@ public class VedtakService {
         ));
 
         OpprettetJournalpostDTO journalpost =
-                dokumentServiceV2.produserOgJournalforDokument(vedtak, Fnr.of(authKontekst.getFnr()), referanse);
+                dokumentService.produserOgJournalforDokument(vedtak, Fnr.of(authKontekst.getFnr()), referanse);
 
         String journalpostId = journalpost.getJournalpostId();
         String dokumentInfoId = null;
@@ -139,7 +139,7 @@ public class VedtakService {
 
         transactor.executeWithoutResult(status -> {
             vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getAktorId());
-            vedtaksstotteRepository.ferdigstillVedtakV2(vedtakId);
+            vedtaksstotteRepository.ferdigstillVedtak(vedtakId);
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });
 
@@ -272,7 +272,7 @@ public class VedtakService {
 
         flettInnOpplysinger(utkast);
 
-        return dokumentServiceV2.produserDokumentutkast(utkast, Fnr.of(authKontekst.getFnr()));
+        return dokumentService.produserDokumentutkast(utkast, Fnr.of(authKontekst.getFnr()));
     }
 
     public byte[] hentVedtakPdf(long vedtakId) {

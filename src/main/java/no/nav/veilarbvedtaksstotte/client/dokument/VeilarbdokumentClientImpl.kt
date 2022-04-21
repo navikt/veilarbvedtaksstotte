@@ -21,11 +21,11 @@ class VeilarbdokumentClientImpl(
 
     val client: OkHttpClient = RestClient.baseClient()
 
-    override fun produserDokumentV2(produserDokumentV2DTO: ProduserDokumentV2DTO): ByteArray {
+    override fun produserDokument(produserDokumentDTO: ProduserDokumentDTO): ByteArray {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbdokumentUrl, "/api/v2/produserdokument"))
             .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
-            .post(produserDokumentV2DTO.toJson().toRequestBody(MEDIA_TYPE_JSON))
+            .post(produserDokumentDTO.toJson().toRequestBody(MEDIA_TYPE_JSON))
             .build()
 
         client.newCall(request).execute().use { response ->

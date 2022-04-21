@@ -211,7 +211,7 @@ public class VedtaksstotteRepository {
         db.update(sql, dokumentbestillingsId.getId(), vedtakId);
     }
 
-    public void ferdigstillVedtakV2(long vedtakId){
+    public void ferdigstillVedtak(long vedtakId){
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP, %s = true WHERE %s = ?",
                 VEDTAK_TABLE, STATUS, VEDTAK_FATTET, GJELDENDE, VEDTAK_ID
