@@ -8,11 +8,11 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO
-import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.UTENLANDSKPOSTADRESSE
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
@@ -23,49 +23,28 @@ class DokumentServiceV2(
     val veilarbdokumentClient: VeilarbdokumentClient,
     val veilarbarenaClient: VeilarbarenaClient,
     val dokarkivClient: DokarkivClient,
+    val malTypeService: MalTypeService
 ) {
 
     val log = LoggerFactory.getLogger(DokumentServiceV2::class.java)
 
-    fun produserDokument(sendDokumentDTO: SendDokumentDTO, utkast: Boolean): ByteArray {
-        val postadresse = regoppslagClient.hentPostadresse(
-            RegoppslagRequestDTO(
-                ident = sendDokumentDTO.brukerFnr.get(), tema = "OPP"
-            )
-        )
-
-        val produserDokumentV2DTO =
-            ProduserDokumentV2DTO(
-                brukerFnr = sendDokumentDTO.brukerFnr,
-                navn = postadresse.navn,
-                malType = sendDokumentDTO.malType,
-                enhetId = sendDokumentDTO.enhetId,
-                begrunnelse = sendDokumentDTO.begrunnelse,
-                opplysninger = sendDokumentDTO.opplysninger,
-                utkast = utkast,
-                adresse = ProduserDokumentV2DTO.AdresseDTO(
-                    adresselinje1 = postadresse.adresse.adresselinje1,
-                    adresselinje2 = postadresse.adresse.adresselinje2,
-                    adresselinje3 = postadresse.adresse.adresselinje3,
-                    postnummer = postadresse.adresse.postnummer,
-                    poststed = postadresse.adresse.poststed,
-                    land = if (postadresse.adresse.type == UTENLANDSKPOSTADRESSE) postadresse.adresse.land else null
-                )
-            )
-
+    fun produserDokumentutkast(vedtak: Vedtak, fnr: Fnr): ByteArray {
+        val produserDokumentV2DTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = true)
         return veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
     }
 
-    fun produserOgJournalforDokument(sendDokumentDTO: SendDokumentDTO, referanse: UUID): OpprettetJournalpostDTO {
-        val dokument = produserDokument(sendDokumentDTO = sendDokumentDTO, utkast = false)
+    fun produserOgJournalforDokument(vedtak: Vedtak, fnr: Fnr, referanse: UUID): OpprettetJournalpostDTO {
+        val produserDokumentV2DTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = false)
+        val dokument = veilarbdokumentClient.produserDokumentV2(produserDokumentV2DTO)
         val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
-        val oppfolgingssak = veilarbarenaClient.oppfolgingssak(sendDokumentDTO.brukerFnr)
+        val oppfolgingssak = veilarbarenaClient.oppfolgingssak(fnr)
+
         return journalforDokument(
             tittel = tittel,
-            enhetId = sendDokumentDTO.enhetId,
-            fnr = sendDokumentDTO.brukerFnr,
+            enhetId = produserDokumentV2DTO.enhetId,
+            fnr = fnr,
             oppfolgingssak = oppfolgingssak,
-            malType = sendDokumentDTO.malType,
+            malType = produserDokumentV2DTO.malType,
             dokument = dokument,
             referanse = referanse
         )
@@ -109,5 +88,32 @@ class DokumentServiceV2(
         )
 
         return dokarkivClient.opprettJournalpost(request)
+    }
+
+    private fun lagProduserDokumentDTO(vedtak: Vedtak, fnr: Fnr, utkast: Boolean): ProduserDokumentV2DTO {
+        val postadresse = regoppslagClient.hentPostadresse(
+            RegoppslagRequestDTO(
+                ident = fnr.get(), tema = "OPP"
+            )
+        )
+        val malType = malTypeService.utledMalTypeFraVedtak(vedtak, fnr)
+
+        return ProduserDokumentV2DTO(
+            brukerFnr = fnr,
+            navn = postadresse.navn,
+            malType = malType,
+            enhetId = EnhetId.of(vedtak.oppfolgingsenhetId),
+            begrunnelse = vedtak.begrunnelse,
+            opplysninger = vedtak.opplysninger,
+            utkast = utkast,
+            adresse = ProduserDokumentV2DTO.AdresseDTO(
+                adresselinje1 = postadresse.adresse.adresselinje1,
+                adresselinje2 = postadresse.adresse.adresselinje2,
+                adresselinje3 = postadresse.adresse.adresselinje3,
+                postnummer = postadresse.adresse.postnummer,
+                poststed = postadresse.adresse.poststed,
+                land = if (postadresse.adresse.type == UTENLANDSKPOSTADRESSE) postadresse.adresse.land else null
+            )
+        )
     }
 }

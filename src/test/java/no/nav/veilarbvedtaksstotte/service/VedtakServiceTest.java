@@ -9,12 +9,10 @@ import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
-import no.nav.common.utils.fn.UnsafeSupplier;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
-import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
@@ -25,7 +23,6 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
-import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
@@ -38,19 +35,13 @@ import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.stream.Stream;
 
 import static no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
@@ -71,7 +62,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static OyeblikksbildeService oyeblikksbildeService;
     private static AuthService authService;
 
-    private static final MetricsService metricsService = mock(MetricsService.class);
     private static final UnleashService unleashService = mock(UnleashService.class);
     private static final VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
     private static final VeilederService veilederService = mock(VeilederService.class);
@@ -105,21 +95,17 @@ public class VedtakServiceTest extends DatabaseTest {
         authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaService, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
-        DokumentServiceV2 dokumentServiceV2 = new DokumentServiceV2(regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient);
+        DokumentServiceV2 dokumentServiceV2 = new DokumentServiceV2(regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient, malTypeService);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,
                 beslutteroversiktRepository,
                 kilderRepository,
                 meldingRepository,
-                veilarbdokumentClient,
                 null,
                 authService,
-                unleashService,
-                metricsService,
                 oyeblikksbildeService,
                 veilederService,
-                malTypeService,
                 vedtakStatusEndringService,
                 dokumentServiceV2,
                 veilarbarenaService);
@@ -138,7 +124,6 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
         when(veilederService.hentVeilederEllerNull(TEST_VEILEDER_IDENT)).thenReturn(Optional.of(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN)));
-        when(veilarbdokumentClient.sendDokument(any())).thenReturn(new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID));
         when(veilarbdokumentClient.produserDokumentV2(any())).thenReturn("dokument".getBytes());
         when(regoppslagClient.hentPostadresse(any())).thenReturn(
                 new RegoppslagResponseDTO("", new Adresse(NORSKPOSTADRESSE, "", "", "", "", "", "", "")));
@@ -166,8 +151,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
 
     @Test
-    public void fattVedtak__opprett_oppdater_og_send_vedtak() {
-        gittVersjon1AvFattVedtak();
+    public void fattVedtak__opprett_oppdater_og_journalforer_og_ferdigstiller_vedtak() {
 
         withContext(() -> {
             gittTilgang();
@@ -186,13 +170,12 @@ public class VedtakServiceTest extends DatabaseTest {
             assertOppdatertUtkast(oppdaterDto);
 
             vedtakService.fattVedtak(utkast.getId());
-            assertSendtVedtak();
+            assertJournalførtOgFerdigstilltVedtakV2();
         });
     }
 
     @Test
     public void fattVedtakV2__opprett_oppdater_og_send_vedtak() {
-        gittVersjon2AvFattVedtak();
         gittUtkastKlarForUtsendelse();
 
         fattVedtak();
@@ -312,7 +295,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @Test
     public void fattVedtakV2__journalforer_og_ferdigstiller_vedtak() {
-        gittVersjon2AvFattVedtak();
         gittUtkastKlarForUtsendelse();
 
         when(dokarkivClient.opprettJournalpost(any()))
@@ -324,14 +306,6 @@ public class VedtakServiceTest extends DatabaseTest {
         fattVedtak();
 
         assertJournalførtOgFerdigstilltVedtakV2();
-    }
-
-    private void fattVedtak() {
-        withContext(() -> {
-            gittTilgang();
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-            vedtakService.fattVedtak(utkast.getId());
-        });
     }
 
     @Test
@@ -355,54 +329,6 @@ public class VedtakServiceTest extends DatabaseTest {
             assertThatThrownBy(() ->
                     vedtakService.fattVedtak(utkast.getId())
             ).isExactlyInstanceOf(ResponseStatusException.class);
-        });
-    }
-
-    @Test
-    @Ignore // Testen er ustabil på GHA
-    public void fattVedtak_sender_ikke_mer_enn_en_gang() {
-        when(veilarbdokumentClient.sendDokument(any()))
-                .thenAnswer(new AnswersWithDelay(10, // Simulerer tregt API
-                        invocation -> new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID)));
-
-        withContext(() -> {
-            gittTilgang();
-            gittUtkastKlarForUtsendelse();
-
-            long id = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
-
-            Stream<UnsafeSupplier<Future<?>>> stream = Stream.of(
-                    (UnsafeSupplier<Future<?>>) () -> sendVedtakAsynk(id),
-                    () -> sendVedtakAsynk(id),
-                    () -> sendVedtakAsynk(id)
-            ).parallel();
-
-            stream.forEach(f -> {
-                try {
-                    f.get().get();
-                } catch (Exception ignored) {
-                }
-            });
-
-            verify(veilarbdokumentClient, times(1)).sendDokument(any());
-        });
-    }
-
-    @Test
-    public void fattVedtak__korrekt_sender_tilstand_dersom_send_dokument_feiler() {
-        when(veilarbdokumentClient.sendDokument(any())).thenThrow(new RuntimeException());
-
-        gittVersjon1AvFattVedtak();
-        gittUtkastKlarForUtsendelse();
-
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-
-        withContext(() -> {
-            gittTilgang();
-            assertThatThrownBy(() ->
-                    vedtakService.fattVedtak(utkast.getId())).isExactlyInstanceOf(RuntimeException.class);
-
-            assertFalse(vedtaksstotteRepository.hentUtkastEllerFeil(utkast.getId()).isSender());
         });
     }
 
@@ -513,13 +439,6 @@ public class VedtakServiceTest extends DatabaseTest {
         });
     }
 
-    private void gittVersjon2AvFattVedtak() {
-        when(unleashService.isNyDokIntegrasjonDisabled()).thenReturn(false);
-    }
-
-    private void gittVersjon1AvFattVedtak() {
-        when(unleashService.isNyDokIntegrasjonDisabled()).thenReturn(true);
-    }
     private void assertNyttUtkast() {
         Vedtak opprettetUtkast = vedtakService.hentUtkast(TEST_FNR);
         assertEquals(VedtakStatus.UTKAST, opprettetUtkast.getVedtakStatus());
@@ -536,6 +455,14 @@ public class VedtakServiceTest extends DatabaseTest {
         List<Vedtak> vedtakList = vedtakService.hentFattedeVedtak(TEST_FNR);
         assertEquals(vedtakList.size(), 1);
         return vedtakList.get(0);
+    }
+
+    private void fattVedtak() {
+        withContext(() -> {
+            gittTilgang();
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            vedtakService.fattVedtak(utkast.getId());
+        });
     }
 
     private void assertOppdatertUtkast(OppdaterUtkastDTO dto) {
@@ -559,20 +486,6 @@ public class VedtakServiceTest extends DatabaseTest {
         verify(vedtakStatusEndringService).vedtakSendt(any(), any());
     }
 
-    private void assertSendtVedtak() {
-        withContext(() -> {
-            gittTilgang();
-            Vedtak sendtVedtak = hentVedtak();
-            assertEquals(VedtakStatus.SENDT, sendtVedtak.getVedtakStatus());
-            assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
-            assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
-            assertEquals(DistribusjonBestillingId.Mangler.INSTANCE.getId(), sendtVedtak.getDokumentbestillingId());
-            assertTrue(sendtVedtak.isGjeldende());
-            assertFalse(sendtVedtak.isSender());
-            assertOyeblikksbildeForFattetVedtak(sendtVedtak.getId());
-        });
-    }
-
     private void assertOyeblikksbildeForFattetVedtak(long vedtakId) {
         withContext(() -> {
             List<Oyeblikksbilde> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
@@ -582,13 +495,5 @@ public class VedtakServiceTest extends DatabaseTest {
                     equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.EGENVURDERING, EGENVURDERING_DATA)))
             );
         });
-    }
-
-    ExecutorService executorService = Executors.newFixedThreadPool(3);
-
-    private Future<?> sendVedtakAsynk(long id) {
-        return executorService.submit(() ->
-                withContext(() ->
-                        vedtakService.fattVedtak(id)));
     }
 }

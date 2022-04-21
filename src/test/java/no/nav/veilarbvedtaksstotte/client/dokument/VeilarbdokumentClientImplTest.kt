@@ -21,25 +21,6 @@ class VeilarbdokumentClientImplTest {
 
     private val wireMockRule = WireMockRule()
 
-    val sendDokumentDTO: SendDokumentDTO = SendDokumentDTO(
-        brukerFnr = TEST_FNR,
-        malType = SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
-        enhetId = EnhetId(TEST_OPPFOLGINGSENHET_ID),
-        begrunnelse = TEST_BEGRUNNELSE,
-        opplysninger = TEST_KILDER,
-    )
-
-    val forventetSendDokumentJson =
-        """
-            {
-                "brukerFnr": "$TEST_FNR",
-                "malType": "SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID",
-                "enhetId": "$TEST_OPPFOLGINGSENHET_ID",
-                "begrunnelse": "$TEST_BEGRUNNELSE",
-                "opplysninger": ${TEST_KILDER.map { """"$it"""" }}
-            }
-        """
-
     @Rule
     fun getWireMockRule() = wireMockRule
 
@@ -47,61 +28,6 @@ class VeilarbdokumentClientImplTest {
     fun setup() {
         val wiremockUrl = "http://localhost:" + getWireMockRule().port()
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
-    }
-
-    @Test
-    fun `produser dokumentutkast gir forventet respons`() {
-
-        val utkastRespons = "Dokumentutkast-respons"
-
-        WireMock.givenThat(
-            WireMock.post(WireMock.urlEqualTo("/api/dokumentutkast"))
-                .withRequestBody(WireMock.equalToJson(forventetSendDokumentJson))
-                .willReturn(
-                    WireMock.aResponse()
-                        .withStatus(200)
-                        .withBody(utkastRespons.toByteArray())
-                )
-        )
-
-        val respons = AuthContextHolderThreadLocal
-            .instance()
-            .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                veilarbdokumentClient.produserDokumentUtkast(sendDokumentDTO)
-            })
-
-        assertEquals(utkastRespons, respons.decodeToString())
-    }
-
-    @Test
-    fun `send dokument gir forventet respons`() {
-
-        val dokumentSendtRespons =
-            """
-                 {
-                    "journalpostId": "$TEST_JOURNALPOST_ID",
-                    "dokumentId": "$TEST_DOKUMENT_ID"
-                 }
-            """
-
-
-        WireMock.givenThat(
-            WireMock.post(WireMock.urlEqualTo("/api/bestilldokument"))
-                .withRequestBody(WireMock.equalToJson(forventetSendDokumentJson))
-                .willReturn(
-                    WireMock.aResponse()
-                        .withStatus(200)
-                        .withBody(dokumentSendtRespons)
-                )
-        )
-
-        val respons = AuthContextHolderThreadLocal
-            .instance()
-            .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                veilarbdokumentClient.sendDokument(sendDokumentDTO)
-            })
-
-        assertEquals(DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID), respons)
     }
 
     @Test

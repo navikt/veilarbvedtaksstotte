@@ -8,7 +8,6 @@ import no.nav.common.rest.client.RestUtils
 import no.nav.common.rest.client.RestUtils.MEDIA_TYPE_JSON
 import no.nav.common.utils.UrlUtils
 import no.nav.veilarbvedtaksstotte.utils.RestClientUtils
-import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -21,33 +20,6 @@ class VeilarbdokumentClientImpl(
 ) : VeilarbdokumentClient {
 
     val client: OkHttpClient = RestClient.baseClient()
-
-    override fun sendDokument(sendDokumentDTO: SendDokumentDTO): DokumentSendtDTO {
-        val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbdokumentUrl, "/api/bestilldokument"))
-            .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
-            .post(sendDokumentDTO.toJson().toRequestBody(MEDIA_TYPE_JSON))
-            .build()
-
-        client.newCall(request).execute().use { response ->
-            RestUtils.throwIfNotSuccessful(response)
-            return response.deserializeJsonOrThrow()
-        }
-    }
-
-    override fun produserDokumentUtkast(sendDokumentDTO: SendDokumentDTO): ByteArray {
-        val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbdokumentUrl, "/api/dokumentutkast"))
-            .header(HttpHeaders.AUTHORIZATION, RestClientUtils.authHeaderMedInnloggetBruker(authContextHolder))
-            .post(sendDokumentDTO.toJson().toRequestBody(MEDIA_TYPE_JSON))
-            .build()
-
-        client.newCall(request).execute().use { response ->
-            RestUtils.throwIfNotSuccessful(response)
-            return response.body?.bytes()
-                ?: throw IllegalStateException("Generering av dokumentutkast feilet, tom respons.")
-        }
-    }
 
     override fun produserDokumentV2(produserDokumentV2DTO: ProduserDokumentV2DTO): ByteArray {
         val request = Request.Builder()

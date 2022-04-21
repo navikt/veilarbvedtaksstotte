@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
@@ -128,8 +127,6 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
     @Test
     public void testSettGjeldendeTilHistorisk() {
 
-        DokumentSendtDTO dokumentSendtDTO = new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
-
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -139,7 +136,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
         kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
-        vedtaksstotteRepository.ferdigstillVedtak(utkast.getId(), dokumentSendtDTO);
+        vedtaksstotteRepository.ferdigstillVedtakV2(utkast.getId());
 
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID);
 
@@ -190,20 +187,17 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
     }
 
     @Test
-    public void test_Ny_Vedtak_Kolon_Mapping() {
-        DokumentSendtDTO dokumentSendtDTO = new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
-
+    public void setter_vedtak_fattet_dato_ved_ferdigstilling() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-        assertNotNull("UTKAST_SIST_OPPDATERT skal ikke vare null", utkast.getUtkastSistOppdatert());
-        vedtaksstotteRepository.ferdigstillVedtak(utkast.getId(), dokumentSendtDTO);
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID);
+        assertNotNull(utkast.getUtkastSistOppdatert());
+        vedtaksstotteRepository.ferdigstillVedtakV2(utkast.getId());
 
         Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
 
         assertNotNull(fattetVedtak);
-        assertNotNull("Vedtak Fattet tidspunkt kan ikke vare null", fattetVedtak.getVedtakFattet());
+        assertNotNull(fattetVedtak.getVedtakFattet());
     }
 
     @Test

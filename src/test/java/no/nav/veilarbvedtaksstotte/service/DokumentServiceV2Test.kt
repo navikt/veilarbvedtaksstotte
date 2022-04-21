@@ -18,6 +18,8 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import org.junit.Assert.assertEquals
@@ -34,6 +36,8 @@ class DokumentServiceV2Test {
     lateinit var veilarbarenaClient: VeilarbarenaClient
     lateinit var regoppslagClient: RegoppslagClient
     lateinit var dokarkivClient: DokarkivClient
+    lateinit var veilarbregistreringClient: VeilarbregistreringClient
+    lateinit var malTypeService: MalTypeService
     lateinit var dokumentServiceV2: DokumentServiceV2
 
     private val wireMockRule = WireMockRule()
@@ -51,8 +55,10 @@ class DokumentServiceV2Test {
             DokarkivClientImpl(wiremockUrl, systemUserTokenProvider, AuthContextHolderThreadLocal.instance())
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
+        veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl,AuthContextHolderThreadLocal.instance())
+        malTypeService = MalTypeService(veilarbregistreringClient)
         dokumentServiceV2 = DokumentServiceV2(
-            regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient
+            regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient, malTypeService
         )
     }
 

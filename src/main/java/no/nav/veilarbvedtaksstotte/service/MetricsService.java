@@ -59,11 +59,6 @@ public class MetricsService {
         return ldt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
-    public void rapporterSendDokument() {
-        // Brukes sammen med metrikker for sendte vedtak for å verfisere at antall dokumenter opprettet er lik antall vedtak sendt
-        influxClient.report(createMetricEvent("send-dokument"));
-    }
-
     public void rapporterVedtakSendt(Vedtak vedtak) {
         Event event = createMetricEvent("vedtak-sendt");
         long utkastOpprettetMillis = localDateTimeToMillis(vedtak.getUtkastOpprettet());
@@ -130,7 +125,9 @@ public class MetricsService {
         try {
             String serviceGruppe = oppfolgingClient.hentOppfolgingData(fnr).getServicegruppe();
             erSykmeldtMedArbeidsgiver = OppfolgingUtils.erSykmeldtUtenArbeidsgiver(serviceGruppe);
-        } finally {}
+        } catch (Exception ignored) {
+            erSykmeldtMedArbeidsgiver = false;
+        }
 
         if (erSykmeldtMedArbeidsgiver) {
             try {

@@ -14,9 +14,7 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
-import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentV2DTO;
-import no.nav.veilarbvedtaksstotte.client.dokument.SendDokumentDTO;
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
@@ -135,16 +133,6 @@ public class ClientTestConfig {
     @Bean
     public VeilarbdokumentClient dokumentClient() {
         return new VeilarbdokumentClient() {
-            @Override
-            public DokumentSendtDTO sendDokument(SendDokumentDTO sendDokumentDTO) {
-                return new DokumentSendtDTO(TEST_JOURNALPOST_ID, TEST_DOKUMENT_ID);
-            }
-
-            @Override
-            public byte[] produserDokumentUtkast(SendDokumentDTO sendDokumentDTO) {
-                return new byte[0];
-            }
-
             @Override
             public byte[] produserDokumentV2(ProduserDokumentV2DTO produserDokumentV2DTO) {
                 return new byte[0];

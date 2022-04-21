@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.BeslutterprosessStatusDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.LagUtkastDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
@@ -44,8 +43,8 @@ public class UtkastController {
     }
 
     @PostMapping("/{vedtakId}/fattVedtak")
-    public DokumentSendtDTO fattVedtak(@PathVariable("vedtakId") long vedtakId) {
-        return vedtakService.fattVedtak(vedtakId);
+    public void fattVedtak(@PathVariable("vedtakId") long vedtakId) {
+        vedtakService.fattVedtak(vedtakId);
     }
 
     @PutMapping("/{vedtakId}")
