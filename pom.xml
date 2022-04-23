@@ -20,7 +20,7 @@
     <properties>
         <java.version>11</java.version>
         <common.version>2.2022.04.01_08.27-cbfeb0be0ee0</common.version>
-        <kotlin.version>1.6.10</kotlin.version>
+        <kotlin.version>1.6.20</kotlin.version>
         <testcontainers.version>1.16.3</testcontainers.version>
 
         <!--   Used by SonarCloud     -->
