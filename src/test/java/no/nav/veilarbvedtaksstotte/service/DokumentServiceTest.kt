@@ -18,6 +18,8 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
 import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import org.junit.Assert.assertEquals
@@ -28,13 +30,15 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.util.*
 
-class DokumentServiceV2Test {
+class DokumentServiceTest {
 
     lateinit var veilarbdokumentClient: VeilarbdokumentClient
     lateinit var veilarbarenaClient: VeilarbarenaClient
     lateinit var regoppslagClient: RegoppslagClient
     lateinit var dokarkivClient: DokarkivClient
-    lateinit var dokumentServiceV2: DokumentServiceV2
+    lateinit var veilarbregistreringClient: VeilarbregistreringClient
+    lateinit var malTypeService: MalTypeService
+    lateinit var dokumentService: DokumentService
 
     private val wireMockRule = WireMockRule()
 
@@ -51,8 +55,10 @@ class DokumentServiceV2Test {
             DokarkivClientImpl(wiremockUrl, systemUserTokenProvider, AuthContextHolderThreadLocal.instance())
         veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
-        dokumentServiceV2 = DokumentServiceV2(
-            regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient
+        veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl,AuthContextHolderThreadLocal.instance())
+        malTypeService = MalTypeService(veilarbregistreringClient)
+        dokumentService = DokumentService(
+            regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient, malTypeService
         )
     }
 
@@ -127,7 +133,7 @@ class DokumentServiceV2Test {
             AuthContextHolderThreadLocal
                 .instance()
                 .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                    dokumentServiceV2.journalforDokument(
+                    dokumentService.journalforDokument(
                         tittel = "Tittel",
                         enhetId = EnhetId("ENHET_ID"),
                         fnr = Fnr("fnr"),

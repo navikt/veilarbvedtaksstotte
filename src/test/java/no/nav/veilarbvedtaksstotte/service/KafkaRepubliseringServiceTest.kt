@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -81,10 +80,7 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
         vedtaksstotteRepository.opprettUtkast(aktorId.get(), "veileder", "1234")
         val utkast = vedtaksstotteRepository.hentUtkast(aktorId.get())
         if (ferdigstill) {
-            vedtaksstotteRepository.ferdigstillVedtak(
-                utkast.id,
-                DokumentSendtDTO("journalpostId", "dokumentId")
-            )
+            vedtaksstotteRepository.ferdigstillVedtak(utkast.id)
         }
     }
 

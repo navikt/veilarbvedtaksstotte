@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.dokument
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 
-data class ProduserDokumentV2DTO(
+data class ProduserDokumentDTO(
     val brukerFnr: Fnr,
     val navn: String,
     val malType: MalType,

@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
-class DistribusjonServiceV2(val vedtaksstotteRepository: VedtaksstotteRepository,
-                            val dokdistribusjonClient: DokdistribusjonClient) {
+class DistribusjonService(val vedtaksstotteRepository: VedtaksstotteRepository,
+                          val dokdistribusjonClient: DokdistribusjonClient) {
 
-    val log = LoggerFactory.getLogger(DistribusjonServiceV2::class.java)
+    val log = LoggerFactory.getLogger(DistribusjonService::class.java)
 
     fun distribuerVedtak(vedtakId: Long) {
         // Oppdaterer vedtak til "sender" tilstand for å redusere risiko for dupliserte utsendelser av dokument.

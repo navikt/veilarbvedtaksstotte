@@ -4,14 +4,12 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
-import no.nav.common.sts.SystemUserTokenProvider
 import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.utils.fn.UnsafeSupplier
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 
 class DokdistribusjonClientTest {
 
@@ -19,7 +17,6 @@ class DokdistribusjonClientTest {
 
     private val wireMockRule = WireMockRule()
 
-    val systemUserTokenProvider: SystemUserTokenProvider = Mockito.mock(SystemUserTokenProvider::class.java)
     val serviceTokenSupplier: () -> String = { "" }
 
     @Rule

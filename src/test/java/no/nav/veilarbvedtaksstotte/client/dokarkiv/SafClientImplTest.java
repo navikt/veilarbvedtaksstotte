@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.dokarkiv;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.test.auth.AuthTestUtils;

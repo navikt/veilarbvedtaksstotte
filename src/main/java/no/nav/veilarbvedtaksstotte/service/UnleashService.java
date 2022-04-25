@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class UnleashService {
 
-    private static final String VEILARBVEDTAKSSTOTTE_NY_DOK_INTEGRASJON_DISABLED_TOGGLE = "veilarbvedtaksstotte.ny.dok.integrasjon.disabled";
     private static final String VEILARBVEDTAKSSTOTTE_DOK_DIST_SCHEDULE_ENABLED_TOGGLE = "veilarbvedtaksstotte.dok_dist_schedule_enabled";
     private static final String KAFKA_KONSUMERING_SKRUDD_AV = "veilarbvedtaksstotte.kafka-konsumering-skrudd-av";
 
@@ -16,10 +15,6 @@ public class UnleashService {
     @Autowired
     public UnleashService(UnleashClient unleashClient) {
         this.unleashClient = unleashClient;
-    }
-
-    public boolean isNyDokIntegrasjonDisabled() {
-        return unleashClient.isEnabled(VEILARBVEDTAKSSTOTTE_NY_DOK_INTEGRASJON_DISABLED_TOGGLE);
     }
 
     public boolean isDokDistScheduleEnabled() {
