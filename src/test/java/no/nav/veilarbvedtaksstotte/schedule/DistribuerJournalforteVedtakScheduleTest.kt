@@ -7,7 +7,7 @@ import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.*
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
-import no.nav.veilarbvedtaksstotte.service.DistribusjonServiceV2
+import no.nav.veilarbvedtaksstotte.service.DistribusjonService
 import no.nav.veilarbvedtaksstotte.service.UnleashService
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import org.apache.commons.lang3.RandomStringUtils.randomAlphabetic
@@ -25,7 +25,7 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
     lateinit var leaderElection: LeaderElectionClient
     lateinit var unleashService: UnleashService
     lateinit var dokdistribusjonClient: DokdistribusjonClient
-    lateinit var distribusjonServiceV2: DistribusjonServiceV2
+    lateinit var distribusjonService: DistribusjonService
     lateinit var vedtakRepository: VedtaksstotteRepository
     lateinit var distribuerJournalforteVedtakSchedule: DistribuerJournalforteVedtakSchedule
 
@@ -35,10 +35,10 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
         unleashService = mock(UnleashService::class.java)
         dokdistribusjonClient = mock(DokdistribusjonClient::class.java)
         vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
-        distribusjonServiceV2 = DistribusjonServiceV2(vedtakRepository, dokdistribusjonClient)
+        distribusjonService = DistribusjonService(vedtakRepository, dokdistribusjonClient)
         distribuerJournalforteVedtakSchedule = DistribuerJournalforteVedtakSchedule(
             leaderElection = leaderElection,
-            distribusjonServiceV2 = distribusjonServiceV2,
+            distribusjonService = distribusjonService,
             vedtaksstotteRepository = vedtakRepository,
             unleashService = unleashService
         )

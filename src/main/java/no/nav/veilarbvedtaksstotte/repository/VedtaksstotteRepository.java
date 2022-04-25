@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.common.types.identer.AktorId;
-import no.nav.veilarbvedtaksstotte.client.dokument.DokumentSendtDTO;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
@@ -123,22 +122,6 @@ public class VedtaksstotteRepository {
        db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
     }
 
-    public void ferdigstillVedtak(long vedtakId, DokumentSendtDTO dokumentSendtDTO) {
-        String sql = format(
-                "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP, %s = true, %s = false, %s = ? WHERE %s = ?",
-                VEDTAK_TABLE, STATUS, DOKUMENT_ID, JOURNALPOST_ID, VEDTAK_FATTET, GJELDENDE, SENDER, DOKUMENT_BESTILLING_ID, VEDTAK_ID
-        );
-
-        db.update(
-                sql,
-                getName(VedtakStatus.SENDT),
-                dokumentSendtDTO.getDokumentId(),
-                dokumentSendtDTO.getJournalpostId(),
-                DistribusjonBestillingId.Mangler.INSTANCE.getId(),
-                vedtakId
-        );
-    }
-
     public void oppdaterUtkast(long vedtakId, Vedtak vedtak) {
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ? AND %s = ?",
@@ -228,7 +211,7 @@ public class VedtaksstotteRepository {
         db.update(sql, dokumentbestillingsId.getId(), vedtakId);
     }
 
-    public void ferdigstillVedtakV2(long vedtakId){
+    public void ferdigstillVedtak(long vedtakId){
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP, %s = true WHERE %s = ?",
                 VEDTAK_TABLE, STATUS, VEDTAK_FATTET, GJELDENDE, VEDTAK_ID
