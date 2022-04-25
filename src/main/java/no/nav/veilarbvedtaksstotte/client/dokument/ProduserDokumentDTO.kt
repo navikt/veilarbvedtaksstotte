@@ -8,6 +8,7 @@ data class ProduserDokumentDTO(
     val navn: String,
     val malType: MalType,
     val enhetId: EnhetId,
+    val veilederIdent: String,
     val begrunnelse: String?,
     val opplysninger: List<String>,
     val utkast: Boolean,

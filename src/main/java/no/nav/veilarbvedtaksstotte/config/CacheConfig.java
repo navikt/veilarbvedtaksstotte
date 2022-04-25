@@ -20,6 +20,8 @@ public class CacheConfig {
     public static final String REGISTRERING_CACHE_NAME = "registrering";
     public static final String OPPFOLGING_CACHE_NAME = "oppfolging";
     public static final String OPPFOLGINGPERIODE_CACHE_NAME = "oppfolgingperiode";
+    public static final String NORG2_ENHET_KONTAKTINFO_CACHE_NAME = "enhet-kontaktinfo";
+    public static final String NORG2_ENHET_ORGANISERING_CACHE_NAME = "enhet-organisering";
 
     @Bean
     public Cache arenaBrukerCache() {
@@ -77,4 +79,19 @@ public class CacheConfig {
                 .build());
     }
 
+    @Bean
+    public Cache norg2EnhetKontaktinfoCache() {
+        return new CaffeineCache(NORG2_ENHET_KONTAKTINFO_CACHE_NAME, Caffeine.newBuilder()
+                .expireAfterWrite(1, TimeUnit.HOURS)
+                .maximumSize(1000)
+                .build());
+    }
+
+    @Bean
+    public Cache norg2EnhetOrganiseringCache() {
+        return new CaffeineCache(NORG2_ENHET_ORGANISERING_CACHE_NAME, Caffeine.newBuilder()
+                .expireAfterWrite(1, TimeUnit.HOURS)
+                .maximumSize(1000)
+                .build());
+    }
 }

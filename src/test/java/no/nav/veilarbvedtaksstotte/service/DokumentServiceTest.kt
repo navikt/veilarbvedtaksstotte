@@ -10,18 +10,24 @@ import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -32,11 +38,15 @@ import java.util.*
 
 class DokumentServiceTest {
 
-    lateinit var veilarbdokumentClient: VeilarbdokumentClient
     lateinit var veilarbarenaClient: VeilarbarenaClient
+    lateinit var veilarbpersonClient: VeilarbpersonClient
+    lateinit var veilarbveilederClient: VeilarbveilederClient
     lateinit var regoppslagClient: RegoppslagClient
     lateinit var dokarkivClient: DokarkivClient
     lateinit var veilarbregistreringClient: VeilarbregistreringClient
+    lateinit var pdfClient: PdfClient
+    lateinit var norg2Client: Norg2Client
+    lateinit var enhetInfoService: EnhetInfoService
     lateinit var malTypeService: MalTypeService
     lateinit var dokumentService: DokumentService
 
@@ -53,12 +63,23 @@ class DokumentServiceTest {
         regoppslagClient = RegoppslagClientImpl(wiremockUrl, systemUserTokenProvider)
         dokarkivClient =
             DokarkivClientImpl(wiremockUrl, systemUserTokenProvider, AuthContextHolderThreadLocal.instance())
-        veilarbdokumentClient = VeilarbdokumentClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl,AuthContextHolderThreadLocal.instance())
+        veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""})
+        veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
+        pdfClient = PdfClientImpl(wiremockUrl)
+        norg2Client = Norg2ClientImpl(wiremockUrl)
+        enhetInfoService = EnhetInfoService(norg2Client)
         malTypeService = MalTypeService(veilarbregistreringClient)
         dokumentService = DokumentService(
-            regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient, malTypeService
+            regoppslagClient = regoppslagClient,
+            pdfClient = pdfClient,
+            veilarbarenaClient = veilarbarenaClient,
+            veilarbpersonClient = veilarbpersonClient,
+            veilarbveilederClient = veilarbveilederClient,
+            dokarkivClient = dokarkivClient,
+            enhetInfoService = enhetInfoService,
+            malTypeService = malTypeService
         )
     }
 

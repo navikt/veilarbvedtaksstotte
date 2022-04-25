@@ -9,8 +9,9 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
@@ -36,13 +37,14 @@ public class HealthConfig {
 
     @Bean
     public SelfTestChecks selfTestChecks(VeilarbarenaClient arenaClient,
-                                         VeilarbdokumentClient dokumentClient,
                                          VeilarbvedtakinfoClient egenvurderingClient,
                                          VeilarboppfolgingClient oppfolgingClient,
                                          VeilarbpersonClient veilarbpersonClient,
                                          VeilarbregistreringClient registreringClient,
+                                         PdfClient pdfClient,
                                          SafClient safClient,
-                                         VeilarbveilederClient veiledereOgEnhetClient,
+                                         Norg2Client norg2Client,
+                                         VeilarbveilederClient veilarbveilederClient,
                                          DokarkivClient dokarkivClient,
                                          DokdistribusjonClient dokdistribusjonClient,
                                          RegoppslagClient regoppslagClient,
@@ -52,13 +54,14 @@ public class HealthConfig {
 
         ArrayList<SelfTestCheck> selfTestChecks = new ArrayList<>(Arrays.asList(
                 new SelfTestCheck("ArenaClient", false, arenaClient),
-                new SelfTestCheck("DokumentClient", false, dokumentClient),
+                new SelfTestCheck("pto-pdfgen", false, pdfClient),
+                new SelfTestCheck("Norg2", true, norg2Client),
                 new SelfTestCheck("EgenvurderingClient", false, egenvurderingClient),
                 new SelfTestCheck("OppfolgingClient", false, oppfolgingClient),
                 new SelfTestCheck("PersonClient", false, veilarbpersonClient),
                 new SelfTestCheck("RegistreringClient (via veilarbperson)", false, registreringClient),
                 new SelfTestCheck("SafClient", false, safClient),
-                new SelfTestCheck("VeilederOgEnhetClient", false, veiledereOgEnhetClient),
+                new SelfTestCheck("veilarbveileder", false, veilarbveilederClient),
                 new SelfTestCheck("UnleashClient", false, unleashClient),
                 new SelfTestCheck("Ping database", true, () -> checkDbHealth(dataSourceHealthIndicator)),
                 new SelfTestCheck("DokarkivClient", false, dokarkivClient),

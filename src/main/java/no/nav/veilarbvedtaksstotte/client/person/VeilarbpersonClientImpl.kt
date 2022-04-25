@@ -6,11 +6,15 @@ import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
+import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.UrlUtils
+import no.nav.veilarbvedtaksstotte.domain.Målform
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 import java.util.function.Supplier
 
 class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val userTokenSupplier: Supplier<String>) :
@@ -43,6 +47,29 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
             } else {
                 responseBody.string()
             }
+        }
+    }
+
+    override fun hentMålform(fnr: Fnr): Målform {
+        val request = Request.Builder()
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v2/person/malform?fnr=$fnr"))
+            .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(userTokenSupplier.get()))
+            .build()
+        try {
+            client.newCall(request).execute().use { response ->
+                RestUtils.throwIfNotSuccessful(response)
+                return response
+                    .deserializeJsonOrThrow<MalformRespons>()
+                    .tilMålform()
+            }
+        } catch (e: Exception) {
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Feil ved kall mot" + request.url.toString(), e)
+        }
+    }
+
+    data class MalformRespons(val malform: String?) {
+        fun tilMålform(): Målform {
+            return Målform.values().find { it.name == malform?.uppercase() } ?: Målform.NB
         }
     }
 
