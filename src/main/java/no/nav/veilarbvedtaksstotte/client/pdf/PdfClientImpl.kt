@@ -29,7 +29,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
                     throw IllegalStateException("Generering av brev feilet, tom respons.")
             }
         } catch (e: Exception) {
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Feil ved kall mot" + request.url.toString(), e)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Feil ved kall mot " + request.url.toString(), e)
         }
     }
 

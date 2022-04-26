@@ -63,7 +63,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
                     .tilMålform()
             }
         } catch (e: Exception) {
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Feil ved kall mot" + request.url.toString(), e)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Feil ved kall mot " + request.url.toString(), e)
         }
     }
 
