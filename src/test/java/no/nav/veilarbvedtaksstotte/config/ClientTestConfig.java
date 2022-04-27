@@ -3,10 +3,10 @@ package no.nav.veilarbvedtaksstotte.config;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.aktoroppslag.BrukerIdenter;
 import no.nav.common.client.norg2.Enhet;
-import no.nav.common.client.norg2.Norg2Client;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EksternBrukerId;
+import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
@@ -14,9 +14,12 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
-import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO;
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetOrganisering;
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
 import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
@@ -31,6 +34,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
+import no.nav.veilarbvedtaksstotte.domain.Målform;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -86,10 +90,6 @@ public class ClientTestConfig {
     @Bean
     public Norg2Client norg2Client() {
         return new Norg2Client() {
-            @Override
-            public List<Enhet> alleAktiveEnheter() {
-                return emptyList();
-            }
 
             @Override
             public Enhet hentEnhet(String s) {
@@ -99,8 +99,18 @@ public class ClientTestConfig {
             }
 
             @Override
-            public Enhet hentTilhorendeEnhet(String s) {
-                return null;
+            public List<Enhet> hentAktiveEnheter() {
+                return emptyList();
+            }
+
+            @Override
+            public EnhetKontaktinformasjon hentKontaktinfo(EnhetId enhetId) {
+                return new EnhetKontaktinformasjon(enhetId, new EnhetStedsadresse(null,null,null,null,null,null), "");
+            }
+
+            @Override
+            public List<EnhetOrganisering> hentEnhetOrganisering(EnhetId enhetId) {
+                return emptyList();
             }
 
             @Override
@@ -131,10 +141,11 @@ public class ClientTestConfig {
     }
 
     @Bean
-    public VeilarbdokumentClient dokumentClient() {
-        return new VeilarbdokumentClient() {
+    public PdfClient pdfClient() {
+        return new PdfClient() {
+            @NotNull
             @Override
-            public byte[] produserDokument(ProduserDokumentDTO produserDokumentDTO) {
+            public byte[] genererPdf(@NotNull Brevdata brevdata) {
                 return new byte[0];
             }
 
@@ -203,6 +214,12 @@ public class ClientTestConfig {
                 return "{ \"data\": \"Bruker har ikke delt CV/jobbprofil med NAV\"}";
             }
 
+            @NotNull
+            @Override
+            public Målform hentMålform(@NotNull Fnr fnr) {
+                return Målform.NB;
+            }
+
             @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();
@@ -260,11 +277,7 @@ public class ClientTestConfig {
 
             @Override
             public Veileder hentVeileder(String veilederIdent) {
-                Veileder veileder = new Veileder();
-                veileder.setIdent(TEST_VEILEDER_IDENT);
-                veileder.setFornavn("VEILEDER");
-                veileder.setEtternavn("VEILEDERSEN");
-                return veileder;
+               return new Veileder(TEST_VEILEDER_IDENT, "VEILEDER VEILEDERSEN");
             }
 
             @Override
