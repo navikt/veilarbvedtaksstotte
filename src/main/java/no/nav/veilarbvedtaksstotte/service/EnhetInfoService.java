@@ -37,6 +37,10 @@ public class EnhetInfoService {
         if (enhetKontaktinformasjon.getPostadresse() != null) {
             return enhetKontaktinformasjon;
         } else {
+
+            // Dagens logikk dekker følgende:
+            // Dersom enheten ikke har postadresse, så forutsettes det at enheten har én eier-enhet som har postadresse.
+
             List<EnhetOrganisering> enhetOrganisering = norg2Client.hentEnhetOrganisering(enhetId);
             List<EnhetOrganisering> eiere = enhetOrganisering.stream()
                     .filter(x -> x.getOrgType().equals("EIER")).collect(Collectors.toList());
