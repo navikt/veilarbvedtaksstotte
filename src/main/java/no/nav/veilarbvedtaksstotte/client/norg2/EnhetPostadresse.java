@@ -8,5 +8,5 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = EnhetPostboksadresse.class, name = "postboksadresse"),
         @JsonSubTypes.Type(value = EnhetStedsadresse.class, name = "stedsadresse")
 })
-public abstract class EnhetPostadresse {
+public interface EnhetPostadresse {
 }

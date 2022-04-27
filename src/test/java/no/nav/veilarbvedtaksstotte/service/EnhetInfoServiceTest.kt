@@ -91,7 +91,7 @@ class EnhetInfoServiceTest {
         gittEnhetUtenKontaktinfo(enhetId)
         gittEnhetOrganiseringMed3Enheter(enhetId, HashMap())
         Assertions.assertThatThrownBy { enhetInfoService.utledEnhetKontaktinformasjon(enhetId) }
-            .isExactlyInstanceOf(RuntimeException::class.java)
+            .isExactlyInstanceOf(IllegalStateException::class.java)
     }
 
     @Test
@@ -102,7 +102,7 @@ class EnhetInfoServiceTest {
         replace["ORG_TYPE_2"] = "EIER"
         gittEnhetOrganiseringMed3Enheter(enhetId, replace)
         Assertions.assertThatThrownBy { enhetInfoService.utledEnhetKontaktinformasjon(enhetId) }
-            .isExactlyInstanceOf(RuntimeException::class.java)
+            .isExactlyInstanceOf(IllegalStateException::class.java)
     }
 
     @Test
@@ -114,7 +114,7 @@ class EnhetInfoServiceTest {
         replace["ENHET_NR_1"] = eierEnhetId.get()
         gittEnhetOrganiseringMed3Enheter(enhetId, replace)
         Assertions.assertThatThrownBy { enhetInfoService.utledEnhetKontaktinformasjon(enhetId) }
-            .isExactlyInstanceOf(RuntimeException::class.java)
+            .isExactlyInstanceOf(IllegalStateException::class.java)
     }
 
     @Test
@@ -127,21 +127,21 @@ class EnhetInfoServiceTest {
     fun eier_ugyldig_fra_gyldig_til() {
         setupEierGyldighetTest(ugyldigFra, gyldigTil)
         Assertions.assertThatThrownBy { enhetInfoService.utledEnhetKontaktinformasjon(enhetId) }
-            .isExactlyInstanceOf(RuntimeException::class.java)
+            .isExactlyInstanceOf(IllegalStateException::class.java)
     }
 
     @Test
     fun eier_gyldig_fra_ugyldig_til() {
         setupEierGyldighetTest(gyldigFra, ugyldigTil)
         Assertions.assertThatThrownBy { enhetInfoService.utledEnhetKontaktinformasjon(enhetId) }
-            .isExactlyInstanceOf(RuntimeException::class.java)
+            .isExactlyInstanceOf(IllegalStateException::class.java)
     }
 
     @Test
     fun eier_ugyldig_fra_ugyldig_til() {
         setupEierGyldighetTest(ugyldigFra, ugyldigTil)
         Assertions.assertThatThrownBy { enhetInfoService.utledEnhetKontaktinformasjon(enhetId) }
-            .isExactlyInstanceOf(RuntimeException::class.java)
+            .isExactlyInstanceOf(IllegalStateException::class.java)
     }
 
     @Test
@@ -154,7 +154,7 @@ class EnhetInfoServiceTest {
     fun eier_ugyldig_fra_null_til() {
         setupEierGyldighetTest(ugyldigFra, null)
         Assertions.assertThatThrownBy { enhetInfoService.utledEnhetKontaktinformasjon(enhetId) }
-            .isExactlyInstanceOf(RuntimeException::class.java)
+            .isExactlyInstanceOf(IllegalStateException::class.java)
     }
 
     @Test
@@ -167,7 +167,7 @@ class EnhetInfoServiceTest {
     fun eier_null_fra_ugyldig_til() {
         setupEierGyldighetTest(null, ugyldigTil)
         Assertions.assertThatThrownBy { enhetInfoService.utledEnhetKontaktinformasjon(enhetId) }
-            .isExactlyInstanceOf(RuntimeException::class.java)
+            .isExactlyInstanceOf(IllegalStateException::class.java)
     }
 
     @Test

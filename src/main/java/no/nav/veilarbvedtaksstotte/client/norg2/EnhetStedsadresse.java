@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.norg2;
 import lombok.Value;
 
 @Value
-public class EnhetStedsadresse extends EnhetPostadresse {
+public class EnhetStedsadresse implements EnhetPostadresse {
     private final String postnummer;
     private final String poststed;
     private final String gatenavn;

@@ -52,11 +52,11 @@ public class EnhetInfoService {
                 if (eierEnhetKontaktinformasjon.getPostadresse() != null) {
                     return eierEnhetKontaktinformasjon;
                 } else {
-                    throw new RuntimeException(format("Eier-enhet %s for enhet %s mangler adresse",
+                    throw new IllegalStateException(format("Eier-enhet %s for enhet %s mangler adresse",
                             eier.getOrganiserer().getNr(), enhetId));
                 }
             } else {
-                throw new RuntimeException(
+                throw new IllegalStateException(
                         format("Fant ikke eier-enhet for enhet %s uten adresse. Årsak: %d gydlige eiere, %d ugyldige eiere.",
                                 enhetId, gyldigeEiere.size(), eiere.size() - gyldigeEiere.size()));
             }
