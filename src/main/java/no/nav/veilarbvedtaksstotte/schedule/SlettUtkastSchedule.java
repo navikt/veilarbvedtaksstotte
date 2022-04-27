@@ -53,7 +53,7 @@ public class SlettUtkastSchedule {
         LocalDateTime slettVedtakEtter = LocalDateTime.now().minusDays(DAGER_FOR_SLETT_UTKAST);
         List<Vedtak> gamleUtkast = vedtaksstotteRepository.hentUtkastEldreEnn(slettVedtakEtter);
 
-        log.info("Utkast {} eldre enn {} som kanskje skal slettes. id på utkastene = {}",
+        log.info("Det er {} utkast som er eldre enn {} som kanskje skal slettes. id på utkastene = {}",
                 gamleUtkast.size(), slettVedtakEtter, gamleUtkast.stream().map(Vedtak::getId).collect(Collectors.toList()));
 
         // Hvis bruker har et gjeldende vedtak så er de fortsatt under oppfølging og vi trenger ikke å slette utkastet
