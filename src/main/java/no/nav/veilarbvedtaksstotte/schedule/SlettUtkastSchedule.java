@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDateTime;
 
 @Slf4j
@@ -54,7 +53,8 @@ public class SlettUtkastSchedule {
         LocalDateTime slettVedtakEtter = LocalDateTime.now().minusDays(DAGER_FOR_SLETT_UTKAST);
         List<Vedtak> gamleUtkast = vedtaksstotteRepository.hentUtkastEldreEnn(slettVedtakEtter);
 
-        log.info("Utkast eldre enn {} som kanskje skal slettes: {}", slettVedtakEtter, gamleUtkast.size());
+        log.info("Utkast {} eldre enn {} som kanskje skal slettes. id på utkastene = {}",
+                gamleUtkast.size(), slettVedtakEtter, gamleUtkast.stream().map(Vedtak::getId).collect(Collectors.toList()));
 
         // Hvis bruker har et gjeldende vedtak så er de fortsatt under oppfølging og vi trenger ikke å slette utkastet
         List<Vedtak> gamleUtkastUtenforOppfolging = gamleUtkast.stream()
@@ -69,14 +69,20 @@ public class SlettUtkastSchedule {
                 List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(fnr.get());
                 Optional<OppfolgingPeriodeDTO> maybeSistePeriode = OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder);
 
+                if (maybeSistePeriode.isEmpty()) {
+                    log.warn("Fant ikke siste oppfølgingsperiode for bruker med utkast der id = {}", utkast.getId());
+                }
+
                 maybeSistePeriode.ifPresent(sistePeriode -> {
                     if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(toLocalDateTime(sistePeriode.sluttDato))) {
-                        log.info("Sletter utkast automatisk. aktorId={}", utkast.getAktorId());
+                        log.info("Sletter utkast automatisk. aktorId = {}", utkast.getAktorId());
                         vedtakService.slettUtkast(utkast);
+                    } else {
+                        log.info("Utkast med id {} ble ikke slettet.", utkast.getId());
                     }
                 });
-            } catch(Exception e) {
-                log.error(format("Automatisk sletting av utkast for aktorId=%s feilet", utkast.getAktorId()), e);
+            } catch (Exception e) {
+                log.error("Automatisk sletting av utkast med id = {} feilet", utkast.getId(), e);
             }
         });
     }
