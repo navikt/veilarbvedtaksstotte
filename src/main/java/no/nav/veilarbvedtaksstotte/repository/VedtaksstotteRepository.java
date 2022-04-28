@@ -66,7 +66,7 @@ public class VedtaksstotteRepository {
     }
 
     public List<Vedtak> hentUtkastEldreEnn(LocalDateTime dateTime) {
-        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s > ?", VEDTAK_TABLE, STATUS, UTKAST_SIST_OPPDATERT);
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s < ?", VEDTAK_TABLE, STATUS, UTKAST_SIST_OPPDATERT);
         return db.query(sql, VedtaksstotteRepository::mapVedtak, getName(VedtakStatus.UTKAST), dateTime);
     }
 
