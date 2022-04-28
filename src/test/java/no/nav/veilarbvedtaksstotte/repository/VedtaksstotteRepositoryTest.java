@@ -41,8 +41,8 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
     public void hentUtkastEldreEnn_skal_hente_riktig_utkast() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
-        assertTrue(vedtaksstotteRepository.hentUtkastEldreEnn(LocalDateTime.now().plusSeconds(1)).isEmpty());
-        assertEquals(1, vedtaksstotteRepository.hentUtkastEldreEnn(LocalDateTime.now().minusSeconds(5)).size());
+        assertTrue(vedtaksstotteRepository.hentUtkastEldreEnn(LocalDateTime.now().minusSeconds(5)).isEmpty());
+        assertEquals(1, vedtaksstotteRepository.hentUtkastEldreEnn(LocalDateTime.now().plusSeconds(1)).size());
     }
 
     @Test
