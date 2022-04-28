@@ -56,7 +56,7 @@ public class BeslutterServiceTest {
         doReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID)).when(authService).sjekkTilgangTilBrukerOgEnhet(any(Fnr.class));
         doReturn(TEST_FNR).when(authService).getFnrOrThrow(TEST_AKTOR_ID);
 
-        when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn("VEILEDER"));
+        when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
         when(veilederService.hentEnhetNavn(anyString())).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("FORNAVN", null, "ETTERNAVN", null));
     }

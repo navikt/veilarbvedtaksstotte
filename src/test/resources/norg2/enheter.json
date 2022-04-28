@@ -1,0 +1,14 @@
+[
+  {
+    "navn": "NAV Enhet 1",
+    "enhetNr": "1"
+  },
+  {
+    "navn": "NAV Enhet 2",
+    "enhetNr": "1234"
+  },
+  {
+    "navn": "NAV Enhet 3",
+    "enhetNr": "3"
+  }
+]

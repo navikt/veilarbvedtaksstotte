@@ -5,24 +5,30 @@ import no.nav.common.abac.VeilarbPep;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
+import no.nav.common.client.norg2.Enhet;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
 import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.domain.Målform;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
@@ -70,12 +76,14 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
     private static final VeilarbvedtakinfoClient egenvurderingClient = mock(VeilarbvedtakinfoClient.class);
     private static final RegoppslagClient regoppslagClient = mock(RegoppslagClient.class);
-    private static final VeilarbdokumentClient veilarbdokumentClient = mock(VeilarbdokumentClient.class);
     private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
     private static final AbacClient abacClient = mock(AbacClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
+    private static final PdfClient pdfClient = mock(PdfClient.class);
+    private static final VeilarbveilederClient veilarbveilederClient = mock(VeilarbveilederClient.class);
     private static final UtrullingService utrullingService = mock(UtrullingService.class);
+    private static final EnhetInfoService enhetInfoService = mock(EnhetInfoService.class);
 
     private static final VeilarbPep veilarbPep = mock(VeilarbPep.class);
 
@@ -95,7 +103,15 @@ public class VedtakServiceTest extends DatabaseTest {
         authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaService, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
-        DokumentService dokumentService = new DokumentService(regoppslagClient, veilarbdokumentClient, veilarbarenaClient, dokarkivClient, malTypeService);
+        DokumentService dokumentService = new DokumentService(
+                regoppslagClient,
+                pdfClient,
+                veilarbarenaClient,
+                veilarbpersonClient,
+                veilarbveilederClient,
+                dokarkivClient,
+                enhetInfoService,
+                malTypeService);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,
@@ -115,31 +131,35 @@ public class VedtakServiceTest extends DatabaseTest {
     public void setup() {
         DbTestUtils.cleanupDb(jdbcTemplate);
         reset(veilederService);
-        reset(veilarbdokumentClient);
         reset(meldingRepository);
         reset(unleashService);
         reset(dokarkivClient);
         reset(vedtakStatusEndringService);
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
-        when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN));
-        when(veilederService.hentVeilederEllerNull(TEST_VEILEDER_IDENT)).thenReturn(Optional.of(new Veileder().setIdent(TEST_VEILEDER_IDENT).setNavn(TEST_VEILEDER_NAVN)));
-        when(veilarbdokumentClient.produserDokument(any())).thenReturn("dokument".getBytes());
+        when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
+        when(veilederService.hentVeilederEllerNull(TEST_VEILEDER_IDENT)).thenReturn(Optional.of(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN)));
         when(regoppslagClient.hentPostadresse(any())).thenReturn(
                 new RegoppslagResponseDTO("", new Adresse(NORSKPOSTADRESSE, "", "", "", "", "", "", "")));
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(CV_DATA);
+        when(veilarbpersonClient.hentMålform(TEST_FNR)).thenReturn(Målform.NB);
+        when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(registreringClient.hentRegistreringDataJson(TEST_FNR.get())).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR.get())).thenReturn(EGENVURDERING_DATA);
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL"));
         when(veilarbarenaClient.oppfolgingssak(TEST_FNR)).thenReturn(TEST_OPPFOLGINGSSAK);
-        when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(dokarkivClient.opprettJournalpost(any()))
                 .thenReturn(new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
                         true,
                         Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
+        when(veilarbveilederClient.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
+        when(enhetInfoService.hentEnhet(EnhetId.of(TEST_OPPFOLGINGSENHET_ID))).thenReturn(new Enhet().setNavn(TEST_OPPFOLGINGSENHET_NAVN));
+        when(enhetInfoService.utledEnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID)))
+                .thenReturn(new EnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID), new EnhetStedsadresse("","","","","",""), ""));
+        when(pdfClient.genererPdf(any())).thenReturn(new byte[]{});
     }
 
     @Test(expected = IllegalStateException.class)

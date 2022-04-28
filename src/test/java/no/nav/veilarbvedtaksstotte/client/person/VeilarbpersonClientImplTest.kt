@@ -3,8 +3,11 @@ package no.nav.veilarbvedtaksstotte.client.person
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.createNoDataStr
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import com.github.tomakehurst.wiremock.client.WireMock
+import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.domain.Målform
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -28,13 +31,9 @@ class VeilarbpersonClientImplTest {
     @Test
     fun skal_hente_person() {
         WireMock.givenThat(
-            WireMock.get("/api/person/navn?fnr=$TEST_FNR")
-                .willReturn(
-                    WireMock.aResponse()
-                        .withStatus(200)
-                        .withHeader("Authorization", "Bearer TOKEN")
-                        .withBody(
-                            """
+            WireMock.get("/api/person/navn?fnr=$TEST_FNR").willReturn(
+                WireMock.aResponse().withStatus(200).withHeader("Authorization", "Bearer TOKEN").withBody(
+                    """
                                {
                                 "fornavn": "Fornavn",
                                 "mellomnavn": "Mellomnavn",
@@ -42,8 +41,8 @@ class VeilarbpersonClientImplTest {
                                 "sammensattNavn": "Sammensatt Navn"
                                } 
                             """
-                        )
                 )
+            )
         )
         val hentPersonNavn = veilarbpersonClient.hentPersonNavn(TEST_FNR.get())
         assertEquals(
@@ -60,13 +59,10 @@ class VeilarbpersonClientImplTest {
     fun skal_hente_cv_jobbprofil_json() {
         val cvJobbprofilJson = TestUtils.readTestResourceFile("cv-jobbprofil.json")
         WireMock.givenThat(
-            WireMock.get("/api/person/cv_jobbprofil?fnr=1234")
-                .willReturn(
-                    WireMock.aResponse()
-                        .withStatus(200)
-                        .withHeader("Authorization", "Bearer TOKEN")
-                        .withBody(cvJobbprofilJson)
-                )
+            WireMock.get("/api/person/cv_jobbprofil?fnr=1234").willReturn(
+                WireMock.aResponse().withStatus(200).withHeader("Authorization", "Bearer TOKEN")
+                    .withBody(cvJobbprofilJson)
+            )
         )
         val jsonResponse = veilarbpersonClient.hentCVOgJobbprofil("1234")
         assertEquals(cvJobbprofilJson, jsonResponse)
@@ -102,5 +98,17 @@ class VeilarbpersonClientImplTest {
     fun skal_sjekke_helse() {
         WireMock.givenThat(WireMock.get("/internal/isAlive").willReturn(WireMock.aResponse().withStatus(200)))
         veilarbpersonClient.checkHealth()
+    }
+
+    @Test
+    fun mapper_respons_riktig() {
+        val fnr = Fnr("123")
+        val jsonResponse = """{"malform": "NN"}"""
+
+        givenWiremockOkJsonResponse("/api/v2/person/malform?fnr=$fnr", jsonResponse)
+
+        val respons = veilarbpersonClient.hentMålform(fnr)
+
+        assertEquals(Målform.NN, respons)
     }
 }

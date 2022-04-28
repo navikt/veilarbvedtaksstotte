@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.common.client.norg2.Norg2Client;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.repository.UtrullingRepository;

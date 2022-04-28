@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.norg2.Enhet;
-import no.nav.common.client.norg2.Norg2Client;
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;

@@ -6,9 +6,6 @@ import no.nav.common.abac.AbacHttpClient;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.client.aktoroppslag.*;
 import no.nav.common.client.pdl.PdlClientImpl;
-import no.nav.common.client.norg2.CachedNorg2Client;
-import no.nav.common.client.norg2.Norg2Client;
-import no.nav.common.client.norg2.NorgHttp2Client;
 import no.nav.common.featuretoggle.UnleashClient;
 import no.nav.common.featuretoggle.UnleashClientImpl;
 import no.nav.common.job.leader_election.LeaderElectionClient;
@@ -28,10 +25,12 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClientImpl;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl;
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClient;
-import no.nav.veilarbvedtaksstotte.client.dokument.VeilarbdokumentClientImpl;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClientImpl;
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl;
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
@@ -63,11 +62,8 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarbdokumentClient dokumentClient(AuthContextHolder authContextHolder) {
-        return new VeilarbdokumentClientImpl(
-                naisPreprodOrNaisAdeoIngress("veilarbdokument", true),
-                authContextHolder
-        );
+    public PdfClient pdfClient() {
+        return new PdfClientImpl(createServiceUrl("pto-pdfgen", false));
     }
 
     @Bean
@@ -193,7 +189,7 @@ public class ClientConfig {
 
     @Bean
     public Norg2Client norg2Client(EnvironmentProperties properties) {
-        return new CachedNorg2Client(new NorgHttp2Client(properties.getNorg2Url()));
+        return new Norg2ClientImpl(properties.getNorg2Url());
     }
 
     @Bean
@@ -209,11 +205,5 @@ public class ClientConfig {
         return isProduction()
                 ? createNaisAdeoIngressUrl(appName, withAppContextPath)
                 : createNaisPreprodIngressUrl(appName, "q1", withAppContextPath);
-    }
-
-    private static String internalDevOrProdIngress(String appName) {
-        return isProduction()
-                ? createProdInternalIngressUrl(appName)
-                : createDevInternalIngressUrl(appName);
     }
 }

@@ -12,20 +12,20 @@ import java.util.Optional;
 @Service
 public class VeilederService {
 
-    private final VeilarbveilederClient veiledereOgEnhetClient;
+    private final VeilarbveilederClient veilarbveilederClient;
 
     @Autowired
-    public VeilederService(VeilarbveilederClient veiledereOgEnhetClient) {
-        this.veiledereOgEnhetClient = veiledereOgEnhetClient;
+    public VeilederService(VeilarbveilederClient veilarbveilederClient) {
+        this.veilarbveilederClient = veilarbveilederClient;
     }
 
     public Veileder hentVeileder(String veilederId) {
-        return veiledereOgEnhetClient.hentVeileder(veilederId);
+        return veilarbveilederClient.hentVeileder(veilederId);
     }
 
     public Optional<Veileder> hentVeilederEllerNull(String veilederId) {
         try {
-            return Optional.ofNullable(veiledereOgEnhetClient.hentVeileder(veilederId));
+            return Optional.ofNullable(veilarbveilederClient.hentVeileder(veilederId));
         } catch (RuntimeException e) {
             log.warn("Feil ved henting av veileder", e);
             return Optional.empty();
@@ -33,7 +33,7 @@ public class VeilederService {
     }
 
     public String hentEnhetNavn(String enhetId) {
-        return veiledereOgEnhetClient.hentEnhetNavn(enhetId);
+        return veilarbveilederClient.hentEnhetNavn(enhetId);
     }
 
 }

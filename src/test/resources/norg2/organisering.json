@@ -1,0 +1,32 @@
+[
+  {
+    "orgType": "ORG_TYPE_1",
+    "organiserer": {
+      "nr": "ENHET_NR_1",
+      "navn": "NAVN_1",
+      "gyldigFra": null
+    },
+    "fra": FRA_1,
+    "til": TIL_1
+  },
+  {
+    "orgType": "ORG_TYPE_2",
+    "organiserer": {
+      "nr": "ENHET_NR_2",
+      "navn": "NAVN_2",
+      "gyldigFra": null
+    },
+    "fra": FRA_2,
+    "til": TIL_2
+  },
+  {
+    "orgType": "ORG_TYPE_3",
+    "organiserer": {
+      "nr": "ENHET_NR_3",
+      "navn": "NAVN_3",
+      "gyldigFra": null
+    },
+    "fra": FRA_3,
+    "til": TIL_3
+  }
+]
