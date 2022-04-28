@@ -6,75 +6,95 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
+import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.UTKAST;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
+import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.mockito.Mockito.*;
 
-public class SlettUtkastScheduleTest {
+public class SlettUtkastScheduleTest extends DatabaseTest {
 
-    private LeaderElectionClient leaderElectionClient = mock(LeaderElectionClient.class);
+    private final LeaderElectionClient leaderElectionClient = mock(LeaderElectionClient.class);
 
-    private VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
+    private final VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
 
-    private AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
+    private final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
 
-    private VedtakService vedtakService = mock(VedtakService.class);
+    private final VedtakService vedtakService = mock(VedtakService.class);
 
-    private VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
+    static private VedtaksstotteRepository vedtaksstotteRepository;
 
-    private SlettUtkastSchedule slettUtkastSchedule = new SlettUtkastSchedule(
+    private final SlettUtkastSchedule slettUtkastSchedule = new SlettUtkastSchedule(
             leaderElectionClient, veilarboppfolgingClient,
             aktorOppslagClient, vedtakService, vedtaksstotteRepository
     );
 
+    @BeforeClass
+    public static void setup() {
+        vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
+    }
+
     @Test
     public void slettGamleUtkast__skal_slette_gammelt_utkast() {
-        Vedtak gammeltUtkast = new Vedtak();
-        gammeltUtkast.setAktorId("22222222");
-        gammeltUtkast.setVedtakStatus(VedtakStatus.UTKAST);
-        gammeltUtkast.setUtkastSistOppdatert(LocalDateTime.now().minusDays(30));
-
+        // skal slettes
+        AktorId aktorId = AktorId.of(randomNumeric(10));
+        Fnr fnr = Fnr.of(randomNumeric(11));
+        insertUtkast(aktorId, LocalDateTime.now().minusDays(30));
         OppfolgingPeriodeDTO oppfolgingPeriode = new OppfolgingPeriodeDTO();
         oppfolgingPeriode.setStartDato(ZonedDateTime.now().minusDays(50));
         oppfolgingPeriode.setSluttDato(ZonedDateTime.now().minusDays(30));
+        when(aktorOppslagClient.hentFnr(aktorId)).thenReturn(fnr);
+        when(veilarboppfolgingClient.hentOppfolgingsperioder(fnr.get())).thenReturn(List.of(oppfolgingPeriode));
 
-        when(vedtaksstotteRepository.hentUtkastEldreEnn(any())).thenReturn(List.of(gammeltUtkast));
-        when(vedtaksstotteRepository.hentGjeldendeVedtak(any())).thenReturn(null);
-        when(aktorOppslagClient.hentFnr(any(AktorId.class))).thenReturn(Fnr.of("test"));
-        when(veilarboppfolgingClient.hentOppfolgingsperioder(any())).thenReturn(List.of(oppfolgingPeriode));
+        // skal ikke slettes
+        AktorId aktorId2 = AktorId.of(randomNumeric(10));
+        Fnr fnr2 = Fnr.of(randomNumeric(11));
+        insertUtkast(aktorId2, LocalDateTime.now().minusDays(30));
+        OppfolgingPeriodeDTO oppfolgingPeriode2 = new OppfolgingPeriodeDTO();
+        oppfolgingPeriode2.setStartDato(ZonedDateTime.now().minusDays(50));
+        oppfolgingPeriode2.setSluttDato(ZonedDateTime.now().minusDays(27));
+        when(aktorOppslagClient.hentFnr(aktorId2)).thenReturn(fnr2);
+        when(veilarboppfolgingClient.hentOppfolgingsperioder(fnr2.get())).thenReturn(List.of(oppfolgingPeriode2));
+
 
         slettUtkastSchedule.slettGamleUtkast();
 
-        verify(vedtakService, times(1)).slettUtkast(any());
+        verify(vedtakService, times(1)).slettUtkast(argThat(utkast -> utkast.getAktorId().equals(aktorId.get())));
     }
 
     @Test
     public void slettGamleUtkast__skal_ikke_slette_utkast_innenfor_28_dager() {
-        Vedtak gammeltUtkast = new Vedtak();
-        gammeltUtkast.setAktorId("22222222");
-        gammeltUtkast.setVedtakStatus(VedtakStatus.UTKAST);
-        gammeltUtkast.setUtkastSistOppdatert(LocalDateTime.now().minusDays(30));
+        AktorId aktorId = AktorId.of(randomNumeric(10));
+        Fnr fnr = Fnr.of(randomNumeric(11));
+
+        insertUtkast(aktorId, LocalDateTime.now().minusDays(30));
 
         OppfolgingPeriodeDTO oppfolgingPeriode = new OppfolgingPeriodeDTO();
         oppfolgingPeriode.setStartDato(ZonedDateTime.now().minusDays(20));
         oppfolgingPeriode.setSluttDato(ZonedDateTime.now().minusDays(18));
 
-        when(vedtaksstotteRepository.hentUtkastEldreEnn(any())).thenReturn(List.of(gammeltUtkast));
-        when(vedtaksstotteRepository.hentGjeldendeVedtak(any())).thenReturn(null);
-        when(aktorOppslagClient.hentFnr(any(AktorId.class))).thenReturn(Fnr.of("test"));
-        when(veilarboppfolgingClient.hentOppfolgingsperioder(any())).thenReturn(List.of(oppfolgingPeriode));
+        when(aktorOppslagClient.hentFnr(aktorId)).thenReturn(Fnr.of("test"));
+        when(veilarboppfolgingClient.hentOppfolgingsperioder(fnr.get())).thenReturn(List.of(oppfolgingPeriode));
 
         slettUtkastSchedule.slettGamleUtkast();
 
         verify(vedtakService, never()).slettUtkast(any());
     }
 
+    private void insertUtkast(AktorId aktorId, LocalDateTime utkastSistOppdatert) {
+        String sql =
+                "INSERT INTO VEDTAK(AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, UTKAST_SIST_OPPDATERT)"
+                        + " values(?, ?, ?, ?, ?)";
+        jdbcTemplate.update(sql, aktorId.get(), TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, UTKAST.name(), utkastSistOppdatert);
+    }
 }
