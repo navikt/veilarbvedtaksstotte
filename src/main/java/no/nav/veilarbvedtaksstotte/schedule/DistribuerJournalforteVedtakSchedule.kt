@@ -8,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.service.UnleashService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.util.concurrent.TimeUnit
 
 @Component
 class DistribuerJournalforteVedtakSchedule(
@@ -19,8 +20,7 @@ class DistribuerJournalforteVedtakSchedule(
 
     val log = LoggerFactory.getLogger(DistribuerJournalforteVedtakSchedule::class.java)
 
-    // hvert minutt
-    @Scheduled(cron = "0 0/1 * * * *")
+    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     fun distribuerJournalforteVedtak() {
         if (leaderElection.isLeader && unleashService.isDokDistScheduleEnabled) {
             JobRunner.run("distribuer_journalforte_vedtak") {
@@ -40,7 +40,7 @@ class DistribuerJournalforteVedtakSchedule(
                         try {
                             distribusjonService.distribuerVedtak(it)
                         } catch (e: RuntimeException) {
-                            log.error("Distribusjon av vedtak med id ${it} feilet", e)
+                            log.error("Distribusjon av vedtak med id $it feilet", e)
                         }
                     }
                 }
