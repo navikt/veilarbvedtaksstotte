@@ -41,6 +41,7 @@ import org.junit.Test
 import org.junit.jupiter.api.Assertions
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
+import org.springframework.http.HttpStatus
 import java.time.LocalDate
 import java.util.*
 
@@ -105,6 +106,61 @@ class DokumentServiceTest {
         )
     )
 
+    val eksternJournalpostReferanse = UUID.randomUUID()
+    val forventetJournalpostRequest = """
+                {
+                  "tittel": "Tittel",
+                  "journalpostType": "UTGAAENDE",
+                  "tema": "OPP",
+                  "journalfoerendeEnhet": "ENHET_ID",
+                  "eksternReferanseId": "$eksternJournalpostReferanse",
+                  "avsenderMottaker": {
+                    "id": "fnr",
+                    "idType": "FNR"
+                  },
+                  "bruker": {
+                    "id": "fnr",
+                    "idType": "FNR"
+                  },
+                  "sak": {
+                    "fagsakId": "OPPF_SAK",
+                    "fagsaksystem": "AO01",
+                    "sakstype": "FAGSAK"
+                  },
+                  "dokumenter": [
+                    {
+                      "tittel": "Tittel",
+                      "brevkode": "SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID",
+                      "dokumentvarianter": [
+                        {
+                          "filtype": "PDFA",
+                          "fysiskDokument": "${Base64.encode(forventetBrev)}",
+                          "variantformat": "ARKIV"
+                        }
+                      ]
+                    }
+                  ]
+                }
+            """
+
+    val forventetJournalpostResponsJson = """
+                {
+                  "journalpostId": "JOURNALPOST_ID",
+                  "journalpostferdigstilt": true,
+                  "dokumenter": [
+                    {
+                      "dokumentInfoId": 123
+                    }
+                  ]
+                }
+            """
+
+    private val forventetJournalpostRespons = OpprettetJournalpostDTO(
+        journalpostId = "JOURNALPOST_ID",
+        journalpostferdigstilt = true,
+        dokumenter = listOf(OpprettetJournalpostDTO.DokumentInfoId("123"))
+    )
+
     @Before
     fun setup() {
         val wiremockUrl = "http://localhost:" + getWireMockRule().port()
@@ -130,6 +186,8 @@ class DokumentServiceTest {
             enhetInfoService = enhetInfoService,
             malTypeService = malTypeService
         )
+
+        `when`(systemUserTokenProvider.getSystemUserToken()).thenReturn("SYSTEM_USER_TOKEN")
 
         givenWiremockOkJsonResponse(
             "/api/v1/enhet/${enhetId}/kontaktinformasjon", EnhetKontaktinformasjon(enhetId, null, null).toJson()
@@ -234,69 +292,32 @@ class DokumentServiceTest {
 
     @Test
     fun `journalforing av dokument gir forventet innhold i request og response`() {
-        val forventetDokument = "dokument".toByteArray()
-        val referanse = UUID.randomUUID()
-        val forventetRequest = """
-                {
-                  "tittel": "Tittel",
-                  "journalpostType": "UTGAAENDE",
-                  "tema": "OPP",
-                  "journalfoerendeEnhet": "ENHET_ID",
-                  "eksternReferanseId": "$referanse",
-                  "avsenderMottaker": {
-                    "id": "fnr",
-                    "idType": "FNR"
-                  },
-                  "bruker": {
-                    "id": "fnr",
-                    "idType": "FNR"
-                  },
-                  "sak": {
-                    "fagsakId": "OPPF_SAK",
-                    "fagsaksystem": "AO01",
-                    "sakstype": "FAGSAK"
-                  },
-                  "dokumenter": [
-                    {
-                      "tittel": "Tittel",
-                      "brevkode": "SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID",
-                      "dokumentvarianter": [
-                        {
-                          "filtype": "PDFA",
-                          "fysiskDokument": "${Base64.encode(forventetDokument)}",
-                          "variantformat": "ARKIV"
-                        }
-                      ]
-                    }
-                  ]
-                }
-            """.trimIndent()
-
-        val responsJson = """
-                {
-                  "journalpostId": "JOURNALPOST_ID",
-                  "journalpostferdigstilt": true,
-                  "dokumenter": [
-                    {
-                      "dokumentInfoId": 123
-                    }
-                  ]
-                }
-            """.trimIndent()
-
-        `when`(systemUserTokenProvider.getSystemUserToken()).thenReturn("SYSTEM_USER_TOKEN")
-
         givenThat(
-            post(urlEqualTo("/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true")).withRequestBody(
-                equalToJson(
-                    forventetRequest
-                )
-            ).willReturn(
-                aResponse().withStatus(201).withBody(responsJson)
-            )
+            post(urlEqualTo("/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
+                .withRequestBody(equalToJson(forventetJournalpostRequest))
+                .willReturn(aResponse().withStatus(201).withBody(forventetJournalpostResponsJson))
         )
 
-        val respons = AuthContextHolderThreadLocal.instance()
+        val respons = journalførMedForventetRequest()
+
+        assertEquals(forventetJournalpostRespons, respons)
+    }
+
+    @Test
+    fun `journalforing håndterer at vedtak allerede er journalført (409 CONFLICT) dersom respons inneholder journalpost`() {
+        givenThat(
+            post(urlEqualTo("/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
+                .withRequestBody(equalToJson(forventetJournalpostRequest))
+                .willReturn(aResponse().withStatus(HttpStatus.CONFLICT.value()).withBody(forventetJournalpostResponsJson))
+        )
+
+        val respons = journalførMedForventetRequest()
+
+        assertEquals(forventetJournalpostRespons, respons)
+    }
+
+    private fun journalførMedForventetRequest(): OpprettetJournalpostDTO {
+        return AuthContextHolderThreadLocal.instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                 dokumentService.journalforDokument(
                     tittel = "Tittel",
@@ -304,17 +325,9 @@ class DokumentServiceTest {
                     fnr = Fnr("fnr"),
                     oppfolgingssak = "OPPF_SAK",
                     malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
-                    dokument = forventetDokument,
-                    referanse = referanse
+                    dokument = forventetBrev,
+                    referanse = eksternJournalpostReferanse
                 )
             })
-
-        val forventetRespons = OpprettetJournalpostDTO(
-            journalpostId = "JOURNALPOST_ID",
-            journalpostferdigstilt = true,
-            dokumenter = listOf(OpprettetJournalpostDTO.DokumentInfoId("123"))
-        )
-
-        assertEquals(forventetRespons, respons)
     }
 }
