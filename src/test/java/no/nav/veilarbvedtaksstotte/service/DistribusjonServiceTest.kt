@@ -17,6 +17,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.springframework.http.HttpStatus
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.CountDownLatch
@@ -126,6 +127,23 @@ class DistribusjonServiceTest : DatabaseTest() {
         ) {
             distribusjonService.validerVedtakForDistribusjon(vedtak)
         }
+    }
+
+    @Test
+    fun `dersom dokdist feiler med statuskode 409 og bestillingsId i respons fordi vedtaket allerede er distribuert, så lagres bestillingsId`() {
+        val vedtakId = gittFattetVedtakDer()
+
+        val respons = DistribuerJournalpostResponsDTO(UUID.randomUUID().toString())
+        gittResponseFraDistribuerjournalpost(respons = respons, status = HttpStatus.CONFLICT.value())
+
+        val forventetBestillingId = respons.bestillingsId
+
+        distribusjonService.distribuerVedtak(vedtakId)
+
+        val vedtak = vedtakRepository.hentVedtak(vedtakId)
+
+        assertEquals(forventetBestillingId, vedtak.dokumentbestillingId)
+        assertFalse(vedtak.isSender)
     }
 
     @Test
