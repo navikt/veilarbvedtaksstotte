@@ -53,8 +53,8 @@ class DokdistribusjonClientImpl(
     fun throwIfNotSuccessful(response: Response) {
         if (response.code == HttpStatus.CONFLICT.value()) {
             log.warn(
-                "Status 409 i respons fra distribuerjournalpost: Vedtaket er allerede distribuert. " +
-                        "Forsøker å lagre bestillingsId fra respons."
+                "Status 409 CONFLICT i respons fra distribuerjournalpost: Vedtaket er allerede distribuert. " +
+                        "Forsøker å hente bestillingsId fra respons."
             )
         } else {
             RestUtils.throwIfNotSuccessful(response)
