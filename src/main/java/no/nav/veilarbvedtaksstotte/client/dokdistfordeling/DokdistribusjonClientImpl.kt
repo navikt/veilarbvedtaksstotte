@@ -10,8 +10,10 @@ import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import java.util.function.Supplier
 
 class DokdistribusjonClientImpl(
@@ -31,7 +33,7 @@ class DokdistribusjonClientImpl(
             .build()
 
         client.newCall(request).execute().use { response ->
-            RestUtils.throwIfNotSuccessful(response)
+            throwIfNotSuccessful(response)
             return try {
                 response.body.use { responseBody ->
                     return responseBody
@@ -45,6 +47,17 @@ class DokdistribusjonClientImpl(
                 log.error("Klarte ikke lese respons", e)
                 null
             }
+        }
+    }
+
+    fun throwIfNotSuccessful(response: Response) {
+        if (response.code == HttpStatus.CONFLICT.value()) {
+            log.warn(
+                "Status 409 CONFLICT i respons fra distribuerjournalpost: Vedtaket er allerede distribuert. " +
+                        "Forsøker å hente bestillingsId fra respons."
+            )
+        } else {
+            RestUtils.throwIfNotSuccessful(response)
         }
     }
 

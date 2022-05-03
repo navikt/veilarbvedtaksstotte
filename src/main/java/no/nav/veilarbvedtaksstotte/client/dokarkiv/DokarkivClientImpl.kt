@@ -14,13 +14,19 @@ import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 
 class DokarkivClientImpl(
     val dokarkivUrl: String,
     val systemUserTokenProvider: SystemUserTokenProvider,
     val authContextHolder: AuthContextHolder
 ) : DokarkivClient {
+
+    val log: Logger = LoggerFactory.getLogger(DokarkivClientImpl::class.java)
 
     val client: OkHttpClient = RestClient.baseClient()
 
@@ -33,8 +39,19 @@ class DokarkivClientImpl(
             .build()
 
         client.newCall(request).execute().use { response ->
-            RestUtils.throwIfNotSuccessful(response)
+            throwIfNotSuccessful(response)
             return response.deserializeJsonOrThrow()
+        }
+    }
+
+    fun throwIfNotSuccessful(response: Response) {
+        if (response.code == HttpStatus.CONFLICT.value()) {
+            log.warn(
+                "Status 409 CONFLICT i respons fra journalpostapi: Vedtaket er allerede journalført. " +
+                        "Forsøker å hente journalpost fra respons."
+            )
+        } else {
+            RestUtils.throwIfNotSuccessful(response)
         }
     }
 
