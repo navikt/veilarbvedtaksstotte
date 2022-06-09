@@ -19,13 +19,13 @@ public class VeilarbarenaService {
     }
 
     public Optional<EnhetId> hentOppfolgingsenhet(Fnr fnr) {
-        return ofNullable(veilarbarenaClient.hentOppfolgingsbruker(fnr))
+        return veilarbarenaClient.hentOppfolgingsbruker(fnr)
                 .map(VeilarbArenaOppfolging::getNavKontor)
                 .map(EnhetId::of);
     }
 
     public Optional<String> hentFormidlingsgruppekode(Fnr fnr) {
-        return ofNullable(veilarbarenaClient.hentOppfolgingsbruker(fnr))
+        return veilarbarenaClient.hentOppfolgingsbruker(fnr)
                 .map(VeilarbArenaOppfolging::getFormidlingsgruppekode);
     }
 

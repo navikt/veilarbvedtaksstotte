@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.*
+import java.util.function.Supplier
 
 @Service
 class DokumentService(
@@ -50,6 +51,7 @@ class DokumentService(
         val dokument = produserDokument(produserDokumentDTO)
         val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
         val oppfolgingssak = veilarbarenaClient.oppfolgingssak(fnr)
+            .orElseThrow { throw IllegalStateException("Det finnes ingen oppfolgingssak i arena for vedtak id: ${vedtak.id}") }
 
         return journalforDokument(
             tittel = tittel,
