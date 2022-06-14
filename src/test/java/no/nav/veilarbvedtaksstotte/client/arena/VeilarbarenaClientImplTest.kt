@@ -9,9 +9,11 @@ import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSSAK
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.*
 
 class VeilarbarenaClientImplTest {
 
@@ -50,7 +52,7 @@ class VeilarbarenaClientImplTest {
         val oppfolgingssak = AuthContextHolderThreadLocal
             .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                veilarbarenaClient.oppfolgingssak(TEST_FNR)
+                veilarbarenaClient.oppfolgingssak(TEST_FNR).get()
             })
 
         assertEquals(oppfolgingssak, TEST_OPPFOLGINGSSAK)
@@ -72,9 +74,8 @@ class VeilarbarenaClientImplTest {
                 veilarbarenaClient.oppfolgingssak(TEST_FNR)
             })
     }
-
-    @Test(expected = IllegalStateException::class)
-    fun `hent oppfoglingssak feiler dersom respons er 404`() {
+    @Test
+    fun `hent oppfoglingssak er tom dersom respons er 404`() {
 
         WireMock.givenThat(
             WireMock.get(WireMock.urlEqualTo("/api/oppfolgingssak/$TEST_FNR"))
@@ -83,10 +84,12 @@ class VeilarbarenaClientImplTest {
                 )
         )
 
-        AuthContextHolderThreadLocal
+        val oppfolgingssak = AuthContextHolderThreadLocal
             .instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                 veilarbarenaClient.oppfolgingssak(TEST_FNR)
             })
+
+        assertTrue(oppfolgingssak.isEmpty)
     }
 }
