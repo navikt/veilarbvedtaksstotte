@@ -13,10 +13,6 @@ public class EnvironmentProperties {
 
     private String veilarbloginOpenAmClientId;
 
-    private String aadDiscoveryUrl;
-
-    private String veilarbloginAadClientId;
-
     private String stsDiscoveryUrl;
 
     private String openAmRefreshUrl;
@@ -28,5 +24,9 @@ public class EnvironmentProperties {
     private String unleashUrl;
 
     private String norg2Url;
+
+    private String naisAadDiscoveryUrl;
+
+    private String naisAadClientId;
 
 }
