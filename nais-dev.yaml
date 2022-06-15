@@ -11,6 +11,7 @@ spec:
   webproxy: true
   leaderElection: true
   ingresses:
+    - https://veilarbvedtaksstotte.dev-fss-pub.nais.io
     - https://app.dev.adeo.no/veilarbvedtaksstotte
     - https://app-q1.dev.adeo.no/veilarbvedtaksstotte
     - https://app-q1.adeo.no/veilarbvedtaksstotte
@@ -56,5 +57,14 @@ spec:
   azure:
     application:
       enabled: true
+      claims:
+        extra:
+          - "NAVident"
+    accessPolicy:
+      inbound:
+        rules:
+          - application: veilarbportefoljeflatefs
+            namespace: obo
+            cluster: dev-gcp
   envFrom:
     - configmap: pto-config
