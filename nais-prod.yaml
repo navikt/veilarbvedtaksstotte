@@ -58,11 +58,11 @@ spec:
       claims:
         extra:
           - "NAVident"
-    accessPolicy:
-      inbound:
-        rules:
-          - application: veilarbportefoljeflatefs
-            namespace: obo
-            cluster: prod-gcp
+  accessPolicy:
+    inbound:
+      rules:
+        - application: veilarbportefoljeflatefs
+          namespace: obo
+          cluster: prod-gcp
   envFrom:
     - configmap: pto-config
