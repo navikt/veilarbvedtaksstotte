@@ -64,5 +64,8 @@ spec:
         - application: veilarbportefoljeflatefs
           namespace: obo
           cluster: prod-gcp
+        - application: veilarbportefolje
+          namespace: pto
+          cluster: prod-fss
   envFrom:
     - configmap: pto-config
