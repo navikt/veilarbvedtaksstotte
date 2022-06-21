@@ -67,5 +67,8 @@ spec:
         - application: veilarbportefolje
           namespace: pto
           cluster: prod-fss
+        - application: veilarbpersonflate
+          namespace: poao
+          cluster: prod-gcp
   envFrom:
     - configmap: pto-config
