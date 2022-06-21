@@ -27,7 +27,7 @@ class VeilarbarenaClientImplTest {
     @Before
     fun setup() {
         val wiremockUrl = "http://localhost:" + getWireMockRule().port()
-        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
+        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl, UserTokenProviderArena { "" })
     }
 
     @Test
@@ -49,11 +49,7 @@ class VeilarbarenaClientImplTest {
                 )
         )
 
-        val oppfolgingssak = AuthContextHolderThreadLocal
-            .instance()
-            .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                veilarbarenaClient.oppfolgingssak(TEST_FNR).get()
-            })
+        val oppfolgingssak = veilarbarenaClient.oppfolgingssak(TEST_FNR).get()
 
         assertEquals(oppfolgingssak, TEST_OPPFOLGINGSSAK)
     }
@@ -68,11 +64,7 @@ class VeilarbarenaClientImplTest {
                 )
         )
 
-        AuthContextHolderThreadLocal
-            .instance()
-            .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                veilarbarenaClient.oppfolgingssak(TEST_FNR)
-            })
+        veilarbarenaClient.oppfolgingssak(TEST_FNR)
     }
     @Test
     fun `hent oppfoglingssak er tom dersom respons er 404`() {
@@ -84,11 +76,7 @@ class VeilarbarenaClientImplTest {
                 )
         )
 
-        val oppfolgingssak = AuthContextHolderThreadLocal
-            .instance()
-            .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
-                veilarbarenaClient.oppfolgingssak(TEST_FNR)
-            })
+        val oppfolgingssak = veilarbarenaClient.oppfolgingssak(TEST_FNR)
 
         assertTrue(oppfolgingssak.isEmpty)
     }

@@ -100,7 +100,7 @@ public class VedtakServiceTest extends DatabaseTest {
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
-        authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaService, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
+        authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaService, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService, null, null));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
         DokumentService dokumentService = new DokumentService(

@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <common.version>2.2022.05.31_07.13-5812471780dc</common.version>
+        <common.version>2.2022.06.20_04.34-44e077dc9a78</common.version>
         <kotlin.version>1.6.21</kotlin.version>
         <testcontainers.version>1.16.3</testcontainers.version>
 
@@ -201,6 +201,11 @@
         <dependency>
             <groupId>no.nav.common</groupId>
             <artifactId>client</artifactId>
+            <version>${common.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.common</groupId>
+            <artifactId>token-client</artifactId>
             <version>${common.version}</version>
         </dependency>
         <dependency>

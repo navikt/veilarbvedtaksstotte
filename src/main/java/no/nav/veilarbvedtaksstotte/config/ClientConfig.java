@@ -15,8 +15,11 @@ import no.nav.common.metrics.MetricsClient;
 import no.nav.common.sts.ServiceToServiceTokenProvider;
 import no.nav.common.sts.SystemUserTokenProvider;
 import no.nav.common.sts.utils.AzureAdServiceTokenProviderBuilder;
+import no.nav.common.token_client.builder.AzureAdTokenClientBuilder;
+import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.EnvironmentUtils;
+import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderArena;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
@@ -47,6 +50,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.function.Supplier;
 
+import static no.nav.common.utils.EnvironmentUtils.requireClusterName;
 import static no.nav.common.utils.UrlUtils.*;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 
@@ -54,10 +58,10 @@ import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_N
 public class ClientConfig {
 
     @Bean
-    public VeilarbarenaClient arenaClient(AuthContextHolder authContextHolder) {
+    public VeilarbarenaClient arenaClient(UserTokenProviderArena userTokenProviderArena) {
         return new VeilarbarenaClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbarena", true),
-                authContextHolder
+                userTokenProviderArena
         );
     }
 
@@ -195,6 +199,18 @@ public class ClientConfig {
     @Bean
     public AbacClient abacClient(EnvironmentProperties properties, Credentials serviceUserCredentials) {
         return new AbacCachedClient(new AbacHttpClient(properties.getAbacUrl(), serviceUserCredentials.username, serviceUserCredentials.password));
+    }
+
+    @Bean
+    public UserTokenProviderArena userTokenProviderPdl(AuthService authService) {
+        return new UserTokenProviderArena(authService, requireClusterName());
+    }
+
+    @Bean
+    public AzureAdOnBehalfOfTokenClient azureAdOnBehalfOfTokenClient() {
+        return AzureAdTokenClientBuilder.builder()
+                .withNaisDefaults()
+                .buildOnBehalfOfTokenClient();
     }
 
     private static boolean isProduction() {
