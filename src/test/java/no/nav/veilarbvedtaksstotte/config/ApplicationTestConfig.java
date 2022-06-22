@@ -16,6 +16,7 @@ import no.nav.common.metrics.MetricsClient;
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderArena;
+import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderVeilarbveileder;
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock;
@@ -159,6 +160,11 @@ public class ApplicationTestConfig {
     @Bean
     public UserTokenProviderArena userTokenProviderArena() {
         return new UserTokenProviderArena(() -> "");
+    }
+
+    @Bean
+    public UserTokenProviderVeilarbveileder userTokenProviderVeilarbveileder() {
+        return new UserTokenProviderVeilarbveileder(() -> "");
     }
 
     @Bean

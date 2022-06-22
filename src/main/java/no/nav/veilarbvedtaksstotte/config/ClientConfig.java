@@ -20,6 +20,7 @@ import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderArena;
+import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderVeilarbveileder;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
@@ -109,10 +110,11 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarbveilederClient veilederOgEnhetClient(AuthContextHolder authContextHolder) {
+    public VeilarbveilederClient veilederOgEnhetClient(AuthContextHolder authContextHolder, UserTokenProviderVeilarbveileder userTokenProviderVeilarbveileder) {
         return new VeilarbveilederClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbveileder", true),
-                authContextHolder
+                authContextHolder,
+                userTokenProviderVeilarbveileder
         );
     }
 
@@ -202,8 +204,13 @@ public class ClientConfig {
     }
 
     @Bean
-    public UserTokenProviderArena userTokenProviderPdl(AuthService authService) {
+    public UserTokenProviderArena userTokenProviderArena(AuthService authService) {
         return new UserTokenProviderArena(authService, requireClusterName());
+    }
+
+    @Bean
+    public UserTokenProviderVeilarbveileder userTokenProviderVeilarbveileder(AuthService authService) {
+        return new UserTokenProviderVeilarbveileder(authService, requireClusterName());
     }
 
     @Bean

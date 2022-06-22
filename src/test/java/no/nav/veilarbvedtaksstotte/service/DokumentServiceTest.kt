@@ -13,6 +13,7 @@ import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderArena
+import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderVeilarbveileder
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -172,7 +173,7 @@ class DokumentServiceTest {
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl,  UserTokenProviderArena { "" })
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl) { "" }
-        veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
+        veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), UserTokenProviderVeilarbveileder { "" })
         pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)
         enhetInfoService = EnhetInfoService(norg2Client)
