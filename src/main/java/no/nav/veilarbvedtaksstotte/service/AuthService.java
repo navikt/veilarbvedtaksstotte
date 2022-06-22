@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static no.nav.common.utils.AuthUtils.bearerToken;
+
 @Slf4j
 @Service
 public class AuthService {
@@ -222,6 +224,7 @@ public class AuthService {
 
         return enhet.get();
     }
+
     public Supplier<String> contextAwareUserTokenSupplier(DownstreamApi receivingApp) {
         final String azureAdIssuer = environmentProperties.getNaisAadIssuer();
         return () -> {
@@ -229,9 +232,9 @@ public class AuthService {
             String tokenIssuer = authContextHolder.getIdTokenClaims()
                     .map(JWTClaimsSet::getIssuer)
                     .orElseThrow();
-            return azureAdIssuer.equals(tokenIssuer)
+            return bearerToken(azureAdIssuer.equals(tokenIssuer)
                     ? getAadOboTokenForTjeneste(token, receivingApp)
-                    : token;
+                    : token);
         };
     }
 

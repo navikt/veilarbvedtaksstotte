@@ -6,6 +6,7 @@ import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.test.auth.AuthTestUtils.createAuthContext
 import no.nav.common.utils.fn.UnsafeSupplier
+import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderVeilarbveileder
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import org.junit.Assert
@@ -29,7 +30,11 @@ class VeilarbveilederClientImplTest {
     fun setup() {
         JsonUtils.init()
         authContextHolder = AuthContextHolderThreadLocal.instance()
-        veilederClient = VeilarbveilederClientImpl("http://localhost:" + getWireMockRule().port(),authContextHolder)
+        veilederClient = VeilarbveilederClientImpl(
+            "http://localhost:" + getWireMockRule().port(),
+            authContextHolder,
+            UserTokenProviderVeilarbveileder { "" }
+        )
     }
 
     @Test
@@ -41,9 +46,10 @@ class VeilarbveilederClientImplTest {
             }"""
 
         givenWiremockOkJsonResponse("/api/veileder/$veilederIdent", json)
-        val veilederNavnResponse = authContextHolder.withContext(createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-            veilederClient.hentVeileder(veilederIdent)
-        })
+        val veilederNavnResponse =
+            authContextHolder.withContext(createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
+                veilederClient.hentVeileder(veilederIdent)
+            })
 
         Assert.assertEquals(Veileder(veilederIdent, veilederNavn), veilederNavnResponse)
     }
