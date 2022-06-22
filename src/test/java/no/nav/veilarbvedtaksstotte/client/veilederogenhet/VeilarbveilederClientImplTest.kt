@@ -3,10 +3,6 @@ package no.nav.veilarbvedtaksstotte.client.veilederogenhet
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
-import no.nav.common.auth.context.UserRole
-import no.nav.common.test.auth.AuthTestUtils.createAuthContext
-import no.nav.common.utils.fn.UnsafeSupplier
-import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderVeilarbveileder
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import org.junit.Assert
@@ -32,9 +28,8 @@ class VeilarbveilederClientImplTest {
         authContextHolder = AuthContextHolderThreadLocal.instance()
         veilederClient = VeilarbveilederClientImpl(
             "http://localhost:" + getWireMockRule().port(),
-            authContextHolder,
-            UserTokenProviderVeilarbveileder { "" }
-        )
+            authContextHolder
+        ) { "" }
     }
 
     @Test

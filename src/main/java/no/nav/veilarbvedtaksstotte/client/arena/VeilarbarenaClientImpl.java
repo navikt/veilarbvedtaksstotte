@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.arena;
 
 import lombok.Value;
-import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
@@ -21,7 +20,6 @@ import java.util.function.Supplier;
 
 import static no.nav.common.rest.client.RestUtils.parseJsonResponseOrThrow;
 import static no.nav.common.utils.UrlUtils.joinPaths;
-import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 public class VeilarbarenaClientImpl implements VeilarbarenaClient {
@@ -32,10 +30,10 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
     private final Supplier<String> userTokenProvider;
 
-    public VeilarbarenaClientImpl(String veilarbarenaUrl, UserTokenProviderArena userTokenProviderArena) {
+    public VeilarbarenaClientImpl(String veilarbarenaUrl, Supplier<String> userTokenProvider) {
         this.veilarbarenaUrl = veilarbarenaUrl;
         this.client = RestClient.baseClient();
-        this.userTokenProvider = userTokenProviderArena.get();
+        this.userTokenProvider = userTokenProvider;
     }
 
     @Cacheable(CacheConfig.ARENA_BRUKER_CACHE_NAME)

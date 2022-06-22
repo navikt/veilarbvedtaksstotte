@@ -15,8 +15,6 @@ import no.nav.common.kafka.util.KafkaPropertiesBuilder;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient;
 import no.nav.common.utils.Credentials;
-import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderArena;
-import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderVeilarbveileder;
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock;
@@ -26,7 +24,6 @@ import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -155,16 +152,6 @@ public class ApplicationTestConfig {
         return new KafkaConfig.KafkaAvroContext().setConfig(
                 Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://testurl",
                         KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true));
-    }
-
-    @Bean
-    public UserTokenProviderArena userTokenProviderArena() {
-        return new UserTokenProviderArena(() -> "");
-    }
-
-    @Bean
-    public UserTokenProviderVeilarbveileder userTokenProviderVeilarbveileder() {
-        return new UserTokenProviderVeilarbveileder(() -> "");
     }
 
     @Bean

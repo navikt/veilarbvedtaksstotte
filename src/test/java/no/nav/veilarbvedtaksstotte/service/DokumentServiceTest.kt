@@ -12,8 +12,6 @@ import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
-import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderArena
-import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderVeilarbveileder
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -170,10 +168,10 @@ class DokumentServiceTest {
         regoppslagClient = RegoppslagClientImpl(wiremockUrl, systemUserTokenProvider)
         dokarkivClient =
             DokarkivClientImpl(wiremockUrl, systemUserTokenProvider, AuthContextHolderThreadLocal.instance())
-        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl,  UserTokenProviderArena { "" })
+        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl)  { "" }
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl) { "" }
-        veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), UserTokenProviderVeilarbveileder { "" })
+        veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance()) { "" }
         pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)
         enhetInfoService = EnhetInfoService(norg2Client)

@@ -19,8 +19,7 @@ import no.nav.common.token_client.builder.AzureAdTokenClientBuilder;
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.EnvironmentUtils;
-import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderArena;
-import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderVeilarbveileder;
+import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
@@ -46,6 +45,7 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
+import no.nav.veilarbvedtaksstotte.service.ContextAwareService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -59,10 +59,13 @@ import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_N
 public class ClientConfig {
 
     @Bean
-    public VeilarbarenaClient arenaClient(UserTokenProviderArena userTokenProviderArena) {
+    public VeilarbarenaClient arenaClient(ContextAwareService contextAwareService) {
+        Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
+                DownstreamAPIs.getArena().invoke(requireClusterName())
+        );
         return new VeilarbarenaClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbarena", true),
-                userTokenProviderArena
+                userTokenSupplier
         );
     }
 
@@ -110,11 +113,14 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarbveilederClient veilederOgEnhetClient(AuthContextHolder authContextHolder, UserTokenProviderVeilarbveileder userTokenProviderVeilarbveileder) {
+    public VeilarbveilederClient veilederOgEnhetClient(AuthContextHolder authContextHolder, ContextAwareService contextAwareService) {
+        Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
+                DownstreamAPIs.getVeilarbveileder().invoke(requireClusterName())
+        );
         return new VeilarbveilederClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbveileder", true),
                 authContextHolder,
-                userTokenProviderVeilarbveileder
+                userTokenSupplier
         );
     }
 
@@ -201,16 +207,6 @@ public class ClientConfig {
     @Bean
     public AbacClient abacClient(EnvironmentProperties properties, Credentials serviceUserCredentials) {
         return new AbacCachedClient(new AbacHttpClient(properties.getAbacUrl(), serviceUserCredentials.username, serviceUserCredentials.password));
-    }
-
-    @Bean
-    public UserTokenProviderArena userTokenProviderArena(AuthService authService) {
-        return new UserTokenProviderArena(authService, requireClusterName());
-    }
-
-    @Bean
-    public UserTokenProviderVeilarbveileder userTokenProviderVeilarbveileder(AuthService authService) {
-        return new UserTokenProviderVeilarbveileder(authService, requireClusterName());
     }
 
     @Bean

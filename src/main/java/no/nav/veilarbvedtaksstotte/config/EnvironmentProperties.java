@@ -29,6 +29,6 @@ public class EnvironmentProperties {
 
     private String naisAadClientId;
 
-    private String naisAadIssuer;
+    public String naisAadIssuer;
 
 }
