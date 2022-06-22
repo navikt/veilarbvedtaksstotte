@@ -7,7 +7,6 @@ import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.utils.UrlUtils;
-import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderVeilarbveileder;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -18,7 +17,6 @@ import org.springframework.http.HttpHeaders;
 import java.util.function.Supplier;
 
 import static no.nav.common.utils.UrlUtils.joinPaths;
-import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
 public class VeilarbveilederClientImpl implements VeilarbveilederClient {
 
@@ -29,11 +27,11 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
     private final AuthContextHolder authContextHolder;
     private final Supplier<String> userTokenProvider;
 
-    public VeilarbveilederClientImpl(String veilarbveilederUrl, AuthContextHolder authContextHolder, UserTokenProviderVeilarbveileder userTokenProvider) {
+    public VeilarbveilederClientImpl(String veilarbveilederUrl, AuthContextHolder authContextHolder, Supplier<String> userTokenProvider) {
         this.veilarbveilederUrl = veilarbveilederUrl;
         this.client = RestClient.baseClient();
         this.authContextHolder = authContextHolder;
-        this.userTokenProvider = userTokenProvider.get();
+        this.userTokenProvider = userTokenProvider;
     }
 
     @Cacheable(CacheConfig.ENHET_NAVN_CACHE_NAME)

@@ -30,7 +30,7 @@ class AuthServiceTest {
     var veilarbarenaService = Mockito.mock(VeilarbarenaService::class.java)
     var utrullingService = Mockito.mock(UtrullingService::class.java)
     var authService =
-        AuthService(aktorOppslagClient, pep, veilarbarenaService, null, null, authContextHolder, utrullingService, null, null)
+        AuthService(aktorOppslagClient, pep, veilarbarenaService, null, null, authContextHolder, utrullingService)
 
     @Before
     fun setup() {
