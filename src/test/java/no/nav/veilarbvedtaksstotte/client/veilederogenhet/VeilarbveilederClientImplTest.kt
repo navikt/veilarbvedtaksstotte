@@ -46,10 +46,7 @@ class VeilarbveilederClientImplTest {
             }"""
 
         givenWiremockOkJsonResponse("/api/veileder/$veilederIdent", json)
-        val veilederNavnResponse =
-            authContextHolder.withContext(createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                veilederClient.hentVeileder(veilederIdent)
-            })
+        val veilederNavnResponse = veilederClient.hentVeileder(veilederIdent)
 
         Assert.assertEquals(Veileder(veilederIdent, veilederNavn), veilederNavnResponse)
     }
