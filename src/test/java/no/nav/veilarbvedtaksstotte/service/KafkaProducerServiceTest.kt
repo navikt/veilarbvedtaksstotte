@@ -3,10 +3,12 @@ package no.nav.veilarbvedtaksstotte.service
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
+import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.common.types.identer.AktorId
 import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvh
 import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhHovedmalKode
 import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhInnsatsgruppeKode
+import no.nav.veilarbvedtaksstotte.client.arena.UserTokenProviderArena
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
 import no.nav.veilarbvedtaksstotte.config.KafkaConfig
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties

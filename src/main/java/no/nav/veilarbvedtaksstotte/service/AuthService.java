@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.Pep;
@@ -19,14 +20,17 @@ import no.nav.common.abac.domain.response.XacmlResponse;
 import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
+import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.Pair;
+import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.utils.DownstreamApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -49,6 +53,9 @@ public class AuthService {
     private final Credentials serviceUserCredentials;
     private final AuthContextHolder authContextHolder;
     private final UtrullingService utrullingService;
+    private final EnvironmentProperties environmentProperties;
+
+    private final AzureAdOnBehalfOfTokenClient aadOboTokenClient;
 
     @Autowired
     public AuthService(
@@ -58,7 +65,9 @@ public class AuthService {
             AbacClient abacClient,
             Credentials serviceUserCredentials,
             AuthContextHolder authContextHolder,
-            UtrullingService utrullingService) {
+            UtrullingService utrullingService,
+            EnvironmentProperties environmentProperties,
+            AzureAdOnBehalfOfTokenClient aadOboTokenClient) {
         this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbPep = veilarbPep;
         this.veilarbarenaService = veilarbarenaService;
@@ -66,6 +75,8 @@ public class AuthService {
         this.serviceUserCredentials = serviceUserCredentials;
         this.authContextHolder = authContextHolder;
         this.utrullingService = utrullingService;
+        this.environmentProperties = environmentProperties;
+        this.aadOboTokenClient = aadOboTokenClient;
     }
 
     public void sjekkTilgangTilBruker(Fnr fnr) {
@@ -210,5 +221,22 @@ public class AuthService {
         }
 
         return enhet.get();
+    }
+    public Supplier<String> contextAwareUserTokenSupplier(DownstreamApi receivingApp) {
+        final String azureAdIssuer = environmentProperties.getNaisAadIssuer();
+        return () -> {
+            String token = authContextHolder.requireIdTokenString();
+            String tokenIssuer = authContextHolder.getIdTokenClaims()
+                    .map(JWTClaimsSet::getIssuer)
+                    .orElseThrow();
+            return azureAdIssuer.equals(tokenIssuer)
+                    ? getAadOboTokenForTjeneste(token, receivingApp)
+                    : token;
+        };
+    }
+
+    private String getAadOboTokenForTjeneste(String token, DownstreamApi api) {
+        String scope = "api://" + api.cluster + "." + api.namespace + "." + api.serviceName + "/.default";
+        return aadOboTokenClient.exchangeOnBehalfOfToken(scope, token);
     }
 }

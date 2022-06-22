@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static no.nav.common.rest.client.RestUtils.parseJsonResponseOrThrow;
 import static no.nav.common.utils.UrlUtils.joinPaths;
@@ -29,20 +30,19 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
     private final OkHttpClient client;
 
-    private final AuthContextHolder authContextHolder;
+    private final Supplier<String> userTokenProvider;
 
-    public VeilarbarenaClientImpl(String veilarbarenaUrl,
-                                  AuthContextHolder authContextHolder) {
+    public VeilarbarenaClientImpl(String veilarbarenaUrl, UserTokenProviderArena userTokenProviderArena) {
         this.veilarbarenaUrl = veilarbarenaUrl;
         this.client = RestClient.baseClient();
-        this.authContextHolder = authContextHolder;
+        this.userTokenProvider = userTokenProviderArena.get();
     }
 
     @Cacheable(CacheConfig.ARENA_BRUKER_CACHE_NAME)
     public Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr){
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbarenaUrl, "/api/oppfolgingsbruker/", fnr.get()))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+                .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
@@ -65,7 +65,7 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
     public Optional<String> oppfolgingssak(Fnr fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbarenaUrl, "api", "oppfolgingssak", fnr.get()))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+                .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
