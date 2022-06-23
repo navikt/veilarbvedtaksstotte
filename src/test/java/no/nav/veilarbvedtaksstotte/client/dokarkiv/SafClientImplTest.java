@@ -23,7 +23,7 @@ public class SafClientImplTest {
     public void hentJournalposter__skalReturnereJournalposter() {
         String journalposterJson = TestUtils.readTestResourceFile("saf-client-journalposter.json");
         String apiUrl = "http://localhost:" + wireMockRule.port();
-        SafClient safClient = new SafClientImpl(apiUrl, AuthContextHolderThreadLocal.instance());
+        SafClient safClient = new SafClientImpl(apiUrl, () -> "");
 
         givenThat(post(urlEqualTo("/graphql"))
                 .willReturn(aResponse()
@@ -32,24 +32,20 @@ public class SafClientImplTest {
         );
 
 
-        AuthContextHolderThreadLocal
-                .instance()
-                .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), () -> {
-            List<Journalpost> journalposter = safClient.hentJournalposter(TestData.TEST_FNR);
+        List<Journalpost> journalposter = safClient.hentJournalposter(TestData.TEST_FNR);
 
-            assertTrue(journalposter.stream().anyMatch(j ->
-                    "212934817".equals(j.journalpostId) && "417324785".equals(j.dokumenter[0].dokumentInfoId)
-            ));
-            assertTrue(journalposter.stream().anyMatch(j ->
-                    "1133493487".equals(j.journalpostId) && "31235785".equals(j.dokumenter[0].dokumentInfoId)
-            ));
-        });
+        assertTrue(journalposter.stream().anyMatch(j ->
+                "212934817".equals(j.journalpostId) && "417324785".equals(j.dokumenter[0].dokumentInfoId)
+        ));
+        assertTrue(journalposter.stream().anyMatch(j ->
+                "1133493487".equals(j.journalpostId) && "31235785".equals(j.dokumenter[0].dokumentInfoId)
+        ));
     }
 
     @Test(expected = RuntimeException.class)
     public void hentJournalposter__skalKasteExceptionPaErrorStatus() {
         String apiUrl = "http://localhost:" + wireMockRule.port();
-        SafClient safClient = new SafClientImpl(apiUrl, AuthContextHolderThreadLocal.instance());
+        SafClient safClient = new SafClientImpl(apiUrl,  () -> "");
 
         givenThat(post(urlEqualTo("/graphql")).willReturn(aResponse().withStatus(500)));
 
