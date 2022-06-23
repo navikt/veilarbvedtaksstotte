@@ -8,5 +8,5 @@ object DownstreamAPIs {
     @JvmStatic
     val veilarbveileder:(String) -> DownstreamApi =  {DownstreamApi(it, "pto", "veilarbveileder")}
     @JvmStatic
-    val saf:(String) -> DownstreamApi = {DownstreamApi(it, "saf", "teamdokumenthandtering")}
+    val saf:(String) -> DownstreamApi = {DownstreamApi(it, "teamdokumenthandtering", "saf")}
 }
