@@ -60,8 +60,9 @@ public class ClientConfig {
 
     @Bean
     public VeilarbarenaClient arenaClient(ContextAwareService contextAwareService) {
+        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
         Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
-                DownstreamAPIs.getArena().invoke(requireClusterName())
+                DownstreamAPIs.getArena().invoke(safCluster)
         );
         return new VeilarbarenaClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbarena", true),
@@ -105,17 +106,22 @@ public class ClientConfig {
     }
 
     @Bean
-    public SafClient safClient(AuthContextHolder authContextHolder) {
+    public SafClient safClient(ContextAwareService contextAwareService) {
+        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
+                DownstreamAPIs.getSaf().invoke(safCluster)
+        );
         return new SafClientImpl(
                 naisPreprodOrNaisAdeoIngress("saf", false),
-                authContextHolder
+                userTokenSupplier
         );
     }
 
     @Bean
     public VeilarbveilederClient veilederOgEnhetClient(AuthContextHolder authContextHolder, ContextAwareService contextAwareService) {
+        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
         Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
-                DownstreamAPIs.getVeilarbveileder().invoke(requireClusterName())
+                DownstreamAPIs.getVeilarbveileder().invoke(safCluster)
         );
         return new VeilarbveilederClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbveileder", true),
