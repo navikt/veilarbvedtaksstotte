@@ -16,7 +16,7 @@ class ContextAwareService(
     val authContext: AuthContextHolder
 ) {
 
-    fun contextAwareUserTokenSupplier(receivingApp: DownstreamApi): Supplier<String>? {
+    fun contextAwareUserTokenSupplier(receivingApp: DownstreamApi): Supplier<String> {
         val azureAdIssuer = environmentProperties.naisAadIssuer
         return Supplier {
             val token: String = authContext.requireIdTokenString()
@@ -32,7 +32,7 @@ class ContextAwareService(
         }
     }
 
-    private fun getAadOboTokenForTjeneste(token: String, api: DownstreamApi): String? {
+    private fun getAadOboTokenForTjeneste(token: String, api: DownstreamApi): String {
         val scope = "api://" + api.cluster + "." + api.namespace + "." + api.serviceName + "/.default"
         return aadOboTokenClient.exchangeOnBehalfOfToken(scope, token)
     }

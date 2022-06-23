@@ -93,8 +93,12 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarbpersonClient personClient(AuthService authService) {
-        return new VeilarbpersonClientImpl(naisPreprodOrNaisAdeoIngress("veilarbperson", true), authService::getInnloggetBrukerToken);
+    public VeilarbpersonClient personClient(ContextAwareService contextAwareService) {
+        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
+                DownstreamAPIs.getVeilarbperson().invoke(safCluster)
+        );
+        return new VeilarbpersonClientImpl(naisPreprodOrNaisAdeoIngress("veilarbperson", true), userTokenSupplier);
     }
 
     @Bean
