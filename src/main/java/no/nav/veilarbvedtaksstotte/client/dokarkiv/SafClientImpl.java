@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static no.nav.common.utils.UrlUtils.joinPaths;
-import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
 public class SafClientImpl implements SafClient {
 

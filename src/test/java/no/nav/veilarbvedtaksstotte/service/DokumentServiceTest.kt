@@ -166,10 +166,9 @@ class DokumentServiceTest {
         val wiremockUrl = "http://localhost:" + getWireMockRule().port()
         authContextHolder = AuthContextHolderThreadLocal.instance()
         regoppslagClient = RegoppslagClientImpl(wiremockUrl, systemUserTokenProvider)
-        dokarkivClient =
-            DokarkivClientImpl(wiremockUrl, systemUserTokenProvider, AuthContextHolderThreadLocal.instance())
+        dokarkivClient = DokarkivClientImpl(wiremockUrl, systemUserTokenProvider) { "" }
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl)  { "" }
-        veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance())
+        veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl) { "" }
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl) { "" }
         veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance()) { "" }
         pdfClient = PdfClientImpl(wiremockUrl)
