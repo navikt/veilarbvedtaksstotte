@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.registrering;
 
 import lombok.SneakyThrows;
-import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
@@ -13,9 +12,10 @@ import okhttp3.Response;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
+import java.util.function.Supplier;
+
 import static no.nav.common.json.JsonUtils.fromJson;
 import static no.nav.common.utils.UrlUtils.joinPaths;
-import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
 public class VeilarbregistreringClientImpl implements VeilarbregistreringClient {
 
@@ -24,12 +24,12 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
 
     private final OkHttpClient client;
 
-    private final AuthContextHolder authContextHolder;
+    private final Supplier<String> userTokenSupplier;
 
-    public VeilarbregistreringClientImpl(String veilarbpersonUrl, AuthContextHolder authContextHolder) {
+    public VeilarbregistreringClientImpl(String veilarbpersonUrl, Supplier<String> userTokenSupplier) {
         this.veilarbpersonUrl = veilarbpersonUrl;
         this.client = RestClient.baseClient();
-        this.authContextHolder = authContextHolder;
+        this.userTokenSupplier = userTokenSupplier;
     }
 
     @Cacheable(CacheConfig.REGISTRERING_CACHE_NAME)
@@ -37,7 +37,7 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
     public String hentRegistreringDataJson(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbpersonUrl, "/api/person/registrering?fnr=" + fnr))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {

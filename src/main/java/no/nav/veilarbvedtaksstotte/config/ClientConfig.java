@@ -76,10 +76,14 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarbvedtakinfoClient egenvurderingClient(AuthContextHolder authContextHolder) {
+    public VeilarbvedtakinfoClient egenvurderingClient(ContextAwareService contextAwareService) {
+        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
+                DownstreamAPIs.getVeilarbvedtakinfo().invoke(safCluster)
+        );
         return new VeilarbvedtakinfoClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbvedtakinfo", true),
-                authContextHolder
+                userTokenSupplier
         );
     }
 
@@ -102,10 +106,14 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarbregistreringClient registreringClient(AuthContextHolder authContextHolder) {
+    public VeilarbregistreringClient registreringClient(ContextAwareService contextAwareService) {
+        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
+                DownstreamAPIs.getVeilarbperson().invoke(safCluster)
+        );
         return new VeilarbregistreringClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbperson", true),
-                authContextHolder
+                userTokenSupplier
         );
     }
 
@@ -135,15 +143,18 @@ public class ClientConfig {
     }
 
     @Bean
-    public DokarkivClient dokarkivClient(SystemUserTokenProvider systemUserTokenProvider, AuthContextHolder authContextHolder) {
+    public DokarkivClient dokarkivClient(SystemUserTokenProvider systemUserTokenProvider, ContextAwareService contextAwareService) {
+        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
+                DownstreamAPIs.getDokarkiv().invoke(safCluster)
+        );
         String url = isProduction()
                 ? createProdInternalIngressUrl("dokarkiv")
                 : createDevInternalIngressUrl("dokarkiv-q1");
-
         return new DokarkivClientImpl(
                 url,
                 systemUserTokenProvider,
-                authContextHolder
+                userTokenSupplier
         );
     }
 
