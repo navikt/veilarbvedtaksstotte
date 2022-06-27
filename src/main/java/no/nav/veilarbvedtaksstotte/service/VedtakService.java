@@ -158,7 +158,7 @@ public class VedtakService {
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
         if (utkast == null) {
-            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "Bruker har ikke utkast");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bruker har ikke utkast");
         }
 
         flettInnVedtakInformasjon(utkast);
