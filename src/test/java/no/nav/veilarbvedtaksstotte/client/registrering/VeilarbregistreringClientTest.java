@@ -25,7 +25,7 @@ public class VeilarbregistreringClientTest {
     @Before
     public void setup() {
         String apiUrl = "http://localhost:" + wireMockRule.port();
-        veilarbregistreringClient = new VeilarbregistreringClientImpl(apiUrl, AuthContextHolderThreadLocal.instance());
+        veilarbregistreringClient = new VeilarbregistreringClientImpl(apiUrl, () -> "");
     }
 
     @Test
@@ -41,10 +41,7 @@ public class VeilarbregistreringClientTest {
                                         .withBody(response)
                         )
         );
-        RegistreringData registreringData = AuthContextHolderThreadLocal
-                .instance()
-                .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), () ->
-                        veilarbregistreringClient.hentRegistreringData(TEST_FNR.get()));
+        RegistreringData registreringData = veilarbregistreringClient.hentRegistreringData(TEST_FNR.get());
 
         assertEquals(registreringData, new RegistreringData(new RegistreringData.BrukerRegistrering(
                 LocalDateTime.of(2021, 1, 18, 9, 48, 58).plus(762, MILLIS),

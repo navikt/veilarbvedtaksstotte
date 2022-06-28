@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.client.dokarkiv
 
-import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
@@ -8,7 +7,6 @@ import no.nav.common.rest.client.RestUtils
 import no.nav.common.sts.SystemUserTokenProvider
 import no.nav.common.utils.AuthUtils.bearerToken
 import no.nav.common.utils.UrlUtils.joinPaths
-import no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
@@ -19,11 +17,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import java.util.function.Supplier
 
 class DokarkivClientImpl(
     val dokarkivUrl: String,
     val systemUserTokenProvider: SystemUserTokenProvider,
-    val authContextHolder: AuthContextHolder
+    val userTokenSupplier: Supplier<String>
 ) : DokarkivClient {
 
     val log: Logger = LoggerFactory.getLogger(DokarkivClientImpl::class.java)
@@ -33,8 +32,8 @@ class DokarkivClientImpl(
     override fun opprettJournalpost(opprettJournalpostDTO: OpprettJournalpostDTO): OpprettetJournalpostDTO {
         val request = Request.Builder()
             .url(joinPaths(dokarkivUrl, "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
-            .header("Nav-Consumer-Token", bearerToken(systemUserTokenProvider.getSystemUserToken()))
-            .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+            .header("Nav-Consumer-Token", bearerToken(systemUserTokenProvider.systemUserToken)) //TODO: slett ved fult bruk av azureAd
+            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .post(opprettJournalpostDTO.toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
 

@@ -8,8 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static java.util.Optional.ofNullable;
-
 @Service
 public class VeilarbarenaService {
     private final VeilarbarenaClient veilarbarenaClient;
@@ -19,13 +17,13 @@ public class VeilarbarenaService {
     }
 
     public Optional<EnhetId> hentOppfolgingsenhet(Fnr fnr) {
-        return ofNullable(veilarbarenaClient.hentOppfolgingsbruker(fnr))
+        return veilarbarenaClient.hentOppfolgingsbruker(fnr)
                 .map(VeilarbArenaOppfolging::getNavKontor)
                 .map(EnhetId::of);
     }
 
     public Optional<String> hentFormidlingsgruppekode(Fnr fnr) {
-        return ofNullable(veilarbarenaClient.hentOppfolgingsbruker(fnr))
+        return veilarbarenaClient.hentOppfolgingsbruker(fnr)
                 .map(VeilarbArenaOppfolging::getFormidlingsgruppekode);
     }
 

@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.person
 
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.createNoDataStr
-import no.nav.common.utils.AuthUtils
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.health.HealthCheckResult
@@ -25,7 +24,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
     override fun hentPersonNavn(fnr: String): PersonNavn {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/person/navn?fnr=$fnr"))
-            .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(userTokenSupplier.get()))
+            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
@@ -36,7 +35,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
     override fun hentCVOgJobbprofil(fnr: String): String {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/person/cv_jobbprofil?fnr=$fnr"))
-            .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(userTokenSupplier.get()))
+            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             val responseBody = response.body
@@ -53,7 +52,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
     override fun hentMålform(fnr: Fnr): Målform {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v2/person/malform?fnr=$fnr"))
-            .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(userTokenSupplier.get()))
+            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .build()
         try {
             client.newCall(request).execute().use { response ->

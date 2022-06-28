@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.egenvurdering;
 
 import lombok.SneakyThrows;
-import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
@@ -12,8 +11,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpHeaders;
 
+import java.util.function.Supplier;
+
 import static no.nav.common.utils.UrlUtils.joinPaths;
-import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
 public class VeilarbvedtakinfoClientImpl implements VeilarbvedtakinfoClient {
 
@@ -21,19 +21,19 @@ public class VeilarbvedtakinfoClientImpl implements VeilarbvedtakinfoClient {
 
     private final OkHttpClient client;
 
-    private final AuthContextHolder authContextHolder;
+    private final Supplier<String>  userTokenSupplier;
 
-    public VeilarbvedtakinfoClientImpl(String veilarbvedtakInfoUrl, AuthContextHolder authContextHolder) {
+    public VeilarbvedtakinfoClientImpl(String veilarbvedtakInfoUrl, Supplier<String> userTokenSupplier) {
         this.veilarbvedtakInfoUrl = veilarbvedtakInfoUrl;
         this.client = RestClient.baseClient();
-        this.authContextHolder = authContextHolder;
+        this.userTokenSupplier = userTokenSupplier;
     }
 
     @SneakyThrows
     public String hentEgenvurdering(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbvedtakInfoUrl, "/api/behovsvurdering/besvarelse?fnr=" + fnr))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {

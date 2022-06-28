@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
@@ -105,7 +106,7 @@ public class ClientTestConfig {
 
             @Override
             public EnhetKontaktinformasjon hentKontaktinfo(EnhetId enhetId) {
-                return new EnhetKontaktinformasjon(enhetId, new EnhetStedsadresse(null,null,null,null,null,null), "");
+                return new EnhetKontaktinformasjon(enhetId, new EnhetStedsadresse(null, null, null, null, null, null), "");
             }
 
             @Override
@@ -124,13 +125,13 @@ public class ClientTestConfig {
     public VeilarbarenaClient arenaClient() {
         return new VeilarbarenaClient() {
             @Override
-            public VeilarbArenaOppfolging hentOppfolgingsbruker(Fnr fnr) {
-                return new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL");
+            public Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr) {
+                return Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL"));
             }
 
             @Override
-            public String oppfolgingssak(Fnr fnr) {
-                return TEST_OPPFOLGINGSSAK;
+            public Optional<String> oppfolgingssak(Fnr fnr) {
+                return Optional.of(TEST_OPPFOLGINGSSAK);
             }
 
             @Override
@@ -277,7 +278,7 @@ public class ClientTestConfig {
 
             @Override
             public Veileder hentVeileder(String veilederIdent) {
-               return new Veileder(TEST_VEILEDER_IDENT, "VEILEDER VEILEDERSEN");
+                return new Veileder(TEST_VEILEDER_IDENT, "VEILEDER VEILEDERSEN");
             }
 
             @Override

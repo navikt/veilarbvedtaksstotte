@@ -17,9 +17,9 @@ import org.springframework.http.HttpHeaders;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static no.nav.common.utils.UrlUtils.joinPaths;
-import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
 public class SafClientImpl implements SafClient {
 
@@ -29,19 +29,19 @@ public class SafClientImpl implements SafClient {
 
     private final OkHttpClient client;
 
-    private final AuthContextHolder authContextHolder;
+    private final Supplier<String> userTokenSupplier;
 
-    public SafClientImpl(String safUrl, AuthContextHolder authContextHolder) {
+    public SafClientImpl(String safUrl, Supplier<String> userTokenSupplier) {
         this.safUrl = safUrl;
         this.client = RestClient.baseClient();
-        this.authContextHolder = authContextHolder;
+        this.userTokenSupplier = userTokenSupplier;
     }
 
     @SneakyThrows
     public byte[] hentVedtakPdf(String journalpostId, String dokumentInfoId) {
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "/rest/hentdokument/", journalpostId, dokumentInfoId, "ARKIV"))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
@@ -56,7 +56,7 @@ public class SafClientImpl implements SafClient {
 
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "graphql"))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
                 .post(RestUtils.toJsonRequestBody(graphqlRequest))
                 .build();
 

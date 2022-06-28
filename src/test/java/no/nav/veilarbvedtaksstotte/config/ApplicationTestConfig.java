@@ -13,6 +13,7 @@ import no.nav.common.health.HealthCheckResult;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.kafka.util.KafkaPropertiesBuilder;
 import no.nav.common.metrics.MetricsClient;
+import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient;
 import no.nav.common.utils.Credentials;
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder;
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock;
@@ -151,6 +152,11 @@ public class ApplicationTestConfig {
         return new KafkaConfig.KafkaAvroContext().setConfig(
                 Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://testurl",
                         KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true));
+    }
+
+    @Bean
+    public AzureAdOnBehalfOfTokenClient azureAdOnBehalfOfTokenClient(){
+        return mock(AzureAdOnBehalfOfTokenClient.class);
     }
 
     @PostConstruct

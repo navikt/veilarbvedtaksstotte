@@ -14,8 +14,9 @@ import okhttp3.Response;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
+import java.util.function.Supplier;
+
 import static no.nav.common.utils.UrlUtils.joinPaths;
-import static no.nav.veilarbvedtaksstotte.utils.RestClientUtils.authHeaderMedInnloggetBruker;
 
 public class VeilarbveilederClientImpl implements VeilarbveilederClient {
 
@@ -24,11 +25,13 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
     private final OkHttpClient client;
 
     private final AuthContextHolder authContextHolder;
+    private final Supplier<String> userTokenProvider;
 
-    public VeilarbveilederClientImpl(String veilarbveilederUrl, AuthContextHolder authContextHolder) {
+    public VeilarbveilederClientImpl(String veilarbveilederUrl, AuthContextHolder authContextHolder, Supplier<String> userTokenProvider) {
         this.veilarbveilederUrl = veilarbveilederUrl;
         this.client = RestClient.baseClient();
         this.authContextHolder = authContextHolder;
+        this.userTokenProvider = userTokenProvider;
     }
 
     @Cacheable(CacheConfig.ENHET_NAVN_CACHE_NAME)
@@ -36,7 +39,7 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
     public String hentEnhetNavn(String enhetId) {
         Request request = new Request.Builder()
                 .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/enhet/", enhetId, "/navn"))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+                .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
@@ -50,7 +53,7 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
     public Veileder hentVeileder(String veilederIdent) {
         Request request = new Request.Builder()
                 .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/veileder/", veilederIdent))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+                .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
@@ -73,7 +76,7 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
     public VeilederEnheterDTO hentInnloggetVeilederEnheter(String veilederIdentUsedOnlyForCaching) {
         Request request = new Request.Builder()
                 .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/veileder/enheter"))
-                .header(HttpHeaders.AUTHORIZATION, authHeaderMedInnloggetBruker(authContextHolder))
+                .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
