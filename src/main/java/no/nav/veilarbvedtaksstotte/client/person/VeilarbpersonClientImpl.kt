@@ -23,7 +23,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     override fun hentPersonNavn(fnr: String): PersonNavn {
         val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/person/navn?fnr=$fnr"))
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v2/person/navn?fnr=$fnr"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->

@@ -31,14 +31,14 @@ class VeilarbpersonClientImplTest {
     @Test
     fun skal_hente_person() {
         WireMock.givenThat(
-            WireMock.get("/api/person/navn?fnr=$TEST_FNR").willReturn(
+            WireMock.get("/api/v2/person/navn?fnr=$TEST_FNR").willReturn(
                 WireMock.aResponse().withStatus(200).withHeader("Authorization", "Bearer TOKEN").withBody(
                     """
                                {
                                 "fornavn": "Fornavn",
                                 "mellomnavn": "Mellomnavn",
                                 "etternavn": "Etternavn",
-                                "sammensattNavn": "Sammensatt Navn"
+                                "forkortetNavn": "Sammensatt Navn"
                                } 
                             """
                 )
@@ -50,7 +50,7 @@ class VeilarbpersonClientImplTest {
                 fornavn = "Fornavn",
                 mellomnavn = "Mellomnavn",
                 etternavn = "Etternavn",
-                sammensattNavn = "Sammensatt Navn"
+                forkortetNavn = "Sammensatt Navn"
             ), hentPersonNavn
         )
     }
