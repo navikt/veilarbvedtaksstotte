@@ -75,5 +75,8 @@ spec:
         - application: beslutteroversikt
           namespace: obo
           cluster: dev-gcp
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
+          cluster: dev-gcp
   envFrom:
     - configmap: pto-config
