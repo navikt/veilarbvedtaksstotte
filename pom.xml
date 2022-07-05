@@ -20,7 +20,7 @@
     <properties>
         <java.version>11</java.version>
         <common.version>2.2022.07.01_07.12-6a0864fa6938</common.version>
-        <kotlin.version>1.6.21</kotlin.version>
+        <kotlin.version>1.7.0</kotlin.version>
         <testcontainers.version>1.16.3</testcontainers.version>
 
         <!--   Used by SonarCloud     -->
@@ -139,7 +139,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.6.7</version>
+            <version>1.6.9</version>
         </dependency>
         <dependency>
             <groupId>com.zaxxer</groupId>
@@ -154,7 +154,7 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
-            <version>4.34.0</version>
+            <version>4.36.0</version>
         </dependency>
         <dependency>
             <groupId>no.nav</groupId>
