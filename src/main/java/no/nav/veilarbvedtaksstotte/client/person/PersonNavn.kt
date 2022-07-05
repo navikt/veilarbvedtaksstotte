@@ -4,5 +4,5 @@ data class PersonNavn(
     val fornavn: String,
     val mellomnavn: String?,
     val etternavn: String,
-    val sammensattNavn: String?
+    val forkortetNavn: String?
 )
