@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Import;
         UtrullingController.class,
         AdminController.class,
         Siste14aVedtakController.class,
+        Frontendlogger.class,
         KodeverkController.class
 })
 public class ControllerTestConfig {}
