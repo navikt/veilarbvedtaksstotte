@@ -23,7 +23,7 @@ class Frontendlogger(val metricsClient: MetricsClient) {
         toInflux.tags["environment"] = if (EnvironmentUtils.isProduction().orElse(false)) "p" else "q1"
 
         if (!EnvironmentUtils.isProduction().orElse(false)) {
-            log.info("Skriver event til influx: name: " + eventToString(event.name, toInflux))
+            log.info("Skriver event til influx: " + eventToString(event.name, toInflux))
         }
         metricsClient.report(toInflux)
     }
