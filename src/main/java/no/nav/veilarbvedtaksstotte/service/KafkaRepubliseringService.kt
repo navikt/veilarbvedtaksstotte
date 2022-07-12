@@ -10,7 +10,8 @@ import org.springframework.stereotype.Service
 class KafkaRepubliseringService(
     val vedtaksstotteRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
-    val siste14aVedtakService: Siste14aVedtakService
+    val siste14aVedtakService: Siste14aVedtakService,
+    val kafkaProducerService: KafkaProducerService
 ) {
 
     val log: Logger = LoggerFactory.getLogger(KafkaRepubliseringService::class.java)
@@ -29,5 +30,17 @@ class KafkaRepubliseringService(
         )
 
         alleBrukere.forEach { aktorId -> siste14aVedtakService.republiserKafkaSiste14aVedtak(aktorId) }
+    }
+
+    fun republiserVedtak14aFattetDvh(batchSize: Int) {
+        log.info("Republiserer alle fattede vedtak på dvh-topic.")
+        var offset = 0
+        do {
+            val batch = vedtaksstotteRepository.hentFattedeVedtak(batchSize, offset)
+            log.info("Rebubliserer ${batch.size} vedtak, hentet med offset $offset")
+            batch.forEach { kafkaProducerService.sendVedtakFattetDvh(it) }
+            offset += batch.size
+        } while (batch.size == batchSize)
+
     }
 }
