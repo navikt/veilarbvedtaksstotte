@@ -141,58 +141,11 @@ public class VedtakStatusEndringService {
                         toZonedDateTime(vedtak.getVedtakFattet()),
                         false));
 
-        kafkaProducerService.sendVedtakFattetDvh(
-                Vedtak14aFattetDvh.newBuilder()
-                        .setId(vedtakId)
-                        .setAktorId(vedtak.getAktorId())
-                        .setHovedmalKode(mapHovedmalTilAvroType(vedtak.getHovedmal()))
-                        .setInnsatsgruppeKode(mapInnsatsgruppeTilAvroType(vedtak.getInnsatsgruppe()))
-                        .setVedtakFattet(toInstant(vedtak.getVedtakFattet()))
-                        .setOppfolgingsenhetId(vedtak.getOppfolgingsenhetId())
-                        .setVeilederIdent(vedtak.getVeilederIdent())
-                        .setBeslutterIdent(vedtak.getBeslutterIdent())
-                        .build()
-        );
+        kafkaProducerService.sendVedtakFattetDvh(vedtak);
 
         metricsService.rapporterVedtakSendt(vedtak);
         metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr.get());
         metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr.get());
-    }
-
-    private static Vedtak14aFattetDvhHovedmalKode mapHovedmalTilAvroType(Hovedmal hovedmal) {
-        if (hovedmal == null) {
-            return null;
-        }
-
-        switch (hovedmal) {
-            case SKAFFE_ARBEID:
-                return Vedtak14aFattetDvhHovedmalKode.SKAFFE_ARBEID;
-            case BEHOLDE_ARBEID:
-                return Vedtak14aFattetDvhHovedmalKode.BEHOLDE_ARBEID;
-            default:
-                throw new IllegalStateException("Manglende mapping av hovedmål");
-        }
-    }
-
-    private static Vedtak14aFattetDvhInnsatsgruppeKode mapInnsatsgruppeTilAvroType(Innsatsgruppe innsatsgruppe) {
-        if (innsatsgruppe == null) {
-            return null;
-        }
-
-        switch (innsatsgruppe) {
-            case STANDARD_INNSATS:
-                return Vedtak14aFattetDvhInnsatsgruppeKode.STANDARD_INNSATS;
-            case SITUASJONSBESTEMT_INNSATS:
-                return Vedtak14aFattetDvhInnsatsgruppeKode.SITUASJONSBESTEMT_INNSATS;
-            case SPESIELT_TILPASSET_INNSATS:
-                return Vedtak14aFattetDvhInnsatsgruppeKode.SPESIELT_TILPASSET_INNSATS;
-            case GRADERT_VARIG_TILPASSET_INNSATS:
-                return Vedtak14aFattetDvhInnsatsgruppeKode.GRADERT_VARIG_TILPASSET_INNSATS;
-            case VARIG_TILPASSET_INNSATS:
-                return Vedtak14aFattetDvhInnsatsgruppeKode.VARIG_TILPASSET_INNSATS;
-            default:
-                throw new IllegalStateException("Manglende mapping av innsatsgruppe");
-        }
     }
 
     private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {

@@ -251,6 +251,14 @@ public class VedtaksstotteRepository {
         ).orElse(0);
     }
 
+    public List<Vedtak> hentFattedeVedtak(int limit, int offset) {
+        String sql = format(
+                "SELECT * FROM %s WHERE %s = ? ORDER BY %s ASC LIMIT %d OFFSET %d",
+                VEDTAK_TABLE, STATUS, VEDTAK_ID, limit, offset
+        );
+        return db.query(sql, VedtaksstotteRepository::mapVedtak, getName(VedtakStatus.SENDT));
+    }
+
     @SneakyThrows
     private static Vedtak mapVedtak(ResultSet rs, int row) {
         return new Vedtak()
