@@ -13,11 +13,14 @@ import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal.BEHOLDE_ARBEID
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toInstant
@@ -143,17 +146,27 @@ class KafkaProducerServiceTest {
 
     @Test
     fun `lagrer forventet record verdi for sending av vedtak til dvh`() {
-        val vedtak14aFattetDvh = Vedtak14aFattetDvh()
-        vedtak14aFattetDvh.setId(123)
-        vedtak14aFattetDvh.setVedtakFattet(toInstant(LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234)))
-        vedtak14aFattetDvh.setInnsatsgruppeKode(Vedtak14aFattetDvhInnsatsgruppeKode.SITUASJONSBESTEMT_INNSATS)
-        vedtak14aFattetDvh.setHovedmalKode(Vedtak14aFattetDvhHovedmalKode.SKAFFE_ARBEID)
-        vedtak14aFattetDvh.setAktorId(TEST_AKTOR_ID)
-        vedtak14aFattetDvh.setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
-        vedtak14aFattetDvh.setVeilederIdent("324")
-        vedtak14aFattetDvh.setBeslutterIdent("678")
+        val vedtak = Vedtak()
+            .setId(123)
+            .setVedtakFattet(LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234))
+            .setInnsatsgruppe(Innsatsgruppe.SITUASJONSBESTEMT_INNSATS)
+            .setHovedmal(Hovedmal.SKAFFE_ARBEID)
+            .setAktorId(TEST_AKTOR_ID)
+            .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
+            .setVeilederIdent("324")
+            .setBeslutterIdent("678")
 
-        kafkaProducerService.sendVedtakFattetDvh(vedtak14aFattetDvh)
+        val forventetVedtak14aFattetDvh = Vedtak14aFattetDvh()
+        forventetVedtak14aFattetDvh.id = 123
+        forventetVedtak14aFattetDvh.vedtakFattet = toInstant(LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234))
+        forventetVedtak14aFattetDvh.innsatsgruppeKode = Vedtak14aFattetDvhInnsatsgruppeKode.SITUASJONSBESTEMT_INNSATS
+        forventetVedtak14aFattetDvh.hovedmalKode = Vedtak14aFattetDvhHovedmalKode.SKAFFE_ARBEID
+        forventetVedtak14aFattetDvh.aktorId = TEST_AKTOR_ID
+        forventetVedtak14aFattetDvh.oppfolgingsenhetId = TEST_OPPFOLGINGSENHET_ID
+        forventetVedtak14aFattetDvh.veilederIdent = "324"
+        forventetVedtak14aFattetDvh.beslutterIdent = "678"
+
+        kafkaProducerService.sendVedtakFattetDvh(vedtak)
 
         verify(producerRecordStorage).store(argumentCaptor.capture())
 
@@ -162,7 +175,7 @@ class KafkaProducerServiceTest {
         val resultat = deserializer
             .deserialize(kafkaProperties.vedtakFattetDvhTopic, argumentCaptor.value.value()) as Vedtak14aFattetDvh
 
-        assertEquals(vedtak14aFattetDvh, resultat)
+        assertEquals(forventetVedtak14aFattetDvh, resultat)
     }
 
     fun assertEqualJson(expexted: String, actual: String) {

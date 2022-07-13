@@ -61,6 +61,15 @@ public class AdminController {
         );
     }
 
+    @PostMapping("/republiser/vedtak-14a-fattet-dvh")
+    public String republiserVedtak14aFattetDvh() {
+        sjekkTilgangTilAdmin();
+        return JobRunner.runAsync(
+                "republiser-vedtak-14a-fattet-dvh",
+                () -> kafkaRepubliseringService.republiserVedtak14aFattetDvh(100)
+        );
+    }
+
     private void sjekkTilgangTilAdmin() {
         String subject = authContextHolder.getSubject()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
