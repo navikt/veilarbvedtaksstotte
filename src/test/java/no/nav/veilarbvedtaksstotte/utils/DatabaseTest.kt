@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.utils
 
-import org.junit.AfterClass
-import org.junit.BeforeClass
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
@@ -12,14 +12,14 @@ abstract class DatabaseTest {
         lateinit var jdbcTemplate: JdbcTemplate
         lateinit var transactor: TransactionTemplate
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setupDatabase() {
             jdbcTemplate = SingletonPostgresContainer.init().createJdbcTemplate()
             transactor = TransactionTemplate(DataSourceTransactionManager(jdbcTemplate.dataSource!!))
         }
 
-        @AfterClass
+        @AfterAll
         @JvmStatic
         fun shutdownDatabase() {
             jdbcTemplate.dataSource?.connection?.close()

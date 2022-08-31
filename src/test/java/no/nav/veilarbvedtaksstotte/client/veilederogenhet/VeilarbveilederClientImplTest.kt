@@ -1,35 +1,31 @@
 package no.nav.veilarbvedtaksstotte.client.veilederogenhet
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule
-import no.nav.common.auth.context.AuthContextHolder
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
+@WireMockTest
 class VeilarbveilederClientImplTest {
     val veilederIdent = "123"
     val veilederNavn = "Veileder Navn"
 
-    lateinit var authContextHolder: AuthContextHolder
-    lateinit var veilederClient: VeilarbveilederClient
+    companion object {
 
-    private val wireMockRule = WireMockRule()
+        val authContextHolder = AuthContextHolderThreadLocal.instance()
+        lateinit var veilederClient: VeilarbveilederClient
 
-    @Rule
-    fun getWireMockRule() = wireMockRule
-
-    @Before
-    fun setup() {
-        JsonUtils.init()
-        authContextHolder = AuthContextHolderThreadLocal.instance()
-        veilederClient = VeilarbveilederClientImpl(
-            "http://localhost:" + getWireMockRule().port(),
-            authContextHolder
-        ) { "" }
+        @BeforeAll
+        @JvmStatic
+        fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
+            JsonUtils.init()
+            veilederClient =
+                VeilarbveilederClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort, authContextHolder) { "" }
+        }
     }
 
     @Test
@@ -43,6 +39,6 @@ class VeilarbveilederClientImplTest {
         givenWiremockOkJsonResponse("/api/veileder/$veilederIdent", json)
         val veilederNavnResponse = veilederClient.hentVeileder(veilederIdent)
 
-        Assert.assertEquals(Veileder(veilederIdent, veilederNavn), veilederNavnResponse)
+        assertEquals(Veileder(veilederIdent, veilederNavn), veilederNavnResponse)
     }
 }

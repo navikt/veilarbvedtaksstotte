@@ -12,27 +12,24 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
-import no.nav.veilarbvedtaksstotte.service.KafkaProducerService
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
-import org.junit.Assert.*
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.junit4.SpringRunner
 import org.testcontainers.containers.KafkaContainer
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -44,7 +41,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.collections.set
 
-@RunWith(SpringRunner::class)
 @SpringBootTest(classes = [ApplicationTestConfig::class])
 @ActiveProfiles("local")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -61,9 +57,6 @@ class Siste14aVedtakKafkaProducerTest {
 
     @MockBean
     lateinit var veilarboppfolgingClient: VeilarboppfolgingClient
-
-    @Autowired
-    lateinit var kafkaProducerService: KafkaProducerService
 
     @Test
     fun `produserer melding for siste 14a vedtak basert på nytt vedtak`() {

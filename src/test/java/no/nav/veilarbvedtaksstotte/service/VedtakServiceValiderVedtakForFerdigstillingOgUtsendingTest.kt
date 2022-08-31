@@ -4,7 +4,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.service.VedtakService.validerVedtakForFerdigstilling
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.util.*
 
 class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {

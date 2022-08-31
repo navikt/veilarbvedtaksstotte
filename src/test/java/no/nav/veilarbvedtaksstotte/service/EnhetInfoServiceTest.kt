@@ -1,23 +1,23 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.types.identer.EnhetId
 import no.nav.veilarbvedtaksstotte.client.norg2.*
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
 import org.assertj.core.api.Assertions
-import org.junit.Assert
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+@WireMockTest
 class EnhetInfoServiceTest {
 
-    private lateinit var enhetInfoService: EnhetInfoService
 
     private val enhetId = EnhetId.of("1234")
     private val eierEnhetId = EnhetId.of("4321")
@@ -26,15 +26,15 @@ class EnhetInfoServiceTest {
     private val gyldigTil = LocalDate.now().plusDays(2)
     private val ugyldigTil = LocalDate.now().minusDays(1)
 
-    private val wireMockRule = WireMockRule()
+    companion object {
+        private lateinit var enhetInfoService: EnhetInfoService
 
-    @Rule
-    fun getWireMockRule() = wireMockRule
-
-    @Before
-    fun setup() {
-        val enhetClient: Norg2Client = Norg2ClientImpl("http://localhost:" + wireMockRule.port())
-        enhetInfoService = EnhetInfoService(enhetClient)
+        @BeforeAll
+        @JvmStatic
+        fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
+            val enhetClient: Norg2Client = Norg2ClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort)
+            enhetInfoService = EnhetInfoService(enhetClient)
+        }
     }
 
     @Test
@@ -51,7 +51,7 @@ class EnhetInfoServiceTest {
         gittEnhetMedKontaktinfoPostboksadresse(enhetId)
         val enhetKontaktinformasjon: EnhetKontaktinformasjon = enhetInfoService.utledEnhetKontaktinformasjon(enhetId)
         assertEquals(enhetId, enhetKontaktinformasjon.enhetNr)
-        Assert.assertTrue(enhetKontaktinformasjon.postadresse is EnhetPostboksadresse)
+        assertTrue(enhetKontaktinformasjon.postadresse is EnhetPostboksadresse)
         val adresse: EnhetPostboksadresse = enhetKontaktinformasjon.postadresse as EnhetPostboksadresse
         assertEquals(adresse.postnummer, "1234")
         assertEquals(adresse.poststed, "STED")
@@ -64,7 +64,7 @@ class EnhetInfoServiceTest {
         gittEnhetMedKontaktinfoStedsadresse(enhetId)
         val enhetKontaktinformasjon: EnhetKontaktinformasjon = enhetInfoService.utledEnhetKontaktinformasjon(enhetId)
         assertEquals(enhetId, enhetKontaktinformasjon.enhetNr)
-        Assert.assertTrue(enhetKontaktinformasjon.postadresse is EnhetStedsadresse)
+        assertTrue(enhetKontaktinformasjon.postadresse is EnhetStedsadresse)
         val adresse: EnhetStedsadresse = enhetKontaktinformasjon.postadresse as EnhetStedsadresse
         assertEquals(adresse.postnummer, "1234")
         assertEquals(adresse.poststed, "STED")

@@ -13,8 +13,8 @@ import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -27,21 +27,21 @@ import static org.mockito.Mockito.*;
 
 public class BeslutterServiceTest {
 
-    private VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
+    private final VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
 
-    private VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
+    private final VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
 
-    private BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
+    private final BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
 
-    private MeldingRepository meldingRepository = mock(MeldingRepository.class);
+    private final MeldingRepository meldingRepository = mock(MeldingRepository.class);
 
-    private VeilederService veilederService = mock(VeilederService.class);
+    private final VeilederService veilederService = mock(VeilederService.class);
 
-    private VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
+    private final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
 
-    private AuthService authService = mock(AuthService.class);
+    private final AuthService authService = mock(AuthService.class);
 
-    private JdbcTemplate db = SingletonPostgresContainer.init().createJdbcTemplate();
+    private final JdbcTemplate db = SingletonPostgresContainer.init().createJdbcTemplate();
 
     private TransactionTemplate transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
 
@@ -50,7 +50,7 @@ public class BeslutterServiceTest {
             beslutteroversiktRepository, meldingRepository, veilederService, veilarbpersonClient, transactor
     );
 
-    @Before
+    @BeforeEach
     public void setup() {
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
         doReturn(new AuthKontekst().setAktorId(TEST_AKTOR_ID)).when(authService).sjekkTilgangTilBrukerOgEnhet(any(Fnr.class));

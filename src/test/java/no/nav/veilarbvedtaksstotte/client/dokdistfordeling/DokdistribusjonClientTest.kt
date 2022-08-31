@@ -1,31 +1,27 @@
 package no.nav.veilarbvedtaksstotte.client.dokdistfordeling
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.utils.fn.UnsafeSupplier
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
+@WireMockTest
 class DokdistribusjonClientTest {
 
-    lateinit var dokdistribusjonClient: DokdistribusjonClient
+    companion object {
+        lateinit var dokdistribusjonClient: DokdistribusjonClient
 
-    private val wireMockRule = WireMockRule()
-
-    val serviceTokenSupplier: () -> String = { "" }
-
-    @Rule
-    fun getWireMockRule() = wireMockRule
-
-    @Before
-    fun setup() {
-        val wiremockUrl = "http://localhost:" + getWireMockRule().port()
-        dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl, serviceTokenSupplier)
+        @BeforeAll
+        @JvmStatic
+        fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
+            dokdistribusjonClient = DokdistribusjonClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort) { "" }
+        }
     }
 
     @Test
@@ -73,6 +69,6 @@ class DokdistribusjonClientTest {
                     )
                 })
 
-        Assert.assertEquals("BESTILLINGS_ID", respons?.bestillingsId)
+        assertEquals("BESTILLINGS_ID", respons?.bestillingsId)
     }
 }

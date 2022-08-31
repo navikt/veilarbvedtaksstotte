@@ -1,26 +1,25 @@
 package no.nav.veilarbvedtaksstotte.client.pdf
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.domain.Målform
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
+@WireMockTest
 class PdfClientImplTest {
 
-    lateinit var pdfClient: PdfClient
+    companion object {
+        lateinit var pdfClient: PdfClient
 
-    private val wireMockRule = WireMockRule()
-
-    @Rule
-    fun getWireMockRule() = wireMockRule
-
-    @Before
-    fun setup() {
-        pdfClient = PdfClientImpl("http://localhost:" + getWireMockRule().port())
+        @BeforeAll
+        @JvmStatic
+        fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
+            pdfClient = PdfClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort)
+        }
     }
 
     @Test

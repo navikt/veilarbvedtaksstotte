@@ -4,27 +4,27 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBru
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BeslutteroversiktRepositoryTest extends DatabaseTest {
 
     private static VedtaksstotteRepository vedtaksstotteRepository;
     private static BeslutteroversiktRepository beslutteroversiktRepository;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
     }
 
-    @Before
+    @BeforeEach
     public void cleanup() {
         DbTestUtils.cleanupDb(jdbcTemplate);
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);

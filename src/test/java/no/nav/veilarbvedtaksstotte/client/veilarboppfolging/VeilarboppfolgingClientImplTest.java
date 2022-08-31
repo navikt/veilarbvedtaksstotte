@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.client.veilarboppfolging;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 
 import java.time.ZoneId;
@@ -16,16 +16,14 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static org.junit.Assert.assertEquals;
 
+@WireMockTest
 public class VeilarboppfolgingClientImplTest {
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule();
+    private static VeilarboppfolgingClientImpl veilarboppfolgingClient;
 
-    VeilarboppfolgingClientImpl veilarboppfolgingClient;
-
-    @Before
-    public void setup() {
-        String apiUrl = "http://localhost:" + wireMockRule.port();
+    @BeforeAll
+    public static void setup(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
         veilarboppfolgingClient = new VeilarboppfolgingClientImpl(apiUrl, () -> "USER_TOKEN", () -> "SYSTEM_TOKEN");
     }
 

@@ -1,30 +1,26 @@
 package no.nav.veilarbvedtaksstotte.client.registrering;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import no.nav.common.auth.context.AuthContextHolderThreadLocal;
-import no.nav.common.auth.context.UserRole;
-import no.nav.common.test.auth.AuthTestUtils;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@WireMockTest
 public class VeilarbregistreringClientTest {
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule();
 
-    VeilarbregistreringClient veilarbregistreringClient;
+    private static VeilarbregistreringClient veilarbregistreringClient;
 
-    @Before
-    public void setup() {
-        String apiUrl = "http://localhost:" + wireMockRule.port();
+    @BeforeAll
+    public static void setup(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
         veilarbregistreringClient = new VeilarbregistreringClientImpl(apiUrl, () -> "");
     }
 

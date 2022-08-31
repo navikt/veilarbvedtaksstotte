@@ -19,9 +19,9 @@
 
     <properties>
         <java.version>11</java.version>
-        <common.version>2.2022.07.01_07.12-6a0864fa6938</common.version>
-        <kotlin.version>1.7.0</kotlin.version>
-        <testcontainers.version>1.17.2</testcontainers.version>
+        <common.version>2.2022.08.15_07.05-3fef82ca5c66</common.version>
+        <kotlin.version>1.7.10</kotlin.version>
+        <testcontainers.version>1.17.3</testcontainers.version>
 
         <!--   Used by SonarCloud     -->
         <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
@@ -258,25 +258,14 @@
 
         <!-- test -->
         <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>no.nav.common</groupId>
             <artifactId>test</artifactId>
             <version>${common.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
@@ -288,8 +277,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-standalone</artifactId>
-            <version>2.27.2</version>
+            <artifactId>wiremock-jre8-standalone</artifactId>
+            <version>2.33.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -19,10 +19,10 @@ import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import java.time.LocalDate
@@ -46,7 +46,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
 
         val kafkaProducerService = mock(KafkaProducerService::class.java)
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setup() {
             arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
@@ -67,7 +67,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         }
     }
 
-    @Before
+    @BeforeEach
     fun before() {
         reset(kafkaProducerService)
     }
@@ -569,25 +569,25 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
 
     fun assertFattedeVedtakFraNyLøsning(identer: BrukerIdenter, antall: Int) {
         assertEquals(
-            "Antall vedtak fra ny løsning",
             antall,
-            vedtakRepository.hentFattedeVedtak(identer.aktorId.get()).size
+            vedtakRepository.hentFattedeVedtak(identer.aktorId.get()).size,
+            "Antall vedtak fra ny løsning"
         )
     }
 
     fun assertAntallVedtakFraArena(identer: BrukerIdenter, antall: Int) {
         assertEquals(
-            "Antall vedtak fra Arena",
             antall,
-            arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr)).size
+            arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr)).size,
+            "Antall vedtak fra Arena"
         )
     }
 
     fun assertSiste14aVedtak(identer: BrukerIdenter, forventet: Siste14aVedtak?) {
         assertEquals(
-            "Siste 14a vedtak",
             forventet,
-            siste14aVedtakService.siste14aVedtak(identer.fnr)
+            siste14aVedtakService.siste14aVedtak(identer.fnr),
+            "Siste 14a vedtak"
         )
     }
 

@@ -5,9 +5,9 @@ import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMelding;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -19,13 +19,13 @@ public class MeldingRepositoryTest extends DatabaseTest {
     private static MeldingRepository meldingRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         meldingRepository = new MeldingRepository(jdbcTemplate);
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
     }
 
-    @Before
+    @BeforeEach
     public void cleanup() {
         DbTestUtils.cleanupDb(jdbcTemplate);
     }
