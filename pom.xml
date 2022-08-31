@@ -25,7 +25,7 @@
 
         <!--   Used by SonarCloud     -->
         <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
-        <sonar.organization>navit</sonar.organization>
+        <sonar.organization>navikt</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
