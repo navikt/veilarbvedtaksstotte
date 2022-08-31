@@ -1,7 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
@@ -13,10 +14,9 @@ import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.apache.commons.lang3.RandomStringUtils
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import java.time.LocalDateTime
 import java.util.*
@@ -25,29 +25,25 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
+@WireMockTest
 class DistribusjonServiceTest : DatabaseTest() {
 
+    companion object {
+        lateinit var wiremockUrl: String
+        lateinit var vedtakRepository: VedtaksstotteRepository
+        lateinit var dokdistribusjonClient: DokdistribusjonClient
+        lateinit var distribusjonService: DistribusjonService
 
-    lateinit var vedtakRepository: VedtaksstotteRepository
-    lateinit var dokdistribusjonClient: DokdistribusjonClient
-    lateinit var distribusjonService: DistribusjonService
-    lateinit var wiremockUrl: String
-
-    private val wireMockRule = WireMockRule()
-
-    val serviceTokenSupplier: () -> String = { "" }
-
-    @Rule
-    fun getWireMockRule() = wireMockRule
-
-    @Before
-    fun setup() {
-        wiremockUrl = "http://localhost:" + getWireMockRule().port()
-        vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
-        dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl, serviceTokenSupplier)
-        distribusjonService = DistribusjonService(
-            vedtakRepository, dokdistribusjonClient
-        )
+        @BeforeAll
+        @JvmStatic
+        fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
+            wiremockUrl = "http://localhost:" + wireMockRuntimeInfo.httpPort
+            vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
+            dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl) { "" }
+            distribusjonService = DistribusjonService(
+                vedtakRepository, dokdistribusjonClient
+            )
+        }
     }
 
     @Test

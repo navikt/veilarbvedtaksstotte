@@ -20,9 +20,8 @@ import org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CON
 import org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -31,26 +30,20 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.junit4.SpringRunner
 import org.testcontainers.containers.KafkaContainer
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
-@RunWith(SpringRunner::class)
 @SpringBootTest(classes = [ApplicationTestConfig::class])
 @ActiveProfiles("local")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class ArenaVedtakConsumerTest {
 
     @Autowired
-    lateinit var kafkaContainer: KafkaContainer
-
-    @Autowired
     lateinit var kafkaProperties: KafkaProperties
 
-    lateinit var producer: KafkaProducer<String, String>
 
     @SpyBean
     lateinit var siste14aVedtakService: Siste14aVedtakService
@@ -58,20 +51,27 @@ class ArenaVedtakConsumerTest {
     @Autowired
     lateinit var kafkaConsumerService: KafkaConsumerService
 
-    @Before
-    fun setup() {
-        producer = KafkaProducer(
-            mapOf(
-                Pair(BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.getBootstrapServers()),
-                Pair(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java),
-                Pair(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
-            )
-        )
-    }
+    companion object {
+        lateinit var producer: KafkaProducer<String, String>
 
-    @org.junit.After
-    fun after() {
-        producer.close()
+        @BeforeAll
+        @JvmStatic
+        fun setup(@Autowired kafkaContainer: KafkaContainer) {
+            producer = KafkaProducer(
+                mapOf(
+                    Pair(BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.bootstrapServers),
+                    Pair(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java),
+                    Pair(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
+                )
+            )
+        }
+
+        @AfterAll
+        @JvmStatic
+        fun after() {
+            producer.close()
+        }
+
     }
 
     @Test
@@ -175,7 +175,7 @@ class ArenaVedtakConsumerTest {
         verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun `feiler dersom fraDato mangler`() {
         val arenaVedtakRecord = arenaVedtakRecordMed(
             fnr = Fnr("1"),
@@ -184,12 +184,14 @@ class ArenaVedtakConsumerTest {
             fraDato = null
         )
 
-        kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
+        assertThrows(IllegalArgumentException::class.java) {
+            kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
+        }
 
         verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun `feiler dersom regUser mangler`() {
         val arenaVedtakRecord = arenaVedtakRecordMed(
             fnr = Fnr("1"),
@@ -198,7 +200,9 @@ class ArenaVedtakConsumerTest {
             regUser = null
         )
 
-        kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
+        assertThrows(IllegalArgumentException::class.java) {
+            kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
+        }
 
         verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
     }

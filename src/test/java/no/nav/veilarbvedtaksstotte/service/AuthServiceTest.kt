@@ -12,11 +12,9 @@ import no.nav.common.utils.fn.UnsafeRunnable
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
-import org.junit.Assert
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
@@ -32,7 +30,7 @@ class AuthServiceTest {
     var authService =
         AuthService(aktorOppslagClient, pep, veilarbarenaService, null, null, authContextHolder, utrullingService)
 
-    @Before
+    @BeforeEach
     fun setup() {
         `when`(aktorOppslagClient.hentAktorId(TestData.TEST_FNR)).thenReturn(AktorId.of(TestData.TEST_AKTOR_ID))
         `when`(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(TestData.TEST_FNR)
@@ -165,7 +163,7 @@ class AuthServiceTest {
         val request = authService.lagSjekkTilgangRequest("srvtest", "Z1234", Arrays.asList("11111111111", "2222222222"))
         val requestJson = XacmlMapper.mapRequestToEntity(request)
         val expectedRequestJson = readTestResourceFile("xacmlrequest-abac-tilgang.json")
-        Assert.assertEquals(expectedRequestJson, requestJson)
+        assertEquals(expectedRequestJson, requestJson)
     }
 
     @Test

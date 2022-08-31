@@ -1,7 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.nimbusds.jose.util.Base64
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
@@ -35,16 +36,16 @@ import no.nav.veilarbvedtaksstotte.domain.Målform
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.springframework.http.HttpStatus
 import java.time.LocalDate
 import java.util.*
 
+@WireMockTest
 class DokumentServiceTest {
 
     lateinit var authContextHolder: AuthContextHolder
@@ -60,12 +61,8 @@ class DokumentServiceTest {
     lateinit var malTypeService: MalTypeService
     lateinit var dokumentService: DokumentService
 
-    private val wireMockRule = WireMockRule()
 
     val systemUserTokenProvider: SystemUserTokenProvider = mock(SystemUserTokenProvider::class.java)
-
-    @Rule
-    fun getWireMockRule() = wireMockRule
 
     val målform = Målform.NB
     val veilederNavn = "Navn Veileder"
@@ -161,13 +158,14 @@ class DokumentServiceTest {
         dokumenter = listOf(OpprettetJournalpostDTO.DokumentInfoId("123"))
     )
 
-    @Before
-    fun setup() {
-        val wiremockUrl = "http://localhost:" + getWireMockRule().port()
+    @BeforeEach
+    fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
+
+        val wiremockUrl = "http://localhost:" + wireMockRuntimeInfo.httpPort
         authContextHolder = AuthContextHolderThreadLocal.instance()
         regoppslagClient = RegoppslagClientImpl(wiremockUrl, systemUserTokenProvider)
         dokarkivClient = DokarkivClientImpl(wiremockUrl, systemUserTokenProvider) { "" }
-        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl)  { "" }
+        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl) { "" }
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl) { "" }
         veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance()) { "" }
@@ -307,7 +305,9 @@ class DokumentServiceTest {
         givenThat(
             post(urlEqualTo("/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
                 .withRequestBody(equalToJson(forventetJournalpostRequest))
-                .willReturn(aResponse().withStatus(HttpStatus.CONFLICT.value()).withBody(forventetJournalpostResponsJson))
+                .willReturn(
+                    aResponse().withStatus(HttpStatus.CONFLICT.value()).withBody(forventetJournalpostResponsJson)
+                )
         )
 
         val respons = journalførMedForventetRequest()

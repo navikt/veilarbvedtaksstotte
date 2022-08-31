@@ -8,7 +8,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
 

@@ -39,7 +39,7 @@ public class PostgresContainer {
     }
 
     private String getDbContainerUrl() {
-        String containerIp = container.getContainerIpAddress();
+        String containerIp = container.getHost();
         String containerPort = container.getFirstMappedPort().toString();
         return String.format("jdbc:postgresql://%s:%s/postgres", containerIp, containerPort);
     }

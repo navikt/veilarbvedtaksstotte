@@ -9,8 +9,8 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -39,7 +39,7 @@ public class SlettUtkastScheduleTest extends DatabaseTest {
             aktorOppslagClient, vedtakService, vedtaksstotteRepository
     );
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
     }

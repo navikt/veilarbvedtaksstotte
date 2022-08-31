@@ -1,33 +1,30 @@
 package no.nav.veilarbvedtaksstotte.client.person
 
-import no.nav.veilarbvedtaksstotte.utils.JsonUtils.createNoDataStr
-import com.github.tomakehurst.wiremock.junit.WireMockRule
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.utils.JsonUtils.createNoDataStr
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
-class VeilarbpersonClientImplTest {
+@WireMockTest
+class VeilarbpersonClientImplTest  {
 
-    lateinit var veilarbpersonClient: VeilarbpersonClient
+    companion object {
+        lateinit var veilarbpersonClient: VeilarbpersonClient
 
-    private val wireMockRule = WireMockRule()
-
-    @Rule
-    fun getWireMockRule() = wireMockRule
-
-    @Before
-    fun setup() {
-        val wiremockUrl = "http://localhost:" + getWireMockRule().port()
-        veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl) { "TOKEN" }
+        @BeforeAll
+        @JvmStatic
+        fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
+            veilarbpersonClient = VeilarbpersonClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort) { "" }
+        }
     }
-
     @Test
     fun skal_hente_person() {
         WireMock.givenThat(

@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
 import java.util.List;

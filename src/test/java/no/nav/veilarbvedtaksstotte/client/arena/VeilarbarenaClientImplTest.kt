@@ -1,28 +1,26 @@
 package no.nav.veilarbvedtaksstotte.client.arena
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSSAK
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
+@WireMockTest
 class VeilarbarenaClientImplTest {
 
-    lateinit var veilarbarenaClient: VeilarbarenaClient
 
-    private val wireMockRule = WireMockRule()
+    companion object {
+        lateinit var veilarbarenaClient: VeilarbarenaClient
 
-    @Rule
-    fun getWireMockRule() = wireMockRule
-
-    @Before
-    fun setup() {
-        val wiremockUrl = "http://localhost:" + getWireMockRule().port()
-        veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
+        @BeforeAll
+        @JvmStatic
+        fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
+            veilarbarenaClient = VeilarbarenaClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort) { "" }
+        }
     }
 
     @Test
@@ -49,7 +47,7 @@ class VeilarbarenaClientImplTest {
         assertEquals(oppfolgingssak, TEST_OPPFOLGINGSSAK)
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `hent oppfoglingssak feiler dersom respons er 204`() {
 
         WireMock.givenThat(
@@ -59,8 +57,11 @@ class VeilarbarenaClientImplTest {
                 )
         )
 
-        veilarbarenaClient.oppfolgingssak(TEST_FNR)
+        assertThrows(IllegalStateException::class.java) {
+            veilarbarenaClient.oppfolgingssak(TEST_FNR)
+        }
     }
+
     @Test
     fun `hent oppfoglingssak er tom dersom respons er 404`() {
 
