@@ -10,8 +10,8 @@ import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.*
@@ -28,7 +28,7 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
     lateinit var arenaVedtakRepository: ArenaVedtakRepository
     lateinit var kafkaProducerService: KafkaProducerService
 
-    @Before
+    @BeforeEach
     fun setup() {
         DbTestUtils.cleanupDb(jdbcTemplate)
 

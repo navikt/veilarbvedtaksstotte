@@ -9,8 +9,8 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,7 +20,7 @@ import java.util.List;
 import static no.nav.veilarbvedtaksstotte.service.ArenaVedtakService.MODIA_REG_USER;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -32,7 +32,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
     private static final VeilarbveilederClient veiledereOgEnhetClient = mock(VeilarbveilederClient.class);
     private static final SafClient safClient = mock(SafClient.class);
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         arenaVedtakRepository = new ArenaVedtakRepository(jdbcTemplate);
         service = new ArenaVedtakService(arenaVedtakRepository, safClient, null);

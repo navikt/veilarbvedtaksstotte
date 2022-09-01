@@ -7,16 +7,16 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils.cleanupDb
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class DokumentdistribusjonMeterBinderTest : DatabaseTest() {
     lateinit var vedtaksstotteRepository: VedtaksstotteRepository
     lateinit var dokumentdistribusjonMeterBinder: DokumentdistribusjonMeterBinder
 
-    @Before
+    @BeforeEach
     fun setup() {
         vedtaksstotteRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
         dokumentdistribusjonMeterBinder = DokumentdistribusjonMeterBinder(vedtaksstotteRepository)

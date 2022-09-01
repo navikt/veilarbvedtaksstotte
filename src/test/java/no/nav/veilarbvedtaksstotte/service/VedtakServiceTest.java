@@ -39,9 +39,9 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
@@ -55,7 +55,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class VedtakServiceTest extends DatabaseTest {
@@ -91,7 +91,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final String REGISTRERING_DATA = "{\"registrering\": \"registrering\"}";
     private static final String EGENVURDERING_DATA = "{\"egenvurdering\": \"egenvurdering\"}";
 
-    @BeforeClass
+    @BeforeAll
     public static void setupOnce() {
         VeilarbarenaService veilarbarenaService = new VeilarbarenaService(veilarbarenaClient);
         kilderRepository = spy(new KilderRepository(jdbcTemplate));
@@ -127,7 +127,7 @@ public class VedtakServiceTest extends DatabaseTest {
                 veilarbarenaService);
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         DbTestUtils.cleanupDb(jdbcTemplate);
         reset(veilederService);
@@ -162,11 +162,12 @@ public class VedtakServiceTest extends DatabaseTest {
         when(pdfClient.genererPdf(any())).thenReturn(new byte[]{});
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void fattVedtak__skal_feile_hvis_iserv() {
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV")));
         gittUtkastKlarForUtsendelse();
-        fattVedtak();
+
+        assertThrows(IllegalStateException.class, () ->  fattVedtak());
     }
 
 

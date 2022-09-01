@@ -4,9 +4,9 @@ import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
@@ -24,13 +24,13 @@ public class OyeblikksbildeRepositoryTest extends DatabaseTest {
     private static OyeblikksbildeRepository oyeblikksbildeRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
     }
 
-    @Before
+    @BeforeEach
     public void cleanup() {
         DbTestUtils.cleanupDb(jdbcTemplate);
     }

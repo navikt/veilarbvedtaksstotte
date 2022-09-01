@@ -4,13 +4,13 @@ import no.nav.common.types.identer.EnhetId;
 import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UtrullingRepositoryTest extends DatabaseTest {
 
@@ -22,12 +22,12 @@ public class UtrullingRepositoryTest extends DatabaseTest {
     private final EnhetId TEST_ENHET_2_ID = EnhetId.of("4321");
     private final String TEST_ENHET_2_NAVN = "NAV Testheim";
     
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         utrullingRepository = new UtrullingRepository(jdbcTemplate);
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         DbTestUtils.cleanupDb(jdbcTemplate);
     }

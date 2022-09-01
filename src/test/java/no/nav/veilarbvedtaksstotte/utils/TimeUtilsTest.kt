@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.utils
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDate
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDateTime
 import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.time.*
 
 class TimeUtilsTest {

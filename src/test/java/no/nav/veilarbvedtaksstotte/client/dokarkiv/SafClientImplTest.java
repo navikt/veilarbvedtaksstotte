@@ -1,28 +1,25 @@
 package no.nav.veilarbvedtaksstotte.client.dokarkiv;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import no.nav.common.auth.context.AuthContextHolderThreadLocal;
-import no.nav.common.auth.context.UserRole;
-import no.nav.common.test.auth.AuthTestUtils;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@WireMockTest
 public class SafClientImplTest {
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(0);
-
     @Test
-    public void hentJournalposter__skalReturnereJournalposter() {
+    public void hentJournalposter__skalReturnereJournalposter(WireMockRuntimeInfo wireMockRuntimeInfo) {
         String journalposterJson = TestUtils.readTestResourceFile("saf-client-journalposter.json");
-        String apiUrl = "http://localhost:" + wireMockRule.port();
+
+        String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
         SafClient safClient = new SafClientImpl(apiUrl, () -> "");
 
         givenThat(post(urlEqualTo("/graphql"))
@@ -30,7 +27,6 @@ public class SafClientImplTest {
                         .withStatus(200)
                         .withBody(journalposterJson))
         );
-
 
         List<Journalpost> journalposter = safClient.hentJournalposter(TestData.TEST_FNR);
 
@@ -42,14 +38,16 @@ public class SafClientImplTest {
         ));
     }
 
-    @Test(expected = RuntimeException.class)
-    public void hentJournalposter__skalKasteExceptionPaErrorStatus() {
-        String apiUrl = "http://localhost:" + wireMockRule.port();
-        SafClient safClient = new SafClientImpl(apiUrl,  () -> "");
+    @Test
+    public void hentJournalposter__skalKasteExceptionPaErrorStatus(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
+        SafClient safClient = new SafClientImpl(apiUrl, () -> "");
 
         givenThat(post(urlEqualTo("/graphql")).willReturn(aResponse().withStatus(500)));
 
-        safClient.hentJournalposter(TestData.TEST_FNR);
+        assertThrows(RuntimeException.class, () ->
+                safClient.hentJournalposter(TestData.TEST_FNR)
+        );
     }
 
 }

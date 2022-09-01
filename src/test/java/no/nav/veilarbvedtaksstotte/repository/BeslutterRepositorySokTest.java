@@ -4,21 +4,21 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.*;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BeslutterRepositorySokTest extends DatabaseTest {
 
     private static BeslutteroversiktRepository beslutteroversiktRepository;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 

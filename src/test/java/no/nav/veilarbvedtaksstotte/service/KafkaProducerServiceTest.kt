@@ -25,9 +25,8 @@ import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toInstant
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.junit.Assert.assertEquals
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito.verify
@@ -36,11 +35,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.junit4.SpringRunner
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
-@RunWith(SpringRunner::class)
 @SpringBootTest(classes = [ApplicationTestConfig::class])
 @ActiveProfiles("local")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
