@@ -4,7 +4,9 @@ import no.nav.common.abac.AbacCachedClient;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.AbacHttpClient;
 import no.nav.common.auth.context.AuthContextHolder;
-import no.nav.common.client.aktoroppslag.*;
+import no.nav.common.client.aktoroppslag.AktorOppslagClient;
+import no.nav.common.client.aktoroppslag.CachedAktorOppslagClient;
+import no.nav.common.client.aktoroppslag.PdlAktorOppslagClient;
 import no.nav.common.client.pdl.PdlClientImpl;
 import no.nav.common.featuretoggle.UnleashClient;
 import no.nav.common.featuretoggle.UnleashClientImpl;
@@ -44,14 +46,12 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl;
-import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.service.ContextAwareService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.function.Supplier;
 
-import static no.nav.common.utils.EnvironmentUtils.requireClusterName;
 import static no.nav.common.utils.UrlUtils.*;
 import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 
@@ -60,9 +60,9 @@ public class ClientConfig {
 
     @Bean
     public VeilarbarenaClient arenaClient(ContextAwareService contextAwareService) {
-        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
         Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
-                DownstreamAPIs.getArena().invoke(safCluster)
+                DownstreamAPIs.getVeilarbarena().invoke(clientCluster)
         );
         return new VeilarbarenaClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbarena", true),
@@ -77,9 +77,9 @@ public class ClientConfig {
 
     @Bean
     public VeilarbvedtakinfoClient egenvurderingClient(ContextAwareService contextAwareService) {
-        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
         Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
-                DownstreamAPIs.getVeilarbvedtakinfo().invoke(safCluster)
+                DownstreamAPIs.getVeilarbvedtakinfo().invoke(clientCluster)
         );
         return new VeilarbvedtakinfoClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbvedtakinfo", true),
@@ -88,28 +88,33 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarboppfolgingClient oppfolgingClient(AuthService authService, SystemUserTokenProvider systemUserTokenProvider) {
+    public VeilarboppfolgingClient oppfolgingClient(ContextAwareService contextAwareService,
+                                                    SystemUserTokenProvider systemUserTokenProvider) {
+        String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
+        Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
+                DownstreamAPIs.getVeilarboppfolging().invoke(clientCluster)
+        );
         return new VeilarboppfolgingClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarboppfolging", true),
-                authService::getInnloggetBrukerToken,
+                userTokenSupplier,
                 systemUserTokenProvider::getSystemUserToken
         );
     }
 
     @Bean
     public VeilarbpersonClient personClient(ContextAwareService contextAwareService) {
-        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
         Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
-                DownstreamAPIs.getVeilarbperson().invoke(safCluster)
+                DownstreamAPIs.getVeilarbperson().invoke(clientCluster)
         );
         return new VeilarbpersonClientImpl(naisPreprodOrNaisAdeoIngress("veilarbperson", true), userTokenSupplier);
     }
 
     @Bean
     public VeilarbregistreringClient registreringClient(ContextAwareService contextAwareService) {
-        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
         Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
-                DownstreamAPIs.getVeilarbperson().invoke(safCluster)
+                DownstreamAPIs.getVeilarbperson().invoke(clientCluster)
         );
         return new VeilarbregistreringClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbperson", true),
@@ -119,9 +124,9 @@ public class ClientConfig {
 
     @Bean
     public SafClient safClient(ContextAwareService contextAwareService) {
-        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
         Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
-                DownstreamAPIs.getSaf().invoke(safCluster)
+                DownstreamAPIs.getSaf().invoke(clientCluster)
         );
         return new SafClientImpl(
                 naisPreprodOrNaisAdeoIngress("saf", false),
@@ -131,9 +136,9 @@ public class ClientConfig {
 
     @Bean
     public VeilarbveilederClient veilederOgEnhetClient(AuthContextHolder authContextHolder, ContextAwareService contextAwareService) {
-        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
         Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
-                DownstreamAPIs.getVeilarbveileder().invoke(safCluster)
+                DownstreamAPIs.getVeilarbveileder().invoke(clientCluster)
         );
         return new VeilarbveilederClientImpl(
                 naisPreprodOrNaisAdeoIngress("veilarbveileder", true),
@@ -144,9 +149,9 @@ public class ClientConfig {
 
     @Bean
     public DokarkivClient dokarkivClient(SystemUserTokenProvider systemUserTokenProvider, ContextAwareService contextAwareService) {
-        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
         Supplier<String> userTokenSupplier = contextAwareService.contextAwareUserTokenSupplier(
-                DownstreamAPIs.getDokarkiv().invoke(safCluster)
+                DownstreamAPIs.getDokarkiv().invoke(clientCluster)
         );
         String url = isProduction()
                 ? createProdInternalIngressUrl("dokarkiv")
@@ -173,10 +178,10 @@ public class ClientConfig {
                 ? createProdInternalIngressUrl("dokdistfordeling")
                 : createDevInternalIngressUrl("dokdistfordeling-q1");
 
-        String safCluster = isProduction() ? "prod-fss"  : "dev-fss";
+        String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
 
         Supplier<String> serviceTokenSupplier = () -> serviceToServiceTokenProvider()
-                .getServiceToken("saf", "teamdokumenthandtering", safCluster);
+                .getServiceToken("saf", "teamdokumenthandtering", clientCluster);
 
         return new DokdistribusjonClientImpl(
                 url,
