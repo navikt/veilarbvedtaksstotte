@@ -24,7 +24,7 @@ public class VeilarboppfolgingClientImplTest {
     @BeforeAll
     public static void setup(WireMockRuntimeInfo wireMockRuntimeInfo) {
         String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        veilarboppfolgingClient = new VeilarboppfolgingClientImpl(apiUrl, () -> "USER_TOKEN", () -> "SYSTEM_TOKEN");
+        veilarboppfolgingClient = new VeilarboppfolgingClientImpl(apiUrl, () -> "Bearer USER_TOKEN", () -> "SYSTEM_TOKEN");
     }
 
     @Test
