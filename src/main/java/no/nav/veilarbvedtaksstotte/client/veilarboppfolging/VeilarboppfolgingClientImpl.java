@@ -41,7 +41,7 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
     public OppfolgingsstatusDTO hentOppfolgingData(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarboppfolgingUrl, "/api/person/", fnr, "oppfolgingsstatus"))
-                .header(HttpHeaders.AUTHORIZATION, bearerToken(userTokenSupplier.get()))
+                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {

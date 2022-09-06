@@ -112,12 +112,6 @@ public class AuthService {
                 .setOppfolgingsenhet(enhet);
     }
 
-    public String getInnloggetBrukerToken() {
-        return authContextHolder
-                .getIdTokenString()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bruker mangler token"));
-    }
-
     public String getInnloggetVeilederIdent() {
         return authContextHolder
                 .getNavIdent()
