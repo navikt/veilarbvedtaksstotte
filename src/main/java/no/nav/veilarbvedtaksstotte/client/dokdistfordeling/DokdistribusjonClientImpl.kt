@@ -62,6 +62,6 @@ class DokdistribusjonClientImpl(
     }
 
     override fun checkHealth(): HealthCheckResult {
-        return HealthCheckUtils.pingUrl(joinPaths(dokdistribusjonUrl, "isReady"), client)
+        return HealthCheckUtils.pingUrl(joinPaths(dokdistribusjonUrl, "/actuator/health/readiness"), client)
     }
 }
