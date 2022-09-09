@@ -164,7 +164,7 @@ class DokumentServiceTest {
         val wiremockUrl = "http://localhost:" + wireMockRuntimeInfo.httpPort
         authContextHolder = AuthContextHolderThreadLocal.instance()
         regoppslagClient = RegoppslagClientImpl(wiremockUrl, systemUserTokenProvider)
-        dokarkivClient = DokarkivClientImpl(wiremockUrl, systemUserTokenProvider) { "" }
+        dokarkivClient = DokarkivClientImpl(wiremockUrl) { "" }
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl) { "" }
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl) { "" }
