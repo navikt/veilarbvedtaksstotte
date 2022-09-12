@@ -1,9 +1,9 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
-import no.nav.common.auth.context.AuthContextHolder;
 import no.nav.common.job.JobRunner;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
+import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.service.KafkaRepubliseringService;
 import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,21 +16,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
-
-    public final static String PTO_ADMIN_SERVICE_USER = "srvpto-admin";
+    public final static String PTO_ADMIN = "pto-admin";
 
     private final UtrullingService utrullingService;
 
-    private final AuthContextHolder authContextHolder;
+    private final AuthService authService;
 
     private final KafkaRepubliseringService kafkaRepubliseringService;
 
     @Autowired
     public AdminController(UtrullingService utrullingService,
-                           AuthContextHolder authContextHolder,
+                           AuthService authService,
                            KafkaRepubliseringService kafkaRepubliseringService) {
         this.utrullingService = utrullingService;
-        this.authContextHolder = authContextHolder;
+        this.authService = authService;
         this.kafkaRepubliseringService = kafkaRepubliseringService;
     }
 
@@ -71,12 +70,13 @@ public class AdminController {
     }
 
     private void sjekkTilgangTilAdmin() {
-        String subject = authContextHolder.getSubject()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        boolean erSystemBrukerFraAzure = authService.erSystemBruker();
+        boolean erPtoAdmin = PTO_ADMIN.equals(authService.hentApplikasjonFraContex());
 
-        if (!PTO_ADMIN_SERVICE_USER.equals(subject)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        if (erPtoAdmin && erSystemBrukerFraAzure) {
+            return;
         }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
     }
 
 }
