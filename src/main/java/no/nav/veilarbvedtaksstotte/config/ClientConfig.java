@@ -145,7 +145,7 @@ public class ClientConfig {
 
     @Bean
     public DokarkivClient dokarkivClient(OboContexService oboContexService) {
-        DownstreamApi dokarkivClient =  DownstreamAPIs.getDokarkiv().invoke( isProduction() ? "prod-fss" : "dev-fss");
+        DownstreamApi dokarkivClient = DownstreamAPIs.getDokarkiv().invoke(isProduction() ? "prod-fss" : "dev-fss");
         Supplier<String> userTokenSupplier = oboContexService.userTokenSupplier(dokarkivClient);
         String url = isProduction()
                 ? createProdInternalIngressUrl(dokarkivClient.serviceName)
@@ -168,13 +168,12 @@ public class ClientConfig {
     @Bean
     public DokdistribusjonClient dokDistribusjonClient(AzureAdMachineToMachineTokenClient tokenClient) {
         String appName = isProduction() ? "dokdistfordeling" : "dokdistfordeling-q1";
-        String url = createProdInternalIngressUrl(appName);
+        String url = isProduction()
+                ? createProdInternalIngressUrl(appName)
+                : createDevInternalIngressUrl(appName);
 
         String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
-        String namespace = "teamdokumenthandtering";
-        String tokenScope = String.format("api://%s.%s.%s/.default",
-                clientCluster, namespace, appName
-        );
+        String tokenScope = String.format("api://%s.teamdokumenthandtering.saf/.default", clientCluster);
 
         return new DokdistribusjonClientImpl(url, () -> tokenClient.createMachineToMachineToken(tokenScope));
     }
@@ -183,7 +182,7 @@ public class ClientConfig {
     public AktorOppslagClient aktorOppslagClient(AzureAdMachineToMachineTokenClient tokenClient) {
         String pdlUrl = isProduction()
                 ? createProdInternalIngressUrl("pdl-api")
-                : createDevInternalIngressUrl("pdl-api-q1");
+                : createDevInternalIngressUrl("pdl-api");
         String tokenScope = String.format("api://%s-fss.pdl.pdl-api/.default",
                 isProduction() ? "prod" : "dev"
         );
