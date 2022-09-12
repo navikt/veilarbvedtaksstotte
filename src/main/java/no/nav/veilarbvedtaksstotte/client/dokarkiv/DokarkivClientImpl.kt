@@ -21,7 +21,6 @@ import java.util.function.Supplier
 
 class DokarkivClientImpl(
     val dokarkivUrl: String,
-    val systemUserTokenProvider: SystemUserTokenProvider,
     val userTokenSupplier: Supplier<String>
 ) : DokarkivClient {
 
@@ -32,7 +31,6 @@ class DokarkivClientImpl(
     override fun opprettJournalpost(opprettJournalpostDTO: OpprettJournalpostDTO): OpprettetJournalpostDTO {
         val request = Request.Builder()
             .url(joinPaths(dokarkivUrl, "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
-            .header("Nav-Consumer-Token", bearerToken(systemUserTokenProvider.systemUserToken)) //TODO: slett ved fult bruk av azureAd
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .post(opprettJournalpostDTO.toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
