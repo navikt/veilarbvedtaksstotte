@@ -29,7 +29,7 @@ public class BeslutterServiceTest {
 
     private final VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
 
-    private final VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
+    private final VedtakHendelserService vedtakStatusEndringService = mock(VedtakHendelserService.class);
 
     private final BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
 
@@ -39,6 +39,8 @@ public class BeslutterServiceTest {
 
     private final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
 
+    private final MetricsService metricsService = mock(MetricsService.class);
+
     private final AuthService authService = mock(AuthService.class);
 
     private final JdbcTemplate db = SingletonPostgresContainer.init().createJdbcTemplate();
@@ -46,8 +48,8 @@ public class BeslutterServiceTest {
     private TransactionTemplate transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
 
     private BeslutterService beslutterService = new BeslutterService(
-            authService, vedtaksstotteRepository, vedtakStatusEndringService,
-            beslutteroversiktRepository, meldingRepository, veilederService, veilarbpersonClient, transactor
+            authService, vedtaksstotteRepository, vedtakStatusEndringService, beslutteroversiktRepository,
+            meldingRepository, veilederService, veilarbpersonClient, transactor, metricsService
     );
 
     @BeforeEach

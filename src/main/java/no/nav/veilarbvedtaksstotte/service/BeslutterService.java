@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import lombok.RequiredArgsConstructor;
 import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
@@ -14,7 +15,6 @@ import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -25,13 +25,14 @@ import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterFo
 import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.erBeslutterProsessStartet;
 
 @Service
+@RequiredArgsConstructor
 public class BeslutterService {
 
 	private final AuthService authService;
 
 	private final VedtaksstotteRepository vedtaksstotteRepository;
 
-	private final VedtakStatusEndringService vedtakStatusEndringService;
+	private final VedtakHendelserService vedtakStatusEndringService;
 
 	private final BeslutteroversiktRepository beslutteroversiktRepository;
 
@@ -43,26 +44,7 @@ public class BeslutterService {
 
 	private final TransactionTemplate transactor;
 
-	@Autowired
-	public BeslutterService(
-			AuthService authService,
-			VedtaksstotteRepository vedtaksstotteRepository,
-			VedtakStatusEndringService vedtakStatusEndringService,
-			BeslutteroversiktRepository beslutteroversiktRepository,
-			MeldingRepository meldingRepository,
-			VeilederService veilederService,
-			VeilarbpersonClient veilarbpersonClient,
-			TransactionTemplate transactor
-	) {
-		this.authService = authService;
-		this.vedtaksstotteRepository = vedtaksstotteRepository;
-		this.vedtakStatusEndringService = vedtakStatusEndringService;
-		this.beslutteroversiktRepository = beslutteroversiktRepository;
-		this.meldingRepository = meldingRepository;
-		this.veilederService = veilederService;
-		this.veilarbpersonClient = veilarbpersonClient;
-		this.transactor = transactor;
-	}
+	private final MetricsService metricsService;
 
 	public void startBeslutterProsess(long vedtakId) {
 		Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
@@ -149,6 +131,7 @@ public class BeslutterService {
 	    beslutteroversiktRepository.slettBruker(utkast.getId()); // Bruker skal ikke vises i beslutteroversikten hvis utkast er godkjent
 	    vedtakStatusEndringService.godkjentAvBeslutter(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);
+		metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(utkast);
     }
 
 	public void oppdaterBeslutterProsessStatus(long vedtakId) {

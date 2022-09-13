@@ -1,9 +1,12 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.metrics.Event;
 import no.nav.common.metrics.MetricsClient;
+import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
@@ -11,7 +14,6 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -26,11 +28,10 @@ import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.tellVedtakEtterDato;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class MetricsService {
 
     private final MetricsClient influxClient;
-
-    private final MeterRegistry meterRegistry;
 
     private final VeilarboppfolgingClient oppfolgingClient;
 
@@ -38,18 +39,8 @@ public class MetricsService {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
-    @Autowired
-    public MetricsService(MetricsClient influxClient,
-                          MeterRegistry meterRegistry,
-                          VeilarboppfolgingClient oppfolgingClient,
-                          VeilarbregistreringClient registreringClient,
-                          VedtaksstotteRepository vedtaksstotteRepository)  {
-        this.influxClient = influxClient;
-        this.meterRegistry = meterRegistry;
-        this.oppfolgingClient = oppfolgingClient;
-        this.registreringClient = registreringClient;
-        this.vedtaksstotteRepository = vedtaksstotteRepository;
-    }
+    private final AktorOppslagClient aktorOppslagClient;
+
 
     private static Event createMetricEvent(String tagName) {
         return new Event(APPLICATION_NAME + ".metrikker." + tagName);
@@ -59,7 +50,17 @@ public class MetricsService {
         return ldt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
-    public void rapporterVedtakSendt(Vedtak vedtak) {
+    public void rapporterMetrikkerForFattetVedtak(Vedtak vedtak) {
+        try {
+            rapporterVedtakSendt(vedtak);
+            rapporterTidFraRegistrering(vedtak);
+            rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak);
+        } catch (Exception e) {
+            log.warn("Klarte ikke rapportere metrikker for fattet vedtak", e);
+        }
+    }
+
+    private void rapporterVedtakSendt(Vedtak vedtak) {
         Event event = createMetricEvent("vedtak-sendt");
         long utkastOpprettetMillis = localDateTimeToMillis(vedtak.getUtkastOpprettet());
         long secondsUsed = (System.currentTimeMillis() - utkastOpprettetMillis) / 1000;
@@ -77,8 +78,8 @@ public class MetricsService {
         influxClient.report(event);
     }
 
-    public void rapporterTidFraRegistrering(Vedtak vedtak, String aktorId, String fnr) {
-        long tidFraRegistrering = finnTidFraRegistreringStartet(aktorId, fnr);
+    private void rapporterTidFraRegistrering(Vedtak vedtak) {
+        long tidFraRegistrering = finnTidFraRegistreringStartet(AktorId.of(vedtak.getAktorId()));
 
         if (tidFraRegistrering < 0) return;
 
@@ -94,14 +95,14 @@ public class MetricsService {
     /**
      * Henter tid fra registrering startet fram til nå hvis brukeren kun har ett vedtak (det som nettopp ble sendt)
      * @param aktorId brukers aktør id
-     * @param fnr brukers fødselsnummer
      * @return tid i millisekunder, -1 hvis det mangler data eller brukeren har mer enn ett vedtak i nåværende oppfølgingsperiode
      */
-    private long finnTidFraRegistreringStartet(String aktorId, String fnr) {
+    private long finnTidFraRegistreringStartet(AktorId aktorId) {
         try {
-            List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId);
-            RegistreringData registreringData = registreringClient.hentRegistreringData(fnr);
-            List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingsperioder(fnr);
+            Fnr fnr = aktorOppslagClient.hentFnr(aktorId);
+            List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId.get());
+            RegistreringData registreringData = registreringClient.hentRegistreringData(fnr.get());
+            List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingsperioder(fnr.get());
             Optional<ZonedDateTime> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);
 
             if (startDato.isEmpty() || registreringData == null) {
@@ -119,11 +120,12 @@ public class MetricsService {
         return -1;
     }
 
-    public void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, String fnr) {
+    private void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak) {
         boolean erSykmeldtMedArbeidsgiver;
 
         try {
-            String serviceGruppe = oppfolgingClient.hentOppfolgingData(fnr).getServicegruppe();
+            Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(vedtak.getAktorId()));
+            String serviceGruppe = oppfolgingClient.hentOppfolgingData(fnr.get()).getServicegruppe();
             erSykmeldtMedArbeidsgiver = OppfolgingUtils.erSykmeldtUtenArbeidsgiver(serviceGruppe);
         } catch (Exception ignored) {
             erSykmeldtMedArbeidsgiver = false;
@@ -131,14 +133,14 @@ public class MetricsService {
 
         if (erSykmeldtMedArbeidsgiver) {
             try {
-                List<OppfolgingPeriodeDTO> data = oppfolgingClient.hentOppfolgingsperioder(fnr);
+                Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(vedtak.getAktorId()));
+                List<OppfolgingPeriodeDTO> data = oppfolgingClient.hentOppfolgingsperioder(fnr.get());
                 Optional<ZonedDateTime> oppolgingStartDato = OppfolgingUtils.getOppfolgingStartDato(data);
                 oppolgingStartDato.ifPresent(
                         startDato -> rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, startDato)
                 );
             } catch (Exception ignored) {}
         }
-
     }
 
     private void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak, ZonedDateTime oppfolgingStartDato) {
