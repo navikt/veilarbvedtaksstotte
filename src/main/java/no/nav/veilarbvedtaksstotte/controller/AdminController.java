@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
-    public final static String PTO_ADMIN = "pto-admin";
+    public static final String PTO_ADMIN = "pto-admin";
 
     private final UtrullingService utrullingService;
 
