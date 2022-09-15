@@ -8,7 +8,6 @@ import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.norg2.Enhet
-import no.nav.common.sts.SystemUserTokenProvider
 import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
@@ -60,9 +59,6 @@ class DokumentServiceTest {
     lateinit var enhetInfoService: EnhetInfoService
     lateinit var malTypeService: MalTypeService
     lateinit var dokumentService: DokumentService
-
-
-    val systemUserTokenProvider: SystemUserTokenProvider = mock(SystemUserTokenProvider::class.java)
 
     val målform = Målform.NB
     val veilederNavn = "Navn Veileder"
@@ -163,7 +159,7 @@ class DokumentServiceTest {
 
         val wiremockUrl = "http://localhost:" + wireMockRuntimeInfo.httpPort
         authContextHolder = AuthContextHolderThreadLocal.instance()
-        regoppslagClient = RegoppslagClientImpl(wiremockUrl, systemUserTokenProvider)
+        regoppslagClient = RegoppslagClientImpl(wiremockUrl) { "SYSTEM_USER_TOKEN" }
         dokarkivClient = DokarkivClientImpl(wiremockUrl) { "" }
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl) { "" }
@@ -183,8 +179,6 @@ class DokumentServiceTest {
             enhetInfoService = enhetInfoService,
             malTypeService = malTypeService
         )
-
-        `when`(systemUserTokenProvider.getSystemUserToken()).thenReturn("SYSTEM_USER_TOKEN")
 
         givenWiremockOkJsonResponse(
             "/api/v1/enhet/${enhetId}/kontaktinformasjon", EnhetKontaktinformasjon(enhetId, null, null).toJson()
