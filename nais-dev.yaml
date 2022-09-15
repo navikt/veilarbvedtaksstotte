@@ -12,6 +12,7 @@ spec:
   leaderElection: true
   ingresses:
     - https://veilarbvedtaksstotte.dev-fss-pub.nais.io
+    - https://veilarbvedtaksstotte.dev.intern.nav.no
     - https://app.dev.adeo.no/veilarbvedtaksstotte
     - https://app-q1.dev.adeo.no/veilarbvedtaksstotte
     - https://app-q1.adeo.no/veilarbvedtaksstotte
