@@ -14,7 +14,6 @@ import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.job.leader_election.LeaderElectionHttpClient;
 import no.nav.common.metrics.InfluxClient;
 import no.nav.common.metrics.MetricsClient;
-import no.nav.common.sts.SystemUserTokenProvider;
 import no.nav.common.token_client.client.AzureAdMachineToMachineTokenClient;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.EnvironmentUtils;
@@ -92,12 +91,8 @@ public class ClientConfig {
         Supplier<String> userTokenSupplier = oboContexService.userTokenSupplier(veilarboppfolging);
 
         String url = UrlUtils.createServiceUrl(veilarboppfolging.serviceName, veilarboppfolging.namespace, true);
-        String tokenScope = String.format("api://%s.%s.%s/.default",
-                veilarboppfolging.cluster, veilarboppfolging.namespace, veilarboppfolging.serviceName
-        );
-
         return new VeilarboppfolgingClientImpl(url, userTokenSupplier,
-                () -> tokenClient.createMachineToMachineToken(tokenScope)
+                () -> tokenClient.createMachineToMachineToken(tokenScope(veilarboppfolging))
         );
     }
 
@@ -157,12 +152,13 @@ public class ClientConfig {
     }
 
     @Bean
-    public RegoppslagClient regoppslagClient(SystemUserTokenProvider systemUserTokenProvider) {
+    public RegoppslagClient regoppslagClient(AzureAdMachineToMachineTokenClient tokenClient) {
+        DownstreamApi regoppslag = DownstreamAPIs.getRegoppslag().invoke(isProduction() ? "prod-fss" : "dev-fss");
         String url = isProduction()
-                ? createProdInternalIngressUrl("regoppslag")
-                : createDevInternalIngressUrl("regoppslag-q1");
+                ? createProdInternalIngressUrl(regoppslag.serviceName)
+                : createDevInternalIngressUrl(regoppslag.serviceName);
 
-        return new RegoppslagClientImpl(url, systemUserTokenProvider);
+        return new RegoppslagClientImpl(url, () -> tokenClient.createMachineToMachineToken(tokenScope(regoppslag)));
     }
 
     @Bean
@@ -180,14 +176,10 @@ public class ClientConfig {
 
     @Bean
     public AktorOppslagClient aktorOppslagClient(AzureAdMachineToMachineTokenClient tokenClient) {
-        String pdlUrl = isProduction()
-                ? createProdInternalIngressUrl("pdl-api")
-                : createDevInternalIngressUrl("pdl-api");
-        String tokenScope = String.format("api://%s-fss.pdl.pdl-api/.default",
-                isProduction() ? "prod" : "dev"
-        );
-        PdlClientImpl pdlClient = new PdlClientImpl(pdlUrl, () -> tokenClient.createMachineToMachineToken(tokenScope), null);
+        DownstreamApi pdl = DownstreamAPIs.getPdl().invoke(isProduction() ? "prod-fss" : "dev-fss");
+        String pdlUrl = createServiceUrl(pdl.serviceName, pdl.namespace, true);
 
+        PdlClientImpl pdlClient = new PdlClientImpl(pdlUrl, () -> tokenClient.createMachineToMachineToken(tokenScope(pdl)));
         return new CachedAktorOppslagClient(new PdlAktorOppslagClient(pdlClient));
     }
 
@@ -224,5 +216,9 @@ public class ClientConfig {
         return isProduction()
                 ? createNaisAdeoIngressUrl(appName, withAppContextPath)
                 : createNaisPreprodIngressUrl(appName, "q1", withAppContextPath);
+    }
+
+    private static String tokenScope(DownstreamApi downstreamApi){
+        return String.format("api://%s.%s.%s/.default", downstreamApi.cluster, downstreamApi.namespace, downstreamApi.serviceName);
     }
 }
