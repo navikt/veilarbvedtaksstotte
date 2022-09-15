@@ -178,8 +178,8 @@ public class ClientConfig {
     public AktorOppslagClient aktorOppslagClient(AzureAdMachineToMachineTokenClient tokenClient) {
         DownstreamApi pdl = DownstreamAPIs.getPdl().invoke(isProduction() ? "prod-fss" : "dev-fss");
         String pdlUrl = isProduction()
-                ? createProdInternalIngressUrl("pdl-api")
-                : createDevInternalIngressUrl("pdl-api");
+                ? createProdInternalIngressUrl(pdl.serviceName)
+                : createDevInternalIngressUrl(pdl.serviceName);
 
         PdlClientImpl pdlClient = new PdlClientImpl(pdlUrl, () -> tokenClient.createMachineToMachineToken(tokenScope(pdl)));
         return new CachedAktorOppslagClient(new PdlAktorOppslagClient(pdlClient));
