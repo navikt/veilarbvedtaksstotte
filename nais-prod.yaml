@@ -57,7 +57,8 @@ spec:
       enabled: true
       claims:
         extra:
-          - "NAVident"
+          - NAVident
+          - azp_name
   accessPolicy:
     inbound:
       rules:
@@ -76,5 +77,8 @@ spec:
         - application: mulighetsrommet-api
           namespace: team-mulighetsrommet
           cluster: prod-gcp
+        - application: pto-admin
+          namespace: pto
+          cluster: prod-fss
   envFrom:
     - configmap: pto-config
