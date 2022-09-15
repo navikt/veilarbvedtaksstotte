@@ -6,7 +6,7 @@ metadata:
   labels:
     team: pto
 spec:
-  image: docker.pkg.github.com/navikt/veilarbvedtaksstotte/veilarbvedtaksstotte:{{version}}
+  image: ghcr.io/navikt/veilarbvedtaksstotte/veilarbvedtaksstotte:{{version}}
   port: 8080
   webproxy: true
   leaderElection: true
