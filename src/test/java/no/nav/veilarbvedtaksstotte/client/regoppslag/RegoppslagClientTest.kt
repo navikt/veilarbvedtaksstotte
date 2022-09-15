@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
-import no.nav.common.sts.SystemUserTokenProvider
 import no.nav.common.test.auth.AuthTestUtils.createAuthContext
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE
@@ -13,20 +12,18 @@ import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
 
 @WireMockTest
 class RegoppslagClientTest {
 
     companion object {
-        val systemUserTokenProvider: SystemUserTokenProvider = Mockito.mock(SystemUserTokenProvider::class.java)
         lateinit var regoppslagClient: RegoppslagClient
 
         @BeforeAll
         @JvmStatic
         fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
             regoppslagClient =
-                RegoppslagClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort, systemUserTokenProvider)
+                RegoppslagClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort) { "SYSTEM_USER_TOKEN" }
         }
     }
 
@@ -56,8 +53,6 @@ class RegoppslagClientTest {
                   }
                 }
             """.trimIndent()
-
-        Mockito.`when`(systemUserTokenProvider.getSystemUserToken()).thenReturn("SYSTEM_USER_TOKEN")
 
         WireMock.givenThat(
             WireMock.post(WireMock.urlEqualTo("/rest/postadresse"))
