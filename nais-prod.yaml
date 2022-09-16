@@ -6,12 +6,13 @@ metadata:
   labels:
     team: pto
 spec:
-  image: docker.pkg.github.com/navikt/veilarbvedtaksstotte/veilarbvedtaksstotte:{{version}}
+  image: ghcr.io/navikt/veilarbvedtaksstotte/veilarbvedtaksstotte:{{version}}
   port: 8080
   webproxy: true
   leaderElection: true
   ingresses:
     - https://veilarbvedtaksstotte.prod-fss-pub.nais.io
+    - https://veilarbvedtaksstotte.intern.nav.no
     - https://app.adeo.no/veilarbvedtaksstotte
     - https://veilarbvedtaksstotte.nais.adeo.no
   prometheus:
