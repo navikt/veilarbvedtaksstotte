@@ -51,6 +51,6 @@ class DokarkivClientImpl(
     }
 
     override fun checkHealth(): HealthCheckResult {
-        return HealthCheckUtils.pingUrl(joinPaths(dokarkivUrl, "isReady"), client)
+        return HealthCheckUtils.pingUrl(joinPaths(dokarkivUrl, "actuator/health/readiness"), client)
     }
 }
