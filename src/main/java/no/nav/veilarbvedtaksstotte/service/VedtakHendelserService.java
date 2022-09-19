@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
@@ -17,6 +18,7 @@ import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VedtakHendelserService {
 
     private final KafkaProducerService kafkaProducerService;
@@ -26,6 +28,8 @@ public class VedtakHendelserService {
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
     private final DvhRapporteringService dvhRapporteringService;
+
+    private final UnleashService unleashService;
 
     public void utkastOpprettet(Vedtak vedtak) {
         Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
@@ -118,7 +122,12 @@ public class VedtakHendelserService {
                         toZonedDateTime(vedtak.getVedtakFattet()),
                         false));
 
-        dvhRapporteringService.rapporterTilDvh(statusEndring);
+        if (unleashService.isNotRapporterDvhSynkront()) {
+            log.info("Rapporterer ikke til DVH synkront");
+        } else {
+            log.info("Rapporterer til DVH synkront");
+            dvhRapporteringService.rapporterTilDvh(statusEndring);
+        }
     }
 
     private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {

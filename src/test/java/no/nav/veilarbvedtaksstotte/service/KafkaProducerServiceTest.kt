@@ -1,29 +1,19 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
 import no.nav.common.types.identer.AktorId
-import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvh
-import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhHovedmalKode
-import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhInnsatsgruppeKode
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
-import no.nav.veilarbvedtaksstotte.config.KafkaConfig
-import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal.BEHOLDE_ARBEID
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
-import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toInstant
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -51,12 +41,6 @@ class KafkaProducerServiceTest {
 
     @Autowired
     lateinit var kafkaProducerService: KafkaProducerService
-
-    @Autowired
-    lateinit var kafkaAvroContext: KafkaConfig.KafkaAvroContext
-
-    @Autowired
-    lateinit var kafkaProperties: KafkaProperties
 
     @Test
     fun `lagrer forventet record verdi for oppdatering av siste vedtak`() {
@@ -141,39 +125,6 @@ class KafkaProducerServiceTest {
         assertEqualJson(forventet, deserialize(argumentCaptor.value.value()))
     }
 
-    @Test
-    fun `lagrer forventet record verdi for sending av vedtak til dvh`() {
-        val vedtak = Vedtak()
-            .setId(123)
-            .setVedtakFattet(LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234))
-            .setInnsatsgruppe(Innsatsgruppe.SITUASJONSBESTEMT_INNSATS)
-            .setHovedmal(Hovedmal.SKAFFE_ARBEID)
-            .setAktorId(TEST_AKTOR_ID)
-            .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
-            .setVeilederIdent("324")
-            .setBeslutterIdent("678")
-
-        val forventetVedtak14aFattetDvh = Vedtak14aFattetDvh()
-        forventetVedtak14aFattetDvh.id = 123
-        forventetVedtak14aFattetDvh.vedtakFattet = toInstant(LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234))
-        forventetVedtak14aFattetDvh.innsatsgruppeKode = Vedtak14aFattetDvhInnsatsgruppeKode.SITUASJONSBESTEMT_INNSATS
-        forventetVedtak14aFattetDvh.hovedmalKode = Vedtak14aFattetDvhHovedmalKode.SKAFFE_ARBEID
-        forventetVedtak14aFattetDvh.aktorId = TEST_AKTOR_ID
-        forventetVedtak14aFattetDvh.oppfolgingsenhetId = TEST_OPPFOLGINGSENHET_ID
-        forventetVedtak14aFattetDvh.veilederIdent = "324"
-        forventetVedtak14aFattetDvh.beslutterIdent = "678"
-
-        kafkaProducerService.sendVedtakFattetDvh(vedtak)
-
-        verify(producerRecordStorage).store(argumentCaptor.capture())
-
-        val deserializer = KafkaAvroDeserializer(null, kafkaAvroContext.config)
-
-        val resultat = deserializer
-            .deserialize(kafkaProperties.vedtakFattetDvhTopic, argumentCaptor.value.value()) as Vedtak14aFattetDvh
-
-        assertEquals(forventetVedtak14aFattetDvh, resultat)
-    }
 
     fun assertEqualJson(expexted: String, actual: String) {
         assertEquals(JsonUtils.objectMapper.readTree(expexted), JsonUtils.objectMapper.readTree(actual))

@@ -78,6 +78,7 @@ public class ApplicationConfig {
                                 PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials
                         )
                 )
+                .setAivenConsumerClientProperties(aivenDefaultConsumerProperties(KafkaConfig.CONSUMER_GROUP_ID))
                 .setAivenProducerClientProperties(aivenByteProducerProperties(PRODUCER_CLIENT_ID));
     }
 

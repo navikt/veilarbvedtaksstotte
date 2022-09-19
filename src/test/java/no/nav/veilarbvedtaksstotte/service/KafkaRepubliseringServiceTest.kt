@@ -26,7 +26,7 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
     lateinit var vedtaksstotteRepository: VedtaksstotteRepository
     lateinit var kafkaRepubliseringService: KafkaRepubliseringService
     lateinit var arenaVedtakRepository: ArenaVedtakRepository
-    lateinit var kafkaProducerService: KafkaProducerService
+    lateinit var dvhRapporteringService: DvhRapporteringService
 
     @BeforeEach
     fun setup() {
@@ -35,9 +35,9 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
         vedtaksstotteRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
         arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
         siste14aVedtakService = mock(Siste14aVedtakService::class.java)
-        kafkaProducerService = mock(KafkaProducerService::class.java)
+        dvhRapporteringService = mock(DvhRapporteringService::class.java)
         kafkaRepubliseringService = KafkaRepubliseringService(
-            vedtaksstotteRepository, arenaVedtakRepository, siste14aVedtakService, kafkaProducerService
+            vedtaksstotteRepository, arenaVedtakRepository, siste14aVedtakService, dvhRapporteringService
         )
     }
 
@@ -78,7 +78,7 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
         kafkaRepubliseringService.republiserVedtak14aFattetDvh(3)
 
         val captor = ArgumentCaptor.forClass(Vedtak::class.java)
-        verify(kafkaProducerService, times(brukereMedDuplikat.size)).sendVedtakFattetDvh(captor.capture())
+        verify(dvhRapporteringService, times(brukereMedDuplikat.size)).produserVedtakFattetDvhMelding(captor.capture())
         assertThat(captor.allValues.map { it.id }).containsExactlyElementsOf(fattedeVedtak.map { it.id }.sorted())
     }
 
