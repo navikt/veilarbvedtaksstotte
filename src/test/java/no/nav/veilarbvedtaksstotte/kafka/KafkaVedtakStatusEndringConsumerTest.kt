@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.kafka
 
+import com.ninjasquad.springmockk.MockkBean
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
+import io.mockk.every
 import no.nav.common.types.identer.AktorId
 import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvh
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
@@ -18,12 +20,10 @@ import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.apache.commons.lang3.RandomStringUtils
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
@@ -55,13 +55,15 @@ class KafkaVedtakStatusEndringConsumerTest {
     @Autowired
     lateinit var vedtakRepository: VedtaksstotteRepository
 
-    @MockBean
+    @MockkBean
     lateinit var unleashService: UnleashService
 
     @Test
     fun `konsumerer melding om statusendring som fører til publisering av melding pa topic for rapportering til DVH`() {
 
-        `when`(unleashService.isRapporterDvhAsynkront).thenReturn(true)
+        every {
+            unleashService.isRapporterDvhAsynkront
+        } returns true
 
         val vedtak = gittFattetVedtakDer(
             aktorId = AktorId.of(RandomStringUtils.randomNumeric(10)),
