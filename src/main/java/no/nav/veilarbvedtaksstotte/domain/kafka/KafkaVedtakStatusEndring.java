@@ -19,6 +19,22 @@ public class KafkaVedtakStatusEndring {
 
     LocalDateTime timestamp;
 
+    public long getVedtakId() {
+        return this.vedtakId;
+    }
+
+    public String getAktorId() {
+        return this.aktorId;
+    }
+
+    public VedtakStatusEndring getVedtakStatusEndring() {
+        return this.vedtakStatusEndring;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return this.timestamp;
+    }
+
     @Data
     public static class UtkastOpprettet extends KafkaVedtakStatusEndring {
         public UtkastOpprettet() { vedtakStatusEndring = VedtakStatusEndring.UTKAST_OPPRETTET; }

@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import;
         MetricsService.class,
         OyeblikksbildeService.class,
         VedtakService.class,
-        VedtakStatusEndringService.class,
+        VedtakHendelserService.class,
         VeilarbarenaService.class,
         VeilederService.class,
         DokumentService.class,
@@ -26,7 +26,8 @@ import org.springframework.context.annotation.Import;
         Siste14aVedtakService.class,
         KafkaProducerService.class,
         KafkaConsumerService.class,
-        KafkaRepubliseringService.class
+        KafkaRepubliseringService.class,
+        DvhRapporteringService.class
 })
 public class ServiceTestConfig {
 }

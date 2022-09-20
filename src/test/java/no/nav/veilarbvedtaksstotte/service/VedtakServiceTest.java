@@ -69,7 +69,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private static AuthService authService;
 
     private static final UnleashService unleashService = mock(UnleashService.class);
-    private static final VedtakStatusEndringService vedtakStatusEndringService = mock(VedtakStatusEndringService.class);
+    private static final VedtakHendelserService vedtakHendelserService = mock(VedtakHendelserService.class);
     private static final VeilederService veilederService = mock(VeilederService.class);
 
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
@@ -84,6 +84,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final VeilarbveilederClient veilarbveilederClient = mock(VeilarbveilederClient.class);
     private static final UtrullingService utrullingService = mock(UtrullingService.class);
     private static final EnhetInfoService enhetInfoService = mock(EnhetInfoService.class);
+    private static final MetricsService metricsService = mock(MetricsService.class);
 
     private static final VeilarbPep veilarbPep = mock(VeilarbPep.class);
 
@@ -122,9 +123,10 @@ public class VedtakServiceTest extends DatabaseTest {
                 authService,
                 oyeblikksbildeService,
                 veilederService,
-                vedtakStatusEndringService,
+                vedtakHendelserService,
                 dokumentService,
-                veilarbarenaService);
+                veilarbarenaService,
+                metricsService);
     }
 
     @BeforeEach
@@ -134,7 +136,7 @@ public class VedtakServiceTest extends DatabaseTest {
         reset(meldingRepository);
         reset(unleashService);
         reset(dokarkivClient);
-        reset(vedtakStatusEndringService);
+        reset(vedtakHendelserService);
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
@@ -504,7 +506,7 @@ public class VedtakServiceTest extends DatabaseTest {
             assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
             assertOyeblikksbildeForFattetVedtak(sendtVedtak.getId());
         });
-        verify(vedtakStatusEndringService).vedtakSendt(any(), any());
+        verify(vedtakHendelserService).vedtakSendt(any());
     }
 
     private void assertOyeblikksbildeForFattetVedtak(long vedtakId) {
