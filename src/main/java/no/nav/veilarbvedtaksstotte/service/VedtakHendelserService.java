@@ -1,52 +1,31 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import lombok.RequiredArgsConstructor;
 import no.nav.common.types.identer.AktorId;
-import no.nav.common.types.identer.Fnr;
-import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvh;
-import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhHovedmalKode;
-import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhInnsatsgruppeKode;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
-import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toInstant;
 import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime;
 
 @Service
-public class VedtakStatusEndringService {
+@RequiredArgsConstructor
+public class VedtakHendelserService {
 
     private final KafkaProducerService kafkaProducerService;
-
-    private final MetricsService metricsService;
 
     private final VeilederService veilederService;
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
-
-    @Autowired
-    public VedtakStatusEndringService(
-            KafkaProducerService kafkaProducerService,
-            MetricsService metricsService,
-            VeilederService veilederService,
-            VedtaksstotteRepository vedtaksstotteRepository
-    ) {
-        this.kafkaProducerService = kafkaProducerService;
-        this.metricsService = metricsService;
-        this.veilederService = veilederService;
-        this.vedtaksstotteRepository = vedtaksstotteRepository;
-    }
+    private final DvhRapporteringService dvhRapporteringService;
 
     public void utkastOpprettet(Vedtak vedtak) {
         Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
@@ -62,7 +41,6 @@ public class VedtakStatusEndringService {
 
     public void utkastSlettet(Vedtak vedtak) {
         kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.UTKAST_SLETTET));
-        metricsService.rapporterUtkastSlettet();
     }
 
     public void beslutterProsessStartet(Vedtak vedtak) {
@@ -75,7 +53,6 @@ public class VedtakStatusEndringService {
 
     public void godkjentAvBeslutter(Vedtak vedtak) {
         kafkaProducerService.sendVedtakStatusEndring(lagVedtakStatusEndring(vedtak, VedtakStatusEndring.GODKJENT_AV_BESLUTTER));
-        metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(vedtak);
     }
 
     public void klarTilBeslutter(Vedtak vedtak) {
@@ -122,7 +99,7 @@ public class VedtakStatusEndringService {
         kafkaProducerService.sendVedtakStatusEndring(overtaForVeileder);
     }
 
-    public void vedtakSendt(Long vedtakId, Fnr fnr) {
+    public void vedtakSendt(Long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         KafkaVedtakStatusEndring.VedtakSendt statusEndring = new KafkaVedtakStatusEndring.VedtakSendt()
                 .setInnsatsgruppe(vedtak.getInnsatsgruppe())
@@ -137,15 +114,11 @@ public class VedtakStatusEndringService {
                 new Siste14aVedtak(
                         AktorId.of(vedtak.getAktorId()),
                         vedtak.getInnsatsgruppe(),
-                        HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal()),
+                        Siste14aVedtak.HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal()),
                         toZonedDateTime(vedtak.getVedtakFattet()),
                         false));
 
-        kafkaProducerService.sendVedtakFattetDvh(vedtak);
-
-        metricsService.rapporterVedtakSendt(vedtak);
-        metricsService.rapporterTidFraRegistrering(vedtak, vedtak.getAktorId(), fnr.get());
-        metricsService.rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, fnr.get());
+        dvhRapporteringService.rapporterTilDvh(statusEndring);
     }
 
     private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {

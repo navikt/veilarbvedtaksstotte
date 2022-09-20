@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
@@ -16,7 +17,6 @@ import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -33,6 +33,7 @@ import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutt
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class VedtakService {
 
     private final TransactionTemplate transactor;
@@ -48,44 +49,10 @@ public class VedtakService {
 
     private final OyeblikksbildeService oyeblikksbildeService;
     private final VeilederService veilederService;
-    private final VedtakStatusEndringService vedtakStatusEndringService;
+    private final VedtakHendelserService vedtakStatusEndringService;
     private final DokumentService dokumentService;
     private final VeilarbarenaService veilarbarenaService;
-
-    @Autowired
-    public VedtakService(
-            TransactionTemplate transactor,
-
-            VedtaksstotteRepository vedtaksstotteRepository,
-            BeslutteroversiktRepository beslutteroversiktRepository,
-            KilderRepository kilderRepository,
-            MeldingRepository meldingRepository,
-
-            SafClient safClient,
-
-            AuthService authService,
-            OyeblikksbildeService oyeblikksbildeService,
-            VeilederService veilederService,
-            VedtakStatusEndringService vedtakStatusEndringService,
-            DokumentService dokumentService,
-            VeilarbarenaService veilarbarenaService) {
-        this.transactor = transactor;
-
-        this.vedtaksstotteRepository = vedtaksstotteRepository;
-        this.beslutteroversiktRepository = beslutteroversiktRepository;
-        this.kilderRepository = kilderRepository;
-        this.meldingRepository = meldingRepository;
-
-        this.safClient = safClient;
-
-        this.authService = authService;
-
-        this.oyeblikksbildeService = oyeblikksbildeService;
-        this.veilederService = veilederService;
-        this.vedtakStatusEndringService = vedtakStatusEndringService;
-        this.dokumentService = dokumentService;
-        this.veilarbarenaService = veilarbarenaService;
-    }
+    private final MetricsService metricsService;
 
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
@@ -143,7 +110,9 @@ public class VedtakService {
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });
 
-        vedtakStatusEndringService.vedtakSendt(vedtak.getId(), Fnr.of(authKontekst.getFnr()));
+        vedtakStatusEndringService.vedtakSendt(vedtak.getId());
+
+        metricsService.rapporterMetrikkerForFattetVedtak(vedtak);
     }
 
     public BeslutterProsessStatus hentBeslutterprosessStatus(long vedtakId) {
@@ -244,9 +213,10 @@ public class VedtakService {
             // Utkast skal i teorien ikke ha oyeblikksbilde, men hvis det oppstår en feilsituasjon så er det mulig
             oyeblikksbildeService.slettOyeblikksbilde(utkastId);
             vedtaksstotteRepository.slettUtkast(utkastId);
+            vedtakStatusEndringService.utkastSlettet(utkast);
         });
 
-        vedtakStatusEndringService.utkastSlettet(utkast);
+        metricsService.rapporterUtkastSlettet();
     }
 
     public List<Vedtak> hentFattedeVedtak(Fnr fnr) {
