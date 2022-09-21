@@ -11,7 +11,7 @@ class KafkaRepubliseringService(
     val vedtaksstotteRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
     val siste14aVedtakService: Siste14aVedtakService,
-    val kafkaProducerService: KafkaProducerService
+    val dvhRapporteringService: DvhRapporteringService
 ) {
 
     val log: Logger = LoggerFactory.getLogger(KafkaRepubliseringService::class.java)
@@ -38,7 +38,7 @@ class KafkaRepubliseringService(
         do {
             val batch = vedtaksstotteRepository.hentFattedeVedtak(batchSize, offset)
             log.info("Rebubliserer ${batch.size} vedtak, hentet med offset $offset")
-            batch.forEach { kafkaProducerService.sendVedtakFattetDvh(it) }
+            batch.forEach { dvhRapporteringService.produserVedtakFattetDvhMelding(it) }
             offset += batch.size
         } while (batch.size == batchSize)
 
