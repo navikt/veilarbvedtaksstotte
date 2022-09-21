@@ -9,6 +9,8 @@ public class UnleashService {
 
     private static final String VEILARBVEDTAKSSTOTTE_DOK_DIST_SCHEDULE_ENABLED_TOGGLE = "veilarbvedtaksstotte.dok_dist_schedule_enabled";
     private static final String KAFKA_KONSUMERING_SKRUDD_AV = "veilarbvedtaksstotte.kafka-konsumering-skrudd-av";
+    private static final String IKKE_RAPPORTER_DVH_SYNKRONT = "veilarbvedtaksstotte.ikke_rapporter_dvh_synkront";
+    private static final String RAPPORTER_DVH_ASYNKRONT = "veilarbvedtaksstotte.rapporter-dvh-synkront";
 
     private final UnleashClient unleashClient;
 
@@ -23,5 +25,13 @@ public class UnleashService {
 
     public boolean isKafkaKonsumeringSkruddAv() {
         return unleashClient.isEnabled(KAFKA_KONSUMERING_SKRUDD_AV);
+    }
+
+    public boolean isNotRapporterDvhSynkront() {
+        return unleashClient.isEnabled(IKKE_RAPPORTER_DVH_SYNKRONT);
+    }
+
+    public boolean isRapporterDvhAsynkront() {
+        return unleashClient.isEnabled(RAPPORTER_DVH_ASYNKRONT);
     }
 }

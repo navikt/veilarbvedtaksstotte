@@ -20,7 +20,9 @@ import no.nav.common.kafka.spring.PostgresJdbcTemplateProducerRepository;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService;
+import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer;
 import no.nav.veilarbvedtaksstotte.service.UnleashService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +33,9 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 @Configuration
 @EnableConfigurationProperties({KafkaProperties.class})
@@ -42,6 +46,7 @@ public class KafkaConfig {
     public static class EnvironmentContext {
         Properties onPremConsumerClientProperties;
         Properties onPremProducerClientProperties;
+        Properties aivenConsumerClientProperties;
         Properties aivenProducerClientProperties;
     }
 
@@ -49,12 +54,17 @@ public class KafkaConfig {
     @Accessors(chain = true)
     public static class KafkaAvroContext {
         Map<String, ?> config;
+
+        public Map<String, ?> getConfig() {
+            return this.config;
+        }
     }
 
     public final static String CONSUMER_GROUP_ID = "veilarbvedtaksstotte-consumer";
     public final static String PRODUCER_CLIENT_ID = "veilarbvedtaksstotte-producer";
 
-    private final KafkaConsumerClient consumerClient;
+    private final KafkaConsumerClient onPremConsumerClient;
+    private final KafkaConsumerClient aivenConsumerClient;
     private final KafkaConsumerRecordProcessor consumerRecordProcessor;
     private final KafkaProducerRecordProcessor onPremProducerRecordProcessor;
     private final KafkaProducerRecordProcessor aivenProducerRecordProcessor;
@@ -65,6 +75,7 @@ public class KafkaConfig {
             LeaderElectionClient leaderElectionClient,
             JdbcTemplate jdbcTemplate,
             KafkaConsumerService kafkaConsumerService,
+            KafkaVedtakStatusEndringConsumer kafkaVedtakStatusEndringConsumer,
             KafkaProperties kafkaProperties,
             MeterRegistry meterRegistry,
             UnleashService unleashService
@@ -73,15 +84,35 @@ public class KafkaConfig {
         var consumerRepository = new PostgresJdbcTemplateConsumerRepository(jdbcTemplate);
         var producerRepository = new PostgresJdbcTemplateProducerRepository(jdbcTemplate);
 
-        var topicConfigs = getTopicConfigs(kafkaConsumerService, kafkaProperties, meterRegistry, consumerRepository);
+        var onPremConsumerTopicConfigs =
+                getOnPremConsumerTopicConfigs(kafkaConsumerService, kafkaProperties, meterRegistry, consumerRepository);
 
-        consumerClient = KafkaConsumerClientBuilder.builder()
+        onPremConsumerClient = KafkaConsumerClientBuilder.builder()
                 .withProperties(environmentContext.getOnPremConsumerClientProperties())
-                .withTopicConfigs(topicConfigs)
+                .withTopicConfigs(onPremConsumerTopicConfigs)
                 .withToggle(unleashService::isKafkaKonsumeringSkruddAv)
                 .build();
 
-        consumerRecordProcessor = getConsumerRecordProcessor(jdbcTemplate, consumerRepository, topicConfigs);
+        var aivenConsumerTopicConfigs = getAivenConsumerTopicConfigs(
+                kafkaVedtakStatusEndringConsumer,
+                kafkaProperties,
+                meterRegistry,
+                consumerRepository
+        );
+
+        aivenConsumerClient = KafkaConsumerClientBuilder.builder()
+                .withProperties(environmentContext.getAivenConsumerClientProperties())
+                .withTopicConfigs(aivenConsumerTopicConfigs)
+                .withToggle(unleashService::isKafkaKonsumeringSkruddAv)
+                .build();
+
+        consumerRecordProcessor = getConsumerRecordProcessor(
+                jdbcTemplate,
+                consumerRepository,
+                Stream.concat(
+                        onPremConsumerTopicConfigs.stream(),
+                        aivenConsumerTopicConfigs.stream()).collect(toList())
+        );
 
         producerRecordStorage = getProducerRecordStorage(producerRepository);
 
@@ -152,10 +183,30 @@ public class KafkaConfig {
 
         return topicConfigs.stream()
                 .map(KafkaConsumerClientBuilder.TopicConfig::getConsumerConfig)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    private static List<KafkaConsumerClientBuilder.TopicConfig<?, ?>> getTopicConfigs(
+    private static List<KafkaConsumerClientBuilder.TopicConfig<?, ?>> getAivenConsumerTopicConfigs(
+            KafkaVedtakStatusEndringConsumer kafkaVedtakStatusEndringConsumer,
+            KafkaProperties kafkaProperties,
+            MeterRegistry meterRegistry,
+            PostgresJdbcTemplateConsumerRepository consumerRepository
+    ) {
+        return List.of(
+                new KafkaConsumerClientBuilder.TopicConfig<String, KafkaVedtakStatusEndring>()
+                        .withLogging()
+                        .withMetrics(meterRegistry)
+                        .withStoreOnFailure(consumerRepository)
+                        .withConsumerConfig(
+                                kafkaProperties.getVedtakStatusEndringTopic(),
+                                Deserializers.stringDeserializer(),
+                                Deserializers.jsonDeserializer(KafkaVedtakStatusEndring.class),
+                                kafkaVedtakStatusEndringConsumer::konsumer
+                        )
+        );
+    }
+
+    private static List<KafkaConsumerClientBuilder.TopicConfig<?, ?>> getOnPremConsumerTopicConfigs(
             KafkaConsumerService kafkaConsumerService,
             KafkaProperties kafkaProperties,
             MeterRegistry meterRegistry,
@@ -204,7 +255,8 @@ public class KafkaConfig {
 
     @PostConstruct
     public void start() {
-        consumerClient.start();
+        aivenConsumerClient.start();
+        onPremConsumerClient.start();
         consumerRecordProcessor.start();
         onPremProducerRecordProcessor.start();
         aivenProducerRecordProcessor.start();

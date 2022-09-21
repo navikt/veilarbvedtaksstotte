@@ -1,5 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
@@ -12,21 +15,20 @@ import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito
-import org.mockito.Mockito.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.random.Random.Default.nextInt
 import kotlin.random.Random.Default.nextLong
 
+
 class KafkaRepubliseringServiceTest : DatabaseTest() {
 
-    lateinit var siste14aVedtakService: Siste14aVedtakService
+    val siste14aVedtakService = mockk<Siste14aVedtakService>()
+    val dvhRapporteringService = mockk<DvhRapporteringService>()
+
     lateinit var vedtaksstotteRepository: VedtaksstotteRepository
     lateinit var kafkaRepubliseringService: KafkaRepubliseringService
     lateinit var arenaVedtakRepository: ArenaVedtakRepository
-    lateinit var kafkaProducerService: KafkaProducerService
 
     @BeforeEach
     fun setup() {
@@ -34,10 +36,8 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
 
         vedtaksstotteRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
         arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
-        siste14aVedtakService = mock(Siste14aVedtakService::class.java)
-        kafkaProducerService = mock(KafkaProducerService::class.java)
         kafkaRepubliseringService = KafkaRepubliseringService(
-            vedtaksstotteRepository, arenaVedtakRepository, siste14aVedtakService, kafkaProducerService
+            vedtaksstotteRepository, arenaVedtakRepository, siste14aVedtakService, dvhRapporteringService
         )
     }
 
@@ -52,44 +52,53 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
         val brukereMedVedtakFraArena = lagTilfeldingeFnr(tilfeldigAntall())
         brukereMedVedtakFraArena.map { lagreVedtakFraArena(it) }
 
+        every {
+            siste14aVedtakService.republiserKafkaSiste14aVedtak(any())
+        } answers {}
+
         kafkaRepubliseringService.republiserSiste14aVedtak()
-        verify(
-            siste14aVedtakService,
-            times(brukereMedFattetVedtakFraDenneLøsningen.size + brukereMedVedtakFraArena.size)
-        ).republiserKafkaSiste14aVedtak(any())
+
+        verify(exactly = brukereMedFattetVedtakFraDenneLøsningen.size + brukereMedVedtakFraArena.size) {
+            siste14aVedtakService.republiserKafkaSiste14aVedtak(any())
+        }
 
         brukereMedFattetVedtakFraDenneLøsningen.forEach {
-            verify(siste14aVedtakService).republiserKafkaSiste14aVedtak(it)
+            verify {
+                siste14aVedtakService.republiserKafkaSiste14aVedtak(it)
+            }
         }
 
         brukereMedVedtakFraArena.forEach {
-            verify(siste14aVedtakService).republiserKafkaSiste14aVedtak(it)
+            verify {
+                siste14aVedtakService.republiserKafkaSiste14aVedtak(it)
+            }
         }
     }
 
     @Test
     fun `republiserer alle fattede vedtak på dvh topic fra eldste til nyeste`() {
-        val brukereMedDuplikat = lagTilfeldingeAktorIder(tilfeldigAntall())
-            .let { it + it.subList(0, it.size / 2) }
-            .shuffled()
+        val brukereMedDuplikat =
+            lagTilfeldingeAktorIder(tilfeldigAntall()).let { it + it.subList(0, it.size / 2) }.shuffled()
 
         val fattedeVedtak = brukereMedDuplikat.map { lagreVedtak(it, true) }
 
+        val captureList = mutableListOf<Vedtak>()
+
+        every {
+            dvhRapporteringService.produserVedtakFattetDvhMelding(vedtak = capture(captureList))
+        } answers {}
+
         kafkaRepubliseringService.republiserVedtak14aFattetDvh(3)
 
-        val captor = ArgumentCaptor.forClass(Vedtak::class.java)
-        verify(kafkaProducerService, times(brukereMedDuplikat.size)).sendVedtakFattetDvh(captor.capture())
-        assertThat(captor.allValues.map { it.id }).containsExactlyElementsOf(fattedeVedtak.map { it.id }.sorted())
+        assertThat(captureList.map { it.id }).containsExactlyElementsOf(fattedeVedtak.map { it.id }.sorted())
     }
 
     private fun lagTilfeldingeAktorIder(antall: Int): List<AktorId> {
-        return (1..antall)
-            .map { AktorId(randomNumeric(10)) }
+        return (1..antall).map { AktorId(randomNumeric(10)) }
     }
 
     private fun lagTilfeldingeFnr(antall: Int): List<Fnr> {
-        return (1..antall)
-            .map { Fnr(randomNumeric(11)) }
+        return (1..antall).map { Fnr(randomNumeric(11)) }
     }
 
     private fun tilfeldigAntall(): Int {
@@ -106,17 +115,17 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
     }
 
     private fun lagreVedtakFraArena(fnr: Fnr) {
-        arenaVedtakRepository.upsertVedtak(ArenaVedtak(
-            fnr = fnr,
-            innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.IKVAL,
-            hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
-            fraDato = LocalDate.now(),
-            regUser = "REG_USER",
-            operationTimestamp = LocalDateTime.now(),
-            hendelseId = nextLong(),
-            vedtakId = nextLong()
-        ))
+        arenaVedtakRepository.upsertVedtak(
+            ArenaVedtak(
+                fnr = fnr,
+                innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.IKVAL,
+                hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
+                fraDato = LocalDate.now(),
+                regUser = "REG_USER",
+                operationTimestamp = LocalDateTime.now(),
+                hendelseId = nextLong(),
+                vedtakId = nextLong()
+            )
+        )
     }
-
-    private fun <T> any(): T = Mockito.any()
 }

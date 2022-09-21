@@ -27,7 +27,9 @@ import org.springframework.context.annotation.Import;
         KafkaProducerService.class,
         KafkaConsumerService.class,
         KafkaRepubliseringService.class,
-        DvhRapporteringService.class
+        DvhRapporteringService.class,
+        DvhRapporteringService.class,
+        KafkaVedtakStatusEndringConsumer.class
 })
 public class ServiceTestConfig {
 }

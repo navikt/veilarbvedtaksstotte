@@ -33,18 +33,18 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
 
     companion object {
 
-        lateinit var arenaVedtakRepository: ArenaVedtakRepository
-        lateinit var vedtakRepository: VedtaksstotteRepository
+        private lateinit var arenaVedtakRepository: ArenaVedtakRepository
+        private lateinit var vedtakRepository: VedtaksstotteRepository
 
-        val authService: AuthService = mock(AuthService::class.java)
-        lateinit var arenaVedtakService: ArenaVedtakService
-        lateinit var siste14aVedtakService: Siste14aVedtakService
-        lateinit var unleashService: UnleashService
+        private val authService: AuthService = mock(AuthService::class.java)
+        private lateinit var arenaVedtakService: ArenaVedtakService
+        private lateinit var siste14aVedtakService: Siste14aVedtakService
+        private lateinit var unleashService: UnleashService
 
-        val unleashClient = mock(UnleashClient::class.java)
-        val aktorOppslagClient = mock(AktorOppslagClient::class.java)
+        private val unleashClient = mock(UnleashClient::class.java)
+        private val aktorOppslagClient = mock(AktorOppslagClient::class.java)
 
-        val kafkaProducerService = mock(KafkaProducerService::class.java)
+        private val kafkaProducerService = mock(KafkaProducerService::class.java)
 
         @BeforeAll
         @JvmStatic

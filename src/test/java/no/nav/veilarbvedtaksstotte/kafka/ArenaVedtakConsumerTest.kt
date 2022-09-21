@@ -13,15 +13,10 @@ import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
-import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG
-import org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.StringSerializer
-import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -30,7 +25,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
-import org.testcontainers.containers.KafkaContainer
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -51,28 +45,8 @@ class ArenaVedtakConsumerTest {
     @Autowired
     lateinit var kafkaConsumerService: KafkaConsumerService
 
-    companion object {
-        lateinit var producer: KafkaProducer<String, String>
-
-        @BeforeAll
-        @JvmStatic
-        fun setup(@Autowired kafkaContainer: KafkaContainer) {
-            producer = KafkaProducer(
-                mapOf(
-                    Pair(BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.bootstrapServers),
-                    Pair(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java),
-                    Pair(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
-                )
-            )
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun after() {
-            producer.close()
-        }
-
-    }
+    @Autowired
+    lateinit var testProducer: KafkaTestProducer
 
     @Test
     fun `konsumerer melding med riktig format`() {
@@ -92,7 +66,7 @@ class ArenaVedtakConsumerTest {
             vedtakId = 1234
         )
 
-        producer.send(ProducerRecord(kafkaProperties.arenaVedtakTopic, "key", readTestResourceFile))
+        testProducer.send(ProducerRecord(kafkaProperties.arenaVedtakTopic, "key", readTestResourceFile))
 
         TestUtils.verifiserAsynkront(
             10, TimeUnit.SECONDS
@@ -127,7 +101,7 @@ class ArenaVedtakConsumerTest {
                     vedtakId = forventetArenaVedtak.vedtakId
                 )
 
-                producer.send(ProducerRecord(kafkaProperties.arenaVedtakTopic, "key", arenaVedtakRecord.toJson()))
+                testProducer.send(ProducerRecord(kafkaProperties.arenaVedtakTopic, "key", arenaVedtakRecord.toJson()))
 
                 TestUtils.verifiserAsynkront(
                     10, TimeUnit.SECONDS
