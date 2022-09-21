@@ -1,15 +1,12 @@
 package no.nav.veilarbvedtaksstotte.kafka
 
-import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.SpykBean
-import io.mockk.every
 import io.mockk.verify
 import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.config.KafkaConfig
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
-import no.nav.veilarbvedtaksstotte.service.UnleashService
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.toJson
@@ -35,18 +32,11 @@ class KafkaVedtakStatusEndringConsumerTest : AbstractVedtakIntegrationTest() {
     @Autowired
     lateinit var kafkaAvroContext: KafkaConfig.KafkaAvroContext
 
-    @MockkBean
-    lateinit var unleashService: UnleashService
-
     @SpykBean
     lateinit var kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer
 
     @Test
     fun `konsumerer melding om statusendring`() {
-
-        every {
-            unleashService.isRapporterDvhAsynkront
-        } returns true
 
         val vedtak = lagreFattetVedtak(
             aktorId = AktorId.of(RandomStringUtils.randomNumeric(10)),
