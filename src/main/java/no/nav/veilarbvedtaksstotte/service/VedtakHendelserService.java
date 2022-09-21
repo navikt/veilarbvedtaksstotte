@@ -27,8 +27,6 @@ public class VedtakHendelserService {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
-    private final DvhRapporteringService dvhRapporteringService;
-
     private final UnleashService unleashService;
 
     public void utkastOpprettet(Vedtak vedtak) {
@@ -121,13 +119,6 @@ public class VedtakHendelserService {
                         Siste14aVedtak.HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal()),
                         toZonedDateTime(vedtak.getVedtakFattet()),
                         false));
-
-        if (unleashService.isNotRapporterDvhSynkront()) {
-            log.info("Rapporterer ikke til DVH synkront");
-        } else {
-            log.info("Rapporterer til DVH synkront");
-            dvhRapporteringService.rapporterTilDvh(statusEndring);
-        }
     }
 
     private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {
