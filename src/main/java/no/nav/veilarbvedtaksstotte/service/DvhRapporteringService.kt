@@ -17,7 +17,6 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toInstant
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
-import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 
@@ -35,7 +34,6 @@ class DvhRapporteringService(
 
     private val kafkaAvroSerializer: KafkaAvroSerializer = KafkaAvroSerializer(null, kafkaAvroContext.config)
 
-    private val log = LoggerFactory.getLogger(DvhRapporteringService::class.java)
 
     fun rapporterTilDvh(statusEndring: KafkaVedtakStatusEndring) {
         if (statusEndring.vedtakStatusEndring == VEDTAK_SENDT) {
@@ -47,21 +45,14 @@ class DvhRapporteringService(
 
     fun produserVedtakFattetDvhMelding(vedtak: Vedtak) {
         val vedtak14aFattetDvh = mapVedtakTilDvh(vedtak)
-        // TODO: Fjern try-catch etter full overgang til asynkron håndtering
-        val producerRecord: ProducerRecord<ByteArray, ByteArray>? = try {
-            serializeAvroRecord(
-                ProducerRecord(
-                    kafkaProperties.vedtakFattetDvhTopic, vedtak14aFattetDvh.aktorId.toString(), vedtak14aFattetDvh
-                )
-            )
-        } catch (e: Exception) {
-            log.error("Klarte ikke serialisere Avro-melding", e)
-            null
-        }
 
-        if (producerRecord != null) {
-            kafkaProducerRecordStorage.store(producerRecord);
-        }
+        val producerRecord = serializeAvroRecord(
+            ProducerRecord(
+                kafkaProperties.vedtakFattetDvhTopic, vedtak14aFattetDvh.aktorId.toString(), vedtak14aFattetDvh
+            )
+        )
+
+        kafkaProducerRecordStorage.store(producerRecord);
     }
 
     private fun mapVedtakTilDvh(vedtak: Vedtak): Vedtak14aFattetDvh {
@@ -73,7 +64,7 @@ class DvhRapporteringService(
             .setVedtakFattet(toInstant(vedtak.vedtakFattet))
             .setOppfolgingsenhetId(vedtak.oppfolgingsenhetId)
             .setVeilederIdent(vedtak.veilederIdent)
-            .setBeslutterIdent(vedtak.beslutterIdent).build();
+            .setBeslutterIdent(vedtak.beslutterIdent).build()
     }
 
     private fun mapHovedmalTilAvroType(hovedmal: Hovedmal?): Vedtak14aFattetDvhHovedmalKode? {

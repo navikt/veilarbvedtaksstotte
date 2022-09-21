@@ -13,18 +13,12 @@ import org.springframework.stereotype.Service
 @Service
 class KafkaVedtakStatusEndringConsumer(
     private val dvhRapporteringService: DvhRapporteringService,
-    private val unleashService: UnleashService
 ) {
 
     private val log = LoggerFactory.getLogger(KafkaVedtakStatusEndringConsumer::class.java)
 
     fun konsumer(melding: ConsumerRecord<String, KafkaVedtakStatusEndring>) {
-
-        if (unleashService.isRapporterDvhAsynkront) {
-            log.info("Rapporterer til DVH asynkront")
-            dvhRapporteringService.rapporterTilDvh(melding.value())
-        } else {
-            log.info("Rapporterer ikke til DVH asynkront")
-        }
+        log.info("Rapporterer til DVH asynkront")
+        dvhRapporteringService.rapporterTilDvh(melding.value())
     }
 }
