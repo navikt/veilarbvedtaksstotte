@@ -17,6 +17,7 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toInstant
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 
@@ -32,11 +33,15 @@ class DvhRapporteringService(
     kafkaAvroContext: KafkaConfig.KafkaAvroContext
 ) {
 
+    private val log = LoggerFactory.getLogger(DvhRapporteringService::class.java)
+
     private val kafkaAvroSerializer: KafkaAvroSerializer = KafkaAvroSerializer(null, kafkaAvroContext.config)
 
 
     fun rapporterTilDvh(statusEndring: KafkaVedtakStatusEndring) {
         if (statusEndring.vedtakStatusEndring == VEDTAK_SENDT) {
+            log.info("Rapporterer til DVH asynkront")
+
             val vedtak = vedtaksstotteRepository.hentVedtak(statusEndring.vedtakId)
 
             produserVedtakFattetDvhMelding(vedtak)
