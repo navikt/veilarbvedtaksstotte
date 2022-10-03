@@ -1,31 +1,23 @@
 package no.nav.veilarbvedtaksstotte.kafka
 
-import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
-import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
-import no.nav.veilarbvedtaksstotte.utils.KafkaTestUtils
-import no.nav.veilarbvedtaksstotte.utils.TestUtils
-import no.nav.veilarbvedtaksstotte.utils.TimeUtils
+import no.nav.veilarbvedtaksstotte.utils.*
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
-import org.testcontainers.containers.KafkaContainer
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -35,22 +27,16 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.collections.set
 
-@SpringBootTest(classes = [ApplicationTestConfig::class])
-@ActiveProfiles("local")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class Siste14aVedtakKafkaProducerTest {
+class Siste14aVedtakKafkaProducerTest : AbstractVedtakIntegrationTest() {
 
     @Autowired
     lateinit var kafkaProperties: KafkaProperties
 
     @Autowired
-    lateinit var kafkaContainer: KafkaContainer
+    lateinit var kafkaContainer: KafkaContainerWrapper
 
     @Autowired
     lateinit var siste14aVedtakService: Siste14aVedtakService
-
-    @MockBean
-    lateinit var aktorOppslagClient: AktorOppslagClient
 
     @MockBean
     lateinit var veilarboppfolgingClient: VeilarboppfolgingClient
@@ -87,7 +73,7 @@ class Siste14aVedtakKafkaProducerTest {
         val konsumerteMeldinger: AtomicReference<MutableMap<AktorId, Siste14aVedtak>> = AtomicReference(mutableMapOf())
 
         val testConsumer = KafkaTestUtils.testConsumer<Siste14aVedtak>(
-            kafkaContainer.bootstrapServers,
+            kafkaContainer.kafkaContainer.bootstrapServers,
             kafkaProperties.siste14aVedtakTopic,
         ) { record ->
             konsumerteMeldinger.get()[AktorId(record.key())] = record.value()

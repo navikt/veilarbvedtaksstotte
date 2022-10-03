@@ -31,7 +31,6 @@ import static no.nav.common.kafka.util.KafkaEnvironmentVariables.*;
 import static no.nav.common.kafka.util.KafkaPropertiesPreset.*;
 import static no.nav.common.utils.EnvironmentUtils.getRequiredProperty;
 import static no.nav.common.utils.NaisUtils.getCredentials;
-import static no.nav.veilarbvedtaksstotte.config.KafkaConfig.PRODUCER_CLIENT_ID;
 
 @Slf4j
 @Configuration
@@ -75,25 +74,25 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public KafkaConfig.EnvironmentContext kafkaConfigEnvContext(KafkaProperties kafkaProperties,
+    public KafkaEnvironmentContext kafkaConfigEnvContext(KafkaProperties kafkaProperties,
                                                                 Credentials credentials) {
-        return new KafkaConfig.EnvironmentContext()
+        return new KafkaEnvironmentContext()
                 .setOnPremConsumerClientProperties(
                         onPremDefaultConsumerProperties(
-                                KafkaConfig.CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials
+                                KafkaConsumerConfig.CONSUMER_GROUP_ID, kafkaProperties.getBrokersUrl(), credentials
                         )
                 )
                 .setOnPremProducerClientProperties(
                         onPremByteProducerProperties(
-                                PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials
+                                KafkaProducerConfig.PRODUCER_CLIENT_ID, kafkaProperties.getBrokersUrl(), credentials
                         )
                 )
-                .setAivenConsumerClientProperties(aivenDefaultConsumerProperties(KafkaConfig.CONSUMER_GROUP_ID))
-                .setAivenProducerClientProperties(aivenByteProducerProperties(PRODUCER_CLIENT_ID));
+                .setAivenConsumerClientProperties(aivenDefaultConsumerProperties(KafkaConsumerConfig.CONSUMER_GROUP_ID))
+                .setAivenProducerClientProperties(aivenByteProducerProperties(KafkaProducerConfig.PRODUCER_CLIENT_ID));
     }
 
     @Bean
-    public KafkaConfig.KafkaAvroContext kafkaAvroContext() {
+    public KafkaAvroContext kafkaAvroContext() {
         Map<String, Object> schemaRegistryConfig = new HashMap<>();
         schemaRegistryConfig.put(SCHEMA_REGISTRY_URL_CONFIG, getRequiredProperty(KAFKA_SCHEMA_REGISTRY));
         schemaRegistryConfig.put(SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO");
@@ -103,7 +102,7 @@ public class ApplicationConfig {
                         getRequiredProperty(KAFKA_SCHEMA_REGISTRY_PASSWORD))
         );
 
-        return new KafkaConfig.KafkaAvroContext().setConfig(schemaRegistryConfig);
+        return new KafkaAvroContext().setConfig(schemaRegistryConfig);
     }
 
     @PostConstruct

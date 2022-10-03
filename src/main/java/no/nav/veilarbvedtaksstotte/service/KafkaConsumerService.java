@@ -12,7 +12,6 @@ import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import static java.lang.String.format;
@@ -31,7 +30,7 @@ public class KafkaConsumerService {
 
     @Autowired
     public KafkaConsumerService(
-            @Lazy Siste14aVedtakService siste14aVedtakService,
+            Siste14aVedtakService siste14aVedtakService,
             VedtaksstotteRepository vedtaksstotteRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
             Norg2Client norg2Client

@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.kafka
 import com.ninjasquad.springmockk.SpykBean
 import io.mockk.verify
 import no.nav.common.types.identer.AktorId
-import no.nav.veilarbvedtaksstotte.config.KafkaConfig
+import no.nav.veilarbvedtaksstotte.config.KafkaAvroContext
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
@@ -14,7 +14,6 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.testcontainers.containers.KafkaContainer
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
@@ -24,13 +23,10 @@ class KafkaVedtakStatusEndringConsumerTest : AbstractVedtakIntegrationTest() {
     lateinit var kafkaProperties: KafkaProperties
 
     @Autowired
-    lateinit var kafkaContainer: KafkaContainer
-
-    @Autowired
     lateinit var testProducer: KafkaTestProducer
 
     @Autowired
-    lateinit var kafkaAvroContext: KafkaConfig.KafkaAvroContext
+    lateinit var kafkaAvroContext: KafkaAvroContext
 
     @SpykBean
     lateinit var kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer
