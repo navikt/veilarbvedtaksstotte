@@ -2,10 +2,11 @@ package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.abac.Pep
 import no.nav.common.abac.XacmlMapper
+import no.nav.common.auth.context.AuthContext
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
-import no.nav.common.test.auth.AuthTestUtils
+import no.nav.common.test.auth.AuthTestUtils.createAuthContext
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.utils.fn.UnsafeRunnable
@@ -175,7 +176,62 @@ class AuthServiceTest {
         assertFalse(tilgangTilBrukere.getOrDefault("2222222222", false))
     }
 
+    @Test
+    fun `erSystemBrukerMedSystemTilSystemTilgang er true for system med rolle access_as_application`() {
+        authContextHolder.withContext(
+            systemMedRoller("access_as_application")
+        ) {
+            assertTrue(authService.harSystemTilSystemTilgang())
+        }
+    }
+
+    @Test
+    fun `erSystemBrukerMedSystemTilSystemTilgang er false for system uten rolle access_as_application`() {
+        authContextHolder.withContext(
+            systemMedRoller("access_as_foo")
+        ) {
+            assertFalse(authService.harSystemTilSystemTilgang())
+        }
+    }
+
+    @Test
+    fun `harSystemTilSystemTilgangMedEkstraRolle er true for system med rolle access_as_application og ekstra rolle`() {
+        authContextHolder.withContext(
+            systemMedRoller("access_as_application", "ekstra_rolle")
+        ) {
+            assertTrue(authService.harSystemTilSystemTilgangMedEkstraRolle("ekstra_rolle"))
+        }
+    }
+
+    @Test
+    fun `harSystemTilSystemTilgangMedEkstraRolle er false for system med rolle access_as_application og uten ekstra rolle`() {
+        authContextHolder.withContext(
+            systemMedRoller("access_as_application")
+        ) {
+            assertFalse(authService.harSystemTilSystemTilgangMedEkstraRolle("ekstra_rolle"))
+        }
+    }
+
+    @Test
+    fun `harSystemTilSystemTilgangMedEkstraRolle er false for system uten rolle access_as_application og ekstra rolle`() {
+        authContextHolder.withContext(
+            systemMedRoller("ekstra_rolle")
+        ) {
+            assertFalse(authService.harSystemTilSystemTilgangMedEkstraRolle("ekstra_rolle"))
+        }
+    }
+
     private fun withContext(userRole: UserRole, runnable: UnsafeRunnable) {
-        authContextHolder.withContext(AuthTestUtils.createAuthContext(userRole, TestData.TEST_VEILEDER_IDENT), runnable)
+        authContextHolder.withContext(createAuthContext(userRole, TestData.TEST_VEILEDER_IDENT), runnable)
+    }
+
+    private fun systemMedRoller(vararg roller: String): AuthContext {
+        return createAuthContext(
+            UserRole.SYSTEM,
+            mapOf(
+                Pair("sub", "123"),
+                Pair("roles", roller.toList())
+            )
+        )
     }
 }

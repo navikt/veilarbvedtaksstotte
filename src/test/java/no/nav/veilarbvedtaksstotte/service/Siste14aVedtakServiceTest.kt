@@ -56,7 +56,6 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
 
             arenaVedtakService = ArenaVedtakService(arenaVedtakRepository, mock(SafClient::class.java), authService)
             siste14aVedtakService = Siste14aVedtakService(
-                authService = authService,
                 aktorOppslagClient = aktorOppslagClient,
                 vedtakRepository = vedtakRepository,
                 arenaVedtakRepository = arenaVedtakRepository,

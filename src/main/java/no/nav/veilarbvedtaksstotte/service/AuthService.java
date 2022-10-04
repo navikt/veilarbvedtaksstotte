@@ -214,7 +214,15 @@ public class AuthService {
     }
 
     public boolean erSystemBruker() {
-        return authContextHolder.erSystemBruker() && harAADRolleForSystemTilSystemTilgang();
+        return authContextHolder.erSystemBruker();
+    }
+
+    public boolean harSystemTilSystemTilgang() {
+        return authContextHolder.erSystemBruker() && harAADRollerForSystemTilSystemTilgang(null);
+    }
+
+    public boolean harSystemTilSystemTilgangMedEkstraRolle(String rolle) {
+        return authContextHolder.erSystemBruker() && harAADRollerForSystemTilSystemTilgang(rolle);
     }
 
     public String hentApplikasjonFraContex() {
@@ -226,17 +234,18 @@ public class AuthService {
                 .orElse(null);
     }
 
-    private boolean harAADRolleForSystemTilSystemTilgang() {
-        return authContextHolder.getIdTokenClaims()
+    private boolean harAADRollerForSystemTilSystemTilgang(String ekstraRolle) {
+        List<String> roles = authContextHolder.getIdTokenClaims()
                 .flatMap(claims -> {
                     try {
-                        return Optional.ofNullable(claims.getStringListClaim("roles"));
+                        return ofNullable(claims.getStringListClaim("roles"));
                     } catch (ParseException e) {
-                        return Optional.empty();
+                        return empty();
                     }
                 })
-                .orElse(emptyList())
-                .contains("access_as_application");
+                .orElse(emptyList());
+
+        return roles.contains("access_as_application") && (ekstraRolle == null || roles.contains(ekstraRolle));
     }
 
     private static Optional<String> getStringClaimOrEmpty(JWTClaimsSet claims, String claimName) {

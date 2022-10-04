@@ -70,7 +70,7 @@ public class AdminController {
     }
 
     private void sjekkTilgangTilAdmin() {
-        boolean erSystemBrukerFraAzure = authService.erSystemBruker();
+        boolean erSystemBrukerFraAzure = authService.harSystemTilSystemTilgang();
         boolean erPtoAdmin = PTO_ADMIN.equals(authService.hentApplikasjonFraContex());
 
         if (erPtoAdmin && erSystemBrukerFraAzure) {
