@@ -67,7 +67,7 @@ class ApplicationTestConfig {
     }
 
     @Bean
-    fun veilarbPep(abacClient: AbacClient?): Pep {
+    fun veilarbPep(abacClient: AbacClient): Pep {
         return PepMock(abacClient)
     }
 
@@ -141,16 +141,17 @@ class ApplicationTestConfig {
                 ByteArraySerializer::class.java, ByteArraySerializer::class.java
             )
             .build()
-        return KafkaEnvironmentContext()
-            .setOnPremConsumerClientProperties(consumerProperties)
-            .setAivenConsumerClientProperties(consumerProperties)
-            .setOnPremProducerClientProperties(producerProperties)
-            .setAivenProducerClientProperties(producerProperties)
+        return KafkaEnvironmentContext(
+            onPremConsumerClientProperties = consumerProperties,
+            aivenConsumerClientProperties = consumerProperties,
+            onPremProducerClientProperties = producerProperties,
+            aivenProducerClientProperties = producerProperties
+        )
     }
 
     @Bean
     fun kafkaAvroContext(): KafkaAvroContext {
-        return KafkaAvroContext().setConfig(
+        return KafkaAvroContext(
             mapOf(
                 Pair(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://testurl"),
                 Pair(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true)
