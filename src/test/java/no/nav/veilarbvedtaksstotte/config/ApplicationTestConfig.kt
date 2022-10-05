@@ -15,14 +15,14 @@ import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.metrics.MetricsClient
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.common.utils.Credentials
-import no.nav.veilarbvedtaksstotte.config.KafkaConfig.EnvironmentContext
-import no.nav.veilarbvedtaksstotte.config.KafkaConfig.KafkaAvroContext
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PepMock
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
+import no.nav.veilarbvedtaksstotte.utils.PostgresContainer
+import no.nav.veilarbvedtaksstotte.utils.SingletonKafkaContainer
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
 import org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG
@@ -39,7 +39,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.testcontainers.containers.KafkaContainer
-import org.testcontainers.utility.DockerImageName
 import javax.annotation.PostConstruct
 import javax.sql.DataSource
 
@@ -52,7 +51,8 @@ import javax.sql.DataSource
     ServiceTestConfig::class,
     FilterTestConfig::class,
     HealthConfig::class,
-    KafkaConfig::class,
+    KafkaProducerConfig::class,
+    KafkaConsumerConfig::class,
     DokumentdistribusjonMeterBinder::class
 )
 class ApplicationTestConfig {
@@ -67,7 +67,7 @@ class ApplicationTestConfig {
     }
 
     @Bean
-    fun veilarbPep(abacClient: AbacClient?): Pep {
+    fun veilarbPep(abacClient: AbacClient): Pep {
         return PepMock(abacClient)
     }
 
@@ -77,18 +77,23 @@ class ApplicationTestConfig {
     }
 
     @Bean
-    fun dataSource(): DataSource {
-        return SingletonPostgresContainer.init().createDataSource()
+    fun postgresContainer(): PostgresContainer {
+        return SingletonPostgresContainer.init()
     }
 
     @Bean
-    fun transactionTemplate(dataSource: DataSource): TransactionTemplate {
-        return TransactionTemplate(DataSourceTransactionManager(dataSource))
+    fun dataSource(postgresContainer: PostgresContainer): DataSource {
+        return postgresContainer.createDataSource()
     }
 
     @Bean
-    fun jdbcTemplate(dataSource: DataSource): JdbcTemplate {
-        return JdbcTemplate(dataSource)
+    fun transactionTemplate(postgresContainer: PostgresContainer): TransactionTemplate {
+        return TransactionTemplate(DataSourceTransactionManager(postgresContainer.createDataSource()))
+    }
+
+    @Bean
+    fun jdbcTemplate(postgresContainer: PostgresContainer): JdbcTemplate {
+        return JdbcTemplate(postgresContainer.createDataSource())
     }
 
     @Bean
@@ -113,39 +118,40 @@ class ApplicationTestConfig {
         return LeaderElectionClient { true }
     }
 
-    @Bean
+    // destroyMethod satt til "" hindrer at KafkaContainer, som er AutoCloseable,
+    // stoppes når ApplicationContext for en test lukkes:
+    @Bean(destroyMethod = "")
     fun kafkaContainer(): KafkaContainer {
-        val kafkaContainer = KafkaContainer(DockerImageName.parse(KAFKA_IMAGE))
-        kafkaContainer.start()
-        return kafkaContainer
+        return SingletonKafkaContainer.init()
     }
 
     @Bean
-    fun kafkaConfigEnvContext(kafkaContainer: KafkaContainer): EnvironmentContext {
+    fun kafkaConfigEnvContext(kafkaContainer: KafkaContainer): KafkaEnvironmentContext {
         val consumerProperties = KafkaPropertiesBuilder.consumerBuilder()
             .withBaseProperties(1000)
-            .withConsumerGroupId(KafkaConfig.CONSUMER_GROUP_ID)
+            .withConsumerGroupId(KafkaConsumerConfig.CONSUMER_GROUP_ID)
             .withBrokerUrl(kafkaContainer.bootstrapServers)
             .withDeserializers(ByteArrayDeserializer::class.java, ByteArrayDeserializer::class.java)
             .build()
         val producerProperties = KafkaPropertiesBuilder.producerBuilder()
             .withBaseProperties()
-            .withProducerId(KafkaConfig.PRODUCER_CLIENT_ID)
+            .withProducerId(KafkaProducerConfig.PRODUCER_CLIENT_ID)
             .withBrokerUrl(kafkaContainer.bootstrapServers)
             .withSerializers(
                 ByteArraySerializer::class.java, ByteArraySerializer::class.java
             )
             .build()
-        return EnvironmentContext()
-            .setOnPremConsumerClientProperties(consumerProperties)
-            .setAivenConsumerClientProperties(consumerProperties)
-            .setOnPremProducerClientProperties(producerProperties)
-            .setAivenProducerClientProperties(producerProperties)
+        return KafkaEnvironmentContext(
+            onPremConsumerClientProperties = consumerProperties,
+            aivenConsumerClientProperties = consumerProperties,
+            onPremProducerClientProperties = producerProperties,
+            aivenProducerClientProperties = producerProperties
+        )
     }
 
     @Bean
     fun kafkaAvroContext(): KafkaAvroContext {
-        return KafkaAvroContext().setConfig(
+        return KafkaAvroContext(
             mapOf(
                 Pair(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://testurl"),
                 Pair(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true)

@@ -6,7 +6,7 @@ import no.nav.common.kafka.producer.util.ProducerUtils.serializeRecord
 import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvh
 import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhHovedmalKode
 import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhInnsatsgruppeKode
-import no.nav.veilarbvedtaksstotte.config.KafkaConfig
+import no.nav.veilarbvedtaksstotte.config.KafkaAvroContext
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring.VEDTAK_SENDT
@@ -18,7 +18,6 @@ import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toInstant
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 
 /**
@@ -28,9 +27,9 @@ import org.springframework.stereotype.Service
 @Service
 class DvhRapporteringService(
     private val vedtaksstotteRepository: VedtaksstotteRepository,
-    @Lazy private val kafkaProducerRecordStorage: KafkaProducerRecordStorage,
+    private val kafkaProducerRecordStorage: KafkaProducerRecordStorage,
     private val kafkaProperties: KafkaProperties,
-    kafkaAvroContext: KafkaConfig.KafkaAvroContext
+    kafkaAvroContext: KafkaAvroContext
 ) {
 
     private val log = LoggerFactory.getLogger(DvhRapporteringService::class.java)

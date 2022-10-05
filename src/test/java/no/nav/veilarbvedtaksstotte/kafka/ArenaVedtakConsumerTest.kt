@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.kafka
 
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.After
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
@@ -10,6 +9,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
+import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
@@ -21,19 +21,13 @@ import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.SpyBean
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
-@SpringBootTest(classes = [ApplicationTestConfig::class])
-@ActiveProfiles("local")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class ArenaVedtakConsumerTest {
+class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
 
     @Autowired
     lateinit var kafkaProperties: KafkaProperties
