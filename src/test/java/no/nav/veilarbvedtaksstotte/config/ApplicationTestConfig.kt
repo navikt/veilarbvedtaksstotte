@@ -21,7 +21,6 @@ import no.nav.veilarbvedtaksstotte.mock.AbacClientMock
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PepMock
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
-import no.nav.veilarbvedtaksstotte.utils.KafkaContainerWrapper
 import no.nav.veilarbvedtaksstotte.utils.PostgresContainer
 import no.nav.veilarbvedtaksstotte.utils.SingletonKafkaContainer
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer
@@ -39,6 +38,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
+import org.testcontainers.containers.KafkaContainer
 import javax.annotation.PostConstruct
 import javax.sql.DataSource
 
@@ -118,23 +118,25 @@ class ApplicationTestConfig {
         return LeaderElectionClient { true }
     }
 
-    @Bean
-    fun kafkaContainer(): KafkaContainerWrapper {
+    // destroyMethod satt til "" hindrer at KafkaContainer, som er AutoCloseable,
+    // stoppes når ApplicationContext for en test lukkes:
+    @Bean(destroyMethod = "")
+    fun kafkaContainer(): KafkaContainer {
         return SingletonKafkaContainer.init()
     }
 
     @Bean
-    fun kafkaConfigEnvContext(kafkaContainer: KafkaContainerWrapper): KafkaEnvironmentContext {
+    fun kafkaConfigEnvContext(kafkaContainer: KafkaContainer): KafkaEnvironmentContext {
         val consumerProperties = KafkaPropertiesBuilder.consumerBuilder()
             .withBaseProperties(1000)
             .withConsumerGroupId(KafkaConsumerConfig.CONSUMER_GROUP_ID)
-            .withBrokerUrl(kafkaContainer.kafkaContainer.bootstrapServers)
+            .withBrokerUrl(kafkaContainer.bootstrapServers)
             .withDeserializers(ByteArrayDeserializer::class.java, ByteArrayDeserializer::class.java)
             .build()
         val producerProperties = KafkaPropertiesBuilder.producerBuilder()
             .withBaseProperties()
             .withProducerId(KafkaProducerConfig.PRODUCER_CLIENT_ID)
-            .withBrokerUrl(kafkaContainer.kafkaContainer.bootstrapServers)
+            .withBrokerUrl(kafkaContainer.bootstrapServers)
             .withSerializers(
                 ByteArraySerializer::class.java, ByteArraySerializer::class.java
             )
@@ -162,10 +164,10 @@ class ApplicationTestConfig {
     }
 
     @Bean
-    fun kafkaTestProducer(kafkaContainer: KafkaContainerWrapper): KafkaTestProducer {
+    fun kafkaTestProducer(kafkaContainer: KafkaContainer): KafkaTestProducer {
         return KafkaTestProducer(
             mapOf(
-                Pair(BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.kafkaContainer.bootstrapServers),
+                Pair(BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.bootstrapServers),
                 Pair(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java),
                 Pair(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
             )

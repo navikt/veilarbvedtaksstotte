@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.testcontainers.containers.KafkaContainer
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -33,7 +34,7 @@ class Siste14aVedtakKafkaProducerTest : AbstractVedtakIntegrationTest() {
     lateinit var kafkaProperties: KafkaProperties
 
     @Autowired
-    lateinit var kafkaContainer: KafkaContainerWrapper
+    lateinit var kafkaContainer: KafkaContainer
 
     @Autowired
     lateinit var siste14aVedtakService: Siste14aVedtakService
@@ -73,7 +74,7 @@ class Siste14aVedtakKafkaProducerTest : AbstractVedtakIntegrationTest() {
         val konsumerteMeldinger: AtomicReference<MutableMap<AktorId, Siste14aVedtak>> = AtomicReference(mutableMapOf())
 
         val testConsumer = KafkaTestUtils.testConsumer<Siste14aVedtak>(
-            kafkaContainer.kafkaContainer.bootstrapServers,
+            kafkaContainer.bootstrapServers,
             kafkaProperties.siste14aVedtakTopic,
         ) { record ->
             konsumerteMeldinger.get()[AktorId(record.key())] = record.value()
