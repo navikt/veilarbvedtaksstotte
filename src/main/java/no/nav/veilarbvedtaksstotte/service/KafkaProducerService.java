@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage;
-import no.nav.veilarbvedtaksstotte.config.KafkaConfig;
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
@@ -19,8 +18,7 @@ public class KafkaProducerService {
     private final KafkaProperties kafkaProperties;
 
     public KafkaProducerService(KafkaProducerRecordStorage producerRecordStorage,
-                                KafkaProperties kafkaProperties,
-                                KafkaConfig.KafkaAvroContext kafkaAvroContext) {
+                                KafkaProperties kafkaProperties) {
         this.producerRecordStorage = producerRecordStorage;
         this.kafkaProperties = kafkaProperties;
     }

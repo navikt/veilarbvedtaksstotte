@@ -6,7 +6,7 @@ import no.nav.common.types.identer.AktorId
 import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvh
 import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhHovedmalKode
 import no.nav.pto_schema.kafka.avro.Vedtak14aFattetDvhInnsatsgruppeKode
-import no.nav.veilarbvedtaksstotte.config.KafkaConfig
+import no.nav.veilarbvedtaksstotte.config.KafkaAvroContext
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
@@ -28,7 +28,7 @@ import java.time.LocalDateTime
 class DvhRapporteringServiceTest : AbstractVedtakIntegrationTest() {
 
     @Autowired
-    lateinit var kafkaAvroContext: KafkaConfig.KafkaAvroContext
+    lateinit var kafkaAvroContext: KafkaAvroContext
 
     @Autowired
     lateinit var dvhRapporteringService: DvhRapporteringService
