@@ -23,7 +23,6 @@ class Siste14aVedtakService(
     val kafkaProducerService: KafkaProducerService,
     val vedtakRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
-    val authService: AuthService,
     val aktorOppslagClient: AktorOppslagClient,
     val arenaVedtakService: ArenaVedtakService
 ) {
@@ -31,7 +30,6 @@ class Siste14aVedtakService(
     val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
 
     fun siste14aVedtak(fnr: Fnr): Siste14aVedtak? {
-        authService.sjekkTilgangTilBruker(fnr)
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
         return siste14aVedtakMedKilder(identer).siste14aVedtak
     }
