@@ -66,7 +66,7 @@ public class SlettUtkastSchedule {
         gamleUtkastUtenforOppfolging.forEach(utkast -> {
             try {
                 Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(utkast.getAktorId()));
-                List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(fnr.get());
+                List<OppfolgingPeriodeDTO> oppfolgingsperioder = veilarboppfolgingClient.hentOppfolgingsperioder(fnr);
                 Optional<OppfolgingPeriodeDTO> maybeSistePeriode = OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder);
 
                 if (maybeSistePeriode.isEmpty()) {

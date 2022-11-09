@@ -29,8 +29,8 @@ class Siste14aVedtakService(
 
     val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
 
-    fun siste14aVedtak(fnr: Fnr): Siste14aVedtak? {
-        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
+    fun siste14aVedtak(brukerId: EksternBrukerId): Siste14aVedtak? {
+        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(brukerId)
         return siste14aVedtakMedKilder(identer).siste14aVedtak
     }
 
@@ -41,7 +41,7 @@ class Siste14aVedtakService(
 
     private fun siste14aVedtakMedKilder(identer: BrukerIdenter): Siste14aVedtakMedGrunnlag {
 
-        val sisteVedtak: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId.get())
+        val sisteVedtak: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId)
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
         if (sisteVedtak == null && arenaVedtakListe.isEmpty()) {

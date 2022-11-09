@@ -1,70 +1,30 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.BrukerIdenter
-import no.nav.common.featuretoggle.UnleashClient
-import no.nav.common.types.identer.AktorId
-import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient
-import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse
-import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
-import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
-import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
-import no.nav.veilarbvedtaksstotte.utils.TestData.*
+import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
-import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.MockBean
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.random.Random.Default.nextLong
 
-class Siste14aVedtakServiceTest : DatabaseTest() {
+class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
 
-    companion object {
+    @Autowired
+    lateinit var siste14aVedtakService: Siste14aVedtakService
 
-        private lateinit var arenaVedtakRepository: ArenaVedtakRepository
-        private lateinit var vedtakRepository: VedtaksstotteRepository
-
-        private val authService: AuthService = mock(AuthService::class.java)
-        private lateinit var arenaVedtakService: ArenaVedtakService
-        private lateinit var siste14aVedtakService: Siste14aVedtakService
-        private lateinit var unleashService: UnleashService
-
-        private val unleashClient = mock(UnleashClient::class.java)
-        private val aktorOppslagClient = mock(AktorOppslagClient::class.java)
-
-        private val kafkaProducerService = mock(KafkaProducerService::class.java)
-
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
-            vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
-
-            unleashService = UnleashService(unleashClient)
-
-            arenaVedtakService = ArenaVedtakService(arenaVedtakRepository, mock(SafClient::class.java), authService)
-            siste14aVedtakService = Siste14aVedtakService(
-                aktorOppslagClient = aktorOppslagClient,
-                vedtakRepository = vedtakRepository,
-                arenaVedtakRepository = arenaVedtakRepository,
-                arenaVedtakService = arenaVedtakService,
-                transactor = transactor,
-                kafkaProducerService = kafkaProducerService
-            )
-        }
-    }
+    @MockBean
+    lateinit var kafkaProducerService: KafkaProducerService
 
     @BeforeEach
     fun before() {
@@ -86,7 +46,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
 
         val fattetDato = LocalDateTime.now()
 
-        gittFattetVedtakDer(
+        lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.SKAFFE_ARBEID,
@@ -111,16 +71,14 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDateTime.now().minusDays(3)
 
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = LocalDate.now().minusDays(4),
-                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaHovedmal.SKAFFEA
-            )
+        lagreArenaVedtak(
+            fnr = identer.fnr,
+            fraDato = LocalDate.now().minusDays(4),
+            innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+            hovedmal = ArenaHovedmal.SKAFFEA
         )
 
-        gittFattetVedtakDer(
+        lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
@@ -143,17 +101,15 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDateTime.now().minusDays(3).plusMinutes(1)
 
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = LocalDate.now().minusDays(3),
-                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaHovedmal.SKAFFEA,
-                operationTimestamp = LocalDateTime.now().minusDays(3)
-            )
+        lagreArenaVedtak(
+            fnr = identer.fnr,
+            fraDato = LocalDate.now().minusDays(3),
+            innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+            hovedmal = ArenaHovedmal.SKAFFEA,
+            operationTimestamp = LocalDateTime.now().minusDays(3)
         )
 
-        gittFattetVedtakDer(
+        lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
@@ -178,13 +134,11 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now().minusDays(1)
 
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = fattetDato,
-                innsatsgruppe = ArenaInnsatsgruppe.BATT,
-                hovedmal = ArenaHovedmal.OKEDELT
-            )
+        lagreArenaVedtak(
+            fnr = identer.fnr,
+            fraDato = fattetDato,
+            innsatsgruppe = ArenaInnsatsgruppe.BATT,
+            hovedmal = ArenaHovedmal.OKEDELT
         )
 
         assertAntallVedtakFraArena(identer, 1)
@@ -206,16 +160,14 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now().minusDays(4)
 
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = fattetDato,
-                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaHovedmal.SKAFFEA
-            )
+        lagreArenaVedtak(
+            fnr = identer.fnr,
+            fraDato = fattetDato,
+            innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+            hovedmal = ArenaHovedmal.SKAFFEA
         )
 
-        gittFattetVedtakDer(
+        lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
@@ -239,17 +191,15 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now().minusDays(4)
 
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = fattetDato,
-                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaHovedmal.SKAFFEA,
-                operationTimestamp = LocalDateTime.now().minusDays(4).plusMinutes(1)
-            )
+        lagreArenaVedtak(
+            fnr = identer.fnr,
+            fraDato = fattetDato,
+            innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+            hovedmal = ArenaHovedmal.SKAFFEA,
+            operationTimestamp = LocalDateTime.now().minusDays(4).plusMinutes(1)
         )
 
-        gittFattetVedtakDer(
+        lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
@@ -273,23 +223,19 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 3)
         val fattetDato = LocalDate.now().minusDays(4)
 
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = fattetDato,
-                innsatsgruppe = ArenaInnsatsgruppe.VARIG,
-                hovedmal = ArenaHovedmal.SKAFFEA
-            )
+        lagreArenaVedtak(
+            fnr = identer.fnr,
+            fraDato = fattetDato,
+            innsatsgruppe = ArenaInnsatsgruppe.VARIG,
+            hovedmal = ArenaHovedmal.SKAFFEA
         )
 
         identer.historiskeFnr.forEachIndexed { index, fnr ->
-            lagre(
-                arenaVedtakDer(
-                    fnr = fnr,
-                    fraDato = LocalDate.now().minusDays(5 + index.toLong()),
-                    innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                    hovedmal = ArenaHovedmal.OKEDELT
-                )
+            lagreArenaVedtak(
+                fnr = fnr,
+                fraDato = LocalDate.now().minusDays(5 + index.toLong()),
+                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+                hovedmal = ArenaHovedmal.OKEDELT
             )
         }
 
@@ -310,24 +256,20 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 4)
         val fattetDato = LocalDate.now().minusDays(4)
 
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.historiskeFnr[1],
-                fraDato = fattetDato,
-                innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
-                hovedmal = ArenaHovedmal.BEHOLDEA
-            )
+        lagreArenaVedtak(
+            fnr = identer.historiskeFnr[1],
+            fraDato = fattetDato,
+            innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
+            hovedmal = ArenaHovedmal.BEHOLDEA
         )
 
         identer.historiskeFnr.forEachIndexed { index, fnr ->
             if (index != 1) {
-                lagre(
-                    arenaVedtakDer(
-                        fnr = fnr,
-                        fraDato = LocalDate.now().minusDays(5 + index.toLong()),
-                        innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                        hovedmal = ArenaHovedmal.OKEDELT
-                    )
+                lagreArenaVedtak(
+                    fnr = fnr,
+                    fraDato = LocalDate.now().minusDays(5 + index.toLong()),
+                    innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+                    hovedmal = ArenaHovedmal.OKEDELT
                 )
             }
         }
@@ -352,7 +294,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         assertAntallVedtakFraArena(identer, 0)
 
         siste14aVedtakService.behandleEndringFraArena(
-            arenaVedtakDer(
+            arenaVedtak(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
                 hovedmal = ArenaHovedmal.OKEDELT,
@@ -378,7 +320,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now().minusDays(2)
 
-        gittFattetVedtakDer(
+        lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
@@ -390,7 +332,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         assertNotNull(vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()))
 
         siste14aVedtakService.behandleEndringFraArena(
-            arenaVedtakDer(
+            arenaVedtak(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
                 hovedmal = ArenaHovedmal.OKEDELT,
@@ -416,7 +358,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDateTime.now()
 
-        gittFattetVedtakDer(
+        lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
@@ -427,7 +369,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         assertFattedeVedtakFraNyLøsning(identer, 1)
 
         siste14aVedtakService.behandleEndringFraArena(
-            arenaVedtakDer(
+            arenaVedtak(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BATT,
                 hovedmal = ArenaHovedmal.BEHOLDEA,
@@ -454,7 +396,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDateTime.now().minusDays(2)
 
-        gittFattetVedtakDer(
+        lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = Hovedmal.SKAFFE_ARBEID,
@@ -466,7 +408,7 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         assertNotNull(vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()))
 
         siste14aVedtakService.behandleEndringFraArena(
-            arenaVedtakDer(
+            arenaVedtak(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
                 hovedmal = ArenaHovedmal.BEHOLDEA,
@@ -493,20 +435,18 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
     fun `siste 14a vedtak oppdateres ikke dersom bruker har nyere vedtak fra Arena fra før`() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now()
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = fattetDato,
-                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                hovedmal = ArenaHovedmal.OKEDELT,
-                hendelseId = 6
-            )
+        lagreArenaVedtak(
+            fnr = identer.fnr,
+            fraDato = fattetDato,
+            innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+            hovedmal = ArenaHovedmal.OKEDELT,
+            hendelseId = 6
         )
 
         assertAntallVedtakFraArena(identer, 1)
 
         siste14aVedtakService.behandleEndringFraArena(
-            arenaVedtakDer(
+            arenaVedtak(
                 fnr = identer.fnr,
                 fraDato = LocalDate.now().minusDays(1),
                 innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
@@ -533,19 +473,17 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 1)
         val fattetDato = LocalDate.now()
 
-        lagre(
-            arenaVedtakDer(
-                fnr = identer.fnr,
-                fraDato = fattetDato,
-                innsatsgruppe = ArenaInnsatsgruppe.BFORM,
-                hovedmal = ArenaHovedmal.OKEDELT
-            )
+        lagreArenaVedtak(
+            fnr = identer.fnr,
+            fraDato = fattetDato,
+            innsatsgruppe = ArenaInnsatsgruppe.BFORM,
+            hovedmal = ArenaHovedmal.OKEDELT
         )
 
         assertAntallVedtakFraArena(identer, 1)
 
         siste14aVedtakService.behandleEndringFraArena(
-            arenaVedtakDer(
+            arenaVedtak(
                 fnr = identer.historiskeFnr[0],
                 fraDato = LocalDate.now().minusDays(1),
                 innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
@@ -590,69 +528,4 @@ class Siste14aVedtakServiceTest : DatabaseTest() {
         )
     }
 
-    private fun gittBrukerIdenter(antallHistoriskeFnr: Int = 1): BrukerIdenter {
-        val brukerIdenter = BrukerIdenter(
-            Fnr(randomNumeric(10)),
-            AktorId(randomNumeric(5)),
-            (1..antallHistoriskeFnr).map { Fnr(randomNumeric(10)) },
-            listOf()
-        )
-
-        `when`(aktorOppslagClient.hentIdenter(ArgumentMatchers.argThat { arg ->
-            brukerIdenter.historiskeFnr
-                .plus(brukerIdenter.historiskeAktorId)
-                .plus(brukerIdenter.fnr)
-                .plus(brukerIdenter.aktorId)
-                .contains(arg)
-        })).thenReturn(brukerIdenter)
-
-        return brukerIdenter
-    }
-
-    private fun arenaVedtakDer(
-        fnr: Fnr,
-        fraDato: LocalDate = LocalDate.now(),
-        regUser: String = "REG USER",
-        innsatsgruppe: ArenaInnsatsgruppe = ArenaInnsatsgruppe.BFORM,
-        hovedmal: ArenaHovedmal = ArenaHovedmal.SKAFFEA,
-        operationTimestamp: LocalDateTime = LocalDateTime.now(),
-        hendelseId: Long = nextLong()
-    ): ArenaVedtak {
-        val arenaVedtak = ArenaVedtak(
-            fnr = fnr,
-            innsatsgruppe = innsatsgruppe,
-            hovedmal = hovedmal,
-            fraDato = fraDato,
-            regUser = regUser,
-            operationTimestamp = operationTimestamp,
-            hendelseId = hendelseId,
-            vedtakId = 1
-        )
-        return arenaVedtak
-    }
-
-
-    private fun lagre(
-        arenaVedtak: ArenaVedtak
-    ): ArenaVedtak {
-
-        arenaVedtakRepository.upsertVedtak(arenaVedtak)
-
-        return arenaVedtak
-    }
-
-    private fun gittFattetVedtakDer(
-        aktorId: AktorId,
-        innsatsgruppe: Innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
-        hovedmal: Hovedmal = Hovedmal.SKAFFE_ARBEID,
-        vedtakFattetDato: LocalDateTime = LocalDateTime.now()
-    ) {
-        vedtakRepository.opprettUtkast(aktorId.get(), TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID)
-        val vedtak = vedtakRepository.hentUtkast(aktorId.get())
-        vedtak.innsatsgruppe = innsatsgruppe
-        vedtak.hovedmal = hovedmal
-        vedtakRepository.oppdaterUtkast(vedtak.id, vedtak)
-        vedtakRepository.ferdigstillVedtak(vedtak.id)
-        jdbcTemplate.update("UPDATE VEDTAK SET VEDTAK_FATTET = ? WHERE ID = ?", vedtakFattetDato, vedtak.id)
-    }
 }

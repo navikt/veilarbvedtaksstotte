@@ -135,8 +135,11 @@ abstract class AbstractVedtakIntegrationTest {
             (1..antallHistoriskeAktorId).map { AktorId(RandomStringUtils.randomNumeric(11)) })
 
         `when`(aktorOppslagClient.hentIdenter(ArgumentMatchers.argThat { arg ->
-            brukerIdenter.historiskeFnr.plus(brukerIdenter.historiskeAktorId).plus(brukerIdenter.fnr)
-                .plus(brukerIdenter.aktorId).contains(arg)
+            brukerIdenter.historiskeFnr
+                .plus(brukerIdenter.historiskeAktorId)
+                .plus(brukerIdenter.fnr)
+                .plus(brukerIdenter.aktorId)
+                .contains(arg)
         })).thenReturn(brukerIdenter)
 
         return brukerIdenter

@@ -3,8 +3,6 @@ package no.nav.veilarbvedtaksstotte.kafka
 import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
@@ -17,12 +15,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.testcontainers.containers.KafkaContainer
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -38,9 +33,6 @@ class Siste14aVedtakKafkaProducerTest : AbstractVedtakIntegrationTest() {
 
     @Autowired
     lateinit var siste14aVedtakService: Siste14aVedtakService
-
-    @MockBean
-    lateinit var veilarboppfolgingClient: VeilarboppfolgingClient
 
     @Test
     fun `produserer melding for siste 14a vedtak basert på nytt vedtak`() {
@@ -61,12 +53,6 @@ class Siste14aVedtakKafkaProducerTest : AbstractVedtakIntegrationTest() {
 
         `when`(aktorOppslagClient.hentIdenter(arenaVedtak.fnr)).thenReturn(
             BrukerIdenter(arenaVedtak.fnr, aktorId, emptyList(), emptyList())
-        )
-
-        `when`(veilarboppfolgingClient.hentOppfolgingsperioder(arenaVedtak.fnr.get())).thenReturn(
-            listOf(
-                OppfolgingPeriodeDTO(ZonedDateTime.of(2021, 1, 11, 2, 1, 0, 0, ZoneId.systemDefault()), null)
-            )
         )
 
         siste14aVedtakService.behandleEndringFraArena(arenaVedtak)

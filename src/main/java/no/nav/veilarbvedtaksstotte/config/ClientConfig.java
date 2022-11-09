@@ -86,12 +86,11 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarboppfolgingClient oppfolgingClient(OboContexService oboContexService, AzureAdMachineToMachineTokenClient tokenClient) {
+    public VeilarboppfolgingClient oppfolgingClient(AzureAdMachineToMachineTokenClient tokenClient) {
         DownstreamApi veilarboppfolging = DownstreamAPIs.getVeilarboppfolging().invoke(isProduction() ? "prod-fss" : "dev-fss");
-        Supplier<String> userTokenSupplier = oboContexService.userTokenSupplier(veilarboppfolging);
 
         String url = UrlUtils.createServiceUrl(veilarboppfolging.serviceName, veilarboppfolging.namespace, true);
-        return new VeilarboppfolgingClientImpl(url, userTokenSupplier,
+        return new VeilarboppfolgingClientImpl(url,
                 () -> tokenClient.createMachineToMachineToken(tokenScope(veilarboppfolging))
         );
     }
