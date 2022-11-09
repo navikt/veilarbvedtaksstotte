@@ -122,6 +122,10 @@ public class VedtaksstotteRepository {
        db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
     }
 
+    public void settVedtakTilGjeldende(long vedtakId) {
+        db.update("UPDATE VEDTAK SET GJELDENDE = true WHERE ID = ?", vedtakId);
+    }
+
     public void oppdaterUtkast(long vedtakId, Vedtak vedtak) {
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = CURRENT_TIMESTAMP WHERE %s = ? AND %s = ?",
