@@ -1,8 +1,16 @@
 # Veilarbvedtaksstotte
 
-## Setup for å kjøre lokalt
-1. Installer docker-compose
-2. Endre i /etc/hosts slik at "kafka" peker mot "localhost"
+Backend-tjeneste for fatting av 14a vedtak.
+
+Funksjonalitet:
+- Opprette og oppdatere utkast til 14a vedtak
+- Fatte 14a vedtak med journalføring og distribusjon av brev
+- API for kvalitetssikringsprosess, oversikt og søk
+- API for meldinger relatert til et utkast
+- Integrert funksjonalitet og API for utrulling av løsningen
+- API for konsumering av data fra 14a vedtak (innsatsgruppe og hovedmål)
+
+Swagger: /veilarbvedtaksstotte/internal/swagger-ui/index.html
 
 ## Kjøre appen
 ```console
@@ -15,5 +23,4 @@ mvn test
 # starte
 # Kjør main-metoden i no.nav.veilarbvedtaksstotte.VeilarbvedtaksstotteApp.java
 # For lokal test kjøring kjør no.nav.veilarbvedtaksstotte.VeilarbvedtaksstotteTestApp.java
-# For å kjøre lokalt så husk å starte docker tjenestene først med "docker-compose up -d"
 ```
