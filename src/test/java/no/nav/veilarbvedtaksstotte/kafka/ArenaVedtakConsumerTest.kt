@@ -60,7 +60,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
             vedtakId = 1234
         )
 
-        testProducer.send(ProducerRecord(kafkaProperties.arenaVedtakTopic, "key", readTestResourceFile))
+        testProducer.send(ProducerRecord(kafkaProperties.arenaVedtakOnPremTopic, "key", readTestResourceFile))
 
         TestUtils.verifiserAsynkront(
             10, TimeUnit.SECONDS
@@ -95,7 +95,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
                     vedtakId = forventetArenaVedtak.vedtakId
                 )
 
-                testProducer.send(ProducerRecord(kafkaProperties.arenaVedtakTopic, "key", arenaVedtakRecord.toJson()))
+                testProducer.send(ProducerRecord(kafkaProperties.arenaVedtakOnPremTopic, "key", arenaVedtakRecord.toJson()))
 
                 TestUtils.verifiserAsynkront(
                     10, TimeUnit.SECONDS
