@@ -10,7 +10,6 @@ import no.nav.common.kafka.consumer.util.ConsumerUtils
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
-import no.nav.common.utils.EnvironmentUtils
 import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging
