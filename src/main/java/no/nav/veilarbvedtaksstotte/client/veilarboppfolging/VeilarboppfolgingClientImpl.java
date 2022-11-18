@@ -25,31 +25,12 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
 
     private final OkHttpClient client;
 
-    private final Supplier<String> userTokenSupplier;
-
     private final Supplier<String> systemTokenSupplier;
 
-    public VeilarboppfolgingClientImpl(String veilarboppfolgingUrl, Supplier<String> userTokenSupplier, Supplier<String> systemTokenSupplier) {
+    public VeilarboppfolgingClientImpl(String veilarboppfolgingUrl, Supplier<String> systemTokenSupplier) {
         this.veilarboppfolgingUrl = veilarboppfolgingUrl;
         this.client = RestClient.baseClient();
-        this.userTokenSupplier = userTokenSupplier;
         this.systemTokenSupplier = systemTokenSupplier;
-    }
-
-    @Cacheable(CacheConfig.OPPFOLGING_CACHE_NAME)
-    @SneakyThrows
-    public OppfolgingsstatusDTO hentOppfolgingData(String fnr) {
-        Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/api/person/", fnr, "oppfolgingsstatus"))
-                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-                .build();
-
-        try (Response response = RestClient.baseClient().newCall(request).execute()) {
-            RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.getBodyStr(response)
-                    .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingsstatusDTO.class))
-                    .orElseThrow(() -> new IllegalStateException("Unable to parse json"));
-        }
     }
 
     @Cacheable(CacheConfig.OPPFOLGINGPERIODE_CACHE_NAME)

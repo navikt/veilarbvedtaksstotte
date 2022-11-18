@@ -6,8 +6,6 @@ import java.util.List;
 
 public interface VeilarboppfolgingClient extends HealthCheck {
 
-    OppfolgingsstatusDTO hentOppfolgingData(String fnr);
-
     List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(String fnr);
 
 }

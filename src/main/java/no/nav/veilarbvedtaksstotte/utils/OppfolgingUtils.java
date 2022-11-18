@@ -8,8 +8,8 @@ import java.util.Optional;
 
 public class OppfolgingUtils {
 
-    public static boolean erSykmeldtUtenArbeidsgiver(String servicegruppe) {
-        return servicegruppe.equals("VURDU");
+    public static boolean erSykmeldtUtenArbeidsgiver(String kvalifiseringsgruppe) {
+        return kvalifiseringsgruppe.equals("VURDU");
     }
 
     public static Optional<ZonedDateTime> getOppfolgingStartDato(List<OppfolgingPeriodeDTO> oppfolgingPerioder) {

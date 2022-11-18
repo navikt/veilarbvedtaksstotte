@@ -24,24 +24,7 @@ public class VeilarboppfolgingClientImplTest {
     @BeforeAll
     public static void setup(WireMockRuntimeInfo wireMockRuntimeInfo) {
         String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        veilarboppfolgingClient = new VeilarboppfolgingClientImpl(apiUrl, () -> "Bearer USER_TOKEN", () -> "SYSTEM_TOKEN");
-    }
-
-    @Test
-    public void hentOppfolgingData__skal_lage_riktig_request_og_parse_response() {
-        String response = TestUtils.readTestResourceFile("veilarboppfolging_hentOppfolgingData.json");
-
-        givenThat(get(urlEqualTo("/api/person/" + TEST_FNR + "/oppfolgingsstatus"))
-                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer USER_TOKEN"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody(response))
-        );
-
-        OppfolgingsstatusDTO expectedData = new OppfolgingsstatusDTO();
-        expectedData.setServicegruppe("VURDU");
-
-        assertEquals(expectedData, veilarboppfolgingClient.hentOppfolgingData(TEST_FNR.get()));
+        veilarboppfolgingClient = new VeilarboppfolgingClientImpl(apiUrl, () -> "SYSTEM_TOKEN");
     }
 
     @Test
