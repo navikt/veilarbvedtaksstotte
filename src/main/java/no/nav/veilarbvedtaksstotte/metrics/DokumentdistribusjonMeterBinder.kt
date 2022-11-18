@@ -24,9 +24,9 @@ class DokumentdistribusjonMeterBinder(
 
     fun antallJournalforteVedtakUtenDokumentbestilling(): Int {
         return vedtaksstotteRepository.hentAntallJournalforteVedtakUtenDokumentbestilling(
-            // Trekker fra tid distribusjon schedule kjører (hvert 10. min) + 2 min unngå å telle med vedtak som holder
+            // Trekker fra tid distribusjon schedule kjører (hvert 10. min) + 3 min unngå å telle med vedtak som holder
             // på å bli distribuert
-            LocalDateTime.now().minusMinutes(12)
+            LocalDateTime.now().minusMinutes(13)
         )
     }
 
