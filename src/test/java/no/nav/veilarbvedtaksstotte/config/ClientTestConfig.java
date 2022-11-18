@@ -176,7 +176,7 @@ public class ClientTestConfig {
         return new VeilarboppfolgingClient() {
 
             @Override
-            public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(String fnr) {
+            public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr) {
                 OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
                 periode.setStartDato(ZonedDateTime.now().minusDays(10));
                 return Collections.singletonList(periode);

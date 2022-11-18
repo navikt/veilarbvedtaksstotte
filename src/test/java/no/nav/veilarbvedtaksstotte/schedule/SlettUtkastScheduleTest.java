@@ -54,7 +54,7 @@ public class SlettUtkastScheduleTest extends DatabaseTest {
         oppfolgingPeriode.setStartDato(ZonedDateTime.now().minusDays(50));
         oppfolgingPeriode.setSluttDato(ZonedDateTime.now().minusDays(30));
         when(aktorOppslagClient.hentFnr(aktorId)).thenReturn(fnr);
-        when(veilarboppfolgingClient.hentOppfolgingsperioder(fnr.get())).thenReturn(List.of(oppfolgingPeriode));
+        when(veilarboppfolgingClient.hentOppfolgingsperioder(fnr)).thenReturn(List.of(oppfolgingPeriode));
 
         // skal ikke slettes
         AktorId aktorId2 = AktorId.of(randomNumeric(10));
@@ -64,7 +64,7 @@ public class SlettUtkastScheduleTest extends DatabaseTest {
         oppfolgingPeriode2.setStartDato(ZonedDateTime.now().minusDays(50));
         oppfolgingPeriode2.setSluttDato(ZonedDateTime.now().minusDays(27));
         when(aktorOppslagClient.hentFnr(aktorId2)).thenReturn(fnr2);
-        when(veilarboppfolgingClient.hentOppfolgingsperioder(fnr2.get())).thenReturn(List.of(oppfolgingPeriode2));
+        when(veilarboppfolgingClient.hentOppfolgingsperioder(fnr2)).thenReturn(List.of(oppfolgingPeriode2));
 
 
         slettUtkastSchedule.slettGamleUtkast();
@@ -84,7 +84,7 @@ public class SlettUtkastScheduleTest extends DatabaseTest {
         oppfolgingPeriode.setSluttDato(ZonedDateTime.now().minusDays(18));
 
         when(aktorOppslagClient.hentFnr(aktorId)).thenReturn(Fnr.of("test"));
-        when(veilarboppfolgingClient.hentOppfolgingsperioder(fnr.get())).thenReturn(List.of(oppfolgingPeriode));
+        when(veilarboppfolgingClient.hentOppfolgingsperioder(fnr)).thenReturn(List.of(oppfolgingPeriode));
 
         slettUtkastSchedule.slettGamleUtkast();
 

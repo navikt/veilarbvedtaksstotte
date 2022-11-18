@@ -106,7 +106,7 @@ public class MetricsService {
             Fnr fnr = aktorOppslagClient.hentFnr(aktorId);
             List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId.get());
             RegistreringData registreringData = registreringClient.hentRegistreringData(fnr.get());
-            List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingsperioder(fnr.get());
+            List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingsperioder(fnr);
             Optional<ZonedDateTime> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);
 
             if (startDato.isEmpty() || registreringData == null) {
@@ -141,7 +141,7 @@ public class MetricsService {
         if (erSykmeldtUtenArbeidsgiver) {
             try {
                 Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(vedtak.getAktorId()));
-                List<OppfolgingPeriodeDTO> data = oppfolgingClient.hentOppfolgingsperioder(fnr.get());
+                List<OppfolgingPeriodeDTO> data = oppfolgingClient.hentOppfolgingsperioder(fnr);
                 Optional<ZonedDateTime> oppolgingStartDato = OppfolgingUtils.getOppfolgingStartDato(data);
                 oppolgingStartDato.ifPresent(
                         startDato -> rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, startDato)
