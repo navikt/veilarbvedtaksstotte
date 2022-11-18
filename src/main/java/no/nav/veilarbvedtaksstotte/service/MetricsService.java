@@ -106,8 +106,8 @@ public class MetricsService {
             Fnr fnr = aktorOppslagClient.hentFnr(aktorId);
             List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId.get());
             RegistreringData registreringData = registreringClient.hentRegistreringData(fnr.get());
-            List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingsperioder(fnr);
-            Optional<ZonedDateTime> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);
+            Optional<ZonedDateTime> startDato = oppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
+                    .map(OppfolgingPeriodeDTO::getStartDato);
 
             if (startDato.isEmpty() || registreringData == null) {
                 return -1;
@@ -141,11 +141,11 @@ public class MetricsService {
         if (erSykmeldtUtenArbeidsgiver) {
             try {
                 Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(vedtak.getAktorId()));
-                List<OppfolgingPeriodeDTO> data = oppfolgingClient.hentOppfolgingsperioder(fnr);
-                Optional<ZonedDateTime> oppolgingStartDato = OppfolgingUtils.getOppfolgingStartDato(data);
-                oppolgingStartDato.ifPresent(
-                        startDato -> rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, startDato)
-                );
+                oppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
+                        .map(OppfolgingPeriodeDTO::getStartDato)
+                        .ifPresent(startDato ->
+                                rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, startDato)
+                        );
             } catch (Exception ignored) {}
         }
     }

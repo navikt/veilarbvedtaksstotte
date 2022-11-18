@@ -15,6 +15,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static no.nav.common.utils.AuthUtils.bearerToken;
@@ -32,6 +33,21 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
         this.veilarboppfolgingUrl = veilarboppfolgingUrl;
         this.client = RestClient.baseClient();
         this.machineToMachineTokenSupplier = machineToMachineTokenSupplier;
+    }
+
+    @Cacheable(CacheConfig.GJELDENDE_OPPFOLGINGPERIODE_CACHE_NAME)
+    @SneakyThrows
+    public Optional<OppfolgingPeriodeDTO> hentGjeldendeOppfolgingsperiode(Fnr fnr) {
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarboppfolgingUrl, "/api/v2/oppfolging/periode/gjeldende?fnr=" + fnr))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestUtils.throwIfNotSuccessful(response);
+            return RestUtils.getBodyStr(response)
+                    .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingPeriodeDTO.class));
+        }
     }
 
     @Cacheable(CacheConfig.OPPFOLGINGPERIODER_CACHE_NAME)

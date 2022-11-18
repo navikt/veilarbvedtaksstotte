@@ -174,12 +174,18 @@ public class ClientTestConfig {
     @Bean
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {
-
             @Override
             public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr) {
                 OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
                 periode.setStartDato(ZonedDateTime.now().minusDays(10));
                 return Collections.singletonList(periode);
+            }
+
+            @Override
+            public Optional<OppfolgingPeriodeDTO> hentGjeldendeOppfolgingsperiode(Fnr fnr) {
+                OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
+                periode.setStartDato(ZonedDateTime.now().minusDays(10));
+                return Optional.of(periode);
             }
 
             @Override

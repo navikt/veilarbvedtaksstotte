@@ -18,6 +18,7 @@ public class CacheConfig {
     public static final String VEILEDER_CACHE_NAME = "veileder";
     public static final String ENHET_NAVN_CACHE_NAME = "enhet-navn";
     public static final String REGISTRERING_CACHE_NAME = "registrering";
+    public static final String GJELDENDE_OPPFOLGINGPERIODE_CACHE_NAME = "gjeldende-oppfolgingperiode";
     public static final String OPPFOLGINGPERIODER_CACHE_NAME = "oppfolgingperioder";
     public static final String NORG2_ENHET_KONTAKTINFO_CACHE_NAME = "enhet-kontaktinfo";
     public static final String NORG2_ENHET_ORGANISERING_CACHE_NAME = "enhet-organisering";
@@ -55,7 +56,15 @@ public class CacheConfig {
     }
 
     @Bean
-    public Cache oppfolgingperiodeCache() {
+    public Cache gjeldendeOppfolgingperiodeCache() {
+        return new CaffeineCache(GJELDENDE_OPPFOLGINGPERIODE_CACHE_NAME, Caffeine.newBuilder()
+                .expireAfterWrite(15, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .build());
+    }
+
+    @Bean
+    public Cache oppfolgingperioderCache() {
         return new CaffeineCache(OPPFOLGINGPERIODER_CACHE_NAME, Caffeine.newBuilder()
                 .expireAfterWrite(15, TimeUnit.MINUTES)
                 .maximumSize(1000)

@@ -10,11 +10,12 @@ import org.springframework.http.HttpHeaders;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @WireMockTest
 public class VeilarboppfolgingClientImplTest {
@@ -54,4 +55,40 @@ public class VeilarboppfolgingClientImplTest {
         assertEquals(expectedPeriode2, oppfolgingsperioder.get(1));
     }
 
+    @Test
+    public void hentGjeldendeOppfolgingsperiode__skal_lage_riktig_request_og_parse_response() {
+        String response = TestUtils.readTestResourceFile("veilarboppfolging_hentGjeldendeOppfolgingsperiode.json");
+
+        givenThat(get(urlEqualTo("/api/v2/oppfolging/periode/gjeldende?fnr=" + TEST_FNR.get()))
+                .withQueryParam("fnr", equalTo(TEST_FNR.get()))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer SYSTEM_TOKEN"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody(response))
+        );
+
+        OppfolgingPeriodeDTO expectedPeriode = new OppfolgingPeriodeDTO();
+        expectedPeriode.setStartDato(ZonedDateTime.of(2021, 5, 4, 9, 48, 58, 0, ZoneId.of("+2")).plus(762, MILLIS));
+        expectedPeriode.setSluttDato(ZonedDateTime.of(2021, 6, 4, 9, 48, 58, 0, ZoneId.of("+2")).plus(762, MILLIS));
+
+        Optional<OppfolgingPeriodeDTO> gjeldendeOppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(TEST_FNR);
+
+        assertEquals(Optional.of(expectedPeriode), gjeldendeOppfolgingsperiode);
+    }
+
+    @Test
+    public void hentGjeldendeOppfolgingsperiode__skal_håndtere_manglende_respons() {
+
+        givenThat(get(urlEqualTo("/api/v2/oppfolging/periode/gjeldende?fnr=" + TEST_FNR.get()))
+                .withQueryParam("fnr", equalTo(TEST_FNR.get()))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer SYSTEM_TOKEN"))
+                .willReturn(aResponse()
+                        .withStatus(204))
+        );
+
+        Optional<OppfolgingPeriodeDTO> gjeldendeOppfolgingsperiode =
+                veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(TEST_FNR);
+
+        assertEquals(Optional.empty(), gjeldendeOppfolgingsperiode);
+    }
 }
