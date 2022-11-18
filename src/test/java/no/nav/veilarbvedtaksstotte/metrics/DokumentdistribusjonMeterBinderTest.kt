@@ -30,11 +30,11 @@ class DokumentdistribusjonMeterBinderTest : DatabaseTest() {
         // for kort tid siden:
         lagreVedtak(now, dokumentBestillingId = Uuid(randomNumeric(10)))
         lagreVedtak(now, dokumentBestillingId = null)
-        lagreVedtak(now.minusMinutes(12).plusSeconds(1), dokumentBestillingId = null)
+        lagreVedtak(now.minusMinutes(13).plusSeconds(1), dokumentBestillingId = null)
 
         // innenfor:
-        lagreVedtak(now.minusMinutes(12).minusSeconds(5), dokumentBestillingId = Uuid(randomNumeric(10)))
-        lagreVedtak(now.minusMinutes(12).minusSeconds(5), dokumentBestillingId = null)
+        lagreVedtak(now.minusMinutes(13).minusSeconds(5), dokumentBestillingId = Uuid(randomNumeric(10)))
+        lagreVedtak(now.minusMinutes(13).minusSeconds(5), dokumentBestillingId = null)
         lagreVedtak(now.minusDays(2), dokumentBestillingId = Uuid(randomNumeric(10)))
         lagreVedtak(now.minusDays(2), dokumentBestillingId = null)
 
