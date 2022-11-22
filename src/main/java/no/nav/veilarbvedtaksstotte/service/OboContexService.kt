@@ -20,7 +20,8 @@ class OboContexService(
     }
 
     private fun getAadOboTokenForTjeneste(token: String, api: DownstreamApi): String {
-        val scope = "api://" + api.cluster + "." + api.namespace + "." + api.serviceName + "/.default"
+        val serviceNameWithOptionalEnvironment = api.serviceEnvironment?.let { api.serviceName + it } ?: api.serviceName
+        val scope = "api://" + api.cluster + "." + api.namespace + "." + serviceNameWithOptionalEnvironment + "/.default"
         return aadOboTokenClient.exchangeOnBehalfOfToken(scope, token)
     }
 
