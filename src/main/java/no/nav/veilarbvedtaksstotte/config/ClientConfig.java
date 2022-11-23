@@ -121,8 +121,10 @@ public class ClientConfig {
     public SafClient safClient(OboContexService oboContexService) {
         DownstreamApi safClient = DownstreamAPIs.getSaf().invoke(isProduction() ? "prod-fss" : "dev-fss");
         Supplier<String> userTokenSupplier = oboContexService.userTokenSupplier(safClient);
+        String serviceNameForIngress = "saf";
+        
         return new SafClientImpl(
-                naisPreprodOrNaisAdeoIngress(safClient.serviceName, false),
+                naisPreprodOrNaisAdeoIngress(serviceNameForIngress, false),
                 userTokenSupplier
         );
     }
@@ -220,7 +222,7 @@ public class ClientConfig {
                 : createNaisPreprodIngressUrl(appName, "q1", withAppContextPath);
     }
 
-    private static String tokenScope(DownstreamApi downstreamApi){
+    private static String tokenScope(DownstreamApi downstreamApi) {
         return String.format("api://%s.%s.%s/.default", downstreamApi.cluster, downstreamApi.namespace, downstreamApi.serviceName);
     }
 }
