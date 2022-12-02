@@ -10,9 +10,11 @@ import no.nav.common.kafka.consumer.util.ConsumerUtils
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
+import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
@@ -181,8 +183,28 @@ class KafkaConsumerConfig {
                             arenaVedtakRecord
                         )
                     })
+            val oppfolgingsbrukerEndringClientConfigBuilder =
+                KafkaConsumerClientBuilder.TopicConfig<String, KafkaOppfolgingsbrukerEndringV2>()
+                    .withLogging()
+                    .withMetrics(meterRegistry)
+                    .withStoreOnFailure(consumerRepository)
+                    .withConsumerConfig(
+                        kafkaProperties.endringPaOppfolgingsBrukerTopic,
+                        Deserializers.stringDeserializer(),
+                        Deserializers.jsonDeserializer(
+                            KafkaOppfolgingsbrukerEndringV2::class.java
+                        ),
+                        Consumer { kafkaOppfolgingsbrukerEndringV2: ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> ->
+                            kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
+                                kafkaOppfolgingsbrukerEndringV2
+                            )
+                        })
 
-                return listOf(vedtakStatusEndringClientConfigBuilder, arenaVedtakClientConfigBuilder)
+            return if (isDevelopment().orElse(false)) {
+                listOf(vedtakStatusEndringClientConfigBuilder, arenaVedtakClientConfigBuilder, oppfolgingsbrukerEndringClientConfigBuilder)
+            } else {
+                listOf(vedtakStatusEndringClientConfigBuilder, arenaVedtakClientConfigBuilder)
+            }
         }
 
         private fun getOnPremConsumerTopicConfigs(
@@ -214,18 +236,22 @@ class KafkaConsumerConfig {
                     .withMetrics(meterRegistry)
                     .withStoreOnFailure(consumerRepository)
                     .withConsumerConfig(
-                        kafkaProperties.endringPaOppfolgingsBrukerTopic,
+                        kafkaProperties.endringPaOppfolgingsBrukerOnpremTopic,
                         Deserializers.stringDeserializer(),
                         Deserializers.jsonDeserializer(
                             KafkaOppfolgingsbrukerEndring::class.java
                         ),
                         Consumer { kafkaOppfolgingsbrukerEndring: ConsumerRecord<String, KafkaOppfolgingsbrukerEndring> ->
-                            kafkaConsumerService.behandleEndringPaOppfolgingsbruker(
+                            kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhetOnprem(
                                 kafkaOppfolgingsbrukerEndring
                             )
                         })
 
-            return listOf(avsluttOppfolgingClientConfigBuilder, oppfolgingsbrukerEndringClientConfigBuilder)
+            return if (isDevelopment().orElse(false)) {
+                listOf(avsluttOppfolgingClientConfigBuilder)
+            } else {
+                listOf(avsluttOppfolgingClientConfigBuilder, oppfolgingsbrukerEndringClientConfigBuilder)
+            }
         }
     }
 }
