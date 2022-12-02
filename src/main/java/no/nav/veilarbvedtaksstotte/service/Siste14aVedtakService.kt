@@ -153,7 +153,6 @@ class Siste14aVedtakService(
         log.info("Siste 14a vedtak republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte")
     }
 
-    //bruk denne
     private fun hentIdenterMedDevSjekk(brukerId: EksternBrukerId): BrukerIdenter? {
         return try {
             aktorOppslagClient.hentIdenter(brukerId)
