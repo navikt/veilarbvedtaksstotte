@@ -69,9 +69,11 @@ public class KafkaConsumerService {
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
         Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
-        AktorId aktorId = hentAktorIdMedDevSjekk(fnr);
+        AktorId aktorId = hentAktorIdMedDevSjekk(fnr); //AktorId kan være null i dev
         String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
-
+        if (aktorId == null){
+            return;
+        }
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId.toString());
 
         if (utkast != null && !utkast.getOppfolgingsenhetId().equals(oppfolgingsenhetId)) {
