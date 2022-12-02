@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.norg2.Enhet;
+import no.nav.common.client.utils.graphql.GraphqlErrorException;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static java.lang.String.format;
+import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 
 @Service
 @Slf4j
@@ -66,8 +68,8 @@ public class KafkaConsumerService {
     }
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
-        String fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
-        AktorId aktorId = aktorOppslagClient.hentAktorId(Fnr.ofValidFnr(fnr));
+        Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
+        AktorId aktorId = hentAktorIdMedDevSjekk(fnr);
         String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId.toString());
@@ -87,6 +89,17 @@ public class KafkaConsumerService {
             log.info(format("Behandler ikke melding fra Arena med kvalifiseringsgruppe = %s og hovedmål = %s",
                     arenaVedtakRecord.value().getAfter().getKvalifiseringsgruppe(),
                     arenaVedtakRecord.value().getAfter().getHovedmal()));
+        }
+    }
+
+    private AktorId hentAktorIdMedDevSjekk(Fnr fnr) {
+        try {
+            return aktorOppslagClient.hentAktorId(fnr);
+        } catch (GraphqlErrorException e) {
+            if (isDevelopment().orElse(false)) {
+                log.info("Prøvde å hente prodlik bruker i dev. Returnerer null");
+                return null;
+            } else throw e;
         }
     }
 }
