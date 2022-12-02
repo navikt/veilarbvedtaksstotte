@@ -56,7 +56,7 @@ public class KafkaConsumerServiceTest {
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
 
         kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndringV2(TEST_FNR.toString(), enhet)));
+                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndringV2(TEST_FNR, enhet)));
 
         verify(norg2Client, never()).hentEnhet(enhet);
         verify(vedtaksstotteRepository, never()).oppdaterUtkastEnhet(anyLong(), anyString());
@@ -74,7 +74,7 @@ public class KafkaConsumerServiceTest {
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
 
         kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndringV2(TEST_FNR.toString(), nyEnhet)));
+                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndringV2(TEST_FNR, nyEnhet)));
 
         verify(norg2Client, times(1)).hentEnhet(nyEnhet);
         verify(vedtaksstotteRepository, times(1)).oppdaterUtkastEnhet(anyLong(), eq(nyEnhet));
