@@ -195,7 +195,7 @@ class KafkaConsumerConfig {
                             KafkaOppfolgingsbrukerEndringV2::class.java
                         ),
                         Consumer { kafkaOppfolgingsbrukerEndringV2: ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> ->
-                            kafkaConsumerService.behandleEndringPaOppfolgingsbruker(
+                            kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
                                 kafkaOppfolgingsbrukerEndringV2
                             )
                         })
@@ -242,7 +242,7 @@ class KafkaConsumerConfig {
                             KafkaOppfolgingsbrukerEndring::class.java
                         ),
                         Consumer { kafkaOppfolgingsbrukerEndring: ConsumerRecord<String, KafkaOppfolgingsbrukerEndring> ->
-                            kafkaConsumerService.behandleEndringPaOppfolgingsbrukerOnprem(
+                            kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhetOnprem(
                                 kafkaOppfolgingsbrukerEndring
                             )
                         })

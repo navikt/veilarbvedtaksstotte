@@ -55,7 +55,7 @@ public class KafkaConsumerServiceTest {
         when(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(new Vedtak().setOppfolgingsenhetId(enhet));
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
 
-        kafkaConsumerService.behandleEndringPaOppfolgingsbruker(
+        kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
                 new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndringV2(TEST_FNR.toString(), enhet)));
 
         verify(norg2Client, never()).hentEnhet(enhet);
@@ -73,7 +73,7 @@ public class KafkaConsumerServiceTest {
         when(norg2Client.hentEnhet(nyEnhet)).thenReturn(new Enhet().setNavn("TEST"));
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
 
-        kafkaConsumerService.behandleEndringPaOppfolgingsbruker(
+        kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
                 new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndringV2(TEST_FNR.toString(), nyEnhet)));
 
         verify(norg2Client, times(1)).hentEnhet(nyEnhet);

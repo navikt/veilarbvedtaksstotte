@@ -52,7 +52,7 @@ public class KafkaConsumerService {
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(kafkaAvsluttOppfolging.value().getAktorId());
     }
 
-    public void behandleEndringPaOppfolgingsbrukerOnprem(ConsumerRecord<String, KafkaOppfolgingsbrukerEndring> kafkaOppfolgingsbrukerEndring) {
+    public void flyttingAvOppfolgingsbrukerTilNyEnhetOnprem(ConsumerRecord<String, KafkaOppfolgingsbrukerEndring> kafkaOppfolgingsbrukerEndring) {
         String aktorId = kafkaOppfolgingsbrukerEndring.value().getAktorId();
         String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhetId();
 
@@ -65,7 +65,7 @@ public class KafkaConsumerService {
         }
     }
 
-    public void behandleEndringPaOppfolgingsbruker(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
+    public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
         String fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
         AktorId aktorId = aktorOppslagClient.hentAktorId(Fnr.ofValidFnr(fnr));
         String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
