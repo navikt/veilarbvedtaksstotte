@@ -10,10 +10,8 @@ import no.nav.common.kafka.consumer.util.ConsumerUtils
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
-import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
@@ -227,28 +225,9 @@ class KafkaConsumerConfig {
                                 kafkaAvsluttOppfolging
                             )
                         })
-            val oppfolgingsbrukerEndringClientConfigBuilder =
-                KafkaConsumerClientBuilder.TopicConfig<String, KafkaOppfolgingsbrukerEndring>()
-                    .withLogging()
-                    .withMetrics(meterRegistry)
-                    .withStoreOnFailure(consumerRepository)
-                    .withConsumerConfig(
-                        kafkaProperties.endringPaOppfolgingsBrukerOnpremTopic,
-                        Deserializers.stringDeserializer(),
-                        Deserializers.jsonDeserializer(
-                            KafkaOppfolgingsbrukerEndring::class.java
-                        ),
-                        Consumer { kafkaOppfolgingsbrukerEndring: ConsumerRecord<String, KafkaOppfolgingsbrukerEndring> ->
-                            kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhetOnprem(
-                                kafkaOppfolgingsbrukerEndring
-                            )
-                        })
 
-            return if (isDevelopment().orElse(false)) {
-                listOf(avsluttOppfolgingClientConfigBuilder)
-            } else {
-                listOf(avsluttOppfolgingClientConfigBuilder, oppfolgingsbrukerEndringClientConfigBuilder)
-            }
+            return listOf(avsluttOppfolgingClientConfigBuilder)
+
         }
     }
 }
