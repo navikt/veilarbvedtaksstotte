@@ -9,7 +9,6 @@ import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -54,19 +53,6 @@ public class KafkaConsumerService {
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(kafkaAvsluttOppfolging.value().getAktorId());
     }
 
-    public void flyttingAvOppfolgingsbrukerTilNyEnhetOnprem(ConsumerRecord<String, KafkaOppfolgingsbrukerEndring> kafkaOppfolgingsbrukerEndring) {
-        String aktorId = kafkaOppfolgingsbrukerEndring.value().getAktorId();
-        String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhetId();
-
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
-
-        if (utkast != null && !utkast.getOppfolgingsenhetId().equals(oppfolgingsenhetId)) {
-            Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
-            vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
-            beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
-        }
-    }
-
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
         Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
         AktorId aktorId = hentAktorIdMedDevSjekk(fnr); //AktorId kan være null i dev
@@ -81,7 +67,6 @@ public class KafkaConsumerService {
             vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
             beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
         }
-        log.info("Leser kafkameldinger fra Aiven på flytting av oppfolgingsbruker");
     }
 
     public void behandleArenaVedtak(ConsumerRecord<String, ArenaVedtakRecord> arenaVedtakRecord) {
