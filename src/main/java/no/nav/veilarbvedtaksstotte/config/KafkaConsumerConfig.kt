@@ -200,11 +200,8 @@ class KafkaConsumerConfig {
                             )
                         })
 
-            return if (isDevelopment().orElse(false)) {
-                listOf(vedtakStatusEndringClientConfigBuilder, arenaVedtakClientConfigBuilder, oppfolgingsbrukerEndringClientConfigBuilder)
-            } else {
-                listOf(vedtakStatusEndringClientConfigBuilder, arenaVedtakClientConfigBuilder)
-            }
+            return listOf(vedtakStatusEndringClientConfigBuilder, arenaVedtakClientConfigBuilder, oppfolgingsbrukerEndringClientConfigBuilder)
+
         }
 
         private fun getOnPremConsumerTopicConfigs(
