@@ -1,9 +1,11 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.norg2.Enhet;
+import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -25,11 +27,14 @@ public class KafkaConsumerServiceTest {
 
     private final Siste14aVedtakService siste14aVedtakService = mock(Siste14aVedtakService.class);
 
+    private final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
+
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             siste14aVedtakService,
             vedtaksstotteRepository,
             beslutteroversiktRepository,
-            norg2Client);
+            norg2Client,
+            aktorOppslagClient);
 
     @Test
     public void skal_behandle_endring_pa_avslutt_oppfolging() {
@@ -48,9 +53,10 @@ public class KafkaConsumerServiceTest {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, enhet);
 
         when(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(new Vedtak().setOppfolgingsenhetId(enhet));
+        when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
 
-        kafkaConsumerService.behandleEndringPaOppfolgingsbruker(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, enhet)));
+        kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
+                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndringV2(TEST_FNR, enhet)));
 
         verify(norg2Client, never()).hentEnhet(enhet);
         verify(vedtaksstotteRepository, never()).oppdaterUtkastEnhet(anyLong(), anyString());
@@ -65,9 +71,10 @@ public class KafkaConsumerServiceTest {
 
         when(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(new Vedtak().setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID));
         when(norg2Client.hentEnhet(nyEnhet)).thenReturn(new Enhet().setNavn("TEST"));
+        when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
 
-        kafkaConsumerService.behandleEndringPaOppfolgingsbruker(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndring(TEST_AKTOR_ID, nyEnhet)));
+        kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
+                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndringV2(TEST_FNR, nyEnhet)));
 
         verify(norg2Client, times(1)).hentEnhet(nyEnhet);
         verify(vedtaksstotteRepository, times(1)).oppdaterUtkastEnhet(anyLong(), eq(nyEnhet));
