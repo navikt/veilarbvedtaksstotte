@@ -81,6 +81,7 @@ public class KafkaConsumerService {
             vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
             beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
         }
+        log.info(format("Leser kafkameldinger fra Aiven på flytting av oppfolgingsbruker"));
     }
 
     public void behandleArenaVedtak(ConsumerRecord<String, ArenaVedtakRecord> arenaVedtakRecord) {
