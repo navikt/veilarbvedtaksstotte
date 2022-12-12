@@ -47,8 +47,6 @@ spec:
   env:
     - name: ENDRING_PA_AVSLUTT_OPPFOLGING_TOPIC
       value: aapen-fo-endringPaaAvsluttOppfolging-v1-p
-    - name: ENDRING_PA_OPPFOLGINGS_BRUKER_ONPREM_TOPIC
-      value: aapen-fo-endringPaaOppfoelgingsBruker-v1-p
     - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
       value: pto.endring-paa-oppfolgingsbruker-v2
     - name: VEDTAK_SENDT_TOPIC
