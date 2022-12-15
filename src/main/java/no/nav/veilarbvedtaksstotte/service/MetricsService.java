@@ -7,6 +7,8 @@ import no.nav.common.metrics.Event;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
@@ -34,6 +36,8 @@ public class MetricsService {
     private final MetricsClient influxClient;
 
     private final VeilarboppfolgingClient oppfolgingClient;
+
+    private final VeilarbarenaClient veilarbarenaClient;
 
     private final VeilarbregistreringClient registreringClient;
 
@@ -102,8 +106,8 @@ public class MetricsService {
             Fnr fnr = aktorOppslagClient.hentFnr(aktorId);
             List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId.get());
             RegistreringData registreringData = registreringClient.hentRegistreringData(fnr.get());
-            List<OppfolgingPeriodeDTO> perioder = oppfolgingClient.hentOppfolgingsperioder(fnr.get());
-            Optional<ZonedDateTime> startDato = OppfolgingUtils.getOppfolgingStartDato(perioder);
+            Optional<ZonedDateTime> startDato = oppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
+                    .map(OppfolgingPeriodeDTO::getStartDato);
 
             if (startDato.isEmpty() || registreringData == null) {
                 return -1;
@@ -121,24 +125,27 @@ public class MetricsService {
     }
 
     private void rapporterVedtakSendtSykmeldtUtenArbeidsgiver(Vedtak vedtak) {
-        boolean erSykmeldtMedArbeidsgiver;
+        boolean erSykmeldtUtenArbeidsgiver;
 
         try {
             Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(vedtak.getAktorId()));
-            String serviceGruppe = oppfolgingClient.hentOppfolgingData(fnr.get()).getServicegruppe();
-            erSykmeldtMedArbeidsgiver = OppfolgingUtils.erSykmeldtUtenArbeidsgiver(serviceGruppe);
+            Optional<VeilarbArenaOppfolging> oppfolging = veilarbarenaClient.hentOppfolgingsbruker(fnr);
+
+            erSykmeldtUtenArbeidsgiver = oppfolging.map(VeilarbArenaOppfolging::getKvalifiseringsgruppekode)
+                    .map(OppfolgingUtils::erSykmeldtUtenArbeidsgiver)
+                    .orElse(false);
         } catch (Exception ignored) {
-            erSykmeldtMedArbeidsgiver = false;
+            erSykmeldtUtenArbeidsgiver = false;
         }
 
-        if (erSykmeldtMedArbeidsgiver) {
+        if (erSykmeldtUtenArbeidsgiver) {
             try {
                 Fnr fnr = aktorOppslagClient.hentFnr(AktorId.of(vedtak.getAktorId()));
-                List<OppfolgingPeriodeDTO> data = oppfolgingClient.hentOppfolgingsperioder(fnr.get());
-                Optional<ZonedDateTime> oppolgingStartDato = OppfolgingUtils.getOppfolgingStartDato(data);
-                oppolgingStartDato.ifPresent(
-                        startDato -> rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, startDato)
-                );
+                oppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
+                        .map(OppfolgingPeriodeDTO::getStartDato)
+                        .ifPresent(startDato ->
+                                rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, startDato)
+                        );
             } catch (Exception ignored) {}
         }
     }

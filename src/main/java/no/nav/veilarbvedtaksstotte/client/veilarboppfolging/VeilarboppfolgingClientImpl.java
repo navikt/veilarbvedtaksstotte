@@ -6,6 +6,7 @@ import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.json.JsonUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -14,6 +15,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static no.nav.common.utils.AuthUtils.bearerToken;
@@ -25,39 +27,35 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
 
     private final OkHttpClient client;
 
-    private final Supplier<String> userTokenSupplier;
+    private final Supplier<String> machineToMachineTokenSupplier;
 
-    private final Supplier<String> systemTokenSupplier;
-
-    public VeilarboppfolgingClientImpl(String veilarboppfolgingUrl, Supplier<String> userTokenSupplier, Supplier<String> systemTokenSupplier) {
+    public VeilarboppfolgingClientImpl(String veilarboppfolgingUrl, Supplier<String> machineToMachineTokenSupplier) {
         this.veilarboppfolgingUrl = veilarboppfolgingUrl;
         this.client = RestClient.baseClient();
-        this.userTokenSupplier = userTokenSupplier;
-        this.systemTokenSupplier = systemTokenSupplier;
+        this.machineToMachineTokenSupplier = machineToMachineTokenSupplier;
     }
 
-    @Cacheable(CacheConfig.OPPFOLGING_CACHE_NAME)
+    @Cacheable(CacheConfig.GJELDENDE_OPPFOLGINGPERIODE_CACHE_NAME)
     @SneakyThrows
-    public OppfolgingsstatusDTO hentOppfolgingData(String fnr) {
+    public Optional<OppfolgingPeriodeDTO> hentGjeldendeOppfolgingsperiode(Fnr fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/api/person/", fnr, "oppfolgingsstatus"))
-                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+                .url(joinPaths(veilarboppfolgingUrl, "/api/v2/oppfolging/periode/gjeldende?fnr=" + fnr))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
             return RestUtils.getBodyStr(response)
-                    .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingsstatusDTO.class))
-                    .orElseThrow(() -> new IllegalStateException("Unable to parse json"));
+                    .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingPeriodeDTO.class));
         }
     }
 
-    @Cacheable(CacheConfig.OPPFOLGINGPERIODE_CACHE_NAME)
+    @Cacheable(CacheConfig.OPPFOLGINGPERIODER_CACHE_NAME)
     @SneakyThrows
-    public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(String fnr) {
+    public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/api/oppfolging/oppfolgingsperioder?fnr=" + fnr))
-                .header(HttpHeaders.AUTHORIZATION, bearerToken(systemTokenSupplier.get()))
+                .url(joinPaths(veilarboppfolgingUrl, "/api/v2/oppfolging/perioder?fnr=" + fnr))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {

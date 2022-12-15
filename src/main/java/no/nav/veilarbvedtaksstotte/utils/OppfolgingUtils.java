@@ -2,21 +2,13 @@ package no.nav.veilarbvedtaksstotte.utils;
 
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public class OppfolgingUtils {
 
-    public static boolean erSykmeldtUtenArbeidsgiver(String servicegruppe) {
-        return servicegruppe.equals("VURDU");
-    }
-
-    public static Optional<ZonedDateTime> getOppfolgingStartDato(List<OppfolgingPeriodeDTO> oppfolgingPerioder) {
-        return oppfolgingPerioder.stream()
-                .filter(oppfolgingPeriode -> oppfolgingPeriode.getSluttDato() == null)
-                .map(OppfolgingPeriodeDTO::getStartDato)
-                .findFirst();
+    public static boolean erSykmeldtUtenArbeidsgiver(String kvalifiseringsgruppe) {
+        return kvalifiseringsgruppe.equals("VURDU");
     }
 
     public static Optional<OppfolgingPeriodeDTO> hentSisteOppfolgingsPeriode(List<OppfolgingPeriodeDTO> oppfolgingPerioder) {
