@@ -16,6 +16,7 @@ import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import java.time.ZonedDateTime
 
 @Service
 class Siste14aVedtakService(
@@ -140,7 +141,7 @@ class Siste14aVedtakService(
             log.info(
                 "Setter gjeldende vedtak for aktorId=${identer.aktorId.get()} fra vedtaksstøtte til historisk pga. nyere vedtak fra Arena"
             )
-            vedtakRepository.settGjeldendeVedtakTilHistorisk(identer.aktorId.get())
+            vedtakRepository.settGjeldendeVedtakTilHistorisk(identer.aktorId.get(), ZonedDateTime.now())
         }
     }
 

@@ -48,9 +48,9 @@ public class KafkaConsumerService {
         this.norg2Client = norg2Client;
         this.aktorOppslagClient = aktorOppslagClient;
     }
-
+    
     public void behandleEndringPaAvsluttOppfolging(ConsumerRecord<String, KafkaAvsluttOppfolging> kafkaAvsluttOppfolging) {
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(kafkaAvsluttOppfolging.value().getAktorId());
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(kafkaAvsluttOppfolging.value().getAktorId(), kafkaAvsluttOppfolging.value().getSluttdato());
     }
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {

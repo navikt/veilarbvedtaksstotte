@@ -12,6 +12,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
@@ -133,17 +135,45 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
         utkast.setBegrunnelse(TEST_BEGRUNNELSE);
         utkast.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         utkast.setHovedmal(Hovedmal.SKAFFE_ARBEID);
+        utkast.setVedtakFattet(LocalDateTime.now());
+        ZonedDateTime time = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
         kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
         vedtaksstotteRepository.ferdigstillVedtak(utkast.getId());
 
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID);
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID, time);
 
         Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
 
         assertNotNull(fattetVedtak);
         assertFalse(fattetVedtak.isGjeldende());
+
+    }
+
+    @Test
+    public void testIkkeSettGjeldendeTilHistoriskHvisFattetEtterOppfolgingAvsluttet() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nowPlus100Days = now.plusDays(100);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+        utkast.setBegrunnelse(TEST_BEGRUNNELSE);
+        utkast.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
+        utkast.setHovedmal(Hovedmal.SKAFFE_ARBEID);
+        utkast.setVedtakFattet(nowPlus100Days);
+        ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(now, ZoneId.systemDefault());
+        vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
+        kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
+
+        vedtaksstotteRepository.ferdigstillVedtak(utkast.getId());
+
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID, oppfolgingAvsluttetDato);
+
+        Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
+
+        assertNotNull(fattetVedtak);
+        assertTrue(fattetVedtak.isGjeldende());
 
     }
 

@@ -39,11 +39,12 @@ public class KafkaConsumerServiceTest {
     @Test
     public void skal_behandle_endring_pa_avslutt_oppfolging() {
         String aktorId = "1234";
+        ZonedDateTime time = ZonedDateTime.now();
 
         kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(aktorId, ZonedDateTime.now())));
+                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(aktorId, time)));
 
-        verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(eq(aktorId));
+        verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(eq(aktorId), eq(time));
     }
 
     @Test

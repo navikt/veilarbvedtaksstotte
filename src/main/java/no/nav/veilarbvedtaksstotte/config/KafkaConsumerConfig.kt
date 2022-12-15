@@ -10,6 +10,7 @@ import no.nav.common.kafka.consumer.util.ConsumerUtils
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
+import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2
@@ -18,6 +19,7 @@ import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
 import no.nav.veilarbvedtaksstotte.service.UnleashService
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties.Env
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -198,17 +200,6 @@ class KafkaConsumerConfig {
                             )
                         })
 
-            return listOf(vedtakStatusEndringClientConfigBuilder, arenaVedtakClientConfigBuilder, oppfolgingsbrukerEndringClientConfigBuilder)
-
-        }
-
-        private fun getOnPremConsumerTopicConfigs(
-            kafkaConsumerService: KafkaConsumerService,
-            kafkaProperties: KafkaProperties,
-            meterRegistry: MeterRegistry,
-            consumerRepository: KafkaConsumerRepository
-        ): List<KafkaConsumerClientBuilder.TopicConfig<*, *>> {
-
             val avsluttOppfolgingClientConfigBuilder =
                 KafkaConsumerClientBuilder.TopicConfig<String, KafkaAvsluttOppfolging>()
                     .withLogging()
@@ -226,7 +217,50 @@ class KafkaConsumerConfig {
                             )
                         })
 
-            return listOf(avsluttOppfolgingClientConfigBuilder)
+            return if (isDevelopment().orElse(false)) {
+                listOf(
+                    vedtakStatusEndringClientConfigBuilder,
+                    arenaVedtakClientConfigBuilder,
+                    oppfolgingsbrukerEndringClientConfigBuilder,
+                    avsluttOppfolgingClientConfigBuilder
+                )
+            }else{
+                listOf(
+                    vedtakStatusEndringClientConfigBuilder,
+                    arenaVedtakClientConfigBuilder,
+                    oppfolgingsbrukerEndringClientConfigBuilder
+                )
+            }
+        }
+
+        private fun getOnPremConsumerTopicConfigs(
+            kafkaConsumerService: KafkaConsumerService,
+            kafkaProperties: KafkaProperties,
+            meterRegistry: MeterRegistry,
+            consumerRepository: KafkaConsumerRepository
+        ): List<KafkaConsumerClientBuilder.TopicConfig<*, *>> {
+
+            val avsluttOppfolgingClientConfigBuilder =
+                KafkaConsumerClientBuilder.TopicConfig<String, KafkaAvsluttOppfolging>()
+                    .withLogging()
+                    .withMetrics(meterRegistry)
+                    .withStoreOnFailure(consumerRepository)
+                    .withConsumerConfig(
+                        kafkaProperties.endringPaAvsluttOppfolgingOnpremTopic,
+                        Deserializers.stringDeserializer(),
+                        Deserializers.jsonDeserializer(
+                            KafkaAvsluttOppfolging::class.java
+                        ),
+                        Consumer { kafkaAvsluttOppfolging: ConsumerRecord<String, KafkaAvsluttOppfolging> ->
+                            kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
+                                kafkaAvsluttOppfolging
+                            )
+                        })
+            return if (isDevelopment().orElse(false)) {
+                listOf()
+            }else{
+                listOf(avsluttOppfolgingClientConfigBuilder)
+            }
 
         }
     }
