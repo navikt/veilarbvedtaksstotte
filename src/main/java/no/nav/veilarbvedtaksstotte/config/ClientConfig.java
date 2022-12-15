@@ -86,12 +86,11 @@ public class ClientConfig {
     }
 
     @Bean
-    public VeilarboppfolgingClient oppfolgingClient(OboContexService oboContexService, AzureAdMachineToMachineTokenClient tokenClient) {
+    public VeilarboppfolgingClient oppfolgingClient(AzureAdMachineToMachineTokenClient tokenClient) {
         DownstreamApi veilarboppfolging = DownstreamAPIs.getVeilarboppfolging().invoke(isProduction() ? "prod-fss" : "dev-fss");
-        Supplier<String> userTokenSupplier = oboContexService.userTokenSupplier(veilarboppfolging);
 
         String url = UrlUtils.createServiceUrl(veilarboppfolging.serviceName, veilarboppfolging.namespace, true);
-        return new VeilarboppfolgingClientImpl(url, userTokenSupplier,
+        return new VeilarboppfolgingClientImpl(url,
                 () -> tokenClient.createMachineToMachineToken(tokenScope(veilarboppfolging))
         );
     }
@@ -170,10 +169,13 @@ public class ClientConfig {
                 ? createProdInternalIngressUrl(appName)
                 : createDevInternalIngressUrl(appName);
 
-        String clientCluster = isProduction() ? "prod-fss" : "dev-fss";
-        String tokenScope = String.format("api://%s.teamdokumenthandtering.saf/.default", clientCluster);
+        // dokdistfordeling bruker saf token scope
+        String safTokenScope =
+                isProduction()
+                        ? "api://prod-fss.teamdokumenthandtering.saf/.default"
+                        : "api://dev-fss.teamdokumenthandtering.saf-q1/.default";
 
-        return new DokdistribusjonClientImpl(url, () -> tokenClient.createMachineToMachineToken(tokenScope));
+        return new DokdistribusjonClientImpl(url, () -> tokenClient.createMachineToMachineToken(safTokenScope));
     }
 
     @Bean

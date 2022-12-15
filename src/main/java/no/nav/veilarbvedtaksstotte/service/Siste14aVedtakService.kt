@@ -3,7 +3,6 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.EksternBrukerId
-import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
@@ -29,7 +28,7 @@ class Siste14aVedtakService(
 
     val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
 
-    fun siste14aVedtak(fnr: Fnr): Siste14aVedtak? {
+    fun siste14aVedtak(fnr: EksternBrukerId): Siste14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
         return siste14aVedtakMedKilder(identer).siste14aVedtak
     }
@@ -41,7 +40,7 @@ class Siste14aVedtakService(
 
     private fun siste14aVedtakMedKilder(identer: BrukerIdenter): Siste14aVedtakMedGrunnlag {
 
-        val sisteVedtak: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId.get())
+        val sisteVedtak: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId)
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
         if (sisteVedtak == null && arenaVedtakListe.isEmpty()) {
