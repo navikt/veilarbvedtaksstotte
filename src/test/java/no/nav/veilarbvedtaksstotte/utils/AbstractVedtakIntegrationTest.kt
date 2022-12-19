@@ -22,7 +22,6 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZonedDateTime
 import kotlin.random.Random
 
 @SpringBootTest(classes = [ApplicationTestConfig::class])
@@ -50,7 +49,8 @@ abstract class AbstractVedtakIntegrationTest {
         gjeldende: Boolean = true,
         enhetId: String = "1234",
         veilederIdent: String = "VIDENT",
-        beslutterIdent: String? = null
+        beslutterIdent: String? = null,
+        gammelVedtakId : Long = 1234
     ): Vedtak {
         vedtakRepository.opprettUtkast(
             aktorId.get(), TestData.TEST_VEILEDER_IDENT, TestData.TEST_OPPFOLGINGSENHET_ID
@@ -59,7 +59,7 @@ abstract class AbstractVedtakIntegrationTest {
         vedtak.innsatsgruppe = innsatsgruppe
         vedtak.hovedmal = hovedmal
         vedtakRepository.oppdaterUtkast(vedtak.id, vedtak)
-        vedtakRepository.settGjeldendeVedtakTilHistorisk(aktorId.get(), ZonedDateTime.now())
+        vedtakRepository.settGjeldendeVedtakTilHistorisk(gammelVedtakId)
         vedtakRepository.ferdigstillVedtak(vedtak.id)
         jdbcTemplate.update(
             """

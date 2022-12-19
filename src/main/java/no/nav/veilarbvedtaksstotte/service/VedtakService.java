@@ -22,8 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -107,7 +105,7 @@ public class VedtakService {
         }
 
         transactor.executeWithoutResult(status -> {
-            vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getAktorId(), ZonedDateTime.now());
+            vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtakId);
             vedtaksstotteRepository.ferdigstillVedtak(vedtakId);
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });

@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
@@ -14,7 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +23,7 @@ import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.DbUtils.queryForObjectOrNull;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
+@Slf4j
 @Repository
 public class VedtaksstotteRepository {
 
@@ -119,25 +120,13 @@ public class VedtaksstotteRepository {
         return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, aktorId, VedtakStatus.SENDT.name()));
     }
 
-    public void settGjeldendeVedtakTilHistorisk(String aktorId, ZonedDateTime oppfolgingAvsluttetDato) {
-        Boolean harVedtak = (hentSisteVedtak(aktorId) != null);
-         //Ved overgang fra onPrem til Aiven leser vi opp igjen gamle meldinger. Da kan vi risikere å sette vedtak som er fattet etter Oppf Avsluttet-meldingen til historiske,
-        // fordi vi ikke sjekker dato, men bare leser meldingene. Derfor har vi lagt inn en datosjekk som sjekker om vedtaket er fattet før oppf. avslutt-datoen. I så fall skal det settes til historisk.
-        if (harVedtak) {
-            LocalDateTime vedtakFattetDato = hentSisteVedtak(aktorId).getVedtakFattet();
-            Boolean vedtakFattetDatoFoerOppfAvsluttetDato = vedtakFattetDato.isBefore(oppfolgingAvsluttetDato.toLocalDateTime());
-            if (vedtakFattetDatoFoerOppfAvsluttetDato){
-                //kan vi egentlig fjerne denne logikken når vi er trygg på at alle meldinger er lest på nytt og vi er up to date? :thinking:
-            db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
-        }else{
-                return;
-            }
-        }else{
-            db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
-            //en db.update når vi ikke har enkelte felt vil bare resultere i at ingenting blir oppdatert og ikke skadelig?
-        }
+    public void settGjeldendeVedtakForBrukerTilHistorisk(String aktorId) {
+                db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
     }
 
+    public void settGjeldendeVedtakTilHistorisk(long vedtakID) {
+        db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE ID = ? AND GJELDENDE = true", vedtakID);
+    }
 
     public void oppdaterUtkast(long vedtakId, Vedtak vedtak) {
         String sql = format(

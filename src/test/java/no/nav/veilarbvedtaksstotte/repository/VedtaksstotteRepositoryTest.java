@@ -1,12 +1,16 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService;
+import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -136,44 +140,18 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
         utkast.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         utkast.setHovedmal(Hovedmal.SKAFFE_ARBEID);
         utkast.setVedtakFattet(LocalDateTime.now());
-        ZonedDateTime time = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
+
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
         kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
         vedtaksstotteRepository.ferdigstillVedtak(utkast.getId());
 
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID, time);
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(utkast.getId());
 
         Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
 
         assertNotNull(fattetVedtak);
         assertFalse(fattetVedtak.isGjeldende());
-
-    }
-
-    @Test
-    public void testIkkeSettGjeldendeTilHistoriskHvisFattetEtterOppfolgingAvsluttet() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nowPlus100Days = now.plusDays(100);
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-
-        utkast.setBegrunnelse(TEST_BEGRUNNELSE);
-        utkast.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
-        utkast.setHovedmal(Hovedmal.SKAFFE_ARBEID);
-        utkast.setVedtakFattet(nowPlus100Days);
-        ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(now, ZoneId.systemDefault());
-        vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
-        kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
-
-        vedtaksstotteRepository.ferdigstillVedtak(utkast.getId());
-
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID, oppfolgingAvsluttetDato);
-
-        Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
-
-        assertNotNull(fattetVedtak);
-        assertTrue(fattetVedtak.isGjeldende());
 
     }
 
