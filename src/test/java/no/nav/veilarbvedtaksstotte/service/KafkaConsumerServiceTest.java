@@ -22,6 +22,7 @@ import java.time.ZonedDateTime;
 
 import static no.nav.veilarbvedtaksstotte.utils.DatabaseTest.jdbcTemplate;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
+import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
@@ -45,13 +46,14 @@ public class KafkaConsumerServiceTest {
             norg2Client,
             aktorOppslagClient);
 
-    private static KilderRepository kilderRepository = new KilderRepository(jdbcTemplate);
-
     @Test
     public void skal_behandle_endring_pa_avslutt_oppfolging() {
-        String aktorId = "1234";
+        String aktorId = randomNumeric(10);
         long vedtakID = 1234;
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nowMinus10Days = now.minusDays(10);
         ZonedDateTime time = ZonedDateTime.now();
+        when(vedtaksstotteRepository.hentSisteVedtak(aktorId)).thenReturn(new Vedtak().setId(vedtakID).setAktorId(aktorId).setVedtakFattet(nowMinus10Days).setGjeldende(true));
 
         kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
                 new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(aktorId, time)));

@@ -69,10 +69,11 @@ public class VedtakService {
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(vedtak.getAktorId());
         validerVedtakForFerdigstilling(vedtak, gjeldendeVedtak);
 
-        journalforOgFerdigstill(vedtak, authKontekst);
+
+        journalforOgFerdigstill(vedtak, gjeldendeVedtak, authKontekst);
     }
 
-    private void journalforOgFerdigstill(Vedtak vedtak, AuthKontekst authKontekst) {
+    private void journalforOgFerdigstill(Vedtak vedtak, Vedtak gjeldendevedtak, AuthKontekst authKontekst) {
         long vedtakId = vedtak.getId();
 
         oyeblikksbildeService.lagreOyeblikksbilde(authKontekst.getFnr(), vedtakId);
@@ -105,7 +106,9 @@ public class VedtakService {
         }
 
         transactor.executeWithoutResult(status -> {
-            vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtakId);
+            if (gjeldendevedtak != null) {
+                vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(gjeldendevedtak.getId());
+            }
             vedtaksstotteRepository.ferdigstillVedtak(vedtakId);
             beslutteroversiktRepository.slettBruker(vedtak.getId());
         });

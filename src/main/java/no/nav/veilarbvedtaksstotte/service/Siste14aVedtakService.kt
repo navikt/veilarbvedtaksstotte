@@ -32,9 +32,7 @@ class Siste14aVedtakService(
     fun siste14aVedtak(fnr: Fnr): Siste14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
         return siste14aVedtakMedKilder(
-            identer,
-            vedtakRepository.hentSisteVedtak(identer.aktorId.get()),
-            arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
+            identer
         ).siste14aVedtak
     }
 
@@ -44,8 +42,10 @@ class Siste14aVedtakService(
     )
 
     private fun siste14aVedtakMedKilder(
-        identer: BrukerIdenter, sisteVedtakNyLøsning: Vedtak?, arenaVedtakListe: List<ArenaVedtak>
-    ): Siste14aVedtakMedGrunnlag {
+        identer: BrukerIdenter): Siste14aVedtakMedGrunnlag {
+        val sisteVedtakNyLøsning: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId.get());
+        val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
+
 
         if (sisteVedtakNyLøsning == null && arenaVedtakListe.isEmpty()) {
             return Siste14aVedtakMedGrunnlag(
@@ -118,13 +118,8 @@ class Siste14aVedtakService(
 
     private fun settVedtakTilHistoriskOgSendSiste14aVedtakPaKafka(arenaVedtak: ArenaVedtak) {
         val identer = hentIdenterMedDevSjekk(arenaVedtak.fnr) ?: return // Prodlik q1 data er ikke tilgjengelig i dev
-        val siste14aVedtakNyLøsning: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId.get())
 
-        val (siste14aVedtak, arenaVedtakListe) = siste14aVedtakMedKilder(
-            identer,
-            siste14aVedtakNyLøsning,
-            arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
-        )
+        val (siste14aVedtak, arenaVedtakListe) = siste14aVedtakMedKilder(identer);
         val fraArena = siste14aVedtak?.fraArena ?: false
 
         // hindrer at vi republiserer siste14aVedtak dersom eldre meldinger skulle bli konsumert:
@@ -132,6 +127,7 @@ class Siste14aVedtakService(
         val erSisteFraArena = fraArena && sisteFraArena?.hendelseId == arenaVedtak.hendelseId
 
         if (erSisteFraArena) {
+            val siste14aVedtakNyLøsning: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
             if (siste14aVedtakNyLøsning !== null) {
                 setGjeldendeVedtakTilHistorisk(identer, siste14aVedtakNyLøsning.id)
             }
@@ -158,9 +154,7 @@ class Siste14aVedtakService(
         val identer = hentIdenterMedDevSjekk(eksernBrukerId) ?: return // Prodlik q1 data er ikke tilgjengelig i dev
 
         val (siste14aVedtak) = siste14aVedtakMedKilder(
-            identer,
-            vedtakRepository.hentSisteVedtak(identer.aktorId.get()),
-            arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
+            identer
         )
         val fraArena = siste14aVedtak?.fraArena ?: false
         kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)

@@ -120,10 +120,6 @@ public class VedtaksstotteRepository {
         return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, aktorId, VedtakStatus.SENDT.name()));
     }
 
-    public void settGjeldendeVedtakForBrukerTilHistorisk(String aktorId) {
-                db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE AKTOR_ID = ? AND GJELDENDE = true", aktorId);
-    }
-
     public void settGjeldendeVedtakTilHistorisk(long vedtakID) {
         db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE ID = ? AND GJELDENDE = true", vedtakID);
     }
