@@ -43,7 +43,7 @@ public class KafkaConsumerServiceTest {
     public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {
         LocalDateTime nowMinus10Days = LocalDateTime.now().minusDays(10);
         ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
-        when(vedtaksstotteRepository.hentSisteVedtak(AktorId.of(TEST_AKTOR_ID))).thenReturn(new Vedtak().setGjeldende(true).setVedtakFattet(nowMinus10Days));
+        when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(nowMinus10Days));
 
         kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
                 new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(TEST_AKTOR_ID, oppfolgingAvsluttetDato))
@@ -57,7 +57,7 @@ public class KafkaConsumerServiceTest {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nowMinus10Days = now.minusDays(10);
         ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault());
-        when(vedtaksstotteRepository.hentSisteVedtak(AktorId.of(TEST_AKTOR_ID))).thenReturn(new Vedtak().setGjeldende(true).setVedtakFattet(now));
+        when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(now));
 
         kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
                 new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(TEST_AKTOR_ID, oppfolgingAvsluttetDato))
