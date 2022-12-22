@@ -42,7 +42,8 @@ class Siste14aVedtakService(
     )
 
     private fun siste14aVedtakMedKilder(
-        identer: BrukerIdenter): Siste14aVedtakMedGrunnlag {
+        identer: BrukerIdenter
+    ): Siste14aVedtakMedGrunnlag {
         val sisteVedtakNyLøsning: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId.get());
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
@@ -129,7 +130,7 @@ class Siste14aVedtakService(
         if (erSisteFraArena) {
             val siste14aVedtakNyLøsning: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
             if (siste14aVedtakNyLøsning !== null) {
-                setGjeldendeVedtakTilHistorisk(identer, siste14aVedtakNyLøsning.id)
+                setGjeldendeVedtakTilHistorisk(siste14aVedtakNyLøsning.id)
             }
             kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
         } else {
@@ -141,13 +142,11 @@ class Siste14aVedtakService(
         }
     }
 
-    private fun setGjeldendeVedtakTilHistorisk(identer: BrukerIdenter, vedtakId: Long) {
-        if (vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()) != null) {
-            log.info(
-                "Setter gjeldende vedtak for aktorId=${identer.aktorId.get()} med vedtakId=${vedtakId} fra vedtaksstøtte til historisk pga. nyere vedtak fra Arena"
-            )
-            vedtakRepository.settGjeldendeVedtakTilHistorisk(vedtakId)
-        }
+    private fun setGjeldendeVedtakTilHistorisk(vedtakId: Long) {
+        log.info(
+            "Setter vedtak med vedtakId=${vedtakId} fra vedtaksstøtte til historisk pga. nyere vedtak fra Arena"
+        )
+        vedtakRepository.settGjeldendeVedtakTilHistorisk(vedtakId)
     }
 
     fun republiserKafkaSiste14aVedtak(eksernBrukerId: EksternBrukerId) {

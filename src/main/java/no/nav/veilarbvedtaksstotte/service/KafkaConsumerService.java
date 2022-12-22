@@ -52,7 +52,7 @@ public class KafkaConsumerService {
     }
 
     public void behandleEndringPaAvsluttOppfolging(ConsumerRecord<String, KafkaAvsluttOppfolging> kafkaAvsluttOppfolging) {
-        Vedtak vedtak = vedtaksstotteRepository.hentSisteVedtak(kafkaAvsluttOppfolging.value().getAktorId());
+        Vedtak vedtak = vedtaksstotteRepository.hentGjeldendeVedtak(kafkaAvsluttOppfolging.value().getAktorId());
 
         if (vedtak != null) {
             LocalDateTime vedtakFattetDato = vedtak.getVedtakFattet();

@@ -6,25 +6,18 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
-import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
-import static no.nav.veilarbvedtaksstotte.utils.DatabaseTest.jdbcTemplate;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class KafkaConsumerServiceTest {
@@ -47,69 +40,31 @@ public class KafkaConsumerServiceTest {
             aktorOppslagClient);
 
     @Test
-    public void skal_behandle_endring_pa_avslutt_oppfolging() {
-        String aktorId = randomNumeric(10);
-        long vedtakID = 1234;
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nowMinus10Days = now.minusDays(10);
-        ZonedDateTime time = ZonedDateTime.now();
-        when(vedtaksstotteRepository.hentSisteVedtak(aktorId)).thenReturn(new Vedtak().setId(vedtakID).setAktorId(aktorId).setVedtakFattet(nowMinus10Days).setGjeldende(true));
+    public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {
+        LocalDateTime nowMinus10Days = LocalDateTime.now().minusDays(10);
+        ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
+        when(vedtaksstotteRepository.hentSisteVedtak(TEST_AKTOR_ID)).thenReturn(new Vedtak().setGjeldende(true).setVedtakFattet(nowMinus10Days));
 
         kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(aktorId, time)));
+                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(TEST_AKTOR_ID, oppfolgingAvsluttetDato))
+        );
 
-        verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(eq(vedtakID));
+        verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(anyLong());
     }
 
     @Test
     public void skal_ikke_sette_gjeldende_til_historisk_hvis_fattet_etter_oppfolging_avsluttet() {
-        //given at vi har et vedtak som står som gjeldende
-        // vedtaket er fattet etter oppfølging avsluttet
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nowMinus10Days = now.minusDays(10);
         ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault());
-
-        when(vedtaksstotteRepository.hentSisteVedtak(TEST_AKTOR_ID)).thenReturn(new Vedtak().setGjeldende(true).setVedtakFattet(LocalDateTime.now()));
-
-
-        //when vi kaller behandleEndringPaAvsluttOppfolging
-        // when vi mottar en kafkamelding om oppfølging avsluttet
+        when(vedtaksstotteRepository.hentSisteVedtak(TEST_AKTOR_ID)).thenReturn(new Vedtak().setGjeldende(true).setVedtakFattet(now));
 
         kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
                 new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(TEST_AKTOR_ID, oppfolgingAvsluttetDato))
         );
 
-
-        //then skal vedtaket ikke settes til historisk
         verify(vedtaksstotteRepository, never()).settGjeldendeVedtakTilHistorisk(anyLong());
-
     }
-
-
-    @Test
-    public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {
-        //given at vi har et vedtak som står som gjeldende
-        // vedtaket er fattet etter oppfølging avsluttet
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nowMinus10Days = now.minusDays(10);
-        ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(now, ZoneId.systemDefault());
-
-        when(vedtaksstotteRepository.hentSisteVedtak(TEST_AKTOR_ID)).thenReturn(new Vedtak().setGjeldende(true).setVedtakFattet(nowMinus10Days));
-
-
-        //when vi kaller behandleEndringPaAvsluttOppfolging
-        // when vi mottar en kafkamelding om oppfølging avsluttet
-
-        kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(TEST_AKTOR_ID, oppfolgingAvsluttetDato))
-        );
-
-
-        //then skal vedtaket ikke settes til historisk
-        verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(anyLong());
-
-    }
-
 
     @Test
     public void skal_ikke_oppdatere_enhet_hvis_enhet_er_lik_for_endring_pa_oppfolgingsbruker() {

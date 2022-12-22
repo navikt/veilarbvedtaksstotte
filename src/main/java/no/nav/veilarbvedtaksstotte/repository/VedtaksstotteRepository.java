@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
@@ -23,7 +22,6 @@ import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.DbUtils.queryForObjectOrNull;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 
-@Slf4j
 @Repository
 public class VedtaksstotteRepository {
 
