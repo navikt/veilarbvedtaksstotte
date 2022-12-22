@@ -7,7 +7,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties(prefix = "app.kafka")
 data class KafkaProperties(
     val brokersUrl: String,
-    val endringPaAvsluttOppfolgingOnpremTopic: String,
     val endringPaAvsluttOppfolgingTopic: String,
     val endringPaOppfolgingsBrukerTopic: String,
     val vedtakSendtTopic: String,
