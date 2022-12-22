@@ -38,12 +38,14 @@ class Siste14aVedtakService(
         val arenaVedtak: List<ArenaVedtak>
     )
 
-    private fun siste14aVedtakMedKilder(identer: BrukerIdenter): Siste14aVedtakMedGrunnlag {
-
-        val sisteVedtak: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId)
+    private fun siste14aVedtakMedKilder(
+        identer: BrukerIdenter
+    ): Siste14aVedtakMedGrunnlag {
+        val sisteVedtakNyLøsning: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId);
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
-        if (sisteVedtak == null && arenaVedtakListe.isEmpty()) {
+
+        if (sisteVedtakNyLøsning == null && arenaVedtakListe.isEmpty()) {
             return Siste14aVedtakMedGrunnlag(
                 siste14aVedtak = null,
                 arenaVedtak = arenaVedtakListe
@@ -54,16 +56,16 @@ class Siste14aVedtakService(
 
         // Siste vedtak fra denne løsningen
         if (
-            (sisteVedtak != null && sisteArenaVedtak == null) ||
-            (sisteVedtak != null && sisteArenaVedtak != null &&
-                    sisteVedtak.vedtakFattet.isAfter(sisteArenaVedtak.beregnetFattetTidspunkt()))
+            (sisteVedtakNyLøsning != null && sisteArenaVedtak == null) ||
+            (sisteVedtakNyLøsning != null && sisteArenaVedtak != null &&
+                    sisteVedtakNyLøsning.vedtakFattet.isAfter(sisteArenaVedtak.beregnetFattetTidspunkt()))
         ) {
             return Siste14aVedtakMedGrunnlag(
                 siste14aVedtak = Siste14aVedtak(
                     aktorId = identer.aktorId,
-                    innsatsgruppe = sisteVedtak.innsatsgruppe,
-                    hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(sisteVedtak.hovedmal),
-                    fattetDato = toZonedDateTime(sisteVedtak.vedtakFattet),
+                    innsatsgruppe = sisteVedtakNyLøsning.innsatsgruppe,
+                    hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(sisteVedtakNyLøsning.hovedmal),
+                    fattetDato = toZonedDateTime(sisteVedtakNyLøsning.vedtakFattet),
                     fraArena = false,
                 ),
                 arenaVedtak = arenaVedtakListe
@@ -123,7 +125,10 @@ class Siste14aVedtakService(
         val erSisteFraArena = fraArena && sisteFraArena?.hendelseId == arenaVedtak.hendelseId
 
         if (erSisteFraArena) {
-            setGjeldendeVedtakTilHistorisk(identer)
+            val siste14aVedtakNyLøsning: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
+            if (siste14aVedtakNyLøsning !== null) {
+                setGjeldendeVedtakTilHistorisk(siste14aVedtakNyLøsning.id)
+            }
             kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
         } else {
             log.info(
@@ -134,13 +139,11 @@ class Siste14aVedtakService(
         }
     }
 
-    private fun setGjeldendeVedtakTilHistorisk(identer: BrukerIdenter) {
-        if (vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()) != null) {
-            log.info(
-                "Setter gjeldende vedtak for aktorId=${identer.aktorId.get()} fra vedtaksstøtte til historisk pga. nyere vedtak fra Arena"
-            )
-            vedtakRepository.settGjeldendeVedtakTilHistorisk(identer.aktorId.get())
-        }
+    private fun setGjeldendeVedtakTilHistorisk(vedtakId: Long) {
+        log.info(
+            "Setter vedtak med vedtakId=${vedtakId} fra vedtaksstøtte til historisk pga. nyere vedtak fra Arena"
+        )
+        vedtakRepository.settGjeldendeVedtakTilHistorisk(vedtakId)
     }
 
     fun republiserKafkaSiste14aVedtak(eksernBrukerId: EksternBrukerId) {

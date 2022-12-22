@@ -18,6 +18,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 import static java.lang.String.format;
 import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 
@@ -50,7 +52,15 @@ public class KafkaConsumerService {
     }
 
     public void behandleEndringPaAvsluttOppfolging(ConsumerRecord<String, KafkaAvsluttOppfolging> kafkaAvsluttOppfolging) {
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(kafkaAvsluttOppfolging.value().getAktorId());
+        Vedtak vedtak = vedtaksstotteRepository.hentGjeldendeVedtak(kafkaAvsluttOppfolging.value().getAktorId());
+
+        if (vedtak != null) {
+            LocalDateTime vedtakFattetDato = vedtak.getVedtakFattet();
+            boolean vedtakFattetDatoFoerOppfAvsluttetDato = vedtakFattetDato.isBefore(kafkaAvsluttOppfolging.value().getSluttdato().toLocalDateTime());
+            if (vedtakFattetDatoFoerOppfAvsluttetDato) {
+                vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getId());
+            }
+        }
     }
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {

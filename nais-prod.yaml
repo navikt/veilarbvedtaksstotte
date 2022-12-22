@@ -46,7 +46,7 @@ spec:
     pool: nav-prod
   env:
     - name: ENDRING_PA_AVSLUTT_OPPFOLGING_TOPIC
-      value: aapen-fo-endringPaaAvsluttOppfolging-v1-p
+      value: pto.oppfolging-avsluttet-v1
     - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
       value: pto.endring-paa-oppfolgingsbruker-v2
     - name: ARENA_VEDTAK_TOPIC
