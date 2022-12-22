@@ -12,9 +12,12 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
+import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.mockito.Mockito.*;
 
 public class KafkaConsumerServiceTest {
@@ -37,20 +40,35 @@ public class KafkaConsumerServiceTest {
             aktorOppslagClient);
 
     @Test
-    public void skal_behandle_endring_pa_avslutt_oppfolging() {
-        String aktorId = "1234";
+    public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {
+        LocalDateTime nowMinus10Days = LocalDateTime.now().minusDays(10);
+        ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
+        when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(nowMinus10Days));
 
         kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(aktorId, ZonedDateTime.now())));
+                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(TEST_AKTOR_ID, oppfolgingAvsluttetDato))
+        );
 
-        verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(eq(aktorId));
+        verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(anyLong());
+    }
+
+    @Test
+    public void skal_ikke_sette_gjeldende_til_historisk_hvis_fattet_etter_oppfolging_avsluttet() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nowMinus10Days = now.minusDays(10);
+        ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault());
+        when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(now));
+
+        kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
+                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(TEST_AKTOR_ID, oppfolgingAvsluttetDato))
+        );
+
+        verify(vedtaksstotteRepository, never()).settGjeldendeVedtakTilHistorisk(anyLong());
     }
 
     @Test
     public void skal_ikke_oppdatere_enhet_hvis_enhet_er_lik_for_endring_pa_oppfolgingsbruker() {
         String enhet = "4562";
-
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, enhet);
 
         when(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(new Vedtak().setOppfolgingsenhetId(enhet));
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));

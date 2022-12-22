@@ -27,26 +27,7 @@ import java.util.function.Consumer
 @Configuration
 @EnableConfigurationProperties(KafkaProperties::class)
 class KafkaConsumerConfig {
-
-    data class ConsumerOnPremConfig(val configs: List<KafkaConsumerClientBuilder.TopicConfig<*, *>>)
     data class ConsumerAivenConfig(val configs: List<KafkaConsumerClientBuilder.TopicConfig<*, *>>)
-
-    @Bean
-    fun consumerOnPremConfig(
-        kafkaConsumerService: KafkaConsumerService,
-        kafkaProperties: KafkaProperties,
-        meterRegistry: MeterRegistry,
-        kafkaConsumerRepository: KafkaConsumerRepository
-    ): ConsumerOnPremConfig {
-        return ConsumerOnPremConfig(
-            getOnPremConsumerTopicConfigs(
-                kafkaConsumerService,
-                kafkaProperties,
-                meterRegistry,
-                kafkaConsumerRepository
-            )
-        )
-    }
 
     @Bean
     fun consumerAivenConfig(
@@ -73,24 +54,6 @@ class KafkaConsumerConfig {
     }
 
     @Bean(destroyMethod = "stop")
-    fun onPremConsumerClient(
-        environmentContext: KafkaEnvironmentContext,
-        consumerOnPremConfig: ConsumerOnPremConfig,
-        unleashService: UnleashService
-    ): KafkaConsumerClient {
-
-        val onPremConsumerClient = KafkaConsumerClientBuilder.builder()
-            .withProperties(environmentContext.onPremConsumerClientProperties)
-            .withTopicConfigs(consumerOnPremConfig.configs)
-            .withToggle { unleashService.isKafkaKonsumeringSkruddAv }
-            .build()
-
-        onPremConsumerClient.start()
-
-        return onPremConsumerClient
-    }
-
-    @Bean(destroyMethod = "stop")
     fun aivenConsumerClient(
         environmentContext: KafkaEnvironmentContext,
         consumerAivenConfig: ConsumerAivenConfig,
@@ -112,14 +75,13 @@ class KafkaConsumerConfig {
     fun consumerRecordProcessor(
         jdbcTemplate: JdbcTemplate,
         kafkaConsumerRepository: KafkaConsumerRepository,
-        consumerOnPremConfig: ConsumerOnPremConfig,
         consumerAivenConfig: ConsumerAivenConfig
     ): KafkaConsumerRecordProcessor {
 
         val consumerRecordProcessor = getConsumerRecordProcessor(
             jdbcTemplate,
             kafkaConsumerRepository,
-            consumerOnPremConfig.configs + consumerAivenConfig.configs
+            consumerAivenConfig.configs
         )
 
         consumerRecordProcessor.start()
@@ -198,17 +160,6 @@ class KafkaConsumerConfig {
                             )
                         })
 
-            return listOf(vedtakStatusEndringClientConfigBuilder, arenaVedtakClientConfigBuilder, oppfolgingsbrukerEndringClientConfigBuilder)
-
-        }
-
-        private fun getOnPremConsumerTopicConfigs(
-            kafkaConsumerService: KafkaConsumerService,
-            kafkaProperties: KafkaProperties,
-            meterRegistry: MeterRegistry,
-            consumerRepository: KafkaConsumerRepository
-        ): List<KafkaConsumerClientBuilder.TopicConfig<*, *>> {
-
             val avsluttOppfolgingClientConfigBuilder =
                 KafkaConsumerClientBuilder.TopicConfig<String, KafkaAvsluttOppfolging>()
                     .withLogging()
@@ -226,8 +177,12 @@ class KafkaConsumerConfig {
                             )
                         })
 
-            return listOf(avsluttOppfolgingClientConfigBuilder)
-
+            return listOf(
+                vedtakStatusEndringClientConfigBuilder,
+                arenaVedtakClientConfigBuilder,
+                oppfolgingsbrukerEndringClientConfigBuilder,
+                avsluttOppfolgingClientConfigBuilder
+            )
         }
     }
 }

@@ -2,17 +2,23 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService;
+import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
@@ -134,12 +140,14 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
         utkast.setBegrunnelse(TEST_BEGRUNNELSE);
         utkast.setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
         utkast.setHovedmal(Hovedmal.SKAFFE_ARBEID);
+        utkast.setVedtakFattet(LocalDateTime.now());
+
         vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
         kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
         vedtaksstotteRepository.ferdigstillVedtak(utkast.getId());
 
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(TEST_AKTOR_ID);
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(utkast.getId());
 
         Vedtak fattetVedtak = vedtaksstotteRepository.hentVedtak(utkast.getId());
 
