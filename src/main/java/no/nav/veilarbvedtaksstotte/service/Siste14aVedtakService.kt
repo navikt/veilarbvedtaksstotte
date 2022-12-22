@@ -3,7 +3,6 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.EksternBrukerId
-import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
@@ -29,11 +28,9 @@ class Siste14aVedtakService(
 
     val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
 
-    fun siste14aVedtak(fnr: Fnr): Siste14aVedtak? {
+    fun siste14aVedtak(fnr: EksternBrukerId): Siste14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
-        return siste14aVedtakMedKilder(
-            identer
-        ).siste14aVedtak
+        return siste14aVedtakMedKilder(identer).siste14aVedtak
     }
 
     private data class Siste14aVedtakMedGrunnlag(
@@ -44,7 +41,7 @@ class Siste14aVedtakService(
     private fun siste14aVedtakMedKilder(
         identer: BrukerIdenter
     ): Siste14aVedtakMedGrunnlag {
-        val sisteVedtakNyLøsning: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId.get());
+        val sisteVedtakNyLøsning: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId);
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
 
@@ -120,7 +117,7 @@ class Siste14aVedtakService(
     private fun settVedtakTilHistoriskOgSendSiste14aVedtakPaKafka(arenaVedtak: ArenaVedtak) {
         val identer = hentIdenterMedDevSjekk(arenaVedtak.fnr) ?: return // Prodlik q1 data er ikke tilgjengelig i dev
 
-        val (siste14aVedtak, arenaVedtakListe) = siste14aVedtakMedKilder(identer);
+        val (siste14aVedtak, arenaVedtakListe) = siste14aVedtakMedKilder(identer)
         val fraArena = siste14aVedtak?.fraArena ?: false
 
         // hindrer at vi republiserer siste14aVedtak dersom eldre meldinger skulle bli konsumert:
@@ -152,9 +149,7 @@ class Siste14aVedtakService(
     fun republiserKafkaSiste14aVedtak(eksernBrukerId: EksternBrukerId) {
         val identer = hentIdenterMedDevSjekk(eksernBrukerId) ?: return // Prodlik q1 data er ikke tilgjengelig i dev
 
-        val (siste14aVedtak) = siste14aVedtakMedKilder(
-            identer
-        )
+        val (siste14aVedtak) = siste14aVedtakMedKilder(identer)
         val fraArena = siste14aVedtak?.fraArena ?: false
         kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
         log.info("Siste 14a vedtak republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte")

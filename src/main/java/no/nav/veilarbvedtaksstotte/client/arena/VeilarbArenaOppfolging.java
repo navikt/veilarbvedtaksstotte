@@ -8,4 +8,5 @@ public class VeilarbArenaOppfolging {
     @JsonAlias("nav_kontor")
     String navKontor;
     String formidlingsgruppekode;
+    String kvalifiseringsgruppekode;
 }

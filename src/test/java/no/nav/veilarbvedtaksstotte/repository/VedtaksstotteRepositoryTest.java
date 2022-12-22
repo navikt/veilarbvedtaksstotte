@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
+import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
@@ -219,7 +220,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
         jdbcTemplate.update(sql, TEST_AKTOR_ID, "veileder3", TEST_OPPFOLGINGSENHET_ID, SENDT.name(), now.minusDays(3), now.minusDays(3));
         jdbcTemplate.update(sql, TEST_AKTOR_ID, "veileder4", TEST_OPPFOLGINGSENHET_ID, UTKAST.name(), now, now);
 
-        Vedtak vedtak = vedtaksstotteRepository.hentSisteVedtak(TEST_AKTOR_ID);
+        Vedtak vedtak = vedtaksstotteRepository.hentSisteVedtak(AktorId.of(TEST_AKTOR_ID));
 
         assertNotNull(vedtak);
         assertEquals("veileder2", vedtak.getVeilederIdent());

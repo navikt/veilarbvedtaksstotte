@@ -28,7 +28,6 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingsstatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
@@ -126,7 +125,7 @@ public class ClientTestConfig {
         return new VeilarbarenaClient() {
             @Override
             public Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr) {
-                return Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "IKVAL"));
+                return Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL"));
             }
 
             @Override
@@ -176,17 +175,17 @@ public class ClientTestConfig {
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {
             @Override
-            public OppfolgingsstatusDTO hentOppfolgingData(String fnr) {
-                OppfolgingsstatusDTO oppfolgingsstatusDTO = new OppfolgingsstatusDTO();
-                oppfolgingsstatusDTO.setServicegruppe("VURDU");
-                return oppfolgingsstatusDTO;
-            }
-
-            @Override
-            public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(String fnr) {
+            public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr) {
                 OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
                 periode.setStartDato(ZonedDateTime.now().minusDays(10));
                 return Collections.singletonList(periode);
+            }
+
+            @Override
+            public Optional<OppfolgingPeriodeDTO> hentGjeldendeOppfolgingsperiode(Fnr fnr) {
+                OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
+                periode.setStartDato(ZonedDateTime.now().minusDays(10));
+                return Optional.of(periode);
             }
 
             @Override

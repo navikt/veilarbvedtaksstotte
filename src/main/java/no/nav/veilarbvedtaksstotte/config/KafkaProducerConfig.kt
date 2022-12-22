@@ -28,29 +28,6 @@ class KafkaProducerConfig {
     }
 
     @Bean(destroyMethod = "close")
-    fun onPremProducerRecordProcessor(
-        environmentContext: KafkaEnvironmentContext,
-        leaderElectionClient: LeaderElectionClient,
-        producerRepository: KafkaProducerRepository,
-        kafkaProperties: KafkaProperties,
-        meterRegistry: MeterRegistry
-    ): KafkaProducerRecordProcessor {
-
-        val onPremProducerRecordProcessor = getProducerRecordProcessor(
-            environmentContext.onPremProducerClientProperties,
-            leaderElectionClient,
-            producerRepository,
-            meterRegistry,
-            listOf(
-                kafkaProperties.vedtakSendtTopic
-            )
-        )
-        onPremProducerRecordProcessor.start()
-
-        return onPremProducerRecordProcessor
-    }
-
-    @Bean(destroyMethod = "close")
     fun aivenProducerRecordProcessor(
         environmentContext: KafkaEnvironmentContext,
         leaderElectionClient: LeaderElectionClient,
@@ -67,7 +44,8 @@ class KafkaProducerConfig {
             listOf(
                 kafkaProperties.siste14aVedtakTopic,
                 kafkaProperties.vedtakStatusEndringTopic,
-                kafkaProperties.vedtakFattetDvhTopic
+                kafkaProperties.vedtakFattetDvhTopic,
+                kafkaProperties.vedtakSendtTopic
             )
         )
 
