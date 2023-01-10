@@ -46,13 +46,11 @@ spec:
     pool: nav-prod
   env:
     - name: ENDRING_PA_AVSLUTT_OPPFOLGING_TOPIC
-      value: aapen-fo-endringPaaAvsluttOppfolging-v1-p
+      value: pto.oppfolging-avsluttet-v1
     - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
-      value: aapen-fo-endringPaaOppfoelgingsBruker-v1-p
-    - name: VEDTAK_SENDT_TOPIC
-      value: aapen-oppfolging-vedtakSendt-v1-p
+      value: pto.endring-paa-oppfolgingsbruker-v2
     - name: ARENA_VEDTAK_TOPIC
-      value: aapen-arena-14aVedtakIverksatt-v1-p
+      value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-p
   azure:
     application:
       enabled: true

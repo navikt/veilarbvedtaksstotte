@@ -49,7 +49,8 @@ abstract class AbstractVedtakIntegrationTest {
         gjeldende: Boolean = true,
         enhetId: String = "1234",
         veilederIdent: String = "VIDENT",
-        beslutterIdent: String? = null
+        beslutterIdent: String? = null,
+        gammelVedtakId: Long = 1234
     ): Vedtak {
         vedtakRepository.opprettUtkast(
             aktorId.get(), TestData.TEST_VEILEDER_IDENT, TestData.TEST_OPPFOLGINGSENHET_ID
@@ -58,7 +59,8 @@ abstract class AbstractVedtakIntegrationTest {
         vedtak.innsatsgruppe = innsatsgruppe
         vedtak.hovedmal = hovedmal
         vedtakRepository.oppdaterUtkast(vedtak.id, vedtak)
-        vedtakRepository.settGjeldendeVedtakTilHistorisk(aktorId.get())
+        vedtakRepository.hentGjeldendeVedtak(aktorId.get())
+            ?.also { vedtakRepository.settGjeldendeVedtakTilHistorisk(it.id) }
         vedtakRepository.ferdigstillVedtak(vedtak.id)
         jdbcTemplate.update(
             """

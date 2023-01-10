@@ -12,7 +12,7 @@ import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndring
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
@@ -27,29 +27,11 @@ import java.util.function.Consumer
 @Configuration
 @EnableConfigurationProperties(KafkaProperties::class)
 class KafkaConsumerConfig {
-
-    data class ConsumerOnPremConfig(val configs: List<KafkaConsumerClientBuilder.TopicConfig<*, *>>)
     data class ConsumerAivenConfig(val configs: List<KafkaConsumerClientBuilder.TopicConfig<*, *>>)
 
     @Bean
-    fun consumerOnPremConfig(
-        kafkaConsumerService: KafkaConsumerService,
-        kafkaProperties: KafkaProperties,
-        meterRegistry: MeterRegistry,
-        kafkaConsumerRepository: KafkaConsumerRepository
-    ): ConsumerOnPremConfig {
-        return ConsumerOnPremConfig(
-            getOnPremConsumerTopicConfigs(
-                kafkaConsumerService,
-                kafkaProperties,
-                meterRegistry,
-                kafkaConsumerRepository
-            )
-        )
-    }
-
-    @Bean
     fun consumerAivenConfig(
+        kafkaConsumerService: KafkaConsumerService,
         kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer,
         kafkaProperties: KafkaProperties,
         meterRegistry: MeterRegistry,
@@ -57,6 +39,7 @@ class KafkaConsumerConfig {
     ): ConsumerAivenConfig {
         return ConsumerAivenConfig(
             getAivenConsumerTopicConfigs(
+                kafkaConsumerService,
                 kafkaVedtakStatusEndringConsumer,
                 kafkaProperties,
                 meterRegistry,
@@ -68,24 +51,6 @@ class KafkaConsumerConfig {
     @Bean
     fun kafkaConsumerRepository(jdbcTemplate: JdbcTemplate): KafkaConsumerRepository {
         return PostgresJdbcTemplateConsumerRepository(jdbcTemplate)
-    }
-
-    @Bean(destroyMethod = "stop")
-    fun onPremConsumerClient(
-        environmentContext: KafkaEnvironmentContext,
-        consumerOnPremConfig: ConsumerOnPremConfig,
-        unleashService: UnleashService
-    ): KafkaConsumerClient {
-
-        val onPremConsumerClient = KafkaConsumerClientBuilder.builder()
-            .withProperties(environmentContext.onPremConsumerClientProperties)
-            .withTopicConfigs(consumerOnPremConfig.configs)
-            .withToggle { unleashService.isKafkaKonsumeringSkruddAv }
-            .build()
-
-        onPremConsumerClient.start()
-
-        return onPremConsumerClient
     }
 
     @Bean(destroyMethod = "stop")
@@ -110,14 +75,13 @@ class KafkaConsumerConfig {
     fun consumerRecordProcessor(
         jdbcTemplate: JdbcTemplate,
         kafkaConsumerRepository: KafkaConsumerRepository,
-        consumerOnPremConfig: ConsumerOnPremConfig,
         consumerAivenConfig: ConsumerAivenConfig
     ): KafkaConsumerRecordProcessor {
 
         val consumerRecordProcessor = getConsumerRecordProcessor(
             jdbcTemplate,
             kafkaConsumerRepository,
-            consumerOnPremConfig.configs + consumerAivenConfig.configs
+            consumerAivenConfig.configs
         )
 
         consumerRecordProcessor.start()
@@ -142,12 +106,13 @@ class KafkaConsumerConfig {
         }
 
         private fun getAivenConsumerTopicConfigs(
+            kafkaConsumerService: KafkaConsumerService,
             kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer,
             kafkaProperties: KafkaProperties,
             meterRegistry: MeterRegistry,
             consumerRepository: KafkaConsumerRepository
         ): List<KafkaConsumerClientBuilder.TopicConfig<*, *>> {
-            return listOf(
+            val vedtakStatusEndringClientConfigBuilder =
                 KafkaConsumerClientBuilder.TopicConfig<String, KafkaVedtakStatusEndring>()
                     .withLogging()
                     .withMetrics(meterRegistry)
@@ -161,32 +126,41 @@ class KafkaConsumerConfig {
                                 melding
                             )
                         })
-            )
-        }
 
-        private fun getOnPremConsumerTopicConfigs(
-            kafkaConsumerService: KafkaConsumerService,
-            kafkaProperties: KafkaProperties,
-            meterRegistry: MeterRegistry,
-            consumerRepository: KafkaConsumerRepository
-        ): List<KafkaConsumerClientBuilder.TopicConfig<*, *>> {
-            return listOf(
-                KafkaConsumerClientBuilder.TopicConfig<String, ArenaVedtakRecord>()
+            val arenaVedtakClientConfigBuilder = KafkaConsumerClientBuilder.TopicConfig<String, ArenaVedtakRecord>()
+                .withLogging()
+                .withMetrics(meterRegistry)
+                // Warning: Denne topicen bruker dato og tid som key, med presisjon på sekund. Det betyr at
+                // meldinger for forskjellige brukere innenfor samme sekund kan blokkere for hverandre dersom
+                // en melding feiler.
+                .withStoreOnFailure(consumerRepository)
+                .withConsumerConfig(
+                    kafkaProperties.arenaVedtakTopic,
+                    Deserializers.stringDeserializer(),
+                    Deserializers.jsonDeserializer(ArenaVedtakRecord::class.java),
+                    Consumer { arenaVedtakRecord: ConsumerRecord<String, ArenaVedtakRecord> ->
+                        kafkaConsumerService.behandleArenaVedtak(
+                            arenaVedtakRecord
+                        )
+                    })
+            val oppfolgingsbrukerEndringClientConfigBuilder =
+                KafkaConsumerClientBuilder.TopicConfig<String, KafkaOppfolgingsbrukerEndringV2>()
                     .withLogging()
                     .withMetrics(meterRegistry)
-                    // Warning: Denne topicen bruker dato og tid som key, med presisjon på sekund. Det betyr at
-                    // meldinger for forskjellige brukere innenfor samme sekund kan blokkere for hverandre dersom
-                    // en melding feiler.
                     .withStoreOnFailure(consumerRepository)
                     .withConsumerConfig(
-                        kafkaProperties.arenaVedtakTopic,
+                        kafkaProperties.endringPaOppfolgingsBrukerTopic,
                         Deserializers.stringDeserializer(),
-                        Deserializers.jsonDeserializer(ArenaVedtakRecord::class.java),
-                        Consumer { arenaVedtakRecord: ConsumerRecord<String, ArenaVedtakRecord> ->
-                            kafkaConsumerService.behandleArenaVedtak(
-                                arenaVedtakRecord
+                        Deserializers.jsonDeserializer(
+                            KafkaOppfolgingsbrukerEndringV2::class.java
+                        ),
+                        Consumer { kafkaOppfolgingsbrukerEndringV2: ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> ->
+                            kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
+                                kafkaOppfolgingsbrukerEndringV2
                             )
-                        }),
+                        })
+
+            val avsluttOppfolgingClientConfigBuilder =
                 KafkaConsumerClientBuilder.TopicConfig<String, KafkaAvsluttOppfolging>()
                     .withLogging()
                     .withMetrics(meterRegistry)
@@ -201,22 +175,13 @@ class KafkaConsumerConfig {
                             kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
                                 kafkaAvsluttOppfolging
                             )
-                        }),
-                KafkaConsumerClientBuilder.TopicConfig<String, KafkaOppfolgingsbrukerEndring>()
-                    .withLogging()
-                    .withMetrics(meterRegistry)
-                    .withStoreOnFailure(consumerRepository)
-                    .withConsumerConfig(
-                        kafkaProperties.endringPaOppfolgingsBrukerTopic,
-                        Deserializers.stringDeserializer(),
-                        Deserializers.jsonDeserializer(
-                            KafkaOppfolgingsbrukerEndring::class.java
-                        ),
-                        Consumer { kafkaOppfolgingsbrukerEndring: ConsumerRecord<String, KafkaOppfolgingsbrukerEndring> ->
-                            kafkaConsumerService.behandleEndringPaOppfolgingsbruker(
-                                kafkaOppfolgingsbrukerEndring
-                            )
                         })
+
+            return listOf(
+                vedtakStatusEndringClientConfigBuilder,
+                arenaVedtakClientConfigBuilder,
+                oppfolgingsbrukerEndringClientConfigBuilder,
+                avsluttOppfolgingClientConfigBuilder
             )
         }
     }

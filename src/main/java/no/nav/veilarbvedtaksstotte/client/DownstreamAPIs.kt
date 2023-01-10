@@ -16,7 +16,7 @@ object DownstreamAPIs {
     @JvmStatic
     val dokarkiv: (String) -> DownstreamApi = { DownstreamApi(it, "teamdokumenthandtering", if(it == "dev-fss") "dokarkiv-q1" else "dokarkiv") }
     @JvmStatic
-    val saf: (String) -> DownstreamApi = { DownstreamApi(it, "teamdokumenthandtering", "saf") }
+    val saf: (String) -> DownstreamApi = { DownstreamApi(it, "teamdokumenthandtering", if(it == "dev-fss") "saf-q1" else "saf") }
     @JvmStatic
     val regoppslag: (String) -> DownstreamApi = { DownstreamApi(it, "teamdokumenthandtering", if(it == "dev-fss") "regoppslag-q1" else "regoppslag") }
     @JvmStatic
