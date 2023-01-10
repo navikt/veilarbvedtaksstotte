@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <common.version>2.2022.08.15_07.05-3fef82ca5c66</common.version>
+        <common.version>2.2022.09.23_08.21-3f442c9af895</common.version>
         <kotlin.version>1.7.10</kotlin.version>
         <testcontainers.version>1.17.3</testcontainers.version>
 
