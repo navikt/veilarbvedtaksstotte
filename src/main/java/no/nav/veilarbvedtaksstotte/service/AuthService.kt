@@ -21,6 +21,7 @@ import no.nav.common.utils.Credentials
 import no.nav.common.utils.Pair
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilEksternBrukerPolicyInput
 import no.nav.poao_tilgang.client.PoaoTilgangClient
+import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import org.springframework.beans.factory.annotation.Autowired
@@ -69,10 +70,14 @@ class AuthService(
         val fnr = fnrSupplier.get()
         val aktorId = aktorIdSupplier.get()
 
-        if(poaoTilgangClient.evaluatePolicy(
+        val tilgangResult = poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
-                    innloggetVeilederIdent
-                )))
+                    hentInnloggetVeilederUUID(), TilgangType.SKRIVE, fnr.get()
+                )).getOrThrow()
+
+        if (tilgangResult.isDeny){
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
 
         if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
@@ -97,13 +102,14 @@ class AuthService(
     val innloggetVeilederIdent: String
         get() = authContextHolder
             .navIdent
-            .orElseThrow { ResponseStatusException(HttpStatus.BAD_REQUEST, "Fant ikke ident for innlogget veileder") }
+            .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Fant ikke ident for innlogget veileder") }
             .get()
 
-    val innloggetVeilederUUID: String
-        get() = authContextHolder
+    fun hentInnloggetVeilederUUID(): UUID =
+            authContextHolder
             .idTokenClaims.flatMap { authContextHolder.getStringClaim(it, "oid") }
-            .orElseThrow { ResponseStatusException(HttpStatus.BAD_REQUEST, "Fant ikke ident for innlogget veileder") }
+            .map { UUID.fromString(it) }
+            .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Fant ikke oid for innlogget veileder") }
 
 
     fun getFnrOrThrow(aktorId: String?): Fnr {
