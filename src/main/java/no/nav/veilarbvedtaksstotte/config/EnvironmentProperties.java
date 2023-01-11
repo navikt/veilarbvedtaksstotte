@@ -31,4 +31,8 @@ public class EnvironmentProperties {
 
     public String naisAadIssuer;
 
+    public String poaoTilgangUrl;
+
+    public String poaoTilgangScope;
+
 }
