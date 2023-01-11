@@ -1,258 +1,240 @@
-package no.nav.veilarbvedtaksstotte.service;
+package no.nav.veilarbvedtaksstotte.service
 
-import com.nimbusds.jwt.JWTClaimsSet;
-import lombok.extern.slf4j.Slf4j;
-import no.nav.common.abac.AbacClient;
-import no.nav.common.abac.Pep;
-import no.nav.common.abac.constants.NavAttributter;
-import no.nav.common.abac.constants.StandardAttributter;
-import no.nav.common.abac.domain.Attribute;
-import no.nav.common.abac.domain.request.AccessSubject;
-import no.nav.common.abac.domain.request.Action;
-import no.nav.common.abac.domain.request.ActionId;
-import no.nav.common.abac.domain.request.Environment;
-import no.nav.common.abac.domain.request.Request;
-import no.nav.common.abac.domain.request.Resource;
-import no.nav.common.abac.domain.request.XacmlRequest;
-import no.nav.common.abac.domain.response.Category;
-import no.nav.common.abac.domain.response.Decision;
-import no.nav.common.abac.domain.response.XacmlResponse;
-import no.nav.common.auth.context.AuthContextHolder;
-import no.nav.common.auth.context.UserRole;
-import no.nav.common.client.aktoroppslag.AktorOppslagClient;
-import no.nav.common.types.identer.AktorId;
-import no.nav.common.types.identer.EnhetId;
-import no.nav.common.types.identer.Fnr;
-import no.nav.common.types.identer.NavIdent;
-import no.nav.common.utils.Credentials;
-import no.nav.common.utils.Pair;
-import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.text.ParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyList;
-import static java.util.Optional.empty;
-import static java.util.Optional.ofNullable;
+import com.nimbusds.jwt.JWTClaimsSet
+import lombok.extern.slf4j.Slf4j
+import no.nav.common.abac.AbacClient
+import no.nav.common.abac.Pep
+import no.nav.common.abac.constants.NavAttributter
+import no.nav.common.abac.constants.StandardAttributter
+import no.nav.common.abac.domain.Attribute
+import no.nav.common.abac.domain.request.*
+import no.nav.common.abac.domain.response.Decision
+import no.nav.common.abac.domain.response.Response
+import no.nav.common.abac.domain.response.XacmlResponse
+import no.nav.common.auth.context.AuthContextHolder
+import no.nav.common.auth.context.UserRole
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.common.types.identer.AktorId
+import no.nav.common.types.identer.Fnr
+import no.nav.common.types.identer.NavIdent
+import no.nav.common.utils.Credentials
+import no.nav.common.utils.Pair
+import no.nav.poao_tilgang.client.NavAnsattTilgangTilEksternBrukerPolicyInput
+import no.nav.poao_tilgang.client.PoaoTilgangClient
+import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
+import java.text.ParseException
+import java.util.*
+import java.util.function.Consumer
+import java.util.function.Supplier
+import java.util.stream.Collectors
 
 @Slf4j
 @Service
-public class AuthService {
-
-    private final AktorOppslagClient aktorOppslagClient;
-    private final Pep veilarbPep;
-    private final VeilarbarenaService veilarbarenaService;
-    private final AbacClient abacClient;
-    private final Credentials serviceUserCredentials;
-    private final AuthContextHolder authContextHolder;
-    private final UtrullingService utrullingService;
-
-    @Autowired
-    public AuthService(
-            AktorOppslagClient aktorOppslagClient,
-            Pep veilarbPep,
-            VeilarbarenaService veilarbarenaService,
-            AbacClient abacClient,
-            Credentials serviceUserCredentials,
-            AuthContextHolder authContextHolder,
-            UtrullingService utrullingService) {
-        this.aktorOppslagClient = aktorOppslagClient;
-        this.veilarbPep = veilarbPep;
-        this.veilarbarenaService = veilarbarenaService;
-        this.abacClient = abacClient;
-        this.serviceUserCredentials = serviceUserCredentials;
-        this.authContextHolder = authContextHolder;
-        this.utrullingService = utrullingService;
+class AuthService(
+    private val aktorOppslagClient: AktorOppslagClient,
+    private val veilarbPep: Pep,
+    private val veilarbarenaService: VeilarbarenaService,
+    private val abacClient: AbacClient,
+    private val serviceUserCredentials: Credentials,
+    private val authContextHolder: AuthContextHolder,
+    private val utrullingService: UtrullingService,
+    private val poaoTilgangClient: PoaoTilgangClient
+) {
+    fun sjekkTilgangTilBruker(fnr: Fnr) {
+        sjekkTilgangTilBruker({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
     }
 
-    public void sjekkTilgangTilBruker(Fnr fnr) {
-        sjekkTilgangTilBruker(() -> fnr, () -> aktorOppslagClient.hentAktorId(fnr));
+    fun sjekkTilgangTilBruker(aktorId: AktorId) {
+        sjekkTilgangTilBruker({ aktorOppslagClient.hentFnr(aktorId) }) { aktorId }
     }
 
-    public void sjekkTilgangTilBruker(AktorId aktorId) {
-        sjekkTilgangTilBruker(() -> aktorOppslagClient.hentFnr(aktorId), () -> aktorId);
+    fun sjekkTilgangTilBrukerOgEnhet(fnr: Fnr): AuthKontekst {
+        return sjekkTilgangTilBrukerOgEnhet({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
     }
 
-    public AuthKontekst sjekkTilgangTilBrukerOgEnhet(Fnr fnr) {
-        return sjekkTilgangTilBrukerOgEnhet(() -> fnr, () -> aktorOppslagClient.hentAktorId(fnr));
+    fun sjekkTilgangTilBrukerOgEnhet(aktorId: AktorId): AuthKontekst {
+        return sjekkTilgangTilBrukerOgEnhet({ aktorOppslagClient.hentFnr(aktorId) }) { aktorId }
     }
 
-    public AuthKontekst sjekkTilgangTilBrukerOgEnhet(AktorId aktorId) {
-        return sjekkTilgangTilBrukerOgEnhet(() -> aktorOppslagClient.hentFnr(aktorId), () -> aktorId);
-    }
+    private fun sjekkTilgangTilBruker(
+        fnrSupplier: Supplier<Fnr>,
+        aktorIdSupplier: Supplier<AktorId>
+    ): Pair<Fnr, AktorId> {
+        sjekkInternBruker()
+        val fnr = fnrSupplier.get()
+        val aktorId = aktorIdSupplier.get()
 
-    private Pair<Fnr, AktorId> sjekkTilgangTilBruker(Supplier<Fnr> fnrSupplier, Supplier<AktorId> aktorIdSupplier) {
-        sjekkInternBruker();
+        if(poaoTilgangClient.evaluatePolicy(
+                NavAnsattTilgangTilEksternBrukerPolicyInput(
+                    innloggetVeilederIdent
+                )))
 
-        Fnr fnr = fnrSupplier.get();
-        AktorId aktorId = aktorIdSupplier.get();
-
-        if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(getInnloggetVeilederIdent()), ActionId.WRITE, aktorId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-
-        return Pair.of(fnr, aktorId);
+        return Pair.of(fnr, aktorId)
     }
 
-    private AuthKontekst sjekkTilgangTilBrukerOgEnhet(Supplier<Fnr> fnrSupplier, Supplier<AktorId> aktorIdSupplier) {
-
-        Pair<Fnr, AktorId> fnrAktorIdPair = sjekkTilgangTilBruker(fnrSupplier, aktorIdSupplier);
-
-        Fnr fnr = fnrAktorIdPair.getFirst();
-        AktorId aktorId = fnrAktorIdPair.getSecond();
-
-        String enhet = sjekkTilgangTilEnhet(fnr.get());
-
-        return new AuthKontekst()
-                .setFnr(fnr.get())
-                .setAktorId(aktorId.get())
-                .setOppfolgingsenhet(enhet);
+    private fun sjekkTilgangTilBrukerOgEnhet(
+        fnrSupplier: Supplier<Fnr>,
+        aktorIdSupplier: Supplier<AktorId>
+    ): AuthKontekst {
+        val fnrAktorIdPair = sjekkTilgangTilBruker(fnrSupplier, aktorIdSupplier)
+        val fnr = fnrAktorIdPair.first
+        val aktorId = fnrAktorIdPair.second
+        val enhet = sjekkTilgangTilEnhet(fnr.get())
+        return AuthKontekst()
+            .setFnr(fnr.get())
+            .setAktorId(aktorId.get())
+            .setOppfolgingsenhet(enhet)
     }
 
-    public String getInnloggetVeilederIdent() {
-        return authContextHolder
-                .getNavIdent()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fant ikke ident for innlogget veileder"))
-                .get();
+    val innloggetVeilederIdent: String
+        get() = authContextHolder
+            .navIdent
+            .orElseThrow { ResponseStatusException(HttpStatus.BAD_REQUEST, "Fant ikke ident for innlogget veileder") }
+            .get()
+
+    val innloggetVeilederUUID: String
+        get() = authContextHolder
+            .idTokenClaims.flatMap { authContextHolder.getStringClaim(it, "oid") }
+            .orElseThrow { ResponseStatusException(HttpStatus.BAD_REQUEST, "Fant ikke ident for innlogget veileder") }
+
+
+    fun getFnrOrThrow(aktorId: String?): Fnr {
+        return aktorOppslagClient.hentFnr(AktorId.of(aktorId))
     }
 
-    public Fnr getFnrOrThrow(String aktorId) {
-        return aktorOppslagClient.hentFnr(AktorId.of(aktorId));
-    }
-
-    public void sjekkErAnsvarligVeilederFor(Vedtak vedtak) {
-        if (!vedtak.getVeilederIdent().equals(getInnloggetVeilederIdent())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke ansvarlig veileder.");
+    fun sjekkErAnsvarligVeilederFor(vedtak: Vedtak) {
+        if (vedtak.veilederIdent != innloggetVeilederIdent) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke ansvarlig veileder.")
         }
     }
 
-    public Map<String, Boolean> harInnloggetVeilederTilgangTilBrukere(List<String> brukerFnrs) {
-        XacmlRequest request = lagSjekkTilgangRequest(serviceUserCredentials.username, getInnloggetVeilederIdent(), brukerFnrs);
-        XacmlResponse abacResponse = abacClient.sendRequest(request);
-        return mapBrukerTilgangRespons(abacResponse);
+    fun harInnloggetVeilederTilgangTilBrukere(brukerFnrs: List<String?>): Map<String, Boolean> {
+        val request = lagSjekkTilgangRequest(serviceUserCredentials.username, innloggetVeilederIdent, brukerFnrs)
+        val abacResponse = abacClient.sendRequest(request)
+        return mapBrukerTilgangRespons(abacResponse)
     }
 
-    XacmlRequest lagSjekkTilgangRequest(String systembrukerNavn, String veilederIdent, List<String> brukerFnrs) {
-        Environment environment = new Environment();
-        environment.addAttribute(new Attribute(NavAttributter.ENVIRONMENT_FELLES_PEP_ID, systembrukerNavn));
-
-        Action action = new Action();
-        action.addAttribute(new Attribute(StandardAttributter.ACTION_ID, ActionId.WRITE.name()));
-
-        AccessSubject accessSubject = new AccessSubject();
-        accessSubject.addAttribute(new Attribute(StandardAttributter.SUBJECT_ID, veilederIdent));
-        accessSubject.addAttribute(new Attribute(NavAttributter.SUBJECT_FELLES_SUBJECTTYPE, "InternBruker"));
-
-        List<Resource> resources = brukerFnrs.stream()
-                .map(this::mapBrukerFnrTilAbacResource)
-                .collect(Collectors.toList());
-
-        Request request = new Request()
-                .withEnvironment(environment)
-                .withAction(action)
-                .withAccessSubject(accessSubject)
-                .withResources(resources);
-
-        return new XacmlRequest().withRequest(request);
+    fun lagSjekkTilgangRequest(
+        systembrukerNavn: String?,
+        veilederIdent: String?,
+        brukerFnrs: List<String?>
+    ): XacmlRequest {
+        val environment = Environment()
+        environment.addAttribute(Attribute(NavAttributter.ENVIRONMENT_FELLES_PEP_ID, systembrukerNavn))
+        val action = Action()
+        action.addAttribute(Attribute(StandardAttributter.ACTION_ID, ActionId.WRITE.name))
+        val accessSubject = AccessSubject()
+        accessSubject.addAttribute(Attribute(StandardAttributter.SUBJECT_ID, veilederIdent))
+        accessSubject.addAttribute(Attribute(NavAttributter.SUBJECT_FELLES_SUBJECTTYPE, "InternBruker"))
+        val resources = brukerFnrs.stream()
+            .map { fnr: String? -> mapBrukerFnrTilAbacResource(fnr) }
+            .collect(Collectors.toList())
+        val request = Request()
+            .withEnvironment(environment)
+            .withAction(action)
+            .withAccessSubject(accessSubject)
+            .withResources(resources)
+        return XacmlRequest().withRequest(request)
     }
 
-    private Resource mapBrukerFnrTilAbacResource(String fnr) {
-        Resource resource = new Resource();
-        resource.addAttribute(new Attribute(NavAttributter.RESOURCE_FELLES_DOMENE, "veilarb"));
-        resource.addAttribute(new Attribute(NavAttributter.RESOURCE_FELLES_RESOURCE_TYPE, NavAttributter.RESOURCE_VEILARB_PERSON));
-        resource.addAttribute(new Attribute(NavAttributter.RESOURCE_FELLES_PERSON_FNR, fnr, true));
-        return resource;
+    private fun mapBrukerFnrTilAbacResource(fnr: String?): Resource {
+        val resource = Resource()
+        resource.addAttribute(Attribute(NavAttributter.RESOURCE_FELLES_DOMENE, "veilarb"))
+        resource.addAttribute(
+            Attribute(
+                NavAttributter.RESOURCE_FELLES_RESOURCE_TYPE,
+                NavAttributter.RESOURCE_VEILARB_PERSON
+            )
+        )
+        resource.addAttribute(Attribute(NavAttributter.RESOURCE_FELLES_PERSON_FNR, fnr, true))
+        return resource
     }
 
-    Map<String, Boolean> mapBrukerTilgangRespons(XacmlResponse xacmlResponse) {
-        Map<String, Boolean> tilgangTilBrukere = new HashMap<>();
-
-        xacmlResponse.getResponse().forEach(response -> {
-            boolean harTilgang = response.getDecision() == Decision.Permit;
+    fun mapBrukerTilgangRespons(xacmlResponse: XacmlResponse): Map<String, Boolean> {
+        val tilgangTilBrukere: MutableMap<String, Boolean> = HashMap()
+        xacmlResponse.response.forEach(Consumer { response: Response ->
+            val harTilgang = response.decision == Decision.Permit
 
             // There should always be a single category
-            Category category = response.getCategory().get(0);
-            String brukerFnr = category.getAttribute().getValue();
-
-            tilgangTilBrukere.put(brukerFnr, harTilgang);
-        });
-
-        return tilgangTilBrukere;
+            val category = response.category[0]
+            val brukerFnr = category.attribute.value
+            tilgangTilBrukere[brukerFnr] = harTilgang
+        })
+        return tilgangTilBrukere
     }
 
-    private void sjekkInternBruker() {
+    private fun sjekkInternBruker() {
         authContextHolder
-                .getRole()
-                .filter(role -> role == UserRole.INTERN)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke intern bruker"));
+            .role
+            .filter { role: UserRole -> role == UserRole.INTERN }
+            .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke intern bruker") }
     }
 
-    private String sjekkTilgangTilEnhet(String fnr) {
-        EnhetId enhet = veilarbarenaService.hentOppfolgingsenhet(Fnr.of(fnr))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker"));
-
+    private fun sjekkTilgangTilEnhet(fnr: String): String {
+        val enhet = veilarbarenaService.hentOppfolgingsenhet(Fnr.of(fnr))
+            .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
         if (!utrullingService.erUtrullet(enhet)) {
-            log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten");
+            AuthService.log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet)
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten")
         }
-
-        if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(getInnloggetVeilederIdent()), enhet)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(innloggetVeilederIdent), enhet)) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-
-        return enhet.get();
+        return enhet.get()
     }
 
-    public boolean erSystemBruker() {
-        return authContextHolder.erSystemBruker();
+    fun erSystemBruker(): Boolean {
+        return authContextHolder.erSystemBruker()
     }
 
-    public boolean harSystemTilSystemTilgang() {
-        return authContextHolder.erSystemBruker() && harAADRollerForSystemTilSystemTilgang(null);
+    fun harSystemTilSystemTilgang(): Boolean {
+        return authContextHolder.erSystemBruker() && harAADRollerForSystemTilSystemTilgang(null)
     }
 
-    public boolean harSystemTilSystemTilgangMedEkstraRolle(String rolle) {
-        return authContextHolder.erSystemBruker() && harAADRollerForSystemTilSystemTilgang(rolle);
+    fun harSystemTilSystemTilgangMedEkstraRolle(rolle: String?): Boolean {
+        return authContextHolder.erSystemBruker() && harAADRollerForSystemTilSystemTilgang(rolle)
     }
 
-    public String hentApplikasjonFraContex() {
-        return authContextHolder.getIdTokenClaims()
-                .flatMap(claims -> getStringClaimOrEmpty(claims, "azp_name")) //  "cluster:team:app"
-                .map(claim -> claim.split(":"))
-                .filter(claims -> claims.length == 3)
-                .map(claims -> claims[2])
-                .orElse(null);
+    fun hentApplikasjonFraContex(): String? {
+        return authContextHolder.idTokenClaims
+            .flatMap { claims: JWTClaimsSet -> getStringClaimOrEmpty(claims, "azp_name") } //  "cluster:team:app"
+            .map { claim: String ->
+                claim.split(":".toRegex()).dropLastWhile { it.isEmpty() }
+                    .toTypedArray()
+            }
+            .filter { claims: Array<String> -> claims.size == 3 }
+            .map { claims: Array<String> -> claims[2] }
+            .orElse(null)
     }
 
-    private boolean harAADRollerForSystemTilSystemTilgang(String ekstraRolle) {
-        List<String> roles = authContextHolder.getIdTokenClaims()
-                .flatMap(claims -> {
-                    try {
-                        return ofNullable(claims.getStringListClaim("roles"));
-                    } catch (ParseException e) {
-                        return empty();
-                    }
-                })
-                .orElse(emptyList());
-
-        return roles.contains("access_as_application") && (ekstraRolle == null || roles.contains(ekstraRolle));
+    private fun harAADRollerForSystemTilSystemTilgang(ekstraRolle: String?): Boolean {
+        val roles = authContextHolder.idTokenClaims
+            .flatMap { claims: JWTClaimsSet ->
+                try {
+                    return@flatMap Optional.ofNullable(claims.getStringListClaim("roles"))
+                } catch (e: ParseException) {
+                    return@flatMap Optional.empty<List<String>>()
+                }
+            }
+            .orElse(emptyList())
+        return roles.contains("access_as_application") && (ekstraRolle == null || roles.contains(ekstraRolle))
     }
 
-    private static Optional<String> getStringClaimOrEmpty(JWTClaimsSet claims, String claimName) {
-        try {
-            return ofNullable(claims.getStringClaim(claimName));
-        } catch (Exception e) {
-            return empty();
+    companion object {
+        private fun getStringClaimOrEmpty(claims: JWTClaimsSet, claimName: String): Optional<String> {
+            return try {
+                Optional.ofNullable(claims.getStringClaim(claimName))
+            } catch (e: Exception) {
+                Optional.empty()
+            }
         }
     }
 }
