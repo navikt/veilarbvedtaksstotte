@@ -24,6 +24,7 @@ import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -34,7 +35,6 @@ import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.stream.Collectors
 
-@Slf4j
 @Service
 class AuthService(
     private val aktorOppslagClient: AktorOppslagClient,
@@ -47,6 +47,7 @@ class AuthService(
     private val poaoTilgangClient: PoaoTilgangClient,
     private val unleashService: UnleashService
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
     fun sjekkTilgangTilBruker(fnr: Fnr) {
         sjekkTilgangTilBruker({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
     }
@@ -97,10 +98,7 @@ class AuthService(
         val fnr = fnrAktorIdPair.first
         val aktorId = fnrAktorIdPair.second
         val enhet = sjekkTilgangTilEnhet(fnr.get())
-        return AuthKontekst()
-            .setFnr(fnr.get())
-            .setAktorId(aktorId.get())
-            .setOppfolgingsenhet(enhet)
+        return AuthKontekst(fnr = fnr.get(), aktorId = aktorId.get(), oppfolgingsenhet = enhet)
     }
 
     val innloggetVeilederIdent: String
@@ -192,7 +190,7 @@ class AuthService(
         val enhet = veilarbarenaService.hentOppfolgingsenhet(Fnr.of(fnr))
             .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
         if (!utrullingService.erUtrullet(enhet)) {
-            AuthService.log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet)
+            log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet)
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten")
         }
         if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(innloggetVeilederIdent), enhet)) {

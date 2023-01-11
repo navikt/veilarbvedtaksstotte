@@ -1,38 +1,21 @@
-package no.nav.veilarbvedtaksstotte.config;
+package no.nav.veilarbvedtaksstotte.config
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties
 
-@Getter
-@Setter
+
 @ConfigurationProperties(prefix = "app.env")
-public class EnvironmentProperties {
-
-    private String openAmDiscoveryUrl;
-
-    private String veilarbloginOpenAmClientId;
-
-    private String stsDiscoveryUrl;
-
-    private String openAmRefreshUrl;
-
-    private String abacUrl;
-
-    private String dbUrl;
-
-    private String unleashUrl;
-
-    private String norg2Url;
-
-    private String naisAadDiscoveryUrl;
-
-    private String naisAadClientId;
-
-    public String naisAadIssuer;
-
-    public String poaoTilgangUrl;
-
-    public String poaoTilgangScope;
-
-}
+data class EnvironmentProperties (
+    val openAmDiscoveryUrl: String,
+    val veilarbloginOpenAmClientId: String,
+    val stsDiscoveryUrl: String,
+    val openAmRefreshUrl: String,
+    val abacUrl: String,
+    val dbUrl: String,
+    val unleashUrl: String,
+    val norg2Url: String,
+    val naisAadDiscoveryUrl: String,
+    val naisAadClientId: String,
+    val naisAadIssuer: String,
+    val poaoTilgangUrl: String,
+    val poaoTilgangScope: String
+)

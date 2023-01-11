@@ -232,7 +232,7 @@ class ClientConfig {
     ): PoaoTilgangClient {
         return PoaoTilgangCachedClient(
             PoaoTilgangHttpClient(
-                properties.getPoaoTilgangUrl(),
+                properties.poaoTilgangUrl,
                 { tokenClient.createMachineToMachineToken(properties.poaoTilgangScope) })
         )
     }
