@@ -44,7 +44,8 @@ class AuthService(
     private val serviceUserCredentials: Credentials,
     private val authContextHolder: AuthContextHolder,
     private val utrullingService: UtrullingService,
-    private val poaoTilgangClient: PoaoTilgangClient
+    private val poaoTilgangClient: PoaoTilgangClient,
+    private val unleashService: UnleashService
 ) {
     fun sjekkTilgangTilBruker(fnr: Fnr) {
         sjekkTilgangTilBruker({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
@@ -70,17 +71,20 @@ class AuthService(
         val fnr = fnrSupplier.get()
         val aktorId = aktorIdSupplier.get()
 
-        val tilgangResult = poaoTilgangClient.evaluatePolicy(
+        if(unleashService.isPoaoTilgangEnabled) {
+            val tilgangResult = poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
                     hentInnloggetVeilederUUID(), TilgangType.SKRIVE, fnr.get()
-                )).getOrThrow()
+                )
+            ).getOrThrow()
 
-        if (tilgangResult.isDeny){
-            throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        }
-
-        if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+            if (tilgangResult.isDeny) {
+                throw ResponseStatusException(HttpStatus.FORBIDDEN)
+            }
+        }else{
+            if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)) {
+                throw ResponseStatusException(HttpStatus.FORBIDDEN)
+            }
         }
         return Pair.of(fnr, aktorId)
     }
