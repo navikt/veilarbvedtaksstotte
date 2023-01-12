@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import no.nav.common.abac.AbacClient
 import no.nav.common.abac.Pep
 import no.nav.common.abac.XacmlMapper
 import no.nav.common.auth.context.AuthContext
@@ -9,7 +10,9 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.test.auth.AuthTestUtils.createAuthContext
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
+import no.nav.common.utils.Credentials
 import no.nav.common.utils.fn.UnsafeRunnable
+import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
@@ -28,8 +31,12 @@ class AuthServiceTest {
     var pep = Mockito.mock(Pep::class.java)
     var veilarbarenaService = Mockito.mock(VeilarbarenaService::class.java)
     var utrullingService = Mockito.mock(UtrullingService::class.java)
+    var abacClient = Mockito.mock(AbacClient::class.java)
+    var serviceUserCredentials = Mockito.mock(Credentials::class.java)
+    var poaoTilgangClient = Mockito.mock(PoaoTilgangClient::class.java)
+    var unleashService = Mockito.mock(UnleashService::class.java)
     var authService =
-        AuthService(aktorOppslagClient, pep, veilarbarenaService, null, null, authContextHolder, utrullingService)
+        AuthService(aktorOppslagClient, pep, veilarbarenaService, abacClient, serviceUserCredentials, authContextHolder, utrullingService, poaoTilgangClient, unleashService)
 
     @BeforeEach
     fun setup() {
