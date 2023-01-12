@@ -12,7 +12,9 @@ import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.utils.Credentials
 import no.nav.common.utils.fn.UnsafeRunnable
+import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangClient
+import no.nav.poao_tilgang.client.api.ApiResult
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
@@ -21,7 +23,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.*
+import org.mockito.kotlin.whenever
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
 
@@ -33,7 +36,7 @@ class AuthServiceTest {
     var utrullingService = Mockito.mock(UtrullingService::class.java)
     var abacClient = Mockito.mock(AbacClient::class.java)
     var serviceUserCredentials = Mockito.mock(Credentials::class.java)
-    var poaoTilgangClient = Mockito.mock(PoaoTilgangClient::class.java)
+    var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
     var unleashService = Mockito.mock(UnleashService::class.java)
     var authService =
         AuthService(aktorOppslagClient, pep, veilarbarenaService, abacClient, serviceUserCredentials, authContextHolder, utrullingService, poaoTilgangClient, unleashService)
@@ -84,6 +87,39 @@ class AuthServiceTest {
             }
         }
     }
+
+    @Test
+    fun sjekkTilgangTilBruker__skal_bruke_poao_tilgang_hvis_toggle_er_pa() {
+        `when`(
+            unleashService.isPoaoTilgangEnabled
+        ).thenReturn(true)
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
+        ).thenReturn(ApiResult.success(Decision.Permit))
+        withContext(UserRole.INTERN) {
+                authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
+        }
+        org.mockito.kotlin.verify(poaoTilgangClient, times(1)).evaluatePolicy(org.mockito.kotlin.any())
+
+    }
+
+    @Test
+    fun sjekkTilgangTilBruker__skal_kaste_exception_hvis_poao_tilgang_gir_decision_deny() {
+        `when`(
+            unleashService.isPoaoTilgangEnabled
+        ).thenReturn(true)
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
+        ).thenReturn(ApiResult.success(Decision.Deny("","")))
+        withContext(UserRole.INTERN) {
+            assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
+                authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
+            }
+        }
+        org.mockito.kotlin.verify(poaoTilgangClient, times(1)).evaluatePolicy(org.mockito.kotlin.any())
+
+    }
+
 
     @Test
     fun sjekkTilgangTilBrukerOgEnhet__sjekkTilgangTilBruker__gir_tilgang_for_intern_bruker() {
@@ -229,7 +265,7 @@ class AuthServiceTest {
     }
 
     private fun withContext(userRole: UserRole, runnable: UnsafeRunnable) {
-        authContextHolder.withContext(createAuthContext(userRole, TestData.TEST_VEILEDER_IDENT), runnable)
+        authContextHolder.withContext(createAuthContext(userRole, mapOf("sub" to TestData.TEST_VEILEDER_IDENT, "oid" to UUID.randomUUID().toString())), runnable)
     }
 
     private fun systemMedRoller(vararg roller: String): AuthContext {
