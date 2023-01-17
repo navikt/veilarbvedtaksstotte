@@ -18,9 +18,9 @@
     <description>Backend applikasjon for håndtering av 14A vedtak</description>
 
     <properties>
-        <java.version>11</java.version>
-        <common.version>2.2022.08.15_07.05-3fef82ca5c66</common.version>
-        <kotlin.version>1.7.10</kotlin.version>
+        <java.version>17</java.version>
+        <common.version>2.2022.11.16_08.36-35c94368bc44</common.version>
+        <kotlin.version>1.7.22</kotlin.version>
         <testcontainers.version>1.17.3</testcontainers.version>
 
         <!--   Used by SonarCloud     -->
@@ -65,7 +65,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <jvmTarget>11</jvmTarget>
+                    <jvmTarget>17</jvmTarget>
                     <compilerPlugins>
                         <plugin>spring</plugin>
                     </compilerPlugins>
@@ -235,6 +235,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.navikt.poao-tilgang</groupId>
+            <artifactId>client</artifactId>
+            <version>2023.01.13_13.14-2ebcbec20882</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
@@ -291,6 +296,12 @@
             <groupId>com.ninja-squad</groupId>
             <artifactId>springmockk</artifactId>
             <version>3.1.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito.kotlin</groupId>
+            <artifactId>mockito-kotlin</artifactId>
+            <version>3.2.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
