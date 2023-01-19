@@ -237,7 +237,6 @@ class ClientConfig {
         )
     }
 
-
     companion object {
         private val isProduction: Boolean
             private get() = EnvironmentUtils.isProduction().orElseThrow()

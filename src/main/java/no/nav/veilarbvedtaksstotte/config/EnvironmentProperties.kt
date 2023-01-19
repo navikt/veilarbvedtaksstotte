@@ -3,7 +3,6 @@ package no.nav.veilarbvedtaksstotte.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
-
 @ConfigurationProperties(prefix = "app.env")
 @ConstructorBinding
 data class EnvironmentProperties (
