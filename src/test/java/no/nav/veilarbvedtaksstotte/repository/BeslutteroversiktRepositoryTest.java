@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
+import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.now;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BeslutteroversiktRepositoryTest extends DatabaseTest {
@@ -130,7 +131,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
                 .setBrukerOppfolgingsenhetNavn(TEST_OPPFOLGINGSENHET_NAVN)
                 .setBrukerOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .setBrukerFnr(TEST_FNR.get())
-                .setVedtakStartet(LocalDateTime.now())
+                .setVedtakStartet(now())
                 .setStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER)
                 .setBeslutterNavn(TEST_BESLUTTER_NAVN)
                 .setBeslutterIdent(TEST_BESLUTTER_IDENT)

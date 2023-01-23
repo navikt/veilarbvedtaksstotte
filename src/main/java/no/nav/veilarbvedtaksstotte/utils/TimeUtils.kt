@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.utils
 
 import java.time.*
+import java.time.temporal.ChronoUnit
 
 object TimeUtils {
     @JvmStatic
@@ -21,5 +22,10 @@ object TimeUtils {
     @JvmStatic
     fun toInstant(localDateTime: LocalDateTime): Instant {
         return toZonedDateTime(localDateTime).toInstant()
+    }
+
+    @JvmStatic
+    fun now(): LocalDateTime{
+        return LocalDateTime.now().truncatedTo(ChronoUnit.MICROS)
     }
 }

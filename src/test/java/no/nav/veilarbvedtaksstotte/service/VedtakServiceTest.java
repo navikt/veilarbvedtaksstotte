@@ -10,7 +10,9 @@ import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
+import no.nav.common.utils.Credentials;
 import no.nav.common.utils.fn.UnsafeRunnable;
+import no.nav.poao_tilgang.client.PoaoTilgangClient;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
@@ -87,6 +89,8 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final MetricsService metricsService = mock(MetricsService.class);
 
     private static final VeilarbPep veilarbPep = mock(VeilarbPep.class);
+    private static final Credentials credentials = mock(Credentials.class);
+    private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
 
     private static final String CV_DATA = "{\"cv\": \"cv\"}";
     private static final String REGISTRERING_DATA = "{\"registrering\": \"registrering\"}";
@@ -101,7 +105,7 @@ public class VedtakServiceTest extends DatabaseTest {
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
-        authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaService, abacClient, null, AuthContextHolderThreadLocal.instance(), utrullingService));
+        authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaService, abacClient, credentials, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient, unleashService));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
         DokumentService dokumentService = new DokumentService(
