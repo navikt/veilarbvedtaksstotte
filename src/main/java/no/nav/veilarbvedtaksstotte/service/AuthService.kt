@@ -75,15 +75,11 @@ class AuthService(
             veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)
 
         if(unleashService.isPoaoTilgangEnabled) {
-            val tilgangResult = poaoTilgangClient.evaluatePolicy(
+            poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
                     hentInnloggetVeilederUUID(), TilgangType.SKRIVE, fnr.get()
                 )
             ).getOrThrow()
-
-            if (tilgangResult.isPermit != harVeilederTilgangTilPerson) {
-                log.warn("Diff mellom ABAC og poao-tilgang: harVeilederTilgangTilPerson")
-            }
         }
 
         if (!harVeilederTilgangTilPerson) {
@@ -201,15 +197,11 @@ class AuthService(
             veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(innloggetVeilederIdent), enhet)
 
         if (unleashService.isPoaoTilgangEnabled()){
-            val tilgangResult = poaoTilgangClient.evaluatePolicy(
+            poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilNavEnhetPolicyInput(
                     hentInnloggetVeilederUUID(), enhet.get()
                 )
             ).getOrThrow()
-
-            if (tilgangResult.isPermit != harVeilederTilgangTilEnhet) {
-                log.warn("Diff mellom ABAC og poao-tilgang: harVeilederTilgangTilEnhet")
-            }
         }
 
         if (!harVeilederTilgangTilEnhet) {
