@@ -8,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils.now
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -16,7 +17,6 @@ import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
 
@@ -44,7 +44,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
 
         val identer = gittBrukerIdenter()
 
-        val fattetDato = LocalDateTime.now()
+        val fattetDato = now()
 
         lagreFattetVedtak(
             aktorId = identer.aktorId,
@@ -69,7 +69,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     @Test
     fun `siste 14a vedtak fra ny løsning dersom nyere vedtak fra ny løsning enn fra Arena`() {
         val identer = gittBrukerIdenter()
-        val fattetDato = LocalDateTime.now().minusDays(3)
+        val fattetDato = now().minusDays(3)
 
         lagreArenaVedtak(
             fnr = identer.fnr,
@@ -99,14 +99,14 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     @Test
     fun `siste 14a vedtak fra ny løsning dersom, ny løsning har vedtak, Arena har eldre fra samme dag`() {
         val identer = gittBrukerIdenter()
-        val fattetDato = LocalDateTime.now().minusDays(3).plusMinutes(1)
+        val fattetDato = now().minusDays(3).plusMinutes(1)
 
         lagreArenaVedtak(
             fnr = identer.fnr,
             fraDato = LocalDate.now().minusDays(3),
             innsatsgruppe = ArenaInnsatsgruppe.VARIG,
             hovedmal = ArenaHovedmal.SKAFFEA,
-            operationTimestamp = LocalDateTime.now().minusDays(3)
+            operationTimestamp = now().minusDays(3)
         )
 
         lagreFattetVedtak(
@@ -171,7 +171,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            vedtakFattetDato = LocalDateTime.now().minusDays(5)
+            vedtakFattetDato = now().minusDays(5)
         )
 
         assertFattedeVedtakFraNyLøsning(identer, 1)
@@ -196,14 +196,14 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             fraDato = fattetDato,
             innsatsgruppe = ArenaInnsatsgruppe.VARIG,
             hovedmal = ArenaHovedmal.SKAFFEA,
-            operationTimestamp = LocalDateTime.now().minusDays(4).plusMinutes(1)
+            operationTimestamp = now().minusDays(4).plusMinutes(1)
         )
 
         lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            vedtakFattetDato = LocalDateTime.now().minusDays(4)
+            vedtakFattetDato = now().minusDays(4)
         )
 
         assertFattedeVedtakFraNyLøsning(identer, 1)
@@ -324,7 +324,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            vedtakFattetDato = LocalDateTime.now().minusDays(3)
+            vedtakFattetDato = now().minusDays(3)
         )
 
         assertAntallVedtakFraArena(identer, 0)
@@ -356,7 +356,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     @Test
     fun `siste 14a vedtak oppdateres ikke dersom melding stammer fra ny løsning`() {
         val identer = gittBrukerIdenter()
-        val fattetDato = LocalDateTime.now()
+        val fattetDato = now()
 
         lagreFattetVedtak(
             aktorId = identer.aktorId,
@@ -394,7 +394,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     @Test
     fun `siste 14a vedtak oppdateres ikke dersom bruker har nyere vedtak fra ny løsning som beholdes som gjeldende`() {
         val identer = gittBrukerIdenter()
-        val fattetDato = LocalDateTime.now().minusDays(2)
+        val fattetDato = now().minusDays(2)
 
         lagreFattetVedtak(
             aktorId = identer.aktorId,

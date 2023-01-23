@@ -13,12 +13,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static no.nav.veilarbvedtaksstotte.service.ArenaVedtakService.MODIA_REG_USER;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
+import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.now;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,7 +78,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
                         ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                         LocalDate.now(),
                         "reg user",
-                        LocalDateTime.now(),
+                        now(),
                         12345,
                         1
                 )
@@ -133,7 +133,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
                         ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                         LocalDate.now(),
                         MODIA_REG_USER,
-                        LocalDateTime.now(),
+                        now(),
                         12345,
                         1
                 )
@@ -152,7 +152,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
                 ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                 LocalDate.now().minusDays(1),
                 "reg user",
-                LocalDateTime.now(),
+                now(),
                 1234,
                 1
         );
@@ -187,7 +187,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
                 ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                 LocalDate.now().minusDays(1),
                 "reg user",
-                LocalDateTime.now(),
+                now(),
                 1234,
                 1
         );
@@ -222,7 +222,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
                 ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                 LocalDate.now().minusDays(1),
                 "reg user",
-                LocalDateTime.now(),
+                now(),
                 12345,
                 1
         );
@@ -233,7 +233,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
                 ArenaVedtak.ArenaHovedmal.SKAFFEA,
                 arenaVedtak1.getFraDato(),
                 "reg user",
-                LocalDateTime.now().plusDays(1),
+                now().plusDays(1),
                 arenaVedtak1.getHendelseId(),
                 arenaVedtak1.getVedtakId()
         );
@@ -254,7 +254,7 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
 
         Journalpost.JournalpostDokument dokument = new Journalpost.JournalpostDokument();
         dokument.dokumentInfoId = TestData.TEST_DOKUMENT_ID;
-        dokument.datoFerdigstilt = LocalDateTime.now().toString();
+        dokument.datoFerdigstilt = now().toString();
         journalpost.dokumenter = new Journalpost.JournalpostDokument[]{dokument};
 
         return journalpost;

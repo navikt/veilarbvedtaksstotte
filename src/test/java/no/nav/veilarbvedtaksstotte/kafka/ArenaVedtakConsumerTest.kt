@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils.now
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -80,7 +81,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
                     hovedmal = hovedmal?.let { ArenaHovedmal.valueOf(it) },
                     fraDato = LocalDate.now(),
                     regUser = "reguser",
-                    operationTimestamp = LocalDateTime.now(),
+                    operationTimestamp = now(),
                     hendelseId = 1234,
                     vedtakId = 1
                 )
