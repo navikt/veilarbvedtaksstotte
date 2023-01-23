@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import com.nimbusds.jwt.JWTClaimsSet
-import lombok.extern.slf4j.Slf4j
 import no.nav.common.abac.AbacClient
 import no.nav.common.abac.Pep
 import no.nav.common.abac.constants.NavAttributter
@@ -20,12 +19,12 @@ import no.nav.common.types.identer.NavIdent
 import no.nav.common.utils.Credentials
 import no.nav.common.utils.Pair
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilEksternBrukerPolicyInput
+import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -72,6 +71,9 @@ class AuthService(
         val fnr = fnrSupplier.get()
         val aktorId = aktorIdSupplier.get()
 
+        val harVeilederTilgangTilPerson =
+            veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)
+
         if(unleashService.isPoaoTilgangEnabled) {
             val tilgangResult = poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
@@ -79,14 +81,15 @@ class AuthService(
                 )
             ).getOrThrow()
 
-            if (tilgangResult.isDeny) {
-                throw ResponseStatusException(HttpStatus.FORBIDDEN)
-            }
-        }else{
-            if (!veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)) {
-                throw ResponseStatusException(HttpStatus.FORBIDDEN)
+            if (tilgangResult.isPermit != harVeilederTilgangTilPerson) {
+                log.warn("Diff mellom ABAC og poao-tilgang: harVeilederTilgangTilPerson")
             }
         }
+
+        if (!harVeilederTilgangTilPerson) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
+
         return Pair.of(fnr, aktorId)
     }
 
@@ -193,7 +196,23 @@ class AuthService(
             log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet)
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten")
         }
-        if (!veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(innloggetVeilederIdent), enhet)) {
+
+        val harVeilederTilgangTilEnhet =
+            veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(innloggetVeilederIdent), enhet)
+
+        if (unleashService.isPoaoTilgangEnabled()){
+            val tilgangResult = poaoTilgangClient.evaluatePolicy(
+                NavAnsattTilgangTilNavEnhetPolicyInput(
+                    hentInnloggetVeilederUUID(), enhet.get()
+                )
+            ).getOrThrow()
+
+            if (tilgangResult.isPermit != harVeilederTilgangTilEnhet) {
+                log.warn("Diff mellom ABAC og poao-tilgang: harVeilederTilgangTilEnhet")
+            }
+        }
+
+        if (!harVeilederTilgangTilEnhet) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
         return enhet.get()
