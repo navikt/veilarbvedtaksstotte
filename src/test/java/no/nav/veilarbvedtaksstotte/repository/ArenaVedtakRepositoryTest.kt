@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.repository
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils.now
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.containsInAnyOrder
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class ArenaVedtakRepositoryTest : DatabaseTest() {
 
@@ -34,7 +36,7 @@ class ArenaVedtakRepositoryTest : DatabaseTest() {
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
             fraDato = LocalDate.now(),
             regUser = "reg user",
-            operationTimestamp = LocalDateTime.now(),
+            operationTimestamp = now(),
             hendelseId = 12345,
             vedtakId = 1
         )
@@ -71,7 +73,7 @@ class ArenaVedtakRepositoryTest : DatabaseTest() {
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
             fraDato = LocalDate.now(),
             regUser = "reg user",
-            operationTimestamp = LocalDateTime.now(),
+            operationTimestamp = now(),
             hendelseId = 12345,
             vedtakId = 1
         )
@@ -98,7 +100,7 @@ class ArenaVedtakRepositoryTest : DatabaseTest() {
             hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
             fraDato = LocalDate.now(),
             regUser = "reg user",
-            operationTimestamp = LocalDateTime.now(),
+            operationTimestamp = now(),
             hendelseId = 12345,
             vedtakId = 1
         )
