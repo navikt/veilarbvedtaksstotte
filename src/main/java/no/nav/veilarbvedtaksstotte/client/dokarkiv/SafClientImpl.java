@@ -69,7 +69,7 @@ public class SafClientImpl implements SafClient {
 
     @Override
     public HealthCheckResult checkHealth() {
-        return HealthCheckUtils.pingUrl(joinPaths(safUrl, "/isReady"), client);
+        return HealthCheckUtils.pingUrl(joinPaths(safUrl, "/actuator/health/readiness"), client);
     }
 
     private Journalpost[] hentJournalposterFraJson(String journalposterGraphqlJsonData) {
