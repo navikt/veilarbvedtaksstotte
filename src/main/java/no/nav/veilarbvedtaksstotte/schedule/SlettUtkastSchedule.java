@@ -13,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
+import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -75,7 +76,7 @@ public class SlettUtkastSchedule {
 
                 maybeSistePeriode.ifPresent(sistePeriode -> {
                     if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(toLocalDateTime(sistePeriode.sluttDato))) {
-                        log.info("Sletter utkast automatisk. aktorId = {}", utkast.getAktorId());
+                        SecureLog.getSecureLog().info("Sletter utkast automatisk. aktorId = {}", utkast.getAktorId());
                         vedtakService.slettUtkast(utkast);
                     } else {
                         log.info("Utkast med id {} ble ikke slettet.", utkast.getId());
