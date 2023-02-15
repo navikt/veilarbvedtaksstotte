@@ -71,7 +71,7 @@ public class SlettUtkastSchedule {
                 Optional<OppfolgingPeriodeDTO> maybeSistePeriode = OppfolgingUtils.hentSisteOppfolgingsPeriode(oppfolgingsperioder);
 
                 if (maybeSistePeriode.isEmpty()) {
-                    SecureLog.getSecureLog().warn("Fant ikke siste oppfølgingsperiode for bruker med utkast der id = {}", utkast.getId());
+                    log.warn("Fant ikke siste oppfølgingsperiode for bruker med utkast der id = {}", utkast.getId());
                 }
 
                 maybeSistePeriode.ifPresent(sistePeriode -> {
