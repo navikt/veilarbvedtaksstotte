@@ -59,6 +59,7 @@ spec:
       value: api://dev-gcp.poao.poao-tilgang/.default
   azure:
     application:
+      allowAllUsers: true
       enabled: true
       claims:
         extra:
