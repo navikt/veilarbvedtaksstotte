@@ -44,6 +44,8 @@ spec:
         mountPath: /var/run/secrets/nais.io/service_user
       - kvPath: /kv/preprod/fss/veilarbvedtaksstotte/q1
         mountPath: /var/run/secrets/nais.io/vault
+  secureLogs:
+    enabled: true
   kafka:
     pool: nav-dev
   env:
@@ -59,6 +61,7 @@ spec:
       value: api://dev-gcp.poao.poao-tilgang/.default
   azure:
     application:
+      allowAllUsers: true
       enabled: true
       claims:
         extra:
