@@ -36,7 +36,7 @@ jobs:
   deploy-dev:
     name: Deploy application to dev
     if: github.ref == 'refs/heads/dev'
-    needs: test-build-and-push
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
