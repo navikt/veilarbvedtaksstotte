@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.4</version>
+        <version>3.0.5</version>
         <relativePath/>
     </parent>
 
@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <common.version>3.2023.03.28_15.23-b029b8c7a3f3</common.version>
+        <common.version>3.2023.04.03_13.09-15bb53f1d80e</common.version>
         <kotlin.version>1.8.10</kotlin.version>
         <testcontainers.version>1.17.3</testcontainers.version>
 
