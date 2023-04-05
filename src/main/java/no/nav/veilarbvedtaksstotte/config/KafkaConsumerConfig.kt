@@ -10,10 +10,7 @@ import no.nav.common.kafka.consumer.util.ConsumerUtils
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
-import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
+import no.nav.veilarbvedtaksstotte.domain.kafka.*
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
 import no.nav.veilarbvedtaksstotte.service.UnleashService
@@ -177,11 +174,24 @@ class KafkaConsumerConfig {
                             )
                         })
 
+            val sisteOppfolgingsperiodeClientConfigBuilder =
+                KafkaConsumerClientBuilder.TopicConfig<String, KafkaSisteOppfolgingsperiode>()
+                    .withLogging()
+                    .withMetrics(meterRegistry)
+                    .withStoreOnFailure(consumerRepository)
+                    .withConsumerConfig(
+                        kafkaProperties.sisteOppfolgingsperiodeTopic,
+                        Deserializers.stringDeserializer(),
+                        Deserializers.jsonDeserializer(KafkaSisteOppfolgingsperiode::class.java),
+                        Consumer { kafkaConsumerService.behandleSisteOppfolgingsperiode(it) }
+                    )
+
             return listOf(
                 vedtakStatusEndringClientConfigBuilder,
                 arenaVedtakClientConfigBuilder,
                 oppfolgingsbrukerEndringClientConfigBuilder,
-                avsluttOppfolgingClientConfigBuilder
+                avsluttOppfolgingClientConfigBuilder,
+                sisteOppfolgingsperiodeClientConfigBuilder
             )
         }
     }

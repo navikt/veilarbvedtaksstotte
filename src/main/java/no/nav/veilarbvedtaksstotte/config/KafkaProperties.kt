@@ -11,5 +11,6 @@ data class KafkaProperties(
     val vedtakStatusEndringTopic: String,
     val arenaVedtakTopic: String,
     val siste14aVedtakTopic: String,
-    val vedtakFattetDvhTopic: String
+    val vedtakFattetDvhTopic: String,
+    val sisteOppfolgingsperiodeTopic: String
 )

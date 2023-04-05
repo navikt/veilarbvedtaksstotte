@@ -10,15 +10,19 @@ import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.chrono.ChronoLocalDateTime;
 
 import static java.lang.String.format;
 import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
@@ -36,6 +40,7 @@ public class KafkaConsumerService {
     private final Norg2Client norg2Client;
 
     private final AktorOppslagClient aktorOppslagClient;
+
     @Autowired
     public KafkaConsumerService(
             Siste14aVedtakService siste14aVedtakService,
@@ -67,7 +72,7 @@ public class KafkaConsumerService {
         Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
         AktorId aktorId = hentAktorIdMedDevSjekk(fnr); //AktorId kan være null i dev
         String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
-        if (aktorId == null){
+        if (aktorId == null) {
             return;
         }
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId.toString());
@@ -87,6 +92,42 @@ public class KafkaConsumerService {
             log.info(format("Behandler ikke melding fra Arena med kvalifiseringsgruppe = %s og hovedmål = %s",
                     arenaVedtakRecord.value().getAfter().getKvalifiseringsgruppe(),
                     arenaVedtakRecord.value().getAfter().getHovedmal()));
+        }
+    }
+
+    public void behandleSisteOppfolgingsperiode(ConsumerRecord<String, KafkaSisteOppfolgingsperiode> sisteOppfolgingsperiodeRecord) {
+        KafkaSisteOppfolgingsperiode sisteOppfolgingsperiode = sisteOppfolgingsperiodeRecord.value();
+
+        if (sisteOppfolgingsperiode == null) {
+            // TODO: Logging?
+            return;
+        }
+
+        ZonedDateTime startDato = sisteOppfolgingsperiode.getStartDato();
+        ZonedDateTime sluttDato = sisteOppfolgingsperiode.getSluttDato();
+
+        if (startDato == null && sluttDato != null) {
+            // TODO: Ugyldig tilstand
+            throw new IllegalStateException();
+        }
+
+        if (sluttDato == null) {
+            // TODO: Logging?
+            // Vi er bare interessert i oppfølgingsperiode dersom den er avsluttet, dvs. sluttDato != null
+            return;
+        }
+
+        String aktorId = sisteOppfolgingsperiode.getAktorId();
+        Vedtak vedtak = vedtaksstotteRepository.hentGjeldendeVedtak(aktorId);
+
+        if (vedtak == null) {
+            return;
+        }
+
+        LocalDateTime vedtakFattetDato = vedtak.getVedtakFattet();
+        boolean vedtakFattetDatoFoerOppfAvsluttetDato = vedtakFattetDato.isBefore(ChronoLocalDateTime.from(sluttDato));
+        if (vedtakFattetDatoFoerOppfAvsluttetDato) {
+            vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getId());
         }
     }
 
