@@ -6,6 +6,7 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.UUID;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
@@ -45,8 +47,8 @@ public class KafkaConsumerServiceTest {
         ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
         when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(nowMinus10Days));
 
-        kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(TEST_AKTOR_ID, oppfolgingAvsluttetDato))
+        kafkaConsumerService.behandleSisteOppfolgingsperiode(
+                new ConsumerRecord<>("", 0, 0, "", new KafkaSisteOppfolgingsperiode(UUID.randomUUID(), TEST_AKTOR_ID, ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault()), oppfolgingAvsluttetDato))
         );
 
         verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(anyLong());
@@ -56,11 +58,12 @@ public class KafkaConsumerServiceTest {
     public void skal_ikke_sette_gjeldende_til_historisk_hvis_fattet_etter_oppfolging_avsluttet() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nowMinus10Days = now.minusDays(10);
+        LocalDateTime nowMinus20Days = now.minusDays(20);
         ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault());
         when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(now));
 
-        kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaAvsluttOppfolging(TEST_AKTOR_ID, oppfolgingAvsluttetDato))
+        kafkaConsumerService.behandleSisteOppfolgingsperiode(
+                new ConsumerRecord<>("", 0, 0, "", new KafkaSisteOppfolgingsperiode(UUID.randomUUID(), TEST_AKTOR_ID, ZonedDateTime.of(nowMinus20Days, ZoneId.systemDefault()), oppfolgingAvsluttetDato))
         );
 
         verify(vedtaksstotteRepository, never()).settGjeldendeVedtakTilHistorisk(anyLong());
