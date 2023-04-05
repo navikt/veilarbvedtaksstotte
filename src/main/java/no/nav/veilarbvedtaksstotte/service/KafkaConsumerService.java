@@ -8,7 +8,6 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
@@ -16,7 +15,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,18 +52,6 @@ public class KafkaConsumerService {
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.norg2Client = norg2Client;
         this.aktorOppslagClient = aktorOppslagClient;
-    }
-
-    public void behandleEndringPaAvsluttOppfolging(ConsumerRecord<String, KafkaAvsluttOppfolging> kafkaAvsluttOppfolging) {
-        Vedtak vedtak = vedtaksstotteRepository.hentGjeldendeVedtak(kafkaAvsluttOppfolging.value().getAktorId());
-
-        if (vedtak != null) {
-            LocalDateTime vedtakFattetDato = vedtak.getVedtakFattet();
-            boolean vedtakFattetDatoFoerOppfAvsluttetDato = vedtakFattetDato.isBefore(kafkaAvsluttOppfolging.value().getSluttdato().toLocalDateTime());
-            if (vedtakFattetDatoFoerOppfAvsluttetDato) {
-                vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getId());
-            }
-        }
     }
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {

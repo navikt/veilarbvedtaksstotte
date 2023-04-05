@@ -4,7 +4,6 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaAvsluttOppfolging;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -19,7 +18,6 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
-import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.mockito.Mockito.*;
 
 public class KafkaConsumerServiceTest {

@@ -157,23 +157,6 @@ class KafkaConsumerConfig {
                             )
                         })
 
-            val avsluttOppfolgingClientConfigBuilder =
-                KafkaConsumerClientBuilder.TopicConfig<String, KafkaAvsluttOppfolging>()
-                    .withLogging()
-                    .withMetrics(meterRegistry)
-                    .withStoreOnFailure(consumerRepository)
-                    .withConsumerConfig(
-                        kafkaProperties.endringPaAvsluttOppfolgingTopic,
-                        Deserializers.stringDeserializer(),
-                        Deserializers.jsonDeserializer(
-                            KafkaAvsluttOppfolging::class.java
-                        ),
-                        Consumer { kafkaAvsluttOppfolging: ConsumerRecord<String, KafkaAvsluttOppfolging> ->
-                            kafkaConsumerService.behandleEndringPaAvsluttOppfolging(
-                                kafkaAvsluttOppfolging
-                            )
-                        })
-
             val sisteOppfolgingsperiodeClientConfigBuilder =
                 KafkaConsumerClientBuilder.TopicConfig<String, KafkaSisteOppfolgingsperiode>()
                     .withLogging()
@@ -190,7 +173,6 @@ class KafkaConsumerConfig {
                 vedtakStatusEndringClientConfigBuilder,
                 arenaVedtakClientConfigBuilder,
                 oppfolgingsbrukerEndringClientConfigBuilder,
-                avsluttOppfolgingClientConfigBuilder,
                 sisteOppfolgingsperiodeClientConfigBuilder
             )
         }
