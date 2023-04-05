@@ -85,7 +85,7 @@ public class KafkaConsumerService {
         KafkaSisteOppfolgingsperiode sisteOppfolgingsperiode = sisteOppfolgingsperiodeRecord.value();
 
         if (sisteOppfolgingsperiode == null) {
-            // TODO: Logging?
+            log.warn("Record for topic {} inneholdt tom verdi - ignorerer.", sisteOppfolgingsperiodeRecord.topic());
             return;
         }
 
@@ -93,13 +93,12 @@ public class KafkaConsumerService {
         ZonedDateTime sluttDato = sisteOppfolgingsperiode.getSluttDato();
 
         if (startDato == null && sluttDato != null) {
-            // TODO: Ugyldig tilstand
-            throw new IllegalStateException();
+            throw new IllegalStateException("Oppfølgingsperiode har sluttdato men ingen startdato.");
         }
 
         if (sluttDato == null) {
-            // TODO: Logging?
             // Vi er bare interessert i oppfølgingsperiode dersom den er avsluttet, dvs. sluttDato != null
+            log.info("Oppfølgingsperiode har ingen sluttdato - ingen behandling utføres.");
             return;
         }
 
@@ -111,10 +110,14 @@ public class KafkaConsumerService {
         }
 
         LocalDateTime vedtakFattetDato = vedtak.getVedtakFattet();
-        boolean vedtakFattetDatoFoerOppfAvsluttetDato = vedtakFattetDato.isBefore(ChronoLocalDateTime.from(sluttDato));
-        if (vedtakFattetDatoFoerOppfAvsluttetDato) {
-            vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getId());
+        boolean oppfolgingAvsluttetForVedtakFattet = vedtakFattetDato.isBefore(ChronoLocalDateTime.from(sluttDato));
+
+        if (oppfolgingAvsluttetForVedtakFattet) {
+            return;
         }
+
+        log.info("Setter gjeldende vedtak til historisk");
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getId());
     }
 
     private AktorId hentAktorIdMedDevSjekk(Fnr fnr) {
