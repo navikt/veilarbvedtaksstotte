@@ -71,7 +71,7 @@ class KafkaConsumerConfig {
         return aivenConsumerClient
     }
 
-    @Bean(destroyMethod = "stop")
+    @Bean(destroyMethod = "close")
     fun consumerRecordProcessor(
         jdbcTemplate: JdbcTemplate,
         kafkaConsumerRepository: KafkaConsumerRepository,
