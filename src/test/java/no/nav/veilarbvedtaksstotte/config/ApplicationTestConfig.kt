@@ -41,7 +41,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.testcontainers.containers.KafkaContainer
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 import javax.sql.DataSource
 
 @Configuration
