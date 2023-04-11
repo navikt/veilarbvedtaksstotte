@@ -239,7 +239,7 @@ class ClientConfig {
 
     companion object {
         private val isProduction: Boolean
-            get() = EnvironmentUtils.isProduction().orElseThrow()
+            private get() = EnvironmentUtils.isProduction().orElseThrow()
 
         private fun naisPreprodOrNaisAdeoIngress(appName: String, withAppContextPath: Boolean): String {
             return if (isProduction) UrlUtils.createNaisAdeoIngressUrl(

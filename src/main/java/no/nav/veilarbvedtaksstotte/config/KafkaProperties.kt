@@ -1,7 +1,9 @@
 package no.nav.veilarbvedtaksstotte.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConstructorBinding
 
+@ConstructorBinding
 @ConfigurationProperties(prefix = "app.kafka")
 data class KafkaProperties(
     val brokersUrl: String,
