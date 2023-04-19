@@ -1,10 +1,9 @@
 package no.nav.veilarbvedtaksstotte.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
+import org.springframework.boot.context.properties.bind.ConstructorBinding
 
 @ConfigurationProperties(prefix = "app.env")
-@ConstructorBinding
 data class EnvironmentProperties (
     val openAmDiscoveryUrl: String,
     val veilarbloginOpenAmClientId: String,
