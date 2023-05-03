@@ -56,9 +56,9 @@ spec:
     - name: ARENA_VEDTAK_TOPIC
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-q1
     - name: POAO_TILGANG_URL
-      value: https://poao-tilgang.intern.dev.nav.no
+      value: http://poao-tilgang.poao.svc.nais.local
     - name: POAO_TILGANG_SCOPE
-      value: api://dev-gcp.poao.poao-tilgang/.default
+      value: api://dev-fss.poao.poao-tilgang/.default
   azure:
     application:
       allowAllUsers: true
