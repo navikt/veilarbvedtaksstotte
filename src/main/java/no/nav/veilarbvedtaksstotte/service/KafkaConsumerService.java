@@ -110,9 +110,9 @@ public class KafkaConsumerService {
         }
 
         LocalDateTime vedtakFattetDato = vedtak.getVedtakFattet();
-        boolean oppfolgingAvsluttetForVedtakFattet = vedtakFattetDato.isBefore(ChronoLocalDateTime.from(sluttDato));
+        boolean vedtakFattetForOppfolgingAvsluttet = vedtakFattetDato.isBefore(sluttDato.toLocalDateTime());
 
-        if (oppfolgingAvsluttetForVedtakFattet) {
+        if (vedtakFattetForOppfolgingAvsluttet) {
             return;
         }
 
