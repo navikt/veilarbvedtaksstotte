@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.time.chrono.ChronoLocalDateTime;
 
 import static java.lang.String.format;
 import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
@@ -85,7 +84,7 @@ public class KafkaConsumerService {
         KafkaSisteOppfolgingsperiode sisteOppfolgingsperiode = sisteOppfolgingsperiodeRecord.value();
 
         if (sisteOppfolgingsperiode == null) {
-            log.warn("Record for topic {} inneholdt tom verdi - ignorerer.", sisteOppfolgingsperiodeRecord.topic());
+            log.warn("Record for topic {} inneholdt tom verdi - ignorerer melding.", sisteOppfolgingsperiodeRecord.topic());
             return;
         }
 
@@ -98,26 +97,30 @@ public class KafkaConsumerService {
 
         if (sluttDato == null) {
             // Vi er bare interessert i oppfølgingsperiode dersom den er avsluttet, dvs. sluttDato != null
-            log.info("Oppfølgingsperiode har ingen sluttdato - ingen behandling utføres.");
+            log.debug("Siste oppfølgingsperiode har ingen sluttdato - ignorerer melding.");
             return;
         }
 
         String aktorId = sisteOppfolgingsperiode.getAktorId();
-        Vedtak vedtak = vedtaksstotteRepository.hentGjeldendeVedtak(aktorId);
+        Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(aktorId);
 
-        if (vedtak == null) {
+        if (gjeldendeVedtak == null) {
+            log.debug("Brukeren har ingen gjeldende vedtak - ignorerer melding.");
             return;
         }
 
-        LocalDateTime vedtakFattetDato = vedtak.getVedtakFattet();
+        LocalDateTime vedtakFattetDato = gjeldendeVedtak.getVedtakFattet();
         boolean vedtakFattetForOppfolgingAvsluttet = vedtakFattetDato.isBefore(sluttDato.toLocalDateTime());
 
-        if (vedtakFattetForOppfolgingAvsluttet) {
+        if (!vedtakFattetForOppfolgingAvsluttet) {
+            log.warn("Gjeldende vedtak {} har startdato etter at siste oppfølgingsperiode {} ble " +
+                    "avsluttet. Vi kan derfor ikke sette vedtak til historisk. Man bør verifisere om brukeren er under " +
+                    "oppfølging eller ikke og eventuelt korrigere vedtaket manuelt.", gjeldendeVedtak.getId(), sisteOppfolgingsperiode.getUuid());
             return;
         }
 
-        log.info("Setter gjeldende vedtak til historisk");
-        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(vedtak.getId());
+        log.info("Setter gjeldende vedtak {} til historisk", gjeldendeVedtak.getId());
+        vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(gjeldendeVedtak.getId());
     }
 
     private AktorId hentAktorIdMedDevSjekk(Fnr fnr) {
