@@ -157,6 +157,7 @@ class KafkaConsumerConfig {
                             )
                         })
 
+            // TODO: Inkluder denne i listen over clientConfigBuildere når vi har avklart informasjonsbehov til pilotkontoret
             val sisteOppfolgingsperiodeClientConfigBuilder =
                 KafkaConsumerClientBuilder.TopicConfig<String, KafkaSisteOppfolgingsperiode>()
                     .withLogging()
@@ -172,8 +173,7 @@ class KafkaConsumerConfig {
             return listOf(
                 vedtakStatusEndringClientConfigBuilder,
                 arenaVedtakClientConfigBuilder,
-                oppfolgingsbrukerEndringClientConfigBuilder,
-                sisteOppfolgingsperiodeClientConfigBuilder
+                oppfolgingsbrukerEndringClientConfigBuilder
             )
         }
     }
