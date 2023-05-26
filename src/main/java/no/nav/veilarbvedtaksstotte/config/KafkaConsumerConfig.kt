@@ -60,7 +60,6 @@ class KafkaConsumerConfig {
         val aivenConsumerClient = KafkaConsumerClientBuilder.builder()
             .withProperties(environmentContext.aivenConsumerClientProperties)
             .withTopicConfigs(consumerAivenConfig.configs)
-            .withToggle { unleashService.isKafkaKonsumeringSkruddAv }
             .build()
 
         aivenConsumerClient.start()
