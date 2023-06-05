@@ -4,7 +4,6 @@ import no.nav.common.job.JobRunner
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.DistribusjonService
-import no.nav.veilarbvedtaksstotte.service.UnleashService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -15,14 +14,13 @@ class DistribuerJournalforteVedtakSchedule(
     val leaderElection: LeaderElectionClient,
     val distribusjonService: DistribusjonService,
     val vedtaksstotteRepository: VedtaksstotteRepository,
-    val unleashService: UnleashService
 ) {
 
     val log = LoggerFactory.getLogger(DistribuerJournalforteVedtakSchedule::class.java)
 
     @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     fun distribuerJournalforteVedtak() {
-        if (leaderElection.isLeader && unleashService.isDokDistScheduleEnabled) {
+        if (leaderElection.isLeader) {
             JobRunner.run("distribuer_journalforte_vedtak") {
 
                 val vedtakForDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentVedtakForDistribusjon(10)
