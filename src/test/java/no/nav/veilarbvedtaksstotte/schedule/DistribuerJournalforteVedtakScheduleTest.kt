@@ -8,7 +8,6 @@ import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.*
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.DistribusjonService
-import no.nav.veilarbvedtaksstotte.service.UnleashService
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import org.apache.commons.lang3.RandomStringUtils.randomAlphabetic
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
@@ -25,7 +24,6 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
     companion object {
 
         lateinit var leaderElection: LeaderElectionClient
-        lateinit var unleashService: UnleashService
         lateinit var dokdistribusjonClient: DokdistribusjonClient
         lateinit var distribusjonService: DistribusjonService
         lateinit var vedtakRepository: VedtaksstotteRepository
@@ -35,7 +33,6 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
         @JvmStatic
         fun setup() {
             leaderElection = mock(LeaderElectionClient::class.java)
-            unleashService = mock(UnleashService::class.java)
             dokdistribusjonClient = mock(DokdistribusjonClient::class.java)
             vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
             distribusjonService = DistribusjonService(vedtakRepository, dokdistribusjonClient)
@@ -43,7 +40,6 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
                 leaderElection = leaderElection,
                 distribusjonService = distribusjonService,
                 vedtaksstotteRepository = vedtakRepository,
-                unleashService = unleashService
             )
         }
     }
@@ -51,7 +47,6 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
     @Test
     fun `henter vedtak som skal distribueres, og distribuerer i batcher med avgrenset størrelse`() {
         `when`(leaderElection.isLeader).thenReturn(true)
-        `when`(unleashService.isDokDistScheduleEnabled).thenReturn(true)
         `when`(dokdistribusjonClient.distribuerJournalpost(any()))
             .then { DistribuerJournalpostResponsDTO(randomAlphabetic(10)) }
 
