@@ -21,6 +21,7 @@ import no.nav.common.utils.UrlUtils
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
+import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.aiaBackend
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.dokarkiv
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.pdl
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.regoppslag
@@ -28,7 +29,6 @@ import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.saf
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbarena
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarboppfolging
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbperson
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbvedtakinfo
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbveileder
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
@@ -38,8 +38,8 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClientImpl
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClientImpl
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
@@ -79,13 +79,13 @@ class ClientConfig {
     }
 
     @Bean
-    fun egenvurderingClient(oboContexService: OboContexService): VeilarbvedtakinfoClient {
-        val clientCluster = if (isProduction) "prod-fss" else "dev-fss"
+    fun egenvurderingClient(oboContexService: OboContexService, properties: EnvironmentProperties): EgenvurderingClient {
+        val clientCluster = if (isProduction) "prod-gcp" else "dev-gcp"
         val userTokenSupplier = oboContexService.userTokenSupplier(
-            veilarbvedtakinfo.invoke(clientCluster)
+            aiaBackend.invoke(clientCluster)
         )
-        return VeilarbvedtakinfoClientImpl(
-            naisPreprodOrNaisAdeoIngress("veilarbvedtakinfo", true),
+        return EgenvurderingClientImpl(
+            properties.aiaBackendUrl,
             userTokenSupplier
         )
     }
