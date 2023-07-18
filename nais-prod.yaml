@@ -55,8 +55,6 @@ spec:
       value: http://poao-tilgang.poao.svc.nais.local
     - name: POAO_TILGANG_SCOPE
       value: api://prod-fss.poao.poao-tilgang/.default
-    - name: AIA_BACKEND_URL
-      value: https://www.nav.no/aia-backend
   azure:
     application:
       allowAllUsers: true

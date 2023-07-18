@@ -8,6 +8,8 @@ object DownstreamAPIs {
     @JvmStatic
     val veilarbperson: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarbperson") }
     @JvmStatic
+    val veilarbvedtakinfo: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarbvedtakinfo") }
+    @JvmStatic
     val veilarbarena: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarbarena") }
     @JvmStatic
     val veilarboppfolging: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarboppfolging") }
@@ -19,6 +21,5 @@ object DownstreamAPIs {
     val regoppslag: (String) -> DownstreamApi = { DownstreamApi(it, "teamdokumenthandtering", if(it == "dev-fss") "regoppslag-q1" else "regoppslag") }
     @JvmStatic
     val pdl: (String) -> DownstreamApi = { DownstreamApi(it, "pdl", "pdl-api") }
-    @JvmStatic
-    val aiaBackend: (String) -> DownstreamApi = { DownstreamApi(it, "paw","paw-arbeidssoker-besvarelse") }
+
 }
