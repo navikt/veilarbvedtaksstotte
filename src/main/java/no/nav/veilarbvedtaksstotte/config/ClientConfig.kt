@@ -30,6 +30,8 @@ import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbarena
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarboppfolging
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbperson
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbveileder
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -38,8 +40,6 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClientImpl
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
@@ -79,12 +79,12 @@ class ClientConfig {
     }
 
     @Bean
-    fun egenvurderingClient(oboContexService: OboContexService, properties: EnvironmentProperties): EgenvurderingClient {
+    fun aiaBackendClient(oboContexService: OboContexService, properties: EnvironmentProperties): AiaBackendClient {
         val clientCluster = if (isProduction) "prod-gcp" else "dev-gcp"
         val userTokenSupplier = oboContexService.userTokenSupplier(
             aiaBackend.invoke(clientCluster)
         )
-        return EgenvurderingClientImpl(
+        return AiaBackendClientImpl(
             properties.aiaBackendUrl,
             userTokenSupplier
         )

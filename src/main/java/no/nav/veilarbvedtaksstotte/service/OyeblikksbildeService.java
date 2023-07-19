@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.AktorId;
 
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingData;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingForPersonDTO;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingResponseDTO;
@@ -32,7 +32,7 @@ public class OyeblikksbildeService {
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final VeilarbpersonClient veilarbpersonClient;
     private final VeilarbregistreringClient registreringClient;
-    private final EgenvurderingClient egenvurderingClient;
+    private final AiaBackendClient egenvurderingClient;
 
     @Autowired
     public OyeblikksbildeService(
@@ -41,7 +41,7 @@ public class OyeblikksbildeService {
             VedtaksstotteRepository vedtaksstotteRepository,
             VeilarbpersonClient veilarbpersonClient,
             VeilarbregistreringClient registreringClient,
-            EgenvurderingClient egenvurderingClient
+            AiaBackendClient egenvurderingClient
     ) {
         this.oyeblikksbildeRepository = oyeblikksbildeRepository;
         this.authService = authService;

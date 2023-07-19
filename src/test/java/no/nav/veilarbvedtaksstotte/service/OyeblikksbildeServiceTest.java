@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
@@ -21,7 +21,7 @@ class OyeblikksbildeServiceTest {
 	private static final VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
 	private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
 	private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
-	private static final EgenvurderingClient egenvurderingClient = mock(EgenvurderingClient.class);
+	private static final AiaBackendClient egenvurderingClient = mock(AiaBackendClient.class);
 	private static final OyeblikksbildeService oyeblikksbildeService = new OyeblikksbildeService(
 		authService,
 		oyeblikksbildeRepository,
