@@ -17,9 +17,7 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingResponseDTO;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingForPersonDTO;
+import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
@@ -43,7 +41,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,8 +50,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Map;
-import java.util.HashMap;
 
 import static no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
@@ -81,7 +76,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
-    private static final EgenvurderingClient egenvurderingClient = mock(EgenvurderingClient.class);
+    private static final VeilarbvedtakinfoClient egenvurderingClient = mock(VeilarbvedtakinfoClient.class);
     private static final RegoppslagClient regoppslagClient = mock(RegoppslagClient.class);
     private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
@@ -99,7 +94,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private static final String CV_DATA = "{\"cv\": \"cv\"}";
     private static final String REGISTRERING_DATA = "{\"registrering\": \"registrering\"}";
-    private static final String EGENVURDERING_DATO = new Instant().toString();
+    private static final String EGENVURDERING_DATA = "{\"egenvurdering\": \"egenvurdering\"}";
 
     @BeforeAll
     public static void setupOnce() {
@@ -140,9 +135,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @BeforeEach
     public void setup() {
-        Map<String,String> egenvurderingstekster = new HashMap<>();
-        egenvurderingstekster.put("STANDARD_INNSATS", "Svar jeg klarer meg");
-        EgenvurderingResponseDTO egenvurderingResponse = new EgenvurderingResponseDTO(EGENVURDERING_DATO, "123456", "STANDARD_INNSATS", new EgenvurderingResponseDTO.Tekster("testspm", egenvurderingstekster));
         DbTestUtils.cleanupDb(jdbcTemplate);
         reset(veilederService);
         reset(meldingRepository);
@@ -159,7 +151,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentMålform(TEST_FNR)).thenReturn(Målform.NB);
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(registreringClient.hentRegistreringDataJson(TEST_FNR.get())).thenReturn(REGISTRERING_DATA);
-        when(egenvurderingClient.hentEgenvurdering(new EgenvurderingForPersonDTO(TEST_FNR.get()))).thenReturn(egenvurderingResponse);
+        when(egenvurderingClient.hentEgenvurdering(TEST_FNR.get())).thenReturn(EGENVURDERING_DATA);
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));
@@ -522,18 +514,13 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     private void assertOyeblikksbildeForFattetVedtak(long vedtakId) {
-		String egenvurderingdata = getEgenvurderingData();
         withContext(() -> {
             List<Oyeblikksbilde> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
             assertThat(oyeblikksbilde, containsInAnyOrder(
                     equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.REGISTRERINGSINFO, REGISTRERING_DATA)),
                     equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.CV_OG_JOBBPROFIL, CV_DATA)),
-                    equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.EGENVURDERING, egenvurderingdata)))
+                    equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.EGENVURDERING, EGENVURDERING_DATA)))
             );
         });
-    }
-
-    private String getEgenvurderingData() {
-        return "{\"sistOppdatert\":\""+EGENVURDERING_DATO+"\",\"svar\":[{\"spm\":\"testspm\",\"svar\":\"Svar jeg klarer meg\",\"oppfolging\":\"STANDARD_INNSATS\",\"dialogId\":\"123456\"}]}";
     }
 }
