@@ -1,0 +1,12 @@
+{
+  "dato": "2023-06-19T08:42:31.389Z",
+  "dialogId": "dialog-123",
+  "oppfolging": "SITUASJONSBESTEMT_INNSATS",
+  "tekster": {
+    "sporsmal": "Testspm",
+    "svar": {
+      "STANDARD_INNSATS": "Svar jeg klarer meg",
+      "SITUASJONSBESTEMT_INNSATS": "Svar jeg trenger hjelp"
+    }
+  }
+}
