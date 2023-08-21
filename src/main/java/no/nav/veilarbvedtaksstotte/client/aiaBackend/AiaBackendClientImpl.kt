@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.egenvurdering
+package no.nav.veilarbvedtaksstotte.client.aiaBackend
 
 import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
@@ -15,12 +15,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import java.util.function.Supplier
 
-class EgenvurderingClientImpl(private val aiaBackendUrl: String, private val userTokenSupplier: Supplier<String>) : EgenvurderingClient {
+class AiaBackendClientImpl(private val aiaBackendUrl: String, private val userTokenSupplier: Supplier<String>) : AiaBackendClient {
 
-    private val log: Logger = LoggerFactory.getLogger(EgenvurderingClientImpl::class.java)
+    private val log: Logger = LoggerFactory.getLogger(AiaBackendClientImpl::class.java)
 
     private val client: OkHttpClient = RestClient.baseClient()
-    
+
     override fun hentEgenvurdering(egenvurderingForPersonDTO: EgenvurderingForPersonDTO): EgenvurderingResponseDTO? {
         val request = Request.Builder()
             .url(joinPaths(aiaBackendUrl, "/veileder/behov-for-veiledning"))
@@ -31,6 +31,23 @@ class EgenvurderingClientImpl(private val aiaBackendUrl: String, private val use
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
             log.debug("Behovsvurdering - responsestatus: {}", response.code)
+            if (response.code == 204) {
+                return null
+            }
+            return response.deserializeJsonOrThrow()
+        }
+    }
+
+    override fun hentEndringIRegistreringdata(endringIRegistreringdataRequest: EndringIRegistreringdataRequest): EndringIRegistreringsdataResponse? {
+        val request = Request.Builder()
+            .url(joinPaths(aiaBackendUrl, "/veileder/besvarelse"))
+            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+            .post(endringIRegistreringdataRequest.toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            RestUtils.throwIfNotSuccessful(response)
+            log.debug("Endring i registreringsdata - responsestatus: {}", response.code)
             if (response.code == 204) {
                 return null
             }

@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.egenvurdering
+package no.nav.veilarbvedtaksstotte.client.aiaBackend
 
 data class EgenvurderingData(
     val sistOppdatert: String? = null,

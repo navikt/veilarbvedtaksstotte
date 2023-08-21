@@ -6,7 +6,7 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}/veilarbvedtaksstotte
   PRINT_PAYLOAD: true
 permissions:
-  packages: write  
+  packages: write
   contents: write
 jobs:
   build-and-push:

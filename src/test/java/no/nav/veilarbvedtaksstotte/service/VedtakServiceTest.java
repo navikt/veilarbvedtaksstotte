@@ -13,13 +13,11 @@ import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.poao_tilgang.client.PoaoTilgangClient;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.*;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingForPersonDTO;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
@@ -44,6 +42,7 @@ import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.joda.time.Instant;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,7 +80,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
-    private static final EgenvurderingClient egenvurderingClient = mock(EgenvurderingClient.class);
+    private static final AiaBackendClient AIA_BACKEND_CLIENT = mock(AiaBackendClient.class);
     private static final RegoppslagClient regoppslagClient = mock(RegoppslagClient.class);
     private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
@@ -98,7 +97,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
 
     private static final String CV_DATA = "{\"cv\": \"cv\"}";
-    private static final String REGISTRERING_DATA = "{\"registrering\": \"registrering\"}";
     private static final String EGENVURDERING_DATO = new Instant().toString();
 
     @BeforeAll
@@ -111,7 +109,7 @@ public class VedtakServiceTest extends DatabaseTest {
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
         authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaService, abacClient, credentials, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient, unleashService));
-        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, egenvurderingClient);
+        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, AIA_BACKEND_CLIENT);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
         DokumentService dokumentService = new DokumentService(
                 regoppslagClient,
@@ -158,8 +156,9 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(CV_DATA);
         when(veilarbpersonClient.hentMålform(TEST_FNR)).thenReturn(Målform.NB);
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
-        when(registreringClient.hentRegistreringDataJson(TEST_FNR.get())).thenReturn(REGISTRERING_DATA);
-        when(egenvurderingClient.hentEgenvurdering(new EgenvurderingForPersonDTO(TEST_FNR.get()))).thenReturn(egenvurderingResponse);
+        when(registreringClient.hentRegistreringDataJson(TEST_FNR.get())).thenReturn(getRegistreringsdata());
+        when(AIA_BACKEND_CLIENT.hentEgenvurdering(new EgenvurderingForPersonDTO(TEST_FNR.get()))).thenReturn(egenvurderingResponse);
+        when(AIA_BACKEND_CLIENT.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(TEST_FNR.get()))).thenReturn(getEndringIRegistreringsdataResponse());
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));
@@ -526,14 +525,69 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             List<Oyeblikksbilde> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
             assertThat(oyeblikksbilde, containsInAnyOrder(
-                    equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.REGISTRERINGSINFO, REGISTRERING_DATA)),
+                    equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.REGISTRERINGSINFO, getOppdatertRegistreringsdata())),
                     equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.CV_OG_JOBBPROFIL, CV_DATA)),
                     equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.EGENVURDERING, egenvurderingdata)))
             );
         });
     }
 
-	private String getEgenvurderingData() {
+    private String getEgenvurderingData() {
         return "{\"sistOppdatert\":\""+EGENVURDERING_DATO+"\",\"svar\":[{\"spm\":\"testspm\",\"svar\":\"Svar jeg klarer meg\",\"oppfolging\":\"STANDARD_INNSATS\",\"dialogId\":\"123456\"}]}";
+    }
+
+    private String getRegistreringsdata() {
+        return "{\"registrering\":{\"id\":10004240,\"opprettetDato\":\"2023-06-22T16:47:18.325956+02:00\",\"besvarelse\":{\"utdanning\":\"HOYERE_UTDANNING_5_ELLER_MER\",\"utdanningBestatt\":\"JA\",\"utdanningGodkjent\":\"JA\",\"helseHinder\":\"NEI\",\"andreForhold\":\"NEI\"," +
+                "\"sisteStilling\":\"INGEN_SVAR\",\"dinSituasjon\":\"MISTET_JOBBEN\",\"fremtidigSituasjon\":null,\"tilbakeIArbeid\":null},\"teksterForBesvarelse\":[{\"sporsmalId\":\"dinSituasjon\",\"sporsmal\":\"Velg den situasjonen som passer deg best\",\"svar\":\"Har mistet eller kommer til å miste jobben\"},{\"sporsmalId\":\"utdanning\",\"sporsmal\":\"Hva er din høyeste fullførte utdanning?\"," +
+                "\"svar\":\"Høyere utdanning (5 år eller mer)\"},{" +
+                "\"sporsmalId\":\"utdanningGodkjent\",\"sporsmal\":\"Er utdanningen din godkjent i Norge?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"utdanningBestatt\",\"sporsmal\":\"Er utdanningen din bestått?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"andreForhold\",\"sporsmal\":\"Har du andre problemer med å søke eller være i jobb?\",\"svar\":\"Nei\"},{" +
+                "\"sporsmalId\":\"sisteStilling\",\"sporsmal\":\"Hva er din siste jobb?\",\"svar\":\"Annen stilling\"},{" +
+                "\"sporsmalId\":\"helseHinder\",\"sporsmal\":\"Har du helseproblemer som hindrer deg i å søke eller være i jobb?\",\"svar\":\"Nei\"}]," +
+                "\"sisteStilling\": {\"label\":\"Annen stilling\",\"konseptId\": -1,\"styrk08\":\"-1\"}," +
+                "\"profilering\": {\"innsatsgruppe\":\"SITUASJONSBESTEMT_INNSATS\",\"alder\": 28,\"jobbetSammenhengendeSeksAvTolvSisteManeder\": false}," +
+                "\"manueltRegistrertAv\": null},\"type\":\"ORDINAER\"}";
+    }
+
+    private String getOppdatertRegistreringsdata() {
+        return new JSONObject(
+        "{\"registrering\":{\"id\":10004240,\"opprettetDato\":\"2023-06-22T16:47:18.325956+02:00\",\"besvarelse\":{\"utdanning\":\"HOYERE_UTDANNING_5_ELLER_MER\",\"utdanningBestatt\":\"JA\",\"utdanningGodkjent\":\"JA\",\"helseHinder\":\"NEI\",\"andreForhold\":\"NEI\"," +
+                "\"sisteStilling\":\"INGEN_SVAR\",\"dinSituasjon\":\"OPPSIGELSE\",\"fremtidigSituasjon\":null,\"tilbakeIArbeid\":null},\"teksterForBesvarelse\":[{\"sporsmalId\":\"dinSituasjon\",\"sporsmal\":\"Velg den situasjonen som passer deg best\",\"svar\":\"Jeg har blitt sagt opp av arbeidsgiver\"},{\"sporsmalId\":\"utdanning\",\"sporsmal\":\"Hva er din høyeste fullførte utdanning?\"," +
+                "\"svar\":\"Høyere utdanning (5 år eller mer)\"},{" +
+                "\"sporsmalId\":\"utdanningGodkjent\",\"sporsmal\":\"Er utdanningen din godkjent i Norge?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"utdanningBestatt\",\"sporsmal\":\"Er utdanningen din bestått?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"andreForhold\",\"sporsmal\":\"Har du andre problemer med å søke eller være i jobb?\",\"svar\":\"Nei\"},{" +
+                "\"sporsmalId\":\"sisteStilling\",\"sporsmal\":\"Hva er din siste jobb?\",\"svar\":\"Annen stilling\"},{" +
+                "\"sporsmalId\":\"helseHinder\",\"sporsmal\":\"Har du helseproblemer som hindrer deg i å søke eller være i jobb?\",\"svar\":\"Nei\"}]," +
+                "\"sisteStilling\": {\"label\":\"Annen stilling\",\"konseptId\": -1,\"styrk08\":\"-1\"}," +
+                "\"profilering\": {\"innsatsgruppe\":\"SITUASJONSBESTEMT_INNSATS\",\"alder\": 28,\"jobbetSammenhengendeSeksAvTolvSisteManeder\": false}," +
+                "\"manueltRegistrertAv\": null, \"endretAv\":\"BRUKER\", \"endretTidspunkt\":\"2023-07-18T11:24:03.158629\"},\"type\":\"ORDINAER\"}").toString();
+    }
+
+    private EndringIRegistreringsdataResponse getEndringIRegistreringsdataResponse() {
+        return new EndringIRegistreringsdataResponse(
+                10004400,
+                new EndringIRegistreringsdataResponse.Besvarelse(
+                        new EndringIRegistreringsdataResponse.Besvarelse.Utdanning("HOYERE_UTDANNING_1_TIL_4", null, null, null, null),
+                        new EndringIRegistreringsdataResponse.Besvarelse.UtdanningBestatt("JA", null, null, null, null),
+                        new EndringIRegistreringsdataResponse.Besvarelse.UtdanningGodkjent("JA", null, null, null, null),
+                        new EndringIRegistreringsdataResponse.Besvarelse.HelseHinder("JA", null, null, null, null),
+                        new EndringIRegistreringsdataResponse.Besvarelse.AndreForhold("NEI", null, null, null, null),
+                        new EndringIRegistreringsdataResponse.Besvarelse.SisteStilling("INGEN_SVAR", null, null, null, null),
+                        new EndringIRegistreringsdataResponse.Besvarelse.DinSituasjon(
+                                "OPPSIGELSE",
+                                new EndringIRegistreringsdataResponse.Besvarelse.DinSituasjon.TilleggsData(null, "2023-07-31", "2023-07-19", null, null, null, null, null),
+                                null,
+                                null,
+                                "BRUKER",
+                                "2023-07-18T11:24:03.136693338"
+                        ),
+                        new EndringIRegistreringsdataResponse.Besvarelse.FremtidigSituasjon(null, null, null, null, null),
+                        new EndringIRegistreringsdataResponse.Besvarelse.TilbakeIArbeid(null, null, null, null, null)
+
+                ),
+                "BRUKER",
+                "2023-07-18T11:24:03.158629",
+                "2023-07-17T11:27:25.299658",
+                "BRUKER",
+                true
+        );
     }
 }

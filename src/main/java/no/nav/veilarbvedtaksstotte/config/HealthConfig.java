@@ -9,7 +9,7 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
@@ -37,7 +37,7 @@ public class HealthConfig {
 
     @Bean
     public SelfTestChecks selfTestChecks(VeilarbarenaClient arenaClient,
-                                         EgenvurderingClient egenvurderingClient,
+                                         AiaBackendClient aiaBackendClient,
                                          VeilarboppfolgingClient oppfolgingClient,
                                          VeilarbpersonClient veilarbpersonClient,
                                          VeilarbregistreringClient registreringClient,
@@ -56,7 +56,7 @@ public class HealthConfig {
                 new SelfTestCheck("ArenaClient", false, arenaClient),
                 new SelfTestCheck("pto-pdfgen", false, pdfClient),
                 new SelfTestCheck("Norg2", true, norg2Client),
-                new SelfTestCheck("EgenvurderingClient", false, egenvurderingClient),
+                new SelfTestCheck("EgenvurderingClient", false, aiaBackendClient),
                 new SelfTestCheck("OppfolgingClient", false, oppfolgingClient),
                 new SelfTestCheck("PersonClient", false, veilarbpersonClient),
                 new SelfTestCheck("RegistreringClient (via veilarbperson)", false, registreringClient),
