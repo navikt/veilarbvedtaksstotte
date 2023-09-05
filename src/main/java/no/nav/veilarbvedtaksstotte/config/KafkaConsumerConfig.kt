@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config
 
+import io.getunleash.DefaultUnleash
 import io.micrometer.core.instrument.MeterRegistry
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider
 import no.nav.common.kafka.consumer.KafkaConsumerClient
@@ -13,7 +14,7 @@ import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
 import no.nav.veilarbvedtaksstotte.domain.kafka.*
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
-import no.nav.veilarbvedtaksstotte.service.UnleashService
+import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_SKRUDD_AV
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -54,13 +55,13 @@ class KafkaConsumerConfig {
     fun aivenConsumerClient(
         environmentContext: KafkaEnvironmentContext,
         consumerAivenConfig: ConsumerAivenConfig,
-        unleashService: UnleashService
+        unleashService: DefaultUnleash
     ): KafkaConsumerClient {
 
         val aivenConsumerClient = KafkaConsumerClientBuilder.builder()
             .withProperties(environmentContext.aivenConsumerClientProperties)
             .withTopicConfigs(consumerAivenConfig.configs)
-            .withToggle { unleashService.isKafkaKonsumeringSkruddAv }
+            .withToggle { unleashService.isEnabled(KAFKA_KONSUMERING_SKRUDD_AV) }
             .build()
 
         aivenConsumerClient.start()

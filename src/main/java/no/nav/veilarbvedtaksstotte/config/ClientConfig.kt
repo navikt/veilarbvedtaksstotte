@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config
 
+import io.getunleash.DefaultUnleash
+import io.getunleash.util.UnleashConfig
 import no.nav.common.abac.AbacCachedClient
 import no.nav.common.abac.AbacClient
 import no.nav.common.abac.AbacHttpClient
@@ -8,8 +10,6 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.CachedAktorOppslagClient
 import no.nav.common.client.aktoroppslag.PdlAktorOppslagClient
 import no.nav.common.client.pdl.PdlClientImpl
-import no.nav.common.featuretoggle.UnleashClient
-import no.nav.common.featuretoggle.UnleashClientImpl
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.job.leader_election.LeaderElectionHttpClient
 import no.nav.common.metrics.InfluxClient
@@ -195,9 +195,15 @@ class ClientConfig {
     }
 
     @Bean
-    fun unleashClient(properties: EnvironmentProperties): UnleashClient {
-        return UnleashClientImpl(properties.unleashUrl, ApplicationConfig.APPLICATION_NAME)
-    }
+    fun unleashClient(properties: EnvironmentProperties): DefaultUnleash = DefaultUnleash(
+        UnleashConfig.builder()
+            .appName(ApplicationConfig.APPLICATION_NAME)
+            .instanceId(ApplicationConfig.APPLICATION_NAME)
+            .unleashAPI(properties.unleashUrl)
+            .apiKey(properties.unleashApiToken)
+			.environment(if (isProduction) "production" else "development")
+            .build()
+    )
 
     @Bean
     fun influxMetricsClient(): MetricsClient {

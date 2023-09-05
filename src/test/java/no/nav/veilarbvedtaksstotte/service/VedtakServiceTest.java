@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.VeilarbPep;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
@@ -75,7 +76,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private static OyeblikksbildeService oyeblikksbildeService;
     private static AuthService authService;
 
-    private static final UnleashService unleashService = mock(UnleashService.class);
+    private static final DefaultUnleash unleashService = mock(DefaultUnleash.class);
     private static final VedtakHendelserService vedtakHendelserService = mock(VedtakHendelserService.class);
     private static final VeilederService veilederService = mock(VeilederService.class);
 

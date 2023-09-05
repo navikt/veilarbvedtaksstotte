@@ -89,5 +89,9 @@ spec:
         - application: pto-admin
           namespace: pto
           cluster: prod-fss
+    outbound:
+      external:
+        - host: team-obo-unleash-web.nav.cloud.nais.io
   envFrom:
     - configmap: pto-config
+    - secret: veilarbvedtaksstotte-unleash-api-token

@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
 import no.nav.common.abac.AbacClient
 import no.nav.common.abac.Pep
 import no.nav.common.abac.XacmlMapper
@@ -16,6 +17,7 @@ import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.api.ApiResult
+import no.nav.veilarbvedtaksstotte.utils.POAO_TILGANG_ENABLED
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
@@ -38,7 +40,7 @@ class AuthServiceTest {
     var abacClient = Mockito.mock(AbacClient::class.java)
     var serviceUserCredentials = Mockito.mock(Credentials::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
-    var unleashService = Mockito.mock(UnleashService::class.java)
+    var unleashService = Mockito.mock(DefaultUnleash::class.java)
     var authService =
         AuthService(aktorOppslagClient, pep, veilarbarenaService, abacClient, serviceUserCredentials, authContextHolder, utrullingService, poaoTilgangClient, unleashService)
 
@@ -92,7 +94,7 @@ class AuthServiceTest {
     @Test
     fun sjekkTilgangTilBruker__skal_bruke_poao_tilgang_hvis_toggle_er_pa() {
         `when`(
-            unleashService.isPoaoTilgangEnabled
+            unleashService.isEnabled(POAO_TILGANG_ENABLED)
         ).thenReturn(true)
         `when`(
             pep.harVeilederTilgangTilPerson(any(), any(), any())
@@ -109,7 +111,7 @@ class AuthServiceTest {
     //@Test
     fun sjekkTilgangTilBruker__skal_kaste_exception_hvis_poao_tilgang_gir_decision_deny() {
         `when`(
-            unleashService.isPoaoTilgangEnabled
+            unleashService.isEnabled(POAO_TILGANG_ENABLED)
         ).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
@@ -125,7 +127,7 @@ class AuthServiceTest {
     @Test
     fun sjekkTilgangTilEnhet__skal_bruke_poao_tilgang_hvis_toggle_er_pa() {
         `when`(
-            unleashService.isPoaoTilgangEnabled
+            unleashService.isEnabled(POAO_TILGANG_ENABLED)
         ).thenReturn(true)
         `when`(
             pep.harVeilederTilgangTilEnhet(any(), any())

@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import com.nimbusds.jwt.JWTClaimsSet
+import io.getunleash.DefaultUnleash
 import no.nav.common.abac.AbacClient
 import no.nav.common.abac.Pep
 import no.nav.common.abac.constants.NavAttributter
@@ -24,6 +25,7 @@ import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.utils.POAO_TILGANG_ENABLED
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -44,7 +46,7 @@ class AuthService(
     private val authContextHolder: AuthContextHolder,
     private val utrullingService: UtrullingService,
     private val poaoTilgangClient: PoaoTilgangClient,
-    private val unleashService: UnleashService
+    private val unleashService: DefaultUnleash
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     fun sjekkTilgangTilBruker(fnr: Fnr) {
@@ -74,7 +76,7 @@ class AuthService(
         val harVeilederTilgangTilPerson =
             veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)
 
-        if(unleashService.isPoaoTilgangEnabled) {
+        if(unleashService.isEnabled(POAO_TILGANG_ENABLED)) {
             poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
                     hentInnloggetVeilederUUID(), TilgangType.SKRIVE, fnr.get()
@@ -196,7 +198,7 @@ class AuthService(
         val harVeilederTilgangTilEnhet =
             veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(innloggetVeilederIdent), enhet)
 
-        if (unleashService.isPoaoTilgangEnabled()){
+        if (unleashService.isEnabled(POAO_TILGANG_ENABLED)){
             poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilNavEnhetPolicyInput(
                     hentInnloggetVeilederUUID(), enhet.get()
