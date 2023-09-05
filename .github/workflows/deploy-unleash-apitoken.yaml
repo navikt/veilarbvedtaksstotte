@@ -3,7 +3,7 @@ on:
   push:
     paths:
       - ".github/workflows/deploy-unleash-apitoken.yaml"
-      - ".nais/appliaction/unleash-apitoken-dev.yaml"
+      - ".nais/application/unleash-apitoken-dev.yaml"
       - ".nais/application/unleash-apitoken-prod.yaml"
 
 jobs:
