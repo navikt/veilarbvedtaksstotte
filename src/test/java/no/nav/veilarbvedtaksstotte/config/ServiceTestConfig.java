@@ -21,7 +21,6 @@ import org.springframework.context.annotation.Import;
         VeilederService.class,
         DokumentService.class,
         DistribusjonService.class,
-        UnleashService.class,
         UtrullingService.class,
         Siste14aVedtakService.class,
         KafkaProducerService.class,

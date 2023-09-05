@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.config;
 
-import no.nav.common.featuretoggle.UnleashClient;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.selftest.SelfTestCheck;
 import no.nav.common.health.selftest.SelfTestChecks;
@@ -48,7 +47,6 @@ public class HealthConfig {
                                          DokarkivClient dokarkivClient,
                                          DokdistribusjonClient dokdistribusjonClient,
                                          RegoppslagClient regoppslagClient,
-                                         UnleashClient unleashClient,
                                          DataSourceHealthIndicator dataSourceHealthIndicator) {
 
 
@@ -62,7 +60,6 @@ public class HealthConfig {
                 new SelfTestCheck("RegistreringClient (via veilarbperson)", false, registreringClient),
                 new SelfTestCheck("SafClient", false, safClient),
                 new SelfTestCheck("veilarbveileder", false, veilarbveilederClient),
-                new SelfTestCheck("UnleashClient", false, unleashClient),
                 new SelfTestCheck("Ping database", true, () -> checkDbHealth(dataSourceHealthIndicator)),
                 new SelfTestCheck("DokarkivClient", false, dokarkivClient),
                 new SelfTestCheck("DokdistribusjonClient", false, dokdistribusjonClient),
