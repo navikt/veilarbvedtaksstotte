@@ -1,9 +1,6 @@
 name: Deploy unleash-apitoken
 on:
   push:
-    branches:
-      - dev
-      - master
     paths:
       - ".github/workflows/deploy-unleash-apitoken.yaml"
       - ".nais/appliaction/unleash-apitoken-dev.yaml"
