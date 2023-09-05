@@ -10,6 +10,6 @@ spec:
   unleashInstance:
     apiVersion: unleash.nais.io/v1
     kind: RemoteUnleash
-    name: team obo
+    name: team-obo
   secretName: veilarbvedtaksstotte-unleash-api-token
   environment: production
