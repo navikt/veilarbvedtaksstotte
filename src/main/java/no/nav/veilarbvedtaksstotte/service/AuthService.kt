@@ -75,7 +75,7 @@ class AuthService(
 
         val harVeilederTilgangTilPerson =
             veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)
-
+		log.info("BRYTERCHECK POAO-TILGANG: {}", unleashService.isEnabled(POAO_TILGANG_ENABLED))
         if(unleashService.isEnabled(POAO_TILGANG_ENABLED)) {
             poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
@@ -197,7 +197,7 @@ class AuthService(
 
         val harVeilederTilgangTilEnhet =
             veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(innloggetVeilederIdent), enhet)
-
+		log.info("BRYTERCHECK POAO-TILGANG: {}", unleashService.isEnabled(POAO_TILGANG_ENABLED))
         if (unleashService.isEnabled(POAO_TILGANG_ENABLED)){
             poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilNavEnhetPolicyInput(

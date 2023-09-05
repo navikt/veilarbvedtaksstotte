@@ -15,7 +15,9 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.*
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
 import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_SKRUDD_AV
+import no.nav.veilarbvedtaksstotte.utils.POAO_TILGANG_ENABLED
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -26,7 +28,7 @@ import java.util.function.Consumer
 @EnableConfigurationProperties(KafkaProperties::class)
 class KafkaConsumerConfig {
     data class ConsumerAivenConfig(val configs: List<KafkaConsumerClientBuilder.TopicConfig<*, *>>)
-
+	private val log = LoggerFactory.getLogger(javaClass)
     @Bean
     fun consumerAivenConfig(
         kafkaConsumerService: KafkaConsumerService,
@@ -57,7 +59,7 @@ class KafkaConsumerConfig {
         consumerAivenConfig: ConsumerAivenConfig,
         unleashService: DefaultUnleash
     ): KafkaConsumerClient {
-
+		log.info("BRYTERCHECK KAFKA: {}", unleashService.isEnabled(KAFKA_KONSUMERING_SKRUDD_AV))
         val aivenConsumerClient = KafkaConsumerClientBuilder.builder()
             .withProperties(environmentContext.aivenConsumerClientProperties)
             .withTopicConfigs(consumerAivenConfig.configs)
