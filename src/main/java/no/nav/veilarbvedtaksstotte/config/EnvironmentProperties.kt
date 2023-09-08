@@ -12,6 +12,7 @@ data class EnvironmentProperties (
     val abacUrl: String,
     val dbUrl: String,
     val unleashUrl: String,
+    val unleashApiToken: String,
     val norg2Url: String,
     val naisAadDiscoveryUrl: String,
     val naisAadClientId: String,
