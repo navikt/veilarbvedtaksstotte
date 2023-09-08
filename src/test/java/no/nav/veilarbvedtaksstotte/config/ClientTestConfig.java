@@ -8,15 +8,13 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EksternBrukerId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.*;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingClient;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingForPersonDTO;
-import no.nav.veilarbvedtaksstotte.client.egenvurdering.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetOrganisering;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
@@ -37,6 +35,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.domain.Målform;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joda.time.Instant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -156,8 +155,8 @@ public class ClientTestConfig {
     }
 
     @Bean
-    public EgenvurderingClient egenvurderingClient() {
-        return new EgenvurderingClient() {
+    public AiaBackendClient egenvurderingClient() {
+        return new AiaBackendClient() {
             @Override
             public EgenvurderingResponseDTO hentEgenvurdering(EgenvurderingForPersonDTO egenvurderingForPersonDTO) {
                 Map<String,String> egenvurderingstekster = new HashMap<>();
@@ -165,6 +164,11 @@ public class ClientTestConfig {
                 return new EgenvurderingResponseDTO("STANDARD_INNSATS", new Instant().toString(), "123456", new EgenvurderingResponseDTO.Tekster("testspm", egenvurderingstekster));
             }
 
+            @Nullable
+            @Override
+            public EndringIRegistreringsdataResponse hentEndringIRegistreringdata(@NotNull EndringIRegistreringdataRequest endringIRegistreringdataRequest) {
+                return null;
+            }
             @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();

@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.egenvurdering;
+package no.nav.veilarbvedtaksstotte.client.aiaBackend;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -10,19 +10,20 @@ import org.junit.jupiter.api.Test;
 import static no.nav.common.json.JsonUtils.toJson;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @WireMockTest
-public class EgenvurderingClientTest {
+public class AiaBackendClientTest {
 
-    private static EgenvurderingClient egenvurderingClient;
+    private static AiaBackendClient aiaBackendClient;
     @BeforeAll
     public static void setup(WireMockRuntimeInfo wireMockRuntimeInfo) {
         String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        egenvurderingClient = new EgenvurderingClientImpl(apiUrl, () -> "");
+        aiaBackendClient = new AiaBackendClientImpl(apiUrl, () -> "");
     }
 
     @Test
-    public void hentEgenvurdering_200_response() {
+    void hentEgenvurdering_200_response() {
 
         String response = TestUtils.readTestResourceFile("egenvurdering-response.json");
         String forventetRequest =
@@ -40,14 +41,14 @@ public class EgenvurderingClientTest {
                                         .withBody(response)
                         )
         );
-        EgenvurderingResponseDTO egenvurderingData = egenvurderingClient.hentEgenvurdering(new EgenvurderingForPersonDTO(TEST_FNR.get()));
+        EgenvurderingResponseDTO egenvurderingData = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonDTO(TEST_FNR.get()));
 
         assertEquals(toJson(egenvurderingData), "{\"dato\":\"2023-06-19T08:42:31.389Z\",\"dialogId\":\"dialog-123\",\"oppfolging\":\"SITUASJONSBESTEMT_INNSATS\",\"tekster\":{\"sporsmal\":\"Testspm\",\"svar\":{\"STANDARD_INNSATS\":\"Svar jeg klarer meg\",\"SITUASJONSBESTEMT_INNSATS\":\"Svar jeg trenger hjelp\"}}}".trim());
 
     }
 
     @Test
-    public void hentEgenvurdering_204_response() {
+    void hentEgenvurdering_204_response() {
         String forventetRequest =
                 """
                     {
@@ -62,8 +63,8 @@ public class EgenvurderingClientTest {
                                         .withStatus(204)
                         )
         );
-        EgenvurderingResponseDTO egenvurderingData = egenvurderingClient.hentEgenvurdering(new EgenvurderingForPersonDTO(TEST_FNR.get()));
+        EgenvurderingResponseDTO egenvurderingData = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonDTO(TEST_FNR.get()));
 
-        assertEquals(toJson(egenvurderingData), null);
+        assertNull(toJson(egenvurderingData));
     }
 }

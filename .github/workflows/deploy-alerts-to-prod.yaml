@@ -8,6 +8,8 @@ on:
       - '.github/workflows/deploy-alerts-to-prod.yaml'
       - '.nais/alerts/alerts-config-prod.yaml'
   workflow_dispatch:
+permissions:
+  packages: write
 
 jobs:
   deploy-alerts:

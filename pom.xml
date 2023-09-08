@@ -147,6 +147,7 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
+
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
@@ -229,6 +230,11 @@
             <artifactId>kafka</artifactId>
             <version>${common.version}</version>
         </dependency>
+		<dependency>
+			<groupId>com.github.navikt.common-java-modules</groupId>
+			<artifactId>json</artifactId>
+			<version>${common.version}</version>
+		</dependency>
 
         <dependency>
             <groupId>com.github.navikt.poao-tilgang</groupId>
