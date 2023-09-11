@@ -97,7 +97,7 @@ public class OyeblikksbildeService {
     }
 
     public String oppdaterRegistreringsdataHvisNyeEndringer(String registreringsData, EndringIRegistreringsdataResponse endringIRegistreringsdata) { //public for test
-        if(registreringsData == null || !endringIRegistreringsdata.getErBesvarelsenEndret()) {
+	    if(registreringsData == null || endringIRegistreringsdata == null || endringIRegistreringsdata.getErBesvarelsenEndret() == null || !endringIRegistreringsdata.getErBesvarelsenEndret()) {
             return registreringsData;
         }
 
