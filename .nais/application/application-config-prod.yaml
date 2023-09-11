@@ -89,12 +89,12 @@ spec:
         - application: pto-admin
           namespace: pto
           cluster: prod-fss
-        - application: aia-backend
-          namespace: paw
-          cluster: prod-gcp
     outbound:
       rules:
         - application: aia-backend
+          namespace: paw
+          cluster: prod-gcp
+        - application: paw-arbeidssoker-besvarelse
           namespace: paw
           cluster: prod-gcp
       external:
