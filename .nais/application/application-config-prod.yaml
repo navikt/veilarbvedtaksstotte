@@ -93,6 +93,10 @@ spec:
           namespace: paw
           cluster: prod-gcp
     outbound:
+      rules:
+        - application: aia-backend
+          namespace: paw
+          cluster: prod-gcp
       external:
         - host: team-obo-unleash-web.nav.cloud.nais.io
   envFrom:
