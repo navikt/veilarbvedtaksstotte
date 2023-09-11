@@ -56,6 +56,6 @@ class AiaBackendClientImpl(private val aiaBackendUrl: String, private val userTo
     }
 
     override fun checkHealth(): HealthCheckResult {
-        return HealthCheckUtils.pingUrl(joinPaths(aiaBackendUrl, "/internal/isReady"), client)
+        TODO("Not yet implemented")
     }
 }
