@@ -27,8 +27,6 @@ public class VedtakHendelserService {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
-    private final UnleashService unleashService;
-
     public void utkastOpprettet(Vedtak vedtak) {
         Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
 

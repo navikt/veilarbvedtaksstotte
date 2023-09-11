@@ -55,6 +55,8 @@ spec:
       value: http://poao-tilgang.poao.svc.nais.local
     - name: POAO_TILGANG_SCOPE
       value: api://prod-fss.poao.poao-tilgang/.default
+    - name: AIA_BACKEND_URL
+      value: https://www.nav.no/aia-backend
   azure:
     application:
       allowAllUsers: true
@@ -87,5 +89,9 @@ spec:
         - application: pto-admin
           namespace: pto
           cluster: prod-fss
+    outbound:
+      external:
+        - host: team-obo-unleash-web.nav.cloud.nais.io
   envFrom:
     - configmap: pto-config
+    - secret: veilarbvedtaksstotte-unleash-api-token

@@ -2,13 +2,13 @@ package no.nav.veilarbvedtaksstotte.config
 
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
+import io.getunleash.DefaultUnleash
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.common.abac.AbacClient
 import no.nav.common.abac.Pep
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
-import no.nav.common.featuretoggle.UnleashClient
 import no.nav.common.health.HealthCheckResult
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
@@ -104,10 +104,8 @@ class ApplicationTestConfig {
     }
 
     @Bean
-    fun unleashClient(): UnleashClient {
-        val unleashClient = Mockito.mock(UnleashClient::class.java)
-        Mockito.`when`(unleashClient.checkHealth()).thenReturn(HealthCheckResult.healthy())
-        return unleashClient
+    fun unleashClient(): DefaultUnleash {
+        return Mockito.mock(DefaultUnleash::class.java)
     }
 
     @Bean

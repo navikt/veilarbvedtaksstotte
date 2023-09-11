@@ -6,7 +6,7 @@ env:
   PRINT_PAYLOAD: true
 permissions:
   packages: write
-  
+  contents: write
 jobs:
   test:
     name: Run tests
@@ -14,18 +14,13 @@ jobs:
     if: github.ref != 'refs/heads/dev' && github.ref != 'refs/heads/master'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: 17
           distribution: 'temurin'
-      - name: Set up cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+          cache: 'maven'
       - name: Run maven tests
         run: mvn -B verify
 
@@ -35,18 +30,13 @@ jobs:
     if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: 17
           distribution: 'temurin'
-      - name: Set up cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+          cache: 'maven'
       - name: Build maven artifacts
         run: mvn -B package
       - name: Login to Docker
@@ -69,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Deploy application
         uses: nais/deploy/actions/deploy@v1
         env:
@@ -91,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Deploy application
         uses: nais/deploy/actions/deploy@v1
         env:
