@@ -90,6 +90,8 @@ spec:
           namespace: pto
           cluster: prod-fss
     outbound:
+      external:
+        - host: https://www.nav.no/aia-backend
       rules:
         - application: aia-backend
           namespace: paw
