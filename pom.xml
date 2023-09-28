@@ -22,7 +22,7 @@
         <common.version>3.2023.04.03_13.09-15bb53f1d80e</common.version>
         <kotlin.version>1.9.10</kotlin.version>
         <testcontainers.version>1.17.3</testcontainers.version>
-        <unleash.version>8.3.0</unleash.version>
+        <unleash.version>8.3.1</unleash.version>
 
         <!--   Used by SonarCloud     -->
         <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
