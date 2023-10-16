@@ -37,6 +37,7 @@ public class VedtakController {
                 .body(vedtakPdf);
     }
 
+    @Deprecated
     @GetMapping("/fattet")
     public List<Vedtak> hentFattedeVedtak(@RequestParam("fnr") Fnr fnr) {
         return vedtakService.hentFattedeVedtak(fnr);
@@ -47,6 +48,7 @@ public class VedtakController {
         return oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
     }
 
+    @Deprecated
     @GetMapping("/arena")
     public List<ArkivertVedtak> hentVedtakFraArena(@RequestParam("fnr") Fnr fnr) {
         return arenaVedtakService.hentVedtakFraArena(fnr);
