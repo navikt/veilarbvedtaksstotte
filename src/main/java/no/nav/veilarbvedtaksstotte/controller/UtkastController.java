@@ -24,7 +24,7 @@ public class UtkastController {
         this.vedtakService = vedtakService;
     }
 
-    @Deprecated
+    @Deprecated(forRemoval = true)
     @GetMapping
     public Vedtak hentUtkast(@RequestParam("fnr") Fnr fnr) {
         return vedtakService.hentUtkast(fnr);
@@ -54,7 +54,7 @@ public class UtkastController {
     }
 
     // Brukes av veilarbvisittkfortfs (Skal fjernes)
-    @Deprecated
+    @Deprecated(forRemoval = true)
     @GetMapping("{fnr}/harUtkast")
     public boolean harUtkast(@PathVariable("fnr") Fnr fnr) {
         return vedtakService.harUtkast(fnr);
