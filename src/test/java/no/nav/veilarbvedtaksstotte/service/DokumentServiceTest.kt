@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
@@ -33,6 +34,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientI
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder
 import no.nav.veilarbvedtaksstotte.domain.Målform
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponseForPost
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Assertions
@@ -188,8 +190,8 @@ class DokumentServiceTest {
             "/api/v1/enhet/${kontaktEnhetId}/kontaktinformasjon", enhetKontaktinformasjon.toJson()
         )
 
-        givenWiremockOkJsonResponse(
-            "/api/v2/person/malform?fnr=123", VeilarbpersonClientImpl.MalformRespons(målform.name).toJson()
+        givenWiremockOkJsonResponseForPost(
+            "/api/v3/person/malform", equalToJson("{\"fnr\":\"123\"}"), VeilarbpersonClientImpl.MalformRespons(målform.name).toJson()
         )
 
         givenWiremockOkJsonResponse(

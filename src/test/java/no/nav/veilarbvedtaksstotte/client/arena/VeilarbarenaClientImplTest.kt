@@ -30,11 +30,12 @@ class VeilarbarenaClientImplTest {
             """
                 {
                     "oppfolgingssakId": "$TEST_OPPFOLGINGSSAK"
-                } 
+                }
             """
 
         WireMock.givenThat(
-            WireMock.get(WireMock.urlEqualTo("/api/oppfolgingssak/$TEST_FNR"))
+            WireMock.post(WireMock.urlEqualTo("/api/v2/oppfolgingssak/"))
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\"$TEST_FNR\"}"))
                 .willReturn(
                     WireMock.aResponse()
                         .withStatus(200)
@@ -51,7 +52,8 @@ class VeilarbarenaClientImplTest {
     fun `hent oppfoglingssak feiler dersom respons er 204`() {
 
         WireMock.givenThat(
-            WireMock.get(WireMock.urlEqualTo("/api/oppfolgingssak/$TEST_FNR"))
+            WireMock.post(WireMock.urlEqualTo("/api/v2/oppfolgingssak/"))
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\"$TEST_FNR\"}"))
                 .willReturn(
                     WireMock.noContent()
                 )
@@ -66,7 +68,8 @@ class VeilarbarenaClientImplTest {
     fun `hent oppfoglingssak er tom dersom respons er 404`() {
 
         WireMock.givenThat(
-            WireMock.get(WireMock.urlEqualTo("/api/oppfolgingssak/$TEST_FNR"))
+            WireMock.post(WireMock.urlEqualTo("/api/v2/oppfolgingssak/"))
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\"$TEST_FNR\"}"))
                 .willReturn(
                     WireMock.notFound()
                 )

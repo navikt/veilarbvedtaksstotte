@@ -28,7 +28,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/navn"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-			.post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
+            .post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
@@ -40,8 +40,9 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/cv_jobbprofil"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-			.post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
+            .post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
+
         RestClient.baseClient().newCall(request).execute().use { response ->
             val responseBody = response.body
             return if (response.code == 403 || response.code == 401) {
@@ -58,8 +59,9 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/malform"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-			.post(PersonRequest(fnr).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
+            .post(PersonRequest(fnr).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
+
         try {
             client.newCall(request).execute().use { response ->
                 RestUtils.throwIfNotSuccessful(response)
