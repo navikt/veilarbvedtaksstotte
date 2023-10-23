@@ -7,10 +7,13 @@ import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.UrlUtils
+import no.nav.veilarbvedtaksstotte.client.PersonRequest
 import no.nav.veilarbvedtaksstotte.domain.Målform
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
+import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
@@ -23,8 +26,9 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     override fun hentPersonNavn(fnr: String): PersonNavn {
         val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v2/person/navn?fnr=$fnr"))
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/navn"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+			.post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
@@ -34,8 +38,9 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     override fun hentCVOgJobbprofil(fnr: String): String {
         val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/person/cv_jobbprofil?fnr=$fnr"))
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/cv_jobbprofil"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+			.post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             val responseBody = response.body
@@ -51,8 +56,9 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     override fun hentMålform(fnr: Fnr): Målform {
         val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v2/person/malform?fnr=$fnr"))
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/malform"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+			.post(PersonRequest(fnr).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
         try {
             client.newCall(request).execute().use { response ->
