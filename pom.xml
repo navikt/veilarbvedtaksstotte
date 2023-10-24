@@ -19,10 +19,10 @@
 
     <properties>
         <java.version>17</java.version>
-        <common.version>3.2023.04.03_13.09-15bb53f1d80e</common.version>
+        <common.version>3.2023.10.17_06.55-4e30d96bba05</common.version>
         <kotlin.version>1.9.10</kotlin.version>
-        <testcontainers.version>1.17.3</testcontainers.version>
-        <unleash.version>8.3.0</unleash.version>
+        <testcontainers.version>1.19.1</testcontainers.version>
+        <unleash.version>8.4.0</unleash.version>
 
         <!--   Used by SonarCloud     -->
         <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
@@ -101,7 +101,7 @@
         <dependency>
             <groupId>com.github.navikt</groupId>
             <artifactId>pto-schema</artifactId>
-            <version>1.2022.07.06_07.23-cc1f11b9a330</version>
+            <version>1.2023.10.20_06.13-e6b4845c2a39</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
@@ -152,7 +152,7 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
-            <version>4.44.0</version>
+            <version>4.46.0</version>
         </dependency>
         <dependency>
             <groupId>no.nav</groupId>
@@ -292,7 +292,7 @@
         <dependency>
             <groupId>io.mockk</groupId>
             <artifactId>mockk-jvm</artifactId>
-            <version>1.12.8</version>
+            <version>1.13.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
