@@ -6,7 +6,6 @@ import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.PersonRequest;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -41,7 +40,7 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbpersonUrl, "/api/v3/person/registrering"))
                 .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-		        .post(toJsonRequestBody(new PersonRequest(Fnr.of(fnr))))
+                .post(toJsonRequestBody(new RegistreringRequest(Fnr.of(fnr))))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {

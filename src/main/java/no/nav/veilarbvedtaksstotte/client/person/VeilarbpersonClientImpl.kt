@@ -7,7 +7,6 @@ import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.UrlUtils
-import no.nav.veilarbvedtaksstotte.client.PersonRequest
 import no.nav.veilarbvedtaksstotte.domain.Målform
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson

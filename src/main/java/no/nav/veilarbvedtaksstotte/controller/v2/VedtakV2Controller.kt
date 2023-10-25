@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller.v2
 
-import no.nav.veilarbvedtaksstotte.controller.dto.PersonRequestDTO
+import no.nav.veilarbvedtaksstotte.controller.v2.dto.VedtakRequest
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService
@@ -17,13 +17,13 @@ class VedtakV2Controller(
     val arenaVedtakService: ArenaVedtakService,
 ) {
     @PostMapping("/fattet")
-    fun hentFattedeVedtak(@RequestBody personRequestDTO: PersonRequestDTO): List<Vedtak> {
-        return vedtakService.hentFattedeVedtak(personRequestDTO.fnr)
+    fun hentFattedeVedtak(@RequestBody vedtakRequest: VedtakRequest): List<Vedtak> {
+        return vedtakService.hentFattedeVedtak(vedtakRequest.fnr)
     }
 
     @PostMapping("/arena")
-    fun hentVedtakFraArena(@RequestBody personRequestDTO: PersonRequestDTO): List<ArkivertVedtak> {
-        return arenaVedtakService.hentVedtakFraArena(personRequestDTO.fnr)
+    fun hentVedtakFraArena(@RequestBody vedtakRequest: VedtakRequest): List<ArkivertVedtak> {
+        return arenaVedtakService.hentVedtakFraArena(vedtakRequest.fnr)
     }
 
 }

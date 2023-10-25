@@ -6,7 +6,6 @@ import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.PersonRequest;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -41,9 +40,9 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
     @Cacheable(CacheConfig.ARENA_BRUKER_CACHE_NAME)
     public Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr){
         Request request = new Request.Builder()
-                .url(joinPaths(veilarbarenaUrl, "/api/v2/oppfolgingsbruker/"))
+                .url(joinPaths(veilarbarenaUrl, "/api/v2/oppfolgingsbruker"))
                 .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
-		        .post(toJsonRequestBody(new PersonRequest(fnr)))
+                .post(toJsonRequestBody(new VeilarbarenaOppfolgingRequest(fnr)))
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
@@ -65,9 +64,9 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
     @Override
     public Optional<String> oppfolgingssak(Fnr fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarbarenaUrl, "/api/v2/oppfolgingssak/"))
+                .url(joinPaths(veilarbarenaUrl, "/api/v2/oppfolgingssak"))
                 .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
-                .post(toJsonRequestBody(new PersonRequest(fnr)))
+                .post(toJsonRequestBody(new VeilarbarenaOppfolgingRequest(fnr)))
                 .build();
 
         try (Response response = client.newCall(request).execute()) {

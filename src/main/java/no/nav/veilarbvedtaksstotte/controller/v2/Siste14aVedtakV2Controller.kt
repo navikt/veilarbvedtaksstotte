@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.controller.v2
 
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.controller.dto.PersonRequestDTO
 import no.nav.veilarbvedtaksstotte.controller.dto.Siste14aVedtakDTO
+import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
 import org.springframework.http.HttpStatus
@@ -17,10 +17,10 @@ class Siste14aVedtakV2Controller(
 ) {
 
     @PostMapping("/siste-14a-vedtak")
-    fun hentSiste14aVedtak(@RequestBody personRequestDTO: PersonRequestDTO): Siste14aVedtakDTO? {
-        sjekkTilgang(personRequestDTO.fnr)
+    fun hentSiste14aVedtak(@RequestBody siste14aVedtakRequest: Siste14aVedtakRequest): Siste14aVedtakDTO? {
+        sjekkTilgang(siste14aVedtakRequest.fnr)
 
-        return siste14aVedtakService.siste14aVedtak(personRequestDTO.fnr)
+        return siste14aVedtakService.siste14aVedtak(siste14aVedtakRequest.fnr)
             ?.let { Siste14aVedtakDTO.fraSiste14aVedtak(it) }
     }
 
