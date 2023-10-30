@@ -304,7 +304,7 @@
         <dependency>
             <groupId>org.mockito.kotlin</groupId>
             <artifactId>mockito-kotlin</artifactId>
-            <version>3.2.0</version>
+            <version>5.1.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
