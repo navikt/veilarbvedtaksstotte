@@ -9,15 +9,15 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 
 @RestController
-@RequestMapping("/api/v2/utkast")
+@RequestMapping("/api/v2")
 class UtkastV2Controller(
     val vedtakService: VedtakService
 ) {
-    @PostMapping("/hent")
+    @PostMapping("/hent-utkast")
     fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): Vedtak {
         return vedtakService.hentUtkast(utkastRequest.fnr)
     }
-    @PostMapping("/harUtkast")
+    @PostMapping("/utkast/hent-harUtkast")
     fun harUtkast(@RequestBody utkastRequest: UtkastRequest): Boolean {
         return vedtakService.harUtkast(utkastRequest.fnr)
     }

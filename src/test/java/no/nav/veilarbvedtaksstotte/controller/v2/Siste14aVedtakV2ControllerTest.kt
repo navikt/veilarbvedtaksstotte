@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.web.server.ResponseStatusException
 
@@ -58,7 +57,7 @@ class Siste14aVedtakV2ControllerTest {
             authService.harSystemTilSystemTilgangMedEkstraRolle("siste-14a-vedtak")
         } returns true
 
-        val response = mockMvc.perform(post("/api/v2/siste-14a-vedtak")
+        val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(objectMapper.writeValueAsString(Siste14aVedtakRequest(fnr))))
             .andReturn().response
@@ -77,7 +76,7 @@ class Siste14aVedtakV2ControllerTest {
             authService.harSystemTilSystemTilgangMedEkstraRolle("siste-14a-vedtak")
         } returns false
 
-        val response = mockMvc.perform(post("/api/v2/siste-14a-vedtak")
+        val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(objectMapper.writeValueAsString(Siste14aVedtakRequest(fnr))))
             .andReturn().response
@@ -96,7 +95,7 @@ class Siste14aVedtakV2ControllerTest {
             authService.sjekkTilgangTilBruker(fnr)
         } answers { }
 
-        val response = mockMvc.perform(post("/api/v2/siste-14a-vedtak")
+        val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(objectMapper.writeValueAsString(Siste14aVedtakRequest(fnr))))
             .andReturn().response
@@ -115,7 +114,7 @@ class Siste14aVedtakV2ControllerTest {
             authService.sjekkTilgangTilBruker(fnr)
         } throws ResponseStatusException(HttpStatus.FORBIDDEN)
 
-        val response = mockMvc.perform(post("/api/v2/siste-14a-vedtak")
+        val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(objectMapper.writeValueAsString(Siste14aVedtakRequest(fnr))))
             .andReturn().response

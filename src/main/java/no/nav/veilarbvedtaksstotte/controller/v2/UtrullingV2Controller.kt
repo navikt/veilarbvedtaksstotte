@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 class UtrullingV2Controller(
     val utrullingService: UtrullingService
 ) {
-    @PostMapping("/tilhorerBrukerUtrulletKontor")
+    @PostMapping("/hent-tilhorerBrukerUtrulletKontor")
     fun tilhorerBrukerUtrulletKontor(@RequestBody utrullingRequest: UtrullingRequest): Boolean {
         return utrullingService.tilhorerBrukerUtrulletKontor(utrullingRequest.fnr)
     }

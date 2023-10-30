@@ -38,7 +38,7 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
     @SneakyThrows
     public String hentRegistreringDataJson(String fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarbpersonUrl, "/api/v3/person/registrering"))
+                .url(joinPaths(veilarbpersonUrl, "/api/v3/person/hent-registrering"))
                 .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
                 .post(toJsonRequestBody(new RegistreringRequest(Fnr.of(fnr))))
                 .build();

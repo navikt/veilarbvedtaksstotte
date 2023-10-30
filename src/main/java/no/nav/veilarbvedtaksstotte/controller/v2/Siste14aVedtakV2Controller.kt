@@ -16,7 +16,7 @@ class Siste14aVedtakV2Controller(
     val siste14aVedtakService: Siste14aVedtakService
 ) {
 
-    @PostMapping("/siste-14a-vedtak")
+    @PostMapping("/hent-siste-14a-vedtak")
     fun hentSiste14aVedtak(@RequestBody siste14aVedtakRequest: Siste14aVedtakRequest): Siste14aVedtakDTO? {
         sjekkTilgang(siste14aVedtakRequest.fnr)
 

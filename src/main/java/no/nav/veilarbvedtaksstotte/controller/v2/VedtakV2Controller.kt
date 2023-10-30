@@ -16,12 +16,12 @@ class VedtakV2Controller(
     val vedtakService: VedtakService,
     val arenaVedtakService: ArenaVedtakService,
 ) {
-    @PostMapping("/fattet")
+    @PostMapping("/hent-fattet")
     fun hentFattedeVedtak(@RequestBody vedtakRequest: VedtakRequest): List<Vedtak> {
         return vedtakService.hentFattedeVedtak(vedtakRequest.fnr)
     }
 
-    @PostMapping("/arena")
+    @PostMapping("/hent-arena")
     fun hentVedtakFraArena(@RequestBody vedtakRequest: VedtakRequest): List<ArkivertVedtak> {
         return arenaVedtakService.hentVedtakFraArena(vedtakRequest.fnr)
     }

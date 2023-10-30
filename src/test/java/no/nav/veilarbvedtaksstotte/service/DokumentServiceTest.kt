@@ -191,7 +191,7 @@ class DokumentServiceTest {
         )
 
         givenWiremockOkJsonResponseForPost(
-            "/api/v3/person/malform", equalToJson("{\"fnr\":\"123\"}"), VeilarbpersonClientImpl.MalformRespons(målform.name).toJson()
+            "/api/v3/person/hent-malform", equalToJson("{\"fnr\":\"123\"}"), VeilarbpersonClientImpl.MalformRespons(målform.name).toJson()
         )
 
         givenWiremockOkJsonResponse(

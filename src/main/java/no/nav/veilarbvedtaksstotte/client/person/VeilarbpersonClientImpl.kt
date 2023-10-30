@@ -25,7 +25,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     override fun hentPersonNavn(fnr: String): PersonNavn {
         val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/navn"))
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-navn"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
@@ -37,7 +37,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     override fun hentCVOgJobbprofil(fnr: String): String {
         val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/cv_jobbprofil"))
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-cv_jobbprofil"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
@@ -56,7 +56,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     override fun hentMålform(fnr: Fnr): Målform {
         val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/malform"))
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-malform"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .post(PersonRequest(fnr).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
