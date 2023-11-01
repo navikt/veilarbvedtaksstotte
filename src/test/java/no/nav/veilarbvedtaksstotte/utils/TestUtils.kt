@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.utils
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.matching.StringValuePattern
 import org.junit.Assert
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -20,6 +21,19 @@ object TestUtils {
     fun givenWiremockOkJsonResponse(url: String, json: String) {
         WireMock.givenThat(
             WireMock.get(WireMock.urlEqualTo(url))
+                .willReturn(WireMock.aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(json)
+                )
+        )
+    }
+
+    @JvmStatic
+    fun givenWiremockOkJsonResponseForPost(url: String, requestBody: StringValuePattern, json: String) {
+        WireMock.givenThat(
+            WireMock.post(url)
+                .withRequestBody(requestBody)
                 .willReturn(WireMock.aResponse()
                     .withStatus(200)
                     .withHeader("Content-Type", "application/json")

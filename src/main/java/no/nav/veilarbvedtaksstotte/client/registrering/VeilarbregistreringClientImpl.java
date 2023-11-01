@@ -5,6 +5,7 @@ import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import java.util.function.Supplier;
 
 import static no.nav.common.json.JsonUtils.fromJson;
+import static no.nav.common.rest.client.RestUtils.toJsonRequestBody;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 
 public class VeilarbregistreringClientImpl implements VeilarbregistreringClient {
@@ -36,8 +38,9 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
     @SneakyThrows
     public String hentRegistreringDataJson(String fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarbpersonUrl, "/api/person/registrering?fnr=" + fnr))
+                .url(joinPaths(veilarbpersonUrl, "/api/v3/person/hent-registrering"))
                 .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+                .post(toJsonRequestBody(new RegistreringRequest(Fnr.of(fnr))))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
