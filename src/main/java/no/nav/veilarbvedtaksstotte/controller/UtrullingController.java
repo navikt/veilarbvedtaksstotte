@@ -20,6 +20,7 @@ public class UtrullingController {
         this.utrullingService = utrullingService;
     }
 
+    @Deprecated(forRemoval = true)
     @GetMapping("/tilhorerBrukerUtrulletKontor")
     public boolean tilhorerBrukerUtrulletKontor(@RequestParam Fnr fnr) {
         return utrullingService.tilhorerBrukerUtrulletKontor(fnr);

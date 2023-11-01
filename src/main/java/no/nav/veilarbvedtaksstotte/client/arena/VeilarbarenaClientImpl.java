@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static no.nav.common.rest.client.RestUtils.parseJsonResponseOrThrow;
+import static no.nav.common.rest.client.RestUtils.toJsonRequestBody;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -39,8 +40,9 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
     @Cacheable(CacheConfig.ARENA_BRUKER_CACHE_NAME)
     public Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr){
         Request request = new Request.Builder()
-                .url(joinPaths(veilarbarenaUrl, "/api/oppfolgingsbruker/", fnr.get()))
+                .url(joinPaths(veilarbarenaUrl, "/api/v2/hent-oppfolgingsbruker"))
                 .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
+                .post(toJsonRequestBody(new VeilarbarenaOppfolgingRequest(fnr)))
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
@@ -62,8 +64,9 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
     @Override
     public Optional<String> oppfolgingssak(Fnr fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarbarenaUrl, "api", "oppfolgingssak", fnr.get()))
+                .url(joinPaths(veilarbarenaUrl, "/api/v2/hent-oppfolgingssak"))
                 .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
+                .post(toJsonRequestBody(new VeilarbarenaOppfolgingRequest(fnr)))
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
