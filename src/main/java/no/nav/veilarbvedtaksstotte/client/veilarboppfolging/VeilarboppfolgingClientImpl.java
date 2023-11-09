@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static no.nav.common.rest.client.RestUtils.toJsonRequestBody;
 import static no.nav.common.utils.AuthUtils.bearerToken;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 
@@ -39,8 +40,9 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
     @SneakyThrows
     public Optional<OppfolgingPeriodeDTO> hentGjeldendeOppfolgingsperiode(Fnr fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/api/v2/oppfolging/periode/gjeldende?fnr=" + fnr))
+                .url(joinPaths(veilarboppfolgingUrl, "/api/v3/oppfolging/hent-gjeldende-periode"))
                 .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+                .post(toJsonRequestBody(new OppfolgingRequest(fnr)))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
@@ -54,8 +56,9 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
     @SneakyThrows
     public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/api/v2/oppfolging/perioder?fnr=" + fnr))
+                .url(joinPaths(veilarboppfolgingUrl, "/api/v3/oppfolging/hent-perioder"))
                 .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+                .post(toJsonRequestBody(new OppfolgingRequest(fnr)))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {

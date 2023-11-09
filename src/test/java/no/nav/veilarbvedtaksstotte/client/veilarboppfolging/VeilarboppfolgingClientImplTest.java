@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.veilarboppfolging;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
@@ -32,8 +33,8 @@ public class VeilarboppfolgingClientImplTest {
     public void hentOppfolgingsperioder__skal_lage_riktig_request_og_parse_response() {
         String response = TestUtils.readTestResourceFile("veilarboppfolging_hentOppfolgingsperioder.json");
 
-        givenThat(get(urlEqualTo("/api/v2/oppfolging/perioder?fnr=" + TEST_FNR.get()))
-                .withQueryParam("fnr", equalTo(TEST_FNR.get()))
+        givenThat(post(urlEqualTo("/api/v3/oppfolging/hent-perioder"))
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\""+TEST_FNR.get()+"\"}"))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer SYSTEM_TOKEN"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -59,8 +60,8 @@ public class VeilarboppfolgingClientImplTest {
     public void hentGjeldendeOppfolgingsperiode__skal_lage_riktig_request_og_parse_response() {
         String response = TestUtils.readTestResourceFile("veilarboppfolging_hentGjeldendeOppfolgingsperiode.json");
 
-        givenThat(get(urlEqualTo("/api/v2/oppfolging/periode/gjeldende?fnr=" + TEST_FNR.get()))
-                .withQueryParam("fnr", equalTo(TEST_FNR.get()))
+        givenThat(post(urlEqualTo("/api/v3/oppfolging/hent-gjeldende-periode"))
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\""+TEST_FNR.get()+"\"}"))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer SYSTEM_TOKEN"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -79,8 +80,8 @@ public class VeilarboppfolgingClientImplTest {
     @Test
     public void hentGjeldendeOppfolgingsperiode__skal_håndtere_manglende_respons() {
 
-        givenThat(get(urlEqualTo("/api/v2/oppfolging/periode/gjeldende?fnr=" + TEST_FNR.get()))
-                .withQueryParam("fnr", equalTo(TEST_FNR.get()))
+        givenThat(post(urlEqualTo("/api/v3/oppfolging/hent-gjeldende-periode"))
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\""+TEST_FNR.get()+"\"}"))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer SYSTEM_TOKEN"))
                 .willReturn(aResponse()
                         .withStatus(204))
