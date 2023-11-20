@@ -19,10 +19,10 @@
 
     <properties>
         <java.version>17</java.version>
-        <common.version>3.2023.10.17_06.55-4e30d96bba05</common.version>
+        <common.version>3.2023.10.23_12.41-bafec3836d28</common.version>
         <kotlin.version>1.9.10</kotlin.version>
         <testcontainers.version>1.19.1</testcontainers.version>
-        <unleash.version>8.4.0</unleash.version>
+        <unleash.version>9.1.0</unleash.version>
 
         <!--   Used by SonarCloud     -->
         <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
@@ -152,7 +152,7 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
-            <version>4.46.0</version>
+            <version>5.10.0</version>
         </dependency>
         <dependency>
             <groupId>no.nav</groupId>
@@ -240,7 +240,7 @@
         <dependency>
             <groupId>com.github.navikt.poao-tilgang</groupId>
             <artifactId>client</artifactId>
-            <version>2023.01.27_14.49-9fe135865a9f</version>
+            <version>2023.11.13_07.58-92c894e940a5</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -304,7 +304,7 @@
         <dependency>
             <groupId>org.mockito.kotlin</groupId>
             <artifactId>mockito-kotlin</artifactId>
-            <version>3.2.0</version>
+            <version>5.1.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
