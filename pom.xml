@@ -240,7 +240,7 @@
         <dependency>
             <groupId>com.github.navikt.poao-tilgang</groupId>
             <artifactId>client</artifactId>
-            <version>2023.01.27_14.49-9fe135865a9f</version>
+            <version>2023.11.13_07.58-92c894e940a5</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
