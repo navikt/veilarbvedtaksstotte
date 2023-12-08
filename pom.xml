@@ -20,9 +20,9 @@
     <properties>
         <java.version>17</java.version>
         <common.version>3.2023.10.23_12.41-bafec3836d28</common.version>
-        <kotlin.version>1.9.10</kotlin.version>
-        <testcontainers.version>1.19.1</testcontainers.version>
-        <unleash.version>9.1.0</unleash.version>
+        <kotlin.version>1.9.21</kotlin.version>
+        <testcontainers.version>1.19.3</testcontainers.version>
+        <unleash.version>9.1.1</unleash.version>
 
         <!--   Used by SonarCloud     -->
         <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
@@ -298,7 +298,7 @@
         <dependency>
             <groupId>com.ninja-squad</groupId>
             <artifactId>springmockk</artifactId>
-            <version>3.1.1</version>
+            <version>4.0.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
