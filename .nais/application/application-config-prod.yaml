@@ -92,6 +92,7 @@ spec:
     outbound:
       external:
         - host: https://www.nav.no/aia-backend
+        - host: team-obo-unleash-api.nav.cloud.nais.io
       rules:
         - application: aia-backend
           namespace: paw
@@ -99,8 +100,7 @@ spec:
         - application: paw-arbeidssoker-besvarelse
           namespace: paw
           cluster: prod-gcp
-      external:
-        - host: team-obo-unleash-web.nav.cloud.nais.io
+
   envFrom:
     - configmap: pto-config
     - secret: veilarbvedtaksstotte-unleash-api-token
