@@ -41,7 +41,7 @@ class VeilarbpersonClientImplTest  {
                 )
             )
         )
-        val hentPersonNavn = veilarbpersonClient.hentPersonNavn(TEST_FNR.get())
+        val hentPersonNavn = veilarbpersonClient.hentPersonNavn(PdlRequest(TEST_FNR, null))
         assertEquals(
             PersonNavn(
                 fornavn = "Fornavn",

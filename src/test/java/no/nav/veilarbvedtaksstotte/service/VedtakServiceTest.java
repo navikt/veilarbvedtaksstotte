@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import kotlin.jvm.functions.FunctionN;
 import no.nav.common.abac.AbacClient;
 import no.nav.common.abac.VeilarbPep;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
@@ -21,6 +22,7 @@ import no.nav.veilarbvedtaksstotte.client.egenvurdering.VeilarbvedtakinfoClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
+import no.nav.veilarbvedtaksstotte.client.person.PdlRequest;
 import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
@@ -149,7 +151,7 @@ public class VedtakServiceTest extends DatabaseTest {
                 new RegoppslagResponseDTO("", new Adresse(NORSKPOSTADRESSE, "", "", "", "", "", "", "")));
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(CV_DATA);
         when(veilarbpersonClient.hentMålform(TEST_FNR)).thenReturn(Målform.NB);
-        when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
+        when(veilarbpersonClient.hentPersonNavn(new PdlRequest(TEST_FNR, null))).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(registreringClient.hentRegistreringDataJson(TEST_FNR.get())).thenReturn(REGISTRERING_DATA);
         when(egenvurderingClient.hentEgenvurdering(TEST_FNR.get())).thenReturn(EGENVURDERING_DATA);
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));

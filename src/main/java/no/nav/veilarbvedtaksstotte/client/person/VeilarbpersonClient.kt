@@ -5,7 +5,7 @@ import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.Målform
 
 interface VeilarbpersonClient : HealthCheck {
-    fun hentPersonNavn(fnr: String): PersonNavn
+    fun hentPersonNavn(pdlRequest: PdlRequest): PersonNavn
     fun hentCVOgJobbprofil(fnr: String): String
     fun hentMålform(fnr: Fnr): Målform
 }

@@ -21,10 +21,11 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     private val client: OkHttpClient = RestClient.baseClient()
 
-    override fun hentPersonNavn(fnr: String): PersonNavn {
+    override fun hentPersonNavn(pdlRequest: PdlRequest): PersonNavn {
         val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v2/person/navn?fnr=$fnr"))
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-navn"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+            .post(RestUtils.toJsonRequestBody(pdlRequest))
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
@@ -34,8 +35,9 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     override fun hentCVOgJobbprofil(fnr: String): String {
         val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/person/cv_jobbprofil?fnr=$fnr"))
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-cv_jobbprofil"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+            .post(RestUtils.toJsonRequestBody(fnr))
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             val responseBody = response.body
@@ -51,8 +53,9 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     override fun hentMålform(fnr: Fnr): Målform {
         val request = Request.Builder()
-            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v2/person/malform?fnr=$fnr"))
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-malform"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+            .post(RestUtils.toJsonRequestBody(fnr))
             .build()
         try {
             client.newCall(request).execute().use { response ->
