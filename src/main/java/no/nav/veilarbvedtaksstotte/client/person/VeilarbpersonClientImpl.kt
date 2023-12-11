@@ -23,11 +23,11 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
     private val client: OkHttpClient = RestClient.baseClient()
 
-    override fun hentPersonNavn(fnr: String): PersonNavn {
+    override fun hentPersonNavn(pdlRequest: PdlRequest): PersonNavn {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-navn"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-            .post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
+            .post(pdlRequest.toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)

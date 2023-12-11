@@ -16,8 +16,8 @@ public class BeslutterController {
 	}
 
 	@PostMapping("/start")
-	public void startBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
-		beslutterService.startBeslutterProsess(vedtakId);
+	public void startBeslutterProsess(@RequestParam("vedtakId") long vedtakId, RequestBody behandlingsnummer) {
+		beslutterService.startBeslutterProsess(vedtakId, behandlingsnummer.toString());
 	}
 
 	@PostMapping("/avbryt")

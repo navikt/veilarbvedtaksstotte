@@ -2,6 +2,8 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.RequiredArgsConstructor;
 import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.person.PdlRequest;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
@@ -46,7 +48,7 @@ public class BeslutterService {
 
 	private final MetricsService metricsService;
 
-	public void startBeslutterProsess(long vedtakId) {
+	public void startBeslutterProsess(long vedtakId, String behandlingsnummer) {
 		Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
 		authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
 		authService.sjekkErAnsvarligVeilederFor(utkast);
@@ -59,7 +61,7 @@ public class BeslutterService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 		}
 
-		leggTilBrukerIBeslutterOversikt(utkast);
+		leggTilBrukerIBeslutterOversikt(utkast, behandlingsnummer);
 		vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
 		vedtakStatusEndringService.beslutterProsessStartet(utkast);
 		meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_PROSESS_STARTET, utkast.getVeilederIdent());
@@ -166,17 +168,17 @@ public class BeslutterService {
 		}
 	}
 
-	private void leggTilBrukerIBeslutterOversikt(Vedtak vedtak) {
-		String brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId()).get();
+	private void leggTilBrukerIBeslutterOversikt(Vedtak vedtak, String behandlingsnummer) {
+		Fnr brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
 		Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
 		String enhetNavn = veilederService.hentEnhetNavn(vedtak.getOppfolgingsenhetId());
-		PersonNavn brukerNavn = veilarbpersonClient.hentPersonNavn(brukerFnr);
+		PersonNavn brukerNavn = veilarbpersonClient.hentPersonNavn(new PdlRequest(brukerFnr, behandlingsnummer));
 
 		BeslutteroversiktBruker bruker = new BeslutteroversiktBruker()
 				.setVedtakId(vedtak.getId())
 				.setBrukerFornavn(brukerNavn.getFornavn())
 				.setBrukerEtternavn(brukerNavn.getEtternavn())
-				.setBrukerFnr(brukerFnr)
+				.setBrukerFnr(brukerFnr.get())
 				.setBrukerOppfolgingsenhetNavn(enhetNavn)
 				.setBrukerOppfolgingsenhetId(vedtak.getOppfolgingsenhetId())
 				.setVedtakStartet(vedtak.getUtkastOpprettet())

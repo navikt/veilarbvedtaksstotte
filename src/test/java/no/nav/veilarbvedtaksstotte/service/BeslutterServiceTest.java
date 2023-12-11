@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.person.PdlRequest;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
@@ -62,7 +63,7 @@ public class BeslutterServiceTest {
 
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
         when(veilederService.hentEnhetNavn(anyString())).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
-        when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("FORNAVN", null, "ETTERNAVN", null));
+        when(veilarbpersonClient.hentPersonNavn(new PdlRequest(TEST_FNR, null))).thenReturn(new PersonNavn("FORNAVN", null, "ETTERNAVN", null));
     }
 
     @Test
@@ -76,7 +77,7 @@ public class BeslutterServiceTest {
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
-        beslutterService.startBeslutterProsess(SOME_ID);
+        beslutterService.startBeslutterProsess(SOME_ID, null);
 
         verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
     }
@@ -91,7 +92,7 @@ public class BeslutterServiceTest {
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
-        assertThrows(ResponseStatusException.class, () -> beslutterService.startBeslutterProsess(SOME_ID));
+        assertThrows(ResponseStatusException.class, () -> beslutterService.startBeslutterProsess(SOME_ID, null));
     }
 
     @Test
@@ -103,7 +104,7 @@ public class BeslutterServiceTest {
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
-        assertThrows(ResponseStatusException.class, () -> beslutterService.startBeslutterProsess(SOME_ID));
+        assertThrows(ResponseStatusException.class, () -> beslutterService.startBeslutterProsess(SOME_ID, null));
     }
 
     @Test
@@ -117,7 +118,7 @@ public class BeslutterServiceTest {
         when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
-        beslutterService.startBeslutterProsess(SOME_ID);
+        beslutterService.startBeslutterProsess(SOME_ID, null);
 
         verify(meldingRepository, times(1))
                 .opprettSystemMelding(anyLong(), eq(SystemMeldingType.BESLUTTER_PROSESS_STARTET), eq(TEST_VEILEDER_IDENT));
