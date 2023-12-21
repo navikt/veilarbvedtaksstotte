@@ -1,17 +1,22 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.EndringIRegistreringsdataResponse
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.Besvarelse
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO.Tekster
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
+import no.nav.veilarbvedtaksstotte.utils.JsonUtils.fromJson
+import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.joda.time.Instant
-import org.json.JSONObject
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import java.time.LocalDateTime
 
 internal class OyeblikksbildeServiceTest {
     @Test
@@ -25,7 +30,7 @@ internal class OyeblikksbildeServiceTest {
             "SITUASJONSBESTEMT_INNSATS",
             EgenvurderingResponseDTO.Tekster("Ønsker du veiledning?", egenvurderingstekster)
         )
-        val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingDataJson(egenvurdering)
+        val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingData(egenvurdering).toJson()
         val forventetEgenvurderingJson =
             "{\"sistOppdatert\":\"$egenvurderingDato\",\"svar\":[{\"spm\":\"Ønsker du veiledning?\",\"svar\":\"Jeg vil få hjelp fra NAV\",\"oppfolging\":\"SITUASJONSBESTEMT_INNSATS\",\"dialogId\":\"dialog-123\"}]}"
         Assertions.assertEquals(forventetEgenvurderingJson, egenvurderingJson)
@@ -33,9 +38,9 @@ internal class OyeblikksbildeServiceTest {
 
     @Test
     fun mapToEgenvurderingDataJson_med_null_argument() {
-        val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingDataJson(null)
-        val forventetEgenvurderingJson = "{\"ingenData\":\"Bruker har ikke fylt ut egenvurdering\"}"
-        Assertions.assertEquals(forventetEgenvurderingJson, egenvurderingJson)
+        val oyeblikksbildeEgenvurderingDto = oyeblikksbildeService.mapToEgenvurderingData(null)
+        Assertions.assertNull(oyeblikksbildeEgenvurderingDto.svar)
+        Assertions.assertNull(oyeblikksbildeEgenvurderingDto.sistOppdatert)
     }
 
     @Test
@@ -48,7 +53,7 @@ internal class OyeblikksbildeServiceTest {
             "SITUASJONSBESTEMT_INNSATS",
             EgenvurderingResponseDTO.Tekster("Ønsker du veiledning?", egenvurderingstekster)
         )
-        val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingDataJson(egenvurdering)
+        val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingData(egenvurdering).toJson()
         val forventetEgenvurderingJson =
             "{\"sistOppdatert\":null,\"svar\":[{\"spm\":\"Ønsker du veiledning?\",\"svar\":\"Jeg vil få hjelp fra NAV\",\"oppfolging\":\"SITUASJONSBESTEMT_INNSATS\",\"dialogId\":null}]}"
         Assertions.assertEquals(forventetEgenvurderingJson, egenvurderingJson)
@@ -56,83 +61,86 @@ internal class OyeblikksbildeServiceTest {
 
     @Test
     fun oppdaterRegistreringsdataHvisNyeEndringer() {
-        val registreringsData = "{\"registrering\":{\"id\":10004240,\"opprettetDato\":\"2023-06-22T16:47:18.325956+02:00\",\"besvarelse\":{\"utdanning\":\"HOYERE_UTDANNING_5_ELLER_MER\",\"utdanningBestatt\":\"JA\",\"utdanningGodkjent\":\"JA\",\"helseHinder\":\"NEI\",\"andreForhold\":\"NEI\"," +
-         "\"sisteStilling\":\"INGEN_SVAR\",\"dinSituasjon\":\"MISTET_JOBBEN\",\"fremtidigSituasjon\":null,\"tilbakeIArbeid\":null},\"teksterForBesvarelse\":[{\"sporsmalId\":\"dinSituasjon\",\"sporsmal\":\"Velg den situasjonen som passer deg best\",\"svar\":\"Har mistet eller kommer til å miste jobben\"},{\"sporsmalId\":\"utdanning\",\"sporsmal\":\"Hva er din høyeste fullførte utdanning?\"," +
-          "\"svar\":\"Høyere utdanning (5 år eller mer)\"},{" +
-                "\"sporsmalId\":\"utdanningGodkjent\",\"sporsmal\":\"Er utdanningen din godkjent i Norge?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"utdanningBestatt\",\"sporsmal\":\"Er utdanningen din bestått?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"andreForhold\",\"sporsmal\":\"Har du andre problemer med å søke eller være i jobb?\",\"svar\":\"Nei\"},{" +
-                "\"sporsmalId\":\"sisteStilling\",\"sporsmal\":\"Hva er din siste jobb?\",\"svar\":\"Annen stilling\"},{" +
-                "\"sporsmalId\":\"helseHinder\",\"sporsmal\":\"Har du helseproblemer som hindrer deg i å søke eller være i jobb?\",\"svar\":\"Nei\"}]," +
-                "\"sisteStilling\": {\"label\":\"Annen stilling\",\"konseptId\": -1,\"styrk08\":\"-1\"}," +
-                "\"profilering\": {\"innsatsgruppe\":\"SITUASJONSBESTEMT_INNSATS\",\"alder\": 28,\"jobbetSammenhengendeSeksAvTolvSisteManeder\": false}," +
-                "\"manueltRegistrertAv\": null},\"type\":\"ORDINAER\"}"
+        val registreringsDataJson =
+            "{\"registrering\":{\"id\":10004240,\"opprettetDato\":\"2023-06-22T16:47:18.325956+02:00\",\"besvarelse\":{\"utdanning\":\"HOYERE_UTDANNING_5_ELLER_MER\",\"utdanningBestatt\":\"JA\",\"utdanningGodkjent\":\"JA\",\"helseHinder\":\"NEI\",\"andreForhold\":\"NEI\"," +
+                    "\"sisteStilling\":\"INGEN_SVAR\",\"dinSituasjon\":\"MISTET_JOBBEN\",\"fremtidigSituasjon\":null,\"tilbakeIArbeid\":null},\"teksterForBesvarelse\":[{\"sporsmalId\":\"dinSituasjon\",\"sporsmal\":\"Velg den situasjonen som passer deg best\",\"svar\":\"Har mistet eller kommer til å miste jobben\"},{\"sporsmalId\":\"utdanning\",\"sporsmal\":\"Hva er din høyeste fullførte utdanning?\"," +
+                    "\"svar\":\"Høyere utdanning (5 år eller mer)\"},{" +
+                    "\"sporsmalId\":\"utdanningGodkjent\",\"sporsmal\":\"Er utdanningen din godkjent i Norge?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"utdanningBestatt\",\"sporsmal\":\"Er utdanningen din bestått?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"andreForhold\",\"sporsmal\":\"Har du andre problemer med å søke eller være i jobb?\",\"svar\":\"Nei\"},{" +
+                    "\"sporsmalId\":\"sisteStilling\",\"sporsmal\":\"Hva er din siste jobb?\",\"svar\":\"Annen stilling\"},{" +
+                    "\"sporsmalId\":\"helseHinder\",\"sporsmal\":\"Har du helseproblemer som hindrer deg i å søke eller være i jobb?\",\"svar\":\"Nei\"}]," +
+                    "\"sisteStilling\": {\"label\":\"Annen stilling\",\"konseptId\": -1,\"styrk08\":\"-1\"}," +
+                    "\"profilering\": {\"innsatsgruppe\":\"SITUASJONSBESTEMT_INNSATS\",\"alder\": 28,\"jobbetSammenhengendeSeksAvTolvSisteManeder\": false}," +
+                    "\"manueltRegistrertAv\": null},\"type\":\"ORDINAER\"}"
+
+        val registreringsDataDto = fromJson(registreringsDataJson, RegistreringResponseDto::class.java)
 
         val endringIRegistreringsdata = EndringIRegistreringsdataResponse(
             registreringsId = 10004400,
             endretAv = "BRUKER",
-            endretTidspunkt = "2023-07-18T11:24:03.158629",
-            registreringsTidspunkt = "2023-07-17T11:27:25.299658",
+            endretTidspunkt = LocalDateTime.parse("2023-07-18T11:24:03.158629"),
+            registreringsTidspunkt = LocalDateTime.parse("2023-07-17T11:27:25.299658"),
             opprettetAv = "BRUKER",
             erBesvarelsenEndret = true,
-            besvarelse = EndringIRegistreringsdataResponse.Besvarelse(
-                utdanning = EndringIRegistreringsdataResponse.Besvarelse.Utdanning(
+            besvarelse = Besvarelse(
+                utdanning = Besvarelse.Utdanning(
                     verdi = "HOYERE_UTDANNING_1_TIL_4",
                     gjelderFraDato = null,
                     gjelderTilDato = null,
                     endretAv = null,
                     endretTidspunkt = null
                 ),
-                utdanningBestatt = EndringIRegistreringsdataResponse.Besvarelse.UtdanningBestatt(
+                utdanningBestatt = Besvarelse.UtdanningBestatt(
                     verdi = "JA",
                     gjelderFraDato = null,
                     gjelderTilDato = null,
                     endretAv = null,
                     endretTidspunkt = null
                 ),
-                utdanningGodkjent = EndringIRegistreringsdataResponse.Besvarelse.UtdanningGodkjent(
+                utdanningGodkjent = Besvarelse.UtdanningGodkjent(
                     verdi = "JA",
                     gjelderFraDato = null,
                     gjelderTilDato = null,
                     endretAv = null,
                     endretTidspunkt = null
                 ),
-                helseHinder = EndringIRegistreringsdataResponse.Besvarelse.HelseHinder(
+                helseHinder = Besvarelse.HelseHinder(
                     verdi = "JA",
                     gjelderFraDato = null,
                     gjelderTilDato = null,
                     endretAv = null,
                     endretTidspunkt = null
                 ),
-                andreForhold = EndringIRegistreringsdataResponse.Besvarelse.AndreForhold(
+                andreForhold = Besvarelse.AndreForhold(
                     verdi = "NEI",
                     gjelderFraDato = null,
                     gjelderTilDato = null,
                     endretAv = null,
                     endretTidspunkt = null
                 ),
-                sisteStilling = EndringIRegistreringsdataResponse.Besvarelse.SisteStilling(
+                sisteStilling = Besvarelse.SisteStilling(
                     verdi = "INGEN_SVAR",
                     gjelderFraDato = null,
                     gjelderTilDato = null,
                     endretAv = null,
                     endretTidspunkt = null
                 ),
-                fremtidigSituasjon = EndringIRegistreringsdataResponse.Besvarelse.FremtidigSituasjon(
+                fremtidigSituasjon = Besvarelse.FremtidigSituasjon(
                     verdi = null,
                     gjelderFraDato = null,
                     gjelderTilDato = null,
                     endretAv = null,
                     endretTidspunkt = null
                 ),
-                tilbakeIArbeid = EndringIRegistreringsdataResponse.Besvarelse.TilbakeIArbeid(
+                tilbakeIArbeid = Besvarelse.TilbakeIArbeid(
                     verdi = null,
                     gjelderFraDato = null,
                     gjelderTilDato = null,
                     endretAv = null,
                     endretTidspunkt = null
                 ),
-                dinSituasjon = EndringIRegistreringsdataResponse.Besvarelse.DinSituasjon(
+                dinSituasjon = Besvarelse.DinSituasjon(
                     verdi = "OPPSIGELSE",
-                    tilleggsData = EndringIRegistreringsdataResponse.Besvarelse.DinSituasjon.TilleggsData(
+                    tilleggsData = Besvarelse.DinSituasjon.TilleggsData(
                         forsteArbeidsdagDato = null,
                         sisteArbeidsdagDato = "2023-07-31",
                         oppsigelseDato = "2023-07-19",
@@ -150,18 +158,24 @@ internal class OyeblikksbildeServiceTest {
             )
         )
 
-        val expectedData = "{\"registrering\":{\"id\":10004240,\"opprettetDato\":\"2023-06-22T16:47:18.325956+02:00\",\"besvarelse\":{\"utdanning\":\"HOYERE_UTDANNING_5_ELLER_MER\",\"utdanningBestatt\":\"JA\",\"utdanningGodkjent\":\"JA\",\"helseHinder\":\"NEI\",\"andreForhold\":\"NEI\"," +
-                "\"sisteStilling\":\"INGEN_SVAR\",\"dinSituasjon\":\"OPPSIGELSE\",\"fremtidigSituasjon\":null,\"tilbakeIArbeid\":null},\"teksterForBesvarelse\":[{\"sporsmalId\":\"dinSituasjon\",\"sporsmal\":\"Velg den situasjonen som passer deg best\",\"svar\":\"Jeg har blitt sagt opp av arbeidsgiver\"},{\"sporsmalId\":\"utdanning\",\"sporsmal\":\"Hva er din høyeste fullførte utdanning?\"," +
-                "\"svar\":\"Høyere utdanning (5 år eller mer)\"},{" +
-                "\"sporsmalId\":\"utdanningGodkjent\",\"sporsmal\":\"Er utdanningen din godkjent i Norge?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"utdanningBestatt\",\"sporsmal\":\"Er utdanningen din bestått?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"andreForhold\",\"sporsmal\":\"Har du andre problemer med å søke eller være i jobb?\",\"svar\":\"Nei\"},{" +
-                "\"sporsmalId\":\"sisteStilling\",\"sporsmal\":\"Hva er din siste jobb?\",\"svar\":\"Annen stilling\"},{" +
-                "\"sporsmalId\":\"helseHinder\",\"sporsmal\":\"Har du helseproblemer som hindrer deg i å søke eller være i jobb?\",\"svar\":\"Nei\"}]," +
-                "\"sisteStilling\": {\"label\":\"Annen stilling\",\"konseptId\": -1,\"styrk08\":\"-1\"}," +
-                "\"profilering\": {\"innsatsgruppe\":\"SITUASJONSBESTEMT_INNSATS\",\"alder\": 28,\"jobbetSammenhengendeSeksAvTolvSisteManeder\": false}," +
-                "\"manueltRegistrertAv\": null, \"endretAv\":\"BRUKER\", \"endretTidspunkt\":\"2023-07-18T11:24:03.158629\"},\"type\":\"ORDINAER\"}"
+        val expectedData =
+            "{\"registrering\":{\"id\":10004240,\"opprettetDato\":\"2023-06-22T16:47:18.325956+02:00\",\"besvarelse\":{\"utdanning\":\"HOYERE_UTDANNING_5_ELLER_MER\",\"utdanningBestatt\":\"JA\",\"utdanningGodkjent\":\"JA\",\"helseHinder\":\"NEI\",\"andreForhold\":\"NEI\"," +
+                    "\"sisteStilling\":\"INGEN_SVAR\",\"dinSituasjon\":\"OPPSIGELSE\",\"fremtidigSituasjon\":null,\"tilbakeIArbeid\":null},\"teksterForBesvarelse\":[{\"sporsmalId\":\"dinSituasjon\",\"sporsmal\":\"Velg den situasjonen som passer deg best\",\"svar\":\"Jeg har blitt sagt opp av arbeidsgiver\"},{\"sporsmalId\":\"utdanning\",\"sporsmal\":\"Hva er din høyeste fullførte utdanning?\"," +
+                    "\"svar\":\"Høyere utdanning (5 år eller mer)\"},{" +
+                    "\"sporsmalId\":\"utdanningGodkjent\",\"sporsmal\":\"Er utdanningen din godkjent i Norge?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"utdanningBestatt\",\"sporsmal\":\"Er utdanningen din bestått?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"andreForhold\",\"sporsmal\":\"Har du andre problemer med å søke eller være i jobb?\",\"svar\":\"Nei\"},{" +
+                    "\"sporsmalId\":\"sisteStilling\",\"sporsmal\":\"Hva er din siste jobb?\",\"svar\":\"Annen stilling\"},{" +
+                    "\"sporsmalId\":\"helseHinder\",\"sporsmal\":\"Har du helseproblemer som hindrer deg i å søke eller være i jobb?\",\"svar\":\"Nei\"}]," +
+                    "\"sisteStilling\": {\"label\":\"Annen stilling\",\"konseptId\": -1,\"styrk08\":\"-1\"}," +
+                    "\"profilering\": {\"innsatsgruppe\":\"SITUASJONSBESTEMT_INNSATS\",\"alder\": 28,\"jobbetSammenhengendeSeksAvTolvSisteManeder\": false}," +
+                    "\"manueltRegistrertAv\": null, \"endretAv\":\"BRUKER\", \"endretTidspunkt\":\"2023-07-18T11:24:03.158629\"},\"type\":\"ORDINAER\"}"
 
-        val actualData = oyeblikksbildeService.oppdaterRegistreringsdataHvisNyeEndringer(registreringsData, endringIRegistreringsdata)
-        Assertions.assertEquals(JSONObject(expectedData).toString(), JSONObject(actualData).toString())
+        val expectedOppdatertRegistreringData = fromJson(expectedData, RegistreringResponseDto::class.java)
+
+        val actualData = oyeblikksbildeService.oppdaterRegistreringsdataHvisNyeEndringer(
+            registreringsDataDto,
+            endringIRegistreringsdata
+        )
+        Assertions.assertEquals(expectedOppdatertRegistreringData, actualData)
 
     }
 

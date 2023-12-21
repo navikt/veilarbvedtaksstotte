@@ -25,26 +25,26 @@ import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 @Repository
 public class VedtaksstotteRepository {
 
-    public static final String VEDTAK_TABLE                 = "VEDTAK";
-    private static final String VEDTAK_ID                   = "ID";
-    private static final String SENDER                      = "SENDER";
-    private static final String AKTOR_ID                    = "AKTOR_ID";
-    private static final String HOVEDMAL                    = "HOVEDMAL";
-    private static final String INNSATSGRUPPE               = "INNSATSGRUPPE";
-    private static final String VEILEDER_IDENT              = "VEILEDER_IDENT";
-    private static final String OPPFOLGINGSENHET_ID         = "OPPFOLGINGSENHET_ID";
-    private static final String UTKAST_SIST_OPPDATERT       = "UTKAST_SIST_OPPDATERT";
-    private static final String VEDTAK_FATTET               = "VEDTAK_FATTET";
-    private static final String BESLUTTER_IDENT             = "BESLUTTER_IDENT";
-    private static final String UTKAST_OPPRETTET            = "UTKAST_OPPRETTET";
-    private static final String BEGRUNNELSE                 = "BEGRUNNELSE";
-    private static final String STATUS                      = "STATUS";
-    private static final String DOKUMENT_ID                 = "DOKUMENT_ID";
-    private static final String JOURNALPOST_ID              = "JOURNALPOST_ID";
-    private static final String DOKUMENT_BESTILLING_ID      = "DOKUMENT_BESTILLING_ID";
-    private static final String GJELDENDE                   = "GJELDENDE";
-    private static final String BESLUTTER_PROSESS_STATUS    = "BESLUTTER_PROSESS_STATUS";
-    private static final String REFERANSE                   = "REFERANSE";
+    public static final String VEDTAK_TABLE = "VEDTAK";
+    private static final String VEDTAK_ID = "ID";
+    private static final String SENDER = "SENDER";
+    private static final String AKTOR_ID = "AKTOR_ID";
+    private static final String HOVEDMAL = "HOVEDMAL";
+    private static final String INNSATSGRUPPE = "INNSATSGRUPPE";
+    private static final String VEILEDER_IDENT = "VEILEDER_IDENT";
+    private static final String OPPFOLGINGSENHET_ID = "OPPFOLGINGSENHET_ID";
+    private static final String UTKAST_SIST_OPPDATERT = "UTKAST_SIST_OPPDATERT";
+    private static final String VEDTAK_FATTET = "VEDTAK_FATTET";
+    private static final String BESLUTTER_IDENT = "BESLUTTER_IDENT";
+    private static final String UTKAST_OPPRETTET = "UTKAST_OPPRETTET";
+    private static final String BEGRUNNELSE = "BEGRUNNELSE";
+    private static final String STATUS = "STATUS";
+    private static final String DOKUMENT_ID = "DOKUMENT_ID";
+    private static final String JOURNALPOST_ID = "JOURNALPOST_ID";
+    private static final String DOKUMENT_BESTILLING_ID = "DOKUMENT_BESTILLING_ID";
+    private static final String GJELDENDE = "GJELDENDE";
+    private static final String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
+    private static final String REFERANSE = "REFERANSE";
 
     private final JdbcTemplate db;
     private final TransactionTemplate transactor;
@@ -162,9 +162,9 @@ public class VedtaksstotteRepository {
         transactor.executeWithoutResult((status) -> {
             boolean lagretSender =
                     Optional.ofNullable(
-                            db.queryForObject(
-                                    format("SELECT %s FROM %s WHERE %s = ? FOR UPDATE", SENDER, VEDTAK_TABLE, VEDTAK_ID),
-                                    (rs, rowNum) -> rs.getBoolean(SENDER), vedtakId))
+                                    db.queryForObject(
+                                            format("SELECT %s FROM %s WHERE %s = ? FOR UPDATE", SENDER, VEDTAK_TABLE, VEDTAK_ID),
+                                            (rs, rowNum) -> rs.getBoolean(SENDER), vedtakId))
                             .orElse(false);
 
             if (lagretSender == sender) {
@@ -185,6 +185,16 @@ public class VedtaksstotteRepository {
         return db.queryForList(sql, Long.class, antall);
     }
 
+    public List<Long> hentVedtakForJournalforing(int antall) {
+        var sql = """
+                SELECT ID FROM VEDTAK
+                WHERE VEDTAK_FATTET IS NOT NULL
+                AND JOURNALPOST_ID IS NULL
+                ORDER BY VEDTAK_FATTET ASC LIMIT ?
+                """;
+        return db.queryForList(sql, Long.class, antall);
+    }
+
     public UUID opprettOgHentReferanse(long vedtakId) {
         String update = format(
                 "UPDATE %s SET %s = ? WHERE %s = ? AND %s is null", VEDTAK_TABLE, REFERANSE, VEDTAK_ID, REFERANSE
@@ -195,7 +205,7 @@ public class VedtaksstotteRepository {
         return db.queryForObject(select, UUID.class, vedtakId);
     }
 
-    public void lagreJournalforingVedtak(long vedtakId, String journalpostId, String dokumentId){
+    public void lagreJournalforingVedtak(long vedtakId, String journalpostId, String dokumentId) {
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = ? WHERE %s = ?",
                 VEDTAK_TABLE, DOKUMENT_ID, JOURNALPOST_ID, VEDTAK_ID
@@ -203,7 +213,7 @@ public class VedtaksstotteRepository {
         db.update(sql, dokumentId, journalpostId, vedtakId);
     }
 
-    public void lagreDokumentbestillingsId(long vedtakId, DistribusjonBestillingId dokumentbestillingsId){
+    public void lagreDokumentbestillingsId(long vedtakId, DistribusjonBestillingId dokumentbestillingsId) {
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = false WHERE %s = ?",
                 VEDTAK_TABLE, DOKUMENT_BESTILLING_ID, SENDER, VEDTAK_ID
@@ -211,7 +221,7 @@ public class VedtaksstotteRepository {
         db.update(sql, dokumentbestillingsId.getId(), vedtakId);
     }
 
-    public void ferdigstillVedtak(long vedtakId){
+    public void ferdigstillVedtak(long vedtakId) {
         String sql = format(
                 "UPDATE %s SET %s = ?, %s = CURRENT_TIMESTAMP, %s = true WHERE %s = ?",
                 VEDTAK_TABLE, STATUS, VEDTAK_FATTET, GJELDENDE, VEDTAK_ID
@@ -236,6 +246,15 @@ public class VedtaksstotteRepository {
                 "SELECT COUNT(*) FROM VEDTAK" +
                         " WHERE JOURNALPOST_ID IS NOT NULL" +
                         " AND DOKUMENT_BESTILLING_ID IS NULL" +
+                        " AND VEDTAK_FATTET <= ?";
+
+        return Optional.ofNullable(db.queryForObject(sql, Integer.class, til)).orElse(0);
+    }
+
+    public int hentFattetVedtakUtenJournalforing(LocalDateTime til) {
+        String sql =
+                "SELECT COUNT(*) FROM VEDTAK" +
+                        " WHERE JOURNALPOST_ID IS NULL" +
                         " AND VEDTAK_FATTET <= ?";
 
         return Optional.ofNullable(db.queryForObject(sql, Integer.class, til)).orElse(0);
@@ -268,7 +287,7 @@ public class VedtaksstotteRepository {
                 .setVedtakStatus(EnumUtils.valueOf(VedtakStatus.class, rs.getString(STATUS)))
                 .setBegrunnelse(rs.getString(BEGRUNNELSE))
                 .setUtkastSistOppdatert(rs.getTimestamp(UTKAST_SIST_OPPDATERT).toLocalDateTime())
-                .setVedtakFattet(Optional.ofNullable(rs.getTimestamp(VEDTAK_FATTET)).isPresent()?rs.getTimestamp(VEDTAK_FATTET).toLocalDateTime():null)
+                .setVedtakFattet(Optional.ofNullable(rs.getTimestamp(VEDTAK_FATTET)).isPresent() ? rs.getTimestamp(VEDTAK_FATTET).toLocalDateTime() : null)
                 .setUtkastOpprettet(rs.getTimestamp(UTKAST_OPPRETTET).toLocalDateTime())
                 .setGjeldende(rs.getBoolean(GJELDENDE))
                 .setBeslutterIdent(rs.getString(BESLUTTER_IDENT))
@@ -279,7 +298,9 @@ public class VedtaksstotteRepository {
                 .setDokumentInfoId(rs.getString(DOKUMENT_ID))
                 .setDokumentbestillingId(rs.getString(DOKUMENT_BESTILLING_ID))
                 .setSender(rs.getBoolean(SENDER))
-                .setBeslutterProsessStatus(EnumUtils.valueOf(BeslutterProsessStatus.class, rs.getString(BESLUTTER_PROSESS_STATUS)));
+                .setBeslutterProsessStatus(EnumUtils.valueOf(BeslutterProsessStatus.class, rs.getString(BESLUTTER_PROSESS_STATUS)))
+                .setReferanse(Optional.ofNullable(rs.getString(REFERANSE)).isPresent() ? UUID.fromString(rs.getString(REFERANSE)) : null);
+
 
     }
 }

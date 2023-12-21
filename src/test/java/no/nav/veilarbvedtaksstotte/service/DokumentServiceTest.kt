@@ -12,17 +12,17 @@ import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClientImpl
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.*
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
-import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
@@ -33,6 +33,8 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder
 import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponseForPost
 import no.nav.veilarbvedtaksstotte.utils.toJson
@@ -40,6 +42,7 @@ import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.mock
 import org.springframework.http.HttpStatus
 import java.time.LocalDate
 import java.util.*
@@ -58,7 +61,9 @@ class DokumentServiceTest {
     lateinit var norg2Client: Norg2Client
     lateinit var enhetInfoService: EnhetInfoService
     lateinit var malTypeService: MalTypeService
+    lateinit var oyeblikksbildeService: OyeblikksbildeService
     lateinit var dokumentService: DokumentService
+    lateinit var pdfService: PdfService
 
     val målform = Målform.NB
     val veilederNavn = "Navn Veileder"
@@ -79,6 +84,9 @@ class DokumentServiceTest {
         kontaktEnhet = kontaktEnhet
     )
     val forventetBrev = "brev".toByteArray()
+    val registreringPdf = "registering".toByteArray()
+    val behovsvurderingPdf = "behovsvurdering".toByteArray()
+    val cvPdf = "CV".toByteArray()
 
     val produserDokumentDTO = ProduserDokumentDTO(
         brukerFnr = Fnr("123"),
@@ -131,6 +139,39 @@ class DokumentServiceTest {
                           "variantformat": "ARKIV"
                         }
                       ]
+                    },
+                    {
+                      "tittel": "Svarene dine fra da du registrerte deg",
+                      "brevkode": "REGISTRERINGSINFO",
+                      "dokumentvarianter": [
+                        {
+                          "filtype": "PDFA",
+                          "fysiskDokument": "${Base64.encode(registreringPdf)}",
+                          "variantformat": "ARKIV"
+                        }
+                      ]
+                    },
+                    {
+                      "tittel": "CV-en/jobbønskene dine på nav.no",
+                      "brevkode": "CV_OG_JOBBPROFIL",
+                      "dokumentvarianter": [
+                        {
+                          "filtype": "PDFA",
+                          "fysiskDokument": "${Base64.encode(cvPdf)}",
+                          "variantformat": "ARKIV"
+                        }
+                      ]
+                    },
+                    {
+                      "tittel": "Svarene dine om behov for veiledning",
+                      "brevkode": "EGENVURDERING",
+                      "dokumentvarianter": [
+                        {
+                          "filtype": "PDFA",
+                          "fysiskDokument": "${Base64.encode(behovsvurderingPdf)}",
+                          "variantformat": "ARKIV"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -163,21 +204,41 @@ class DokumentServiceTest {
         dokarkivClient = DokarkivClientImpl(wiremockUrl) { "" }
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl) { "" }
-        veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl) { "" }
-        veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance()) { "" }
+        veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""})
+        veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), {""})
         pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)
         enhetInfoService = EnhetInfoService(norg2Client)
         malTypeService = MalTypeService(veilarbregistreringClient)
+
+        val authService = mock(AuthService::class.java)
+        val oyeblikksbildeRepository = mock(OyeblikksbildeRepository::class.java)
+        val vedtaksstotteRepository = mock(VedtaksstotteRepository::class.java)
+        val aiaBackendClient = mock(AiaBackendClient::class.java)
+        oyeblikksbildeService = OyeblikksbildeService(
+            authService,
+            oyeblikksbildeRepository,
+            vedtaksstotteRepository,
+            veilarbpersonClient,
+            veilarbregistreringClient,
+            aiaBackendClient
+        )
+
+        pdfService = PdfService(
+            pdfClient = pdfClient,
+            enhetInfoService = enhetInfoService,
+            veilarbveilederClient = veilarbveilederClient,
+            veilarbpersonClient = veilarbpersonClient
+        )
+
         dokumentService = DokumentService(
             regoppslagClient = regoppslagClient,
-            pdfClient = pdfClient,
             veilarbarenaClient = veilarbarenaClient,
             veilarbpersonClient = veilarbpersonClient,
-            veilarbveilederClient = veilarbveilederClient,
             dokarkivClient = dokarkivClient,
-            enhetInfoService = enhetInfoService,
-            malTypeService = malTypeService
+            malTypeService = malTypeService,
+            oyeblikksbildeService = oyeblikksbildeService,
+            pdfService = pdfService
         )
 
         givenWiremockOkJsonResponse(
@@ -215,6 +276,18 @@ class DokumentServiceTest {
             )
         )
 
+        givenThat(
+            post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikkbilde-behovsvurdering")).willReturn(
+                aResponse().withStatus(201).withBody(behovsvurderingPdf)
+            )
+        )
+
+        givenThat(
+            post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikkbilde-registrering")).willReturn(
+                aResponse().withStatus(201).withBody(registreringPdf)
+            )
+        )
+
         givenWiremockOkJsonResponse(
             "/api/v1/enhet/3423/organisering", """[
                 {
@@ -231,10 +304,10 @@ class DokumentServiceTest {
     fun `produserDokument genererer brev`() {
         val produserDokument =
             authContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                dokumentService.produserDokument(produserDokumentDTO)
+                pdfService.produserDokument(produserDokumentDTO)
             })
 
-        assertEquals(String(forventetBrev), String(produserDokument))
+        Assertions.assertEquals(String(forventetBrev), String(produserDokument))
     }
 
     @Test
@@ -245,11 +318,11 @@ class DokumentServiceTest {
 
         val exception = Assertions.assertThrows(IllegalStateException::class.java) {
             authContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                dokumentService.produserDokument(produserDokumentDTO)
+                pdfService.produserDokument(produserDokumentDTO)
             })
         }
 
-        assertEquals("Manglende navn for enhet ${produserDokumentDTO.enhetId}", exception.message)
+        Assertions.assertEquals("Manglende navn for enhet ${produserDokumentDTO.enhetId}", exception.message)
     }
 
     @Test
@@ -260,11 +333,11 @@ class DokumentServiceTest {
 
         val exception = Assertions.assertThrows(IllegalStateException::class.java) {
             authContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                dokumentService.produserDokument(produserDokumentDTO)
+                pdfService.produserDokument(produserDokumentDTO)
             })
         }
 
-        assertEquals("Manglende navn for enhet $kontaktEnhetId", exception.message)
+        Assertions.assertEquals("Manglende navn for enhet $kontaktEnhetId", exception.message)
     }
 
     @Test
@@ -276,7 +349,7 @@ class DokumentServiceTest {
 
         val exception = Assertions.assertThrows(IllegalStateException::class.java) {
             authContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                dokumentService.produserDokument(produserDokumentDTO)
+                pdfService.produserDokument(produserDokumentDTO)
             })
         }
 
@@ -293,7 +366,7 @@ class DokumentServiceTest {
 
         val respons = journalførMedForventetRequest()
 
-        assertEquals(forventetJournalpostRespons, respons)
+        Assertions.assertEquals(forventetJournalpostRespons, respons)
     }
 
     @Test
@@ -308,7 +381,7 @@ class DokumentServiceTest {
 
         val respons = journalførMedForventetRequest()
 
-        assertEquals(forventetJournalpostRespons, respons)
+        Assertions.assertEquals(forventetJournalpostRespons, respons)
     }
 
     private fun journalførMedForventetRequest(): OpprettetJournalpostDTO {
@@ -321,6 +394,9 @@ class DokumentServiceTest {
                     oppfolgingssak = "OPPF_SAK",
                     malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
                     dokument = forventetBrev,
+                    oyeblikksbildeRegistreringDokument = registreringPdf,
+                    oyeblikksbildeCVDokument = cvPdf,
+                    oyeblikksbildeBehovsvurderingDokument = behovsvurderingPdf,
                     referanse = eksternJournalpostReferanse
                 )
             })

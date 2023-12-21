@@ -3,21 +3,23 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient.Adresse.Companion.fraEnhetPostadresse
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettJournalpostDTO
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient.Adresse.Companion.fraEnhetPostadresse
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.UTENLANDSKPOSTADRESSE
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.DateFormatters
 import no.nav.veilarbvedtaksstotte.utils.StringUtils.splitNewline
@@ -25,32 +27,47 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.*
+import kotlin.jvm.optionals.getOrElse
+
 
 @Service
 class DokumentService(
     val regoppslagClient: RegoppslagClient,
-    val pdfClient: PdfClient,
     val veilarbarenaClient: VeilarbarenaClient,
     val veilarbpersonClient: VeilarbpersonClient,
-    val veilarbveilederClient: VeilarbveilederClient,
     val dokarkivClient: DokarkivClient,
-    val enhetInfoService: EnhetInfoService,
-    val malTypeService: MalTypeService
+    val malTypeService: MalTypeService,
+    val oyeblikksbildeService: OyeblikksbildeService,
+    val pdfService: PdfService
 ) {
 
     val log = LoggerFactory.getLogger(DokumentService::class.java)
 
     fun produserDokumentutkast(vedtak: Vedtak, fnr: Fnr): ByteArray {
         val produserDokumentDTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = true)
-        return produserDokument(produserDokumentDTO)
+        return pdfService.produserDokument(produserDokumentDTO)
     }
 
-    fun produserOgJournalforDokument(vedtak: Vedtak, fnr: Fnr, referanse: UUID): OpprettetJournalpostDTO {
+    fun produserOgJournalforDokument(vedtak: Vedtak, fnr: Fnr): OpprettetJournalpostDTO {
         val produserDokumentDTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = false)
-        val dokument = produserDokument(produserDokumentDTO)
+        val dokument = pdfService.produserDokument(produserDokumentDTO)
         val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
         val oppfolgingssak = veilarbarenaClient.oppfolgingssak(fnr)
             .orElseThrow { throw IllegalStateException("Det finnes ingen oppfolgingssak i arena for vedtak id: ${vedtak.id}") }
+
+        val referanse = vedtak.getReferanse();
+
+        val oyeblikksbildeForVedtak = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtak.id)
+        val behovsVurderingData =
+            oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING }
+        val registreringData =
+            oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.REGISTRERINGSINFO }
+        val cvData =
+            oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.CV_OG_JOBBPROFIL }
+
+        val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json)
+        val registeringPdf = pdfService.produserRegisteringPdf(registreringData?.json)
+        val cvPDF = pdfService.produserCVPdf(cvData?.json)
 
         return journalforDokument(
             tittel = tittel,
@@ -59,17 +76,13 @@ class DokumentService(
             oppfolgingssak = oppfolgingssak,
             malType = produserDokumentDTO.malType,
             dokument = dokument,
+            oyeblikksbildeRegistreringDokument = registeringPdf.getOrElse { null },
+            oyeblikksbildeBehovsvurderingDokument = behovsVurderingPdf.getOrElse { null },
+            oyeblikksbildeCVDokument = cvPDF.getOrElse { null },
             referanse = referanse
         )
     }
 
-    fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
-
-        val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
-        val brevdata = mapBrevdata(dto, brevdataOppslag)
-
-        return pdfClient.genererPdf(brevdata)
-    }
 
     fun journalforDokument(
         tittel: String,
@@ -78,8 +91,66 @@ class DokumentService(
         oppfolgingssak: String,
         malType: MalType,
         dokument: ByteArray,
+        oyeblikksbildeRegistreringDokument: ByteArray?,
+        oyeblikksbildeBehovsvurderingDokument: ByteArray?,
+        oyeblikksbildeCVDokument: ByteArray?,
         referanse: UUID
     ): OpprettetJournalpostDTO {
+
+        val dokumenterList = mutableListOf<OpprettJournalpostDTO.Dokument>()
+
+        dokumenterList.add(
+            OpprettJournalpostDTO.Dokument(
+                tittel = tittel, brevkode = malType.name, dokumentvarianter = listOf(
+                    OpprettJournalpostDTO.DokumentVariant(
+                        "PDFA", fysiskDokument = dokument, variantformat = "ARKIV"
+                    )
+                )
+            )
+        )
+
+        if (oyeblikksbildeRegistreringDokument != null) {
+            dokumenterList.add(
+                OpprettJournalpostDTO.Dokument(
+                    tittel = OyeblikksbildePdfTemplate.REGISTRERINGSINFO.fileName,
+                    brevkode = BrevKode.of(OyeblikksbildeType.REGISTRERINGSINFO).name,
+                    dokumentvarianter = listOf(
+                        OpprettJournalpostDTO.DokumentVariant(
+                            "PDFA", fysiskDokument = oyeblikksbildeRegistreringDokument, variantformat = "ARKIV"
+                        )
+                    )
+                )
+            )
+        }
+
+        if (oyeblikksbildeCVDokument != null) {
+            dokumenterList.add(
+                OpprettJournalpostDTO.Dokument(
+                    tittel = OyeblikksbildePdfTemplate.CV_OG_JOBBPROFIL.fileName,
+                    brevkode = BrevKode.of(OyeblikksbildeType.CV_OG_JOBBPROFIL).name,
+                    dokumentvarianter = listOf(
+                        OpprettJournalpostDTO.DokumentVariant(
+                            "PDFA", fysiskDokument = oyeblikksbildeCVDokument, variantformat = "ARKIV"
+                        )
+                    )
+                )
+            )
+        }
+
+        if (oyeblikksbildeBehovsvurderingDokument != null) {
+            dokumenterList.add(
+                OpprettJournalpostDTO.Dokument(
+                    tittel = OyeblikksbildePdfTemplate.EGENVURDERING.fileName,
+                    brevkode = BrevKode.of(OyeblikksbildeType.EGENVURDERING).name,
+                    dokumentvarianter = listOf(
+                        OpprettJournalpostDTO.DokumentVariant(
+                            "PDFA", fysiskDokument = oyeblikksbildeBehovsvurderingDokument, variantformat = "ARKIV"
+                        )
+                    )
+                )
+            )
+        }
+
 
         val request = OpprettJournalpostDTO(
             tittel = tittel,
@@ -97,15 +168,7 @@ class DokumentService(
                 fagsakId = oppfolgingssak, fagsaksystem = "AO01", // Arena-kode, siden oppfølgingssaken er fra Arena
                 sakstype = OpprettJournalpostDTO.Sak.Type.FAGSAK
             ),
-            dokumenter = listOf(
-                OpprettJournalpostDTO.Dokument(
-                    tittel = tittel, brevkode = malType.name, dokumentvarianter = listOf(
-                        OpprettJournalpostDTO.DokumentVariant(
-                            "PDFA", fysiskDokument = dokument, variantformat = "ARKIV"
-                        )
-                    )
-                )
-            )
+            dokumenter = dokumenterList
         )
 
         return dokarkivClient.opprettJournalpost(request)
@@ -139,28 +202,14 @@ class DokumentService(
         )
     }
 
-    data class BrevdataOppslag(val enhetKontaktinformasjon: EnhetKontaktinformasjon,
-                               val målform: Målform,
-                               val veilederNavn: String,
-                               val enhet: Enhet,
-                               val kontaktEnhet: Enhet)
+    data class BrevdataOppslag(
+        val enhetKontaktinformasjon: EnhetKontaktinformasjon,
+        val målform: Målform,
+        val veilederNavn: String,
+        val enhet: Enhet,
+        val kontaktEnhet: Enhet
+    )
 
-    private fun hentBrevdata(fnr: Fnr, enhetId: EnhetId, veilederIdent: String): BrevdataOppslag {
-        val enhetKontaktinformasjon: EnhetKontaktinformasjon = enhetInfoService.utledEnhetKontaktinformasjon(enhetId)
-        val målform = veilarbpersonClient.hentMålform(fnr)
-        val veileder = veilarbveilederClient.hentVeileder(veilederIdent)
-
-        val enhet: Enhet = enhetInfoService.hentEnhet(enhetId)
-        val kontaktEnhet: Enhet = enhetInfoService.hentEnhet(enhetKontaktinformasjon.enhetNr)
-
-        return BrevdataOppslag(
-            enhetKontaktinformasjon = enhetKontaktinformasjon,
-            målform = målform,
-            veilederNavn = veileder.navn,
-            enhet = enhet,
-            kontaktEnhet = kontaktEnhet
-        )
-    }
 
     companion object {
 

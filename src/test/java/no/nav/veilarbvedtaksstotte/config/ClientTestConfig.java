@@ -8,18 +8,12 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EksternBrukerId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.EgenvurderingForPersonDTO;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.EndringIRegistreringsdataResponse;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.*;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
-import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettJournalpostDTO;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostResponsDTO;
@@ -29,9 +23,13 @@ import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
-import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
@@ -42,6 +40,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.domain.Målform;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.Instant;
@@ -149,6 +148,26 @@ public class ClientTestConfig {
     @Bean
     public PdfClient pdfClient() {
         return new PdfClient() {
+
+
+            @NotNull
+            @Override
+            public byte[] genererOyeblikksbildeEgenVurderingPdf(@NotNull OyeblikksbildeEgenvurderingDto egenvurderingOyeblikksbildeData) {
+                return new byte[0];
+            }
+
+            @NotNull
+            @Override
+            public byte[] genererOyeblikksbildeRegistreringPdf(@NotNull RegistreringsdataDto registreringOyeblikksbildeData) {
+                return new byte[0];
+            }
+
+            @NotNull
+            @Override
+            public byte[] genererOyeblikksbildeCvPdf(@NotNull CvInnhold cvOyeblikksbildeData) {
+                return new byte[0];
+            }
+
             @NotNull
             @Override
             public byte[] genererPdf(@NotNull Brevdata brevdata) {
@@ -166,7 +185,7 @@ public class ClientTestConfig {
     public AiaBackendClient egenvurderingClient() {
         return new AiaBackendClient() {
             @Override
-            public EgenvurderingResponseDTO hentEgenvurdering(EgenvurderingForPersonDTO egenvurderingForPersonDTO) {
+            public EgenvurderingResponseDTO hentEgenvurdering(EgenvurderingForPersonRequest egenvurderingForPersonRequest) {
                 Map<String, String> egenvurderingstekster = new HashMap<>();
                 egenvurderingstekster.put("STANDARD_INNSATS", "Svar jeg klarer meg");
                 return new EgenvurderingResponseDTO("STANDARD_INNSATS", new Instant().toString(), "123456", new EgenvurderingResponseDTO.Tekster("testspm", egenvurderingstekster));
@@ -224,8 +243,8 @@ public class ClientTestConfig {
             }
 
             @Override
-            public String hentCVOgJobbprofil(String fnr) {
-                return "{ \"data\": \"Bruker har ikke delt CV/jobbprofil med NAV\"}";
+            public CvDto hentCVOgJobbprofil(String fnr) {
+                return new CvDto.CvMedError(CvErrorStatus.IKKE_DELT);
             }
 
             @NotNull
@@ -244,13 +263,9 @@ public class ClientTestConfig {
     @Bean
     public VeilarbregistreringClient registreringClient() {
         return new VeilarbregistreringClient() {
-            @Override
-            public String hentRegistreringDataJson(String fnr) {
-                return null;
-            }
 
             @Override
-            public RegistreringData hentRegistreringData(String fnr) {
+            public RegistreringResponseDto hentRegistreringData(String fnr) {
                 return null;
             }
 
@@ -272,6 +287,11 @@ public class ClientTestConfig {
             @Override
             public List<Journalpost> hentJournalposter(Fnr fnr) {
                 return emptyList();
+            }
+
+            @Override
+            public JournalpostGraphqlResponse hentJournalpost(String journalpostId) {
+                return null;
             }
 
             @Override
@@ -317,7 +337,7 @@ public class ClientTestConfig {
                 return new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
                         true,
-                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID)));
+                        List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID)));
             }
 
             @Override

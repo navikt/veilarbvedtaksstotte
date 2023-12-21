@@ -10,8 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @WireMockTest
 public class SafClientImplTest {
@@ -49,6 +48,26 @@ public class SafClientImplTest {
         assertThrows(RuntimeException.class, () ->
                 safClient.hentJournalposter(TestData.TEST_FNR)
         );
+    }
+
+    @Test
+    public void hentJournalpostById(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        String journalpostJson = TestUtils.readTestResourceFile("testdata/saf-client-journalpost.json");
+
+        String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
+        SafClient safClient = new SafClientImpl(apiUrl, () -> "");
+
+        givenThat(post(urlEqualTo("/graphql"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody(journalpostJson))
+        );
+
+        JournalpostGraphqlResponse journalpost = safClient.hentJournalpost(TestData.TEST_JOURNALPOST_ID);
+        assertNotNull(journalpost);
+        assertTrue(journalpost.getData().getJournalpost().dokumenter.length > 0);
+        assertNotNull(journalpost.getData().getJournalpost().dokumenter[0].dokumentInfoId);
+        assertNotNull(journalpost.getData().getJournalpost().dokumenter[0].brevkode);
     }
 
 }

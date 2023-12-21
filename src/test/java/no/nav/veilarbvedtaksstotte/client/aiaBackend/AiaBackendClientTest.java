@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ public class AiaBackendClientTest {
                                         .withBody(response)
                         )
         );
-        EgenvurderingResponseDTO egenvurderingData = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonDTO(TEST_FNR.get()));
+        EgenvurderingResponseDTO egenvurderingData = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()));
 
         assertEquals(toJson(egenvurderingData), "{\"dato\":\"2024-04-10T11:07:55.337Z\",\"dialogId\":\"dialog-123\",\"oppfolging\":\"SITUASJONSBESTEMT_INNSATS\",\"tekster\":{\"sporsmal\":\"Testspm\",\"svar\":{\"STANDARD_INNSATS\":\"Svar jeg klarer meg\",\"SITUASJONSBESTEMT_INNSATS\":\"Svar jeg trenger hjelp\"}}}".trim());
 
@@ -65,7 +66,7 @@ public class AiaBackendClientTest {
                                         .withStatus(204)
                         )
         );
-        EgenvurderingResponseDTO egenvurderingData = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonDTO(TEST_FNR.get()));
+        EgenvurderingResponseDTO egenvurderingData = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()));
 
         assertNull(toJson(egenvurderingData));
     }

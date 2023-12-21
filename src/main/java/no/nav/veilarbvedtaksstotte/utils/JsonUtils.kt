@@ -2,14 +2,17 @@ package no.nav.veilarbvedtaksstotte.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import no.nav.common.rest.client.RestUtils
 import okhttp3.Response
 
 object JsonUtils {
 
+    @JvmStatic
     val objectMapper: ObjectMapper =
         no.nav.common.json.JsonUtils.getMapper().registerModule(KotlinModule.Builder().build())
+
 
     @JvmStatic
     fun init() {
@@ -18,6 +21,7 @@ object JsonUtils {
 
     @JvmStatic
     fun createNoDataStr(noDataMsg: String?): String {
+
         return createJsonStr("ingenData", noDataMsg)
     }
 
@@ -35,8 +39,8 @@ object JsonUtils {
 
 inline fun <reified T> Response.deserializeJson(): T? {
     return RestUtils.getBodyStr(this)
-            .map { JsonUtils.objectMapper.readValue(it, T::class.java) }
-            .orElse(null)
+        .map { JsonUtils.objectMapper.readValue(it, T::class.java) }
+        .orElse(null)
 }
 
 inline fun <reified T> Response.deserializeJsonOrThrow(): T {

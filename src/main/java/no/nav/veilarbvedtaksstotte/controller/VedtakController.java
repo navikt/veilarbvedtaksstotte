@@ -2,7 +2,8 @@ package no.nav.veilarbvedtaksstotte.controller;
 
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
@@ -37,6 +38,21 @@ public class VedtakController {
                 .body(vedtakPdf);
     }
 
+    @GetMapping(value = "{vedtakId}/{oyeblikksbildeType}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> hentVedtakOyeblikksCVPdf(@PathVariable("vedtakId") long vedtakId, @PathVariable("oyeblikksbildeType") String oyeblikksbildeInputType) {
+        OyeblikksbildeType oyeblikksbildeType = OyeblikksbildeType.valueOf(oyeblikksbildeInputType);
+        String dokumentId = oyeblikksbildeService.hentJournalfortDokumentId(vedtakId, oyeblikksbildeType);
+
+        if (dokumentId == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        byte[] oyeblikksbildePdf = vedtakService.hentOyeblikksbildePdf(vedtakId, dokumentId);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "filename=vedtaksbrev.pdf")
+                .body(oyeblikksbildePdf);
+    }
+
     @Deprecated(forRemoval = true)
     @GetMapping("/fattet")
     public List<Vedtak> hentFattedeVedtak(@RequestParam("fnr") Fnr fnr) {
@@ -44,7 +60,7 @@ public class VedtakController {
     }
 
     @GetMapping("{vedtakId}/oyeblikksbilde")
-    public List<Oyeblikksbilde> hentOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
+    public List<OyeblikksbildeDto> hentOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
         return oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
     }
 

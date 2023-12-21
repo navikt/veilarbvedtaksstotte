@@ -3,14 +3,18 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
+import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
@@ -18,12 +22,15 @@ import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -54,6 +61,8 @@ public class VedtakService {
     private final VeilarbarenaService veilarbarenaService;
     private final MetricsService metricsService;
 
+    private final LeaderElectionClient leaderElection;
+
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
@@ -69,41 +78,24 @@ public class VedtakService {
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(vedtak.getAktorId());
         validerVedtakForFerdigstilling(vedtak, gjeldendeVedtak);
 
-
-        journalforOgFerdigstill(vedtak, gjeldendeVedtak, authKontekst);
+        ferdigstillVedtak(vedtak, gjeldendeVedtak);
     }
 
-    private void journalforOgFerdigstill(Vedtak vedtak, Vedtak gjeldendevedtak, AuthKontekst authKontekst) {
+    private void ferdigstillVedtak(Vedtak vedtak, Vedtak gjeldendevedtak) {
+        log.info(format("Ferdigstiller vedtak med id=%s ", vedtak.getId()));
+
         long vedtakId = vedtak.getId();
 
-        oyeblikksbildeService.lagreOyeblikksbilde(authKontekst.getFnr(), vedtakId);
-        UUID referanse = vedtaksstotteRepository.opprettOgHentReferanse(vedtakId);
+        UUID referanse = vedtaksstotteRepository.opprettOgHentReferanse(vedtak.getId());
+        vedtak.setReferanse(referanse);
 
-        log.info(format(
-                "Journalfører og ferdigstiller vedtak med id=%s og referanse=%s", vedtakId, referanse
-        ));
+        log.info(format("Journalfører vedtak med id=%s og referanse=%s", vedtak.getId(), referanse));
 
-        OpprettetJournalpostDTO journalpost =
-                dokumentService.produserOgJournalforDokument(vedtak, Fnr.of(authKontekst.getFnr()), referanse);
+        Fnr brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
 
-        String journalpostId = journalpost.getJournalpostId();
-        String dokumentInfoId = null;
-        if (journalpost.getDokumenter().isEmpty()) {
-            log.error("Ingen dokumentInfoId i respons fra journalføring");
-        } else {
-            dokumentInfoId = journalpost.getDokumenter().get(0).getDokumentInfoId();
-        }
-        boolean journalpostferdigstilt = journalpost.getJournalpostferdigstilt();
+        oyeblikksbildeService.lagreOyeblikksbilde(brukerFnr.get(), vedtak.getId(), vedtak.getOpplysninger());
 
-        log.info(format(
-                "Journalføring utført: journalpostId=%s, dokumentInfoId=%s, ferdigstilt=%s",
-                journalpostId, dokumentInfoId, journalpostferdigstilt));
-
-        vedtaksstotteRepository.lagreJournalforingVedtak(vedtakId, journalpostId, dokumentInfoId);
-
-        if (!journalpostferdigstilt) {
-            log.error("Journalpost ble ikke ferdigstilt. Må rettes manuelt.");
-        }
+        journalforeVedtak(vedtak);
 
         transactor.executeWithoutResult(status -> {
             if (gjeldendevedtak != null) {
@@ -116,6 +108,51 @@ public class VedtakService {
         vedtakStatusEndringService.vedtakSendt(vedtak.getId());
 
         metricsService.rapporterMetrikkerForFattetVedtak(vedtak);
+    }
+
+    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
+    public void journalforVedtak() {
+        if (leaderElection.isLeader()) {
+            List<Long> vedtakIds = vedtaksstotteRepository.hentVedtakForJournalforing(10);
+
+            vedtakIds.forEach(vedtakId -> {
+                log.info(String.format("SCHEDULED JOB: Journalfører vedtak med id: %s", vedtakId));
+                Vedtak vedtak = hentVedtak(vedtakId);
+                journalforeVedtak(vedtak);
+            });
+        }
+    }
+
+    public void journalforeVedtak(Vedtak vedtak) {
+        try {
+            Fnr brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
+
+            OpprettetJournalpostDTO journalpost =
+                    dokumentService.produserOgJournalforDokument(vedtak, brukerFnr);
+
+            String journalpostId = journalpost.getJournalpostId();
+            String dokumentInfoId = null;
+            if (journalpost.getDokumenter().isEmpty()) {
+                log.error("Ingen dokumentInfoId i respons fra journalføring");
+            } else {
+                dokumentInfoId = journalpost.getDokumenter().get(0).getDokumentInfoId();
+            }
+            boolean journalpostferdigstilt = journalpost.getJournalpostferdigstilt();
+
+            log.info(format(
+                    "Journalføring utført: journalpostId=%s, dokumentInfoId=%s, ferdigstilt=%s",
+                    journalpostId, dokumentInfoId, journalpostferdigstilt));
+
+            vedtaksstotteRepository.lagreJournalforingVedtak(vedtak.getId(), journalpostId, dokumentInfoId);
+
+            if (!journalpostferdigstilt) {
+                log.error(String.format("Journalpost ble ikke ferdigstilt. Må rettes manuelt. Vedtak id: %s", vedtak.getId()));
+            }
+
+            oppdatereDokumentIdforJournalfortOyeblikksbilde(vedtak.getId(), journalpostId);
+        } catch (Exception e) {
+            log.error(String.format("Kan ikke journalføre vedtak med id %s nå, feil: %s", vedtak.getId(), e.getMessage()), e);
+        }
     }
 
     public BeslutterProsessStatus hentBeslutterprosessStatus(long vedtakId) {
@@ -182,6 +219,27 @@ public class VedtakService {
         });
     }
 
+    private void oppdatereDokumentIdforJournalfortOyeblikksbilde(long vedtakId, String journalpostId) {
+        try {
+            JournalpostGraphqlResponse journalpost = safClient.hentJournalpost(journalpostId);
+
+            if (journalpost.getData().getJournalpost().dokumenter != null) {
+                Arrays.stream(journalpost.getData().getJournalpost().dokumenter)
+                        .filter(journalfortDokument -> OyeblikksbildeType.contains(journalfortDokument.brevkode))
+                        .forEach(
+                                journalfortDokument -> {
+                                    oyeblikksbildeService.lagreJournalfortDokumentId(vedtakId, journalfortDokument.dokumentInfoId, OyeblikksbildeType.from(BrevKode.valueOf(journalfortDokument.brevkode)));
+                                }
+                        );
+                log.info(format(
+                        "Oppdatert dokumentId for oyeblikksbilde for vedtakId: %s",
+                        vedtakId));
+            }
+        } catch (Exception e) {
+            log.error("Feil med oppdatering av dokumentId for oyeblikksbilde " + e, e);
+        }
+    }
+
     private void oppdaterUtkastFraDto(Vedtak utkast, OppdaterUtkastDTO dto) {
         utkast.setInnsatsgruppe(dto.getInnsatsgruppe());
         utkast.setBegrunnelse(dto.getBegrunnelse());
@@ -231,6 +289,12 @@ public class VedtakService {
         return vedtak;
     }
 
+    public Vedtak hentVedtak(Long vedtakId){
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        flettInnVedtakInformasjon(vedtak);
+        return vedtak;
+    }
+
     private void flettInnVedtakInformasjon(Vedtak vedtak) {
         flettInnOpplysinger(vedtak);
         flettInnVeilederNavn(vedtak);
@@ -255,6 +319,15 @@ public class VedtakService {
         }
         authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
         return safClient.hentVedtakPdf(vedtak.getJournalpostId(), vedtak.getDokumentInfoId());
+    }
+
+    public byte[] hentOyeblikksbildePdf(long vedtakId, String dokumentInfoId) {
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        if (vedtak == null || !SENDT.equals(vedtak.getVedtakStatus())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke fattet vedtak");
+        }
+        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        return safClient.hentVedtakPdf(vedtak.getJournalpostId(), dokumentInfoId);
     }
 
     public boolean erFattet(long vedtakId) {

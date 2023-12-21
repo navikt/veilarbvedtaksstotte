@@ -25,7 +25,8 @@ class VeilarbveilederClientImplTest {
         fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
             JsonUtils.init()
             veilederClient =
-                VeilarbveilederClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort, authContextHolder) { "" }
+                VeilarbveilederClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort, authContextHolder,
+                    { ""} )
         }
     }
 

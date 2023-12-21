@@ -6,10 +6,13 @@ import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.UrlUtils
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
 import no.nav.veilarbvedtaksstotte.client.person.request.PersonRequest
 import no.nav.veilarbvedtaksstotte.domain.Målform
-import no.nav.veilarbvedtaksstotte.utils.JsonUtils.createNoDataStr
+import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
@@ -40,7 +43,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         }
     }
 
-    override fun hentCVOgJobbprofil(fnr: String): String {
+    override fun hentCVOgJobbprofil(fnr: String): CvDto {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-cv_jobbprofil"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
@@ -52,12 +55,12 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
 
         RestClient.baseClient().newCall(request).execute().use { response ->
             val responseBody = response.body
-            return if (response.code == 403 || response.code == 401) {
-                return createNoDataStr("Bruker har ikke delt CV/jobbprofil med NAV")
+            if (response.code == 403 || response.code == 401) {
+                return CvDto.CvMedError(CvErrorStatus.IKKE_DELT)
             } else if (response.code == 204 || response.code == 404 || responseBody == null) {
-                createNoDataStr("Bruker har ikke fylt ut CV/jobbprofil")
+                return CvDto.CvMedError(CvErrorStatus.IKKE_FYLT_UT)
             } else {
-                responseBody.string()
+                return CvDto.CVMedInnhold(JsonUtils.fromJson(responseBody.string(), CvInnhold::class.java))
             }
         }
     }

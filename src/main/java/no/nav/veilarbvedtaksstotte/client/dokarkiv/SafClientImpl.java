@@ -4,12 +4,19 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import no.nav.common.client.utils.graphql.GraphqlRequest;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.BrukerId;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.BrukerIdType;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.DokumentOversiktBrukerVariables;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.QueryVariables;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -21,6 +28,7 @@ import java.util.function.Supplier;
 
 import static no.nav.common.utils.UrlUtils.joinPaths;
 
+@Slf4j
 public class SafClientImpl implements SafClient {
 
     private static final Gson gson = new Gson();
@@ -52,7 +60,9 @@ public class SafClientImpl implements SafClient {
 
     @SneakyThrows
     public List<Journalpost> hentJournalposter(Fnr fnr) {
-        GraphqlRequest graphqlRequest = new GraphqlRequest(createDokumentoversiktBrukerGqlStr(fnr));
+        String journalpostOppfolgingTema = "OPP";
+        int journalpostMaxDokumenter = 50;
+        GraphqlRequest<DokumentOversiktBrukerVariables> graphqlRequest = new GraphqlRequest<>(createDokumentoversiktBrukerGqlStr(), new DokumentOversiktBrukerVariables(new BrukerId(fnr.get(), BrukerIdType.FNR), journalpostOppfolgingTema, journalpostMaxDokumenter));
 
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "graphql"))
@@ -64,6 +74,22 @@ public class SafClientImpl implements SafClient {
             RestUtils.throwIfNotSuccessful(response);
             String json = response.body().string();
             return Arrays.asList(hentJournalposterFraJson(json));
+        }
+    }
+
+    @SneakyThrows
+    public JournalpostGraphqlResponse hentJournalpost(String journalpostId) {
+        GraphqlRequest<QueryVariables> graphqlRequest = new GraphqlRequest<>(createJournalpostGqlStr(), new QueryVariables(journalpostId));
+
+        Request request = new Request.Builder()
+                .url(joinPaths(safUrl, "graphql"))
+                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+                .post(RestUtils.toJsonRequestBody(graphqlRequest))
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestUtils.throwIfNotSuccessful(response);
+            return RestUtils.parseJsonResponseOrThrow(response, JournalpostGraphqlResponse.class);
         }
     }
 
@@ -85,28 +111,38 @@ public class SafClientImpl implements SafClient {
         return gson.fromJson(journalposterJson, Journalpost[].class);
     }
 
-    private String createDokumentoversiktBrukerGqlStr(Fnr fnr) {
-        return String.format("{\n" +
-                "  dokumentoversiktBruker(brukerId: {id: \"%s\", type: FNR}, foerste: 50, tema: OPP) {\n" +
-                "    journalposter {\n" +
-                "      journalpostId\n" +
-                "      tittel\n" +
-                "      dokumenter {\n" +
-                "        dokumentInfoId\n" +
-                "        datoFerdigstilt\n" +
-                "      }\n" +
-                "    }\n" +
-                "  }\n" +
-                "}", fnr.get());
+    private String createDokumentoversiktBrukerGqlStr() {
+        return """
+                query(
+                    $brukerId: BrukerIdInput!, $foerste: Int!, $tema: [Tema])
+                {
+                  dokumentoversiktBruker(brukerId: $brukerId, foerste: $foerste, tema: $tema) {
+                    journalposter {
+                      journalpostId
+                      tittel
+                      dokumenter {
+                        dokumentInfoId
+                        datoFerdigstilt
+                      }
+                    }
+                  }
+                }
+                """;
     }
 
-    private static class GraphqlRequest {
-        public String query;
-
-        public Object variables;
-
-        public GraphqlRequest(String query) {
-            this.query = query;
-        }
+    private String createJournalpostGqlStr() {
+        return """
+                query journalpost($journalPostId: String!)  {
+                    journalpost(journalpostId: $journalPostId) {
+                        dokumenter {
+                            dokumentInfoId
+                            tittel
+                            brevkode
+                            dokumentstatus
+                        }
+                    }
+                }
+                """;
     }
+
 }

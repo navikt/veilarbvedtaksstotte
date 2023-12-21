@@ -3,13 +3,15 @@ package no.nav.veilarbvedtaksstotte.client.registrering;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
-import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.util.Collections.emptyList;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -38,10 +40,18 @@ public class VeilarbregistreringClientTest {
                                         .withBody(response)
                         )
         );
-        RegistreringData registreringData = veilarbregistreringClient.hentRegistreringData(TEST_FNR.get());
+        RegistreringResponseDto registreringData = veilarbregistreringClient.hentRegistreringData(TEST_FNR.get());
 
-        assertEquals(registreringData, new RegistreringData(new RegistreringData.BrukerRegistrering(
-                LocalDateTime.of(2021, 1, 18, 9, 48, 58).plus(762, MILLIS),
-                new RegistreringData.Profilering(RegistreringData.ProfilertInnsatsgruppe.SITUASJONSBESTEMT_INNSATS))));
+        assertEquals(registreringData, new RegistreringResponseDto(new RegistreringsdataDto(
+                LocalDateTime.parse("2021-01-18T09:48:58.762"),
+                null,
+                emptyList(),
+                null,
+                new RegistreringsdataDto.Profilering(RegistreringsdataDto.ProfilertInnsatsgruppe.SITUASJONSBESTEMT_INNSATS, null, null),
+                null,
+                null,
+                null
+
+        )));
     }
 }

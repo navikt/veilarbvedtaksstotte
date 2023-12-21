@@ -5,10 +5,17 @@ import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetPostadresse
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetPostboksadresse
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto
 import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto
 
-interface PdfClient: HealthCheck {
+interface PdfClient : HealthCheck {
     fun genererPdf(brevdata: Brevdata): ByteArray
+    fun genererOyeblikksbildeCvPdf(cvOyeblikksbildeData: CvInnhold): ByteArray
+    fun genererOyeblikksbildeRegistreringPdf(registreringOyeblikksbildeData: RegistreringsdataDto): ByteArray
+    fun genererOyeblikksbildeEgenVurderingPdf(egenvurderingOyeblikksbildeData: OyeblikksbildeEgenvurderingDto): ByteArray
+
 
     data class Brevdata(
         val malType: MalType,
@@ -58,6 +65,7 @@ interface PdfClient: HealthCheck {
                             postnummer = enhetPostadresse.postnummer,
                             poststed = enhetPostadresse.poststed,
                         )
+
                     else -> throw IllegalStateException("Manglende mapping for enhetPostadresse")
                 }
             }

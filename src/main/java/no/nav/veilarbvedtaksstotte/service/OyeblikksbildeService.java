@@ -2,30 +2,25 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.EgenvurderingData;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.EgenvurderingForPersonDTO;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.EndringIRegistreringsdataResponse;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.*;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto;
+import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
-import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import static no.nav.common.json.JsonUtils.toJson;
-import static no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType.*;
 
 
 @Service
@@ -56,77 +51,93 @@ public class OyeblikksbildeService {
         this.aiaBackendClient = aiaBackendClient;
     }
 
-    public List<Oyeblikksbilde> hentOyeblikksbildeForVedtak(long vedtakId) {
+    public List<OyeblikksbildeDto> hentOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
+    }
+
+    public void lagreJournalfortDokumentId(long vedtakId, String dokumentId, OyeblikksbildeType oyeblikksbildeType) {
+        oyeblikksbildeRepository.lagreJournalfortDokumentId(vedtakId, dokumentId, oyeblikksbildeType);
+    }
+
+    public String hentJournalfortDokumentId(long vedtakId, OyeblikksbildeType oyeblikksbildeType) {
+        return oyeblikksbildeRepository.hentJournalfortDokumentId(vedtakId, oyeblikksbildeType);
     }
 
     public void slettOyeblikksbilde(long vedtakId) {
         oyeblikksbildeRepository.slettOyeblikksbilder(vedtakId);
     }
 
-    void lagreOyeblikksbilde(String fnr, long vedtakId) {
-        final String cvOgJobbprofilData = veilarbpersonClient.hentCVOgJobbprofil(fnr);
-        final String registreringData = registreringClient.hentRegistreringDataJson(fnr);
-        final EndringIRegistreringsdataResponse endringIRegistreringsdata = aiaBackendClient.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(fnr));
-        final String oppdaterteRegistreringsData = oppdaterRegistreringsdataHvisNyeEndringer(registreringData, endringIRegistreringsdata);
-        final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonDTO(fnr));
-        final String egenvurderingData = mapToEgenvurderingDataJson(egenvurdering);
+    void lagreOyeblikksbilde(String fnr, long vedtakId, List<String> kilder) {
 
-        List<Oyeblikksbilde> oyeblikksbilde = Arrays.asList(
-                new Oyeblikksbilde(vedtakId, CV_OG_JOBBPROFIL, cvOgJobbprofilData),
-                new Oyeblikksbilde(vedtakId, REGISTRERINGSINFO, oppdaterteRegistreringsData),
-                new Oyeblikksbilde(vedtakId, EGENVURDERING, egenvurderingData)
-        );
-
-        oyeblikksbilde.forEach(oyeblikksbildeRepository::upsertOyeblikksbilde);
-    }
-
-    public String mapToEgenvurderingDataJson(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test
-        if (egenvurderingResponseDTO == null) {
-            return JsonUtils.createNoDataStr("Bruker har ikke fylt ut egenvurdering");
+        if (kilder == null || kilder.isEmpty()) {
+            SecureLog.getSecureLog().warn(String.format("Ingen kilder valgt for vedtak med id: %s", vedtakId));
+            return;
         }
-        List<EgenvurderingData.Svar> svar = new ArrayList<>();
-        String svartekst = egenvurderingResponseDTO.getTekster().getSvar().get(egenvurderingResponseDTO.getOppfolging());
-        svar.add(new EgenvurderingData.Svar(
-                egenvurderingResponseDTO.getTekster().getSporsmal(),
-                svartekst,
-                egenvurderingResponseDTO.getOppfolging(),
-                egenvurderingResponseDTO.getDialogId()
-        ));
 
-        EgenvurderingData egenvurderingData = new EgenvurderingData(egenvurderingResponseDTO.getDato(), svar);
-        return toJson(egenvurderingData);
+        if (kilder.stream().anyMatch(kilde -> kilde.equals(VedtakOpplysningKilder.CV.getDesc()))) {
+            final CvDto cvOgJobbprofilData = veilarbpersonClient.hentCVOgJobbprofil(fnr);
+            oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, cvOgJobbprofilData);
+        }
+        if (kilder.stream().anyMatch(kilde -> kilde.equals(VedtakOpplysningKilder.REGISTRERING.getDesc()))) {
+            final RegistreringResponseDto registreringData = registreringClient.hentRegistreringData(fnr);
+            final EndringIRegistreringsdataResponse endringIRegistreringsdata = aiaBackendClient.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(fnr));
+            final RegistreringResponseDto oppdaterteRegistreringsData = oppdaterRegistreringsdataHvisNyeEndringer(registreringData, endringIRegistreringsdata);
+            oyeblikksbildeRepository.upsertRegistreringOyeblikksbilde(vedtakId, oppdaterteRegistreringsData);
+        }
+        if (kilder.stream().anyMatch(kilde -> kilde.equals(VedtakOpplysningKilder.EGENVURDERING.getDesc()))) {
+            final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr));
+            OyeblikksbildeEgenvurderingDto egenvurderingData = mapToEgenvurderingData(egenvurdering);
+            oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingData);
+        }
     }
 
-    public String oppdaterRegistreringsdataHvisNyeEndringer(String registreringsData, EndringIRegistreringsdataResponse endringIRegistreringsdata) { //public for test
+    public OyeblikksbildeEgenvurderingDto mapToEgenvurderingData(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test
+        List<OyeblikksbildeEgenvurderingDto.Svar> svar = new ArrayList<>();
+        if (egenvurderingResponseDTO != null) {
+            String svartekst = egenvurderingResponseDTO.getTekster().getSvar().get(egenvurderingResponseDTO.getOppfolging());
+            svar.add(new OyeblikksbildeEgenvurderingDto.Svar(
+                    egenvurderingResponseDTO.getTekster().getSporsmal(),
+                    svartekst,
+                    egenvurderingResponseDTO.getOppfolging(),
+                    egenvurderingResponseDTO.getDialogId()
+            ));
+            return new OyeblikksbildeEgenvurderingDto(egenvurderingResponseDTO.getDato(), svar);
+        }
+        return new OyeblikksbildeEgenvurderingDto();
+    }
+
+    public RegistreringResponseDto oppdaterRegistreringsdataHvisNyeEndringer(RegistreringResponseDto registreringsData, EndringIRegistreringsdataResponse endringIRegistreringsdata) { //public for test
         if (registreringsData == null || endringIRegistreringsdata == null || endringIRegistreringsdata.getErBesvarelsenEndret() == null || !endringIRegistreringsdata.getErBesvarelsenEndret()) {
             return registreringsData;
         }
 
         try {
-            JSONObject fullRegistreringData = new JSONObject(registreringsData);
-            JSONObject registreringJson = (JSONObject) fullRegistreringData.get("registrering");
-            registreringJson.put("endretAv", endringIRegistreringsdata.getEndretAv());
-            registreringJson.put("endretTidspunkt", endringIRegistreringsdata.getEndretTidspunkt());
+            if (endringIRegistreringsdata.getEndretAv() != null) {
+                registreringsData.getRegistrering().setEndretAv(endringIRegistreringsdata.getEndretAv());
+            }
 
-            JSONObject besvarelseJson = (JSONObject) registreringJson.get("besvarelse");
-            besvarelseJson.put("dinSituasjon", endringIRegistreringsdata.getBesvarelse().getDinSituasjon().getVerdi());
-            registreringJson.put("besvarelse", besvarelseJson);
+            if (endringIRegistreringsdata.getEndretTidspunkt() != null) {
+                registreringsData.getRegistrering().setEndretTidspunkt(endringIRegistreringsdata.getEndretTidspunkt());
+            }
 
-            JSONArray teksterForBesvarelse = (JSONArray) registreringJson.get("teksterForBesvarelse");
-            teksterForBesvarelse.forEach(t -> {
-                JSONObject tekstForBesvarelse = (JSONObject) t;
-                if (tekstForBesvarelse.get("sporsmalId").equals("dinSituasjon")) {
-                    tekstForBesvarelse.put("svar", mapDinSituasjonVerdiToTekst(endringIRegistreringsdata.getBesvarelse().getDinSituasjon().getVerdi()));
-                }
-            });
-            registreringJson.put("teksterForBesvarelse", teksterForBesvarelse);
+            if (endringIRegistreringsdata.getBesvarelse() != null && endringIRegistreringsdata.getBesvarelse().getDinSituasjon() != null && registreringsData.getRegistrering().getBesvarelse() != null) {
+                BesvarelseSvar besvarelse = registreringsData.getRegistrering().getBesvarelse();
+                besvarelse.setDinSituasjon(BesvarelseSvar.DinSituasjonSvar.valueOf(endringIRegistreringsdata.getBesvarelse().getDinSituasjon().getVerdi()));
+                registreringsData.getRegistrering().setBesvarelse(besvarelse);
+            }
 
-            fullRegistreringData.put("registrering", registreringJson);
 
-            return fullRegistreringData.toString();
+            if (endringIRegistreringsdata.getBesvarelse() != null && endringIRegistreringsdata.getBesvarelse().getDinSituasjon() != null && endringIRegistreringsdata.getBesvarelse().getDinSituasjon().getVerdi() != null) {
+                List<RegistreringsdataDto.TekstForSporsmal> teksterForBesvarelse = registreringsData.getRegistrering().getTeksterForBesvarelse();
+                teksterForBesvarelse.stream().filter(t -> t.getSporsmalId().equals("dinSituasjon")).forEach(t ->
+                        t.setSvar(mapDinSituasjonVerdiToTekst(endringIRegistreringsdata.getBesvarelse().getDinSituasjon().getVerdi()))
+                );
+                registreringsData.getRegistrering().setTeksterForBesvarelse(teksterForBesvarelse);
+            }
+
+            return registreringsData;
         } catch (Exception err) {
             log.error("Kunne ikke parse string til JSONObject");
             throw err;
@@ -156,4 +167,5 @@ public class OyeblikksbildeService {
             default -> "";
         };
     }
+
 }

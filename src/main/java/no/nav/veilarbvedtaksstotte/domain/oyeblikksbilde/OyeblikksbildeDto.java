@@ -9,8 +9,9 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Oyeblikksbilde {
-    long vedtakId;
-    OyeblikksbildeType oyeblikksbildeType;
-    String json;
+public class OyeblikksbildeDto {
+    public long vedtakId;
+    public OyeblikksbildeType oyeblikksbildeType;
+    public String json;
+    public boolean journalfort;
 }
