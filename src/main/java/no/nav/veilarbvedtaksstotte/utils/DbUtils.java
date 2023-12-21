@@ -68,7 +68,8 @@ public class DbUtils {
     public static String toDbRoleStr(DbRole dbRole) {
         String environment = isProduction().orElse(false) ? "p" : "q1";
         String role = EnumUtils.getName(dbRole).toLowerCase();
-        return String.join("-", APPLICATION_NAME, environment, role);
+        String dbName = isProduction().orElse(false) ? "veilarbvedtaksstotte-fss13" : "veilarbvedtaksstotte-fss15";
+        return String.join("-", dbName, environment, role);
     }
 
 }
