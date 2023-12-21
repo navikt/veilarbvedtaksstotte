@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static no.nav.common.utils.EnvironmentUtils.isProduction;
-import static no.nav.veilarbvedtaksstotte.config.ApplicationConfig.APPLICATION_NAME;
 
 public class DbUtils {
 
@@ -67,8 +66,9 @@ public class DbUtils {
 
     public static String toDbRoleStr(DbRole dbRole) {
         String environment = isProduction().orElse(false) ? "p" : "q1";
+        String dbName = isProduction().orElse(false) ? "veilarbvedtaksstotte-fss13" : "veilarbvedtaksstotte-fss15";
         String role = EnumUtils.getName(dbRole).toLowerCase();
-        return String.join("-", APPLICATION_NAME, environment, role);
+        return String.join("-", dbName, environment, role);
     }
 
 }
