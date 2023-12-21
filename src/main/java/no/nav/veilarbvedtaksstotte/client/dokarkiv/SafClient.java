@@ -7,8 +7,10 @@ import java.util.List;
 
 public interface SafClient extends HealthCheck {
 
-     byte[] hentVedtakPdf(String journalpostId, String dokumentInfoId);
+    byte[] hentVedtakPdf(String journalpostId, String dokumentInfoId);
 
-     List<Journalpost> hentJournalposter(Fnr fnr);
+    List<Journalpost> hentJournalposter(Fnr fnr);
+
+    JournalpostGraphqlResponse hentJournalpost(String journalpostId);
 
 }

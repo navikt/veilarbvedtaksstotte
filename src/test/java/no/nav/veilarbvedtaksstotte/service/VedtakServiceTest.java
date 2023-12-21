@@ -7,6 +7,7 @@ import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.norg2.Enhet;
+import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
@@ -19,8 +20,7 @@ import no.nav.poao_tilgang.client.api.ApiResult;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.*;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
@@ -34,9 +34,10 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.Målform;
+import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.dto.OyeblikksbildeOutputDto;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -55,10 +56,10 @@ import java.util.*;
 
 import static no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
+import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -73,12 +74,15 @@ public class VedtakServiceTest extends DatabaseTest {
     private static AuthService authService;
 
     private static final DefaultUnleash unleashService = mock(DefaultUnleash.class);
+
+    private static final LeaderElectionClient leaderElectionClient = mock(LeaderElectionClient.class);
     private static final VedtakHendelserService vedtakHendelserService = mock(VedtakHendelserService.class);
     private static final VeilederService veilederService = mock(VeilederService.class);
 
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
     private static final AiaBackendClient AIA_BACKEND_CLIENT = mock(AiaBackendClient.class);
+
     private static final RegoppslagClient regoppslagClient = mock(RegoppslagClient.class);
     private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
@@ -88,13 +92,13 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final VeilarbveilederClient veilarbveilederClient = mock(VeilarbveilederClient.class);
     private static final UtrullingService utrullingService = mock(UtrullingService.class);
     private static final EnhetInfoService enhetInfoService = mock(EnhetInfoService.class);
+
+    private static final SafClient safClient = mock(SafClient.class);
     private static final MetricsService metricsService = mock(MetricsService.class);
 
     private static final VeilarbPep veilarbPep = mock(VeilarbPep.class);
     private static final Credentials credentials = mock(Credentials.class);
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
-
-    private static final String CV_DATA = "{\"cv\": \"cv\"}";
     private static final String EGENVURDERING_DATO = new Instant().toString();
 
     @BeforeAll
@@ -117,26 +121,27 @@ public class VedtakServiceTest extends DatabaseTest {
                 veilarbveilederClient,
                 dokarkivClient,
                 enhetInfoService,
-                malTypeService);
+                malTypeService,
+                oyeblikksbildeService);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,
                 beslutteroversiktRepository,
                 kilderRepository,
                 meldingRepository,
-                null,
+                safClient,
                 authService,
                 oyeblikksbildeService,
                 veilederService,
                 vedtakHendelserService,
                 dokumentService,
                 veilarbarenaService,
-                metricsService);
+                metricsService, leaderElectionClient);
     }
 
     @BeforeEach
     public void setup() {
-        Map<String,String> egenvurderingstekster = new HashMap<>();
+        Map<String, String> egenvurderingstekster = new HashMap<>();
         egenvurderingstekster.put("STANDARD_INNSATS", "Svar jeg klarer meg");
         EgenvurderingResponseDTO egenvurderingResponse = new EgenvurderingResponseDTO(EGENVURDERING_DATO, "123456", "STANDARD_INNSATS", new EgenvurderingResponseDTO.Tekster("testspm", egenvurderingstekster));
         DbTestUtils.cleanupDb(jdbcTemplate);
@@ -152,7 +157,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilederService.hentVeilederEllerNull(TEST_VEILEDER_IDENT)).thenReturn(Optional.of(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN)));
         when(regoppslagClient.hentPostadresse(any())).thenReturn(
                 new RegoppslagResponseDTO("", new Adresse(NORSKPOSTADRESSE, "", "", "", "", "", "", "")));
-        when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(CV_DATA);
+        when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(getCvData());
         when(veilarbpersonClient.hentMålform(TEST_FNR)).thenReturn(Målform.NB);
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(registreringClient.hentRegistreringDataJson(TEST_FNR.get())).thenReturn(getRegistreringsdata());
@@ -166,13 +171,14 @@ public class VedtakServiceTest extends DatabaseTest {
                 .thenReturn(new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
                         true,
-                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
+                        List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
         when(veilarbveilederClient.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
         when(enhetInfoService.hentEnhet(EnhetId.of(TEST_OPPFOLGINGSENHET_ID))).thenReturn(new Enhet().setNavn(TEST_OPPFOLGINGSENHET_NAVN));
         when(enhetInfoService.utledEnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID)))
-                .thenReturn(new EnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID), new EnhetStedsadresse("","","","","",""), ""));
+                .thenReturn(new EnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID), new EnhetStedsadresse("", "", "", "", "", ""), ""));
         when(pdfClient.genererPdf(any())).thenReturn(new byte[]{});
         when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
+        when(safClient.hentJournalpost(any())).thenReturn(getMockedJournalpostGraphqlResponse());
     }
 
     @Test
@@ -180,7 +186,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV", "IVURD")));
         gittUtkastKlarForUtsendelse();
 
-        assertThrows(IllegalStateException.class, () ->  fattVedtak());
+        assertThrows(IllegalStateException.class, this::fattVedtak);
     }
 
 
@@ -198,7 +204,7 @@ public class VedtakServiceTest extends DatabaseTest {
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                     .setBegrunnelse("En begrunnelse")
                     .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                    .setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
+                    .setOpplysninger(Arrays.asList("Svarene dine fra da du registrerte deg", "Svarene dine om behov for veiledning", "CV-en/jobbønskene dine på nav.no"));
 
             vedtakService.oppdaterUtkast(utkast.getId(), oppdaterDto);
             assertOppdatertUtkast(oppdaterDto);
@@ -236,7 +242,7 @@ public class VedtakServiceTest extends DatabaseTest {
             vedtakService.lagUtkast(TEST_FNR);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-            List<String> kilder = List.of("test1", "test2");
+            List<String> kilder = List.of("Svarene dine fra da du registrerte deg", "CV-en/jobbønskene dine på nav.no");
             kilderRepository.lagKilder(kilder, utkast.getId());
 
             OppdaterUtkastDTO oppdaterUtkastDTO = new OppdaterUtkastDTO();
@@ -260,8 +266,8 @@ public class VedtakServiceTest extends DatabaseTest {
             vedtakService.lagUtkast(TEST_FNR);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-            List<String> gamleKilder = List.of("test1", "test2");
-            List<String> nyeKilder = List.of("test1", "test3");
+            List<String> gamleKilder = List.of("Svarene dine fra da du registrerte deg", "Svarene dine om behov for veiledning");
+            List<String> nyeKilder = List.of("Svarene dine om behov for veiledning", "CV-en/jobbønskene dine på nav.no");
             kilderRepository.lagKilder(gamleKilder, utkast.getId());
 
             OppdaterUtkastDTO oppdaterUtkastDTO = new OppdaterUtkastDTO();
@@ -335,7 +341,7 @@ public class VedtakServiceTest extends DatabaseTest {
                 .thenReturn(new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
                         false,
-                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
+                        List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
 
         fattVedtak();
 
@@ -356,7 +362,7 @@ public class VedtakServiceTest extends DatabaseTest {
                             .setBegrunnelse("begrunnelse")
                             .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                             .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                            .setOpplysninger(Collections.singletonList("opplysning")));
+                            .setOpplysninger(Collections.singletonList("CV-en/jobbønskene dine på nav.no")));
 
             when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
@@ -462,9 +468,9 @@ public class VedtakServiceTest extends DatabaseTest {
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                     .setBegrunnelse("En begrunnelse")
                     .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                    .setOpplysninger(Arrays.asList("opplysning 1", "opplysning 2"));
+                    .setOpplysninger(Arrays.asList("CV-en/jobbønskene dine på nav.no", "Svarene dine om behov for veiledning", "Svarene dine fra da du registrerte deg"));
 
-            List<String> kilder = List.of("opp1", "opp2");
+            List<String> kilder = List.of("CV-en/jobbønskene dine på nav.no", "Svarene dine om behov for veiledning", "Svarene dine fra da du registrerte deg");
 
             kilderRepository.lagKilder(kilder, utkast.getId());
 
@@ -523,17 +529,19 @@ public class VedtakServiceTest extends DatabaseTest {
     private void assertOyeblikksbildeForFattetVedtak(long vedtakId) {
         String egenvurderingdata = getEgenvurderingData();
         withContext(() -> {
-            List<Oyeblikksbilde> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
-            assertThat(oyeblikksbilde, containsInAnyOrder(
-                    equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.REGISTRERINGSINFO, getOppdatertRegistreringsdata())),
-                    equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.CV_OG_JOBBPROFIL, CV_DATA)),
-                    equalTo(new Oyeblikksbilde(vedtakId, OyeblikksbildeType.EGENVURDERING, egenvurderingdata)))
-            );
+            List<OyeblikksbildeOutputDto> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
+            assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.REGISTRERINGSINFO).allMatch(x -> x.json.equals(getOppdatertRegistreringsdata())));
+            assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.CV_OG_JOBBPROFIL).allMatch(x -> x.json.equals(getCvData())));
+            assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING).allMatch(x -> x.json.equals(egenvurderingdata)));
         });
     }
 
+    private String getCvData() {
+        return readTestResourceFile("oyeblikksbilde-cv.json");
+    }
+
     private String getEgenvurderingData() {
-        return "{\"sistOppdatert\":\""+EGENVURDERING_DATO+"\",\"svar\":[{\"spm\":\"testspm\",\"svar\":\"Svar jeg klarer meg\",\"oppfolging\":\"STANDARD_INNSATS\",\"dialogId\":\"123456\"}]}";
+        return "{\"sistOppdatert\":\"" + EGENVURDERING_DATO + "\",\"svar\":[{\"spm\":\"testspm\",\"svar\":\"Svar jeg klarer meg\",\"oppfolging\":\"STANDARD_INNSATS\",\"dialogId\":\"123456\"}]}";
     }
 
     private String getRegistreringsdata() {
@@ -550,15 +558,15 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private String getOppdatertRegistreringsdata() {
         return new JSONObject(
-        "{\"registrering\":{\"id\":10004240,\"opprettetDato\":\"2023-06-22T16:47:18.325956+02:00\",\"besvarelse\":{\"utdanning\":\"HOYERE_UTDANNING_5_ELLER_MER\",\"utdanningBestatt\":\"JA\",\"utdanningGodkjent\":\"JA\",\"helseHinder\":\"NEI\",\"andreForhold\":\"NEI\"," +
-                "\"sisteStilling\":\"INGEN_SVAR\",\"dinSituasjon\":\"OPPSIGELSE\",\"fremtidigSituasjon\":null,\"tilbakeIArbeid\":null},\"teksterForBesvarelse\":[{\"sporsmalId\":\"dinSituasjon\",\"sporsmal\":\"Velg den situasjonen som passer deg best\",\"svar\":\"Jeg har blitt sagt opp av arbeidsgiver\"},{\"sporsmalId\":\"utdanning\",\"sporsmal\":\"Hva er din høyeste fullførte utdanning?\"," +
-                "\"svar\":\"Høyere utdanning (5 år eller mer)\"},{" +
-                "\"sporsmalId\":\"utdanningGodkjent\",\"sporsmal\":\"Er utdanningen din godkjent i Norge?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"utdanningBestatt\",\"sporsmal\":\"Er utdanningen din bestått?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"andreForhold\",\"sporsmal\":\"Har du andre problemer med å søke eller være i jobb?\",\"svar\":\"Nei\"},{" +
-                "\"sporsmalId\":\"sisteStilling\",\"sporsmal\":\"Hva er din siste jobb?\",\"svar\":\"Annen stilling\"},{" +
-                "\"sporsmalId\":\"helseHinder\",\"sporsmal\":\"Har du helseproblemer som hindrer deg i å søke eller være i jobb?\",\"svar\":\"Nei\"}]," +
-                "\"sisteStilling\": {\"label\":\"Annen stilling\",\"konseptId\": -1,\"styrk08\":\"-1\"}," +
-                "\"profilering\": {\"innsatsgruppe\":\"SITUASJONSBESTEMT_INNSATS\",\"alder\": 28,\"jobbetSammenhengendeSeksAvTolvSisteManeder\": false}," +
-                "\"manueltRegistrertAv\": null, \"endretAv\":\"BRUKER\", \"endretTidspunkt\":\"2023-07-18T11:24:03.158629\"},\"type\":\"ORDINAER\"}").toString();
+                "{\"registrering\":{\"id\":10004240,\"opprettetDato\":\"2023-06-22T16:47:18.325956+02:00\",\"besvarelse\":{\"utdanning\":\"HOYERE_UTDANNING_5_ELLER_MER\",\"utdanningBestatt\":\"JA\",\"utdanningGodkjent\":\"JA\",\"helseHinder\":\"NEI\",\"andreForhold\":\"NEI\"," +
+                        "\"sisteStilling\":\"INGEN_SVAR\",\"dinSituasjon\":\"OPPSIGELSE\",\"fremtidigSituasjon\":null,\"tilbakeIArbeid\":null},\"teksterForBesvarelse\":[{\"sporsmalId\":\"dinSituasjon\",\"sporsmal\":\"Velg den situasjonen som passer deg best\",\"svar\":\"Jeg har blitt sagt opp av arbeidsgiver\"},{\"sporsmalId\":\"utdanning\",\"sporsmal\":\"Hva er din høyeste fullførte utdanning?\"," +
+                        "\"svar\":\"Høyere utdanning (5 år eller mer)\"},{" +
+                        "\"sporsmalId\":\"utdanningGodkjent\",\"sporsmal\":\"Er utdanningen din godkjent i Norge?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"utdanningBestatt\",\"sporsmal\":\"Er utdanningen din bestått?\",\"svar\":\"Ja\"},{\"sporsmalId\":\"andreForhold\",\"sporsmal\":\"Har du andre problemer med å søke eller være i jobb?\",\"svar\":\"Nei\"},{" +
+                        "\"sporsmalId\":\"sisteStilling\",\"sporsmal\":\"Hva er din siste jobb?\",\"svar\":\"Annen stilling\"},{" +
+                        "\"sporsmalId\":\"helseHinder\",\"sporsmal\":\"Har du helseproblemer som hindrer deg i å søke eller være i jobb?\",\"svar\":\"Nei\"}]," +
+                        "\"sisteStilling\": {\"label\":\"Annen stilling\",\"konseptId\": -1,\"styrk08\":\"-1\"}," +
+                        "\"profilering\": {\"innsatsgruppe\":\"SITUASJONSBESTEMT_INNSATS\",\"alder\": 28,\"jobbetSammenhengendeSeksAvTolvSisteManeder\": false}," +
+                        "\"manueltRegistrertAv\": null, \"endretAv\":\"BRUKER\", \"endretTidspunkt\":\"2023-07-18T11:24:03.158629\"},\"type\":\"ORDINAER\"}").toString();
     }
 
     private EndringIRegistreringsdataResponse getEndringIRegistreringsdataResponse() {
@@ -589,5 +597,33 @@ public class VedtakServiceTest extends DatabaseTest {
                 "BRUKER",
                 true
         );
+    }
+
+    private JournalpostGraphqlResponse getMockedJournalpostGraphqlResponse() {
+        JournalpostGraphqlResponse journalpostGraphqlResponse = new JournalpostGraphqlResponse();
+        journalpostGraphqlResponse.setData(new JournalpostGraphqlResponse.JournalpostReponseData().setJournalpost(getMockedJournalpost()));
+        return journalpostGraphqlResponse;
+    }
+
+    private Journalpost getMockedJournalpost() {
+        Journalpost journalpost = new Journalpost();
+        journalpost.journalpostId = "journalpost123";
+        journalpost.tittel = "titel";
+
+        Journalpost.JournalpostDokument journalpostDokument1 = new Journalpost.JournalpostDokument();
+        journalpostDokument1.brevkode = BrevKode.EGENVURDERING.name();
+        journalpostDokument1.dokumentInfoId = "111111";
+
+        Journalpost.JournalpostDokument journalpostDokument2 = new Journalpost.JournalpostDokument();
+        journalpostDokument2.brevkode = BrevKode.REGISTRERINGSINFO.name();
+        journalpostDokument2.dokumentInfoId = "222222";
+
+        Journalpost.JournalpostDokument journalpostDokument3 = new Journalpost.JournalpostDokument();
+        journalpostDokument3.brevkode = BrevKode.CV_OG_JOBBPROFIL.name();
+        journalpostDokument3.dokumentInfoId = "333333";
+
+
+        journalpost.dokumenter = new Journalpost.JournalpostDokument[]{journalpostDokument1, journalpostDokument2, journalpostDokument3};
+        return journalpost;
     }
 }

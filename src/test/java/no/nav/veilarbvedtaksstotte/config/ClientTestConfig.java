@@ -141,6 +141,14 @@ public class ClientTestConfig {
     @Bean
     public PdfClient pdfClient() {
         return new PdfClient() {
+
+
+            @NotNull
+            @Override
+            public byte[] genererOyeblikksbildePdf(@NotNull OyeblikksbildeData oyeblikksbildeData, @NotNull String oyeblikksbildePdfTemplate) {
+                return new byte[0];
+            }
+
             @NotNull
             @Override
             public byte[] genererPdf(@NotNull Brevdata brevdata) {
@@ -159,7 +167,7 @@ public class ClientTestConfig {
         return new AiaBackendClient() {
             @Override
             public EgenvurderingResponseDTO hentEgenvurdering(EgenvurderingForPersonDTO egenvurderingForPersonDTO) {
-                Map<String,String> egenvurderingstekster = new HashMap<>();
+                Map<String, String> egenvurderingstekster = new HashMap<>();
                 egenvurderingstekster.put("STANDARD_INNSATS", "Svar jeg klarer meg");
                 return new EgenvurderingResponseDTO("STANDARD_INNSATS", new Instant().toString(), "123456", new EgenvurderingResponseDTO.Tekster("testspm", egenvurderingstekster));
             }
@@ -169,12 +177,14 @@ public class ClientTestConfig {
             public EndringIRegistreringsdataResponse hentEndringIRegistreringdata(@NotNull EndringIRegistreringdataRequest endringIRegistreringdataRequest) {
                 return null;
             }
+
             @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();
             }
         };
     }
+
     @Bean
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {
@@ -265,6 +275,11 @@ public class ClientTestConfig {
             }
 
             @Override
+            public JournalpostGraphqlResponse hentJournalpost(String journalpostId) {
+                return null;
+            }
+
+            @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();
             }
@@ -307,7 +322,7 @@ public class ClientTestConfig {
                 return new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
                         true,
-                        Arrays.asList(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID)));
+                        List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID)));
             }
 
             @Override

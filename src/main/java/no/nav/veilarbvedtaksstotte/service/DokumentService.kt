@@ -3,8 +3,6 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient.Adresse.Companion.fraEnhetPostadresse
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettJournalpostDTO
@@ -12,12 +10,17 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient.Adresse.Companion.fraEnhetPostadresse
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.UTENLANDSKPOSTADRESSE
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.DateFormatters
 import no.nav.veilarbvedtaksstotte.utils.StringUtils.splitNewline
@@ -25,6 +28,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.*
+import kotlin.jvm.optionals.getOrElse
+
 
 @Service
 class DokumentService(
@@ -35,7 +40,8 @@ class DokumentService(
     val veilarbveilederClient: VeilarbveilederClient,
     val dokarkivClient: DokarkivClient,
     val enhetInfoService: EnhetInfoService,
-    val malTypeService: MalTypeService
+    val malTypeService: MalTypeService,
+    val oyeblikksbildeService: OyeblikksbildeService
 ) {
 
     val log = LoggerFactory.getLogger(DokumentService::class.java)
@@ -52,6 +58,18 @@ class DokumentService(
         val oppfolgingssak = veilarbarenaClient.oppfolgingssak(fnr)
             .orElseThrow { throw IllegalStateException("Det finnes ingen oppfolgingssak i arena for vedtak id: ${vedtak.id}") }
 
+        val oyeblikksbildeForVedtak = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtak.id)
+        val behovsVurderingData =
+            oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING }
+        val registreringData =
+            oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.REGISTRERINGSINFO }
+        val cvData =
+            oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.CV_OG_JOBBPROFIL }
+
+        val behovsVurderingPdf = produserBehovsvurderingPdf(behovsVurderingData?.json)
+        val registeringPdf = produserRegisteringPdf(registreringData?.json)
+        val cvPDF = produserCVPdf(cvData?.json)
+
         return journalforDokument(
             tittel = tittel,
             enhetId = produserDokumentDTO.enhetId,
@@ -59,6 +77,9 @@ class DokumentService(
             oppfolgingssak = oppfolgingssak,
             malType = produserDokumentDTO.malType,
             dokument = dokument,
+            oyeblikksbildeRegistreringDokument = registeringPdf.getOrElse { null },
+            oyeblikksbildeBehovsvurderingDokument = behovsVurderingPdf.getOrElse { null },
+            oyeblikksbildeCVDokument = cvPDF.getOrElse { null },
             referanse = referanse
         )
     }
@@ -71,6 +92,45 @@ class DokumentService(
         return pdfClient.genererPdf(brevdata)
     }
 
+    fun produserBehovsvurderingPdf(data: String?): Optional<ByteArray> {
+        if (data != null) {
+            val jsonToHtml = JsonViewer.jsonToHtml(data)
+            return Optional.ofNullable(
+                pdfClient.genererOyeblikksbildePdf(
+                    PdfClient.OyeblikksbildeData(htmlView = jsonToHtml),
+                    OyeblikksbildePdfTemplate.EGENVURDERING.templateName
+                )
+            )
+        }
+        return Optional.empty()
+    }
+
+    fun produserRegisteringPdf(data: String?): Optional<ByteArray> {
+        if (data != null) {
+            val jsonToHtml = JsonViewer.jsonToHtml(data)
+            return Optional.ofNullable(
+                pdfClient.genererOyeblikksbildePdf(
+                    PdfClient.OyeblikksbildeData(htmlView = jsonToHtml),
+                    OyeblikksbildePdfTemplate.REGISTRERINGSINFO.templateName
+                )
+            )
+        }
+        return Optional.empty()
+    }
+
+    fun produserCVPdf(data: String?): Optional<ByteArray> {
+        if (data != null) {
+            val jsonToHtml = JsonViewer.jsonToHtml(data)
+            return Optional.ofNullable(
+                pdfClient.genererOyeblikksbildePdf(
+                    PdfClient.OyeblikksbildeData(htmlView = jsonToHtml),
+                    OyeblikksbildePdfTemplate.CV_OG_JOBBPROFIL.templateName
+                )
+            )
+        }
+        return Optional.empty()
+    }
+
     fun journalforDokument(
         tittel: String,
         enhetId: EnhetId,
@@ -78,8 +138,66 @@ class DokumentService(
         oppfolgingssak: String,
         malType: MalType,
         dokument: ByteArray,
+        oyeblikksbildeRegistreringDokument: ByteArray?,
+        oyeblikksbildeBehovsvurderingDokument: ByteArray?,
+        oyeblikksbildeCVDokument: ByteArray?,
         referanse: UUID
     ): OpprettetJournalpostDTO {
+
+        val dokumenterList = mutableListOf<OpprettJournalpostDTO.Dokument>()
+
+        dokumenterList.add(
+            OpprettJournalpostDTO.Dokument(
+                tittel = tittel, brevkode = malType.name, dokumentvarianter = listOf(
+                    OpprettJournalpostDTO.DokumentVariant(
+                        "PDFA", fysiskDokument = dokument, variantformat = "ARKIV"
+                    )
+                )
+            )
+        )
+
+        if (oyeblikksbildeRegistreringDokument != null) {
+            dokumenterList.add(
+                OpprettJournalpostDTO.Dokument(
+                    tittel = "Svarene dine fra da du registrerte deg",
+                    brevkode = BrevKode.of(OyeblikksbildeType.REGISTRERINGSINFO).name,
+                    dokumentvarianter = listOf(
+                        OpprettJournalpostDTO.DokumentVariant(
+                            "PDFA", fysiskDokument = oyeblikksbildeRegistreringDokument, variantformat = "ARKIV"
+                        )
+                    )
+                )
+            )
+        }
+
+        if (oyeblikksbildeCVDokument != null) {
+            dokumenterList.add(
+                OpprettJournalpostDTO.Dokument(
+                    tittel = "CV-en/jobbønskene dine på nav.no",
+                    brevkode = BrevKode.of(OyeblikksbildeType.CV_OG_JOBBPROFIL).name,
+                    dokumentvarianter = listOf(
+                        OpprettJournalpostDTO.DokumentVariant(
+                            "PDFA", fysiskDokument = oyeblikksbildeCVDokument, variantformat = "ARKIV"
+                        )
+                    )
+                )
+            )
+        }
+
+        if (oyeblikksbildeBehovsvurderingDokument != null) {
+            dokumenterList.add(
+                OpprettJournalpostDTO.Dokument(
+                    tittel = "Svarene dine om behov for veiledning",
+                    brevkode = BrevKode.of(OyeblikksbildeType.EGENVURDERING).name,
+                    dokumentvarianter = listOf(
+                        OpprettJournalpostDTO.DokumentVariant(
+                            "PDFA", fysiskDokument = oyeblikksbildeBehovsvurderingDokument, variantformat = "ARKIV"
+                        )
+                    )
+                )
+            )
+        }
+
 
         val request = OpprettJournalpostDTO(
             tittel = tittel,
@@ -97,15 +215,7 @@ class DokumentService(
                 fagsakId = oppfolgingssak, fagsaksystem = "AO01", // Arena-kode, siden oppfølgingssaken er fra Arena
                 sakstype = OpprettJournalpostDTO.Sak.Type.FAGSAK
             ),
-            dokumenter = listOf(
-                OpprettJournalpostDTO.Dokument(
-                    tittel = tittel, brevkode = malType.name, dokumentvarianter = listOf(
-                        OpprettJournalpostDTO.DokumentVariant(
-                            "PDFA", fysiskDokument = dokument, variantformat = "ARKIV"
-                        )
-                    )
-                )
-            )
+            dokumenter = dokumenterList
         )
 
         return dokarkivClient.opprettJournalpost(request)
@@ -139,11 +249,13 @@ class DokumentService(
         )
     }
 
-    data class BrevdataOppslag(val enhetKontaktinformasjon: EnhetKontaktinformasjon,
-                               val målform: Målform,
-                               val veilederNavn: String,
-                               val enhet: Enhet,
-                               val kontaktEnhet: Enhet)
+    data class BrevdataOppslag(
+        val enhetKontaktinformasjon: EnhetKontaktinformasjon,
+        val målform: Målform,
+        val veilederNavn: String,
+        val enhet: Enhet,
+        val kontaktEnhet: Enhet
+    )
 
     private fun hentBrevdata(fnr: Fnr, enhetId: EnhetId, veilederIdent: String): BrevdataOppslag {
         val enhetKontaktinformasjon: EnhetKontaktinformasjon = enhetInfoService.utledEnhetKontaktinformasjon(enhetId)
