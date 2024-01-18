@@ -6,7 +6,7 @@ metadata:
   labels:
     team: pto
 spec:
-  image: ghcr.io/navikt/veilarbvedtaksstotte/veilarbvedtaksstotte:{{version}}
+  image: {{image}}
   port: 8080
   webproxy: true
   leaderElection: true
