@@ -17,7 +17,6 @@ import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.api.ApiResult
-import no.nav.veilarbvedtaksstotte.utils.POAO_TILGANG_ENABLED
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
@@ -94,9 +93,6 @@ class AuthServiceTest {
     @Test
     fun sjekkTilgangTilBruker__skal_bruke_poao_tilgang_hvis_toggle_er_pa() {
         `when`(
-            unleashService.isEnabled(POAO_TILGANG_ENABLED)
-        ).thenReturn(true)
-        `when`(
             pep.harVeilederTilgangTilPerson(any(), any(), any())
         ).thenReturn(true)
         whenever(
@@ -110,9 +106,6 @@ class AuthServiceTest {
 
     //@Test
     fun sjekkTilgangTilBruker__skal_kaste_exception_hvis_poao_tilgang_gir_decision_deny() {
-        `when`(
-            unleashService.isEnabled(POAO_TILGANG_ENABLED)
-        ).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Deny("","")))
@@ -126,9 +119,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilEnhet__skal_bruke_poao_tilgang_hvis_toggle_er_pa() {
-        `when`(
-            unleashService.isEnabled(POAO_TILGANG_ENABLED)
-        ).thenReturn(true)
         `when`(
             pep.harVeilederTilgangTilEnhet(any(), any())
         ).thenReturn(true)
