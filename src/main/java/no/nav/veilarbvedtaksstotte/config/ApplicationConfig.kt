@@ -3,13 +3,6 @@ package no.nav.veilarbvedtaksstotte.config
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import lombok.extern.slf4j.Slf4j
-import no.nav.common.abac.AbacClient
-import no.nav.common.abac.Pep
-import no.nav.common.abac.VeilarbPep
-import no.nav.common.abac.audit.AuditConfig
-import no.nav.common.abac.audit.AuditLogger
-import no.nav.common.abac.audit.NimbusSubjectProvider
-import no.nav.common.abac.audit.SpringAuditRequestInfoSupplier
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.kafka.util.KafkaEnvironmentVariables
@@ -50,15 +43,6 @@ class ApplicationConfig {
         return AzureAdTokenClientBuilder.builder()
             .withNaisDefaults()
             .buildOnBehalfOfTokenClient()
-    }
-
-    @Bean
-    fun veilarbPep(serviceUserCredentials: Credentials, abacClient: AbacClient): Pep {
-        val auditConfig = AuditConfig(AuditLogger(), SpringAuditRequestInfoSupplier(), null)
-        return VeilarbPep(
-            serviceUserCredentials.username, abacClient,
-            NimbusSubjectProvider(), auditConfig
-        )
     }
 
     @Bean
