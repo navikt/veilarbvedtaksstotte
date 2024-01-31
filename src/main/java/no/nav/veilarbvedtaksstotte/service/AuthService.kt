@@ -25,7 +25,6 @@ import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
-import no.nav.veilarbvedtaksstotte.utils.POAO_TILGANG_ENABLED
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -76,13 +75,11 @@ class AuthService(
         val harVeilederTilgangTilPerson =
             veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)
 
-        if(unleashService.isEnabled(POAO_TILGANG_ENABLED)) {
             poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
                     hentInnloggetVeilederUUID(), TilgangType.SKRIVE, fnr.get()
                 )
             ).getOrThrow()
-        }
 
         if (!harVeilederTilgangTilPerson) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
@@ -198,13 +195,11 @@ class AuthService(
         val harVeilederTilgangTilEnhet =
             veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(innloggetVeilederIdent), enhet)
 
-        if (unleashService.isEnabled(POAO_TILGANG_ENABLED)){
             poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilNavEnhetPolicyInput(
                     hentInnloggetVeilederUUID(), enhet.get()
                 )
             ).getOrThrow()
-        }
 
         if (!harVeilederTilgangTilEnhet) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)

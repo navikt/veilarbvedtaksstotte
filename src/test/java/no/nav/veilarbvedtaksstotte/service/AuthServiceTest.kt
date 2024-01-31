@@ -17,7 +17,6 @@ import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.api.ApiResult
-import no.nav.veilarbvedtaksstotte.utils.POAO_TILGANG_ENABLED
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
@@ -58,6 +57,9 @@ class AuthServiceTest {
                 any(), any(), any()
             )
         ).thenReturn(true)
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
+        ).thenReturn(ApiResult.success(Decision.Permit))
         withContext(UserRole.INTERN) { authService.sjekkTilgangTilBruker(TestData.TEST_FNR) }
     }
 
@@ -84,6 +86,9 @@ class AuthServiceTest {
                 any(), any(), any()
             )
         ).thenReturn(false)
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
+        ).thenReturn(ApiResult.success(Decision.Deny("","")))
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
                 authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
@@ -93,9 +98,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBruker__skal_bruke_poao_tilgang_hvis_toggle_er_pa() {
-        `when`(
-            unleashService.isEnabled(POAO_TILGANG_ENABLED)
-        ).thenReturn(true)
         `when`(
             pep.harVeilederTilgangTilPerson(any(), any(), any())
         ).thenReturn(true)
@@ -110,9 +112,6 @@ class AuthServiceTest {
 
     //@Test
     fun sjekkTilgangTilBruker__skal_kaste_exception_hvis_poao_tilgang_gir_decision_deny() {
-        `when`(
-            unleashService.isEnabled(POAO_TILGANG_ENABLED)
-        ).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Deny("","")))
@@ -126,9 +125,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilEnhet__skal_bruke_poao_tilgang_hvis_toggle_er_pa() {
-        `when`(
-            unleashService.isEnabled(POAO_TILGANG_ENABLED)
-        ).thenReturn(true)
         `when`(
             pep.harVeilederTilgangTilEnhet(any(), any())
         ).thenReturn(true)
@@ -153,6 +149,9 @@ class AuthServiceTest {
                 any(), any(), any()
             )
         ).thenReturn(true)
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
+        ).thenReturn(ApiResult.success(Decision.Permit))
         `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) { authService.sjekkTilgangTilBrukerOgEnhet(TestData.TEST_FNR) }
@@ -185,6 +184,9 @@ class AuthServiceTest {
             )
         ).thenReturn(false)
         `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
+        ).thenReturn(ApiResult.success(Decision.Deny("","")))
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
@@ -201,6 +203,9 @@ class AuthServiceTest {
             )
         ).thenReturn(true)
         `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(false)
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
+        ).thenReturn(ApiResult.success(Decision.Deny("","")))
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
@@ -216,6 +221,9 @@ class AuthServiceTest {
                 any(), any(), any()
             )
         ).thenReturn(true)
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
+        ).thenReturn(ApiResult.success(Decision.Permit))
         `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(false)
         withContext(UserRole.INTERN) {
