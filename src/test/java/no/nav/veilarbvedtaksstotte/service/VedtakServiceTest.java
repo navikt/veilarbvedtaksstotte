@@ -13,7 +13,9 @@ import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.fn.UnsafeRunnable;
+import no.nav.poao_tilgang.client.Decision;
 import no.nav.poao_tilgang.client.PoaoTilgangClient;
+import no.nav.poao_tilgang.client.api.ApiResult;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.*;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
@@ -49,12 +51,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 
 import static no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
@@ -149,6 +146,7 @@ public class VedtakServiceTest extends DatabaseTest {
         reset(dokarkivClient);
         reset(vedtakHendelserService);
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
+        doReturn(UUID.randomUUID()).when(authService).hentInnloggetVeilederUUID();
         when(veilederService.hentEnhetNavn(TEST_OPPFOLGINGSENHET_ID)).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
         when(veilederService.hentVeilederEllerNull(TEST_VEILEDER_IDENT)).thenReturn(Optional.of(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN)));
@@ -174,6 +172,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(enhetInfoService.utledEnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID)))
                 .thenReturn(new EnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID), new EnhetStedsadresse("","","","","",""), ""));
         when(pdfClient.genererPdf(any())).thenReturn(new byte[]{});
+        when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
     }
 
     @Test
