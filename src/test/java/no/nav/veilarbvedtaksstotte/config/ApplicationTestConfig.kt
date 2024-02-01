@@ -5,11 +5,8 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.getunleash.DefaultUnleash
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import no.nav.common.abac.AbacClient
-import no.nav.common.abac.Pep
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
-import no.nav.common.health.HealthCheckResult
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.metrics.MetricsClient
@@ -18,9 +15,7 @@ import no.nav.common.utils.Credentials
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
-import no.nav.veilarbvedtaksstotte.mock.AbacClientMock
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
-import no.nav.veilarbvedtaksstotte.mock.PepMock
 import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
 import no.nav.veilarbvedtaksstotte.utils.PostgresContainer
@@ -61,16 +56,6 @@ class ApplicationTestConfig {
     @Bean
     fun serviceUserCredentials(): Credentials {
         return Credentials("username", "password")
-    }
-
-    @Bean
-    fun abacClient(): AbacClient {
-        return AbacClientMock()
-    }
-
-    @Bean
-    fun veilarbPep(abacClient: AbacClient): Pep {
-        return PepMock(abacClient)
     }
 
     @Bean

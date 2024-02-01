@@ -2,15 +2,6 @@ package no.nav.veilarbvedtaksstotte.service
 
 import com.nimbusds.jwt.JWTClaimsSet
 import io.getunleash.DefaultUnleash
-import no.nav.common.abac.AbacClient
-import no.nav.common.abac.Pep
-import no.nav.common.abac.constants.NavAttributter
-import no.nav.common.abac.constants.StandardAttributter
-import no.nav.common.abac.domain.Attribute
-import no.nav.common.abac.domain.request.*
-import no.nav.common.abac.domain.response.Decision
-import no.nav.common.abac.domain.response.Response
-import no.nav.common.abac.domain.response.XacmlResponse
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
@@ -26,6 +17,7 @@ import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import org.slf4j.LoggerFactory
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -38,14 +30,13 @@ import java.util.stream.Collectors
 @Service
 class AuthService(
     private val aktorOppslagClient: AktorOppslagClient,
-    private val veilarbPep: Pep,
     private val veilarbarenaService: VeilarbarenaService,
-    private val abacClient: AbacClient,
     private val serviceUserCredentials: Credentials,
     private val authContextHolder: AuthContextHolder,
     private val utrullingService: UtrullingService,
     private val poaoTilgangClient: PoaoTilgangClient,
-    private val unleashService: DefaultUnleash
+    private val unleashService: DefaultUnleash,
+    private val environment: Environment
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     fun sjekkTilgangTilBruker(fnr: Fnr) {
@@ -72,18 +63,11 @@ class AuthService(
         val fnr = fnrSupplier.get()
         val aktorId = aktorIdSupplier.get()
 
-        val harVeilederTilgangTilPerson =
-            veilarbPep.harVeilederTilgangTilPerson(NavIdent.of(innloggetVeilederIdent), ActionId.WRITE, aktorId)
-
-            poaoTilgangClient.evaluatePolicy(
-                NavAnsattTilgangTilEksternBrukerPolicyInput(
-                    hentInnloggetVeilederUUID(), TilgangType.SKRIVE, fnr.get()
-                )
-            ).getOrThrow()
-
-        if (!harVeilederTilgangTilPerson) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        }
+        poaoTilgangClient.evaluatePolicy(
+            NavAnsattTilgangTilEksternBrukerPolicyInput(
+                hentInnloggetVeilederUUID(), TilgangType.SKRIVE, fnr.get()
+            )
+        ).getOrThrow()
 
         return Pair.of(fnr, aktorId)
     }
@@ -106,7 +90,7 @@ class AuthService(
             .get()
 
     fun hentInnloggetVeilederUUID(): UUID =
-            authContextHolder
+        authContextHolder
             .idTokenClaims.flatMap { authContextHolder.getStringClaim(it, "oid") }
             .map { UUID.fromString(it) }
             .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Fant ikke oid for innlogget veileder") }
@@ -123,59 +107,11 @@ class AuthService(
     }
 
     fun harInnloggetVeilederTilgangTilBrukere(brukerFnrs: List<String?>): Map<String, Boolean> {
-        val request = lagSjekkTilgangRequest(serviceUserCredentials.username, innloggetVeilederIdent, brukerFnrs)
-        val abacResponse = abacClient.sendRequest(request)
-        return mapBrukerTilgangRespons(abacResponse)
+
+
+        return emptyMap()
     }
 
-    fun lagSjekkTilgangRequest(
-        systembrukerNavn: String?,
-        veilederIdent: String?,
-        brukerFnrs: List<String?>
-    ): XacmlRequest {
-        val environment = Environment()
-        environment.addAttribute(Attribute(NavAttributter.ENVIRONMENT_FELLES_PEP_ID, systembrukerNavn))
-        val action = Action()
-        action.addAttribute(Attribute(StandardAttributter.ACTION_ID, ActionId.WRITE.name))
-        val accessSubject = AccessSubject()
-        accessSubject.addAttribute(Attribute(StandardAttributter.SUBJECT_ID, veilederIdent))
-        accessSubject.addAttribute(Attribute(NavAttributter.SUBJECT_FELLES_SUBJECTTYPE, "InternBruker"))
-        val resources = brukerFnrs.stream()
-            .map { fnr: String? -> mapBrukerFnrTilAbacResource(fnr) }
-            .collect(Collectors.toList())
-        val request = Request()
-            .withEnvironment(environment)
-            .withAction(action)
-            .withAccessSubject(accessSubject)
-            .withResources(resources)
-        return XacmlRequest().withRequest(request)
-    }
-
-    private fun mapBrukerFnrTilAbacResource(fnr: String?): Resource {
-        val resource = Resource()
-        resource.addAttribute(Attribute(NavAttributter.RESOURCE_FELLES_DOMENE, "veilarb"))
-        resource.addAttribute(
-            Attribute(
-                NavAttributter.RESOURCE_FELLES_RESOURCE_TYPE,
-                NavAttributter.RESOURCE_VEILARB_PERSON
-            )
-        )
-        resource.addAttribute(Attribute(NavAttributter.RESOURCE_FELLES_PERSON_FNR, fnr, true))
-        return resource
-    }
-
-    fun mapBrukerTilgangRespons(xacmlResponse: XacmlResponse): Map<String, Boolean> {
-        val tilgangTilBrukere: MutableMap<String, Boolean> = HashMap()
-        xacmlResponse.response.forEach(Consumer { response: Response ->
-            val harTilgang = response.decision == Decision.Permit
-
-            // There should always be a single category
-            val category = response.category[0]
-            val brukerFnr = category.attribute.value
-            tilgangTilBrukere[brukerFnr] = harTilgang
-        })
-        return tilgangTilBrukere
-    }
 
     private fun sjekkInternBruker() {
         authContextHolder
@@ -193,17 +129,12 @@ class AuthService(
         }
 
         val harVeilederTilgangTilEnhet =
-            veilarbPep.harVeilederTilgangTilEnhet(NavIdent.of(innloggetVeilederIdent), enhet)
-
             poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilNavEnhetPolicyInput(
                     hentInnloggetVeilederUUID(), enhet.get()
                 )
             ).getOrThrow()
 
-        if (!harVeilederTilgangTilEnhet) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        }
         return enhet.get()
     }
 

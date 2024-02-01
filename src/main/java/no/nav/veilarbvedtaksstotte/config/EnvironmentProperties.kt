@@ -9,7 +9,6 @@ data class EnvironmentProperties (
     val veilarbloginOpenAmClientId: String,
     val stsDiscoveryUrl: String,
     val openAmRefreshUrl: String,
-    val abacUrl: String,
     val dbUrl: String,
     val unleashUrl: String,
     val unleashApiToken: String,
