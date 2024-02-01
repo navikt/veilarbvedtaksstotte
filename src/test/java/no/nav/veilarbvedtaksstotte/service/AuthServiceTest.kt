@@ -177,6 +177,22 @@ class AuthServiceTest {
         }
     }
 
+    @Test
+    fun lagSjekkTilgangRequest__skal_lage_riktig_request() {
+        val request = authService.lagSjekkTilgangRequest("srvtest", "Z1234", Arrays.asList("11111111111", "2222222222"))
+        val requestJson = XacmlMapper.mapRequestToEntity(request)
+        val expectedRequestJson = readTestResourceFile("xacmlrequest-abac-tilgang.json")
+        assertEquals(expectedRequestJson, requestJson)
+    }
+
+    @Test
+    fun mapBrukerTilgangRespons__skal_mappe_riktig() {
+        val responseJson = readTestResourceFile("xacmlresponse-abac-tilgang.json")
+        val response = XacmlMapper.mapRawResponse(responseJson)
+        val tilgangTilBrukere = authService.mapBrukerTilgangRespons(response)
+        assertTrue(tilgangTilBrukere.getOrDefault("11111111111", false))
+        assertFalse(tilgangTilBrukere.getOrDefault("2222222222", false))
+    }
 
     @Test
     fun `erSystemBrukerMedSystemTilSystemTilgang er true for system med rolle access_as_application`() {
