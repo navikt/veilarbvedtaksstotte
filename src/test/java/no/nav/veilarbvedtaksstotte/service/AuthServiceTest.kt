@@ -1,8 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import io.getunleash.DefaultUnleash
-import no.nav.common.abac.AbacClient
-import no.nav.common.abac.Pep
 import no.nav.common.abac.XacmlMapper
 import no.nav.common.auth.context.AuthContext
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
@@ -33,15 +30,12 @@ import java.util.*
 class AuthServiceTest {
     var authContextHolder = AuthContextHolderThreadLocal.instance()
     var aktorOppslagClient = Mockito.mock(AktorOppslagClient::class.java)
-    var pep = Mockito.mock(Pep::class.java)
     var veilarbarenaService = Mockito.mock(VeilarbarenaService::class.java)
     var utrullingService = Mockito.mock(UtrullingService::class.java)
-    var abacClient = Mockito.mock(AbacClient::class.java)
     var serviceUserCredentials = Mockito.mock(Credentials::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
-    var unleashService = Mockito.mock(DefaultUnleash::class.java)
     var authService =
-        AuthService(aktorOppslagClient, pep, veilarbarenaService, abacClient, serviceUserCredentials, authContextHolder, utrullingService, poaoTilgangClient, unleashService)
+        AuthService(aktorOppslagClient, veilarbarenaService, serviceUserCredentials, authContextHolder, utrullingService, poaoTilgangClient)
 
     @BeforeEach
     fun setup() {
@@ -52,11 +46,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBruker__gir_tilgang_for_intern_bruker() {
-        `when`(
-            pep.harVeilederTilgangTilPerson(
-                any(), any(), any()
-            )
-        ).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
@@ -65,11 +54,13 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBruker__kaster_exception_for_andre_enn_ekstern_bruker() {
-        `when`(
+       /* `when`(
             pep.harVeilederTilgangTilPerson(
                 any(), any(), any()
             )
         ).thenReturn(true)
+
+        */
         UserRole.values().filter { userRole: UserRole -> userRole != UserRole.INTERN }.forEach { userRole: UserRole ->
                 withContext(userRole) {
                     assertThrowsWithMessage<ResponseStatusException>("""403 FORBIDDEN "Ikke intern bruker"""") {
@@ -81,11 +72,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBruker__kaster_exception_ved_manglende_tilgang_til_bruker() {
-        `when`(
-            pep.harVeilederTilgangTilPerson(
-                any(), any(), any()
-            )
-        ).thenReturn(false)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Deny("","")))
@@ -98,9 +84,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBruker__skal_bruke_poao_tilgang_hvis_toggle_er_pa() {
-        `when`(
-            pep.harVeilederTilgangTilPerson(any(), any(), any())
-        ).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
@@ -110,7 +93,7 @@ class AuthServiceTest {
         org.mockito.kotlin.verify(poaoTilgangClient, times(1)).evaluatePolicy(org.mockito.kotlin.any())
     }
 
-    //@Test
+    @Test
     fun sjekkTilgangTilBruker__skal_kaste_exception_hvis_poao_tilgang_gir_decision_deny() {
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
@@ -125,12 +108,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilEnhet__skal_bruke_poao_tilgang_hvis_toggle_er_pa() {
-        `when`(
-            pep.harVeilederTilgangTilEnhet(any(), any())
-        ).thenReturn(true)
-        `when`(
-            pep.harVeilederTilgangTilPerson(any(), any(), any())
-        ).thenReturn(true)
         `when`(utrullingService.erUtrullet(any())).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
@@ -144,27 +121,23 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBrukerOgEnhet__sjekkTilgangTilBruker__gir_tilgang_for_intern_bruker() {
-        `when`(
-            pep.harVeilederTilgangTilPerson(
-                any(), any(), any()
-            )
-        ).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
-        `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
+        //`when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) { authService.sjekkTilgangTilBrukerOgEnhet(TestData.TEST_FNR) }
     }
 
     @Test
     fun sjekkTilgangTilBrukerOgEnhet__kaster_exception_for_andre_enn_ekstern_bruker() {
-        `when`(
+        /* `when`(
             pep.harVeilederTilgangTilPerson(
                 any(), any(), any()
             )
         ).thenReturn(true)
         `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
+         */
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         Arrays.stream(UserRole.values()).filter { userRole: UserRole -> userRole != UserRole.INTERN }
             .forEach { userRole: UserRole ->
@@ -178,12 +151,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBrukerOgEnhet__kaster_exception_ved_manglende_tilgang_til_bruker() {
-        `when`(
-            pep.harVeilederTilgangTilPerson(
-                any(), any(), any()
-            )
-        ).thenReturn(false)
-        `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Deny("","")))
@@ -197,12 +164,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBrukerOgEnhet__kaster_exception_ved_manglende_tilgang_til_enhet() {
-        `when`(
-            pep.harVeilederTilgangTilPerson(
-                any(), any(), any()
-            )
-        ).thenReturn(true)
-        `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(false)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Deny("","")))
@@ -216,15 +177,9 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBrukerOgEnhet__kaster_exception_dersom_enhet_ikke_er_utrullet() {
-        `when`(
-            pep.harVeilederTilgangTilPerson(
-                any(), any(), any()
-            )
-        ).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
-        `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(false)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>(
@@ -235,6 +190,7 @@ class AuthServiceTest {
         }
     }
 
+    /*
     @Test
     fun lagSjekkTilgangRequest__skal_lage_riktig_request() {
         val request = authService.lagSjekkTilgangRequest("srvtest", "Z1234", Arrays.asList("11111111111", "2222222222"))
@@ -243,7 +199,7 @@ class AuthServiceTest {
         assertEquals(expectedRequestJson, requestJson)
     }
 
-    @Test
+    //@Test
     fun mapBrukerTilgangRespons__skal_mappe_riktig() {
         val responseJson = readTestResourceFile("xacmlresponse-abac-tilgang.json")
         val response = XacmlMapper.mapRawResponse(responseJson)
@@ -251,6 +207,7 @@ class AuthServiceTest {
         assertTrue(tilgangTilBrukere.getOrDefault("11111111111", false))
         assertFalse(tilgangTilBrukere.getOrDefault("2222222222", false))
     }
+     */
 
     @Test
     fun `erSystemBrukerMedSystemTilSystemTilgang er true for system med rolle access_as_application`() {
