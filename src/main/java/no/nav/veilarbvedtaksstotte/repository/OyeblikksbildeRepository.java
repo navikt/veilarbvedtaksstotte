@@ -81,13 +81,22 @@ public class OyeblikksbildeRepository {
 
     @SneakyThrows
     private static Oyeblikksbilde mapOyeblikksbilde(ResultSet rs, int row) {
-        String ingenData = "{\"ingenData\": \"Ingen registrerte data\"}";
+        OyeblikksbildeType oyeblikksbildeType = valueOf(OyeblikksbildeType.class, rs.getString(OYEBLIKKSBILDE_TYPE);
+        String ingenData = getNoDataMessage(oyeblikksbildeType);
         boolean harIngenData = rs.getString(JSON) == null || rs.getString(JSON).length() < 100;
         return new Oyeblikksbilde()
                 .setVedtakId(rs.getLong(VEDTAK_ID))
-                .setOyeblikksbildeType(valueOf(OyeblikksbildeType.class, rs.getString(OYEBLIKKSBILDE_TYPE)))
+                .setOyeblikksbildeType(oyeblikksbildeType)
                 .setJson(harIngenData ? ingenData : rs.getString(JSON))
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
+    }
+
+    private static String getNoDataMessage(OyeblikksbildeType oyeblikksbildeType){
+        return switch (oyeblikksbildeType){
+            case CV_OG_JOBBPROFIL ->  "<b>Ingen registrerte data:</b> Personen har ikke registrert CV/jobbønsker.";
+            case REGISTRERINGSINFO ->  "<b>Ingen registrerte data:</b> Personen har ikke registrert noen svar.";
+            case EGENVURDERING ->  "<b>Ingen registrerte data:</b> Personen har ikke registrert svar om behov for veiledning.";
+        };
     }
 
     public String hentJournalfortDokumentId(long vedtakId, OyeblikksbildeType oyeblikksbildeType) {
