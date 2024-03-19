@@ -1,6 +1,6 @@
 # Veilarbvedtaksstotte
 
-Journalforing oyeblikksbilde
+Journalføring oyeblikksbilde
 
 ### Sequence of calls:
 
