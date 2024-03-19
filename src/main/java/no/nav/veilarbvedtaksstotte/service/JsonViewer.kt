@@ -35,7 +35,7 @@ class JsonViewer() {
 
         private fun objToHtml(jsonObject: JsonObject?): String {
             if (jsonObject == null) {
-                return "<p>Ingen data</p>"
+                return ""
             }
             var output = "";
 

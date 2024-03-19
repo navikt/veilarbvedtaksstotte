@@ -81,7 +81,7 @@ public class OyeblikksbildeRepository {
 
     @SneakyThrows
     private static Oyeblikksbilde mapOyeblikksbilde(ResultSet rs, int row) {
-        OyeblikksbildeType oyeblikksbildeType = valueOf(OyeblikksbildeType.class, rs.getString(OYEBLIKKSBILDE_TYPE);
+        OyeblikksbildeType oyeblikksbildeType = valueOf(OyeblikksbildeType.class, rs.getString(OYEBLIKKSBILDE_TYPE));
         String ingenData = getNoDataMessage(oyeblikksbildeType);
         boolean harIngenData = rs.getString(JSON) == null || rs.getString(JSON).length() < 100;
         return new Oyeblikksbilde()
@@ -91,11 +91,12 @@ public class OyeblikksbildeRepository {
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }
 
-    private static String getNoDataMessage(OyeblikksbildeType oyeblikksbildeType){
-        return switch (oyeblikksbildeType){
-            case CV_OG_JOBBPROFIL ->  "<b>Ingen registrerte data:</b> Personen har ikke registrert CV/jobbønsker.";
-            case REGISTRERINGSINFO ->  "<b>Ingen registrerte data:</b> Personen har ikke registrert noen svar.";
-            case EGENVURDERING ->  "<b>Ingen registrerte data:</b> Personen har ikke registrert svar om behov for veiledning.";
+    private static String getNoDataMessage(OyeblikksbildeType oyeblikksbildeType) {
+        return switch (oyeblikksbildeType) {
+            case CV_OG_JOBBPROFIL -> "<b>Ingen registrerte data:</b> Personen har ikke registrert CV/jobbønsker.";
+            case REGISTRERINGSINFO -> "<b>Ingen registrerte data:</b> Personen har ikke registrert noen svar.";
+            case EGENVURDERING ->
+                    "<b>Ingen registrerte data:</b> Personen har ikke registrert svar om behov for veiledning.";
         };
     }
 
