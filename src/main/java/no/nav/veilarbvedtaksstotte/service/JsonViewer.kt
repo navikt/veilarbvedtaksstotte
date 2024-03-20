@@ -48,7 +48,7 @@ class JsonViewer() {
 
                     if (key.equals("ingenData")) {
                         output += "<b>Ingen registrerte data:</b> ";
-                        output += value;
+                        output += value.asString;
                         return output;
                     }
 

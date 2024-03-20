@@ -13,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
+import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +75,11 @@ public class OyeblikksbildeService {
 
     void lagreOyeblikksbilde(String fnr, long vedtakId, List<String> kilder) {
         List<OyeblikksbildeInputDto> oyeblikksbilde = new ArrayList<>();
+
+        if (kilder == null || kilder.isEmpty()) {
+            SecureLog.getSecureLog().warn(String.format("Ingen kilder valgt for vedtak med id: %s", vedtakId));
+            return;
+        }
 
         if (kilder.stream().anyMatch(kilde -> kilde.contains("CV-en/jobbønskene"))) {
             final String cvOgJobbprofilData = veilarbpersonClient.hentCVOgJobbprofil(fnr);
