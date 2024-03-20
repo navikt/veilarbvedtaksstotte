@@ -42,9 +42,14 @@ class JsonViewer() {
             val keySet = jsonObject.keySet()
             for (key in keySet) {
                 try {
+                    val value: JsonElement = jsonObject.get(key)
+
                     if (isNotAllowedKey(key)) continue;
 
-                    val value: JsonElement = jsonObject.get(key)
+                    if (key.equals("ingenData")) {
+                        output += "<b>Ingen registrerte data:</b> $value";
+                    }
+
                     if (value.isJsonPrimitive) {
                         if (isLink(key)) {
                             output += getLink(key, value.asString)

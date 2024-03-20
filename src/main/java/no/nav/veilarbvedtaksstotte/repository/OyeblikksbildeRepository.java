@@ -93,10 +93,9 @@ public class OyeblikksbildeRepository {
 
     private static String getNoDataMessage(OyeblikksbildeType oyeblikksbildeType) {
         return switch (oyeblikksbildeType) {
-            case CV_OG_JOBBPROFIL -> "<b>Ingen registrerte data:</b> Personen har ikke registrert CV/jobbønsker.";
-            case REGISTRERINGSINFO -> "<b>Ingen registrerte data:</b> Personen har ikke registrert noen svar.";
-            case EGENVURDERING ->
-                    "<b>Ingen registrerte data:</b> Personen har ikke registrert svar om behov for veiledning.";
+            case CV_OG_JOBBPROFIL -> "{\"ingenData\": \"Personen har ikke registrert CV/jobbønsker.\"}";
+            case REGISTRERINGSINFO -> "{\"ingenData\": \"Personen har ikke registrert noen svar.\"}";
+            case EGENVURDERING -> "{\"ingenData\": \"Personen har ikke registrert svar om behov for veiledning.\"}";
         };
     }
 
