@@ -47,7 +47,9 @@ class JsonViewer() {
                     if (isNotAllowedKey(key)) continue;
 
                     if (key.equals("ingenData")) {
-                        output += "<b>Ingen registrerte data:</b> $value";
+                        output += "<b>Ingen registrerte data:</b> ";
+                        output += value;
+                        return output;
                     }
 
                     if (value.isJsonPrimitive) {
