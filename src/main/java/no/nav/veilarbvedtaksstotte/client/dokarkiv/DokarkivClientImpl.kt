@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.dokarkiv
 
+import lombok.extern.slf4j.Slf4j
 import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
@@ -17,6 +18,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import java.util.function.Supplier
 
+@Slf4j
 class DokarkivClientImpl(
     val dokarkivUrl: String,
     val userTokenSupplier: Supplier<String>

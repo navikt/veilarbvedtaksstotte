@@ -17,9 +17,9 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
     override fun genererPdf(brevdata: PdfClient.Brevdata): ByteArray {
 
         val request = Request.Builder()
-                .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/vedtak14a"))
-                .post(RestUtils.toJsonRequestBody(brevdata))
-                .build()
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/vedtak14a"))
+            .post(RestUtils.toJsonRequestBody(brevdata))
+            .build()
 
         try {
             client.newCall(request).execute().use { response ->
@@ -29,11 +29,40 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
                     throw IllegalStateException("Generering av brev feilet, tom respons.")
             }
         } catch (e: Exception) {
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Feil ved kall mot " + request.url.toString(), e)
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString(),
+                e
+            )
+        }
+    }
+
+    override fun genererOyeblikksbildePdf(
+        oyeblikksbildeData: PdfClient.OyeblikksbildeData,
+        oyeblikksbildePdfTemplate: String
+    ): ByteArray {
+        val request = Request.Builder()
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + oyeblikksbildePdfTemplate))
+            .post(RestUtils.toJsonRequestBody(oyeblikksbildeData))
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                RestUtils.throwIfNotSuccessful(response)
+                val body = response.body
+                return if (body != null) body.bytes() else
+                    throw IllegalStateException("Generering av øyeblikkbilde for $oyeblikksbildePdfTemplate feilet, tøm respons.")
+            }
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString(),
+                e
+            )
         }
     }
 
     override fun checkHealth(): HealthCheckResult? {
-        return HealthCheckUtils.pingUrl(joinPaths(pdfGenUrl, "is_alive"), client)
+        return HealthCheckUtils.pingUrl(joinPaths(pdfGenUrl, "/is_alive"), client)
     }
 }

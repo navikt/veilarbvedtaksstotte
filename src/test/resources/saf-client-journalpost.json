@@ -1,0 +1,26 @@
+{
+  "data": {
+    "journalpost": {
+      "dokumenter": [
+        {
+          "dokumentInfoId": "667132880",
+          "tittel": "Vurdering av ditt behov for oppfølging fra NAV",
+          "brevkode": "STANDARD_INNSATS_SKAFFE_ARBEID",
+          "dokumentstatus": "FERDIGSTILT"
+        },
+        {
+          "dokumentInfoId": "667132881",
+          "tittel": "CV",
+          "brevkode": "CV_OG_JOBBPROFIL",
+          "dokumentstatus": "FERDIGSTILT"
+        },
+        {
+          "dokumentInfoId": "667132882",
+          "tittel": "Svarene dine om behov for veiledning",
+          "brevkode": "EGENVURDERING",
+          "dokumentstatus": "FERDIGSTILT"
+        }
+      ]
+    }
+  }
+}

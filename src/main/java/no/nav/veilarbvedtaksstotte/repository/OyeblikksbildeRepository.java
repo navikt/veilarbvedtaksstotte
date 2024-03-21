@@ -1,8 +1,10 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.dto.OyeblikksbildeInputDto;
 import no.nav.veilarbvedtaksstotte.utils.DbUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,12 +19,14 @@ import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.valueOf;
 
 @Repository
+@Slf4j
 public class OyeblikksbildeRepository {
 
-    public final static String OYEBLIKKSBILDE_TABLE         = "OYEBLIKKSBILDE";
-    private final static String VEDTAK_ID                   = "VEDTAK_ID";
-    private final static String OYEBLIKKSBILDE_TYPE         = "OYEBLIKKSBILDE_TYPE";
-    private final static String JSON                        = "JSON";
+    public final static String OYEBLIKKSBILDE_TABLE = "OYEBLIKKSBILDE";
+    private final static String VEDTAK_ID = "VEDTAK_ID";
+    private final static String OYEBLIKKSBILDE_TYPE = "OYEBLIKKSBILDE_TYPE";
+    private final static String JSON = "JSON";
+    private final static String DOKUMENT_ID = "DOKUMENT_ID";
 
     private final JdbcTemplate db;
 
@@ -40,7 +44,7 @@ public class OyeblikksbildeRepository {
         db.update(format("DELETE FROM %s WHERE %s = %d", OYEBLIKKSBILDE_TABLE, VEDTAK_ID, vedtakId));
     }
 
-    public void upsertOyeblikksbilde(Oyeblikksbilde oyeblikksbilde) {
+    public void upsertOyeblikksbilde(OyeblikksbildeInputDto oyeblikksbilde) {
         long vedtakId = oyeblikksbilde.getVedtakId();
         String type = getName(oyeblikksbilde.getOyeblikksbildeType());
         String json = oyeblikksbilde.getJson();
@@ -68,13 +72,36 @@ public class OyeblikksbildeRepository {
         );
     }
 
-    @SneakyThrows
-    private static Oyeblikksbilde mapOyeblikksbilde(ResultSet rs, int row) {
-        return new Oyeblikksbilde()
-                .setVedtakId(rs.getLong(VEDTAK_ID))
-                .setOyeblikksbildeType(valueOf(OyeblikksbildeType.class, rs.getString(OYEBLIKKSBILDE_TYPE)))
-                .setJson(rs.getString(JSON));
+    public void lagreJournalfortDokumentId(long vedtakId, String dokumentId, OyeblikksbildeType oyeblikksbildeType) {
+        db.update(
+                "UPDATE OYEBLIKKSBILDE SET dokument_id = ?  WHERE VEDTAK_ID = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE",
+                dokumentId, vedtakId, oyeblikksbildeType.name()
+        );
     }
 
+    @SneakyThrows
+    private static Oyeblikksbilde mapOyeblikksbilde(ResultSet rs, int row) {
+        OyeblikksbildeType oyeblikksbildeType = valueOf(OyeblikksbildeType.class, rs.getString(OYEBLIKKSBILDE_TYPE));
+        String ingenData = getNoDataMessage(oyeblikksbildeType);
+        boolean harIngenData = rs.getString(JSON) == null || rs.getString(JSON).length() < 100;
+        return new Oyeblikksbilde()
+                .setVedtakId(rs.getLong(VEDTAK_ID))
+                .setOyeblikksbildeType(oyeblikksbildeType)
+                .setJson(harIngenData ? ingenData : rs.getString(JSON))
+                .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
+    }
+
+    private static String getNoDataMessage(OyeblikksbildeType oyeblikksbildeType) {
+        return switch (oyeblikksbildeType) {
+            case CV_OG_JOBBPROFIL -> "{\"ingenData\": \"Personen har ikke registrert CV/jobbønsker.\"}";
+            case REGISTRERINGSINFO -> "{\"ingenData\": \"Personen har ikke registrert noen svar.\"}";
+            case EGENVURDERING -> "{\"ingenData\": \"Personen har ikke registrert svar om behov for veiledning.\"}";
+        };
+    }
+
+    public String hentJournalfortDokumentId(long vedtakId, OyeblikksbildeType oyeblikksbildeType) {
+        String sql = format("SELECT dokument_id FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
+        return db.queryForObject(sql, String.class, vedtakId, oyeblikksbildeType.name());
+    }
 }
 

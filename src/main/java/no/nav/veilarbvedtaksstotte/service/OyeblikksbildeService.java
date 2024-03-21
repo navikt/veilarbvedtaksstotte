@@ -6,18 +6,20 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.*;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.dto.OyeblikksbildeInputDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.dto.OyeblikksbildeOutputDto;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
+import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static no.nav.common.json.JsonUtils.toJson;
@@ -52,35 +54,54 @@ public class OyeblikksbildeService {
         this.aiaBackendClient = aiaBackendClient;
     }
 
-    public List<Oyeblikksbilde> hentOyeblikksbildeForVedtak(long vedtakId) {
+    public List<OyeblikksbildeOutputDto> hentOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
-        return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
+        List<Oyeblikksbilde> oyeblikksbildeList = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
+        return oyeblikksbildeList.stream().map(OyeblikksbildeOutputDto::from).toList();
+    }
+
+    public void lagreJournalfortDokumentId(long vedtakId, String dokumentId, OyeblikksbildeType oyeblikksbildeType) {
+        oyeblikksbildeRepository.lagreJournalfortDokumentId(vedtakId, dokumentId, oyeblikksbildeType);
+    }
+
+    public String hentJournalfortDokumentId(long vedtakId, OyeblikksbildeType oyeblikksbildeType) {
+        return oyeblikksbildeRepository.hentJournalfortDokumentId(vedtakId, oyeblikksbildeType);
     }
 
     public void slettOyeblikksbilde(long vedtakId) {
         oyeblikksbildeRepository.slettOyeblikksbilder(vedtakId);
     }
 
-    void lagreOyeblikksbilde(String fnr, long vedtakId) {
-        final String cvOgJobbprofilData = veilarbpersonClient.hentCVOgJobbprofil(fnr);
-        final String registreringData = registreringClient.hentRegistreringDataJson(fnr);
-        final EndringIRegistreringsdataResponse endringIRegistreringsdata = aiaBackendClient.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(fnr));
-        final String oppdaterteRegistreringsData = oppdaterRegistreringsdataHvisNyeEndringer(registreringData, endringIRegistreringsdata);
-        final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonDTO(fnr));
-        final String egenvurderingData = mapToEgenvurderingDataJson(egenvurdering);
+    void lagreOyeblikksbilde(String fnr, long vedtakId, List<String> kilder) {
+        List<OyeblikksbildeInputDto> oyeblikksbilde = new ArrayList<>();
 
-        List<Oyeblikksbilde> oyeblikksbilde = Arrays.asList(
-                new Oyeblikksbilde(vedtakId, CV_OG_JOBBPROFIL, cvOgJobbprofilData),
-                new Oyeblikksbilde(vedtakId, REGISTRERINGSINFO, oppdaterteRegistreringsData),
-                new Oyeblikksbilde(vedtakId, EGENVURDERING, egenvurderingData)
-        );
+        if (kilder == null || kilder.isEmpty()) {
+            SecureLog.getSecureLog().warn(String.format("Ingen kilder valgt for vedtak med id: %s", vedtakId));
+            return;
+        }
+
+        if (kilder.stream().anyMatch(kilde -> kilde.contains("CV-en/jobbønskene"))) {
+            final String cvOgJobbprofilData = veilarbpersonClient.hentCVOgJobbprofil(fnr);
+            oyeblikksbilde.add(new OyeblikksbildeInputDto(vedtakId, CV_OG_JOBBPROFIL, cvOgJobbprofilData));
+        }
+        if (kilder.stream().anyMatch(kilde -> kilde.contains("Svarene dine fra da du registrerte"))) {
+            final String registreringData = registreringClient.hentRegistreringDataJson(fnr);
+            final EndringIRegistreringsdataResponse endringIRegistreringsdata = aiaBackendClient.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(fnr));
+            final String oppdaterteRegistreringsData = oppdaterRegistreringsdataHvisNyeEndringer(registreringData, endringIRegistreringsdata);
+            oyeblikksbilde.add(new OyeblikksbildeInputDto(vedtakId, REGISTRERINGSINFO, oppdaterteRegistreringsData));
+        }
+        if (kilder.stream().anyMatch(kilde -> kilde.contains("Svarene dine om behov for veiledning"))) {
+            final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonDTO(fnr));
+            final String egenvurderingData = mapToEgenvurderingDataJson(egenvurdering);
+            oyeblikksbilde.add(new OyeblikksbildeInputDto(vedtakId, EGENVURDERING, egenvurderingData));
+        }
 
         oyeblikksbilde.forEach(oyeblikksbildeRepository::upsertOyeblikksbilde);
     }
 
     public String mapToEgenvurderingDataJson(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test
-        if(egenvurderingResponseDTO == null) {
+        if (egenvurderingResponseDTO == null) {
             return JsonUtils.createNoDataStr("Bruker har ikke fylt ut egenvurdering");
         }
         List<EgenvurderingData.Svar> svar = new ArrayList<>();
@@ -97,7 +118,7 @@ public class OyeblikksbildeService {
     }
 
     public String oppdaterRegistreringsdataHvisNyeEndringer(String registreringsData, EndringIRegistreringsdataResponse endringIRegistreringsdata) { //public for test
-	    if(registreringsData == null || endringIRegistreringsdata == null || endringIRegistreringsdata.getErBesvarelsenEndret() == null || !endringIRegistreringsdata.getErBesvarelsenEndret()) {
+        if (registreringsData == null || endringIRegistreringsdata == null || endringIRegistreringsdata.getErBesvarelsenEndret() == null || !endringIRegistreringsdata.getErBesvarelsenEndret()) {
             return registreringsData;
         }
 
@@ -152,4 +173,5 @@ public class OyeblikksbildeService {
             default -> "";
         };
     }
+
 }

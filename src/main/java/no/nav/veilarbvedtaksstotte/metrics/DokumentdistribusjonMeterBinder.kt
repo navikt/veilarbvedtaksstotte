@@ -13,6 +13,10 @@ class DokumentdistribusjonMeterBinder(
 ) : MeterBinder {
 
     override fun bindTo(registry: MeterRegistry) {
+        Gauge.builder("antall_fattet_vedtak_uten_journalforing") {
+            antallFattetVedtakUtenJournalforing()
+        }.description("Antall fattet vedtak som er ikke journalført").register(registry)
+
         Gauge.builder("antall_journalforte_vedtak_uten_dokumentbestilling") {
             antallJournalforteVedtakUtenDokumentbestilling()
         }.description("Antall journalførte vedtak uten dokumentbestilling.").register(registry)
@@ -28,6 +32,10 @@ class DokumentdistribusjonMeterBinder(
             // på å bli distribuert
             LocalDateTime.now().minusMinutes(13)
         )
+    }
+
+    fun antallFattetVedtakUtenJournalforing(): Int {
+        return vedtaksstotteRepository.hentFattetVedtakUtenJournalforing(LocalDateTime.now().minusMinutes(5))
     }
 
     fun antallJournalforteVedtakMedFeiletDokumentbestilling(): Int {
