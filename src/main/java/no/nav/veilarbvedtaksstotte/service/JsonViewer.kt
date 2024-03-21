@@ -150,7 +150,9 @@ class JsonViewer() {
                 "onsket" to "ønsket",
                 "sporsmal" to "spørsmål",
                 "Maneder" to "Måneder",
-                "utloper" to "utløper"
+                "utloper" to "utløper",
+                "Oppfolging" to "Oppfølging",
+                "Spm" to "Spørsmål"
             );
 
             for (dictionaryKey in dictionary.keys) {
