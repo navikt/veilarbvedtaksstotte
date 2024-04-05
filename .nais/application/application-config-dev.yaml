@@ -94,6 +94,9 @@ spec:
         - application: azure-token-generator
           namespace: aura
           cluster: dev-gcp
+        - application: aia-backend
+          namespace: paw
+          cluster: dev-gcp
     outbound:
       external:
         - host: team-obo-unleash-web.nav.cloud.nais.io

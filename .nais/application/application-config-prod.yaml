@@ -89,6 +89,9 @@ spec:
         - application: pto-admin
           namespace: pto
           cluster: prod-fss
+        - application: aia-backend
+          namespace: paw
+          cluster: prod-gcp
     outbound:
       external:
         - host: https://www.nav.no/aia-backend
