@@ -89,9 +89,11 @@ spec:
         - application: pto-admin
           namespace: pto
           cluster: prod-fss
+        - application: aia-backend
+          namespace: paw
+          cluster: prod-gcp
+
     outbound:
-      external:
-        - host: https://www.nav.no/aia-backend
       rules:
         - application: aia-backend
           namespace: paw
@@ -101,6 +103,7 @@ spec:
           cluster: prod-gcp
       external:
         - host: team-obo-unleash-web.nav.cloud.nais.io
+        - host: https://www.nav.no/aia-backend
   envFrom:
     - configmap: pto-config
     - secret: veilarbvedtaksstotte-unleash-api-token
