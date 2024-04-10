@@ -48,12 +48,12 @@ class AuthService(
     private val unleashService: DefaultUnleash
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-    fun sjekkTilgangTilBruker(fnr: Fnr) {
-        sjekkTilgangTilBruker({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
+    fun sjekkVeilederTilgangTilBruker(fnr: Fnr) {
+        sjekkVeilederTilgangTilBruker({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
     }
 
-    fun sjekkTilgangTilBruker(aktorId: AktorId) {
-        sjekkTilgangTilBruker({ aktorOppslagClient.hentFnr(aktorId) }) { aktorId }
+    fun sjekkVeilederTilgangTilBruker(aktorId: AktorId) {
+        sjekkVeilederTilgangTilBruker({ aktorOppslagClient.hentFnr(aktorId) }) { aktorId }
     }
 
     fun sjekkTilgangTilBrukerOgEnhet(fnr: Fnr): AuthKontekst {
@@ -64,7 +64,7 @@ class AuthService(
         return sjekkTilgangTilBrukerOgEnhet({ aktorOppslagClient.hentFnr(aktorId) }) { aktorId }
     }
 
-    private fun sjekkTilgangTilBruker(
+    private fun sjekkVeilederTilgangTilBruker(
         fnrSupplier: Supplier<Fnr>,
         aktorIdSupplier: Supplier<AktorId>
     ): Pair<Fnr, AktorId> {
@@ -92,7 +92,7 @@ class AuthService(
         fnrSupplier: Supplier<Fnr>,
         aktorIdSupplier: Supplier<AktorId>
     ): AuthKontekst {
-        val fnrAktorIdPair = sjekkTilgangTilBruker(fnrSupplier, aktorIdSupplier)
+        val fnrAktorIdPair = sjekkVeilederTilgangTilBruker(fnrSupplier, aktorIdSupplier)
         val fnr = fnrAktorIdPair.first
         val aktorId = fnrAktorIdPair.second
         val enhet = sjekkTilgangTilEnhet(fnr.get())
@@ -209,6 +209,10 @@ class AuthService(
 
     fun erSystemBruker(): Boolean {
         return authContextHolder.erSystemBruker()
+    }
+
+    fun erEksternBruker(): Boolean {
+        return authContextHolder.erEksternBruker()
     }
 
     fun harSystemTilSystemTilgang(): Boolean {

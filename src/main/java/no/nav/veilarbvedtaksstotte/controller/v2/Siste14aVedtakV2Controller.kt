@@ -30,7 +30,7 @@ class Siste14aVedtakV2Controller(
                 throw ResponseStatusException(HttpStatus.FORBIDDEN)
             }
         } else {
-            authService.sjekkTilgangTilBruker(fnr)
+            authService.sjekkVeilederTilgangTilBruker(fnr)
         }
     }
 }
