@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import no.nav.common.auth.context.UserRole;
 import no.nav.common.auth.oidc.filter.AzureAdUserRoleResolver;
 import no.nav.common.auth.oidc.filter.OidcAuthenticationFilter;
 import no.nav.common.auth.oidc.filter.OidcAuthenticatorConfig;
@@ -23,6 +24,13 @@ public class FilterConfig {
                 .withUserRoleResolver(new AzureAdUserRoleResolver());
     }
 
+    private OidcAuthenticatorConfig tokenxAuthConfig(EnvironmentProperties properties) {
+        return new OidcAuthenticatorConfig()
+                .withDiscoveryUrl(properties.getTokenxDiscoveryUrl())
+                .withClientId(properties.getTokenxClientId())
+                .withUserRole(UserRole.EKSTERN);
+    }
+
     @Bean
     public FilterRegistrationBean<LogRequestFilter>  logFilterRegistrationBean() {
         FilterRegistrationBean<LogRequestFilter> registration = new FilterRegistrationBean<>();
@@ -36,7 +44,10 @@ public class FilterConfig {
     public FilterRegistrationBean<OidcAuthenticationFilter> authenticationFilterRegistrationBean(EnvironmentProperties properties) {
         FilterRegistrationBean<OidcAuthenticationFilter> registration = new FilterRegistrationBean<>();
         OidcAuthenticationFilter authenticationFilter = new OidcAuthenticationFilter(
-                fromConfigs(azureAdAuthConfig(properties))
+                fromConfigs(
+                        azureAdAuthConfig(properties),
+                        tokenxAuthConfig(properties)
+                )
         );
 
         registration.setFilter(authenticationFilter);

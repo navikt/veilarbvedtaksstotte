@@ -92,6 +92,10 @@ class Siste14aVedtakV2ControllerTest {
         } returns false
 
         every {
+            authService.erEksternBruker()
+        } returns false
+
+        every {
             authService.sjekkVeilederTilgangTilBruker(fnr)
         } answers { }
 
@@ -108,6 +112,10 @@ class Siste14aVedtakV2ControllerTest {
 
         every {
             authService.erSystemBruker()
+        } returns false
+
+        every {
+            authService.erEksternBruker()
         } returns false
 
         every {

@@ -20,4 +20,6 @@ data class EnvironmentProperties (
     val poaoTilgangUrl: String,
     val poaoTilgangScope: String,
     val aiaBackendUrl: String,
+    val tokenxDiscoveryUrl: String,
+    val tokenxClientId: String
 )
