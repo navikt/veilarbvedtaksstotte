@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.veilarboppfolging;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -31,10 +32,10 @@ public class VeilarboppfolgingClientImplTest {
 
     @Test
     public void hentOppfolgingsperioder__skal_lage_riktig_request_og_parse_response() {
-        String response = TestUtils.readTestResourceFile("veilarboppfolging_hentOppfolgingsperioder.json");
+        String response = TestUtils.readTestResourceFile("testdata/veilarboppfolging_hentOppfolgingsperioder.json");
 
         givenThat(post(urlEqualTo("/api/v3/oppfolging/hent-perioder"))
-                .withRequestBody(WireMock.equalToJson("{\"fnr\":\""+TEST_FNR.get()+"\"}"))
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\"" + TEST_FNR.get() + "\"}"))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer SYSTEM_TOKEN"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -58,10 +59,10 @@ public class VeilarboppfolgingClientImplTest {
 
     @Test
     public void hentGjeldendeOppfolgingsperiode__skal_lage_riktig_request_og_parse_response() {
-        String response = TestUtils.readTestResourceFile("veilarboppfolging_hentGjeldendeOppfolgingsperiode.json");
+        String response = TestUtils.readTestResourceFile("testdata/veilarboppfolging_hentGjeldendeOppfolgingsperiode.json");
 
         givenThat(post(urlEqualTo("/api/v3/oppfolging/hent-gjeldende-periode"))
-                .withRequestBody(WireMock.equalToJson("{\"fnr\":\""+TEST_FNR.get()+"\"}"))
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\"" + TEST_FNR.get() + "\"}"))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer SYSTEM_TOKEN"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -81,7 +82,7 @@ public class VeilarboppfolgingClientImplTest {
     public void hentGjeldendeOppfolgingsperiode__skal_håndtere_manglende_respons() {
 
         givenThat(post(urlEqualTo("/api/v3/oppfolging/hent-gjeldende-periode"))
-                .withRequestBody(WireMock.equalToJson("{\"fnr\":\""+TEST_FNR.get()+"\"}"))
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\"" + TEST_FNR.get() + "\"}"))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer SYSTEM_TOKEN"))
                 .willReturn(aResponse()
                         .withStatus(204))

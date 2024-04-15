@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.person
+package no.nav.veilarbvedtaksstotte.client.person.dto
 
 data class PersonNavn(
     val fornavn: String,

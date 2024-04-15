@@ -8,31 +8,39 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EksternBrukerId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.*;
-import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.EgenvurderingForPersonDTO;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.EndringIRegistreringsdataResponse;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.*;
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO;
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostResponsDTO;
+import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettJournalpostDTO;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostDTO;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostResponsDTO;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetOrganisering;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
-import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.domain.Målform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,7 +167,7 @@ public class ClientTestConfig {
         return new AiaBackendClient() {
             @Override
             public EgenvurderingResponseDTO hentEgenvurdering(EgenvurderingForPersonDTO egenvurderingForPersonDTO) {
-                Map<String,String> egenvurderingstekster = new HashMap<>();
+                Map<String, String> egenvurderingstekster = new HashMap<>();
                 egenvurderingstekster.put("STANDARD_INNSATS", "Svar jeg klarer meg");
                 return new EgenvurderingResponseDTO("STANDARD_INNSATS", new Instant().toString(), "123456", new EgenvurderingResponseDTO.Tekster("testspm", egenvurderingstekster));
             }
@@ -169,12 +177,14 @@ public class ClientTestConfig {
             public EndringIRegistreringsdataResponse hentEndringIRegistreringdata(@NotNull EndringIRegistreringdataRequest endringIRegistreringdataRequest) {
                 return null;
             }
+
             @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();
             }
         };
     }
+
     @Bean
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {

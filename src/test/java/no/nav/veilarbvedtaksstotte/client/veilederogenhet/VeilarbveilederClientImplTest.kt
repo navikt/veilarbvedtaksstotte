@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.veilederogenhet
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import org.junit.jupiter.api.Assertions.assertEquals

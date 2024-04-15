@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.veilederogenhet;
+package no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto;
 
 import lombok.Value;
 

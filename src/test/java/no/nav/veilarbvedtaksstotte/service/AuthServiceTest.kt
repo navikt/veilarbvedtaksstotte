@@ -25,7 +25,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.times
+import org.mockito.Mockito.`when`
 import org.mockito.kotlin.whenever
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
@@ -41,7 +42,17 @@ class AuthServiceTest {
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
     var unleashService = Mockito.mock(DefaultUnleash::class.java)
     var authService =
-        AuthService(aktorOppslagClient, pep, veilarbarenaService, abacClient, serviceUserCredentials, authContextHolder, utrullingService, poaoTilgangClient, unleashService)
+        AuthService(
+            aktorOppslagClient,
+            pep,
+            veilarbarenaService,
+            abacClient,
+            serviceUserCredentials,
+            authContextHolder,
+            utrullingService,
+            poaoTilgangClient,
+            unleashService
+        )
 
     @BeforeEach
     fun setup() {
@@ -71,12 +82,12 @@ class AuthServiceTest {
             )
         ).thenReturn(true)
         UserRole.values().filter { userRole: UserRole -> userRole != UserRole.INTERN }.forEach { userRole: UserRole ->
-                withContext(userRole) {
-                    assertThrowsWithMessage<ResponseStatusException>("""403 FORBIDDEN "Ikke intern bruker"""") {
-                        authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
-                    }
+            withContext(userRole) {
+                assertThrowsWithMessage<ResponseStatusException>("""403 FORBIDDEN "Ikke intern bruker"""") {
+                    authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
                 }
             }
+        }
     }
 
     @Test
@@ -88,7 +99,7 @@ class AuthServiceTest {
         ).thenReturn(false)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
-        ).thenReturn(ApiResult.success(Decision.Deny("","")))
+        ).thenReturn(ApiResult.success(Decision.Deny("", "")))
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
                 authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
@@ -105,7 +116,7 @@ class AuthServiceTest {
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
         withContext(UserRole.INTERN) {
-                authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
+            authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
         }
         org.mockito.kotlin.verify(poaoTilgangClient, times(1)).evaluatePolicy(org.mockito.kotlin.any())
     }
@@ -114,7 +125,7 @@ class AuthServiceTest {
     fun sjekkTilgangTilBruker__skal_kaste_exception_hvis_poao_tilgang_gir_decision_deny() {
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
-        ).thenReturn(ApiResult.success(Decision.Deny("","")))
+        ).thenReturn(ApiResult.success(Decision.Deny("", "")))
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
                 authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
@@ -138,7 +149,8 @@ class AuthServiceTest {
         withContext(UserRole.INTERN) {
             authService.sjekkTilgangTilBrukerOgEnhet(TestData.TEST_FNR)
         }
-        org.mockito.kotlin.verify(poaoTilgangClient, times(1)).evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilNavEnhetPolicyInput>())
+        org.mockito.kotlin.verify(poaoTilgangClient, times(1))
+            .evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilNavEnhetPolicyInput>())
     }
 
 
@@ -186,7 +198,7 @@ class AuthServiceTest {
         `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
-        ).thenReturn(ApiResult.success(Decision.Deny("","")))
+        ).thenReturn(ApiResult.success(Decision.Deny("", "")))
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
@@ -205,7 +217,7 @@ class AuthServiceTest {
         `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(false)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
-        ).thenReturn(ApiResult.success(Decision.Deny("","")))
+        ).thenReturn(ApiResult.success(Decision.Deny("", "")))
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
@@ -239,13 +251,13 @@ class AuthServiceTest {
     fun lagSjekkTilgangRequest__skal_lage_riktig_request() {
         val request = authService.lagSjekkTilgangRequest("srvtest", "Z1234", Arrays.asList("11111111111", "2222222222"))
         val requestJson = XacmlMapper.mapRequestToEntity(request)
-        val expectedRequestJson = readTestResourceFile("xacmlrequest-abac-tilgang.json")
+        val expectedRequestJson = readTestResourceFile("testdata/xacmlrequest-abac-tilgang.json")
         assertEquals(expectedRequestJson, requestJson)
     }
 
     @Test
     fun mapBrukerTilgangRespons__skal_mappe_riktig() {
-        val responseJson = readTestResourceFile("xacmlresponse-abac-tilgang.json")
+        val responseJson = readTestResourceFile("testdata/xacmlresponse-abac-tilgang.json")
         val response = XacmlMapper.mapRawResponse(responseJson)
         val tilgangTilBrukere = authService.mapBrukerTilgangRespons(response)
         assertTrue(tilgangTilBrukere.getOrDefault("11111111111", false))
@@ -298,7 +310,12 @@ class AuthServiceTest {
     }
 
     private fun withContext(userRole: UserRole, runnable: UnsafeRunnable) {
-        authContextHolder.withContext(createAuthContext(userRole, mapOf("sub" to TestData.TEST_VEILEDER_IDENT, "oid" to UUID.randomUUID().toString())), runnable)
+        authContextHolder.withContext(
+            createAuthContext(
+                userRole,
+                mapOf("sub" to TestData.TEST_VEILEDER_IDENT, "oid" to UUID.randomUUID().toString())
+            ), runnable
+        )
     }
 
     private fun systemMedRoller(vararg roller: String): AuthContext {

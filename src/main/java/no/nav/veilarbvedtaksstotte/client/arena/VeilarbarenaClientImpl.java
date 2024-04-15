@@ -6,6 +6,7 @@ import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -38,7 +39,7 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
     }
 
     @Cacheable(CacheConfig.ARENA_BRUKER_CACHE_NAME)
-    public Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr){
+    public Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbarenaUrl, "/api/v2/hent-oppfolgingsbruker"))
                 .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
@@ -46,7 +47,7 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if(response.code() == NOT_FOUND.value()){
+            if (response.code() == NOT_FOUND.value()) {
                 return Optional.empty();
             }
             RestUtils.throwIfNotSuccessful(response);
@@ -70,7 +71,7 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if(response.code() == NOT_FOUND.value()){
+            if (response.code() == NOT_FOUND.value()) {
                 return Optional.empty();
             }
             RestUtils.throwIfNotSuccessful(response);

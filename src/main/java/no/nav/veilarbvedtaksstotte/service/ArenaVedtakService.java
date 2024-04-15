@@ -3,8 +3,8 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +22,9 @@ public class ArenaVedtakService {
     final static String JOURNALPOST_ARENA_VEDTAK_TITTEL = "Brev: Oppfølgingsvedtak (§14a)";
     final static String MODIA_REG_USER = "MODIA";
 
-    private ArenaVedtakRepository arenaVedtakRepository;
-    private SafClient safClient;
-    private AuthService authService;
+    private final ArenaVedtakRepository arenaVedtakRepository;
+    private final SafClient safClient;
+    private final AuthService authService;
 
     @Autowired
     public ArenaVedtakService(ArenaVedtakRepository arenaVedtakRepository,
@@ -48,7 +48,7 @@ public class ArenaVedtakService {
     /**
      * @param arenaVedtak Kafka-melding om vedtak fra Arena
      * @return true dersom behandling av Kafka-melding fører til lagring/oppdatering i databasen
-     *
+     * <p>
      * Idempotent behandling av Kafka-melding om vedtak fra Arena. Lagrer kun siste vedtak per fnr.
      * For minst mulig logikk så:
      * - Tas det her ikke høyde for endring av fnr, dvs lagring per fnr og ikke per bruker

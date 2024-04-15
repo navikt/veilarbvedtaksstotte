@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.5</version>
+        <version>3.2.3</version>
         <relativePath/>
     </parent>
 
@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <common.version>3.2023.10.23_12.41-bafec3836d28</common.version>
+        <common.version>3.2024.02.21_11.18-8f9b43befae1</common.version>
         <kotlin.version>1.9.21</kotlin.version>
         <testcontainers.version>1.19.3</testcontainers.version>
         <unleash.version>9.2.0</unleash.version>
@@ -98,6 +98,13 @@
             <artifactId>jackson-module-kotlin</artifactId>
         </dependency>
 
+        <!-- support for "Java 8 Dates" -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.17.0</version>
+        </dependency>
+
         <dependency>
             <groupId>com.github.navikt</groupId>
             <artifactId>pto-schema</artifactId>
@@ -152,7 +159,7 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
-            <version>5.10.2</version>
+            <version>5.12.0</version>
         </dependency>
         <dependency>
             <groupId>no.nav</groupId>
@@ -226,11 +233,11 @@
             <artifactId>kafka</artifactId>
             <version>${common.version}</version>
         </dependency>
-		<dependency>
-			<groupId>com.github.navikt.common-java-modules</groupId>
-			<artifactId>json</artifactId>
-			<version>${common.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>com.github.navikt.common-java-modules</groupId>
+            <artifactId>json</artifactId>
+            <version>${common.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>io.getunleash</groupId>
@@ -306,6 +313,16 @@
             <artifactId>mockito-kotlin</artifactId>
             <version>5.2.1</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
         </dependency>
     </dependencies>
 

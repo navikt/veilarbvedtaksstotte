@@ -1,13 +1,15 @@
 package no.nav.veilarbvedtaksstotte.client.person
 
-import no.nav.veilarbvedtaksstotte.utils.JsonUtils.createNoDataStr
-import no.nav.common.rest.client.RestClient
-import no.nav.common.rest.client.RestUtils
 import no.nav.common.health.HealthCheckResult
 import no.nav.common.health.HealthCheckUtils
+import no.nav.common.rest.client.RestClient
+import no.nav.common.rest.client.RestUtils
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.UrlUtils
+import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
+import no.nav.veilarbvedtaksstotte.client.person.request.PersonRequest
 import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.utils.JsonUtils.createNoDataStr
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
@@ -27,7 +29,10 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-navn"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-            .post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
+            .post(
+                PersonRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
+                    .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
+            )
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
@@ -39,7 +44,10 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-cv_jobbprofil"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-            .post(PersonRequest(Fnr.of(fnr)).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
+            .post(
+                PersonRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
+                    .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
+            )
             .build()
 
         RestClient.baseClient().newCall(request).execute().use { response ->
@@ -58,7 +66,10 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-malform"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-            .post(PersonRequest(fnr).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
+            .post(
+                PersonRequest(fnr, BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
+                    .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
+            )
             .build()
 
         try {
@@ -69,7 +80,11 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
                     .tilMålform()
             }
         } catch (e: Exception) {
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Feil ved kall mot " + request.url.toString(), e)
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString(),
+                e
+            )
         }
     }
 

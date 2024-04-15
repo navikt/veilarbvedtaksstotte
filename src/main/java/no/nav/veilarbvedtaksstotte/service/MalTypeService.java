@@ -1,12 +1,12 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.dokument.MalType;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.client.dokument.MalType;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ public class MalTypeService {
     private VeilarbregistreringClient registreringClient;
 
     @Autowired
-    public MalTypeService(VeilarbregistreringClient registreringClient){
+    public MalTypeService(VeilarbregistreringClient registreringClient) {
         this.registreringClient = registreringClient;
     }
 

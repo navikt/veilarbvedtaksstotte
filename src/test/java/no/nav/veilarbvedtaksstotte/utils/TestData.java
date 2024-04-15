@@ -21,7 +21,7 @@ public class TestData {
     public final static String TEST_OPPFOLGINGSENHET_NAVN = "NAV Testheim";
     public final static String TEST_DIALOG_MELDING = "Dette er en melding";
 
-    public final static List<String> TEST_KILDER = Arrays.asList("Kilde1", "Kilde2");
+    public final static List<String> TEST_KILDER = Arrays.asList("Svarene dine fra da du registrerte deg", "CV-en/jobbønskene dine på nav.no", "Svarene dine om behov for veiledning");
 
     public final static String TEST_JOURNALPOST_ID = "6723718";
     public final static String TEST_DOKUMENT_ID = "89704912";

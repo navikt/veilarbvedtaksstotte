@@ -1,8 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.Journalpost;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;

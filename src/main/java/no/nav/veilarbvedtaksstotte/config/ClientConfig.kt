@@ -30,6 +30,8 @@ import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbarena
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarboppfolging
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbperson
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbveileder
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -38,12 +40,11 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
+import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
@@ -61,6 +62,7 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class ClientConfig {
+
     @Bean
     fun arenaClient(oboContexService: OboContexService): VeilarbarenaClient {
         val clientCluster = if (isProduction) "prod-fss" else "dev-fss"
@@ -185,12 +187,17 @@ class ClientConfig {
 
     @Bean
     fun aktorOppslagClient(tokenClient: AzureAdMachineToMachineTokenClient): AktorOppslagClient {
+
         val pdl = pdl.invoke(if (isProduction) "prod-fss" else "dev-fss")
         val pdlUrl =
             if (isProduction) UrlUtils.createProdInternalIngressUrl(pdl.serviceName) else UrlUtils.createDevInternalIngressUrl(
                 pdl.serviceName
             )
-        val pdlClient = PdlClientImpl(pdlUrl) { tokenClient.createMachineToMachineToken(tokenScope(pdl)) }
+        val pdlClient = PdlClientImpl(
+            pdlUrl,
+            { tokenClient.createMachineToMachineToken(tokenScope(pdl)) },
+            BehandlingsNummer.VEDTAKSTOTTE.value
+        )
         return CachedAktorOppslagClient(PdlAktorOppslagClient(pdlClient))
     }
 

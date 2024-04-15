@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.veilarboppfolging;
+package no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto;
 
 import lombok.Data;
 
