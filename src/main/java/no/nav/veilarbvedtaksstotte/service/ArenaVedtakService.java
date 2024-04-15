@@ -48,7 +48,6 @@ public class ArenaVedtakService {
     /**
      * @param arenaVedtak Kafka-melding om vedtak fra Arena
      * @return true dersom behandling av Kafka-melding fører til lagring/oppdatering i databasen
-     * <p>
      * Idempotent behandling av Kafka-melding om vedtak fra Arena. Lagrer kun siste vedtak per fnr.
      * For minst mulig logikk så:
      * - Tas det her ikke høyde for endring av fnr, dvs lagring per fnr og ikke per bruker
