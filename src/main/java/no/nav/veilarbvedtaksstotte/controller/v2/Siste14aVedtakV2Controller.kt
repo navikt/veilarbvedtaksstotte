@@ -29,8 +29,11 @@ class Siste14aVedtakV2Controller(
             if (!authService.harSystemTilSystemTilgangMedEkstraRolle("siste-14a-vedtak")) {
                 throw ResponseStatusException(HttpStatus.FORBIDDEN)
             }
-        } else {
-            authService.sjekkTilgangTilBruker(fnr)
+        } else if (authService.erEksternBruker()) {
+            authService.sjekkEksternbrukerTilgangTilBruker(fnr)
+        }
+        else {
+            authService.sjekkVeilederTilgangTilBruker(fnr)
         }
     }
 }
