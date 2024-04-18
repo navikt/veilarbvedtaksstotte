@@ -19,12 +19,10 @@ import no.nav.common.types.identer.Fnr
 import no.nav.common.types.identer.NavIdent
 import no.nav.common.utils.Credentials
 import no.nav.common.utils.Pair
-import no.nav.poao_tilgang.client.NavAnsattTilgangTilEksternBrukerPolicyInput
-import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
-import no.nav.poao_tilgang.client.PoaoTilgangClient
-import no.nav.poao_tilgang.client.TilgangType
+import no.nav.poao_tilgang.client.*
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.utils.SecureLog
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -48,12 +46,12 @@ class AuthService(
     private val unleashService: DefaultUnleash
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-    fun sjekkTilgangTilBruker(fnr: Fnr) {
-        sjekkTilgangTilBruker({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
+    fun sjekkVeilederTilgangTilBruker(fnr: Fnr) {
+        sjekkVeilederTilgangTilBruker({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
     }
 
-    fun sjekkTilgangTilBruker(aktorId: AktorId) {
-        sjekkTilgangTilBruker({ aktorOppslagClient.hentFnr(aktorId) }) { aktorId }
+    fun sjekkVeilederTilgangTilBruker(aktorId: AktorId) {
+        sjekkVeilederTilgangTilBruker({ aktorOppslagClient.hentFnr(aktorId) }) { aktorId }
     }
 
     fun sjekkTilgangTilBrukerOgEnhet(fnr: Fnr): AuthKontekst {
@@ -64,7 +62,19 @@ class AuthService(
         return sjekkTilgangTilBrukerOgEnhet({ aktorOppslagClient.hentFnr(aktorId) }) { aktorId }
     }
 
-    private fun sjekkTilgangTilBruker(
+    fun sjekkEksternbrukerTilgangTilBruker(fnr: Fnr) {
+        harSikkerhetsNivaa4()
+        val desicion = poaoTilgangClient.evaluatePolicy(
+            EksternBrukerTilgangTilEksternBrukerPolicyInput(
+                hentInnloggetPersonIdent(), fnr.get()
+            )
+        ).getOrThrow()
+        if (desicion.isDeny) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
+    }
+
+    private fun sjekkVeilederTilgangTilBruker(
         fnrSupplier: Supplier<Fnr>,
         aktorIdSupplier: Supplier<AktorId>
     ): Pair<Fnr, AktorId> {
@@ -92,7 +102,7 @@ class AuthService(
         fnrSupplier: Supplier<Fnr>,
         aktorIdSupplier: Supplier<AktorId>
     ): AuthKontekst {
-        val fnrAktorIdPair = sjekkTilgangTilBruker(fnrSupplier, aktorIdSupplier)
+        val fnrAktorIdPair = sjekkVeilederTilgangTilBruker(fnrSupplier, aktorIdSupplier)
         val fnr = fnrAktorIdPair.first
         val aktorId = fnrAktorIdPair.second
         val enhet = sjekkTilgangTilEnhet(fnr.get())
@@ -211,6 +221,10 @@ class AuthService(
         return authContextHolder.erSystemBruker()
     }
 
+    fun erEksternBruker(): Boolean {
+        return authContextHolder.erEksternBruker()
+    }
+
     fun harSystemTilSystemTilgang(): Boolean {
         return authContextHolder.erSystemBruker() && harAADRollerForSystemTilSystemTilgang(null)
     }
@@ -242,6 +256,23 @@ class AuthService(
             }
             .orElse(emptyList())
         return roles.contains("access_as_application") && (ekstraRolle == null || roles.contains(ekstraRolle))
+    }
+
+    private fun hentInnloggetPersonIdent(): String {
+        log.info("Henter personIdent fra claim")
+        return authContextHolder
+            .idTokenClaims.flatMap { authContextHolder.getStringClaim(it, "pid") }
+            .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Kunne ikke hente pid fra token") }
+    }
+
+    private fun harSikkerhetsNivaa4() {
+        log.info("Sjekker sikkerhetsnivå fra claim")
+        val acrClaim = authContextHolder
+            .idTokenClaims.flatMap { authContextHolder.getStringClaim(it, "acr") }
+
+        if (acrClaim.isEmpty || acrClaim.get() != "Level4") {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Kunne ikke hente acr fra token")
+        }
     }
 
     companion object {

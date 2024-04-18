@@ -71,7 +71,7 @@ class AuthServiceTest {
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
-        withContext(UserRole.INTERN) { authService.sjekkTilgangTilBruker(TestData.TEST_FNR) }
+        withContext(UserRole.INTERN) { authService.sjekkVeilederTilgangTilBruker(TestData.TEST_FNR) }
     }
 
     @Test
@@ -82,9 +82,10 @@ class AuthServiceTest {
             )
         ).thenReturn(true)
         UserRole.values().filter { userRole: UserRole -> userRole != UserRole.INTERN }.forEach { userRole: UserRole ->
-            withContext(userRole) {
-                assertThrowsWithMessage<ResponseStatusException>("""403 FORBIDDEN "Ikke intern bruker"""") {
-                    authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
+                withContext(userRole) {
+                    assertThrowsWithMessage<ResponseStatusException>("""403 FORBIDDEN "Ikke intern bruker"""") {
+                        authService.sjekkVeilederTilgangTilBruker(TestData.TEST_FNR)
+                    }
                 }
             }
         }
@@ -102,7 +103,7 @@ class AuthServiceTest {
         ).thenReturn(ApiResult.success(Decision.Deny("", "")))
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
-                authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
+                authService.sjekkVeilederTilgangTilBruker(TestData.TEST_FNR)
             }
         }
     }
@@ -116,7 +117,7 @@ class AuthServiceTest {
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
         withContext(UserRole.INTERN) {
-            authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
+                authService.sjekkVeilederTilgangTilBruker(TestData.TEST_FNR)
         }
         org.mockito.kotlin.verify(poaoTilgangClient, times(1)).evaluatePolicy(org.mockito.kotlin.any())
     }
@@ -128,7 +129,7 @@ class AuthServiceTest {
         ).thenReturn(ApiResult.success(Decision.Deny("", "")))
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
-                authService.sjekkTilgangTilBruker(TestData.TEST_FNR)
+                authService.sjekkVeilederTilgangTilBruker(TestData.TEST_FNR)
             }
         }
         org.mockito.kotlin.verify(poaoTilgangClient, times(1)).evaluatePolicy(org.mockito.kotlin.any())
