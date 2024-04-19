@@ -24,35 +24,23 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito
-import org.mockito.Mockito.times
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.*
 import org.mockito.kotlin.whenever
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
 
 class AuthServiceTest {
     var authContextHolder = AuthContextHolderThreadLocal.instance()
-    var aktorOppslagClient = Mockito.mock(AktorOppslagClient::class.java)
-    var pep = Mockito.mock(Pep::class.java)
-    var veilarbarenaService = Mockito.mock(VeilarbarenaService::class.java)
-    var utrullingService = Mockito.mock(UtrullingService::class.java)
-    var abacClient = Mockito.mock(AbacClient::class.java)
-    var serviceUserCredentials = Mockito.mock(Credentials::class.java)
+    var aktorOppslagClient = mock(AktorOppslagClient::class.java)
+    var pep = mock(Pep::class.java)
+    var veilarbarenaService = mock(VeilarbarenaService::class.java)
+    var utrullingService = mock(UtrullingService::class.java)
+    var abacClient = mock(AbacClient::class.java)
+    var serviceUserCredentials = mock(Credentials::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
-    var unleashService = Mockito.mock(DefaultUnleash::class.java)
+    var unleashService = mock(DefaultUnleash::class.java)
     var authService =
-        AuthService(
-            aktorOppslagClient,
-            pep,
-            veilarbarenaService,
-            abacClient,
-            serviceUserCredentials,
-            authContextHolder,
-            utrullingService,
-            poaoTilgangClient,
-            unleashService
-        )
+        AuthService(aktorOppslagClient, pep, veilarbarenaService, abacClient, serviceUserCredentials, authContextHolder, utrullingService, poaoTilgangClient, unleashService)
 
     @BeforeEach
     fun setup() {
@@ -89,7 +77,6 @@ class AuthServiceTest {
                 }
             }
         }
-    }
 
     @Test
     fun sjekkTilgangTilBruker__kaster_exception_ved_manglende_tilgang_til_bruker() {
@@ -311,12 +298,7 @@ class AuthServiceTest {
     }
 
     private fun withContext(userRole: UserRole, runnable: UnsafeRunnable) {
-        authContextHolder.withContext(
-            createAuthContext(
-                userRole,
-                mapOf("sub" to TestData.TEST_VEILEDER_IDENT, "oid" to UUID.randomUUID().toString())
-            ), runnable
-        )
+        authContextHolder.withContext(createAuthContext(userRole, mapOf("sub" to TestData.TEST_VEILEDER_IDENT, "oid" to UUID.randomUUID().toString())), runnable)
     }
 
     private fun systemMedRoller(vararg roller: String): AuthContext {
