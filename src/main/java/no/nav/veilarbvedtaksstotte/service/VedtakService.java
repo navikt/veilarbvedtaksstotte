@@ -7,7 +7,7 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;

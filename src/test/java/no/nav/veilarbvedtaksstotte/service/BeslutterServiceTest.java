@@ -2,13 +2,13 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
+import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
-import no.nav.veilarbvedtaksstotte.client.person.PersonNavn;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -54,6 +54,7 @@ public class BeslutterServiceTest {
 
 
     private AuthKontekst authKontekst = new AuthKontekst("", TEST_AKTOR_ID, "");
+
     @BeforeEach
     public void setup() {
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();

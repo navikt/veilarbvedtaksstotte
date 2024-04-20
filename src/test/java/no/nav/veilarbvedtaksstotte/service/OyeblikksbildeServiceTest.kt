@@ -1,9 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.EgenvurderingResponseDTO
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.EgenvurderingResponseDTO.Tekster
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.EndringIRegistreringsdataResponse
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
@@ -24,7 +23,7 @@ internal class OyeblikksbildeServiceTest {
             egenvurderingDato,
             "dialog-123",
             "SITUASJONSBESTEMT_INNSATS",
-            Tekster("Ønsker du veiledning?", egenvurderingstekster)
+            EgenvurderingResponseDTO.Tekster("Ønsker du veiledning?", egenvurderingstekster)
         )
         val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingDataJson(egenvurdering)
         val forventetEgenvurderingJson =
@@ -47,7 +46,7 @@ internal class OyeblikksbildeServiceTest {
             null,
             null,
             "SITUASJONSBESTEMT_INNSATS",
-            Tekster("Ønsker du veiledning?", egenvurderingstekster)
+            EgenvurderingResponseDTO.Tekster("Ønsker du veiledning?", egenvurderingstekster)
         )
         val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingDataJson(egenvurdering)
         val forventetEgenvurderingJson =

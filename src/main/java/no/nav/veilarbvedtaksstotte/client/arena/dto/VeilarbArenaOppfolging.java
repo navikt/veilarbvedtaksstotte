@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.arena;
+package no.nav.veilarbvedtaksstotte.client.arena.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Value;

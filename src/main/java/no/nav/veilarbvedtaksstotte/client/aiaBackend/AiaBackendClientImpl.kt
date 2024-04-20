@@ -1,10 +1,11 @@
 package no.nav.veilarbvedtaksstotte.client.aiaBackend
 
 import no.nav.common.health.HealthCheckResult
-import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.utils.UrlUtils.joinPaths
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
@@ -15,7 +16,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import java.util.function.Supplier
 
-class AiaBackendClientImpl(private val aiaBackendUrl: String, private val userTokenSupplier: Supplier<String>) : AiaBackendClient {
+class AiaBackendClientImpl(private val aiaBackendUrl: String, private val userTokenSupplier: Supplier<String>) :
+    AiaBackendClient {
 
     private val log: Logger = LoggerFactory.getLogger(AiaBackendClientImpl::class.java)
 

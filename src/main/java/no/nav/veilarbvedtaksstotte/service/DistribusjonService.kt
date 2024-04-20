@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DistribuerJournalpostDTO
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
@@ -9,8 +9,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
-class DistribusjonService(val vedtaksstotteRepository: VedtaksstotteRepository,
-                          val dokdistribusjonClient: DokdistribusjonClient) {
+class DistribusjonService(
+    val vedtaksstotteRepository: VedtaksstotteRepository,
+    val dokdistribusjonClient: DokdistribusjonClient
+) {
 
     val log = LoggerFactory.getLogger(DistribusjonService::class.java)
 

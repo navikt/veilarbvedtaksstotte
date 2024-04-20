@@ -2,7 +2,12 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.*;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.EgenvurderingData;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.EgenvurderingForPersonDTO;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.EndringIRegistreringsdataResponse;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
@@ -14,7 +19,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,7 +84,7 @@ public class OyeblikksbildeService {
     }
 
     public String mapToEgenvurderingDataJson(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test
-        if(egenvurderingResponseDTO == null) {
+        if (egenvurderingResponseDTO == null) {
             return JsonUtils.createNoDataStr("Bruker har ikke fylt ut egenvurdering");
         }
         List<EgenvurderingData.Svar> svar = new ArrayList<>();
@@ -97,7 +101,7 @@ public class OyeblikksbildeService {
     }
 
     public String oppdaterRegistreringsdataHvisNyeEndringer(String registreringsData, EndringIRegistreringsdataResponse endringIRegistreringsdata) { //public for test
-	    if(registreringsData == null || endringIRegistreringsdata == null || endringIRegistreringsdata.getErBesvarelsenEndret() == null || !endringIRegistreringsdata.getErBesvarelsenEndret()) {
+        if (registreringsData == null || endringIRegistreringsdata == null || endringIRegistreringsdata.getErBesvarelsenEndret() == null || !endringIRegistreringsdata.getErBesvarelsenEndret()) {
             return registreringsData;
         }
 
