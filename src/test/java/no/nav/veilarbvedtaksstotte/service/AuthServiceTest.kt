@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito
 import org.mockito.Mockito.*
 import org.mockito.kotlin.whenever
 import org.springframework.web.server.ResponseStatusException
@@ -32,14 +31,14 @@ import java.util.*
 
 class AuthServiceTest {
     var authContextHolder = AuthContextHolderThreadLocal.instance()
-    var aktorOppslagClient = Mockito.mock(AktorOppslagClient::class.java)
-    var pep = Mockito.mock(Pep::class.java)
-    var veilarbarenaService = Mockito.mock(VeilarbarenaService::class.java)
-    var utrullingService = Mockito.mock(UtrullingService::class.java)
-    var abacClient = Mockito.mock(AbacClient::class.java)
-    var serviceUserCredentials = Mockito.mock(Credentials::class.java)
+    var aktorOppslagClient = mock(AktorOppslagClient::class.java)
+    var pep = mock(Pep::class.java)
+    var veilarbarenaService = mock(VeilarbarenaService::class.java)
+    var utrullingService = mock(UtrullingService::class.java)
+    var abacClient = mock(AbacClient::class.java)
+    var serviceUserCredentials = mock(Credentials::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
-    var unleashService = Mockito.mock(DefaultUnleash::class.java)
+    var unleashService = mock(DefaultUnleash::class.java)
     var authService =
         AuthService(aktorOppslagClient, pep, veilarbarenaService, abacClient, serviceUserCredentials, authContextHolder, utrullingService, poaoTilgangClient, unleashService)
 
@@ -77,7 +76,7 @@ class AuthServiceTest {
                     }
                 }
             }
-    }
+        }
 
     @Test
     fun sjekkTilgangTilBruker__kaster_exception_ved_manglende_tilgang_til_bruker() {
@@ -88,7 +87,7 @@ class AuthServiceTest {
         ).thenReturn(false)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
-        ).thenReturn(ApiResult.success(Decision.Deny("","")))
+        ).thenReturn(ApiResult.success(Decision.Deny("", "")))
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
                 authService.sjekkVeilederTilgangTilBruker(TestData.TEST_FNR)
@@ -114,7 +113,7 @@ class AuthServiceTest {
     fun sjekkTilgangTilBruker__skal_kaste_exception_hvis_poao_tilgang_gir_decision_deny() {
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
-        ).thenReturn(ApiResult.success(Decision.Deny("","")))
+        ).thenReturn(ApiResult.success(Decision.Deny("", "")))
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
                 authService.sjekkVeilederTilgangTilBruker(TestData.TEST_FNR)
@@ -138,7 +137,8 @@ class AuthServiceTest {
         withContext(UserRole.INTERN) {
             authService.sjekkTilgangTilBrukerOgEnhet(TestData.TEST_FNR)
         }
-        org.mockito.kotlin.verify(poaoTilgangClient, times(1)).evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilNavEnhetPolicyInput>())
+        org.mockito.kotlin.verify(poaoTilgangClient, times(1))
+            .evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilNavEnhetPolicyInput>())
     }
 
 
@@ -186,7 +186,7 @@ class AuthServiceTest {
         `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
-        ).thenReturn(ApiResult.success(Decision.Deny("","")))
+        ).thenReturn(ApiResult.success(Decision.Deny("", "")))
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
@@ -205,7 +205,7 @@ class AuthServiceTest {
         `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(false)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
-        ).thenReturn(ApiResult.success(Decision.Deny("","")))
+        ).thenReturn(ApiResult.success(Decision.Deny("", "")))
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
@@ -239,13 +239,13 @@ class AuthServiceTest {
     fun lagSjekkTilgangRequest__skal_lage_riktig_request() {
         val request = authService.lagSjekkTilgangRequest("srvtest", "Z1234", Arrays.asList("11111111111", "2222222222"))
         val requestJson = XacmlMapper.mapRequestToEntity(request)
-        val expectedRequestJson = readTestResourceFile("xacmlrequest-abac-tilgang.json")
+        val expectedRequestJson = readTestResourceFile("testdata/xacmlrequest-abac-tilgang.json")
         assertEquals(expectedRequestJson, requestJson)
     }
 
     @Test
     fun mapBrukerTilgangRespons__skal_mappe_riktig() {
-        val responseJson = readTestResourceFile("xacmlresponse-abac-tilgang.json")
+        val responseJson = readTestResourceFile("testdata/xacmlresponse-abac-tilgang.json")
         val response = XacmlMapper.mapRawResponse(responseJson)
         val tilgangTilBrukere = authService.mapBrukerTilgangRespons(response)
         assertTrue(tilgangTilBrukere.getOrDefault("11111111111", false))

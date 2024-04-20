@@ -1,12 +1,13 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
+import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.repository.UtrullingRepository;
 import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +16,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Optional.ofNullable;
-
 @Service
+@Slf4j
 public class UtrullingService {
 
     private final UtrullingRepository utrullingRepository;
@@ -67,6 +67,7 @@ public class UtrullingService {
                     .orElse(false);
 
         } catch (Exception e) {
+            log.error("Feil med henting tilhorerBrukerUtrulletKontor: " + e, e);
             return false;
         }
     }

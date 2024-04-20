@@ -45,7 +45,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
 
     @Test
     fun `konsumerer melding med riktig format`() {
-        val readTestResourceFile = TestUtils.readTestResourceFile("arena-vedtak-kafka-record.json")
+        val readTestResourceFile = TestUtils.readTestResourceFile("testdata/arena-vedtak-kafka-record.json")
 
         val forventetArenaVedtak = ArenaVedtak(
             fnr = Fnr("11111111111"),

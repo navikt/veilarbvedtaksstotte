@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.utils;
 
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 
 import java.util.List;
 import java.util.Optional;

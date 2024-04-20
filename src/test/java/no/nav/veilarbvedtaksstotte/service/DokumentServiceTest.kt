@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
@@ -23,6 +22,7 @@ import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.*
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
+import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
@@ -31,7 +31,7 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.Veileder
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder
 import no.nav.veilarbvedtaksstotte.domain.Målform
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponseForPost
@@ -40,8 +40,6 @@ import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import org.springframework.http.HttpStatus
 import java.time.LocalDate
 import java.util.*
@@ -191,7 +189,9 @@ class DokumentServiceTest {
         )
 
         givenWiremockOkJsonResponseForPost(
-            "/api/v3/person/hent-malform", equalToJson("{\"fnr\":\"123\"}"), VeilarbpersonClientImpl.MalformRespons(målform.name).toJson()
+            "/api/v3/person/hent-malform",
+            equalToJson("{\"fnr\":\"123\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"),
+            VeilarbpersonClientImpl.MalformRespons(målform.name).toJson()
         )
 
         givenWiremockOkJsonResponse(

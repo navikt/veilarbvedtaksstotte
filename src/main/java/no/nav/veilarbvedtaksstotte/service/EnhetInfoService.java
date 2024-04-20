@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -43,8 +42,8 @@ public class EnhetInfoService {
 
             List<EnhetOrganisering> enhetOrganisering = norg2Client.hentEnhetOrganisering(enhetId);
             List<EnhetOrganisering> eiere = enhetOrganisering.stream()
-                    .filter(x -> x.getOrgType().equals("EIER")).collect(Collectors.toList());
-            List<EnhetOrganisering> gyldigeEiere = eiere.stream().filter(this::erGjeldende).collect(Collectors.toList());
+                    .filter(x -> x.getOrgType().equals("EIER")).toList();
+            List<EnhetOrganisering> gyldigeEiere = eiere.stream().filter(this::erGjeldende).toList();
             if (gyldigeEiere.size() == 1) {
                 EnhetOrganisering eier = gyldigeEiere.get(0);
                 EnhetKontaktinformasjon eierEnhetKontaktinformasjon =

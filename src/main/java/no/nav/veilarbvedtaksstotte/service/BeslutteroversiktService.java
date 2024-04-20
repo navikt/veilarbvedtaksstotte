@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.PortefoljeEnhet;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilederEnheterDTO;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;

@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.client.dokarkiv;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,7 @@ public class SafClientImplTest {
 
     @Test
     public void hentJournalposter__skalReturnereJournalposter(WireMockRuntimeInfo wireMockRuntimeInfo) {
-        String journalposterJson = TestUtils.readTestResourceFile("saf-client-journalposter.json");
+        String journalposterJson = TestUtils.readTestResourceFile("testdata/saf-client-journalposter.json");
 
         String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
         SafClient safClient = new SafClientImpl(apiUrl, () -> "");

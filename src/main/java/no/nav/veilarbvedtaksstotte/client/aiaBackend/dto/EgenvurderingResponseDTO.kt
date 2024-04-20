@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.aiaBackend
+package no.nav.veilarbvedtaksstotte.client.aiaBackend.dto
 
 data class EgenvurderingResponseDTO(
     val dato: String? = null,

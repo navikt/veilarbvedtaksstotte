@@ -7,12 +7,12 @@ import no.nav.common.metrics.Event;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.arena.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
@@ -98,6 +98,7 @@ public class MetricsService {
 
     /**
      * Henter tid fra registrering startet fram til nå hvis brukeren kun har ett vedtak (det som nettopp ble sendt)
+     *
      * @param aktorId brukers aktør id
      * @return tid i millisekunder, -1 hvis det mangler data eller brukeren har mer enn ett vedtak i nåværende oppfølgingsperiode
      */
@@ -146,7 +147,8 @@ public class MetricsService {
                         .ifPresent(startDato ->
                                 rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak, startDato)
                         );
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 

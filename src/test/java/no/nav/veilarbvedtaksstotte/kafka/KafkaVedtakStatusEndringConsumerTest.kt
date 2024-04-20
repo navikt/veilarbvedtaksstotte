@@ -3,7 +3,6 @@ package no.nav.veilarbvedtaksstotte.kafka
 import com.ninjasquad.springmockk.SpykBean
 import io.mockk.verify
 import no.nav.common.types.identer.AktorId
-import no.nav.veilarbvedtaksstotte.config.KafkaAvroContext
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
@@ -24,10 +23,7 @@ class KafkaVedtakStatusEndringConsumerTest : AbstractVedtakIntegrationTest() {
 
     @Autowired
     lateinit var testProducer: KafkaTestProducer
-
-    @Autowired
-    lateinit var kafkaAvroContext: KafkaAvroContext
-
+    
     @SpykBean
     lateinit var kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer
 
