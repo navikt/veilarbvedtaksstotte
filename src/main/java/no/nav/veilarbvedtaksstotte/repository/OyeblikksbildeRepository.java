@@ -77,7 +77,7 @@ public class OyeblikksbildeRepository {
     public void upsertRegistreringOyeblikksbilde(long vedtakId, RegistreringResponseDto registreringsdataDto) {
         String jsonRegistreringDto = JsonUtils.getObjectMapper().writeValueAsString(registreringsdataDto);
 
-        if (jsonRegistreringDto.isEmpty()) {
+        if (registreringsdataDto == null || jsonRegistreringDto.isEmpty()) {
             jsonRegistreringDto = """
                     {"ingenData": "Personen har ikke registrert noen svar."}
                     """;
@@ -102,7 +102,7 @@ public class OyeblikksbildeRepository {
     @SneakyThrows
     public void upsertEgenvurderingOyeblikksbilde(long vedtakId, OyeblikksbildeEgenvurderingDto egenvurderingDto) {
         String jsonEgenvurderingDto = JsonUtils.getObjectMapper().writeValueAsString(egenvurderingDto);
-        if (jsonEgenvurderingDto.isEmpty()) {
+        if (egenvurderingDto == null || jsonEgenvurderingDto.isEmpty()) {
             jsonEgenvurderingDto = """
                     {"ingenData": "Personen har ikke registrert svar om behov for veiledning."}
                     """;

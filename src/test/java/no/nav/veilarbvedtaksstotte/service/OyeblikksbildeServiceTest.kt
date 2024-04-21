@@ -3,11 +3,10 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.Besvarelse
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO.Tekster
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.fromJson

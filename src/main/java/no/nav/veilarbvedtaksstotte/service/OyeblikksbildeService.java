@@ -143,9 +143,9 @@ public class OyeblikksbildeService {
             }
 
             return registreringsData;
-        } catch (Exception err) {
-            log.error("Kunne ikke parse string til JSONObject");
-            throw err;
+        } catch (Exception e) {
+            log.error("Kunne ikke oppdatere registrerings data " + e, e);
+            throw e;
         }
     }
 

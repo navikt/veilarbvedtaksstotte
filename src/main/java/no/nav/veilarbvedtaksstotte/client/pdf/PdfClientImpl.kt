@@ -45,7 +45,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
         cvOyeblikksbildeData: CvInnhold,
     ): ByteArray {
         val request = Request.Builder()
-            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.CV_OG_JOBBPROFIL))
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.CV_OG_JOBBPROFIL.templateName))
             .post(RestUtils.toJsonRequestBody(cvOyeblikksbildeData))
             .build()
 
@@ -67,7 +67,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
 
     override fun genererOyeblikksbildeRegistreringPdf(registreringOyeblikksbildeData: RegistreringsdataDto): ByteArray {
         val request = Request.Builder()
-            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.REGISTRERINGSINFO))
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.REGISTRERINGSINFO.templateName))
             .post(RestUtils.toJsonRequestBody(registreringOyeblikksbildeData))
             .build()
 
@@ -89,7 +89,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
 
     override fun genererOyeblikksbildeEgenVurderingPdf(egenvurderingOyeblikksbildeData: OyeblikksbildeEgenvurderingDto): ByteArray {
         val request = Request.Builder()
-            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.EGENVURDERING))
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.EGENVURDERING.templateName))
             .post(RestUtils.toJsonRequestBody(egenvurderingOyeblikksbildeData))
             .build()
 
