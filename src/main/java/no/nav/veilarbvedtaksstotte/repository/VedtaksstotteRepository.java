@@ -187,8 +187,9 @@ public class VedtaksstotteRepository {
 
     public List<Long> hentVedtakForJournalforing(int antall) {
         var sql = """
-                SELECT ID FROM VEDTAK
+                SELECT ID FROM VEDTAK              
                 WHERE VEDTAK_FATTET IS NOT NULL
+                AND DOKUMENT_BESTILLING_ID IS NULL
                 AND JOURNALPOST_ID IS NULL
                 ORDER BY VEDTAK_FATTET ASC LIMIT ?
                 """;
