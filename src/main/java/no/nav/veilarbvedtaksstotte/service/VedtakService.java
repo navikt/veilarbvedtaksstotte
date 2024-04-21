@@ -117,7 +117,7 @@ public class VedtakService {
 
             vedtakIds.forEach(vedtakId -> {
                 log.info(String.format("SCHEDULED JOB: Journalfører vedtak med id: %s", vedtakId));
-                Vedtak vedtak = hentVedtak(vedtakId);
+                Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
                 journalforeVedtak(vedtak);
             });
         }
@@ -286,12 +286,6 @@ public class VedtakService {
 
         vedtak.forEach(this::flettInnVedtakInformasjon);
 
-        return vedtak;
-    }
-
-    public Vedtak hentVedtak(Long vedtakId){
-        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        flettInnVedtakInformasjon(vedtak);
         return vedtak;
     }
 
