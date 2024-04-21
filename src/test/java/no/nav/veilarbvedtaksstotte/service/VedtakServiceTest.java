@@ -23,11 +23,6 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDT
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.EgenvurderingForPersonDTO;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.EndringIRegistreringsdataResponse;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;

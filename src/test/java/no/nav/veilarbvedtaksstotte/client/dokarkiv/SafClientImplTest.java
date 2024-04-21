@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.dokarkiv;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
+import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
 import org.junit.jupiter.api.Test;

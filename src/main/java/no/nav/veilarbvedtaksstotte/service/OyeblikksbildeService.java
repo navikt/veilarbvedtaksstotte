@@ -2,7 +2,12 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.*;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.BesvarelseSvar;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;

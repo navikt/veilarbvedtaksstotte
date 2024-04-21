@@ -23,6 +23,7 @@ import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.*
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
+import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient

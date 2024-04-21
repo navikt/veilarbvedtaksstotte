@@ -6,7 +6,6 @@ import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
-import no.nav.common.utils.AuthUtils;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.client.registrering.request.RegistreringRequest;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
@@ -30,12 +29,12 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
 
     private final OkHttpClient client;
 
-    private final Supplier<String> systemUserTokenProvider;
+    private final Supplier<String> userTokenSupplier;
 
-    public VeilarbregistreringClientImpl(String veilarbpersonUrl, Supplier<String> systemUserTokenProvider) {
+    public VeilarbregistreringClientImpl(String veilarbpersonUrl, Supplier<String> userTokenSupplier) {
         this.veilarbpersonUrl = veilarbpersonUrl;
         this.client = RestClient.baseClient();
-        this.systemUserTokenProvider = systemUserTokenProvider;
+        this.userTokenSupplier = userTokenSupplier;
     }
 
     @Cacheable(CacheConfig.REGISTRERING_CACHE_NAME)
@@ -43,7 +42,7 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
     public RegistreringResponseDto hentRegistreringData(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbpersonUrl, "/api/v3/person/hent-registrering"))
-                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(systemUserTokenProvider.get()))
+                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
                 .post(toJsonRequestBody(new RegistreringRequest(Fnr.of(fnr))))
                 .build();
 

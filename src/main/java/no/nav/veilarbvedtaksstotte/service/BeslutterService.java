@@ -28,7 +28,7 @@ import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.erBeslutterProsessSt
 @RequiredArgsConstructor
 public class BeslutterService {
 
-    private final AuthService authService;
+	private final AuthService authService;
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 

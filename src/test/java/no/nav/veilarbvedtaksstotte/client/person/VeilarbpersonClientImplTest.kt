@@ -8,7 +8,6 @@ import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
 import no.nav.veilarbvedtaksstotte.domain.Målform
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
@@ -134,7 +133,6 @@ class VeilarbpersonClientImplTest {
 
     @Test
     fun skal_returnere_no_data_json_for_204_og_404() {
-        val expectedJsonResponse = createNoDataStr("Bruker har ikke fylt ut CV/jobbprofil")
         WireMock.givenThat(
             WireMock.post("/api/v3/person/hent-cv_jobbprofil")
                 .withRequestBody(WireMock.equalToJson("{\"fnr\":\"1234\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"))
