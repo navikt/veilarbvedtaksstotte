@@ -64,15 +64,12 @@ import org.springframework.context.annotation.Configuration
 class ClientConfig {
 
     @Bean
-    fun arenaClient(oboContexService: OboContexService): VeilarbarenaClient {
-        val clientCluster = if (isProduction) "prod-fss" else "dev-fss"
-        val userTokenSupplier = oboContexService.userTokenSupplier(
-            veilarbarena.invoke(clientCluster)
-        )
+    fun arenaClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbarenaClient {
+        val veilarbarena = veilarbarena.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val url = UrlUtils.createServiceUrl(veilarbarena.serviceName, veilarbarena.namespace, false)
         return VeilarbarenaClientImpl(
-            naisPreprodOrNaisAdeoIngress("veilarbarena", true),
-            userTokenSupplier
-        )
+            url
+        ){ tokenClient.createMachineToMachineToken(tokenScope(veilarbarena)) }
     }
 
     @Bean
@@ -111,15 +108,13 @@ class ClientConfig {
     }
 
     @Bean
-    fun registreringClient(oboContexService: OboContexService): VeilarbregistreringClient {
-        val clientCluster = if (isProduction) "prod-fss" else "dev-fss"
-        val userTokenSupplier = oboContexService.userTokenSupplier(
-            veilarbperson.invoke(clientCluster)
-        )
+    fun registreringClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbregistreringClient {
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val url = UrlUtils.createServiceUrl(veilarbperson.serviceName, veilarbperson.namespace, false)
+
         return VeilarbregistreringClientImpl(
-            naisPreprodOrNaisAdeoIngress("veilarbperson", true),
-            userTokenSupplier
-        )
+            url
+        ){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
     @Bean

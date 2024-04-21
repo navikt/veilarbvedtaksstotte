@@ -20,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import java.util.function.Supplier;
 
 import static no.nav.common.rest.client.RestUtils.toJsonRequestBody;
+import static no.nav.common.utils.AuthUtils.bearerToken;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static no.nav.veilarbvedtaksstotte.utils.JsonUtils.fromJson;
 
@@ -30,12 +31,12 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
 
     private final OkHttpClient client;
 
-    private final Supplier<String> userTokenSupplier;
+    private final Supplier<String> machineToMachineTokenSuplier;
 
-    public VeilarbregistreringClientImpl(String veilarbpersonUrl, Supplier<String> userTokenSupplier) {
+    public VeilarbregistreringClientImpl(String veilarbpersonUrl, Supplier<String> machineToMachineTokenSuplier) {
         this.veilarbpersonUrl = veilarbpersonUrl;
         this.client = RestClient.baseClient();
-        this.userTokenSupplier = userTokenSupplier;
+        this.machineToMachineTokenSuplier = machineToMachineTokenSuplier;
     }
 
     @Cacheable(CacheConfig.REGISTRERING_CACHE_NAME)
@@ -43,7 +44,7 @@ public class VeilarbregistreringClientImpl implements VeilarbregistreringClient 
     public RegistreringResponseDto hentRegistreringData(String fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbpersonUrl, "/api/v3/person/hent-registrering"))
-                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSuplier.get()))
                 .post(toJsonRequestBody(new RegistreringRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.getValue())))
                 .build();
 
