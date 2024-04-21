@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.registrering;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
@@ -33,7 +34,7 @@ public class VeilarbregistreringClientTest {
 
         WireMock.givenThat(
                 WireMock.post(WireMock.urlEqualTo("/api/v3/person/hent-registrering"))
-                        .withRequestBody(WireMock.equalToJson("{\"fnr\":\"" + TEST_FNR.get() + "\"}"))
+                        .withRequestBody(WireMock.equalToJson("{\"fnr\":\""+TEST_FNR+"\", \"behandlingsummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.getValue() + "\"}"))
                         .willReturn(
                                 WireMock.aResponse()
                                         .withStatus(200)
