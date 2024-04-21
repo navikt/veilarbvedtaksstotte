@@ -101,7 +101,10 @@ class ClientConfig {
     @Bean
     fun personClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbpersonClient {
         val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val url = UrlUtils.createServiceUrl(veilarbperson.serviceName, veilarbperson.namespace, false)
+        val url =
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
+                veilarbperson.serviceName
+            )
         return VeilarbpersonClientImpl(url){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
