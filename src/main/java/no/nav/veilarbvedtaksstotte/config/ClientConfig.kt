@@ -99,12 +99,10 @@ class ClientConfig {
     }
 
     @Bean
-    fun personClient(oboContexService: OboContexService): VeilarbpersonClient {
-        val clientCluster = if (isProduction) "prod-fss" else "dev-fss"
-        val userTokenSupplier = oboContexService.userTokenSupplier(
-            veilarbperson.invoke(clientCluster)
-        )
-        return VeilarbpersonClientImpl(naisPreprodOrNaisAdeoIngress("veilarbperson", true), userTokenSupplier)
+    fun personClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbpersonClient {
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val url = UrlUtils.createServiceUrl(veilarbperson.serviceName, veilarbperson.namespace, false)
+        return VeilarbpersonClientImpl(url){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
     @Bean

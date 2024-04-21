@@ -5,6 +5,7 @@ import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.types.identer.Fnr
+import no.nav.common.utils.AuthUtils.bearerToken
 import no.nav.common.utils.UrlUtils
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus
@@ -23,7 +24,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import java.util.function.Supplier
 
-class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val userTokenSupplier: Supplier<String>) :
+class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val machineToMachineTokenSupplier: Supplier<String>) :
     VeilarbpersonClient {
 
     private val client: OkHttpClient = RestClient.baseClient()
@@ -31,7 +32,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
     override fun hentPersonNavn(fnr: String): PersonNavn {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-navn"))
-            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
             .post(
                 PersonRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
                     .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
@@ -46,7 +47,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
     override fun hentCVOgJobbprofil(fnr: String): CvDto {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-cv_jobbprofil"))
-            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
             .post(
                 PersonRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
                     .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
@@ -68,7 +69,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
     override fun hentMålform(fnr: Fnr): Målform {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-malform"))
-            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
             .post(
                 PersonRequest(fnr, BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
                     .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
