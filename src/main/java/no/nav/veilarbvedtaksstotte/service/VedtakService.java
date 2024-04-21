@@ -118,6 +118,7 @@ public class VedtakService {
             vedtakIds.forEach(vedtakId -> {
                 log.info(String.format("SCHEDULED JOB: Journalfører vedtak med id: %s", vedtakId));
                 Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+                flettInnOpplysinger(vedtak);
                 journalforeVedtak(vedtak);
             });
         }
