@@ -120,7 +120,7 @@ class ClientConfig {
         val url = UrlUtils.createServiceUrl(veilarbperson.serviceName, veilarbperson.namespace, false)
 
         return VeilarbregistreringClientImpl(
-            url
+            joinPaths(url, "veilarbperson")
         ){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
