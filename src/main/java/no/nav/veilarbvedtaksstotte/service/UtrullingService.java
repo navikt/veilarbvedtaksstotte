@@ -3,8 +3,8 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
@@ -60,6 +60,7 @@ public class UtrullingService {
 
     public boolean tilhorerBrukerUtrulletKontor(Fnr fnr) {
         try {
+            log.error("OPP bruker: " + veilarbarenaClient.hentOppfolgingsbruker(fnr).map(VeilarbArenaOppfolging::getNavKontor));
             return veilarbarenaClient.hentOppfolgingsbruker(fnr)
                     .map(VeilarbArenaOppfolging::getNavKontor)
                     .map(EnhetId::of)

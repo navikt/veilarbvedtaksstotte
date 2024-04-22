@@ -4,6 +4,6 @@ import no.nav.common.types.identer.Fnr;
 
 public record RegistreringRequest(
         Fnr fnr,
-        String behandlingsummer
+        String behandlingsnummer
 ) {
 }

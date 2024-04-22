@@ -34,7 +34,7 @@ public class VeilarbregistreringClientTest {
 
         WireMock.givenThat(
                 WireMock.post(WireMock.urlEqualTo("/api/v3/person/hent-registrering"))
-                        .withRequestBody(WireMock.equalToJson("{\"fnr\":\""+TEST_FNR+"\", \"behandlingsummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.getValue() + "\"}"))
+                        .withRequestBody(WireMock.equalToJson("{\"fnr\":\""+TEST_FNR+"\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.getValue() + "\"}"))
                         .willReturn(
                                 WireMock.aResponse()
                                         .withStatus(200)
