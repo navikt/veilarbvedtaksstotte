@@ -206,7 +206,7 @@ class DokumentServiceTest {
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl) { "" }
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""})
-        veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), {""})
+        veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), {""}, {""})
         pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)
         enhetInfoService = EnhetInfoService(norg2Client)
@@ -259,6 +259,12 @@ class DokumentServiceTest {
         givenWiremockOkJsonResponse(
             "/api/veileder/${produserDokumentDTO.veilederIdent}",
             Veileder(produserDokumentDTO.veilederIdent, veilederNavn).toJson()
+        )
+
+        givenWiremockOkJsonResponseForPost(
+            "/api/veileder/hent-navn",
+            containing(produserDokumentDTO.veilederIdent),
+            veilederNavn.toJson()
         )
 
         givenWiremockOkJsonResponse(

@@ -93,7 +93,7 @@ class PdfService(
     private fun hentBrevdata(fnr: Fnr, enhetId: EnhetId, veilederIdent: String): DokumentService.BrevdataOppslag {
         val enhetKontaktinformasjon: EnhetKontaktinformasjon = enhetInfoService.utledEnhetKontaktinformasjon(enhetId)
         val målform = veilarbpersonClient.hentMålform(fnr)
-        val veileder = veilarbveilederClient.hentVeileder(veilederIdent)
+        val veilederNavn = veilarbveilederClient.hentVeilederNavn(veilederIdent)
 
         val enhet: Enhet = enhetInfoService.hentEnhet(enhetId)
         val kontaktEnhet: Enhet = enhetInfoService.hentEnhet(enhetKontaktinformasjon.enhetNr)
@@ -101,7 +101,7 @@ class PdfService(
         return DokumentService.BrevdataOppslag(
             enhetKontaktinformasjon = enhetKontaktinformasjon,
             målform = målform,
-            veilederNavn = veileder.navn,
+            veilederNavn = veilederNavn,
             enhet = enhet,
             kontaktEnhet = kontaktEnhet
         )

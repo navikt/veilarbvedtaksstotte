@@ -138,14 +138,16 @@ class ClientConfig {
     @Bean
     fun veilederOgEnhetClient(
         authContextHolder: AuthContextHolder?,
-        oboContexService: OboContexService
+        oboContexService: OboContexService,
+        tokenClient: AzureAdMachineToMachineTokenClient
     ): VeilarbveilederClient {
         val veilarbveileder = veilarbveileder.invoke(if (isProduction) "prod-fss" else "dev-fss")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbveileder)
         return VeilarbveilederClientImpl(
             UrlUtils.createServiceUrl(veilarbveileder.serviceName, veilarbveileder.namespace, true),
             authContextHolder,
-            userTokenSupplier
+            userTokenSupplier,
+            { tokenClient.createMachineToMachineToken(tokenScope(veilarbveileder)) }
         )
     }
 

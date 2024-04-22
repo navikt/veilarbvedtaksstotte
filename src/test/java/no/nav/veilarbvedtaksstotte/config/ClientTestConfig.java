@@ -317,9 +317,16 @@ public class ClientTestConfig {
             }
 
             @Override
+            public String hentVeilederNavn(String veilederIdent) {
+                return "VEILEDER VEILEDERSEN";
+            }
+
+            @Override
             public Veileder hentVeileder(String veilederIdent) {
                 return new Veileder(TEST_VEILEDER_IDENT, "VEILEDER VEILEDERSEN");
             }
+
+
 
             @Override
             public VeilederEnheterDTO hentInnloggetVeilederEnheter() {

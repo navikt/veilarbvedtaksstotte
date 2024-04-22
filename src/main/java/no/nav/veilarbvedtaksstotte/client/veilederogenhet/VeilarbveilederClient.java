@@ -8,6 +8,7 @@ public interface VeilarbveilederClient extends HealthCheck {
 
     String hentEnhetNavn(String enhetId);
 
+    String hentVeilederNavn(String veilederIdent);
     Veileder hentVeileder(String veilederIdent);
 
     VeilederEnheterDTO hentInnloggetVeilederEnheter();
