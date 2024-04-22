@@ -62,6 +62,10 @@ public class OyeblikksbildeService {
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
     }
 
+    public List<OyeblikksbildeDto> hentOyeblikksbildeForVedtakJournalforing(long vedtakId) {
+        return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
+    }
+
     public void lagreJournalfortDokumentId(long vedtakId, String dokumentId, OyeblikksbildeType oyeblikksbildeType) {
         oyeblikksbildeRepository.lagreJournalfortDokumentId(vedtakId, dokumentId, oyeblikksbildeType);
     }

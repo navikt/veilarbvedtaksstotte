@@ -57,7 +57,7 @@ class DokumentService(
 
         val referanse = vedtak.getReferanse();
 
-        val oyeblikksbildeForVedtak = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtak.id)
+        val oyeblikksbildeForVedtak = oyeblikksbildeService.hentOyeblikksbildeForVedtakJournalforing(vedtak.id)
         val behovsVurderingData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING }
         val registreringData =
