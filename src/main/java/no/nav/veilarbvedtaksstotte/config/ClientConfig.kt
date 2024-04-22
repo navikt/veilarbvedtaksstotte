@@ -18,6 +18,7 @@ import no.nav.common.token_client.client.AzureAdMachineToMachineTokenClient
 import no.nav.common.utils.Credentials
 import no.nav.common.utils.EnvironmentUtils
 import no.nav.common.utils.UrlUtils
+import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
@@ -66,10 +67,14 @@ class ClientConfig {
     @Bean
     fun arenaClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbarenaClient {
         val veilarbarena = veilarbarena.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val serviceNameForIngress = "veilarbarena"
+
+        val url =
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbarena.serviceName) else UrlUtils.createDevInternalIngressUrl(
+                veilarbarena.serviceName
+            )
 
         return VeilarbarenaClientImpl(
-            naisPreprodOrNaisAdeoIngress(serviceNameForIngress, true)
+            joinPaths(url, "veilarbarena")
         ){ tokenClient.createMachineToMachineToken(tokenScope(veilarbarena)) }
     }
 
