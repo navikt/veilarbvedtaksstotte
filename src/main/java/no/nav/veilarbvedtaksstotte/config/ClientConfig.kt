@@ -66,7 +66,10 @@ class ClientConfig {
     @Bean
     fun arenaClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbarenaClient {
         val veilarbarena = veilarbarena.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val url = UrlUtils.createServiceUrl(veilarbarena.serviceName, veilarbarena.namespace, false)
+        val url =
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbarena.serviceName) else UrlUtils.createDevInternalIngressUrl(
+                veilarbarena.serviceName
+            )
         return VeilarbarenaClientImpl(
             url
         ){ tokenClient.createMachineToMachineToken(tokenScope(veilarbarena)) }
