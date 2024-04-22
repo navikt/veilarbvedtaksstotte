@@ -60,7 +60,6 @@ public class UtrullingService {
 
     public boolean tilhorerBrukerUtrulletKontor(Fnr fnr) {
         try {
-            log.error("OPP bruker: " + veilarbarenaClient.hentOppfolgingsbruker(fnr).map(VeilarbArenaOppfolging::getNavKontor));
             return veilarbarenaClient.hentOppfolgingsbruker(fnr)
                     .map(VeilarbArenaOppfolging::getNavKontor)
                     .map(EnhetId::of)

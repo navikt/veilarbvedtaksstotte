@@ -111,7 +111,7 @@ class ClientConfig {
             if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
                 veilarbperson.serviceName
             )
-        return VeilarbpersonClientImpl(url){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
+        return VeilarbpersonClientImpl(joinPaths(url, "veilarbperson")){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
     @Bean
