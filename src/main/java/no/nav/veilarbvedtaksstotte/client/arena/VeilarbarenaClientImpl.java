@@ -43,7 +43,7 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
     @Cacheable(CacheConfig.ARENA_BRUKER_CACHE_NAME)
     public Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarbarenaUrl, "/api/v2/hent-oppfolgingsbruker"))
+                .url(joinPaths(veilarbarenaUrl, "/api/v3/hent-oppfolgingsbruker"))
                 .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineToken.get()))
                 .post(toJsonRequestBody(new VeilarbarenaOppfolgingRequest(fnr)))
                 .build();
