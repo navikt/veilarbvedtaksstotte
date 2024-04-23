@@ -117,11 +117,11 @@ class ClientConfig {
     @Bean
     fun registreringClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbregistreringClient {
         val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val url = UrlUtils.createServiceUrl(veilarbperson.serviceName, veilarbperson.namespace, false)
-
-        return VeilarbregistreringClientImpl(
-            joinPaths(url, "veilarbperson")
-        ){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
+        val url =
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
+                veilarbperson.serviceName
+            )
+        return VeilarbregistreringClientImpl(joinPaths(url, "veilarbperson")){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
     @Bean

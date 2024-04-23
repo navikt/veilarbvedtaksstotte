@@ -129,7 +129,7 @@ public class VedtakService {
             Fnr brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
 
             OpprettetJournalpostDTO journalpost =
-                    dokumentService.produserOgJournalforDokument(vedtak, brukerFnr);
+                    dokumentService.produserOgJournalforDokumenterForVedtak(vedtak, brukerFnr);
 
             String journalpostId = journalpost.getJournalpostId();
             String dokumentInfoId = null;

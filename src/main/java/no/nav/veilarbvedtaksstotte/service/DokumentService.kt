@@ -48,7 +48,7 @@ class DokumentService(
         return pdfService.produserDokument(produserDokumentDTO)
     }
 
-    fun produserOgJournalforDokument(vedtak: Vedtak, fnr: Fnr): OpprettetJournalpostDTO {
+    fun produserOgJournalforDokumenterForVedtak(vedtak: Vedtak, fnr: Fnr): OpprettetJournalpostDTO {
         val produserDokumentDTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = false)
         val dokument = pdfService.produserDokument(produserDokumentDTO)
         val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
