@@ -8,7 +8,7 @@ import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
@@ -57,7 +57,7 @@ class PdfService(
         try {
             if (data != null) {
                 val registreringsdataResponseDto =
-                    JsonUtils.objectMapper.readValue(data, RegistreringsdataDto::class.java);
+                    JsonUtils.objectMapper.readValue(data, RegistreringResponseDto::class.java);
 
                 return Optional.ofNullable(
                     pdfClient.genererOyeblikksbildeRegistreringPdf(

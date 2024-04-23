@@ -36,7 +36,6 @@ import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
@@ -165,7 +164,7 @@ public class ClientTestConfig {
 
             @NotNull
             @Override
-            public byte[] genererOyeblikksbildeRegistreringPdf(@NotNull RegistreringsdataDto registreringOyeblikksbildeData) {
+            public byte[] genererOyeblikksbildeRegistreringPdf(@NotNull RegistreringResponseDto registreringOyeblikksbildeData) {
                 return new byte[0];
             }
 

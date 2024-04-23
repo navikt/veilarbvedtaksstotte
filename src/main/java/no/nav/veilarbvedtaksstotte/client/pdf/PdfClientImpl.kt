@@ -6,7 +6,7 @@ import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
 import okhttp3.OkHttpClient
@@ -65,7 +65,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
         }
     }
 
-    override fun genererOyeblikksbildeRegistreringPdf(registreringOyeblikksbildeData: RegistreringsdataDto): ByteArray {
+    override fun genererOyeblikksbildeRegistreringPdf(registreringOyeblikksbildeData: RegistreringResponseDto): ByteArray {
         val request = Request.Builder()
             .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.REGISTRERINGSINFO.templateName))
             .post(RestUtils.toJsonRequestBody(registreringOyeblikksbildeData))

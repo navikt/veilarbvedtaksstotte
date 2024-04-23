@@ -75,7 +75,7 @@ public class OyeblikksbildeRepository {
 
     @SneakyThrows
     public void upsertRegistreringOyeblikksbilde(long vedtakId, RegistreringResponseDto registreringsdataDto) {
-        String jsonRegistreringDto = JsonUtils.getObjectMapper().writeValueAsString(registreringsdataDto.getRegistrering());
+        String jsonRegistreringDto = JsonUtils.getObjectMapper().writeValueAsString(registreringsdataDto);
 
         if (registreringsdataDto == null || jsonRegistreringDto == null || jsonRegistreringDto.isEmpty()) {
             jsonRegistreringDto = """
