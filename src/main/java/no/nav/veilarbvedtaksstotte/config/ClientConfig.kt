@@ -125,14 +125,12 @@ class ClientConfig {
     }
 
     @Bean
-    fun safClient(oboContexService: OboContexService): SafClient {
+    fun safClient(tokenClient: AzureAdMachineToMachineTokenClient): SafClient {
         val safClient = saf.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val userTokenSupplier = oboContexService.userTokenSupplier(safClient)
         val serviceNameForIngress = "saf"
         return SafClientImpl(
-            naisPreprodOrNaisAdeoIngress(serviceNameForIngress, false),
-            userTokenSupplier
-        )
+            naisPreprodOrNaisAdeoIngress(serviceNameForIngress, false)
+        ){ tokenClient.createMachineToMachineToken(tokenScope(safClient)) }
     }
 
     @Bean

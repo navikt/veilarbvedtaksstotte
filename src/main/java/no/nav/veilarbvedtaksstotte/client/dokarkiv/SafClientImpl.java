@@ -11,6 +11,7 @@ import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
+import no.nav.common.utils.AuthUtils;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.BrukerId;
@@ -37,19 +38,19 @@ public class SafClientImpl implements SafClient {
 
     private final OkHttpClient client;
 
-    private final Supplier<String> userTokenSupplier;
+    private final Supplier<String> machineToMachineTokenSupplier;
 
-    public SafClientImpl(String safUrl, Supplier<String> userTokenSupplier) {
+    public SafClientImpl(String safUrl, Supplier<String> machineToMachineTokenSupplier) {
         this.safUrl = safUrl;
         this.client = RestClient.baseClient();
-        this.userTokenSupplier = userTokenSupplier;
+        this.machineToMachineTokenSupplier = machineToMachineTokenSupplier;
     }
 
     @SneakyThrows
     public byte[] hentVedtakPdf(String journalpostId, String dokumentInfoId) {
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "/rest/hentdokument/", journalpostId, dokumentInfoId, "ARKIV"))
-                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(machineToMachineTokenSupplier.get()))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
@@ -66,7 +67,7 @@ public class SafClientImpl implements SafClient {
 
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "graphql"))
-                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(machineToMachineTokenSupplier.get()))
                 .post(RestUtils.toJsonRequestBody(graphqlRequest))
                 .build();
 
@@ -83,7 +84,7 @@ public class SafClientImpl implements SafClient {
 
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "graphql"))
-                .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(machineToMachineTokenSupplier.get()))
                 .post(RestUtils.toJsonRequestBody(graphqlRequest))
                 .build();
 
