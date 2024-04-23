@@ -61,7 +61,6 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
         Request request = new Request.Builder()
                 .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/veileder/", veilederIdent))
                 .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
-                .post(toJsonRequestBody(veilederIdent))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
