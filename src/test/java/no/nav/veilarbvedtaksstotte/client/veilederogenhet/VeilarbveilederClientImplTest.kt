@@ -6,7 +6,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
-import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -42,7 +41,7 @@ class VeilarbveilederClientImplTest {
         TestUtils.givenWiremockOkJsonResponseForPost(
             "/api/veileder/hent-navn",
             WireMock.containing(veilederIdent),
-            veilederNavn.toJson()
+            veilederNavn
         )
         val veilederNavnResponse = veilederClient.hentVeilederNavn(veilederIdent)
 

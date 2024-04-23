@@ -81,7 +81,7 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return response.toString();
+            return response.body().string();
         }
     }
 

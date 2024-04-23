@@ -264,7 +264,7 @@ class DokumentServiceTest {
         givenWiremockOkJsonResponseForPost(
             "/api/veileder/hent-navn",
             containing(produserDokumentDTO.veilederIdent),
-            veilederNavn.toJson()
+            veilederNavn
         )
 
         givenWiremockOkJsonResponse(
@@ -292,6 +292,12 @@ class DokumentServiceTest {
         givenThat(
             post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikkbilde-registrering")).willReturn(
                 aResponse().withStatus(201).withBody(registreringPdf)
+            )
+        )
+
+        givenThat(
+            post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikkbilde-cv")).willReturn(
+                aResponse().withStatus(201).withBody(cvPdf)
             )
         )
 
