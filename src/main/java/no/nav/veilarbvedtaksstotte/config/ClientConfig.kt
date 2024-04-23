@@ -152,17 +152,16 @@ class ClientConfig {
     }
 
     @Bean
-    fun dokarkivClient(oboContexService: OboContexService): DokarkivClient {
+    fun dokarkivClient(tokenClient: AzureAdMachineToMachineTokenClient): DokarkivClient {
         val dokarkivClient = dokarkiv.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val userTokenSupplier = oboContexService.userTokenSupplier(dokarkivClient)
+
         val url =
             if (isProduction) UrlUtils.createProdInternalIngressUrl(dokarkivClient.serviceName) else UrlUtils.createDevInternalIngressUrl(
                 dokarkivClient.serviceName
             )
         return DokarkivClientImpl(
-            url,
-            userTokenSupplier
-        )
+            url
+        ){ tokenClient.createMachineToMachineToken(tokenScope(dokarkivClient)) }
     }
 
     @Bean
