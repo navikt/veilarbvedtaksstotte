@@ -156,7 +156,7 @@ class DistribusjonServiceTest : DatabaseTest() {
             )
 
             assertThrowsWithMessage<RuntimeException>(
-                "Uventet status $status ved kall mot $wiremockUrl/rest/v1/distribuerjournalpost"
+                "Uventet status $status ved kall mot mot $wiremockUrl/rest/v1/distribuerjournalpost"
             ) {
                 distribusjonService.distribuerVedtak(vedtakId)
             }
