@@ -5,4 +5,6 @@ import lombok.Value;
 @Value
 public class RegistreringResponseDto {
     public RegistreringsdataDto registrering;
+    public BrukerRegistreringType type;
 }
+

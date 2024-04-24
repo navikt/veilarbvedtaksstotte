@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.BrukerRegistreringType;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
@@ -53,6 +54,6 @@ public class VeilarbregistreringClientTest {
                 null,
                 null
 
-        )));
+        ), BrukerRegistreringType.ORDINAER));
     }
 }

@@ -32,12 +32,6 @@ class VeilarbveilederClientImplTest {
 
     @Test
     fun henter_navn_pa_veileder() {
-        val json =
-            """{
-             "ident": "$veilederIdent",
-             "navn": "$veilederNavn"
-            }"""
-
         TestUtils.givenWiremockOkJsonResponseForPost(
             "/api/veileder/hent-navn",
             WireMock.containing(veilederIdent),
