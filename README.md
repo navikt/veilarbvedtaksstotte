@@ -21,7 +21,7 @@ vault read postgresql/preprod-fss/creds/veilarbvedtaksstotte-fss15-q1-admin
 
 Prod: 
 ```console
-vault read postgresql/preprod-fss/creds/veilarbvedtaksstotte-fss15-q1-admin
+vault read postgresql/prod-fss/creds/veilarbvedtaksstotte-fss13-p-readonly
 ```
 
 ## Kjøre appen
