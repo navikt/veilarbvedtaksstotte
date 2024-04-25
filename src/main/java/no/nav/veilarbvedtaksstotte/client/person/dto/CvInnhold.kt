@@ -4,7 +4,6 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 
 data class CvInnhold(
-    val ingenData: String?,
     val sistEndret: ZonedDateTime?,
     val synligForArbeidsgiver: Boolean?,
     val sistEndretAvNav: Boolean? = false,
