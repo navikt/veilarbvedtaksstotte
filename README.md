@@ -14,8 +14,15 @@ Swagger: /veilarbvedtaksstotte/internal/swagger-ui/index.html
 
 ## DB Creds
 
-Dev: vault read postgresql/preprod-fss/creds/veilarbvedtaksstotte-fss15-q1-admin 
-Prod: vault read postgresql/preprod-fss/creds/veilarbvedtaksstotte-fss15-q1-admin
+Dev: 
+```console
+vault read postgresql/preprod-fss/creds/veilarbvedtaksstotte-fss15-q1-admin
+```
+
+Prod: 
+```console
+vault read postgresql/preprod-fss/creds/veilarbvedtaksstotte-fss15-q1-admin
+```
 
 ## Kjøre appen
 ```console
