@@ -94,7 +94,12 @@ spec:
         - application: aia-backend
           namespace: paw
           cluster: prod-gcp
-
+        - application: amt-person-service
+          namespace: amt
+          cluster: prod-gcp
+          permissions:
+            roles:
+              - "siste-14a-vedtak"
     outbound:
       rules:
         - application: aia-backend
