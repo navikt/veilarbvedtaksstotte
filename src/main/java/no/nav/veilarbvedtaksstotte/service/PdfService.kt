@@ -35,58 +35,54 @@ class PdfService(
 
     fun produserBehovsvurderingPdf(data: String?): Optional<ByteArray> {
         try {
-            if (data != null) {
+            if (data == null) return Optional.empty()
 
-                val egenvurderingResponseDTO =
-                    JsonUtils.objectMapper.readValue(data, OyeblikksbildeEgenvurderingDto::class.java);
+            val egenvurderingResponseDTO =
+                JsonUtils.objectMapper.readValue(data, OyeblikksbildeEgenvurderingDto::class.java);
 
-                return Optional.ofNullable(
-                    pdfClient.genererOyeblikksbildeEgenVurderingPdf(
-                        egenvurderingResponseDTO
-                    )
+            return Optional.ofNullable(
+                pdfClient.genererOyeblikksbildeEgenVurderingPdf(
+                    egenvurderingResponseDTO
                 )
-            }
-            return Optional.empty()
+            )
         } catch (e: Exception) {
             log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            return Optional.empty()
+            throw e;
         }
     }
 
     fun produserRegisteringPdf(data: String?): Optional<ByteArray> {
         try {
-            if (data != null) {
-                val registreringsdataResponseDto =
-                    JsonUtils.objectMapper.readValue(data, RegistreringResponseDto::class.java);
+            if (data == null) return Optional.empty()
 
-                return Optional.ofNullable(
-                    pdfClient.genererOyeblikksbildeRegistreringPdf(
-                        registreringsdataResponseDto
-                    )
+            val registreringsdataResponseDto =
+                JsonUtils.objectMapper.readValue(data, RegistreringResponseDto::class.java);
+
+            return Optional.ofNullable(
+                pdfClient.genererOyeblikksbildeRegistreringPdf(
+                    registreringsdataResponseDto
                 )
-            }
-            return Optional.empty()
+            )
         } catch (e: Exception) {
             log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            return Optional.empty()
+            throw e;
         }
     }
 
     fun produserCVPdf(data: String?): Optional<ByteArray> {
         try {
-            if (data != null) {
-                val cvDto =
-                    JsonUtils.objectMapper.readValue(data, CvInnhold::class.java);
-                return Optional.ofNullable(
-                    pdfClient.genererOyeblikksbildeCvPdf(
-                        cvDto
-                    )
+            if (data == null) return Optional.empty()
+
+            val cvDto =
+                JsonUtils.objectMapper.readValue(data, CvInnhold::class.java);
+            return Optional.ofNullable(
+                pdfClient.genererOyeblikksbildeCvPdf(
+                    cvDto
                 )
-            }
-            return Optional.empty()
+            )
         } catch (e: Exception) {
             log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            return Optional.empty()
+            throw e;
         }
     }
 
