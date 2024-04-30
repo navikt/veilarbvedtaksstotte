@@ -38,8 +38,7 @@ internal class OyeblikksbildeServiceTest {
     @Test
     fun mapToEgenvurderingDataJson_med_null_argument() {
         val oyeblikksbildeEgenvurderingDto = oyeblikksbildeService.mapToEgenvurderingData(null)
-        Assertions.assertNull(oyeblikksbildeEgenvurderingDto.svar)
-        Assertions.assertNull(oyeblikksbildeEgenvurderingDto.sistOppdatert)
+        Assertions.assertNull(oyeblikksbildeEgenvurderingDto)
     }
 
     @Test
