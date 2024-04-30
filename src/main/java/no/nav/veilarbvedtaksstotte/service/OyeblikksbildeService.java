@@ -114,7 +114,7 @@ public class OyeblikksbildeService {
             ));
             return new OyeblikksbildeEgenvurderingDto(egenvurderingResponseDTO.getDato(), svar);
         }
-        return new OyeblikksbildeEgenvurderingDto();
+        return null;
     }
 
     public RegistreringResponseDto oppdaterRegistreringsdataHvisNyeEndringer(RegistreringResponseDto registreringsData, EndringIRegistreringsdataResponse endringIRegistreringsdata) { //public for test
