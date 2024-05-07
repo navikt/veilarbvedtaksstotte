@@ -163,24 +163,21 @@ public class OyeblikksbildeRepository {
     @SneakyThrows
     private static OyeblikksbildeCvDto mapCvOyeblikksbilde(ResultSet rs, int row) {
         return new OyeblikksbildeCvDto()
-                .setVedtakId(rs.getLong(VEDTAK_ID))
-                .setJson(rs.getString(JSON))
+                .setData(rs.getString(JSON))
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }
 
     @SneakyThrows
     private static OyeblikksbildeRegistreringDto mapRegistreringOyeblikksbilde(ResultSet rs, int row) {
         return new OyeblikksbildeRegistreringDto()
-                .setVedtakId(rs.getLong(VEDTAK_ID))
-                .setJson(rs.getString(JSON))
+                .setData(rs.getString(JSON))
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }
 
     @SneakyThrows
     private static OyeblikksbildeEgenvurderingDto mapEgenvurderingOyeblikksbilde(ResultSet rs, int row) {
         return new OyeblikksbildeEgenvurderingDto()
-                .setVedtakId(rs.getLong(VEDTAK_ID))
-                .setJson(rs.getString(JSON))
+                .setData(rs.getString(JSON))
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }
 

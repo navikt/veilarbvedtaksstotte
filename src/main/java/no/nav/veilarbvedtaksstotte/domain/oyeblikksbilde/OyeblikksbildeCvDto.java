@@ -10,7 +10,6 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OyeblikksbildeCvDto {
-    public long vedtakId;
-    public String json;
+    public String data;
     public boolean journalfort;
 }

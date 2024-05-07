@@ -10,7 +10,6 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OyeblikksbildeEgenvurderingDto {
-    public long vedtakId;
-    public String json;
+    public String data;
     public boolean journalfort;
 }
