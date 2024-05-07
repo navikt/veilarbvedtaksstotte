@@ -14,9 +14,7 @@ import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -62,6 +60,24 @@ public class OyeblikksbildeService {
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
     }
 
+    public OyeblikksbildeCvDto hentCVOyeblikksbildeForVedtak(long vedtakId) {
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        return oyeblikksbildeRepository.hentCVOyeblikksbildeForVedtak(vedtakId);
+    }
+
+    public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbildeForVedtak(long vedtakId) {
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        return oyeblikksbildeRepository.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
+    }
+
+    public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        return oyeblikksbildeRepository.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
+    }
+
     public List<OyeblikksbildeDto> hentOyeblikksbildeForVedtakJournalforing(long vedtakId) {
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
     }
@@ -97,22 +113,22 @@ public class OyeblikksbildeService {
         }
         if (kilder.stream().anyMatch(kilde -> kilde.equals(VedtakOpplysningKilder.EGENVURDERING.getDesc()))) {
             final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr));
-            OyeblikksbildeEgenvurderingDto egenvurderingData = mapToEgenvurderingData(egenvurdering);
+            EgenvurderingDto egenvurderingData = mapToEgenvurderingData(egenvurdering);
             oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingData);
         }
     }
 
-    public OyeblikksbildeEgenvurderingDto mapToEgenvurderingData(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test
-        List<OyeblikksbildeEgenvurderingDto.Svar> svar = new ArrayList<>();
+    public EgenvurderingDto mapToEgenvurderingData(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test
+        List<EgenvurderingDto.Svar> svar = new ArrayList<>();
         if (egenvurderingResponseDTO != null) {
             String svartekst = egenvurderingResponseDTO.getTekster().getSvar().get(egenvurderingResponseDTO.getOppfolging());
-            svar.add(new OyeblikksbildeEgenvurderingDto.Svar(
+            svar.add(new EgenvurderingDto.Svar(
                     egenvurderingResponseDTO.getTekster().getSporsmal(),
                     svartekst,
                     egenvurderingResponseDTO.getOppfolging(),
                     egenvurderingResponseDTO.getDialogId()
             ));
-            return new OyeblikksbildeEgenvurderingDto(egenvurderingResponseDTO.getDato(), svar);
+            return new EgenvurderingDto(egenvurderingResponseDTO.getDato(), svar);
         }
         return null;
     }

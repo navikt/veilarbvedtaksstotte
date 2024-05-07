@@ -10,7 +10,7 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -38,7 +38,7 @@ class PdfService(
             if (data == null) return Optional.empty()
 
             val egenvurderingResponseDTO =
-                JsonUtils.objectMapper.readValue(data, OyeblikksbildeEgenvurderingDto::class.java);
+                JsonUtils.objectMapper.readValue(data, EgenvurderingDto::class.java);
 
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeEgenVurderingPdf(

@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde
 
-data class OyeblikksbildeEgenvurderingDto(
+data class EgenvurderingDto(
     val sistOppdatert: String? = null,
     val svar: List<Svar>? = null,
 ) {

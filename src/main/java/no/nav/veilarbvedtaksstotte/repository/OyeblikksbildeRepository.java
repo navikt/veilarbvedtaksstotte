@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
 import no.nav.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +40,21 @@ public class OyeblikksbildeRepository {
     public List<OyeblikksbildeDto> hentOyeblikksbildeForVedtak(long vedtakId) {
         String sql = format("SELECT * FROM %s WHERE %s = ?", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
         return db.query(sql, OyeblikksbildeRepository::mapOyeblikksbilde, vedtakId);
+    }
+
+    public OyeblikksbildeCvDto hentCVOyeblikksbildeForVedtak(long vedtakId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
+        return db.queryForObject(sql, OyeblikksbildeRepository::mapCvOyeblikksbilde, vedtakId, OyeblikksbildeType.CV_OG_JOBBPROFIL.name());
+    }
+
+    public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbildeForVedtak(long vedtakId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
+        return db.queryForObject(sql, OyeblikksbildeRepository::mapRegistreringOyeblikksbilde, vedtakId, OyeblikksbildeType.REGISTRERINGSINFO.name());
+    }
+
+    public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
+        return db.queryForObject(sql, OyeblikksbildeRepository::mapEgenvurderingOyeblikksbilde, vedtakId, OyeblikksbildeType.EGENVURDERING.name());
     }
 
     public void slettOyeblikksbilder(long vedtakId) {
@@ -100,7 +113,7 @@ public class OyeblikksbildeRepository {
 
 
     @SneakyThrows
-    public void upsertEgenvurderingOyeblikksbilde(long vedtakId, OyeblikksbildeEgenvurderingDto egenvurderingDto) {
+    public void upsertEgenvurderingOyeblikksbilde(long vedtakId, EgenvurderingDto egenvurderingDto) {
         String jsonEgenvurderingDto = JsonUtils.getObjectMapper().writeValueAsString(egenvurderingDto);
         if (egenvurderingDto == null || jsonEgenvurderingDto == null || jsonEgenvurderingDto.isEmpty()) {
             jsonEgenvurderingDto = """
@@ -143,6 +156,30 @@ public class OyeblikksbildeRepository {
         return new OyeblikksbildeDto()
                 .setVedtakId(rs.getLong(VEDTAK_ID))
                 .setOyeblikksbildeType(oyeblikksbildeType)
+                .setJson(rs.getString(JSON))
+                .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
+    }
+
+    @SneakyThrows
+    private static OyeblikksbildeCvDto mapCvOyeblikksbilde(ResultSet rs, int row) {
+        return new OyeblikksbildeCvDto()
+                .setVedtakId(rs.getLong(VEDTAK_ID))
+                .setJson(rs.getString(JSON))
+                .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
+    }
+
+    @SneakyThrows
+    private static OyeblikksbildeRegistreringDto mapRegistreringOyeblikksbilde(ResultSet rs, int row) {
+        return new OyeblikksbildeRegistreringDto()
+                .setVedtakId(rs.getLong(VEDTAK_ID))
+                .setJson(rs.getString(JSON))
+                .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
+    }
+
+    @SneakyThrows
+    private static OyeblikksbildeEgenvurderingDto mapEgenvurderingOyeblikksbilde(ResultSet rs, int row) {
+        return new OyeblikksbildeEgenvurderingDto()
+                .setVedtakId(rs.getLong(VEDTAK_ID))
                 .setJson(rs.getString(JSON))
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }

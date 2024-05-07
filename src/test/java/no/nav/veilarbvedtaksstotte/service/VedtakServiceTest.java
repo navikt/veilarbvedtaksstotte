@@ -49,8 +49,8 @@ import no.nav.veilarbvedtaksstotte.domain.Målform;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
@@ -548,7 +548,7 @@ public class VedtakServiceTest extends DatabaseTest {
             List<OyeblikksbildeDto> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
             assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.REGISTRERINGSINFO).map(x -> JsonUtils.fromJson(x.getJson(), RegistreringResponseDto.class)).allMatch(x -> x.equals(JsonUtils.fromJson(getOppdatertRegistreringsdata(), RegistreringResponseDto.class))));
             assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.CV_OG_JOBBPROFIL).map(x -> JsonUtils.fromJson(x.getJson(), CvInnhold.class)).allMatch(x -> x.equals(JsonUtils.fromJson(testCvData(), CvInnhold.class))));
-            assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING).map(x -> JsonUtils.fromJson(x.getJson(), OyeblikksbildeEgenvurderingDto.class)).allMatch(x -> x.equals(JsonUtils.fromJson(testOyeblikkbildeEgenvurderingData(), OyeblikksbildeEgenvurderingDto.class))));
+            assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING).map(x -> JsonUtils.fromJson(x.getJson(), EgenvurderingDto.class)).allMatch(x -> x.equals(JsonUtils.fromJson(testOyeblikkbildeEgenvurderingData(), EgenvurderingDto.class))));
         });
     }
 

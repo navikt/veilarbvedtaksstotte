@@ -8,13 +8,13 @@ import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
 import no.nav.veilarbvedtaksstotte.domain.Målform
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 
 interface PdfClient : HealthCheck {
     fun genererPdf(brevdata: Brevdata): ByteArray
     fun genererOyeblikksbildeCvPdf(cvOyeblikksbildeData: CvInnhold): ByteArray
     fun genererOyeblikksbildeRegistreringPdf(registreringOyeblikksbildeData: RegistreringResponseDto): ByteArray
-    fun genererOyeblikksbildeEgenVurderingPdf(egenvurderingOyeblikksbildeData: OyeblikksbildeEgenvurderingDto): ByteArray
+    fun genererOyeblikksbildeEgenVurderingPdf(egenvurderingOyeblikksbildeData: EgenvurderingDto): ByteArray
 
 
     data class Brevdata(
