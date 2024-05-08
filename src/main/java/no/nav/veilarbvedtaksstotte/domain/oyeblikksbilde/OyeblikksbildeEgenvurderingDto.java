@@ -10,6 +10,6 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OyeblikksbildeEgenvurderingDto {
-    public String data;
+    public EgenvurderingDto data;
     public boolean journalfort;
 }

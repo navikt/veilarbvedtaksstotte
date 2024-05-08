@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
 import no.nav.veilarbvedtaksstotte.utils.DbUtils;
@@ -162,22 +163,25 @@ public class OyeblikksbildeRepository {
 
     @SneakyThrows
     private static OyeblikksbildeCvDto mapCvOyeblikksbilde(ResultSet rs, int row) {
+        CvInnhold cvInnhold = JsonUtils.fromJson(rs.getString(JSON), CvInnhold.class);
         return new OyeblikksbildeCvDto()
-                .setData(rs.getString(JSON))
+                .setData(cvInnhold)
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }
 
     @SneakyThrows
     private static OyeblikksbildeRegistreringDto mapRegistreringOyeblikksbilde(ResultSet rs, int row) {
+        RegistreringResponseDto registreringsdataDto = JsonUtils.fromJson(rs.getString(JSON), RegistreringResponseDto.class);
         return new OyeblikksbildeRegistreringDto()
-                .setData(rs.getString(JSON))
+                .setData(registreringsdataDto)
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }
 
     @SneakyThrows
     private static OyeblikksbildeEgenvurderingDto mapEgenvurderingOyeblikksbilde(ResultSet rs, int row) {
+        EgenvurderingDto egenvurderingDto = JsonUtils.fromJson(rs.getString(JSON), EgenvurderingDto.class);
         return new OyeblikksbildeEgenvurderingDto()
-                .setData(rs.getString(JSON))
+                .setData(egenvurderingDto)
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }
 
