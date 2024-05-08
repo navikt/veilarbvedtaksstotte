@@ -205,7 +205,7 @@ class DokumentServiceTest {
         dokarkivClient = DokarkivClientImpl(wiremockUrl) { "" }
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl) { "" }
-        veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""})
+        veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""}, {""})
         veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), {""}, {""})
         pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)

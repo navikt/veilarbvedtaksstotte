@@ -28,7 +28,7 @@ class VeilarbpersonClientImplTest {
         @BeforeAll
         @JvmStatic
         fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
-            veilarbpersonClient = VeilarbpersonClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort,{""})
+            veilarbpersonClient = VeilarbpersonClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort, {""},{""})
         }
     }
 

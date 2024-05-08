@@ -24,7 +24,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import java.util.function.Supplier
 
-class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val machineToMachineTokenSupplier: Supplier<String>) :
+class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val userTokenSupplier: Supplier<String>,
+                              private val machineToMachineTokenSupplier: Supplier<String>) :
     VeilarbpersonClient {
 
     private val client: OkHttpClient = RestClient.baseClient()
@@ -47,7 +48,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
     override fun hentCVOgJobbprofil(fnr: String): CvDto {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-cv_jobbprofil"))
-            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .post(
                 PersonRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
                     .toRequestBody(RestUtils.MEDIA_TYPE_JSON)

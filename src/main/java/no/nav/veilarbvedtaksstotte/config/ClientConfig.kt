@@ -105,23 +105,26 @@ class ClientConfig {
     }
 
     @Bean
-    fun personClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbpersonClient {
+    fun personClient(oboContexService: OboContexService, tokenClient: AzureAdMachineToMachineTokenClient): VeilarbpersonClient {
         val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
         val url =
             if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
                 veilarbperson.serviceName
             )
-        return VeilarbpersonClientImpl(joinPaths(url, "veilarbperson")){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
+
+        return VeilarbpersonClientImpl(joinPaths(url, "veilarbperson"), userTokenSupplier){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
     @Bean
-    fun registreringClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbregistreringClient {
+    fun registreringClient(oboContexService: OboContexService): VeilarbregistreringClient {
         val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
         val url =
             if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
                 veilarbperson.serviceName
             )
-        return VeilarbregistreringClientImpl(joinPaths(url, "veilarbperson")){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
+        return VeilarbregistreringClientImpl(joinPaths(url, "veilarbperson"), userTokenSupplier)
     }
 
     @Bean
