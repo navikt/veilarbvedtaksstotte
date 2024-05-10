@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -63,19 +64,26 @@ public class OyeblikksbildeService {
     public OyeblikksbildeCvDto hentCVOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
-        return oyeblikksbildeRepository.hentCVOyeblikksbildeForVedtak(vedtakId);
+
+        Optional<OyeblikksbildeCvDto> oyeblikksbildeCvDto = oyeblikksbildeRepository.hentCVOyeblikksbildeForVedtak(vedtakId);
+
+        return oyeblikksbildeCvDto.orElseGet(() -> new OyeblikksbildeCvDto(null, false));
     }
 
     public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
-        return oyeblikksbildeRepository.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
+        Optional<OyeblikksbildeRegistreringDto> oyeblikksbildeRegistreringDto = oyeblikksbildeRepository.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
+
+        return oyeblikksbildeRegistreringDto.orElseGet(() -> new OyeblikksbildeRegistreringDto(null, false));
     }
 
     public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
-        return oyeblikksbildeRepository.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
+        Optional<OyeblikksbildeEgenvurderingDto> oyeblikksbildeEgenvurderingDto = oyeblikksbildeRepository.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
+
+        return oyeblikksbildeEgenvurderingDto.orElseGet(() -> new OyeblikksbildeEgenvurderingDto(null, false));
     }
 
     public List<OyeblikksbildeDto> hentOyeblikksbildeForVedtakJournalforing(long vedtakId) {
