@@ -18,6 +18,7 @@ import no.nav.common.token_client.client.AzureAdMachineToMachineTokenClient
 import no.nav.common.utils.Credentials
 import no.nav.common.utils.EnvironmentUtils
 import no.nav.common.utils.UrlUtils
+import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
@@ -64,15 +65,17 @@ import org.springframework.context.annotation.Configuration
 class ClientConfig {
 
     @Bean
-    fun arenaClient(oboContexService: OboContexService): VeilarbarenaClient {
-        val clientCluster = if (isProduction) "prod-fss" else "dev-fss"
-        val userTokenSupplier = oboContexService.userTokenSupplier(
-            veilarbarena.invoke(clientCluster)
-        )
+    fun arenaClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbarenaClient {
+        val veilarbarena = veilarbarena.invoke(if (isProduction) "prod-fss" else "dev-fss")
+
+        val url =
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbarena.serviceName) else UrlUtils.createDevInternalIngressUrl(
+                veilarbarena.serviceName
+            )
+
         return VeilarbarenaClientImpl(
-            naisPreprodOrNaisAdeoIngress("veilarbarena", true),
-            userTokenSupplier
-        )
+            joinPaths(url, "veilarbarena")
+        ){ tokenClient.createMachineToMachineToken(tokenScope(veilarbarena)) }
     }
 
     @Bean
@@ -102,63 +105,64 @@ class ClientConfig {
     }
 
     @Bean
-    fun personClient(oboContexService: OboContexService): VeilarbpersonClient {
-        val clientCluster = if (isProduction) "prod-fss" else "dev-fss"
-        val userTokenSupplier = oboContexService.userTokenSupplier(
-            veilarbperson.invoke(clientCluster)
-        )
-        return VeilarbpersonClientImpl(naisPreprodOrNaisAdeoIngress("veilarbperson", true), userTokenSupplier)
+    fun personClient(oboContexService: OboContexService, tokenClient: AzureAdMachineToMachineTokenClient): VeilarbpersonClient {
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
+        val url =
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
+                veilarbperson.serviceName
+            )
+
+        return VeilarbpersonClientImpl(joinPaths(url, "veilarbperson"), userTokenSupplier){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
     @Bean
     fun registreringClient(oboContexService: OboContexService): VeilarbregistreringClient {
-        val clientCluster = if (isProduction) "prod-fss" else "dev-fss"
-        val userTokenSupplier = oboContexService.userTokenSupplier(
-            veilarbperson.invoke(clientCluster)
-        )
-        return VeilarbregistreringClientImpl(
-            naisPreprodOrNaisAdeoIngress("veilarbperson", true),
-            userTokenSupplier
-        )
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
+        val url =
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
+                veilarbperson.serviceName
+            )
+        return VeilarbregistreringClientImpl(joinPaths(url, "veilarbperson"), userTokenSupplier)
     }
 
     @Bean
-    fun safClient(oboContexService: OboContexService): SafClient {
+    fun safClient(tokenClient: AzureAdMachineToMachineTokenClient): SafClient {
         val safClient = saf.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val userTokenSupplier = oboContexService.userTokenSupplier(safClient)
         val serviceNameForIngress = "saf"
         return SafClientImpl(
-            naisPreprodOrNaisAdeoIngress(serviceNameForIngress, false),
-            userTokenSupplier
-        )
+            naisPreprodOrNaisAdeoIngress(serviceNameForIngress, false)
+        ){ tokenClient.createMachineToMachineToken(tokenScope(safClient)) }
     }
 
     @Bean
     fun veilederOgEnhetClient(
         authContextHolder: AuthContextHolder?,
-        oboContexService: OboContexService
+        oboContexService: OboContexService,
+        tokenClient: AzureAdMachineToMachineTokenClient
     ): VeilarbveilederClient {
         val veilarbveileder = veilarbveileder.invoke(if (isProduction) "prod-fss" else "dev-fss")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbveileder)
         return VeilarbveilederClientImpl(
             UrlUtils.createServiceUrl(veilarbveileder.serviceName, veilarbveileder.namespace, true),
             authContextHolder,
-            userTokenSupplier
+            userTokenSupplier,
+            { tokenClient.createMachineToMachineToken(tokenScope(veilarbveileder)) }
         )
     }
 
     @Bean
-    fun dokarkivClient(oboContexService: OboContexService): DokarkivClient {
+    fun dokarkivClient(tokenClient: AzureAdMachineToMachineTokenClient): DokarkivClient {
         val dokarkivClient = dokarkiv.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val userTokenSupplier = oboContexService.userTokenSupplier(dokarkivClient)
+
         val url =
             if (isProduction) UrlUtils.createProdInternalIngressUrl(dokarkivClient.serviceName) else UrlUtils.createDevInternalIngressUrl(
                 dokarkivClient.serviceName
             )
         return DokarkivClientImpl(
-            url,
-            userTokenSupplier
-        )
+            url
+        ){ tokenClient.createMachineToMachineToken(tokenScope(dokarkivClient)) }
     }
 
     @Bean

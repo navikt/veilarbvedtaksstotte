@@ -4,5 +4,6 @@
     "profilering": {
       "innsatsgruppe": "SITUASJONSBESTEMT_INNSATS"
     }
-  }
+  },
+  "type": "ORDINAER"
 }

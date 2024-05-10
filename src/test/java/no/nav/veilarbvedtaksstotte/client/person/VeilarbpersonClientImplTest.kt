@@ -4,15 +4,20 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
 import no.nav.veilarbvedtaksstotte.domain.Målform
-import no.nav.veilarbvedtaksstotte.utils.JsonUtils.createNoDataStr
+import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponseForPost
 import org.junit.Assert.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 
 @WireMockTest
 class VeilarbpersonClientImplTest {
@@ -23,7 +28,7 @@ class VeilarbpersonClientImplTest {
         @BeforeAll
         @JvmStatic
         fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
-            veilarbpersonClient = VeilarbpersonClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort) { "" }
+            veilarbpersonClient = VeilarbpersonClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort, {""},{""})
         }
     }
 
@@ -58,7 +63,7 @@ class VeilarbpersonClientImplTest {
 
     @Test
     fun skal_hente_cv_jobbprofil_json() {
-        val cvJobbprofilJson = TestUtils.readTestResourceFile("cv-jobbprofil.json")
+        val cvJobbprofilJson = TestUtils.readTestResourceFile("testdata/cv-jobbprofil.json")
         WireMock.givenThat(
             WireMock.post("/api/v3/person/hent-cv_jobbprofil")
                 .withRequestBody(WireMock.equalToJson("{\"fnr\":\"1234\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"))
@@ -67,42 +72,102 @@ class VeilarbpersonClientImplTest {
                         .withBody(cvJobbprofilJson)
                 )
         )
-        val jsonResponse = veilarbpersonClient.hentCVOgJobbprofil("1234")
-        assertEquals(cvJobbprofilJson, jsonResponse)
+        val cvDto = veilarbpersonClient.hentCVOgJobbprofil("1234")
+        when (cvDto) {
+            is CvDto.CVMedInnhold -> {
+                Assertions.assertEquals(
+                    JsonUtils.fromJson(cvJobbprofilJson, CvInnhold::class.java),
+                    cvDto.cvInnhold
+                )
+            }
+
+            is CvDto.CvMedError -> {
+                fail("Unexpected error")
+            }
+
+            else -> fail("Unexpected error")
+        }
+
     }
 
     @Test
     fun skal_returnere_no_data_json_for_403_og_401() {
-        val expectedJsonResponse = createNoDataStr("Bruker har ikke delt CV/jobbprofil med NAV")
         WireMock.givenThat(
             WireMock.post("/api/v3/person/hent-cv_jobbprofil")
                 .withRequestBody(WireMock.equalToJson("{\"fnr\":\"1234\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"))
                 .willReturn(WireMock.aResponse().withStatus(401))
         )
-        assertEquals(expectedJsonResponse, veilarbpersonClient.hentCVOgJobbprofil("1234"))
+
+        var cvDto = veilarbpersonClient.hentCVOgJobbprofil("1234")
+        when (cvDto) {
+            is CvDto.CVMedInnhold -> {
+                fail("Unexpected error")
+            }
+
+            is CvDto.CvMedError -> {
+                Assertions.assertEquals(cvDto.cvErrorStatus, CvErrorStatus.IKKE_DELT)
+            }
+
+            else -> fail("Unexpected error")
+        }
+
+
         WireMock.givenThat(
             WireMock.post("/api/v3/person/hent-cv_jobbprofil")
                 .withRequestBody(WireMock.equalToJson("{\"fnr\":\"1234\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"))
                 .willReturn(WireMock.aResponse().withStatus(403))
         )
-        assertEquals(expectedJsonResponse, veilarbpersonClient.hentCVOgJobbprofil("1234"))
+        cvDto = veilarbpersonClient.hentCVOgJobbprofil("1234")
+        when (cvDto) {
+            is CvDto.CVMedInnhold -> {
+                fail("Unexpected error")
+            }
+
+            is CvDto.CvMedError -> {
+                Assertions.assertEquals(cvDto.cvErrorStatus, CvErrorStatus.IKKE_DELT)
+            }
+
+            else -> fail("Unexpected error")
+        }
     }
 
     @Test
     fun skal_returnere_no_data_json_for_204_og_404() {
-        val expectedJsonResponse = createNoDataStr("Bruker har ikke fylt ut CV/jobbprofil")
         WireMock.givenThat(
             WireMock.post("/api/v3/person/hent-cv_jobbprofil")
                 .withRequestBody(WireMock.equalToJson("{\"fnr\":\"1234\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"))
                 .willReturn(WireMock.aResponse().withStatus(204))
         )
-        assertEquals(expectedJsonResponse, veilarbpersonClient.hentCVOgJobbprofil("1234"))
+        var cvDto = veilarbpersonClient.hentCVOgJobbprofil("1234")
+        when (cvDto) {
+            is CvDto.CVMedInnhold -> {
+                fail("Unexpected error")
+            }
+
+            is CvDto.CvMedError -> {
+                Assertions.assertEquals(cvDto.cvErrorStatus, CvErrorStatus.IKKE_FYLT_UT)
+            }
+
+            else -> fail("Unexpected error")
+        }
+
         WireMock.givenThat(
             WireMock.post("/api/v3/person/hent-cv_jobbprofil")
                 .withRequestBody(WireMock.equalToJson("{\"fnr\":\"1234\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"))
                 .willReturn(WireMock.aResponse().withStatus(404))
         )
-        assertEquals(expectedJsonResponse, veilarbpersonClient.hentCVOgJobbprofil("1234"))
+        cvDto = veilarbpersonClient.hentCVOgJobbprofil("1234")
+        when (cvDto) {
+            is CvDto.CVMedInnhold -> {
+                fail("Unexpected error")
+            }
+
+            is CvDto.CvMedError -> {
+                Assertions.assertEquals(cvDto.cvErrorStatus, CvErrorStatus.IKKE_FYLT_UT)
+            }
+
+            else -> fail("Unexpected error")
+        }
     }
 
     @Test

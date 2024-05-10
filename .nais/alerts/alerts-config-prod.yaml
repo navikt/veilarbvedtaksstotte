@@ -45,6 +45,16 @@ spec:
             severity: warning
 
         # Forretningsspesifikke alerts
+        - alert: Fattet vedtak er ikke Journalført
+          expr: sum(antall_fattet_vedtak_uten_journalforing{app="veilarbvedtaksstotte"}) > 0
+          for: 5m
+          annotations:
+            summary: "Det finnes fattet vedtak som ikke er journalført."
+            action: "veilarbvedtaksstotte: Undersøk om jobben som journalfører vedtak har stoppet."
+          labels:
+            namespace: obo
+            severity: critical
+
         - alert: Journalførte dokument er ikke distribuert
           expr: sum(antall_journalforte_vedtak_uten_dokumentbestilling{app="veilarbvedtaksstotte"}) > 0
           for: 5m

@@ -2,8 +2,9 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType;
-import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -25,13 +26,13 @@ public class MalTypeService {
         Hovedmal hovedmal = vedtak.getHovedmal();
 
         if (Innsatsgruppe.STANDARD_INNSATS.equals(innsatsgruppe) && Hovedmal.SKAFFE_ARBEID.equals(hovedmal)) {
-            RegistreringData registreringData = registreringClient.hentRegistreringData(fnr.get());
+            RegistreringResponseDto registreringData = registreringClient.hentRegistreringData(fnr.get());
 
             if (registreringData != null) {
-                RegistreringData.Profilering profilering = registreringData.registrering.profilering;
+                RegistreringsdataDto.Profilering profilering = registreringData.registrering.getProfilering();
 
                 // Sykmeldte brukere har ikke profilering
-                if (profilering != null && profilering.innsatsgruppe == RegistreringData.ProfilertInnsatsgruppe.STANDARD_INNSATS) {
+                if (profilering != null && profilering.getInnsatsgruppe() == RegistreringsdataDto.ProfilertInnsatsgruppe.STANDARD_INNSATS) {
                     return MalType.STANDARD_INNSATS_SKAFFE_ARBEID_PROFILERING;
                 }
             }

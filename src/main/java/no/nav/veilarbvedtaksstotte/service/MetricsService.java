@@ -7,12 +7,12 @@ import no.nav.common.metrics.Event;
 import no.nav.common.metrics.MetricsClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
-import no.nav.veilarbvedtaksstotte.client.registrering.RegistreringData;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
@@ -106,7 +106,7 @@ public class MetricsService {
         try {
             Fnr fnr = aktorOppslagClient.hentFnr(aktorId);
             List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId.get());
-            RegistreringData registreringData = registreringClient.hentRegistreringData(fnr.get());
+            RegistreringResponseDto registreringData = registreringClient.hentRegistreringData(fnr.get());
             Optional<ZonedDateTime> startDato = oppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
                     .map(OppfolgingPeriodeDTO::getStartDato);
 
@@ -115,7 +115,7 @@ public class MetricsService {
             }
 
             if (tellVedtakEtterDato(vedtakTilBruker, toLocalDateTime(startDato.get())) == 1) {
-                long registreringStart = localDateTimeToMillis(registreringData.registrering.opprettetDato);
+                long registreringStart = localDateTimeToMillis(registreringData.registrering.getOpprettetDato());
                 return localDateTimeToMillis(LocalDateTime.now()) - registreringStart;
             }
         } catch (Exception e) {

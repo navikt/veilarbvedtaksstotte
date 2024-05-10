@@ -1,0 +1,11 @@
+{
+  "sistOppdatert": "2024-04-10T11:07:55.337Z",
+  "svar": [
+    {
+      "spm": "Testspm",
+      "svar": "Svar jeg trenger hjelp",
+      "oppfolging": "SITUASJONSBESTEMT_INNSATS",
+      "dialogId": "dialog-123"
+    }
+  ]
+}
