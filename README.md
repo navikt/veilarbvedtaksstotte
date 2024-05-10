@@ -42,3 +42,7 @@ mvn test
 ## Journalføring detaljer
 
 Sjekk dokumentasjon [her](Journalforing.md)
+
+## Kode generert av GitHub Copilot
+
+Dette repoet bruker GitHub Copilot til å generere kode.
