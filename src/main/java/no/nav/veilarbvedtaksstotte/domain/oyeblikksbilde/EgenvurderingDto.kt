@@ -1,6 +1,6 @@
-package no.nav.veilarbvedtaksstotte.client.aiaBackend
+package no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde
 
-data class EgenvurderingData(
+data class EgenvurderingDto(
     val sistOppdatert: String? = null,
     val svar: List<Svar>? = null,
 ) {

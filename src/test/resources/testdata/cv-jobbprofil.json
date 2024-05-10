@@ -1,0 +1,127 @@
+{
+  "sistEndret": "2022-05-25T13:21:31.648643+02:00",
+  "synligForArbeidsgiver": false,
+  "sistEndretAvNav": false,
+  "sammendrag": "Jeg er utdannet helsefagarbeider. Brenner for faget, ønsker å jobbe med eldre.",
+  "arbeidserfaring": [],
+  "utdanning": [
+    {
+      "tittel": "Helsefag",
+      "utdanningsnivaa": "Videregående/yrkesskole",
+      "studiested": "Vollen vgs",
+      "beskrivelse": "Omsorgsarbeid",
+      "fraDato": "2018-08-01",
+      "tilDato": "2020-06-01"
+    }
+  ],
+  "fagdokumentasjoner": [
+    {
+      "tittel": "Fagbrev omsorgsarbeider",
+      "type": "SVENNEBREV_FAGBREV"
+    }
+  ],
+  "godkjenninger": [
+    {
+      "tittel": "Autorisasjon som helsefagarbeider",
+      "utsteder": "Helse Sør-øst",
+      "gjennomfortDato": "2020-08-24",
+      "utloperDato": null
+    }
+  ],
+  "annenErfaring": [
+    {
+      "rolle": "Styreleder sameie",
+      "beskrivelse": "2 år som styreleder i sameiet Lørenlunden, som har 85 leiligheter",
+      "fraDato": "2020-03-01",
+      "tilDato": "2022-03-01"
+    }
+  ],
+  "forerkort": [
+    {
+      "klasse": "B"
+    }
+  ],
+  "kurs": [],
+  "sertifikater": [],
+  "andreGodkjenninger": [],
+  "sprak": [
+    {
+      "sprak": "Engelsk",
+      "muntligNiva": "VELDIG_GODT",
+      "skriftligNiva": "VELDIG_GODT"
+    }
+  ],
+  "jobbprofil": {
+    "sistEndret": "2022-05-25T13:21:31.585187+02:00",
+    "onsketYrke": [
+      {
+        "tittel": "Omsorgsarbeider"
+      }
+    ],
+    "onsketArbeidssted": [
+      {
+        "stedsnavn": "Oslo"
+      },
+      {
+        "stedsnavn": "Asker"
+      },
+      {
+        "stedsnavn": "Bærum"
+      }
+    ],
+    "onsketAnsettelsesform": [
+      {
+        "tittel": "FAST"
+      },
+      {
+        "tittel": "VIKARIAT"
+      },
+      {
+        "tittel": "ENGASJEMENT"
+      }
+    ],
+    "onsketArbeidstidsordning": [
+      {
+        "tittel": "DAGTID"
+      },
+      {
+        "tittel": "KVELD"
+      },
+      {
+        "tittel": "NATT"
+      }
+    ],
+    "onsketArbeidsdagordning": [
+      {
+        "tittel": "UKEDAGER"
+      },
+      {
+        "tittel": "LOERDAG"
+      },
+      {
+        "tittel": "SOENDAG"
+      }
+    ],
+    "onsketArbeidsskiftordning": [
+      {
+        "tittel": "SKIFT"
+      },
+      {
+        "tittel": "VAKT"
+      },
+      {
+        "tittel": "TURNUS"
+      }
+    ],
+    "heltidDeltid": {
+      "heltid": true,
+      "deltid": false
+    },
+    "kompetanse": [
+      {
+        "tittel": "Helhetlig sykepleie"
+      }
+    ],
+    "oppstart": "ETTER_AVTALE"
+  }
+}

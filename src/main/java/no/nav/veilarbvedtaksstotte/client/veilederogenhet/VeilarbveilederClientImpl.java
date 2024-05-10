@@ -19,6 +19,8 @@ import org.springframework.http.HttpHeaders;
 
 import java.util.function.Supplier;
 
+import static no.nav.common.rest.client.RestUtils.createBearerToken;
+import static no.nav.common.rest.client.RestUtils.toJsonRequestBody;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 
 public class VeilarbveilederClientImpl implements VeilarbveilederClient {
@@ -29,12 +31,14 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
 
     private final AuthContextHolder authContextHolder;
     private final Supplier<String> userTokenProvider;
+    private final Supplier<String> machingToMachineTokenProvider;
 
-    public VeilarbveilederClientImpl(String veilarbveilederUrl, AuthContextHolder authContextHolder, Supplier<String> userTokenProvider) {
+    public VeilarbveilederClientImpl(String veilarbveilederUrl, AuthContextHolder authContextHolder, Supplier<String> userTokenProvider, Supplier<String> machingToMachineTokenProvider) {
         this.veilarbveilederUrl = veilarbveilederUrl;
         this.client = RestClient.baseClient();
         this.authContextHolder = authContextHolder;
         this.userTokenProvider = userTokenProvider;
+        this.machingToMachineTokenProvider = machingToMachineTokenProvider;
     }
 
     @Cacheable(CacheConfig.ENHET_NAVN_CACHE_NAME)
@@ -62,6 +66,21 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
             return RestUtils.parseJsonResponseOrThrow(response, Veileder.class);
+        }
+    }
+
+    @Cacheable(CacheConfig.VEILEDER_NAVN_CACHE_NAME)
+    @SneakyThrows
+    public String hentVeilederNavn(String veilederIdent) {
+        Request request = new Request.Builder()
+                .url(UrlUtils.joinPaths(veilarbveilederUrl, "/api/veileder/hent-navn"))
+                .header(HttpHeaders.AUTHORIZATION, createBearerToken(machingToMachineTokenProvider.get()))
+                .post(toJsonRequestBody(veilederIdent))
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestUtils.throwIfNotSuccessful(response);
+            return response.body().string();
         }
     }
 

@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -31,6 +32,7 @@ public class Vedtak {
     String dokumentInfoId;
     String dokumentbestillingId;
     BeslutterProsessStatus beslutterProsessStatus;
+    UUID referanse;
 
     @JsonIgnore
     boolean sender;
@@ -121,5 +123,9 @@ public class Vedtak {
 
     public boolean isSender() {
         return this.sender;
+    }
+
+    public UUID getReferanse(){
+        return this.referanse;
     }
 }

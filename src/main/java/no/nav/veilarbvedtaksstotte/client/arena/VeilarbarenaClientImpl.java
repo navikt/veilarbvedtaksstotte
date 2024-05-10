@@ -7,6 +7,7 @@ import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
+import no.nav.veilarbvedtaksstotte.client.arena.request.VeilarbarenaOppfolgingRequest;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -21,6 +22,7 @@ import java.util.function.Supplier;
 
 import static no.nav.common.rest.client.RestUtils.parseJsonResponseOrThrow;
 import static no.nav.common.rest.client.RestUtils.toJsonRequestBody;
+import static no.nav.common.utils.AuthUtils.bearerToken;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -30,19 +32,19 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
     private final OkHttpClient client;
 
-    private final Supplier<String> userTokenProvider;
+    private final Supplier<String> machineToMachineToken;
 
-    public VeilarbarenaClientImpl(String veilarbarenaUrl, Supplier<String> userTokenProvider) {
+    public VeilarbarenaClientImpl(String veilarbarenaUrl, Supplier<String> machineToMachineToken) {
         this.veilarbarenaUrl = veilarbarenaUrl;
         this.client = RestClient.baseClient();
-        this.userTokenProvider = userTokenProvider;
+        this.machineToMachineToken = machineToMachineToken;
     }
 
     @Cacheable(CacheConfig.ARENA_BRUKER_CACHE_NAME)
     public Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarbarenaUrl, "/api/v2/hent-oppfolgingsbruker"))
-                .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
+                .url(joinPaths(veilarbarenaUrl, "/api/v3/hent-oppfolgingsbruker"))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineToken.get()))
                 .post(toJsonRequestBody(new VeilarbarenaOppfolgingRequest(fnr)))
                 .build();
 
@@ -66,7 +68,7 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
     public Optional<String> oppfolgingssak(Fnr fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbarenaUrl, "/api/v2/hent-oppfolgingssak"))
-                .header(HttpHeaders.AUTHORIZATION, userTokenProvider.get())
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineToken.get()))
                 .post(toJsonRequestBody(new VeilarbarenaOppfolgingRequest(fnr)))
                 .build();
 

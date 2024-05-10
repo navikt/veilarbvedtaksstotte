@@ -2,7 +2,10 @@ package no.nav.veilarbvedtaksstotte.controller;
 
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeCvDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeRegistreringDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
@@ -37,15 +40,41 @@ public class VedtakController {
                 .body(vedtakPdf);
     }
 
+    @GetMapping(value = "{vedtakId}/{oyeblikksbildeType}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> hentVedtakOyeblikksCVPdf(@PathVariable("vedtakId") long vedtakId, @PathVariable("oyeblikksbildeType") String oyeblikksbildeInputType) {
+        OyeblikksbildeType oyeblikksbildeType = OyeblikksbildeType.valueOf(oyeblikksbildeInputType);
+        String dokumentId = oyeblikksbildeService.hentJournalfortDokumentId(vedtakId, oyeblikksbildeType);
+
+        if (dokumentId == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        byte[] oyeblikksbildePdf = vedtakService.hentOyeblikksbildePdf(vedtakId, dokumentId);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "filename=vedtaksbrev.pdf")
+                .body(oyeblikksbildePdf);
+    }
+
     @Deprecated(forRemoval = true)
     @GetMapping("/fattet")
     public List<Vedtak> hentFattedeVedtak(@RequestParam("fnr") Fnr fnr) {
         return vedtakService.hentFattedeVedtak(fnr);
     }
 
-    @GetMapping("{vedtakId}/oyeblikksbilde")
-    public List<Oyeblikksbilde> hentOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        return oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
+
+    @GetMapping("{vedtakId}/oyeblikksbilde-cv")
+    public OyeblikksbildeCvDto hentCVOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
+        return oyeblikksbildeService.hentCVOyeblikksbildeForVedtak(vedtakId);
+    }
+
+    @GetMapping("{vedtakId}/oyeblikksbilde-registrering")
+    public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
+        return oyeblikksbildeService.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
+    }
+
+    @GetMapping("{vedtakId}/oyeblikksbilde-egenvurdering")
+    public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
+        return oyeblikksbildeService.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
     }
 
     @Deprecated(forRemoval = true)

@@ -1,9 +1,17 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.Oyeblikksbilde;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
+import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
+import no.nav.veilarbvedtaksstotte.utils.TestUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,14 +20,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import java.util.List;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 public class OyeblikksbildeRepositoryTest extends DatabaseTest {
-
-    private final static String JSON_DATA = "{ \"data\": 42 }";
-    private final static String JSON_DATA2 = "{ \"data\": 123 }";
 
     private static OyeblikksbildeRepository oyeblikksbildeRepository;
     private static VedtaksstotteRepository vedtaksstotteRepository;
@@ -37,98 +42,79 @@ public class OyeblikksbildeRepositoryTest extends DatabaseTest {
 
     @Test
     public void testLagOyeblikksbildeFeilerHvisIkkeVedtakFinnes() {
-        Oyeblikksbilde oyeblikksbilde = new Oyeblikksbilde(
-                VEDTAK_ID_THAT_DOES_NOT_EXIST,
-                OyeblikksbildeType.REGISTRERINGSINFO,
-                JSON_DATA
-        );
+        CvDto cvDto = new CvDto.CvMedError(CvErrorStatus.IKKE_DELT);
 
-        assertThrows(DataIntegrityViolationException.class, () -> oyeblikksbildeRepository.upsertOyeblikksbilde(oyeblikksbilde));
+        assertThrowsExactly(DataIntegrityViolationException.class, () -> oyeblikksbildeRepository.upsertCVOyeblikksbilde(VEDTAK_ID_THAT_DOES_NOT_EXIST, cvDto));
     }
 
     @Test
-    public void testLagOgHentOyeblikksbilde() {
+    public void testLagOgHentOyeblikksbilde() throws JsonProcessingException {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
-        Oyeblikksbilde oyeblikksbilde = new Oyeblikksbilde(
-                vedtakId,
-                OyeblikksbildeType.REGISTRERINGSINFO,
-                JSON_DATA
-        );
+        String cvJobbprofilJson = TestUtils.readTestResourceFile("testdata/cv-jobbprofil.json");
+        CvInnhold cvInnhold = JsonUtils.fromJson(cvJobbprofilJson, CvInnhold.class);
 
-        oyeblikksbildeRepository.upsertOyeblikksbilde(oyeblikksbilde);
+        oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, new CvDto.CVMedInnhold(cvInnhold));
 
-        List<Oyeblikksbilde> hentetOyeblikksbilder = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
+        List<OyeblikksbildeDto> hentetOyeblikksbilder = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
 
-        assertTrue(hentetOyeblikksbilder.size() > 0);
-        assertEquals(oyeblikksbilde.getJson(), hentetOyeblikksbilder.get(0).getJson());
+        Assertions.assertFalse(hentetOyeblikksbilder.isEmpty());
+
+        CvInnhold cvInnholdFraDB = JsonUtils.fromJson(hentetOyeblikksbilder.get(0).getJson(), CvInnhold.class);
+        assertEquals(cvInnhold, cvInnholdFraDB);
     }
 
     @Test
-    public void testLagFlereOyblikksbildeMedSammeType() {
+    public void testOppdateringOyblikksbilde() throws JsonProcessingException {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
-        Oyeblikksbilde oyeblikksbildeRegInfoGammel = new Oyeblikksbilde(
-                vedtakId,
-                OyeblikksbildeType.REGISTRERINGSINFO,
-                JSON_DATA
-        );
+        RegistreringResponseDto registreringResponseDto = JsonUtils.fromJson(getRegistreringData(), RegistreringResponseDto.class);
 
-        Oyeblikksbilde oyeblikksbildeCV = new Oyeblikksbilde(
-                vedtakId,
-                OyeblikksbildeType.CV_OG_JOBBPROFIL,
-                JSON_DATA
-        );
+        oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, new CvDto.CvMedError(CvErrorStatus.IKKE_DELT));
+        oyeblikksbildeRepository.upsertRegistreringOyeblikksbilde(vedtakId, registreringResponseDto);
 
-        Oyeblikksbilde oyeblikksbildeRegInfoNy = new Oyeblikksbilde(
-                vedtakId,
-                OyeblikksbildeType.REGISTRERINGSINFO,
-                JSON_DATA2
-        );
+        List<OyeblikksbildeDto> hentetOyeblikksbilderFørOppdatering = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
 
-        List.of(oyeblikksbildeRegInfoGammel, oyeblikksbildeCV).forEach(oyeblikksbildeRepository::upsertOyeblikksbilde);
-        oyeblikksbildeRepository.upsertOyeblikksbilde(oyeblikksbildeRegInfoNy);
+        assertEquals(2, hentetOyeblikksbilderFørOppdatering.size());
 
-        List<Oyeblikksbilde> hentetOyeblikksbilder = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
+        String cvJobbprofilJson = TestUtils.readTestResourceFile("testdata/cv-jobbprofil.json");
+        CvInnhold cvInnhold = JsonUtils.fromJson(cvJobbprofilJson, CvInnhold.class);
+        oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, new CvDto.CVMedInnhold(cvInnhold));
 
-        assertEquals(2, hentetOyeblikksbilder.size());
 
-        assertEquals(hentetOyeblikksbilder.stream()
+        List<OyeblikksbildeDto> hentetOyeblikksbilderEtterOppdatering = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
+        String jsonRegistreringsInfoFraDb = hentetOyeblikksbilderEtterOppdatering.stream()
                 .filter(o -> o.getOyeblikksbildeType() == OyeblikksbildeType.REGISTRERINGSINFO)
-                .map(Oyeblikksbilde::getJson)
-                .findFirst().orElse(""), JSON_DATA2);
+                .map(OyeblikksbildeDto::getJson)
+                .findFirst().orElse("");
+        RegistreringResponseDto cvMedInnholdregistreringResponseDB = JsonUtils.fromJson(jsonRegistreringsInfoFraDb, RegistreringResponseDto.class);
+        assertEquals(cvMedInnholdregistreringResponseDB, registreringResponseDto);
 
-        assertEquals(hentetOyeblikksbilder.stream()
+
+        String jsonCVFraDB = hentetOyeblikksbilderEtterOppdatering.stream()
                 .filter(o -> o.getOyeblikksbildeType() == OyeblikksbildeType.CV_OG_JOBBPROFIL)
-                .map(Oyeblikksbilde::getJson)
-                .findFirst().orElse(""), JSON_DATA);
+                .map(OyeblikksbildeDto::getJson)
+                .findFirst().orElse("");
+        CvInnhold cvMedInnholdFraDB = JsonUtils.fromJson(jsonCVFraDB, CvInnhold.class);
+        assertEquals(cvMedInnholdFraDB, cvInnhold);
     }
 
     @Test
     public void testSlettOyeblikksbilde() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
-
-        Oyeblikksbilde oyeblikksbilde1 = new Oyeblikksbilde(
-                vedtakId,
-                OyeblikksbildeType.REGISTRERINGSINFO,
-                JSON_DATA
-        );
-
-        Oyeblikksbilde oyeblikksbilde2 = new Oyeblikksbilde(
-                vedtakId,
-                OyeblikksbildeType.CV_OG_JOBBPROFIL,
-                JSON_DATA
-        );
-
-        List<Oyeblikksbilde> oyeblikksbilder = List.of(oyeblikksbilde1, oyeblikksbilde2);
-        oyeblikksbilder.forEach(oyeblikksbildeRepository::upsertOyeblikksbilde);
+        oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, new CvDto.CvMedError(CvErrorStatus.IKKE_DELT));
 
         oyeblikksbildeRepository.slettOyeblikksbilder(vedtakId);
 
-        assertTrue(oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId).isEmpty());
+        Assertions.assertTrue(oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId).isEmpty());
     }
+
+    private static String getRegistreringData() {
+        return readTestResourceFile("testdata/registrering.json");
+    }
+
 
 }

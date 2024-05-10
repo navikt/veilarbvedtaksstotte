@@ -1,0 +1,120 @@
+{
+  "sistEndret": "2020-10-09T08:50:52.880515+02:00",
+  "synligForArbeidsgiver": false,
+  "sistEndretAvNav": false,
+  "sammendrag": "Jeg har mye erfaring",
+  "arbeidserfaring": [
+    {
+      "tittel": "Bilskadereparatør",
+      "arbeidsgiver": "Sjokkerende Elektriker    ",
+      "sted": null,
+      "beskrivelse": null,
+      "fraDato": "2000-09-05",
+      "tilDato": null
+    }
+  ],
+  "utdanning": [
+    {
+      "tittel": "Sykepleier",
+      "studiested": "OsloMet",
+      "beskrivelse": "Sykepleier",
+      "fraDato": "2002-08-01",
+      "tilDato": "2005-06-02"
+    }
+  ],
+  "fagdokumentasjoner": [
+    {
+      "tittel": "Fagbrev kokk",
+      "type": "SVENNEBREV_FAGBREV"
+    }
+  ],
+  "godkjenninger": [
+    {
+      "tittel": "Autorisasjon som allmennlege",
+      "utsteder": "Med Norge AS",
+      "gjennomfortDato": "2004-09-01",
+      "utloperDato": "2037-06-03"
+    }
+  ],
+  "annenErfaring": [
+    {
+      "rolle": "Fotballtrener",
+      "beskrivelse": null,
+      "fraDato": "2012-05-02",
+      "tilDato": null
+    }
+  ],
+  "forerkort": [
+    {
+      "klasse": "C1",
+      "fraDato": "2019-01-01",
+      "utloperDato": "2029-01-01"
+    }
+  ],
+  "kurs": [
+    {
+      "tittel": "Førstehjelpskurs",
+      "arrangor": "Røde kors",
+      "fraDato": "2002-01-04",
+      "varighet": {
+        "varighet": 50,
+        "tidsenhet": "TIME"
+      }
+    }
+  ],
+  "sertifikater": [
+    {
+      "tittel": "Sveisesertifikat Mag",
+      "utsteder": "Heisveis AS",
+      "gjennomfortDato": "2004-02-02",
+      "utloperDato": "2027-05-01"
+    }
+  ],
+  "andreGodkjenninger": [
+    {
+      "tittel": "Sveisesertifikat Mag",
+      "utsteder": "Heisveis AS",
+      "gjennomfortDato": "2004-02-01",
+      "utloperDato": "2027-05-02"
+    }
+  ],
+  "sprak": [
+    {
+      "sprak": "Norsk",
+      "muntligNiva": "FOERSTESPRAAK",
+      "skriftligNiva": "FOERSTESPRAAK"
+    }
+  ],
+  "jobbprofil": {
+    "sistEndret": "2020-10-09T08:41:49.544431+02:00",
+    "onsketYrke": [
+      {
+        "tittel": "Sykepleier"
+      }
+    ],
+    "onsketArbeidssted": [
+      {
+        "stedsnavn": "Oslo"
+      }
+    ],
+    "onsketAnsettelsesform": [
+      {
+        "tittel": "Fast"
+      }
+    ],
+    "onsketArbeidstidsordning": [
+      {
+        "tittel": "Skift"
+      }
+    ],
+    "heltidDeltid": {
+      "heltid": true,
+      "deltid": false
+    },
+    "kompetanse": [
+      {
+        "tittel": "Avdelingssykepleier"
+      }
+    ]
+  }
+}

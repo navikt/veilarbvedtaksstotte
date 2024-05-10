@@ -16,6 +16,7 @@ public class CacheConfig {
     public static final String ARENA_BRUKER_CACHE_NAME = "arena-bruker";
     public static final String VEILEDER_ENHETER_CACHE_NAME = "veileder-enheter";
     public static final String VEILEDER_CACHE_NAME = "veileder";
+    public static final String VEILEDER_NAVN_CACHE_NAME = "veileder-navn";
     public static final String ENHET_NAVN_CACHE_NAME = "enhet-navn";
     public static final String REGISTRERING_CACHE_NAME = "registrering";
     public static final String GJELDENDE_OPPFOLGINGPERIODE_CACHE_NAME = "gjeldende-oppfolgingperiode";
@@ -42,6 +43,14 @@ public class CacheConfig {
     @Bean
     public Cache veilederCache() {
         return new CaffeineCache(VEILEDER_CACHE_NAME, Caffeine.newBuilder()
+                .expireAfterWrite(1, TimeUnit.DAYS)
+                .maximumSize(10000)
+                .build());
+    }
+
+    @Bean
+    public Cache veilederNavnCache() {
+        return new CaffeineCache(VEILEDER_NAVN_CACHE_NAME, Caffeine.newBuilder()
                 .expireAfterWrite(1, TimeUnit.DAYS)
                 .maximumSize(10000)
                 .build());

@@ -5,6 +5,10 @@ import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.utils.UrlUtils.joinPaths
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.springframework.http.HttpStatus
@@ -17,9 +21,9 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
     override fun genererPdf(brevdata: PdfClient.Brevdata): ByteArray {
 
         val request = Request.Builder()
-                .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/vedtak14a"))
-                .post(RestUtils.toJsonRequestBody(brevdata))
-                .build()
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/vedtak14a"))
+            .post(RestUtils.toJsonRequestBody(brevdata))
+            .build()
 
         try {
             client.newCall(request).execute().use { response ->
@@ -29,11 +33,83 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
                     throw IllegalStateException("Generering av brev feilet, tom respons.")
             }
         } catch (e: Exception) {
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Feil ved kall mot " + request.url.toString(), e)
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString(),
+                e
+            )
+        }
+    }
+
+    override fun genererOyeblikksbildeCvPdf(
+        cvOyeblikksbildeData: CvInnhold,
+    ): ByteArray {
+        val request = Request.Builder()
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.CV_OG_JOBBPROFIL.templateName))
+            .post(RestUtils.toJsonRequestBody(cvOyeblikksbildeData))
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                RestUtils.throwIfNotSuccessful(response)
+                val body = response.body
+                return if (body != null) body.bytes() else
+                    throw IllegalStateException("Generering av øyeblikkbilde feilet, tøm respons.")
+            }
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString(),
+                e
+            )
+        }
+    }
+
+    override fun genererOyeblikksbildeRegistreringPdf(registreringOyeblikksbildeData: RegistreringResponseDto): ByteArray {
+        val request = Request.Builder()
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.REGISTRERINGSINFO.templateName))
+            .post(RestUtils.toJsonRequestBody(registreringOyeblikksbildeData))
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                RestUtils.throwIfNotSuccessful(response)
+                val body = response.body
+                return if (body != null) body.bytes() else
+                    throw IllegalStateException("Generering av øyeblikkbilde feilet, tøm respons.")
+            }
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString(),
+                e
+            )
+        }
+    }
+
+    override fun genererOyeblikksbildeEgenVurderingPdf(egenvurderingOyeblikksbildeData: EgenvurderingDto): ByteArray {
+        val request = Request.Builder()
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.EGENVURDERING.templateName))
+            .post(RestUtils.toJsonRequestBody(egenvurderingOyeblikksbildeData))
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                RestUtils.throwIfNotSuccessful(response)
+                val body = response.body
+                return if (body != null) body.bytes() else
+                    throw IllegalStateException("Generering av øyeblikkbilde feilet, tøm respons.")
+            }
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString(),
+                e
+            )
         }
     }
 
     override fun checkHealth(): HealthCheckResult? {
-        return HealthCheckUtils.pingUrl(joinPaths(pdfGenUrl, "is_alive"), client)
+        return HealthCheckUtils.pingUrl(joinPaths(pdfGenUrl, "/is_alive"), client)
     }
 }

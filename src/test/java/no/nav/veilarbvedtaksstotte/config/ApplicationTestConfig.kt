@@ -5,11 +5,11 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.getunleash.DefaultUnleash
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import jakarta.annotation.PostConstruct
 import no.nav.common.abac.AbacClient
 import no.nav.common.abac.Pep
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
-import no.nav.common.health.HealthCheckResult
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.metrics.MetricsClient
@@ -22,6 +22,7 @@ import no.nav.veilarbvedtaksstotte.mock.AbacClientMock
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PepMock
 import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
+import no.nav.veilarbvedtaksstotte.service.PdfService
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
 import no.nav.veilarbvedtaksstotte.utils.PostgresContainer
 import no.nav.veilarbvedtaksstotte.utils.SingletonKafkaContainer
@@ -41,7 +42,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.testcontainers.containers.KafkaContainer
-import jakarta.annotation.PostConstruct
 import javax.sql.DataSource
 
 @Configuration
@@ -55,7 +55,8 @@ import javax.sql.DataSource
     HealthConfig::class,
     KafkaProducerConfig::class,
     KafkaConsumerConfig::class,
-    DokumentdistribusjonMeterBinder::class
+    DokumentdistribusjonMeterBinder::class,
+    PdfService::class
 )
 class ApplicationTestConfig {
     @Bean
