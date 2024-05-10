@@ -43,19 +43,36 @@ public class OyeblikksbildeRepository {
         return db.query(sql, OyeblikksbildeRepository::mapOyeblikksbilde, vedtakId);
     }
 
-    public OyeblikksbildeCvDto hentCVOyeblikksbildeForVedtak(long vedtakId) {
-        String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
-        return db.queryForObject(sql, OyeblikksbildeRepository::mapCvOyeblikksbilde, vedtakId, OyeblikksbildeType.CV_OG_JOBBPROFIL.name());
+    public Optional<OyeblikksbildeCvDto> hentCVOyeblikksbildeForVedtak(long vedtakId) {
+        try {
+            String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
+            return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapCvOyeblikksbilde, vedtakId, OyeblikksbildeType.CV_OG_JOBBPROFIL.name()));
+        }catch (Exception e){
+            log.warn("Kan ikke hente oyeblikksbilde " + e, e);
+            return Optional.empty();
+        }
     }
 
-    public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbildeForVedtak(long vedtakId) {
-        String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
-        return db.queryForObject(sql, OyeblikksbildeRepository::mapRegistreringOyeblikksbilde, vedtakId, OyeblikksbildeType.REGISTRERINGSINFO.name());
+    public Optional<OyeblikksbildeRegistreringDto> hentRegistreringOyeblikksbildeForVedtak(long vedtakId) {
+        try {
+            String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
+            return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapRegistreringOyeblikksbilde, vedtakId, OyeblikksbildeType.REGISTRERINGSINFO.name()));
+        }
+        catch (Exception e){
+            log.warn("Kan ikke hente oyeblikksbilde " + e, e);
+            return Optional.empty();
+        }
     }
 
-    public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
-        String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
-        return db.queryForObject(sql, OyeblikksbildeRepository::mapEgenvurderingOyeblikksbilde, vedtakId, OyeblikksbildeType.EGENVURDERING.name());
+    public Optional<OyeblikksbildeEgenvurderingDto> hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
+        try {
+            String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
+            return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapEgenvurderingOyeblikksbilde, vedtakId, OyeblikksbildeType.EGENVURDERING.name()));
+        }
+        catch (Exception e){
+            log.warn("Kan ikke hente oyeblikksbilde " + e, e);
+            return Optional.empty();
+        }
     }
 
     public void slettOyeblikksbilder(long vedtakId) {
