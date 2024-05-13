@@ -33,7 +33,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
     override fun hentPersonNavn(fnr: String): PersonNavn {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-navn"))
-            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .post(
                 PersonRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
                     .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
