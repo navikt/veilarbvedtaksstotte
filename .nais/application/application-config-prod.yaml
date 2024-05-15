@@ -100,6 +100,12 @@ spec:
           permissions:
             roles:
               - "siste-14a-vedtak"
+        - application: veilarbdetaljerfs
+          namespace: obo
+          cluster: prod-gcp
+          permissions:
+            roles:
+              - "siste-14a-vedtak"
     outbound:
       rules:
         - application: aia-backend
