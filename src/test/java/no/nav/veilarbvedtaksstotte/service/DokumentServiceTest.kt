@@ -13,6 +13,8 @@ import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClientImpl
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -65,6 +67,8 @@ class DokumentServiceTest {
     lateinit var oyeblikksbildeService: OyeblikksbildeService
     lateinit var dokumentService: DokumentService
     lateinit var pdfService: PdfService
+    lateinit var oppslagArbeidssoekerregisteretClientImpl: OppslagArbeidssoekerregisteretClientImpl
+    lateinit var arbeidssoekerRegisteretService: ArbeidssoekerRegisteretService
 
     val målform = Målform.NB
     val veilederNavn = "Navn Veileder"
@@ -206,6 +210,8 @@ class DokumentServiceTest {
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl) { "" }
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""}, {""})
+        oppslagArbeidssoekerregisteretClientImpl = OppslagArbeidssoekerregisteretClientImpl(wiremockUrl, {""})
+        arbeidssoekerRegisteretService = ArbeidssoekerRegisteretService(oppslagArbeidssoekerregisteretClientImpl)
         veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), {""}, {""})
         pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)
@@ -222,7 +228,8 @@ class DokumentServiceTest {
             vedtaksstotteRepository,
             veilarbpersonClient,
             veilarbregistreringClient,
-            aiaBackendClient
+            aiaBackendClient,
+            arbeidssoekerRegisteretService
         )
 
         pdfService = PdfService(

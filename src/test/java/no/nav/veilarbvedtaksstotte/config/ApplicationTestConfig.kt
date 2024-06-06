@@ -16,6 +16,7 @@ import no.nav.common.metrics.MetricsClient
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.common.utils.Credentials
 import no.nav.poao_tilgang.client.PoaoTilgangClient
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
 import no.nav.veilarbvedtaksstotte.mock.AbacClientMock
@@ -56,7 +57,8 @@ import javax.sql.DataSource
     KafkaProducerConfig::class,
     KafkaConsumerConfig::class,
     DokumentdistribusjonMeterBinder::class,
-    PdfService::class
+    PdfService::class,
+    ArbeidssoekerRegisteretService::class
 )
 class ApplicationTestConfig {
     @Bean
