@@ -149,7 +149,7 @@ public class OyeblikksbildeService {
         final EndringIRegistreringsdataResponse endringIRegistreringsdata = aiaBackendClient.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(fnr));
         final RegistreringResponseDto oppdaterteRegistreringsData = oppdaterRegistreringsdataHvisNyeEndringer(registreringData, endringIRegistreringsdata);
 
-        if (erSykemeldt(opplysningerOmArbeidssoekerMedProfilering, oppdaterteRegistreringsData)){
+        if (oppdaterteRegistreringsData != null && erSykemeldt(opplysningerOmArbeidssoekerMedProfilering, oppdaterteRegistreringsData)){
             oyeblikksbildeRepository.upsertRegistreringOyeblikksbilde(vedtakId, oppdaterteRegistreringsData);
         }else{
             oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfilering);
