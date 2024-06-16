@@ -160,6 +160,12 @@ public class ClientTestConfig {
 
             @NotNull
             @Override
+            public byte[] genererOyeblikksbildeArbeidssokerRegistretPdf(@NotNull OpplysningerOmArbeidssoekerMedProfilering registreringOyeblikksbildeData) {
+                return new byte[0];
+            }
+
+            @NotNull
+            @Override
             public byte[] genererOyeblikksbildeEgenVurderingPdf(@NotNull EgenvurderingDto egenvurderingOyeblikksbildeData) {
                 return new byte[0];
             }

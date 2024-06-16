@@ -91,6 +91,7 @@ class DokumentServiceTest {
     val forventetBrev = "brev".toByteArray()
     val registreringPdf = "registering".toByteArray()
     val behovsvurderingPdf = "behovsvurdering".toByteArray()
+    val arbeidssoekerRegisteretPdf = "arbeidssokerRegistret".toByteArray()
     val cvPdf = "CV".toByteArray()
 
     val produserDokumentDTO = ProduserDokumentDTO(
@@ -417,6 +418,7 @@ class DokumentServiceTest {
                     oyeblikksbildeRegistreringDokument = registreringPdf,
                     oyeblikksbildeCVDokument = cvPdf,
                     oyeblikksbildeBehovsvurderingDokument = behovsvurderingPdf,
+                    oyeblikksbildeArbeidssokerRegistretDokument = arbeidssoekerRegisteretPdf,
                     referanse = eksternJournalpostReferanse
                 )
             })
