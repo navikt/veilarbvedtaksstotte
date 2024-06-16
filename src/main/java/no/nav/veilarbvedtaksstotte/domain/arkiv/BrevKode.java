@@ -8,14 +8,14 @@ public enum BrevKode {
     CV_OG_JOBBPROFIL,
     REGISTRERINGSINFO,
     EGENVURDERING,
-    ARBEIDSSOKKERREGISTRET;
+    ARBEIDSSOKERREGISTRET;
 
     public static BrevKode of(OyeblikksbildeType type) {
         return switch (type) {
             case REGISTRERINGSINFO -> BrevKode.REGISTRERINGSINFO;
             case CV_OG_JOBBPROFIL -> BrevKode.CV_OG_JOBBPROFIL;
             case EGENVURDERING -> BrevKode.EGENVURDERING;
-            case ARBEIDSSOKERREGISTRET -> BrevKode.ARBEIDSSOKKERREGISTRET;
+            case ARBEIDSSOKERREGISTRET -> BrevKode.ARBEIDSSOKERREGISTRET;
         };
     }
     

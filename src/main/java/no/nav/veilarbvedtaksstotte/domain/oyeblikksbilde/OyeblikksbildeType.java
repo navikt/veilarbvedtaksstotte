@@ -19,7 +19,7 @@ public enum OyeblikksbildeType {
             case REGISTRERINGSINFO -> OyeblikksbildeType.REGISTRERINGSINFO;
             case CV_OG_JOBBPROFIL -> OyeblikksbildeType.CV_OG_JOBBPROFIL;
             case EGENVURDERING -> OyeblikksbildeType.EGENVURDERING;
-            case ARBEIDSSOKKERREGISTRET -> OyeblikksbildeType.ARBEIDSSOKERREGISTRET;
+            case ARBEIDSSOKERREGISTRET -> OyeblikksbildeType.ARBEIDSSOKERREGISTRET;
         };
     }
 
