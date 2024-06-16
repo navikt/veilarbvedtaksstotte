@@ -65,10 +65,20 @@ class DokumentService(
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.REGISTRERINGSINFO }
         val cvData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.CV_OG_JOBBPROFIL }
+        val arbeidssokerRegistretData =
+            oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.ARBEIDSSOKERREGISTRET }
 
         val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json)
-        val registeringPdf = pdfService.produserRegisteringPdf(registreringData?.json)
         val cvPDF = pdfService.produserCVPdf(cvData?.json)
+
+        var arbeidssokerRegistretPdf: Optional<ByteArray> = Optional.empty();
+        var registeringPdf: Optional<ByteArray> = Optional.empty();
+
+        if (arbeidssokerRegistretData?.json != null){
+            arbeidssokerRegistretPdf = pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData.json)
+        }else if (registreringData?.json != null){
+            registeringPdf = pdfService.produserRegisteringPdf(registreringData.json)
+        }
 
         return journalforDokument(
             tittel = tittel,
@@ -80,6 +90,7 @@ class DokumentService(
             oyeblikksbildeRegistreringDokument = registeringPdf.getOrElse { null },
             oyeblikksbildeBehovsvurderingDokument = behovsVurderingPdf.getOrElse { null },
             oyeblikksbildeCVDokument = cvPDF.getOrElse { null },
+            oyeblikksbildeArbeidssokerRegistretDokument = arbeidssokerRegistretPdf.getOrElse { null },
             referanse = referanse
         )
     }
@@ -95,6 +106,7 @@ class DokumentService(
         oyeblikksbildeRegistreringDokument: ByteArray?,
         oyeblikksbildeBehovsvurderingDokument: ByteArray?,
         oyeblikksbildeCVDokument: ByteArray?,
+        oyeblikksbildeArbeidssokerRegistretDokument: ByteArray?,
         referanse: UUID
     ): OpprettetJournalpostDTO {
 
@@ -118,6 +130,20 @@ class DokumentService(
                     dokumentvarianter = listOf(
                         OpprettJournalpostDTO.DokumentVariant(
                             "PDFA", fysiskDokument = oyeblikksbildeRegistreringDokument, variantformat = "ARKIV"
+                        )
+                    )
+                )
+            )
+        }
+
+        if (oyeblikksbildeArbeidssokerRegistretDokument != null){
+            dokumenterList.add(
+                OpprettJournalpostDTO.Dokument(
+                    tittel = OyeblikksbildePdfTemplate.ARBEIDSSOKERREGISTRET.fileName,
+                    brevkode = BrevKode.of(OyeblikksbildeType.ARBEIDSSOKERREGISTRET).name,
+                    dokumentvarianter = listOf(
+                        OpprettJournalpostDTO.DokumentVariant(
+                            "PDFA", fysiskDokument = oyeblikksbildeArbeidssokerRegistretDokument, variantformat = "ARKIV"
                         )
                     )
                 )
