@@ -5,7 +5,8 @@ import java.util.*
 
 data class OpplysningerOmArbeidssoekerMedProfilering(
     val opplysningerOmArbeidssoeker: OpplysningerOmArbeidssoekerResponse? = null,
-    val profilering: ProfileringResponse ? = null
+    val profilering: ProfileringResponse ? = null,
+    val arbeidssoekerperiodeStartet: ZonedDateTime? = null
 )
 
 // Opplysninger om arbeidssøker typer
