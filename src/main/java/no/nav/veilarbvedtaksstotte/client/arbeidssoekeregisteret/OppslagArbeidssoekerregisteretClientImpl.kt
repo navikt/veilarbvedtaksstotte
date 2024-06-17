@@ -26,7 +26,7 @@ open class OppslagArbeidssoekerregisteretClientImpl(
         return HealthCheckUtils.pingUrl(UrlUtils.joinPaths(url, "/internal/isAlive"), client)
     }
 
-    override fun hentSisteOpplysningerOmArbeidssoekerMedProfilering(fnr: Fnr): OpplysningerOmArbeidssoekerMedProfilering {
+    override fun hentSisteOpplysningerOmArbeidssoekerMedProfilering(fnr: Fnr): OpplysningerOmArbeidssoekerMedProfilering? {
         val request: Request = Request.Builder()
             .url(UrlUtils.joinPaths(url, "/api/v3/person/hent-siste-opplysninger-om-arbeidssoeker-med-profilering"))
             .header(HttpHeaders.AUTHORIZATION, "Bearer ${machineToMachinetokenSupplier.get()}")
@@ -36,6 +36,10 @@ open class OppslagArbeidssoekerregisteretClientImpl(
 
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
+
+            if (response.code == 404 || response.code == 204) {
+                return null
+            }
 
             return response.deserializeJsonOrThrow()
         }
