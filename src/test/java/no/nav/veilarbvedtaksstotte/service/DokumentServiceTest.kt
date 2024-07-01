@@ -13,6 +13,8 @@ import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClientImpl
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -39,7 +41,6 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponseForPost
 import no.nav.veilarbvedtaksstotte.utils.toJson
-import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -65,6 +66,8 @@ class DokumentServiceTest {
     lateinit var oyeblikksbildeService: OyeblikksbildeService
     lateinit var dokumentService: DokumentService
     lateinit var pdfService: PdfService
+    lateinit var oppslagArbeidssoekerregisteretClientImpl: OppslagArbeidssoekerregisteretClientImpl
+    lateinit var arbeidssoekerRegisteretService: ArbeidssoekerRegisteretService
 
     val målform = Målform.NB
     val veilederNavn = "Navn Veileder"
@@ -87,6 +90,7 @@ class DokumentServiceTest {
     val forventetBrev = "brev".toByteArray()
     val registreringPdf = "registering".toByteArray()
     val behovsvurderingPdf = "behovsvurdering".toByteArray()
+    val arbeidssoekerRegisteretPdf = "arbeidssokerRegistret".toByteArray()
     val cvPdf = "CV".toByteArray()
 
     val produserDokumentDTO = ProduserDokumentDTO(
@@ -153,6 +157,17 @@ class DokumentServiceTest {
                       ]
                     },
                     {
+                      "tittel": "Svarene dine fra da du registrerte deg",
+                      "brevkode": "ARBEIDSSOKERREGISTRET",
+                      "dokumentvarianter": [
+                        {
+                          "filtype": "PDFA",
+                          "fysiskDokument": "${Base64.encode(arbeidssoekerRegisteretPdf)}",
+                          "variantformat": "ARKIV"
+                        }
+                      ]
+                    },
+                    {
                       "tittel": "CV-en/jobbønskene dine på nav.no",
                       "brevkode": "CV_OG_JOBBPROFIL",
                       "dokumentvarianter": [
@@ -206,6 +221,8 @@ class DokumentServiceTest {
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
         veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl) { "" }
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""}, {""})
+        oppslagArbeidssoekerregisteretClientImpl = OppslagArbeidssoekerregisteretClientImpl(wiremockUrl, {""})
+        arbeidssoekerRegisteretService = ArbeidssoekerRegisteretService(oppslagArbeidssoekerregisteretClientImpl)
         veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), {""}, {""})
         pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)
@@ -222,7 +239,8 @@ class DokumentServiceTest {
             vedtaksstotteRepository,
             veilarbpersonClient,
             veilarbregistreringClient,
-            aiaBackendClient
+            aiaBackendClient,
+            arbeidssoekerRegisteretService
         )
 
         pdfService = PdfService(
@@ -366,7 +384,7 @@ class DokumentServiceTest {
             })
         }
 
-        assertEquals("Manglende telefonnummer for enhet $kontaktEnhetId", exception.message)
+        Assertions.assertEquals("Manglende telefonnummer for enhet $kontaktEnhetId", exception.message)
     }
 
     @Test
@@ -410,6 +428,7 @@ class DokumentServiceTest {
                     oyeblikksbildeRegistreringDokument = registreringPdf,
                     oyeblikksbildeCVDokument = cvPdf,
                     oyeblikksbildeBehovsvurderingDokument = behovsvurderingPdf,
+                    oyeblikksbildeArbeidssokerRegistretDokument = arbeidssoekerRegisteretPdf,
                     referanse = eksternJournalpostReferanse
                 )
             })

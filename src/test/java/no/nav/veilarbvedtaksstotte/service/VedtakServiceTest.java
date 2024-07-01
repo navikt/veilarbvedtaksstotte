@@ -23,6 +23,7 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDT
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
@@ -32,7 +33,6 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlRespons
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
@@ -60,7 +60,6 @@ import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -96,14 +95,14 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
-    private static final AiaBackendClient AIA_BACKEND_CLIENT = mock(AiaBackendClient.class);
+    private static final ArbeidssoekerRegisteretService ARBEIDSSOEKER_REGISTERET_CLIENT_IMPL = mock(ArbeidssoekerRegisteretService.class);
+    private static final AiaBackendClient aia_backend_client = mock(AiaBackendClient.class);
 
     private static final RegoppslagClient regoppslagClient = mock(RegoppslagClient.class);
     private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
     private static final AbacClient abacClient = mock(AbacClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
-    private static final PdfClient pdfClient = mock(PdfClient.class);
     private static final VeilarbveilederClient veilarbveilederClient = mock(VeilarbveilederClient.class);
     private static final UtrullingService utrullingService = mock(UtrullingService.class);
     private static final EnhetInfoService enhetInfoService = mock(EnhetInfoService.class);
@@ -116,7 +115,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
 
     private static final PdfService pdfService = mock(PdfService.class);
-    private static final String EGENVURDERING_DATO = new Instant().toString();
 
     @BeforeAll
     public static void setupOnce() {
@@ -128,7 +126,7 @@ public class VedtakServiceTest extends DatabaseTest {
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
         authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaService, abacClient, credentials, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient, unleashService));
-        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, AIA_BACKEND_CLIENT);
+        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, aia_backend_client, ARBEIDSSOEKER_REGISTERET_CLIENT_IMPL);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
         DokumentService dokumentService = new DokumentService(
                 regoppslagClient,
@@ -156,8 +154,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @BeforeEach
     public void setup() {
-        Map<String, String> egenvurderingstekster = new HashMap<>();
-        egenvurderingstekster.put("STANDARD_INNSATS", "Svar jeg klarer meg");
         DbTestUtils.cleanupDb(jdbcTemplate);
         reset(veilederService);
         reset(meldingRepository);
@@ -175,8 +171,8 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(new CvDto.CVMedInnhold(JsonUtils.fromJson(testCvData(), CvInnhold.class)));
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(registreringClient.hentRegistreringData(TEST_FNR.get())).thenReturn(JsonUtils.fromJson(testRegistreringsdata(), RegistreringResponseDto.class));
-        when(AIA_BACKEND_CLIENT.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()))).thenReturn(JsonUtils.fromJson(testEgenvurderingData(), EgenvurderingResponseDTO.class));
-        when(AIA_BACKEND_CLIENT.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(TEST_FNR.get()))).thenReturn(getEndringIRegistreringsData());
+        when(aia_backend_client.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()))).thenReturn(JsonUtils.fromJson(testEgenvurderingData(), EgenvurderingResponseDTO.class));
+        when(aia_backend_client.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(TEST_FNR.get()))).thenReturn(getEndringIRegistreringsData());
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));

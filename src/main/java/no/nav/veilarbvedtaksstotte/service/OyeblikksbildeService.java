@@ -2,15 +2,21 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.BesvarelseSvar;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.MetadataResponse;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerResponse;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
+import no.nav.veilarbvedtaksstotte.client.registrering.dto.BrukerRegistreringType;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
@@ -22,6 +28,8 @@ import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +45,7 @@ public class OyeblikksbildeService {
     private final VeilarbpersonClient veilarbpersonClient;
     private final VeilarbregistreringClient registreringClient;
     private final AiaBackendClient aiaBackendClient;
+    private final ArbeidssoekerRegisteretService arbeidssoekerRegisteretService;
 
     @Autowired
     public OyeblikksbildeService(
@@ -45,7 +54,8 @@ public class OyeblikksbildeService {
             VedtaksstotteRepository vedtaksstotteRepository,
             VeilarbpersonClient veilarbpersonClient,
             VeilarbregistreringClient registreringClient,
-            AiaBackendClient aiaBackendClient
+            AiaBackendClient aiaBackendClient,
+            ArbeidssoekerRegisteretService arbeidssoekerRegisteretService
     ) {
         this.oyeblikksbildeRepository = oyeblikksbildeRepository;
         this.authService = authService;
@@ -53,6 +63,7 @@ public class OyeblikksbildeService {
         this.veilarbpersonClient = veilarbpersonClient;
         this.registreringClient = registreringClient;
         this.aiaBackendClient = aiaBackendClient;
+        this.arbeidssoekerRegisteretService = arbeidssoekerRegisteretService;
     }
 
     public List<OyeblikksbildeDto> hentOyeblikksbildeForVedtak(long vedtakId) {
@@ -76,6 +87,14 @@ public class OyeblikksbildeService {
         Optional<OyeblikksbildeRegistreringDto> oyeblikksbildeRegistreringDto = oyeblikksbildeRepository.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
 
         return oyeblikksbildeRegistreringDto.orElseGet(() -> new OyeblikksbildeRegistreringDto(null, false));
+    }
+
+    public OyeblikksbildeArbeidssokerRegistretDto hentArbeidssokerRegistretOyeblikksbildeForVedtak(long vedtakId) {
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        Optional<OyeblikksbildeArbeidssokerRegistretDto> oyeblikksbildeRegistreringDto = oyeblikksbildeRepository.hentArbeidssokerRegistretOyeblikksbildeForVedtak(vedtakId);
+
+        return oyeblikksbildeRegistreringDto.orElseGet(() -> new OyeblikksbildeArbeidssokerRegistretDto(null, false));
     }
 
     public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
@@ -114,16 +133,50 @@ public class OyeblikksbildeService {
             oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, cvOgJobbprofilData);
         }
         if (kilder.stream().anyMatch(kilde -> kilde.equals(VedtakOpplysningKilder.REGISTRERING.getDesc()))) {
-            final RegistreringResponseDto registreringData = registreringClient.hentRegistreringData(fnr);
-            final EndringIRegistreringsdataResponse endringIRegistreringsdata = aiaBackendClient.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(fnr));
-            final RegistreringResponseDto oppdaterteRegistreringsData = oppdaterRegistreringsdataHvisNyeEndringer(registreringData, endringIRegistreringsdata);
-            oyeblikksbildeRepository.upsertRegistreringOyeblikksbilde(vedtakId, oppdaterteRegistreringsData);
+            lagreRegistreringsData(fnr, vedtakId);
         }
         if (kilder.stream().anyMatch(kilde -> kilde.equals(VedtakOpplysningKilder.EGENVURDERING.getDesc()))) {
             final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr));
             EgenvurderingDto egenvurderingData = mapToEgenvurderingData(egenvurdering);
             oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingData);
         }
+    }
+
+    private void lagreRegistreringsData(String fnr, long vedtakId){
+        OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr.of(fnr));
+
+        final RegistreringResponseDto registreringData = registreringClient.hentRegistreringData(fnr);
+        final EndringIRegistreringsdataResponse endringIRegistreringsdata = aiaBackendClient.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(fnr));
+        final RegistreringResponseDto oppdaterteRegistreringsData = oppdaterRegistreringsdataHvisNyeEndringer(registreringData, endringIRegistreringsdata);
+
+        if (oppdaterteRegistreringsData != null && erSykemeldt(opplysningerOmArbeidssoekerMedProfilering, oppdaterteRegistreringsData)){
+            oyeblikksbildeRepository.upsertRegistreringOyeblikksbilde(vedtakId, oppdaterteRegistreringsData);
+        }else{
+            oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfilering);
+        }
+    }
+
+    private boolean erSykemeldt(OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering, RegistreringResponseDto registreringData){
+        if (opplysningerOmArbeidssoekerMedProfilering == null && registreringData.getType().equals(BrukerRegistreringType.SYKMELDT)){
+            return true;
+        }else if (opplysningerOmArbeidssoekerMedProfilering != null && registreringData.getType().equals(BrukerRegistreringType.SYKMELDT)){
+            return erSykemeldtEtterArbeidssokerRegistrering(opplysningerOmArbeidssoekerMedProfilering.getOpplysningerOmArbeidssoeker(), registreringData.getRegistrering());
+        }
+        return false;
+    }
+
+    private boolean erSykemeldtEtterArbeidssokerRegistrering(OpplysningerOmArbeidssoekerResponse opplysningerOmArbeidssoeker, RegistreringsdataDto registreringData){
+        Optional<LocalDateTime> opplysningerOmArbeidssoekerOprettetDato = Optional.ofNullable(opplysningerOmArbeidssoeker)
+                .map(OpplysningerOmArbeidssoekerResponse::getSendtInnAv)
+                .map(MetadataResponse::getTidspunkt)
+                .map(ZonedDateTime::toLocalDateTime);
+        Optional<LocalDateTime> registreringEndretDato = Optional.ofNullable(registreringData).map(RegistreringsdataDto::getEndretTidspunkt);
+
+        if (opplysningerOmArbeidssoekerOprettetDato.isPresent() && registreringEndretDato.isPresent()){
+            return registreringEndretDato.get().isAfter(opplysningerOmArbeidssoekerOprettetDato.get());
+        }
+
+        return false;
     }
 
     public EgenvurderingDto mapToEgenvurderingData(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test

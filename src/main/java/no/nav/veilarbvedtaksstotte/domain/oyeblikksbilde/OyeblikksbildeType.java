@@ -7,6 +7,7 @@ import java.util.Arrays;
 public enum OyeblikksbildeType {
     CV_OG_JOBBPROFIL,
     REGISTRERINGSINFO,
+    ARBEIDSSOKERREGISTRET,
     EGENVURDERING;
 
     public static boolean contains(String value) {
@@ -18,6 +19,7 @@ public enum OyeblikksbildeType {
             case REGISTRERINGSINFO -> OyeblikksbildeType.REGISTRERINGSINFO;
             case CV_OG_JOBBPROFIL -> OyeblikksbildeType.CV_OG_JOBBPROFIL;
             case EGENVURDERING -> OyeblikksbildeType.EGENVURDERING;
+            case ARBEIDSSOKERREGISTRET -> OyeblikksbildeType.ARBEIDSSOKERREGISTRET;
         };
     }
 

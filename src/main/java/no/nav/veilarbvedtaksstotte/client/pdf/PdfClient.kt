@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.pdf
 
 import no.nav.common.health.HealthCheck
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetPostadresse
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetPostboksadresse
@@ -15,6 +16,7 @@ interface PdfClient : HealthCheck {
     fun genererOyeblikksbildeCvPdf(cvOyeblikksbildeData: CvInnhold): ByteArray
     fun genererOyeblikksbildeRegistreringPdf(registreringOyeblikksbildeData: RegistreringResponseDto): ByteArray
     fun genererOyeblikksbildeEgenVurderingPdf(egenvurderingOyeblikksbildeData: EgenvurderingDto): ByteArray
+    fun genererOyeblikksbildeArbeidssokerRegistretPdf(registreringOyeblikksbildeData: OpplysningerOmArbeidssoekerMedProfilering): ByteArray
 
 
     data class Brevdata(

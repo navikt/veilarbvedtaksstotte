@@ -22,7 +22,6 @@ import no.nav.common.utils.Pair
 import no.nav.poao_tilgang.client.*
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
-import no.nav.veilarbvedtaksstotte.utils.SecureLog
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
