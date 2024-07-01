@@ -4,6 +4,7 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.Besvarelse
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
 import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
@@ -186,6 +187,7 @@ internal class OyeblikksbildeServiceTest {
             VedtaksstotteRepository::class.java
         )
         private val veilarbpersonClient = Mockito.mock(VeilarbpersonClient::class.java)
+        private val arbeidssoekerRegisteretService = Mockito.mock(ArbeidssoekerRegisteretService::class.java)
         private val registreringClient = Mockito.mock(
             VeilarbregistreringClient::class.java
         )
@@ -196,7 +198,8 @@ internal class OyeblikksbildeServiceTest {
             vedtaksstotteRepository,
             veilarbpersonClient,
             registreringClient,
-            aiaBackendClient
+            aiaBackendClient,
+            arbeidssoekerRegisteretService
         )
     }
 }

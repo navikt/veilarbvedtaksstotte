@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
@@ -57,6 +58,17 @@ public class OyeblikksbildeRepository {
         try {
             String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
             return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapRegistreringOyeblikksbilde, vedtakId, OyeblikksbildeType.REGISTRERINGSINFO.name()));
+        }
+        catch (Exception e){
+            log.warn("Kan ikke hente oyeblikksbilde " + e, e);
+            return Optional.empty();
+        }
+    }
+
+    public Optional<OyeblikksbildeArbeidssokerRegistretDto> hentArbeidssokerRegistretOyeblikksbildeForVedtak(long vedtakId) {
+        try {
+            String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
+            return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapArbeidssokerRegistretgOyeblikksbilde, vedtakId, OyeblikksbildeType.ARBEIDSSOKERREGISTRET.name()));
         }
         catch (Exception e){
             log.warn("Kan ikke hente oyeblikksbilde " + e, e);
@@ -129,6 +141,31 @@ public class OyeblikksbildeRepository {
         }
     }
 
+    @SneakyThrows
+    public void upsertArbeidssokerRegistretOyeblikksbilde(long vedtakId, OpplysningerOmArbeidssoekerMedProfilering registreringsdataDto) {
+        String jsonRegistreringDto = JsonUtils.getObjectMapper().writeValueAsString(registreringsdataDto);
+
+        if (registreringsdataDto == null || jsonRegistreringDto == null || jsonRegistreringDto.isEmpty()) {
+            jsonRegistreringDto = """
+                    {"ingenData": "Personen har ikke registrert noen svar."}
+                    """;
+        }
+
+        Optional<OyeblikksbildeDto> oyeblikksbilde = hentOyeblikksbilde(vedtakId, OyeblikksbildeType.ARBEIDSSOKERREGISTRET);
+
+        if (oyeblikksbilde.isPresent()) {
+            db.update(
+                    "UPDATE OYEBLIKKSBILDE SET JSON = ?::json WHERE VEDTAK_ID = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE",
+                    jsonRegistreringDto, vedtakId, OyeblikksbildeType.ARBEIDSSOKERREGISTRET.name()
+            );
+        } else {
+            db.update(
+                    "INSERT INTO OYEBLIKKSBILDE (VEDTAK_ID, OYEBLIKKSBILDE_TYPE, JSON) VALUES (?,?::OYEBLIKKSBILDE_TYPE,?::json)",
+                    vedtakId, OyeblikksbildeType.ARBEIDSSOKERREGISTRET.name(), jsonRegistreringDto
+            );
+        }
+    }
+
 
     @SneakyThrows
     public void upsertEgenvurderingOyeblikksbilde(long vedtakId, EgenvurderingDto egenvurderingDto) {
@@ -190,6 +227,14 @@ public class OyeblikksbildeRepository {
     private static OyeblikksbildeRegistreringDto mapRegistreringOyeblikksbilde(ResultSet rs, int row) {
         RegistreringResponseDto registreringsdataDto = JsonUtils.fromJson(rs.getString(JSON), RegistreringResponseDto.class);
         return new OyeblikksbildeRegistreringDto()
+                .setData(registreringsdataDto)
+                .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
+    }
+
+    @SneakyThrows
+    private static OyeblikksbildeArbeidssokerRegistretDto mapArbeidssokerRegistretgOyeblikksbilde(ResultSet rs, int row) {
+        OpplysningerOmArbeidssoekerMedProfilering registreringsdataDto = JsonUtils.fromJson(rs.getString(JSON), OpplysningerOmArbeidssoekerMedProfilering.class);
+        return new OyeblikksbildeArbeidssokerRegistretDto()
                 .setData(registreringsdataDto)
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }

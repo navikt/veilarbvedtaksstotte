@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
@@ -60,6 +61,24 @@ class PdfService(
 
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeRegistreringPdf(
+                    registreringsdataResponseDto
+                )
+            )
+        } catch (e: Exception) {
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
+            throw e;
+        }
+    }
+
+    fun produserArbeidssokerRegistretPdf(data: String?): Optional<ByteArray> {
+        try {
+            if (data == null) return Optional.empty()
+
+            val registreringsdataResponseDto =
+                JsonUtils.objectMapper.readValue(data, OpplysningerOmArbeidssoekerMedProfilering::class.java);
+
+            return Optional.ofNullable(
+                pdfClient.genererOyeblikksbildeArbeidssokerRegistretPdf(
                     registreringsdataResponseDto
                 )
             )

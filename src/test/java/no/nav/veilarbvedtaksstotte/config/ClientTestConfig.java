@@ -13,6 +13,8 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDT
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClient;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
@@ -158,6 +160,12 @@ public class ClientTestConfig {
 
             @NotNull
             @Override
+            public byte[] genererOyeblikksbildeArbeidssokerRegistretPdf(@NotNull OpplysningerOmArbeidssoekerMedProfilering registreringOyeblikksbildeData) {
+                return new byte[0];
+            }
+
+            @NotNull
+            @Override
             public byte[] genererOyeblikksbildeEgenVurderingPdf(@NotNull EgenvurderingDto egenvurderingOyeblikksbildeData) {
                 return new byte[0];
             }
@@ -278,6 +286,22 @@ public class ClientTestConfig {
             @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();
+            }
+        };
+    }
+
+    @Bean
+    public OppslagArbeidssoekerregisteretClient oppslagArbeidssoekerregisteretClient() {
+        return new OppslagArbeidssoekerregisteretClient() {
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return null;
+            }
+
+            @Override
+            public OpplysningerOmArbeidssoekerMedProfilering hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr fnr) {
+                return null;
             }
         };
     }

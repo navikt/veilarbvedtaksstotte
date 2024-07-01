@@ -33,6 +33,7 @@ import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbperson
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbveileder
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClientImpl
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -173,6 +174,17 @@ class ClientConfig {
                 regoppslag.serviceName
             )
         return RegoppslagClientImpl(url) { tokenClient.createMachineToMachineToken(tokenScope(regoppslag)) }
+    }
+
+    @Bean
+    fun oppslagArbeidssoekerregisteretClient(tokenClient: AzureAdMachineToMachineTokenClient): OppslagArbeidssoekerregisteretClientImpl {
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val url =
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
+                veilarbperson.serviceName
+            )
+
+        return OppslagArbeidssoekerregisteretClientImpl(joinPaths(url, "veilarbperson")){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
     @Bean
