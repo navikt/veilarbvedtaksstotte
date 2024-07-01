@@ -41,7 +41,6 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponseForPost
 import no.nav.veilarbvedtaksstotte.utils.toJson
-import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -153,6 +152,17 @@ class DokumentServiceTest {
                         {
                           "filtype": "PDFA",
                           "fysiskDokument": "${Base64.encode(registreringPdf)}",
+                          "variantformat": "ARKIV"
+                        }
+                      ]
+                    },
+                    {
+                      "tittel": "Svarene dine fra da du registrerte deg",
+                      "brevkode": "ARBEIDSSOKERREGISTRET",
+                      "dokumentvarianter": [
+                        {
+                          "filtype": "PDFA",
+                          "fysiskDokument": "${Base64.encode(arbeidssoekerRegisteretPdf)}",
                           "variantformat": "ARKIV"
                         }
                       ]
@@ -374,7 +384,7 @@ class DokumentServiceTest {
             })
         }
 
-        assertEquals("Manglende telefonnummer for enhet $kontaktEnhetId", exception.message)
+        Assertions.assertEquals("Manglende telefonnummer for enhet $kontaktEnhetId", exception.message)
     }
 
     @Test
