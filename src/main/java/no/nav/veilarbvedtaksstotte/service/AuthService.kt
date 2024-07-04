@@ -6,7 +6,6 @@ import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
-import no.nav.common.utils.Credentials
 import no.nav.common.utils.Pair
 import no.nav.poao_tilgang.client.*
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
@@ -23,7 +22,6 @@ import java.util.function.Supplier
 class AuthService(
     private val aktorOppslagClient: AktorOppslagClient,
     private val veilarbarenaService: VeilarbarenaService,
-    private val serviceUserCredentials: Credentials,
     private val authContextHolder: AuthContextHolder,
     private val utrullingService: UtrullingService,
     private val poaoTilgangClient: PoaoTilgangClient,
@@ -31,10 +29,6 @@ class AuthService(
     private val log = LoggerFactory.getLogger(javaClass)
     fun sjekkVeilederTilgangTilBruker(fnr: Fnr) {
         sjekkVeilederTilgangTilBruker({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
-    }
-
-    fun sjekkVeilederTilgangTilBruker(aktorId: AktorId) {
-        sjekkVeilederTilgangTilBruker({ aktorOppslagClient.hentFnr(aktorId) }) { aktorId }
     }
 
     fun sjekkTilgangTilBrukerOgEnhet(fnr: Fnr): AuthKontekst {
@@ -127,58 +121,6 @@ class AuthService(
         }
         return tilgangTilBrukere
     }
-
-    /*
-    fun lagSjekkTilgangRequest(
-        systembrukerNavn: String?,
-        veilederIdent: String?,
-        brukerFnrs: List<String?>
-    ): XacmlRequest {
-        val environment = Environment()
-        environment.addAttribute(Attribute(NavAttributter.ENVIRONMENT_FELLES_PEP_ID, systembrukerNavn))
-        val action = Action()
-        action.addAttribute(Attribute(StandardAttributter.ACTION_ID, ActionId.WRITE.name))
-        val accessSubject = AccessSubject()
-        accessSubject.addAttribute(Attribute(StandardAttributter.SUBJECT_ID, veilederIdent))
-        accessSubject.addAttribute(Attribute(NavAttributter.SUBJECT_FELLES_SUBJECTTYPE, "InternBruker"))
-        val resources = brukerFnrs.stream()
-            .map { fnr: String? -> mapBrukerFnrTilAbacResource(fnr) }
-            .collect(Collectors.toList())
-        val request = Request()
-            .withEnvironment(environment)
-            .withAction(action)
-            .withAccessSubject(accessSubject)
-            .withResources(resources)
-        return XacmlRequest().withRequest(request)
-    }
-
-
-    private fun mapBrukerFnrTilAbacResource(fnr: String?): Resource {
-        val resource = Resource()
-        resource.addAttribute(Attribute(NavAttributter.RESOURCE_FELLES_DOMENE, "veilarb"))
-        resource.addAttribute(
-            Attribute(
-                NavAttributter.RESOURCE_FELLES_RESOURCE_TYPE,
-                NavAttributter.RESOURCE_VEILARB_PERSON
-            )
-        )
-        resource.addAttribute(Attribute(NavAttributter.RESOURCE_FELLES_PERSON_FNR, fnr, true))
-        return resource
-    }
-
-    fun mapBrukerTilgangRespons(xacmlResponse: XacmlResponse): Map<String, Boolean> {
-        val tilgangTilBrukere: MutableMap<String, Boolean> = HashMap()
-        xacmlResponse.response.forEach(Consumer { response: Response ->
-            val harTilgang = response.decision == AbacDecision.Permit
-
-            // There should always be a single category
-            val category = response.category[0]
-            val brukerFnr = category.attribute.value
-            tilgangTilBrukere[brukerFnr] = harTilgang
-        })
-        return tilgangTilBrukere
-    }
-     */
 
     private fun sjekkInternBruker() {
         authContextHolder

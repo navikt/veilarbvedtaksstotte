@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import io.getunleash.DefaultUnleash;
-import no.nav.common.abac.VeilarbPep;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
@@ -93,7 +92,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
-    private static final ArbeidssoekerRegisteretService ARBEIDSSOEKER_REGISTERET_CLIENT_IMPL = mock(ArbeidssoekerRegisteretService.class);
+    private static final ArbeidssoekerRegisteretService arbeidssoekerRegistretService = mock(ArbeidssoekerRegisteretService.class);
     private static final AiaBackendClient aia_backend_client = mock(AiaBackendClient.class);
 
     private static final RegoppslagClient regoppslagClient = mock(RegoppslagClient.class);
@@ -121,7 +120,7 @@ public class VedtakServiceTest extends DatabaseTest {
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, credentials, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
-        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, AIA_BACKEND_CLIENT);
+        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
         DokumentService dokumentService = new DokumentService(
                 regoppslagClient,
@@ -180,8 +179,13 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbveilederClient.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
         when(enhetInfoService.hentEnhet(EnhetId.of(TEST_OPPFOLGINGSENHET_ID))).thenReturn(new Enhet().setNavn(TEST_OPPFOLGINGSENHET_NAVN));
         when(enhetInfoService.utledEnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID)))
-                .thenReturn(new EnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID), new EnhetStedsadresse("","","","","",""), ""));
-        when(pdfClient.genererPdf(any())).thenReturn(new byte[]{});
+                .thenReturn(new EnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID), new EnhetStedsadresse("", "", "", "", "", ""), ""));
+        when(pdfService.produserDokument(any())).thenReturn(new byte[]{});
+        when(pdfService.produserRegisteringPdf(any())).thenReturn(Optional.of(new byte[]{}));
+        when(pdfService.produserCVPdf(any())).thenReturn(Optional.of(new byte[]{}));
+        when(pdfService.produserBehovsvurderingPdf(any())).thenReturn(Optional.of(new byte[]{}));
+        when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
+        when(safClient.hentJournalpost(any())).thenReturn(getMockedJournalpostGraphqlResponse());
     }
 
     @Test

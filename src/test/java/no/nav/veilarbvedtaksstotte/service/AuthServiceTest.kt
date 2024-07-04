@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import no.nav.common.abac.XacmlMapper
 import no.nav.common.auth.context.AuthContext
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
@@ -16,8 +15,8 @@ import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.api.ApiResult
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
-import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
@@ -29,17 +28,10 @@ import java.util.*
 class AuthServiceTest {
     var authContextHolder = AuthContextHolderThreadLocal.instance()
     var aktorOppslagClient = mock(AktorOppslagClient::class.java)
-    var pep = mock(Pep::class.java)
     var veilarbarenaService = mock(VeilarbarenaService::class.java)
     var utrullingService = mock(UtrullingService::class.java)
-    var abacClient = mock(AbacClient::class.java)
     var serviceUserCredentials = mock(Credentials::class.java)
-    var aktorOppslagClient = Mockito.mock(AktorOppslagClient::class.java)
-    var veilarbarenaService = Mockito.mock(VeilarbarenaService::class.java)
-    var utrullingService = Mockito.mock(UtrullingService::class.java)
-    var serviceUserCredentials = Mockito.mock(Credentials::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
-    var unleashService = mock(DefaultUnleash::class.java)
     var authService =
         AuthService(aktorOppslagClient, veilarbarenaService, serviceUserCredentials, authContextHolder, utrullingService, poaoTilgangClient)
 
@@ -196,25 +188,6 @@ class AuthServiceTest {
             }
         }
     }
-
-    /*
-    @Test
-    fun lagSjekkTilgangRequest__skal_lage_riktig_request() {
-        val request = authService.lagSjekkTilgangRequest("srvtest", "Z1234", Arrays.asList("11111111111", "2222222222"))
-        val requestJson = XacmlMapper.mapRequestToEntity(request)
-        val expectedRequestJson = readTestResourceFile("xacmlrequest-abac-tilgang.json")
-        assertEquals(expectedRequestJson, requestJson)
-    }
-
-    //@Test
-    fun mapBrukerTilgangRespons__skal_mappe_riktig() {
-        val responseJson = readTestResourceFile("xacmlresponse-abac-tilgang.json")
-        val response = XacmlMapper.mapRawResponse(responseJson)
-        val tilgangTilBrukere = authService.mapBrukerTilgangRespons(response)
-        assertTrue(tilgangTilBrukere.getOrDefault("11111111111", false))
-        assertFalse(tilgangTilBrukere.getOrDefault("2222222222", false))
-    }
-     */
 
     @Test
     fun `erSystemBrukerMedSystemTilSystemTilgang er true for system med rolle access_as_application`() {
