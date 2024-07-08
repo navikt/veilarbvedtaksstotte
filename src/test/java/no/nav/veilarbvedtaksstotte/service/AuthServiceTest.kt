@@ -33,7 +33,7 @@ class AuthServiceTest {
     var serviceUserCredentials = mock(Credentials::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
     var authService =
-        AuthService(aktorOppslagClient, veilarbarenaService, serviceUserCredentials, authContextHolder, utrullingService, poaoTilgangClient)
+        AuthService(aktorOppslagClient, veilarbarenaService, authContextHolder, utrullingService, poaoTilgangClient)
 
     @BeforeEach
     fun setup() {
@@ -52,13 +52,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBruker__kaster_exception_for_andre_enn_ekstern_bruker() {
-       /* `when`(
-            pep.harVeilederTilgangTilPerson(
-                any(), any(), any()
-            )
-        ).thenReturn(true)
-
-        */
         UserRole.values().filter { userRole: UserRole -> userRole != UserRole.INTERN }.forEach { userRole: UserRole ->
                 withContext(userRole) {
                     assertThrowsWithMessage<ResponseStatusException>("""403 FORBIDDEN "Ikke intern bruker"""") {
@@ -123,20 +116,12 @@ class AuthServiceTest {
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
-        //`when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) { authService.sjekkTilgangTilBrukerOgEnhet(TestData.TEST_FNR) }
     }
 
     @Test
     fun sjekkTilgangTilBrukerOgEnhet__kaster_exception_for_andre_enn_ekstern_bruker() {
-        /* `when`(
-            pep.harVeilederTilgangTilPerson(
-                any(), any(), any()
-            )
-        ).thenReturn(true)
-        `when`(pep.harVeilederTilgangTilEnhet(any(), any())).thenReturn(true)
-         */
         `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         Arrays.stream(UserRole.values()).filter { userRole: UserRole -> userRole != UserRole.INTERN }
             .forEach { userRole: UserRole ->
