@@ -2,9 +2,6 @@ package no.nav.veilarbvedtaksstotte.config
 
 import io.getunleash.DefaultUnleash
 import io.getunleash.util.UnleashConfig
-import no.nav.common.abac.AbacCachedClient
-import no.nav.common.abac.AbacClient
-import no.nav.common.abac.AbacHttpClient
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.CachedAktorOppslagClient
@@ -15,7 +12,6 @@ import no.nav.common.job.leader_election.LeaderElectionHttpClient
 import no.nav.common.metrics.InfluxClient
 import no.nav.common.metrics.MetricsClient
 import no.nav.common.token_client.client.AzureAdMachineToMachineTokenClient
-import no.nav.common.utils.Credentials
 import no.nav.common.utils.EnvironmentUtils
 import no.nav.common.utils.UrlUtils
 import no.nav.common.utils.UrlUtils.joinPaths
@@ -241,17 +237,6 @@ class ClientConfig {
     @Bean
     fun norg2Client(properties: EnvironmentProperties): Norg2Client {
         return Norg2ClientImpl(properties.norg2Url)
-    }
-
-    @Bean
-    fun abacClient(properties: EnvironmentProperties, serviceUserCredentials: Credentials): AbacClient {
-        return AbacCachedClient(
-            AbacHttpClient(
-                properties.abacUrl,
-                serviceUserCredentials.username,
-                serviceUserCredentials.password
-            )
-        )
     }
 
     @Bean
