@@ -21,7 +21,7 @@
         <java.version>21</java.version>
         <common.version>3.2024.02.21_11.18-8f9b43befae1</common.version>
         <kotlin.version>1.9.21</kotlin.version>
-        <testcontainers.version>1.19.4</testcontainers.version>
+        <testcontainers.version>1.19.5</testcontainers.version>
         <unleash.version>9.2.0</unleash.version>
 
         <!--   Used by SonarCloud     -->
@@ -191,11 +191,6 @@
         <dependency>
             <groupId>com.github.navikt.common-java-modules</groupId>
             <artifactId>types</artifactId>
-            <version>${common.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.navikt.common-java-modules</groupId>
-            <artifactId>abac</artifactId>
             <version>${common.version}</version>
         </dependency>
         <dependency>

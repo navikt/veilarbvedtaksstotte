@@ -1,8 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import io.getunleash.DefaultUnleash;
-import no.nav.common.abac.AbacClient;
-import no.nav.common.abac.VeilarbPep;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
@@ -11,7 +9,6 @@ import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
-import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.Credentials;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.poao_tilgang.client.Decision;
@@ -95,13 +92,12 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
-    private static final ArbeidssoekerRegisteretService ARBEIDSSOEKER_REGISTERET_CLIENT_IMPL = mock(ArbeidssoekerRegisteretService.class);
+    private static final ArbeidssoekerRegisteretService arbeidssoekerRegistretService = mock(ArbeidssoekerRegisteretService.class);
     private static final AiaBackendClient aia_backend_client = mock(AiaBackendClient.class);
 
     private static final RegoppslagClient regoppslagClient = mock(RegoppslagClient.class);
     private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
-    private static final AbacClient abacClient = mock(AbacClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
     private static final VeilarbveilederClient veilarbveilederClient = mock(VeilarbveilederClient.class);
     private static final UtrullingService utrullingService = mock(UtrullingService.class);
@@ -109,8 +105,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private static final SafClient safClient = mock(SafClient.class);
     private static final MetricsService metricsService = mock(MetricsService.class);
-
-    private static final VeilarbPep veilarbPep = mock(VeilarbPep.class);
     private static final Credentials credentials = mock(Credentials.class);
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
 
@@ -125,8 +119,8 @@ public class VedtakServiceTest extends DatabaseTest {
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
-        authService = spy(new AuthService(aktorOppslagClient, veilarbPep, veilarbarenaService, abacClient, credentials, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient, unleashService));
-        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, aia_backend_client, ARBEIDSSOEKER_REGISTERET_CLIENT_IMPL);
+        authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
+        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
         DokumentService dokumentService = new DokumentService(
                 regoppslagClient,
@@ -461,8 +455,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private void gittTilgang() {
         when(utrullingService.erUtrullet(any())).thenReturn(true);
-        when(veilarbPep.harVeilederTilgangTilPerson(any(NavIdent.class), any(), any())).thenReturn(true);
-        when(veilarbPep.harVeilederTilgangTilEnhet(any(NavIdent.class), any())).thenReturn(true);
+        when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
     }
 
     private void withContext(UnsafeRunnable runnable) {
