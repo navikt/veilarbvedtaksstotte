@@ -106,18 +106,15 @@ class AuthService(
         }
     }
 
-    fun harInnloggetVeilederTilgangTilBrukere(brukerFnrs: List<String?>): Map<String, Boolean> {
+    fun harInnloggetVeilederTilgangTilBrukere(brukerFnrs: List<String>): Map<String, Boolean> {
         val tilgangTilBrukere: MutableMap<String, Boolean> = HashMap();
-        brukerFnrs.stream().map {
-            if (!it.isNullOrEmpty()) {
-                tilgangTilBrukere.put(
-                    it, poaoTilgangClient.evaluatePolicy(
-                        NavAnsattTilgangTilEksternBrukerPolicyInput(
-                            hentInnloggetVeilederUUID(), TilgangType.SKRIVE, it
-                        )
-                    ).getOrThrow().isPermit
+        brukerFnrs.forEach{
+            val permitTilgang = poaoTilgangClient.evaluatePolicy(
+                NavAnsattTilgangTilEksternBrukerPolicyInput(
+                    hentInnloggetVeilederUUID(), TilgangType.SKRIVE, it
                 )
-            }
+            ).map { decision -> decision.isPermit }.getOrDefault(false)
+            tilgangTilBrukere.put(it, permitTilgang)
         }
         return tilgangTilBrukere
     }
