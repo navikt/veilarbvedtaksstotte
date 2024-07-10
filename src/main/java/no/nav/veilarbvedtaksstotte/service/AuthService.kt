@@ -113,7 +113,7 @@ class AuthService(
                 tilgangTilBrukere.put(
                     it, poaoTilgangClient.evaluatePolicy(
                         NavAnsattTilgangTilEksternBrukerPolicyInput(
-                            hentInnloggetVeilederUUID(), TilgangType.SKRIVE, it
+                            hentInnloggetVeilederUUID(), TilgangType.LESE, it
                         )
                     ).map { decision -> decision.isPermit }.getOrDefault(false)
                 )
