@@ -168,6 +168,7 @@ class AuthServiceTest {
         withContext(UserRole.INTERN) {
             val harInnloggetVeilederTilgangTilBrukere = authService.harInnloggetVeilederTilgangTilBrukere(brukere);
             assertEquals(harInnloggetVeilederTilgangTilBrukere.size, brukere.size)
+            assertTrue(harInnloggetVeilederTilgangTilBrukere.keys.stream().allMatch{harInnloggetVeilederTilgangTilBrukere.get(it) == true})
         }
     }
 
