@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import com.nimbusds.jwt.JWTClaimsSet
+import lombok.extern.slf4j.Slf4j
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
@@ -19,6 +20,7 @@ import java.util.*
 import java.util.function.Supplier
 
 @Service
+@Slf4j
 class AuthService(
     private val aktorOppslagClient: AktorOppslagClient,
     private val veilarbarenaService: VeilarbarenaService,
@@ -106,18 +108,16 @@ class AuthService(
         }
     }
 
-    fun harInnloggetVeilederTilgangTilBrukere(brukerFnrs: List<String?>): Map<String, Boolean> {
+    fun harInnloggetVeilederTilgangTilBrukere(brukerFnrs: List<String>): Map<String, Boolean> {
         val tilgangTilBrukere: MutableMap<String, Boolean> = HashMap();
-        brukerFnrs.stream().map {
-            if (!it.isNullOrEmpty()) {
-                tilgangTilBrukere.put(
-                    it, poaoTilgangClient.evaluatePolicy(
-                        NavAnsattTilgangTilEksternBrukerPolicyInput(
-                            hentInnloggetVeilederUUID(), TilgangType.LESE, it
-                        )
-                    ).map { decision -> decision.isPermit }.getOrDefault(false)
+        brukerFnrs.forEach{
+            val permitTilgang = poaoTilgangClient.evaluatePolicy(
+                NavAnsattTilgangTilEksternBrukerPolicyInput(
+                    hentInnloggetVeilederUUID(), TilgangType.SKRIVE, it
                 )
-            }
+            ).map { decision -> decision.isPermit }.getOrDefault(false)
+            tilgangTilBrukere.put(it, permitTilgang)
+            log.info("Veileder " + hentInnloggetVeilederUUID() + ", permit: " + permitTilgang)
         }
         return tilgangTilBrukere
     }
