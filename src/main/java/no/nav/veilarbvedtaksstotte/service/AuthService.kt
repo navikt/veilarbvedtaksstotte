@@ -115,7 +115,7 @@ class AuthService(
                         NavAnsattTilgangTilEksternBrukerPolicyInput(
                             hentInnloggetVeilederUUID(), TilgangType.SKRIVE, it
                         )
-                    ).getOrThrow().isPermit
+                    ).map { decision -> decision.isPermit }.getOrDefault(false)
                 )
             }
         }
