@@ -1,8 +1,9 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import lombok.extern.slf4j.Slf4j;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
@@ -13,11 +14,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class BeslutteroversiktService {
 
     private final BeslutteroversiktRepository beslutteroversiktRepository;
@@ -63,7 +66,7 @@ public class BeslutteroversiktService {
     }
 
     private void sjekkTilgangTilAlleEnheter(List<String> sokteEnheter, List<String> veilederEnheter) {
-        if (!veilederEnheter.containsAll(sokteEnheter)) {
+        if (!new HashSet<>(veilederEnheter).containsAll(sokteEnheter)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Veileder mangler tilgang til enhet");
         }
     }
@@ -73,7 +76,7 @@ public class BeslutteroversiktService {
             return;
         }
 
-        List<String> brukerFnrs = brukere.stream().map(BeslutteroversiktBruker::getBrukerFnr).collect(Collectors.toList());
+        List<String> brukerFnrs = brukere.stream().map(BeslutteroversiktBruker::getBrukerFnr).toList();
         Map<String, Boolean> tilgangTilBrukere = authService.harInnloggetVeilederTilgangTilBrukere(brukerFnrs);
 
         brukere.forEach(bruker -> {
