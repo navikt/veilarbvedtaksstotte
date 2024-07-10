@@ -15,8 +15,7 @@ import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.api.ApiResult
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
@@ -156,6 +155,19 @@ class AuthServiceTest {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
                 authService.sjekkTilgangTilBrukerOgEnhet(TestData.TEST_FNR)
             }
+        }
+    }
+
+    @Test
+    fun testHarInnloggetVeilederTilgangTilBrukere() {
+        val brukere = listOf("1111", "2222", "33333", "44444");
+
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
+        ).thenReturn(ApiResult.success(Decision.Permit))
+        withContext(UserRole.INTERN) {
+            val harInnloggetVeilederTilgangTilBrukere = authService.harInnloggetVeilederTilgangTilBrukere(brukere);
+            assertEquals(harInnloggetVeilederTilgangTilBrukere.size, brukere.size)
         }
     }
 
