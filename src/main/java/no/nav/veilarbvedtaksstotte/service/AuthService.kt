@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import com.nimbusds.jwt.JWTClaimsSet
-import lombok.extern.slf4j.Slf4j
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
@@ -20,7 +19,6 @@ import java.util.*
 import java.util.function.Supplier
 
 @Service
-@Slf4j
 class AuthService(
     private val aktorOppslagClient: AktorOppslagClient,
     private val veilarbarenaService: VeilarbarenaService,
@@ -117,7 +115,6 @@ class AuthService(
                 )
             ).map { decision -> decision.isPermit }.getOrDefault(false)
             tilgangTilBrukere.put(it, permitTilgang)
-            log.info("Veileder " + hentInnloggetVeilederUUID() + ", permit: " + permitTilgang)
         }
         return tilgangTilBrukere
     }
