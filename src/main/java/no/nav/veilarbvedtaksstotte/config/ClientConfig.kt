@@ -77,7 +77,7 @@ class ClientConfig {
 
     @Bean
     fun pdfClient(): PdfClient {
-        return PdfClientImpl(UrlUtils.createServiceUrl("pto-pdfgen", false))
+        return PdfClientImpl(UrlUtils.createInternalIngressUrl("pto-pdfgen"))
     }
 
     @Bean
