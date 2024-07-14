@@ -3,33 +3,31 @@ package no.nav.veilarbvedtaksstotte.utils;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import javax.sql.DataSource;
 
 public class PostgresContainer {
 
-    private final static String DB_IMAGE = "postgres:11.5";
-    private final static String DB_USER = "postgres";
-    private final static int DB_PORT = 5432;
-
-    private final GenericContainer container;
+    public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:14.1-alpine");
 
     public PostgresContainer() {
-        container = new GenericContainer(DB_IMAGE).withExposedPorts(DB_PORT);
-        container.start(); // This will block until the container is started
+        postgreDBContainer.setWaitStrategy(Wait.defaultWaitStrategy());
+        postgreDBContainer.start();
     }
 
     public void stopContainer() {
-        container.stop();
+        postgreDBContainer.stop();
     }
 
     public DataSource createDataSource() {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(getDbContainerUrl());
+        config.setUsername(postgreDBContainer.getUsername());
+        config.setPassword(postgreDBContainer.getPassword());
         config.setMaximumPoolSize(3);
         config.setMinimumIdle(1);
-        config.setUsername(DB_USER);
 
         return new HikariDataSource(config);
     }
@@ -39,8 +37,8 @@ public class PostgresContainer {
     }
 
     private String getDbContainerUrl() {
-        String containerIp = container.getHost();
-        String containerPort = container.getFirstMappedPort().toString();
+        String containerIp = postgreDBContainer.getHost();
+        String containerPort = postgreDBContainer.getFirstMappedPort().toString();
         return String.format("jdbc:postgresql://%s:%s/postgres", containerIp, containerPort);
     }
 
