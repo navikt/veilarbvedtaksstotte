@@ -65,7 +65,7 @@ class ClientConfig {
     fun arenaClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbarenaClient {
         val veilarbarena = veilarbarena.invoke(if (isProduction) "prod-fss" else "dev-fss")
 
-        val url = UrlUtils.createServiceUrl(veilarbarena.serviceName, veilarbarena.namespace, true)
+        val url = naisFssPubIngress("veilarbarena", true);
 
         return VeilarbarenaClientImpl(
             url
