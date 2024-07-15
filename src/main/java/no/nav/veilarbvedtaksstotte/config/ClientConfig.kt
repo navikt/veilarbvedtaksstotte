@@ -65,10 +65,13 @@ class ClientConfig {
     fun arenaClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbarenaClient {
         val veilarbarena = veilarbarena.invoke(if (isProduction) "prod-fss" else "dev-fss")
 
-        val url = naisFssPubIngress("veilarbarena", true);
+        val url =
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbarena.serviceName) else UrlUtils.createDevInternalIngressUrl(
+                veilarbarena.serviceName
+            )
 
         return VeilarbarenaClientImpl(
-            url
+            joinPaths(url, "veilarbarena")
         ){ tokenClient.createMachineToMachineToken(tokenScope(veilarbarena)) }
     }
 
@@ -257,12 +260,6 @@ class ClientConfig {
                 appName,
                 withAppContextPath
             ) else UrlUtils.createNaisPreprodIngressUrl(appName, "q1", withAppContextPath)
-        }
-
-        private fun naisFssPubIngress(appName: String, withAppContextPath: Boolean): String {
-            val contextPath = if (withAppContextPath) "/$appName" else ""
-            return if (isProduction) String.format("https://%s.prod-fss-pub.nais.io%s", appName, contextPath)
-            else String.format("https://%s.dev-fss-pub.nais.io%s", appName, contextPath)
         }
 
         private fun tokenScope(downstreamApi: DownstreamApi): String {
