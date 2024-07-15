@@ -77,7 +77,14 @@ class ClientConfig {
 
     @Bean
     fun pdfClient(): PdfClient {
-        return PdfClientImpl(UrlUtils.createInternalIngressUrl("pto-pdfgen"))
+        val appName = "pto-pdfgen";
+        val url: String;
+        if (isProduction){
+            url = String.format("https://%s.intern.nav.no", appName)
+        }else{
+            url = String.format("https://%s.intern.dev.nav.no", appName)
+        }
+        return PdfClientImpl(url)
     }
 
     @Bean
