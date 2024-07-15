@@ -115,7 +115,6 @@ spec:
           cluster: dev-fss
       external:
         - host: team-obo-unleash-web.nav.cloud.nais.io
-        - host: veilarbarena.dev-fss-pub.nais.io
   envFrom:
     - configmap: pto-config
     - secret: veilarbvedtaksstotte-unleash-api-token
