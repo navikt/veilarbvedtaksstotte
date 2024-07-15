@@ -108,6 +108,9 @@ spec:
         - application: paw-arbeidssoker-besvarelse
           namespace: paw
           cluster: prod-gcp
+        - application: pto-pdfgen
+          namespace: obo
+          cluster: prod-gcp
       external:
         - host: team-obo-unleash-web.nav.cloud.nais.io
         - host: www.nav.no
