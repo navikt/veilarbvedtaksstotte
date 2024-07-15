@@ -169,10 +169,7 @@ class ClientConfig {
     @Bean
     fun regoppslagClient(tokenClient: AzureAdMachineToMachineTokenClient): RegoppslagClient {
         val regoppslag = regoppslag.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(regoppslag.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                regoppslag.serviceName
-            )
+        val url = naisFssPubIngress(regoppslag.serviceName, false);
         return RegoppslagClientImpl(url) { tokenClient.createMachineToMachineToken(tokenScope(regoppslag)) }
     }
 
