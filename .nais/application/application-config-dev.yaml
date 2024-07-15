@@ -109,10 +109,6 @@ spec:
           namespace: obo
           cluster: dev-gcp
     outbound:
-      rules:
-        - application: veilarbarena
-          namespace: pto
-          cluster: dev-fss
       external:
         - host: team-obo-unleash-web.nav.cloud.nais.io
         - host: veilarbarena.dev-fss-pub.nais.io
