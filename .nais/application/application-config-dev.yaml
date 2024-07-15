@@ -108,9 +108,6 @@ spec:
         - application: pto-pdfgen
           namespace: obo
           cluster: dev-gcp
-        - application: pto-pdfgen
-          namespace: obo
-          cluster: dev-gcp
     outbound:
       external:
         - host: team-obo-unleash-web.nav.cloud.nais.io
