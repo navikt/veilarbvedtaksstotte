@@ -76,6 +76,9 @@ spec:
         - application: veilarbportefolje
           namespace: pto
           cluster: prod-fss
+        - application: veilarbportefolje
+          namespace: obo
+          cluster: prod-gcp
           permissions:
             roles:
               - "siste-14a-vedtak"
