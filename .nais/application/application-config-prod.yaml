@@ -79,6 +79,9 @@ spec:
         - application: veilarbportefolje
           namespace: obo
           cluster: prod-gcp
+          permissions:
+            roles:
+              - "siste-14a-vedtak"
         - application: veilarbpersonflate
           namespace: poao
           cluster: prod-gcp
