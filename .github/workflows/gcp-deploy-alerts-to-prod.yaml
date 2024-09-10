@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - '.github/workflows/gcp/gcp-deploy-alerts-to-prod.yaml'
+      - '.github/workflows/gcp-deploy-alerts-to-prod.yaml'
       - '.nais/alerts/alerts-config-prod.yaml'
   workflow_dispatch:
 permissions:
