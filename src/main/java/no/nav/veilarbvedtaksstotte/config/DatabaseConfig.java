@@ -50,7 +50,7 @@ public class DatabaseConfig {
             Flyway.configure()
                     .validateMigrationNaming(true)
                     .dataSource(dataSource)
-                    .locations("db/postgres")
+                    .locations("db/migration")
                     .baselineOnMigrate(true)
                     .load()
                     .migrate();
