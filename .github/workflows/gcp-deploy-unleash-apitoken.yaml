@@ -6,7 +6,7 @@ on:
       - master
       - gcp-migration
     paths:
-      - ".github/workflows/gcp/deploy-unleash-apitoken.yaml"
+      - ".github/workflows/gcp/gcp-deploy-unleash-apitoken.yaml"
       - ".nais/application/gcp/unleash-apitoken-dev.yaml"
       - ".nais/application/gcp/unleash-apitoken-prod.yaml"
 

@@ -81,7 +81,7 @@ jobs:
 
   deploy-prod:
     name: Deploy application to prod-gcp
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master-gcp'
     needs: test-build-and-push
     runs-on: ubuntu-latest
     steps:
