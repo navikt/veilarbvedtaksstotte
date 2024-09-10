@@ -1,0 +1,105 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: veilarbvedtaksstotte
+  namespace: obo
+  labels:
+    team: obo
+spec:
+  image: {{image}}
+  port: 8080
+  webproxy: true
+  leaderElection: true
+  ingresses:
+    - https://veilarbvedtaksstotte.intern.nav.no
+  prometheus:
+    enabled: true
+    path: veilarbvedtaksstotte/internal/prometheus
+  readiness:
+    path: veilarbvedtaksstotte/internal/health/readiness
+    initialDelay: 30
+  liveness:
+    path: veilarbvedtaksstotte/internal/health/liveness
+    initialDelay: 30
+  replicas:
+    min: 2
+    max: 4
+    cpuThresholdPercentage: 75
+  resources:
+    limits:
+      cpu: "2"
+      memory: 1024Mi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_15
+        tier: db-custom-2-20480
+        databases:
+          - name: veilarbvedtaksstotte
+            envVarPrefix: DB
+  secureLogs:
+    enabled: true
+  kafka:
+    pool: nav-prod
+  env:
+    - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
+      value: pto.endring-paa-oppfolgingsbruker-v2
+    - name: ARENA_VEDTAK_TOPIC
+      value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-p
+    - name: POAO_TILGANG_URL
+      value: "http://poao-tilgang.poao"
+    - name: POAO_TILGANG_TOKEN_SCOPE
+      value: "api://prod-gcp.poao.poao-tilgang/.default"
+    - name: AIA_BACKEND_URL
+      value: https://www.nav.no/aia-backend
+  azure:
+    application:
+      allowAllUsers: true
+      enabled: true
+      claims:
+        extra:
+          - NAVident
+          - azp_name
+  tokenx:
+    enabled: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: veilarbportefoljeflatefs
+          namespace: obo
+        - application: veilarbportefolje
+          namespace: obo
+          permissions:
+            roles:
+              - "siste-14a-vedtak"
+        - application: veilarbpersonflate
+          namespace: poao
+        - application: beslutteroversikt
+          namespace: obo
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
+        - application: pto-admin
+          namespace: pto
+          cluster: prod-fss
+        - application: aia-backend
+          namespace: paw
+        - application: amt-person-service
+          namespace: amt
+          permissions:
+            roles:
+              - "siste-14a-vedtak"
+    outbound:
+      rules:
+        - application: aia-backend
+          namespace: paw
+        - application: paw-arbeidssoker-besvarelse
+          namespace: paw
+        - application: pto-pdfgen
+          namespace: obo
+      external:
+        - host: team-obo-unleash-web.nav.cloud.nais.io
+        - host: www.nav.no
+  envFrom:
+    - secret: veilarbvedtaksstotte-unleash-api-token
