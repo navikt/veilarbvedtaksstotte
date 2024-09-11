@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -19,6 +20,11 @@ import javax.sql.DataSource;
 public class DatabaseConfig {
 
     private final EnvironmentProperties environmentProperties;
+
+    @Bean
+    public DataSource dataSource() {
+        return createDataSource(environmentProperties.getDbUrl());
+    }
 
     public static DataSource createDataSource(String dbUrl) {
         try {

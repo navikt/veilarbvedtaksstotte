@@ -27,11 +27,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class ApplicationConfig {
 
     @Bean
-    fun serviceUserCredentials(): Credentials {
-        return NaisUtils.getCredentials("service_user")
-    }
-
-    @Bean
     fun azureAdMachineToMachineTokenClient(): AzureAdMachineToMachineTokenClient {
         return AzureAdTokenClientBuilder.builder()
             .withNaisDefaults()
