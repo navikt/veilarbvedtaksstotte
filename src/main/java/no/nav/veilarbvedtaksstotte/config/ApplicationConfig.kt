@@ -7,13 +7,13 @@ import lombok.extern.slf4j.Slf4j
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.kafka.util.KafkaEnvironmentVariables
-import no.nav.common.kafka.util.KafkaPropertiesPreset.*
+import no.nav.common.kafka.util.KafkaPropertiesPreset.aivenByteProducerProperties
+import no.nav.common.kafka.util.KafkaPropertiesPreset.aivenDefaultConsumerProperties
 import no.nav.common.token_client.builder.AzureAdTokenClientBuilder
 import no.nav.common.token_client.client.AzureAdMachineToMachineTokenClient
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.common.utils.Credentials
 import no.nav.common.utils.EnvironmentUtils.getRequiredProperty
-import no.nav.common.utils.NaisUtils
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -25,11 +25,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableScheduling
 @EnableConfigurationProperties(EnvironmentProperties::class)
 class ApplicationConfig {
-
-    @Bean
-    fun serviceUserCredentials(): Credentials {
-        return NaisUtils.getCredentials("service_user")
-    }
 
     @Bean
     fun azureAdMachineToMachineTokenClient(): AzureAdMachineToMachineTokenClient {
@@ -56,12 +51,6 @@ class ApplicationConfig {
         credentials: Credentials
     ): KafkaEnvironmentContext {
         return KafkaEnvironmentContext(
-            onPremConsumerClientProperties = onPremDefaultConsumerProperties(
-                KafkaConsumerConfig.CONSUMER_GROUP_ID, kafkaProperties.brokersUrl, credentials
-            ),
-            onPremProducerClientProperties = onPremByteProducerProperties(
-                KafkaProducerConfig.PRODUCER_CLIENT_ID, kafkaProperties.brokersUrl, credentials
-            ),
             aivenConsumerClientProperties = aivenDefaultConsumerProperties(KafkaConsumerConfig.CONSUMER_GROUP_ID),
             aivenProducerClientProperties = aivenByteProducerProperties(KafkaProducerConfig.PRODUCER_CLIENT_ID)
         )

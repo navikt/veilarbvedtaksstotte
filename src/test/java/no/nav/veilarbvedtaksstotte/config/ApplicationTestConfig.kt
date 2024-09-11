@@ -136,9 +136,7 @@ class ApplicationTestConfig {
             )
             .build()
         return KafkaEnvironmentContext(
-            onPremConsumerClientProperties = consumerProperties,
             aivenConsumerClientProperties = consumerProperties,
-            onPremProducerClientProperties = producerProperties,
             aivenProducerClientProperties = producerProperties
         )
     }
