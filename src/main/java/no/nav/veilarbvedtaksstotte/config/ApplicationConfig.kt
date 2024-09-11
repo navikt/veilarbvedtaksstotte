@@ -12,7 +12,6 @@ import no.nav.common.kafka.util.KafkaPropertiesPreset.aivenDefaultConsumerProper
 import no.nav.common.token_client.builder.AzureAdTokenClientBuilder
 import no.nav.common.token_client.client.AzureAdMachineToMachineTokenClient
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
-import no.nav.common.utils.Credentials
 import no.nav.common.utils.EnvironmentUtils.getRequiredProperty
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -48,7 +47,6 @@ class ApplicationConfig {
     @Bean
     fun kafkaConfigEnvContext(
         kafkaProperties: KafkaProperties,
-        credentials: Credentials
     ): KafkaEnvironmentContext {
         return KafkaEnvironmentContext(
             aivenConsumerClientProperties = aivenDefaultConsumerProperties(KafkaConsumerConfig.CONSUMER_GROUP_ID),

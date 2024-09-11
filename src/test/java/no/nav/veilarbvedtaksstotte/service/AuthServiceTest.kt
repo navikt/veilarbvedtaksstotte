@@ -7,7 +7,6 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.test.auth.AuthTestUtils.createAuthContext
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
-import no.nav.common.utils.Credentials
 import no.nav.common.utils.fn.UnsafeRunnable
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
@@ -29,7 +28,6 @@ class AuthServiceTest {
     var aktorOppslagClient = mock(AktorOppslagClient::class.java)
     var veilarbarenaService = mock(VeilarbarenaService::class.java)
     var utrullingService = mock(UtrullingService::class.java)
-    var serviceUserCredentials = mock(Credentials::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
     var authService =
         AuthService(aktorOppslagClient, veilarbarenaService, authContextHolder, utrullingService, poaoTilgangClient)

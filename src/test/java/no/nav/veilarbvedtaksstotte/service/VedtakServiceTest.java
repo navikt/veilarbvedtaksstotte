@@ -9,7 +9,6 @@ import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
-import no.nav.common.utils.Credentials;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.poao_tilgang.client.Decision;
 import no.nav.poao_tilgang.client.PoaoTilgangClient;
@@ -105,7 +104,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private static final SafClient safClient = mock(SafClient.class);
     private static final MetricsService metricsService = mock(MetricsService.class);
-    private static final Credentials credentials = mock(Credentials.class);
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
 
     private static final PdfService pdfService = mock(PdfService.class);
