@@ -53,6 +53,20 @@ spec:
       value: "api://dev-gcp.poao.poao-tilgang/.default"
     - name: AIA_BACKEND_URL
       value: https://www.intern.dev.nav.no/aia-backend
+    - name: NORG2_URL
+      value: https://norg2.intern.nav.no
+    - name: VEILARBOPPFOLGING_URL
+      value: "https://veilarboppfolging.dev-fss-pub.nais.io/veilarboppfolging"
+    - name: VEILARBOPPFOLGING_TOKEN_SCOPE
+      value: "api://dev-fss.pto.veilarboppfolging/.default"
+    - name: SAF_URL
+      value: "https://saf-q1.dev.intern.nav.no"
+    - name: SAF_TOKEN_SCOPE
+      value: "api://dev-fss.teamdokumenthandtering.saf/.default"
+    - name: VEILARBVEILEDER_URL
+      value: "https://veilarbveileder.dev-fss-pub.nais.io/veilarbveileder"
+    - name: VEILARBVEILEDER_TOKEN_SCOPE
+      value: "api://dev-fss.pto.veilarbveileder/.default"
   azure:
     application:
       allowAllUsers: true
@@ -96,5 +110,10 @@ spec:
     outbound:
       external:
         - host: team-obo-unleash-api.nav.cloud.nais.io
+        - host: pdl-api.dev-fss-pub.nais.io
+        - host: veilarboppfolging.dev-fss-pub.nais.io
+        - host: veilarbveileder.dev-fss-pub.nais.io
+        - host: veilarbarena.dev-fss-pub.nais.io
+        - host: saf.dev-fss-pub.nais.io
   envFrom:
     - secret: veilarbvedtaksstotte-unleash-api-token

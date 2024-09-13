@@ -4,10 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "app.env")
 data class EnvironmentProperties (
-    val openAmDiscoveryUrl: String,
-    val veilarbloginOpenAmClientId: String,
     val stsDiscoveryUrl: String,
-    val openAmRefreshUrl: String,
     val dbUrl: String,
     val unleashUrl: String,
     val unleashApiToken: String,
@@ -19,5 +16,12 @@ data class EnvironmentProperties (
     val poaoTilgangScope: String,
     val aiaBackendUrl: String,
     val tokenxDiscoveryUrl: String,
-    val tokenxClientId: String
+    val tokenxClientId: String,
+    val veilarboppfolgingUrl: String,
+    val veilarboppfolgingScope: String,
+    val safUrl: String,
+    val safScope: String,
+    val veilarbveilederUrl: String,
+    val veilarbveilederScope: String
+
 )
