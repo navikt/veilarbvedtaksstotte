@@ -65,6 +65,8 @@ spec:
       value: "api://dev-fss.pto.veilarboppfolging/.default"
     - name: VEILARBOPPFOLGING_URL
       value: "https://veilarboppfolging.dev-fss-pub.nais.io/veilarboppfolging"
+    - name: VEILARBPERSON_URL
+      value: "http://veilarbperson.obo"
     - name: VEILARBVEILEDER_TOKEN_SCOPE
       value: "api://dev-fss.pto.veilarbveileder/.default"
     - name: VEILARBVEILEDER_URL
@@ -98,8 +100,6 @@ spec:
         - application: pto-admin
           namespace: pto
           cluster: dev-fss
-        - application: aia-backend
-          namespace: paw
         - application: azure-token-generator
           namespace: aura
         - application: amt-person-service
@@ -111,6 +111,8 @@ spec:
           namespace: obo
     outbound:
       rules:
+        - application: aia-backend
+          namespace: paw
         - application: dokarkiv-q1
           namespace: teamdokumenthandtering
           cluster: dev-fss
