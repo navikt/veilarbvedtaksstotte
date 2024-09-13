@@ -21,6 +21,7 @@ data class EnvironmentProperties (
     val unleashUrl: String,
     val veilarboppfolgingScope: String,
     val veilarboppfolgingUrl: String,
+    val veilarbpersonUrl: String,
     val veilarbveilederScope: String,
     val veilarbveilederUrl: String
 

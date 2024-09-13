@@ -116,6 +116,7 @@ spec:
         - application: dokarkiv-q1
           namespace: teamdokumenthandtering
           cluster: dev-fss
+        - application: veilarbperson
       external:
         - host: dokarkiv.dev-fss-pub.nais.io
         - host: pdl-api.dev-fss-pub.nais.io
