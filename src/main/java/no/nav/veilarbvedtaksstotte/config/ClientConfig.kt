@@ -64,9 +64,7 @@ class ClientConfig {
         val veilarbarena = veilarbarena.invoke(if (isProduction) "prod-fss" else "dev-fss")
 
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbarena.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                veilarbarena.serviceName
-            )
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbarena.serviceName) else "https://veilarbarena.dev-fss-pub.nais.io"
 
         return VeilarbarenaClientImpl(
             joinPaths(url, "veilarbarena")
