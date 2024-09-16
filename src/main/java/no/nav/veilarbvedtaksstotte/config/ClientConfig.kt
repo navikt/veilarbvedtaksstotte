@@ -200,7 +200,7 @@ class ClientConfig {
 
         val pdl = pdl.invoke(if (isProduction) "prod-fss" else "dev-fss")
         val pdlUrl =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(pdl.serviceName) else "pdl-api.dev-fss-pub.nais.io"
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(pdl.serviceName) else "https://pdl-api.dev-fss-pub.nais.io"
         val pdlClient = PdlClientImpl(
             pdlUrl,
             { tokenClient.createMachineToMachineToken(tokenScope(pdl)) },
