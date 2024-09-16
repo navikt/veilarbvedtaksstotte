@@ -60,7 +60,7 @@ spec:
     - name: SAF_TOKEN_SCOPE
       value: "api://dev-fss.teamdokumenthandtering.saf/.default"
     - name: SAF_URL
-      value: "https://saf.dev-fss-pub.nais.io"
+      value: "https://saf-q2.dev-fss-pub.nais.io"
     - name: VEILARBOPPFOLGING_TOKEN_SCOPE
       value: "api://dev-fss.pto.veilarboppfolging/.default"
     - name: VEILARBOPPFOLGING_URL
@@ -129,7 +129,7 @@ spec:
         - host: dokarkiv.dev-fss-pub.nais.io
         - host: pdl-api.dev-fss-pub.nais.io
         - host: regoppslag.dev-fss-pub.nais.io
-        - host: saf.dev-fss-pub.nais.io
+        - host: saf-q2.dev-fss-pub.nais.io
         - host: team-obo-unleash-api.nav.cloud.nais.io
         - host: veilarbarena.dev-fss-pub.nais.io
         - host: veilarboppfolging.dev-fss-pub.nais.io
