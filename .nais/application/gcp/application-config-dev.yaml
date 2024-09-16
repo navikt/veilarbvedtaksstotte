@@ -123,6 +123,7 @@ spec:
       external:
         - host: dokarkiv.dev-fss-pub.nais.io
         - host: pdl-api.dev-fss-pub.nais.io
+        - host: regoppslag.dev-fss-pub.nais.io
         - host: saf.dev-fss-pub.nais.io
         - host: saf.dev-fss-pub.nais.io
         - host: team-obo-unleash-api.nav.cloud.nais.io
