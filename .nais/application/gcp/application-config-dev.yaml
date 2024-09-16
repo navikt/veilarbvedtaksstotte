@@ -119,6 +119,7 @@ spec:
         - application: poao-tilgang
           namespace: poao
         - application: veilarbperson
+        - application: pto-pdfgen
       external:
         - host: dokarkiv.dev-fss-pub.nais.io
         - host: pdl-api.dev-fss-pub.nais.io
