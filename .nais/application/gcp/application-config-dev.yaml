@@ -113,6 +113,9 @@ spec:
       rules:
         - application: aia-backend
           namespace: paw
+        - application: pdl-api
+          namespace: pdl
+          cluster: dev-fss
         - application: dokarkiv-q1
           namespace: teamdokumenthandtering
           cluster: dev-fss
