@@ -166,7 +166,7 @@ class ClientConfig {
     fun regoppslagClient(tokenClient: AzureAdMachineToMachineTokenClient): RegoppslagClient {
         val regoppslag = regoppslag.invoke(if (isProduction) "prod-fss" else "dev-fss")
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(regoppslag.serviceName) else "https://regoppslag-q1.dev.intern.nav.no"
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(regoppslag.serviceName) else "http://regoppslag.dev-fss-pub.nais.io"
         return RegoppslagClientImpl(url) { tokenClient.createMachineToMachineToken(tokenScope(regoppslag)) }
     }
 
@@ -189,7 +189,7 @@ class ClientConfig {
 
         // dokdistfordeling bruker saf token scope
         val safTokenScope =
-            if (isProduction) "api://prod-fss.teamdokumenthandtering.saf/.default" else "api://dev-fss.teamdokumenthandtering.saf-q1/.default"
+            if (isProduction) "api://prod-fss.teamdokumenthandtering.saf/.default" else "api://dev-fss.teamdokumenthandtering.saf/.default"
         return DokdistribusjonClientImpl(url) { tokenClient.createMachineToMachineToken(safTokenScope) }
     }
 

@@ -58,9 +58,9 @@ spec:
     - name: POAO_TILGANG_URL
       value: "http://poao-tilgang.poao"
     - name: SAF_TOKEN_SCOPE
-      value: "api://dev-fss.teamdokumenthandtering.saf-q1/.default"
+      value: "api://dev-fss.teamdokumenthandtering.saf/.default"
     - name: SAF_URL
-      value: "https://saf-q1.dev.intern.nav.no"
+      value: "http://saf.dev-fss-pub.nais.io"
     - name: VEILARBOPPFOLGING_TOKEN_SCOPE
       value: "api://dev-fss.pto.veilarboppfolging/.default"
     - name: VEILARBOPPFOLGING_URL
@@ -128,8 +128,8 @@ spec:
       external:
         - host: dokarkiv.dev-fss-pub.nais.io
         - host: pdl-api.dev-fss-pub.nais.io
-        - host: regoppslag-q1.dev.intern.nav.no
-        - host: saf-q1.dev.intern.nav.no
+        - host: regoppslag.dev-fss-pub.nais.io
+        - host: saf.dev-fss-pub.nais.io
         - host: team-obo-unleash-api.nav.cloud.nais.io
         - host: veilarbarena.dev-fss-pub.nais.io
         - host: veilarboppfolging.dev-fss-pub.nais.io
