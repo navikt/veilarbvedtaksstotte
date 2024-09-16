@@ -166,7 +166,7 @@ class ClientConfig {
     fun regoppslagClient(tokenClient: AzureAdMachineToMachineTokenClient): RegoppslagClient {
         val regoppslag = regoppslag.invoke(if (isProduction) "prod-fss" else "dev-fss")
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(regoppslag.serviceName) else "https://regoppslag.dev-fss-pub.nais.io"
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(regoppslag.serviceName) else "https://regoppslag-q1.dev.intern.nav.no"
         return RegoppslagClientImpl(url) { tokenClient.createMachineToMachineToken(tokenScope(regoppslag)) }
     }
 
