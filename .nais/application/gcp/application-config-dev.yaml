@@ -122,7 +122,7 @@ spec:
         - application: veilarbperson
       external:
         - host: dokarkiv.dev-fss-pub.nais.io
-        - host: pdl-api.dev-fss-pub.nais.io
+        - host: pdl-api.dev.intern.nav.no
         - host: saf.dev-fss-pub.nais.io
         - host: saf.dev-fss-pub.nais.io
         - host: team-obo-unleash-api.nav.cloud.nais.io
