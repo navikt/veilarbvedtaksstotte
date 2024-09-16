@@ -60,7 +60,7 @@ spec:
     - name: SAF_TOKEN_SCOPE
       value: "api://dev-fss.teamdokumenthandtering.saf/.default"
     - name: SAF_URL
-      value: "http://saf.dev-fss-pub.nais.io"
+      value: "https://saf.dev-fss-pub.nais.io"
     - name: VEILARBOPPFOLGING_TOKEN_SCOPE
       value: "api://dev-fss.pto.veilarboppfolging/.default"
     - name: VEILARBOPPFOLGING_URL
