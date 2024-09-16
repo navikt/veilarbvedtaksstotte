@@ -128,8 +128,8 @@ spec:
       external:
         - host: dokarkiv.dev-fss-pub.nais.io
         - host: pdl-api.dev-fss-pub.nais.io
-        - host: https://regoppslag-q1.dev.intern.nav.no
-        - host: https://saf-q1.dev.intern.nav.no
+        - host: regoppslag-q1.dev.intern.nav.no
+        - host: saf-q1.dev.intern.nav.no
         - host: team-obo-unleash-api.nav.cloud.nais.io
         - host: veilarbarena.dev-fss-pub.nais.io
         - host: veilarboppfolging.dev-fss-pub.nais.io
