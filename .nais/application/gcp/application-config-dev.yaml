@@ -52,7 +52,7 @@ spec:
     - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
       value: pto.endring-paa-oppfolgingsbruker-v2
     - name: NORG2_URL
-      value: https://norg2.intern.nav.no
+      value: https://norg2.intern.dev.nav.no
     - name: POAO_TILGANG_TOKEN_SCOPE
       value: "api://dev-gcp.poao.poao-tilgang/.default"
     - name: POAO_TILGANG_URL
