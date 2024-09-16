@@ -73,8 +73,8 @@ class ClientConfig {
 
     @Bean
     fun pdfClient(): PdfClient {
-        val appName = "pto-pdfgen";
-        val url: String;
+        val appName = "pto-pdfgen"
+        val url: String
         if (isProduction){
             url = String.format("https://%s.intern.nav.no", appName)
         }else{
@@ -97,7 +97,7 @@ class ClientConfig {
 
     @Bean
     fun oppfolgingClient(properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient): VeilarboppfolgingClient {
-        val url = properties.veilarboppfolgingUrl;
+        val url = properties.veilarboppfolgingUrl
         return VeilarboppfolgingClientImpl(
             url
         ) { tokenClient.createMachineToMachineToken(properties.veilarboppfolgingScope) }
@@ -125,7 +125,7 @@ class ClientConfig {
 
     @Bean
     fun safClient(properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient): SafClient {
-        val url = properties.safUrl;
+        val url = properties.safUrl
         return SafClientImpl(
             url
         ){ tokenClient.createMachineToMachineToken(properties.safScope) }
@@ -200,9 +200,7 @@ class ClientConfig {
 
         val pdl = pdl.invoke(if (isProduction) "prod-fss" else "dev-fss")
         val pdlUrl =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(pdl.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                pdl.serviceName
-            )
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(pdl.serviceName) else "pdl-api.dev-fss-pub.nais.io"
         val pdlClient = PdlClientImpl(
             pdlUrl,
             { tokenClient.createMachineToMachineToken(tokenScope(pdl)) },
