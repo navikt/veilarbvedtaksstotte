@@ -107,11 +107,11 @@ spec:
           permissions:
             roles:
               - "siste-14a-vedtak"
-        - application: pto-pdfgen
-          namespace: obo
     outbound:
       rules:
         - application: aia-backend
+          namespace: paw
+        - application: paw-arbeidssoker-besvarelse
           namespace: paw
         - application: pdl-api
           namespace: pdl
