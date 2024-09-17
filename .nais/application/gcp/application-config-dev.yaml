@@ -44,7 +44,7 @@ spec:
     pool: nav-dev
   env:
     - name: AIA_BACKEND_URL
-      value: https://www.intern.dev.nav.no/aia-backend
+      value: http://aia-backend.paw/aia-backend
     - name: ARENA_VEDTAK_TOPIC
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-q1
     - name: DOKUMENTARKIV_URL
