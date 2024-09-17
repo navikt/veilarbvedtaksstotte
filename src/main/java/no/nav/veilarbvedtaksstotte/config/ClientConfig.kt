@@ -181,7 +181,7 @@ class ClientConfig {
 
     @Bean
     fun dokDistribusjonClient(tokenClient: AzureAdMachineToMachineTokenClient): DokdistribusjonClient {
-        val appName = if (isProduction) "dokdistfordeling" else "dokdistfordeling-q1"
+        val appName = if (isProduction) "dokdistfordeling" else "dokdistfordeling"
         val url =
             if (isProduction) UrlUtils.createProdInternalIngressUrl(appName) else UrlUtils.createDevInternalIngressUrl(
                 appName
