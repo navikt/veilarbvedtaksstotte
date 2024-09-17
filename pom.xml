@@ -37,6 +37,10 @@
             <url>https://repo.maven.apache.org/maven2</url>
         </repository>
         <repository>
+            <id>jitpack</id>
+            <url>https://jitpack.io</url>
+        </repository>
+        <repository>
             <id>github</id>
             <url>https://github-package-registry-mirror.gc.nav.no/cached/maven-release</url>
         </repository>
