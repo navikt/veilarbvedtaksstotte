@@ -7,8 +7,8 @@ on:
       - gcp-migration
     paths:
       - ".github/workflows/gcp/gcp-deploy-unleash-apitoken.yaml"
-      - ".nais/application/gcp/unleash-apitoken-dev.yaml"
-      - ".nais/application/gcp/unleash-apitoken-prod.yaml"
+      - "../../.nais/application/gcp/unleash-apitoken-dev.yaml"
+      - "../../.nais/application/gcp/unleash-apitoken-prod.yaml"
 
 jobs:
   deploy-dev:

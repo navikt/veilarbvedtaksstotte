@@ -1,37 +1,68 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.utils.DbRole;
-import no.nav.veilarbvedtaksstotte.utils.DbUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.flywaydb.core.Flyway;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import jakarta.annotation.PostConstruct;
 import javax.sql.DataSource;
-
-import static no.nav.veilarbvedtaksstotte.utils.DbUtils.createDataSource;
 
 @Slf4j
 @Configuration
+@EnableTransactionManagement
+@RequiredArgsConstructor
 public class DatabaseConfig {
 
     private final EnvironmentProperties environmentProperties;
 
-    @Autowired
-    public DatabaseConfig(EnvironmentProperties environmentProperties) {
-        this.environmentProperties = environmentProperties;
+    @Bean
+    public DataSource dataSource() {
+        return createDataSource(environmentProperties.getDbUrl());
     }
 
-    @Bean
-    public DataSource dataSource(EnvironmentProperties properties) {
-        return createDataSource(properties.getDbUrl(), DbRole.USER);
+    public static DataSource createDataSource(String dbUrl) {
+        try {
+            HikariConfig config = createDataSourceConfig(dbUrl, 15);
+            return new HikariDataSource(config);
+        } catch (Exception e) {
+            log.info("Can't connect to db, error: " + e, e);
+            return null;
+        }
     }
+
+    public static HikariConfig createDataSourceConfig(String dbUrl, int maximumPoolSize) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(dbUrl);
+        config.setMaximumPoolSize(maximumPoolSize);
+        config.setConnectionTimeout(600000); // 10min
+        config.setMinimumIdle(1);
+        return config;
+    }
+
 
     @PostConstruct
-    public void migrateDb() {
-        log.info("Starting database migration...");
-        DbUtils.migrateAndClose(DbUtils.createDataSource(environmentProperties.getDbUrl(), DbRole.ADMIN), DbRole.ADMIN);
+    @SneakyThrows
+    public void migrate() {
+        DataSource dataSource = createDataSource(environmentProperties.getDbUrl());
+
+        if (dataSource != null) {
+            log.info("Starting database migration...");
+            Flyway.configure()
+                    .validateMigrationNaming(true)
+                    .dataSource(dataSource)
+                    .locations("db/migration")
+                    .baselineOnMigrate(true)
+                    .load()
+                    .migrate();
+
+            dataSource.getConnection().close();
+        }
     }
 
 }

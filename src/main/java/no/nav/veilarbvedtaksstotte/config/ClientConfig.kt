@@ -22,9 +22,7 @@ import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.aiaBackend
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.dokarkiv
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.pdl
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.regoppslag
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.saf
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbarena
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarboppfolging
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbperson
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbveileder
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
@@ -66,9 +64,7 @@ class ClientConfig {
         val veilarbarena = veilarbarena.invoke(if (isProduction) "prod-fss" else "dev-fss")
 
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbarena.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                veilarbarena.serviceName
-            )
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbarena.serviceName) else "https://veilarbarena.dev-fss-pub.nais.io"
 
         return VeilarbarenaClientImpl(
             joinPaths(url, "veilarbarena")
@@ -77,8 +73,8 @@ class ClientConfig {
 
     @Bean
     fun pdfClient(): PdfClient {
-        val appName = "pto-pdfgen";
-        val url: String;
+        val appName = "pto-pdfgen"
+        val url: String
         if (isProduction){
             url = String.format("https://%s.intern.nav.no", appName)
         }else{
@@ -100,59 +96,56 @@ class ClientConfig {
     }
 
     @Bean
-    fun oppfolgingClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarboppfolgingClient {
-        val veilarboppfolging = veilarboppfolging.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val url = UrlUtils.createServiceUrl(veilarboppfolging.serviceName, veilarboppfolging.namespace, true)
+    fun oppfolgingClient(properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient): VeilarboppfolgingClient {
+        val url = properties.veilarboppfolgingUrl
         return VeilarboppfolgingClientImpl(
             url
-        ) { tokenClient.createMachineToMachineToken(tokenScope(veilarboppfolging)) }
+        ) { tokenClient.createMachineToMachineToken(properties.veilarboppfolgingScope) }
     }
 
     @Bean
-    fun personClient(oboContexService: OboContexService, tokenClient: AzureAdMachineToMachineTokenClient): VeilarbpersonClient {
-        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+    fun personClient(properties: EnvironmentProperties, oboContexService: OboContexService, tokenClient: AzureAdMachineToMachineTokenClient): VeilarbpersonClient {
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-gcp")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                veilarbperson.serviceName
-            )
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else properties.veilarbpersonUrl
 
         return VeilarbpersonClientImpl(joinPaths(url, "veilarbperson"), userTokenSupplier){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
     @Bean
-    fun registreringClient(oboContexService: OboContexService): VeilarbregistreringClient {
-        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+    fun registreringClient(properties: EnvironmentProperties, oboContexService: OboContexService): VeilarbregistreringClient {
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-gcp")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                veilarbperson.serviceName
-            )
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else properties.veilarbpersonUrl
+
         return VeilarbregistreringClientImpl(joinPaths(url, "veilarbperson"), userTokenSupplier)
     }
 
     @Bean
-    fun safClient(tokenClient: AzureAdMachineToMachineTokenClient): SafClient {
-        val safClient = saf.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val serviceNameForIngress = "saf"
+    fun safClient(properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient): SafClient {
+        val url = properties.safUrl
         return SafClientImpl(
-            naisPreprodOrNaisAdeoIngress(serviceNameForIngress, false)
-        ){ tokenClient.createMachineToMachineToken(tokenScope(safClient)) }
+            url
+        ){ tokenClient.createMachineToMachineToken(properties.safScope) }
     }
 
     @Bean
     fun veilederOgEnhetClient(
         authContextHolder: AuthContextHolder?,
         oboContexService: OboContexService,
-        tokenClient: AzureAdMachineToMachineTokenClient
+        tokenClient: AzureAdMachineToMachineTokenClient,
+        properties: EnvironmentProperties
     ): VeilarbveilederClient {
         val veilarbveileder = veilarbveileder.invoke(if (isProduction) "prod-fss" else "dev-fss")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbveileder)
+        val url = properties.veilarbveilederUrl
         return VeilarbveilederClientImpl(
-            UrlUtils.createServiceUrl(veilarbveileder.serviceName, veilarbveileder.namespace, true),
+            url,
             authContextHolder,
             userTokenSupplier,
-            { tokenClient.createMachineToMachineToken(tokenScope(veilarbveileder)) }
+            { tokenClient.createMachineToMachineToken(properties.veilarbveilederScope) }
         )
     }
 
@@ -173,26 +166,22 @@ class ClientConfig {
     fun regoppslagClient(tokenClient: AzureAdMachineToMachineTokenClient): RegoppslagClient {
         val regoppslag = regoppslag.invoke(if (isProduction) "prod-fss" else "dev-fss")
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(regoppslag.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                regoppslag.serviceName
-            )
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(regoppslag.serviceName) else "https://regoppslag.dev-fss-pub.nais.io"
         return RegoppslagClientImpl(url) { tokenClient.createMachineToMachineToken(tokenScope(regoppslag)) }
     }
 
     @Bean
-    fun oppslagArbeidssoekerregisteretClient(tokenClient: AzureAdMachineToMachineTokenClient): OppslagArbeidssoekerregisteretClientImpl {
-        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+    fun oppslagArbeidssoekerregisteretClient(properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient): OppslagArbeidssoekerregisteretClientImpl {
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-gcp")
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                veilarbperson.serviceName
-            )
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else properties.veilarbpersonUrl
 
         return OppslagArbeidssoekerregisteretClientImpl(joinPaths(url, "veilarbperson")){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
     @Bean
     fun dokDistribusjonClient(tokenClient: AzureAdMachineToMachineTokenClient): DokdistribusjonClient {
-        val appName = if (isProduction) "dokdistfordeling" else "dokdistfordeling-q1"
+        val appName = if (isProduction) "dokdistfordeling" else "dokdistfordeling"
         val url =
             if (isProduction) UrlUtils.createProdInternalIngressUrl(appName) else UrlUtils.createDevInternalIngressUrl(
                 appName
@@ -200,7 +189,7 @@ class ClientConfig {
 
         // dokdistfordeling bruker saf token scope
         val safTokenScope =
-            if (isProduction) "api://prod-fss.teamdokumenthandtering.saf/.default" else "api://dev-fss.teamdokumenthandtering.saf-q1/.default"
+            if (isProduction) "api://prod-fss.teamdokumenthandtering.saf/.default" else "api://dev-fss.teamdokumenthandtering.saf/.default"
         return DokdistribusjonClientImpl(url) { tokenClient.createMachineToMachineToken(safTokenScope) }
     }
 
@@ -209,9 +198,7 @@ class ClientConfig {
 
         val pdl = pdl.invoke(if (isProduction) "prod-fss" else "dev-fss")
         val pdlUrl =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(pdl.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                pdl.serviceName
-            )
+            if (isProduction) UrlUtils.createProdInternalIngressUrl(pdl.serviceName) else "https://pdl-api.dev-fss-pub.nais.io"
         val pdlClient = PdlClientImpl(
             pdlUrl,
             { tokenClient.createMachineToMachineToken(tokenScope(pdl)) },

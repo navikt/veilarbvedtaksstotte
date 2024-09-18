@@ -11,12 +11,14 @@ import no.nav.common.kafka.consumer.util.ConsumerUtils
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
-import no.nav.veilarbvedtaksstotte.domain.kafka.*
+import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
-import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_SKRUDD_AV
+import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_GCP_SKRUDD_AV
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -60,7 +62,7 @@ class KafkaConsumerConfig {
         val aivenConsumerClient = KafkaConsumerClientBuilder.builder()
             .withProperties(environmentContext.aivenConsumerClientProperties)
             .withTopicConfigs(consumerAivenConfig.configs)
-            .withToggle { unleashService.isEnabled(KAFKA_KONSUMERING_SKRUDD_AV) }
+            .withToggle { unleashService.isEnabled(KAFKA_KONSUMERING_GCP_SKRUDD_AV) }
             .build()
 
         aivenConsumerClient.start()

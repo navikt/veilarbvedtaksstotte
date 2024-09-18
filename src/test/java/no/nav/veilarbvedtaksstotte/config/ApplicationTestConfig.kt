@@ -12,7 +12,6 @@ import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.metrics.MetricsClient
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
-import no.nav.common.utils.Credentials
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
@@ -57,11 +56,6 @@ import javax.sql.DataSource
     ArbeidssoekerRegisteretService::class
 )
 class ApplicationTestConfig {
-    @Bean
-    fun serviceUserCredentials(): Credentials {
-        return Credentials("username", "password")
-    }
-
     @Bean
     fun poaoTilgangClient(): PoaoTilgangClient {
         return PoaoTilgangClientMock()
@@ -136,9 +130,7 @@ class ApplicationTestConfig {
             )
             .build()
         return KafkaEnvironmentContext(
-            onPremConsumerClientProperties = consumerProperties,
             aivenConsumerClientProperties = consumerProperties,
-            onPremProducerClientProperties = producerProperties,
             aivenProducerClientProperties = producerProperties
         )
     }
