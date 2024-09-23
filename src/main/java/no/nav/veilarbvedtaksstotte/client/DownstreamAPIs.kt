@@ -6,7 +6,7 @@ object DownstreamAPIs {
     @JvmStatic
     val veilarbveileder: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarbveileder") }
     @JvmStatic
-    val veilarbperson: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarbperson") }
+    val veilarbperson: (String) -> DownstreamApi = { DownstreamApi(it, if(it == "dev-fss") "pto" else "obo", "veilarbperson") }
     @JvmStatic
     val veilarbarena: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarbarena") }
     @JvmStatic
