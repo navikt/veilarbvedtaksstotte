@@ -98,8 +98,6 @@ spec:
               - "siste-14a-vedtak"
         - application: pto-pdfgen
           namespace: obo
-        - application: veilarboppfolging
-          namespace: poao
     outbound:
       rules:
         - application: veilarboppfolging

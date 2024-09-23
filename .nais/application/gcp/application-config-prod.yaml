@@ -94,8 +94,6 @@ spec:
           permissions:
             roles:
               - "siste-14a-vedtak"
-        - application: veilarboppfolging
-          namespace: poao
     outbound:
       rules:
         - application: aia-backend
@@ -104,6 +102,8 @@ spec:
           namespace: paw
         - application: pto-pdfgen
           namespace: obo
+        - application: veilarboppfolging
+          namespace: poao
       external:
         - host: team-obo-unleash-web.nav.cloud.nais.io
         - host: www.nav.no
