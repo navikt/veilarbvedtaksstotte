@@ -62,9 +62,9 @@ spec:
     - name: SAF_URL
       value: "https://saf-q2.dev-fss-pub.nais.io"
     - name: VEILARBOPPFOLGING_TOKEN_SCOPE
-      value: "api://dev-fss.pto.veilarboppfolging/.default"
+      value: api://dev-gcp.poao.veilarboppfolging/.default
     - name: VEILARBOPPFOLGING_URL
-      value: "https://veilarboppfolging.dev-fss-pub.nais.io/veilarboppfolging"
+      value: "http://veilarboppfolging.poao/veilarboppfolging"
     - name: VEILARBPERSON_URL
       value: "http://veilarbperson.obo"
     - name: VEILARBVEILEDER_TOKEN_SCOPE
@@ -116,8 +116,10 @@ spec:
           cluster: dev-fss
         - application: poao-tilgang
           namespace: poao
-        - application: veilarbperson
         - application: pto-pdfgen
+        - application: veilarboppfolging
+          namespace: poao
+        - application: veilarbperson
       external:
         - host: dokarkiv.dev-fss-pub.nais.io
         - host: pdl-api.dev-fss-pub.nais.io
@@ -125,7 +127,6 @@ spec:
         - host: saf-q2.dev-fss-pub.nais.io
         - host: team-obo-unleash-api.nav.cloud.nais.io
         - host: veilarbarena.dev-fss-pub.nais.io
-        - host: veilarboppfolging.dev-fss-pub.nais.io
         - host: veilarbveileder.dev-fss-pub.nais.io
         - host: www.intern.dev.nav.no
   envFrom:
