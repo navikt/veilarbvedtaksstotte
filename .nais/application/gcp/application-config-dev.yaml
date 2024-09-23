@@ -101,6 +101,9 @@ spec:
         - application: veilarboppfolging
           namespace: poao
     outbound:
+      rules:
+        - application: veilarboppfolging
+          namespace: poao
       external:
         - host: team-obo-unleash-api.nav.cloud.nais.io
   envFrom:
