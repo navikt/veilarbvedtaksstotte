@@ -54,6 +54,10 @@ spec:
       value: "api://prod-gcp.poao.poao-tilgang/.default"
     - name: AIA_BACKEND_URL
       value: https://www.nav.no/aia-backend
+    - name: VEILARBOPPFOLGING_URL
+      value: "http://veilarboppfolging.poao"
+    - name: VEILARBOPPFOLGING_AZURE_SCOPE
+      value: api://prod-gcp.poao.veilarboppfolging/.default
   azure:
     application:
       allowAllUsers: true
@@ -98,6 +102,8 @@ spec:
           namespace: paw
         - application: pto-pdfgen
           namespace: obo
+        - application: veilarboppfolging
+          namespace: poao
       external:
         - host: team-obo-unleash-web.nav.cloud.nais.io
         - host: www.nav.no
