@@ -101,8 +101,8 @@ class ClientConfig {
 
     @Bean
     fun oppfolgingClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarboppfolgingClient {
-        val veilarboppfolging = veilarboppfolging.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val url = UrlUtils.createServiceUrl(veilarboppfolging.serviceName, veilarboppfolging.namespace, true)
+        val veilarboppfolging = veilarboppfolging.invoke(if (isProduction) "prod-gcp" else "dev-fss")
+        val url = "https://veilarboppfolging-gcp.intern.nav.no/veilarboppfolging"
         return VeilarboppfolgingClientImpl(
             url
         ) { tokenClient.createMachineToMachineToken(tokenScope(veilarboppfolging)) }
