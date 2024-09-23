@@ -110,10 +110,10 @@ class ClientConfig {
 
     @Bean
     fun personClient(oboContexService: OboContexService, tokenClient: AzureAdMachineToMachineTokenClient): VeilarbpersonClient {
-        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-gcp" else "dev-fss")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
+            if (isProduction) "https://veilarbperson-gcp.intern.nav.no" else UrlUtils.createDevInternalIngressUrl(
                 veilarbperson.serviceName
             )
 
