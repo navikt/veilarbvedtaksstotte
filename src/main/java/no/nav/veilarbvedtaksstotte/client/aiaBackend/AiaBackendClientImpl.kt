@@ -41,23 +41,6 @@ class AiaBackendClientImpl(private val aiaBackendUrl: String, private val userTo
         }
     }
 
-    override fun hentEndringIRegistreringdata(endringIRegistreringdataRequest: EndringIRegistreringdataRequest): EndringIRegistreringsdataResponse? {
-        val request = Request.Builder()
-            .url(joinPaths(aiaBackendUrl, "/veileder/besvarelse"))
-            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-            .post(endringIRegistreringdataRequest.toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
-            .build()
-
-        client.newCall(request).execute().use { response ->
-            RestUtils.throwIfNotSuccessful(response)
-            log.debug("Endring i registreringsdata - responsestatus: {}", response.code)
-            if (response.code == 204) {
-                return null
-            }
-            return response.deserializeJsonOrThrow()
-        }
-    }
-
     override fun checkHealth(): HealthCheckResult {
         TODO("Not yet implemented")
     }

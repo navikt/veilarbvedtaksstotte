@@ -205,12 +205,6 @@ public class ClientTestConfig {
                 return new EgenvurderingResponseDTO("STANDARD_INNSATS", new Instant().toString(), "123456", new EgenvurderingResponseDTO.Tekster("testspm", egenvurderingstekster));
             }
 
-            @Nullable
-            @Override
-            public EndringIRegistreringsdataResponse hentEndringIRegistreringdata(@NotNull EndringIRegistreringdataRequest endringIRegistreringdataRequest) {
-                return null;
-            }
-
             @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();

@@ -166,7 +166,6 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(registreringClient.hentRegistreringData(TEST_FNR.get())).thenReturn(JsonUtils.fromJson(testRegistreringsdata(), RegistreringResponseDto.class));
         when(aia_backend_client.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()))).thenReturn(JsonUtils.fromJson(testEgenvurderingData(), EgenvurderingResponseDTO.class));
-        when(aia_backend_client.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(TEST_FNR.get()))).thenReturn(getEndringIRegistreringsData());
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));
