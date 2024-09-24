@@ -20,5 +20,5 @@ object DownstreamAPIs {
     @JvmStatic
     val pdl: (String) -> DownstreamApi = { DownstreamApi(it, "pdl", "pdl-api") }
     @JvmStatic
-    val aiaBackend: (String) -> DownstreamApi = { DownstreamApi(it, "paw","aia-backend") }
+    val aiaBackend: (String) -> DownstreamApi = { DownstreamApi(it, "paw","paw-arbeidssoker-besvarelse") }
 }
