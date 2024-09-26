@@ -43,34 +43,56 @@ spec:
   kafka:
     pool: nav-dev
   env:
+    - name: AIA_BACKEND_TOKEN_SCOPE
+      value: api://dev-gcp.poao.aia-backend/.default
     - name: AIA_BACKEND_URL
       value: https://www.intern.dev.nav.no/aia-backend
     - name: ARENA_VEDTAK_TOPIC
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-q1
-    - name: DOKUMENTARKIV_URL
+    - name: DOKARKIV_TOKEN_SCOPE
+      value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
+    - name: DOKARKIV_URL
       value: https://dokarkiv.dev-fss-pub.nais.io
+    - name: DOKDISTFORDELING_URL # bruker saf-scope
+      value: https://dokdistfordeling.dev-fss-pub.nais.io
     - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
       value: pto.endring-paa-oppfolgingsbruker-v2
     - name: NORG2_URL
       value: https://norg2.intern.dev.nav.no/norg2
+    - name: PDL_TOKEN_SCOPE
+      value: api://dev-fss.pdl.pdl-api/.default
+    - name: PDL_URL
+      value: https://pdl-api.dev-fss-pub.nais.io
     - name: POAO_TILGANG_TOKEN_SCOPE
-      value: "api://dev-gcp.poao.poao-tilgang/.default"
+      value: api://dev-gcp.poao.poao-tilgang/.default
     - name: POAO_TILGANG_URL
-      value: "http://poao-tilgang.poao"
+      value: http://poao-tilgang.poao
+    - name: PTO_PDFGEN_URL
+      value: http://pto-pdfgen.obo
+    - name: REGOPPSLAG_TOKEN_SCOPE
+      value: api://dev-fss.teamdokumenthandtering.regoppslag/.default
+    - name: REGOPPSLAG_URL
+      value: https://regoppslag.dev-fss-pub.nais.io
     - name: SAF_TOKEN_SCOPE
-      value: "api://dev-fss.teamdokumenthandtering.saf/.default"
+      value: api://dev-fss.teamdokumenthandtering.saf/.default
     - name: SAF_URL
-      value: "https://saf-q2.dev-fss-pub.nais.io"
+      value: https://saf-q2.dev-fss-pub.nais.io
+    - name: VEILARBARENA_TOKEN_SCOPE
+      value: api://dev-fss.pto.veilarbarena/.default
+    - name: VEILARBARENA_URL
+      value: https://veilarbarena.dev-fss-pub.nais.io/veilarbarena
     - name: VEILARBOPPFOLGING_TOKEN_SCOPE
       value: api://dev-gcp.poao.veilarboppfolging/.default
     - name: VEILARBOPPFOLGING_URL
-      value: "http://veilarboppfolging.poao/veilarboppfolging"
+      value: http://veilarboppfolging.poao/veilarboppfolging
+    - name: VEILARBPERSON_TOKEN_SCOPE
+      value: api://dev-gcp.obo.veilarbperson/.default
     - name: VEILARBPERSON_URL
-      value: "http://veilarbperson.obo"
+      value: http://veilarbperson.obo/veilarbperson
     - name: VEILARBVEILEDER_TOKEN_SCOPE
-      value: "api://dev-fss.pto.veilarbveileder/.default"
+      value: api://dev-fss.pto.veilarbveileder/.default
     - name: VEILARBVEILEDER_URL
-      value: "https://veilarbveileder.dev-fss-pub.nais.io/veilarbveileder"
+      value: https://veilarbveileder.dev-fss-pub.nais.io/veilarbveileder
   azure:
     application:
       allowAllUsers: true
