@@ -133,9 +133,6 @@ spec:
       rules:
         - application: paw-arbeidssoker-besvarelse
           namespace: paw
-        - application: pdl-api
-          namespace: pdl
-          cluster: dev-fss
         - application: poao-tilgang
           namespace: poao
         - application: pto-pdfgen
