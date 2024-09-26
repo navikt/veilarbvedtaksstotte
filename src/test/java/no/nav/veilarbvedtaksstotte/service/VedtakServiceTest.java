@@ -7,6 +7,7 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.test.auth.AuthTestUtils;
+import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.utils.fn.UnsafeRunnable;
@@ -105,6 +106,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final SafClient safClient = mock(SafClient.class);
     private static final MetricsService metricsService = mock(MetricsService.class);
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
+    private static final AzureAdOnBehalfOfTokenClient aadOboTokenClient = mock(AzureAdOnBehalfOfTokenClient.class);
 
     private static final PdfService pdfService = mock(PdfService.class);
 
@@ -117,7 +119,7 @@ public class VedtakServiceTest extends DatabaseTest {
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
-        authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
+        authService = spy(new AuthService(aadOboTokenClient, aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
         DokumentService dokumentService = new DokumentService(
