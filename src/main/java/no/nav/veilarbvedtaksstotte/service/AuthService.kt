@@ -4,8 +4,10 @@ import com.nimbusds.jwt.JWTClaimsSet
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
+import no.nav.common.utils.AuthUtils
 import no.nav.common.utils.Pair
 import no.nav.poao_tilgang.client.*
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
@@ -20,6 +22,7 @@ import java.util.function.Supplier
 
 @Service
 class AuthService(
+    private val aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
     private val aktorOppslagClient: AktorOppslagClient,
     private val veilarbarenaService: VeilarbarenaService,
     private val authContextHolder: AuthContextHolder,
@@ -201,6 +204,12 @@ class AuthService(
 
         if (acrClaim.isEmpty || acrClaim.get() != "Level4") {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Kunne ikke hente acr fra token")
+        }
+    }
+
+    fun userTokenSupplier(scope: String): Supplier<String> {
+        return Supplier {
+            AuthUtils.bearerToken(aadOboTokenClient.exchangeOnBehalfOfToken(scope, authContextHolder.requireIdTokenString()))
         }
     }
 
