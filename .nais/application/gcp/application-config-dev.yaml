@@ -52,7 +52,7 @@ spec:
     - name: DOKARKIV_TOKEN_SCOPE
       value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
     - name: DOKARKIV_URL
-      value: https://dokarkiv.dev-fss-pub.nais.io
+      value: https://dokarkiv-q2.dev-fss-pub.nais.io
     - name: DOKDISTFORDELING_URL # bruker saf-scope
       value: https://dokdistfordeling.dev-fss-pub.nais.io
     - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
@@ -140,7 +140,7 @@ spec:
           namespace: poao
         - application: veilarbperson
       external:
-        - host: dokarkiv.dev-fss-pub.nais.io
+        - host: dokarkiv-q2.dev-fss-pub.nais.io
         - host: pdl-api.dev-fss-pub.nais.io
         - host: regoppslag.dev-fss-pub.nais.io
         - host: saf-q2.dev-fss-pub.nais.io
