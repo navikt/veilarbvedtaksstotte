@@ -44,7 +44,7 @@ spec:
     pool: nav-dev
   env:
     - name: AIA_BACKEND_TOKEN_SCOPE
-      value: api://dev-gcp.poao.aia-backend/.default
+      value: api://dev-gcp.paw.paw-arbeidssoker-besvarelse/.default
     - name: AIA_BACKEND_URL
       value: https://www.intern.dev.nav.no/aia-backend
     - name: ARENA_VEDTAK_TOPIC
