@@ -23,7 +23,6 @@ data class EnvironmentProperties (
     val regoppslagUrl: String,
     val safScope: String,
     val safUrl: String,
-    val stsDiscoveryUrl: String,
     val tokenxClientId: String,
     val tokenxDiscoveryUrl: String,
     val unleashApiToken: String,
