@@ -7,7 +7,6 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.test.auth.AuthTestUtils;
-import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.utils.fn.UnsafeRunnable;
@@ -53,7 +52,11 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
-import no.nav.veilarbvedtaksstotte.repository.*;
+import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
+import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
+import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
@@ -63,16 +66,43 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DOKUMENT_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_JOURNALPOST_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_KILDER;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSSAK;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN;
 import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class VedtakServiceTest extends DatabaseTest {
 
@@ -106,7 +136,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final SafClient safClient = mock(SafClient.class);
     private static final MetricsService metricsService = mock(MetricsService.class);
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
-    private static final AzureAdOnBehalfOfTokenClient aadOboTokenClient = mock(AzureAdOnBehalfOfTokenClient.class);
 
     private static final PdfService pdfService = mock(PdfService.class);
 
@@ -119,7 +148,7 @@ public class VedtakServiceTest extends DatabaseTest {
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
-        authService = spy(new AuthService(aadOboTokenClient, aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
+        authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(registreringClient);
         DokumentService dokumentService = new DokumentService(

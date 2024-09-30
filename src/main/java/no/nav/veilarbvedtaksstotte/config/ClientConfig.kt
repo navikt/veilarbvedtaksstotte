@@ -12,6 +12,8 @@ import no.nav.common.job.leader_election.LeaderElectionHttpClient
 import no.nav.common.metrics.InfluxClient
 import no.nav.common.metrics.MetricsClient
 import no.nav.common.token_client.client.AzureAdMachineToMachineTokenClient
+import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
+import no.nav.common.utils.AuthUtils
 import no.nav.common.utils.EnvironmentUtils
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangClient
@@ -42,7 +44,6 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
-import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -51,8 +52,7 @@ class ClientConfig {
 
     @Bean
     fun arenaClient(
-        properties: EnvironmentProperties,
-        machineTokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
     ): VeilarbarenaClient {
         return VeilarbarenaClientImpl(
             properties.veilarbarenaUrl,
@@ -65,17 +65,23 @@ class ClientConfig {
     }
 
     @Bean
-    fun egenvurderingClient(properties: EnvironmentProperties, authService: AuthService): AiaBackendClient {
-        return AiaBackendClientImpl(
-            properties.aiaBackendUrl,
-            authService.userTokenSupplier(properties.aiaBackendScope)
-        )
+    fun egenvurderingClient(
+        properties: EnvironmentProperties,
+        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
+        authContextHolder: AuthContextHolder
+    ): AiaBackendClient {
+        return AiaBackendClientImpl(properties.aiaBackendUrl) {
+            AuthUtils.bearerToken(
+                aadOboTokenClient.exchangeOnBehalfOfToken(
+                    properties.aiaBackendScope, authContextHolder.requireIdTokenString()
+                )
+            )
+        }
     }
 
     @Bean
     fun oppfolgingClient(
-        properties: EnvironmentProperties,
-        machineTokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
     ): VeilarboppfolgingClient {
         return VeilarboppfolgingClientImpl(
             properties.veilarboppfolgingUrl,
@@ -85,27 +91,43 @@ class ClientConfig {
     @Bean
     fun personClient(
         properties: EnvironmentProperties,
-        authService: AuthService,
+        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
+        authContextHolder: AuthContextHolder,
         machineTokenClient: AzureAdMachineToMachineTokenClient
     ): VeilarbpersonClient {
         return VeilarbpersonClientImpl(
             properties.veilarbpersonUrl,
-            authService.userTokenSupplier(properties.veilarbpersonScope)
+            {
+                AuthUtils.bearerToken(
+                    aadOboTokenClient.exchangeOnBehalfOfToken(
+                        properties.veilarbpersonScope,
+                        authContextHolder.requireIdTokenString()
+                    )
+                )
+            }
         ) { machineTokenClient.createMachineToMachineToken(properties.veilarbpersonScope) }
     }
 
     @Bean
-    fun registreringClient(properties: EnvironmentProperties, authService: AuthService): VeilarbregistreringClient {
-        return VeilarbregistreringClientImpl(
-            properties.veilarbpersonUrl,
-            authService.userTokenSupplier(properties.veilarbpersonScope)
-        )
+    fun registreringClient(
+        properties: EnvironmentProperties,
+        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
+        authContextHolder: AuthContextHolder
+    ): VeilarbregistreringClient {
+        return VeilarbregistreringClientImpl(properties.veilarbpersonUrl)
+        {
+            AuthUtils.bearerToken(
+                aadOboTokenClient.exchangeOnBehalfOfToken(
+                    properties.veilarbpersonScope,
+                    authContextHolder.requireIdTokenString()
+                )
+            )
+        }
     }
 
     @Bean
     fun safClient(
-        properties: EnvironmentProperties,
-        machineTokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
     ): SafClient {
         return SafClientImpl(properties.safUrl) { machineTokenClient.createMachineToMachineToken(properties.safScope) }
     }
@@ -113,22 +135,27 @@ class ClientConfig {
     @Bean
     fun veilederOgEnhetClient(
         properties: EnvironmentProperties,
-        authContextHolder: AuthContextHolder?,
-        authService: AuthService,
+        authContextHolder: AuthContextHolder,
+        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
         machineTokenClient: AzureAdMachineToMachineTokenClient
     ): VeilarbveilederClient {
         return VeilarbveilederClientImpl(
             properties.veilarbveilederUrl,
             authContextHolder,
-            authService.userTokenSupplier(properties.veilarbveilederScope)
-        )
-        { machineTokenClient.createMachineToMachineToken(properties.veilarbveilederScope) }
+            {
+                AuthUtils.bearerToken(
+                    aadOboTokenClient.exchangeOnBehalfOfToken(
+                        properties.veilarbveilederScope,
+                        authContextHolder.requireIdTokenString()
+                    )
+                )
+            }
+        ) { machineTokenClient.createMachineToMachineToken(properties.veilarbveilederScope) }
     }
 
     @Bean
     fun dokarkivClient(
-        properties: EnvironmentProperties,
-        machineTokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
     ): DokarkivClient {
         return DokarkivClientImpl(
             properties.dokarkivUrl,
@@ -137,8 +164,7 @@ class ClientConfig {
 
     @Bean
     fun regoppslagClient(
-        properties: EnvironmentProperties,
-        machineTokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
     ): RegoppslagClient {
         return RegoppslagClientImpl(properties.regoppslagUrl) {
             machineTokenClient.createMachineToMachineToken(
@@ -149,8 +175,7 @@ class ClientConfig {
 
     @Bean
     fun oppslagArbeidssoekerregisteretClient(
-        properties: EnvironmentProperties,
-        machineTokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
     ): OppslagArbeidssoekerregisteretClientImpl {
         return OppslagArbeidssoekerregisteretClientImpl(
             properties.veilarbpersonUrl
@@ -159,8 +184,7 @@ class ClientConfig {
 
     @Bean
     fun dokDistribusjonClient(
-        properties: EnvironmentProperties,
-        machineTokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
     ): DokdistribusjonClient {
         // dokdistfordeling bruker saf token scope
         return DokdistribusjonClientImpl(properties.dokdistfordelingUrl) {
@@ -172,8 +196,7 @@ class ClientConfig {
 
     @Bean
     fun aktorOppslagClient(
-        properties: EnvironmentProperties,
-        tokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient
     ): AktorOppslagClient {
         val pdlClient = PdlClientImpl(
             properties.pdlUrl,
@@ -185,13 +208,9 @@ class ClientConfig {
 
     @Bean
     fun unleashClient(properties: EnvironmentProperties): DefaultUnleash = DefaultUnleash(
-        UnleashConfig.builder()
-            .appName(ApplicationConfig.APPLICATION_NAME)
-            .instanceId(ApplicationConfig.APPLICATION_NAME)
-            .unleashAPI(properties.unleashUrl)
-            .apiKey(properties.unleashApiToken)
-            .environment(if (isProduction) "production" else "development")
-            .build()
+        UnleashConfig.builder().appName(ApplicationConfig.APPLICATION_NAME)
+            .instanceId(ApplicationConfig.APPLICATION_NAME).unleashAPI(properties.unleashUrl)
+            .apiKey(properties.unleashApiToken).environment(if (isProduction) "production" else "development").build()
     )
 
     @Bean
@@ -211,12 +230,10 @@ class ClientConfig {
 
     @Bean
     fun poaoTilgangClient(
-        properties: EnvironmentProperties,
-        tokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient
     ): PoaoTilgangClient {
         return PoaoTilgangCachedClient(
-            PoaoTilgangHttpClient(
-                properties.poaoTilgangUrl,
+            PoaoTilgangHttpClient(properties.poaoTilgangUrl,
                 { tokenClient.createMachineToMachineToken(properties.poaoTilgangScope) })
         )
     }
