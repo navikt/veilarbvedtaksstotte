@@ -149,7 +149,7 @@ class ClientConfig {
         val veilarbveileder = veilarbveileder.invoke(if (isProduction) "prod-gcp" else "dev-gcp")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbveileder)
         return VeilarbveilederClientImpl(
-            UrlUtils.createServiceUrl(veilarbveileder.serviceName, veilarbveileder.namespace, true),
+            "http://veilarbveileder.obo/veilarbveileder",
             authContextHolder,
             userTokenSupplier,
             { tokenClient.createMachineToMachineToken(tokenScope(veilarbveileder)) }
