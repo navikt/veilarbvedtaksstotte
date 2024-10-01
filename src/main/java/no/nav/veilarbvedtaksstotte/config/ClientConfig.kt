@@ -146,7 +146,7 @@ class ClientConfig {
         oboContexService: OboContexService,
         tokenClient: AzureAdMachineToMachineTokenClient
     ): VeilarbveilederClient {
-        val veilarbveileder = veilarbveileder.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val veilarbveileder = veilarbveileder.invoke(if (isProduction) "prod-gcp" else "dev-gcp")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbveileder)
         return VeilarbveilederClientImpl(
             UrlUtils.createServiceUrl(veilarbveileder.serviceName, veilarbveileder.namespace, true),

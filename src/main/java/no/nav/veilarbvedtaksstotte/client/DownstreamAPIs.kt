@@ -4,7 +4,7 @@ import no.nav.veilarbvedtaksstotte.utils.DownstreamApi
 
 object DownstreamAPIs {
     @JvmStatic
-    val veilarbveileder: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarbveileder") }
+    val veilarbveileder: (String) -> DownstreamApi = { DownstreamApi(it, "obo", "veilarbveileder") }
     @JvmStatic
     val veilarbperson: (String) -> DownstreamApi = { DownstreamApi(it, if(it == "dev-fss") "pto" else "obo", "veilarbperson") }
     @JvmStatic
