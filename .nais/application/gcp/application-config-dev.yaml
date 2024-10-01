@@ -90,9 +90,9 @@ spec:
     - name: VEILARBPERSON_URL
       value: http://veilarbperson.obo/veilarbperson
     - name: VEILARBVEILEDER_TOKEN_SCOPE
-      value: api://dev-fss.pto.veilarbveileder/.default
+      value: api://dev-gcp.obo.veilarbveileder/.default
     - name: VEILARBVEILEDER_URL
-      value: https://veilarbveileder.dev-fss-pub.nais.io/veilarbveileder
+      value: http://veilarbveileder.obo/veilarbveileder
   azure:
     application:
       allowAllUsers: true
