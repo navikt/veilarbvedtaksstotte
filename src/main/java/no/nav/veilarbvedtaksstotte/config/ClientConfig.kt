@@ -149,7 +149,7 @@ class ClientConfig {
         val veilarbveileder = veilarbveileder.invoke(if (isProduction) "prod-gcp" else "dev-gcp")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbveileder)
         return VeilarbveilederClientImpl(
-            "https://veilarbveileder-gcp.intern.nav.no",
+            "https://veilarbveileder-gcp.intern.nav.no/veilarbveileder",
             authContextHolder,
             userTokenSupplier,
             { tokenClient.createMachineToMachineToken(tokenScope(veilarbveileder)) }
