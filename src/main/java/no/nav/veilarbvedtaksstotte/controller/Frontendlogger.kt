@@ -17,7 +17,7 @@ class Frontendlogger(val metricsClient: MetricsClient) {
 
     @PostMapping("/event")
     fun skrivEventTilInflux(@RequestBody event: FrontendEvent) {
-        val toInflux = Event(event.name + ".event")
+        /* val toInflux = Event(event.name + ".event")
         event.tags?.forEach(toInflux::addTagToReport)
         event.fields?.forEach(toInflux::addFieldToReport)
         toInflux.tags["environment"] = if (EnvironmentUtils.isProduction().orElse(false)) "p" else "q1"
@@ -25,7 +25,7 @@ class Frontendlogger(val metricsClient: MetricsClient) {
         if (!EnvironmentUtils.isProduction().orElse(false)) {
             log.info("Skriver event til influx: " + eventToString(event.name, toInflux))
         }
-        metricsClient.report(toInflux)
+        metricsClient.report(toInflux) */
     }
 
     class FrontendEvent {
