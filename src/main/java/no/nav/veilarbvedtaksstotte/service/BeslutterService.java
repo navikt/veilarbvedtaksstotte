@@ -94,7 +94,7 @@ public class BeslutterService {
         }
 
         if (erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kvalitetssikrer kan ikke bli ansvarlig veileder");
         }
 
         vedtaksstotteRepository.setBeslutter(utkast.getId(), innloggetVeilederIdent);
