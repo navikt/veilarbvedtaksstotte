@@ -146,11 +146,9 @@ public class OyeblikksbildeService {
         OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr.of(fnr));
 
         final RegistreringResponseDto registreringData = registreringClient.hentRegistreringData(fnr);
-        final EndringIRegistreringsdataResponse endringIRegistreringsdata = aiaBackendClient.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(fnr));
-        final RegistreringResponseDto oppdaterteRegistreringsData = oppdaterRegistreringsdataHvisNyeEndringer(registreringData, endringIRegistreringsdata);
 
-        if (oppdaterteRegistreringsData != null && erSykemeldt(opplysningerOmArbeidssoekerMedProfilering, oppdaterteRegistreringsData)){
-            oyeblikksbildeRepository.upsertRegistreringOyeblikksbilde(vedtakId, oppdaterteRegistreringsData);
+        if (registreringData != null && erSykemeldt(opplysningerOmArbeidssoekerMedProfilering, registreringData)){
+            oyeblikksbildeRepository.upsertRegistreringOyeblikksbilde(vedtakId, registreringData);
         }else{
             oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfilering);
         }
@@ -193,65 +191,4 @@ public class OyeblikksbildeService {
         }
         return null;
     }
-
-    public RegistreringResponseDto oppdaterRegistreringsdataHvisNyeEndringer(RegistreringResponseDto registreringsData, EndringIRegistreringsdataResponse endringIRegistreringsdata) { //public for test
-        if (registreringsData == null || endringIRegistreringsdata == null || endringIRegistreringsdata.getErBesvarelsenEndret() == null || !endringIRegistreringsdata.getErBesvarelsenEndret()) {
-            return registreringsData;
-        }
-
-        try {
-            if (endringIRegistreringsdata.getEndretAv() != null) {
-                registreringsData.getRegistrering().setEndretAv(endringIRegistreringsdata.getEndretAv());
-            }
-
-            if (endringIRegistreringsdata.getEndretTidspunkt() != null) {
-                registreringsData.getRegistrering().setEndretTidspunkt(endringIRegistreringsdata.getEndretTidspunkt());
-            }
-
-            if (endringIRegistreringsdata.getBesvarelse() != null && endringIRegistreringsdata.getBesvarelse().getDinSituasjon() != null && registreringsData.getRegistrering().getBesvarelse() != null) {
-                BesvarelseSvar besvarelse = registreringsData.getRegistrering().getBesvarelse();
-                besvarelse.setDinSituasjon(BesvarelseSvar.DinSituasjonSvar.valueOf(endringIRegistreringsdata.getBesvarelse().getDinSituasjon().getVerdi()));
-                registreringsData.getRegistrering().setBesvarelse(besvarelse);
-            }
-
-
-            if (endringIRegistreringsdata.getBesvarelse() != null && endringIRegistreringsdata.getBesvarelse().getDinSituasjon() != null && endringIRegistreringsdata.getBesvarelse().getDinSituasjon().getVerdi() != null) {
-                List<RegistreringsdataDto.TekstForSporsmal> teksterForBesvarelse = registreringsData.getRegistrering().getTeksterForBesvarelse();
-                teksterForBesvarelse.stream().filter(t -> t.getSporsmalId().equals("dinSituasjon")).forEach(t ->
-                        t.setSvar(mapDinSituasjonVerdiToTekst(endringIRegistreringsdata.getBesvarelse().getDinSituasjon().getVerdi()))
-                );
-                registreringsData.getRegistrering().setTeksterForBesvarelse(teksterForBesvarelse);
-            }
-
-            return registreringsData;
-        } catch (Exception e) {
-            log.error("Kunne ikke oppdatere registrerings data " + e, e);
-            throw e;
-        }
-    }
-
-    public String mapDinSituasjonVerdiToTekst(String dinSituasjonVerdi) {
-        return switch (dinSituasjonVerdi) {
-            case "MISTET_JOBBEN" -> "Har mistet eller kommer til å miste jobben";
-            case "HAR_SAGT_OPP" -> "Har sagt opp eller kommer til å si opp";
-            case "DELTIDSJOBB_VIL_MER" -> "Har deltidsjobb, men vil jobbe mer";
-            case "ALDRI_HATT_JOBB" -> "Har aldri vært i jobb";
-            case "VIL_BYTTE_JOBB" -> "Har jobb, men vil bytte";
-            case "JOBB_OVER_2_AAR" -> "Har ikke vært i jobb de siste 2 årene";
-            case "ER_PERMITTERT" -> "Er permittert eller kommer til å bli permittert";
-            case "USIKKER_JOBBSITUASJON" -> "Er usikker på jobbsituasjonen min";
-            case "AKKURAT_FULLFORT_UTDANNING" -> "Har akkurat fullført utdanning; militærtjeneste eller annet";
-            case "VIL_FORTSETTE_I_JOBB" -> "Har jobb og ønsker å fortsette i den jobben jeg er i";
-            case "OPPSIGELSE" -> "Jeg har blitt sagt opp av arbeidsgiver";
-            case "ENDRET_PERMITTERINGSPROSENT" -> "Arbeidsgiver har endret permitteringen min";
-            case "TILBAKE_TIL_JOBB" -> "Jeg skal tilbake i jobb hos min nåværende arbeidsgiver";
-            case "NY_JOBB" -> "Jeg skal begynne å jobbe hos en annen arbeidsgiver";
-            case "MIDLERTIDIG_JOBB" -> "Jeg har fått midlertidig jobb hos en annen arbeidsgiver";
-            case "KONKURS" -> "Arbeidsgiveren min er konkurs";
-            case "SAGT_OPP" -> "Jeg har sagt opp jobben min";
-            case "ANNET" -> "Situasjonen min har endret seg, men ingen av valgene passet";
-            default -> "";
-        };
-    }
-
 }

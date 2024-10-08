@@ -8,6 +8,4 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistrerin
 
 interface AiaBackendClient : HealthCheck {
     fun hentEgenvurdering(egenvurderingForPersonRequest: EgenvurderingForPersonRequest): EgenvurderingResponseDTO?
-
-    fun hentEndringIRegistreringdata(endringIRegistreringdataRequest: EndringIRegistreringdataRequest): EndringIRegistreringsdataResponse?
 }
