@@ -1,6 +1,6 @@
 # Veilarbvedtaksstotte
 
-Backend-tjeneste for fatting av 14a vedtak.
+Backend-tjeneste for fatting av 14a vedtak.  
 
 Funksjonalitet:
 
@@ -12,6 +12,8 @@ Funksjonalitet:
 - API for konsumering av data fra 14a vedtak (innsatsgruppe og hovedmål)
 
 Swagger: /veilarbvedtaksstotte/internal/swagger-ui/index.html
+
+Dev-miljøet har ikke lenger noen tilknytning til q1, kun q2.
 
 ## DB Creds
 
