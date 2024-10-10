@@ -74,3 +74,13 @@ spec:
           labels:
             namespace: obo
             severity: critical
+
+        - alert: Melding(er) med retries over grense i tabell kafka_consumer_record
+          expr: antallRaderIKafkaConsumerRecordOverRetriesgrense{app="veilarbvedtaksstotte"} > 0
+          for: 5m
+          annotations:
+              summary: "Melding(er) med retries over grense i tabell kafka_consumer_record"
+              action: "veilarbvedtaksstotte: Undersøk hvorfor meldinger feiler."
+          labels:
+              namespace: obo
+              severity: medium
