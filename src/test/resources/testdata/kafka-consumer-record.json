@@ -1,0 +1,30 @@
+{
+  "id": "572",
+  "topic": "pto.endring-paa-oppfolgingsbruker-v2",
+  "partition": "0",
+  "record_offset": "10654277",
+  "retries": "210",
+  "last_retry": "2024-10-09 11:03:32.251286",
+  "key": "10096436661",
+  "value": {
+    "fødselsnummer": "10096436661",
+    "formidlingsgruppe":"ISERV",
+    "iservFraDato":"2001-04-20T12:00:00+02:00",
+    "fornavn":"Gunnvor",
+    "etternavn":"Aune",
+    "oppfolgingsenhet":"5701",
+    "kvalifiseringsgruppe":"IVURD",
+    "rettighetsgruppe":"IYT",
+    "hovedmaal":null,
+    "sikkerhetstiltakType":null,
+    "diskresjonskode":null,
+    "harOppfolgingssak":false,
+    "sperretAnsatt":false,
+    "erDoed":false,
+    "doedFraDato":null,
+    "sistEndretDato":"2017-12-30T12:00:04+01:00"
+  },
+  "headers_json": [],
+  "record_timestamp": "1722551632560",
+  "created_at": "2024-08-02 00:33:53.355793"
+}

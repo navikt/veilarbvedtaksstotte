@@ -16,6 +16,7 @@ import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
+import no.nav.veilarbvedtaksstotte.metrics.KafkaConsumerMeterBinder
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
 import no.nav.veilarbvedtaksstotte.service.PdfService
@@ -52,6 +53,7 @@ import javax.sql.DataSource
     KafkaProducerConfig::class,
     KafkaConsumerConfig::class,
     DokumentdistribusjonMeterBinder::class,
+    KafkaConsumerMeterBinder::class,
     PdfService::class,
     ArbeidssoekerRegisteretService::class
 )
