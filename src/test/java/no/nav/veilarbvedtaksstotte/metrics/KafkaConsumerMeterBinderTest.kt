@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.io.encoding.Base64.Default.decode
 
 class KafkaConsumerMeterBinderTest : DatabaseTest() {
 
@@ -39,10 +38,10 @@ class KafkaConsumerMeterBinderTest : DatabaseTest() {
             1,
             5,
             LocalDateTime.now(),
-            16056212345,
-            "value",
+            byteArray,
+            byteArray,
             "{}",
-            LocalDateTime.now(),
+            1722551632560,
             LocalDateTime.now(),
         )
 
