@@ -27,6 +27,7 @@ spec:
     cpuThresholdPercentage: 75
   resources:
     limits:
+      cpu: "2"
       memory: 1024Mi
     requests:
       cpu: 500m
@@ -53,20 +54,6 @@ spec:
       value: "api://prod-gcp.poao.poao-tilgang/.default"
     - name: AIA_BACKEND_URL
       value: https://www.nav.no/aia-backend
-    - name: NORG2_URL
-      value: https://norg2.intern.nav.no
-    - name: VEILARBOPPFOLGING_URL
-      value: "https://veilarboppfolging.prod-fss-pub.nais.io/veilarboppfolging"
-    - name: VEILARBOPPFOLGING_TOKEN_SCOPE
-      value: "api://prod-fss.pto.veilarboppfolging/.default"
-    - name: SAF_URL
-      value: "https://saf.intern.nav.no"
-    - name: SAF_TOKEN_SCOPE
-      value: "api://prod-fss.teamdokumenthandtering.saf/.default"
-    - name: VEILARBVEILEDER_URL
-      value: "https://veilarbveileder.prod-fss-pub.nais.io/veilarbveileder"
-    - name: VEILARBVEILEDER_TOKEN_SCOPE
-      value: "api://prod-fss.pto.veilarbveileder/.default"
   azure:
     application:
       allowAllUsers: true
@@ -112,12 +99,7 @@ spec:
         - application: pto-pdfgen
           namespace: obo
       external:
-        - host: team-obo-unleash-api.nav.cloud.nais.io
+        - host: team-obo-unleash-web.nav.cloud.nais.io
         - host: www.nav.no
-        - host: pdl-api.prod-fss-pub.nais.io
-        - host: veilarboppfolging.prod-fss-pub.nais.io
-        - host: veilarbveileder.prod-fss-pub.nais.io
-        - host: veilarbarena.prod-fss-pub.nais.io
-        - host: saf.prod-fss-pub.nais.io
   envFrom:
     - secret: veilarbvedtaksstotte-unleash-api-token

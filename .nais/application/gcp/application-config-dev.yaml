@@ -27,6 +27,7 @@ spec:
     cpuThresholdPercentage: 75
   resources:
     limits:
+      cpu: "2"
       memory: 1024Mi
     requests:
       cpu: 500m
@@ -43,56 +44,16 @@ spec:
   kafka:
     pool: nav-dev
   env:
-    - name: AIA_BACKEND_TOKEN_SCOPE
-      value: api://dev-gcp.paw.paw-arbeidssoker-besvarelse/.default
-    - name: AIA_BACKEND_URL
-      value: https://www.intern.dev.nav.no/aia-backend
-    - name: ARENA_VEDTAK_TOPIC
-      value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-q2
-    - name: DOKARKIV_TOKEN_SCOPE
-      value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
-    - name: DOKARKIV_URL
-      value: https://dokarkiv-q2.dev-fss-pub.nais.io
-    - name: DOKDISTFORDELING_URL # bruker saf-scope
-      value: https://dokdistfordeling.dev-fss-pub.nais.io
     - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
       value: pto.endring-paa-oppfolgingsbruker-v2
-    - name: NORG2_URL
-      value: https://norg2.intern.dev.nav.no/norg2
-    - name: PDL_TOKEN_SCOPE
-      value: api://dev-fss.pdl.pdl-api/.default
-    - name: PDL_URL
-      value: https://pdl-api.dev-fss-pub.nais.io
-    - name: POAO_TILGANG_TOKEN_SCOPE
-      value: api://dev-gcp.poao.poao-tilgang/.default
+    - name: ARENA_VEDTAK_TOPIC
+      value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-q1
     - name: POAO_TILGANG_URL
-      value: http://poao-tilgang.poao
-    - name: PTO_PDFGEN_URL
-      value: http://pto-pdfgen.obo
-    - name: REGOPPSLAG_TOKEN_SCOPE
-      value: api://dev-fss.teamdokumenthandtering.regoppslag/.default
-    - name: REGOPPSLAG_URL
-      value: https://regoppslag.dev-fss-pub.nais.io
-    - name: SAF_TOKEN_SCOPE
-      value: api://dev-fss.teamdokumenthandtering.saf/.default
-    - name: SAF_URL
-      value: https://saf-q2.dev-fss-pub.nais.io
-    - name: VEILARBARENA_TOKEN_SCOPE
-      value: api://dev-fss.pto.veilarbarena/.default
-    - name: VEILARBARENA_URL
-      value: https://veilarbarena.dev-fss-pub.nais.io/veilarbarena
-    - name: VEILARBOPPFOLGING_TOKEN_SCOPE
-      value: api://dev-gcp.poao.veilarboppfolging/.default
-    - name: VEILARBOPPFOLGING_URL
-      value: http://veilarboppfolging.poao/veilarboppfolging
-    - name: VEILARBPERSON_TOKEN_SCOPE
-      value: api://dev-gcp.obo.veilarbperson/.default
-    - name: VEILARBPERSON_URL
-      value: http://veilarbperson.obo/veilarbperson
-    - name: VEILARBVEILEDER_TOKEN_SCOPE
-      value: api://dev-gcp.obo.veilarbveileder/.default
-    - name: VEILARBVEILEDER_URL
-      value: http://veilarbveileder.obo/veilarbveileder
+      value: "http://poao-tilgang.poao"
+    - name: POAO_TILGANG_TOKEN_SCOPE
+      value: "api://dev-gcp.poao.poao-tilgang/.default"
+    - name: AIA_BACKEND_URL
+      value: https://www.intern.dev.nav.no/aia-backend
   azure:
     application:
       allowAllUsers: true
@@ -122,6 +83,8 @@ spec:
         - application: pto-admin
           namespace: pto
           cluster: dev-fss
+        - application: aia-backend
+          namespace: paw
         - application: azure-token-generator
           namespace: aura
         - application: amt-person-service
@@ -129,24 +92,10 @@ spec:
           permissions:
             roles:
               - "siste-14a-vedtak"
-    outbound:
-      rules:
-        - application: paw-arbeidssoker-besvarelse
-          namespace: paw
-        - application: poao-tilgang
-          namespace: poao
         - application: pto-pdfgen
-        - application: veilarboppfolging
-          namespace: poao
-        - application: veilarbperson
-        - application: veilarbveileder
+          namespace: obo
+    outbound:
       external:
-        - host: dokarkiv-q2.dev-fss-pub.nais.io
-        - host: pdl-api.dev-fss-pub.nais.io
-        - host: regoppslag.dev-fss-pub.nais.io
-        - host: saf-q2.dev-fss-pub.nais.io
         - host: team-obo-unleash-api.nav.cloud.nais.io
-        - host: veilarbarena.dev-fss-pub.nais.io
-        - host: www.intern.dev.nav.no
   envFrom:
     - secret: veilarbvedtaksstotte-unleash-api-token
