@@ -1,0 +1,27 @@
+name: Deploy alerts for veilarbvedtaksstotte to dev-gcp
+
+on:
+  push:
+    branches:
+      - 'dev'
+    paths:
+      - '.github/workflows/gcp-deploy-alerts-to-dev.yaml'
+      - '.nais/alerts/alerts-config-dev.yaml'
+  workflow_dispatch:
+permissions:
+  packages: write
+  id-token: write
+
+jobs:
+  deploy-alerts:
+    name: Deploy alerts to dev-gcp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to dev-gcp
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/alerts/alerts-config-dev.yaml
