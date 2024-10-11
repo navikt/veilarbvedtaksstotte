@@ -3,7 +3,7 @@ name: Deploy alerts for veilarbvedtaksstotte to dev-gcp
 on:
   push:
     branches:
-      - 'dev'
+      - 'gcp-migration-med-alarm'
     paths:
       - '.github/workflows/gcp-deploy-alerts-to-dev.yaml'
       - '.nais/alerts/alerts-config-dev.yaml'
