@@ -40,6 +40,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.testcontainers.containers.KafkaContainer
 import javax.sql.DataSource
+import no.nav.veilarbvedtaksstotte.repository.KafkaConsumerRecordRepository
 
 @Configuration
 @EnableConfigurationProperties(EnvironmentProperties::class)

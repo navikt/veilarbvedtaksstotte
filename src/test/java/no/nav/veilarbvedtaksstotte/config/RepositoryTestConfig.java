@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Import;
         OyeblikksbildeRepository.class,
         VedtaksstotteRepository.class,
         UtrullingRepository.class,
-        ArenaVedtakRepository.class
+        ArenaVedtakRepository.class,
+        KafkaConsumerRecordRepository.class
 })
 public class RepositoryTestConfig {}
