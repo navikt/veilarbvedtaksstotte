@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <common.version>3.2024.02.21_11.18-8f9b43befae1</common.version>
+        <common.version>3.2024.04.22_13.50-7815154a2573</common.version>
         <kotlin.version>1.9.22</kotlin.version>
         <testcontainers.version>1.20.0</testcontainers.version>
         <unleash.version>9.2.0</unleash.version>
