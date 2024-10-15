@@ -4,11 +4,13 @@ import no.nav.veilarbvedtaksstotte.utils.DownstreamApi
 
 object DownstreamAPIs {
     @JvmStatic
-    val veilarbveileder: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarbveileder") }
+    val veilarbveileder: (String) -> DownstreamApi = { DownstreamApi(it, "obo", "veilarbveileder") }
     @JvmStatic
-    val veilarbperson: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarbperson") }
+    val veilarbperson: (String) -> DownstreamApi = { DownstreamApi(it, if(it == "dev-fss") "pto" else "obo", "veilarbperson") }
     @JvmStatic
     val veilarbarena: (String) -> DownstreamApi = { DownstreamApi(it, "pto", "veilarbarena") }
+    @JvmStatic
+    val veilarboppfolging: (String) -> DownstreamApi = { DownstreamApi(it, if(it == "dev-fss") "pto" else "poao", "veilarboppfolging") }
     @JvmStatic
     val dokarkiv: (String) -> DownstreamApi = { DownstreamApi(it, "teamdokumenthandtering", if(it == "dev-fss") "dokarkiv-q1" else "dokarkiv") }
     @JvmStatic

@@ -99,9 +99,12 @@ class ClientConfig {
     }
 
     @Bean
-    fun oppfolgingClient(tokenClient: AzureAdMachineToMachineTokenClient, properties: EnvironmentProperties): VeilarboppfolgingClient {
-        val veilarboppfolgingUrl = properties.veilarboppfolgingUrl
-        val veilarboppfolgingScope = properties.veilarboppfolgingScope
+    fun oppfolgingClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarboppfolgingClient {
+        val veilarboppfolging = veilarboppfolging.invoke(if (isProduction) "prod-gcp" else "dev-fss")
+        val url = "https://veilarboppfolging-gcp.intern.nav.no/veilarboppfolging"
+    //fun oppfolgingClient(tokenClient: AzureAdMachineToMachineTokenClient, properties: EnvironmentProperties): VeilarboppfolgingClient {
+    //    val veilarboppfolgingUrl = properties.veilarboppfolgingUrl
+    //    val veilarboppfolgingScope = properties.veilarboppfolgingScope
         return VeilarboppfolgingClientImpl(
             veilarboppfolgingUrl
         ) { tokenClient.createMachineToMachineToken(veilarboppfolgingScope) }
@@ -109,10 +112,10 @@ class ClientConfig {
 
     @Bean
     fun personClient(oboContexService: OboContexService, tokenClient: AzureAdMachineToMachineTokenClient): VeilarbpersonClient {
-        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-gcp" else "dev-fss")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
+            if (isProduction) "https://veilarbperson-gcp.intern.nav.no" else UrlUtils.createDevInternalIngressUrl(
                 veilarbperson.serviceName
             )
 
@@ -121,10 +124,10 @@ class ClientConfig {
 
     @Bean
     fun registreringClient(oboContexService: OboContexService): VeilarbregistreringClient {
-        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-gcp" else "dev-fss")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
+            if (isProduction) "https://veilarbperson-gcp.intern.nav.no" else UrlUtils.createDevInternalIngressUrl(
                 veilarbperson.serviceName
             )
         return VeilarbregistreringClientImpl(joinPaths(url, "veilarbperson"), userTokenSupplier)
@@ -145,10 +148,10 @@ class ClientConfig {
         oboContexService: OboContexService,
         tokenClient: AzureAdMachineToMachineTokenClient
     ): VeilarbveilederClient {
-        val veilarbveileder = veilarbveileder.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val veilarbveileder = veilarbveileder.invoke(if (isProduction) "prod-gcp" else "dev-gcp")
         val userTokenSupplier = oboContexService.userTokenSupplier(veilarbveileder)
         return VeilarbveilederClientImpl(
-            UrlUtils.createServiceUrl(veilarbveileder.serviceName, veilarbveileder.namespace, true),
+            "https://veilarbveileder-gcp.intern.nav.no/veilarbveileder",
             authContextHolder,
             userTokenSupplier,
             { tokenClient.createMachineToMachineToken(tokenScope(veilarbveileder)) }
@@ -180,12 +183,11 @@ class ClientConfig {
 
     @Bean
     fun oppslagArbeidssoekerregisteretClient(tokenClient: AzureAdMachineToMachineTokenClient): OppslagArbeidssoekerregisteretClientImpl {
-        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-fss" else "dev-fss")
+        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-gcp" else "dev-fss")
         val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbperson.serviceName) else UrlUtils.createDevInternalIngressUrl(
+            if (isProduction) "https://veilarbperson-gcp.intern.nav.no" else UrlUtils.createDevInternalIngressUrl(
                 veilarbperson.serviceName
             )
-
         return OppslagArbeidssoekerregisteretClientImpl(joinPaths(url, "veilarbperson")){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
     }
 
