@@ -29,7 +29,7 @@ jobs:
   test-build-and-push:
     name: Test, build and push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master'
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
     permissions:
@@ -55,29 +55,6 @@ jobs:
           team: pto
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
-
-  deploy-dev:
-    name: Deploy application to dev
-    if: github.ref == 'refs/heads/dev'
-    needs: test-build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Deploy application
-        uses: nais/deploy/actions/deploy@v2
-        env:
-          CLUSTER: dev-fss
-          RESOURCE: .nais/application/application-config-dev.yaml
-          VAR: image=${{ needs.test-build-and-push.outputs.image }}
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Release to dev
-          tag_name: release/dev@${{ env.IMAGE_TAG }}
-          prerelease: true
 
   deploy-prod:
     name: Deploy application to prod

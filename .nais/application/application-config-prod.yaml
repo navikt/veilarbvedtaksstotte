@@ -112,6 +112,7 @@ spec:
           cluster: prod-gcp
       external:
         - host: team-obo-unleash-web.nav.cloud.nais.io
+        - host: veilarbveileder-gcp.intern.nav.no
         - host: www.nav.no
   envFrom:
     - configmap: pto-config
