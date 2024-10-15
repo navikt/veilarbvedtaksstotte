@@ -2,10 +2,12 @@ package no.nav.veilarbvedtaksstotte.schedule
 
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.types.identer.AktorId
-import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostResponsDTO
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
-import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.*
+import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Feilet
+import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Mangler
+import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Uuid
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.DistribusjonService
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
@@ -15,7 +17,12 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 

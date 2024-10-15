@@ -19,8 +19,20 @@ import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.G
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.UTKAST;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
-import static org.junit.Assert.*;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BEGRUNNELSE;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DOKUMENT_BESTILLING_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DOKUMENT_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_JOURNALPOST_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_KILDER;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class VedtaksstotteRepositoryTest extends DatabaseTest {
 

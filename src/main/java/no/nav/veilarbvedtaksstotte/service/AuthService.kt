@@ -4,12 +4,14 @@ import com.nimbusds.jwt.JWTClaimsSet
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
-import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
-import no.nav.common.utils.AuthUtils
 import no.nav.common.utils.Pair
-import no.nav.poao_tilgang.client.*
+import no.nav.poao_tilgang.client.EksternBrukerTilgangTilEksternBrukerPolicyInput
+import no.nav.poao_tilgang.client.NavAnsattTilgangTilEksternBrukerPolicyInput
+import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
+import no.nav.poao_tilgang.client.PoaoTilgangClient
+import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import org.slf4j.LoggerFactory

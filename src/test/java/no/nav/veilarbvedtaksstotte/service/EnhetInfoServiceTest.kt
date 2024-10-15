@@ -3,7 +3,11 @@ package no.nav.veilarbvedtaksstotte.service
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.types.identer.EnhetId
-import no.nav.veilarbvedtaksstotte.client.norg2.*
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetPostboksadresse
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
 import org.assertj.core.api.Assertions

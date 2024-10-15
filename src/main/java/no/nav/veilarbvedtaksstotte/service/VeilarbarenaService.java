@@ -2,8 +2,8 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;

@@ -1,6 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import no.nav.veilarbvedtaksstotte.domain.vedtak.*
+import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus
 import no.nav.veilarbvedtaksstotte.service.VedtakService.validerVedtakForFerdigstilling
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
