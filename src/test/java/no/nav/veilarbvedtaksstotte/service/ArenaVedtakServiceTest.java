@@ -20,7 +20,12 @@ import static no.nav.veilarbvedtaksstotte.service.ArenaVedtakService.MODIA_REG_U
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.now;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

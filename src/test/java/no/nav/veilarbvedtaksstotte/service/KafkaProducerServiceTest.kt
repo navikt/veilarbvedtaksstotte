@@ -13,7 +13,10 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
-import no.nav.veilarbvedtaksstotte.utils.TestData.*
+import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID
+import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID
+import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT
+import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

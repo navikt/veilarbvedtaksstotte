@@ -56,10 +56,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DOKUMENT_BESTILLING_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DOKUMENT_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_JOURNALPOST_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSSAK;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 
 @Configuration
 public class ClientTestConfig {

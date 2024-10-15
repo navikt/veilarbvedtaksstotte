@@ -7,7 +7,6 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.test.auth.AuthTestUtils.createAuthContext
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
-import no.nav.common.utils.Credentials
 import no.nav.common.utils.fn.UnsafeRunnable
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
@@ -15,11 +14,15 @@ import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.api.ApiResult
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.`when`
 import org.mockito.kotlin.whenever
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
@@ -29,7 +32,6 @@ class AuthServiceTest {
     var aktorOppslagClient = mock(AktorOppslagClient::class.java)
     var veilarbarenaService = mock(VeilarbarenaService::class.java)
     var utrullingService = mock(UtrullingService::class.java)
-    var serviceUserCredentials = mock(Credentials::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
     var authService =
         AuthService(aktorOppslagClient, veilarbarenaService, authContextHolder, utrullingService, poaoTilgangClient)

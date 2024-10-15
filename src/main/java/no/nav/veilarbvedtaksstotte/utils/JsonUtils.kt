@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import no.nav.common.rest.client.RestUtils
 import okhttp3.Response

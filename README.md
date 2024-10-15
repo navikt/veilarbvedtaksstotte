@@ -1,6 +1,6 @@
 # Veilarbvedtaksstotte
 
-Backend-tjeneste for fatting av 14a vedtak.
+Backend-tjeneste for fatting av 14a vedtak.  
 
 Funksjonalitet:
 
@@ -13,17 +13,10 @@ Funksjonalitet:
 
 Swagger: /veilarbvedtaksstotte/internal/swagger-ui/index.html
 
+Dev-miljøet har ikke lenger noen tilknytning til q1, kun q2.
+
 ## DB Creds
 
-Dev: 
-```console
-vault read postgresql/preprod-fss/creds/veilarbvedtaksstotte-fss15-q1-admin
-```
-
-Prod: 
-```console
-vault read postgresql/prod-fss/creds/veilarbvedtaksstotte-fss13-p-readonly
-```
 
 ## Kjøre appen
 

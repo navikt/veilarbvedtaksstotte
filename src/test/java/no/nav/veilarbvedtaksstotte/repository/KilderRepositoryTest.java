@@ -12,8 +12,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import java.util.Arrays;
 import java.util.List;
 
-import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.VEDTAK_ID_THAT_DOES_NOT_EXIST;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class KilderRepositoryTest extends DatabaseTest {
 

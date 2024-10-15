@@ -1,7 +1,10 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.common.health.selftest.*;
+import no.nav.common.health.selftest.SelfTestChecks;
+import no.nav.common.health.selftest.SelfTestUtils;
+import no.nav.common.health.selftest.SelftTestCheckResult;
+import no.nav.common.health.selftest.SelftestHtmlGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

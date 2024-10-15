@@ -1,10 +1,8 @@
 package no.nav.veilarbvedtaksstotte.config
 
-import java.util.Properties
+import java.util.*
 
 class KafkaEnvironmentContext(
-    val onPremConsumerClientProperties: Properties,
-    val onPremProducerClientProperties: Properties,
     val aivenConsumerClientProperties: Properties,
     val aivenProducerClientProperties: Properties
 )

@@ -12,20 +12,12 @@ import no.nav.common.job.leader_election.LeaderElectionHttpClient
 import no.nav.common.metrics.InfluxClient
 import no.nav.common.metrics.MetricsClient
 import no.nav.common.token_client.client.AzureAdMachineToMachineTokenClient
+import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
+import no.nav.common.utils.AuthUtils
 import no.nav.common.utils.EnvironmentUtils
-import no.nav.common.utils.UrlUtils
-import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.aiaBackend
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.dokarkiv
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.pdl
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.regoppslag
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.saf
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbarena
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbperson
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbveileder
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClientImpl
@@ -52,8 +44,6 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
-import no.nav.veilarbvedtaksstotte.service.OboContexService
-import no.nav.veilarbvedtaksstotte.utils.DownstreamApi
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -61,161 +51,156 @@ import org.springframework.context.annotation.Configuration
 class ClientConfig {
 
     @Bean
-    fun arenaClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarbarenaClient {
-        val veilarbarena = veilarbarena.invoke(if (isProduction) "prod-fss" else "dev-fss")
-
-        val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(veilarbarena.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                veilarbarena.serviceName
-            )
-
+    fun arenaClient(
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+    ): VeilarbarenaClient {
         return VeilarbarenaClientImpl(
-            joinPaths(url, "veilarbarena")
-        ){ tokenClient.createMachineToMachineToken(tokenScope(veilarbarena)) }
+            properties.veilarbarenaUrl,
+        ) { machineTokenClient.createMachineToMachineToken(properties.veilarbarenaScope) }
     }
 
     @Bean
-    fun pdfClient(): PdfClient {
-        val appName = "pto-pdfgen";
-        val url: String;
-        if (isProduction){
-            url = String.format("https://%s.intern.nav.no", appName)
-        }else{
-            url = String.format("https://%s.intern.dev.nav.no", appName)
+    fun pdfClient(properties: EnvironmentProperties): PdfClient {
+        return PdfClientImpl(properties.ptoPdfgenUrl)
+    }
+
+    @Bean
+    fun egenvurderingClient(
+        properties: EnvironmentProperties,
+        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
+        authContextHolder: AuthContextHolder
+    ): AiaBackendClient {
+        return AiaBackendClientImpl(properties.aiaBackendUrl) {
+            AuthUtils.bearerToken(
+                aadOboTokenClient.exchangeOnBehalfOfToken(
+                    properties.aiaBackendScope, authContextHolder.requireIdTokenString()
+                )
+            )
         }
-        return PdfClientImpl(url)
     }
 
     @Bean
-    fun egenvurderingClient(oboContexService: OboContexService, properties: EnvironmentProperties): AiaBackendClient {
-        val clientCluster = if (isProduction) "prod-gcp" else "dev-gcp"
-        val userTokenSupplier = oboContexService.userTokenSupplier(
-            aiaBackend.invoke(clientCluster)
-        )
-        return AiaBackendClientImpl(
-            properties.aiaBackendUrl,
-            userTokenSupplier
-        )
-    }
-
-    @Bean
-    fun oppfolgingClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarboppfolgingClient {
-        val veilarboppfolging = veilarboppfolging.invoke(if (isProduction) "prod-gcp" else "dev-fss")
-        val url = "https://veilarboppfolging-gcp.intern.nav.no/veilarboppfolging"
-    //fun oppfolgingClient(tokenClient: AzureAdMachineToMachineTokenClient, properties: EnvironmentProperties): VeilarboppfolgingClient {
-    //    val veilarboppfolgingUrl = properties.veilarboppfolgingUrl
-    //    val veilarboppfolgingScope = properties.veilarboppfolgingScope
+    fun oppfolgingClient(
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+    ): VeilarboppfolgingClient {
         return VeilarboppfolgingClientImpl(
-            veilarboppfolgingUrl
-        ) { tokenClient.createMachineToMachineToken(veilarboppfolgingScope) }
+            properties.veilarboppfolgingUrl,
+        ) { machineTokenClient.createMachineToMachineToken(properties.veilarboppfolgingScope) }
     }
 
     @Bean
-    fun personClient(oboContexService: OboContexService, tokenClient: AzureAdMachineToMachineTokenClient): VeilarbpersonClient {
-        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-gcp" else "dev-fss")
-        val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
-        val url =
-            if (isProduction) "https://veilarbperson-gcp.intern.nav.no" else UrlUtils.createDevInternalIngressUrl(
-                veilarbperson.serviceName
+    fun personClient(
+        properties: EnvironmentProperties,
+        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
+        authContextHolder: AuthContextHolder,
+        machineTokenClient: AzureAdMachineToMachineTokenClient
+    ): VeilarbpersonClient {
+        return VeilarbpersonClientImpl(
+            properties.veilarbpersonUrl,
+            {
+                AuthUtils.bearerToken(
+                    aadOboTokenClient.exchangeOnBehalfOfToken(
+                        properties.veilarbpersonScope,
+                        authContextHolder.requireIdTokenString()
+                    )
+                )
+            }
+        ) { machineTokenClient.createMachineToMachineToken(properties.veilarbpersonScope) }
+    }
+
+    @Bean
+    fun registreringClient(
+        properties: EnvironmentProperties,
+        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
+        authContextHolder: AuthContextHolder
+    ): VeilarbregistreringClient {
+        return VeilarbregistreringClientImpl(properties.veilarbpersonUrl)
+        {
+            AuthUtils.bearerToken(
+                aadOboTokenClient.exchangeOnBehalfOfToken(
+                    properties.veilarbpersonScope,
+                    authContextHolder.requireIdTokenString()
+                )
             )
-
-        return VeilarbpersonClientImpl(joinPaths(url, "veilarbperson"), userTokenSupplier){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
+        }
     }
 
     @Bean
-    fun registreringClient(oboContexService: OboContexService): VeilarbregistreringClient {
-        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-gcp" else "dev-fss")
-        val userTokenSupplier = oboContexService.userTokenSupplier(veilarbperson)
-        val url =
-            if (isProduction) "https://veilarbperson-gcp.intern.nav.no" else UrlUtils.createDevInternalIngressUrl(
-                veilarbperson.serviceName
-            )
-        return VeilarbregistreringClientImpl(joinPaths(url, "veilarbperson"), userTokenSupplier)
-    }
-
-    @Bean
-    fun safClient(tokenClient: AzureAdMachineToMachineTokenClient): SafClient {
-        val safClient = saf.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val serviceNameForIngress = "saf"
-        return SafClientImpl(
-            naisPreprodOrNaisAdeoIngress(serviceNameForIngress, false)
-        ){ tokenClient.createMachineToMachineToken(tokenScope(safClient)) }
+    fun safClient(
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+    ): SafClient {
+        return SafClientImpl(properties.safUrl) { machineTokenClient.createMachineToMachineToken(properties.safScope) }
     }
 
     @Bean
     fun veilederOgEnhetClient(
-        authContextHolder: AuthContextHolder?,
-        oboContexService: OboContexService,
-        tokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties,
+        authContextHolder: AuthContextHolder,
+        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
+        machineTokenClient: AzureAdMachineToMachineTokenClient
     ): VeilarbveilederClient {
-        val veilarbveileder = veilarbveileder.invoke(if (isProduction) "prod-gcp" else "dev-gcp")
-        val userTokenSupplier = oboContexService.userTokenSupplier(veilarbveileder)
         return VeilarbveilederClientImpl(
-            "https://veilarbveileder-gcp.intern.nav.no/veilarbveileder",
+            properties.veilarbveilederUrl,
             authContextHolder,
-            userTokenSupplier,
-            { tokenClient.createMachineToMachineToken(tokenScope(veilarbveileder)) }
-        )
+            {
+                AuthUtils.bearerToken(
+                    aadOboTokenClient.exchangeOnBehalfOfToken(
+                        properties.veilarbveilederScope,
+                        authContextHolder.requireIdTokenString()
+                    )
+                )
+            }
+        ) { machineTokenClient.createMachineToMachineToken(properties.veilarbveilederScope) }
     }
 
     @Bean
-    fun dokarkivClient(tokenClient: AzureAdMachineToMachineTokenClient): DokarkivClient {
-        val dokarkivClient = dokarkiv.invoke(if (isProduction) "prod-fss" else "dev-fss")
-
-        val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(dokarkivClient.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                dokarkivClient.serviceName
-            )
+    fun dokarkivClient(
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+    ): DokarkivClient {
         return DokarkivClientImpl(
-            url
-        ){ tokenClient.createMachineToMachineToken(tokenScope(dokarkivClient)) }
+            properties.dokarkivUrl,
+        ) { machineTokenClient.createMachineToMachineToken(properties.dokarkivScope) }
     }
 
     @Bean
-    fun regoppslagClient(tokenClient: AzureAdMachineToMachineTokenClient): RegoppslagClient {
-        val regoppslag = regoppslag.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(regoppslag.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                regoppslag.serviceName
+    fun regoppslagClient(
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+    ): RegoppslagClient {
+        return RegoppslagClientImpl(properties.regoppslagUrl) {
+            machineTokenClient.createMachineToMachineToken(
+                properties.regoppslagScope
             )
-        return RegoppslagClientImpl(url) { tokenClient.createMachineToMachineToken(tokenScope(regoppslag)) }
+        }
     }
 
     @Bean
-    fun oppslagArbeidssoekerregisteretClient(tokenClient: AzureAdMachineToMachineTokenClient): OppslagArbeidssoekerregisteretClientImpl {
-        val veilarbperson = veilarbperson.invoke(if (isProduction) "prod-gcp" else "dev-fss")
-        val url =
-            if (isProduction) "https://veilarbperson-gcp.intern.nav.no" else UrlUtils.createDevInternalIngressUrl(
-                veilarbperson.serviceName
-            )
-        return OppslagArbeidssoekerregisteretClientImpl(joinPaths(url, "veilarbperson")){ tokenClient.createMachineToMachineToken(tokenScope(veilarbperson)) }
+    fun oppslagArbeidssoekerregisteretClient(
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+    ): OppslagArbeidssoekerregisteretClientImpl {
+        return OppslagArbeidssoekerregisteretClientImpl(
+            properties.veilarbpersonUrl
+        ) { machineTokenClient.createMachineToMachineToken(properties.veilarbpersonScope) }
     }
 
     @Bean
-    fun dokDistribusjonClient(tokenClient: AzureAdMachineToMachineTokenClient): DokdistribusjonClient {
-        val appName = if (isProduction) "dokdistfordeling" else "dokdistfordeling-q1"
-        val url =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(appName) else UrlUtils.createDevInternalIngressUrl(
-                appName
-            )
-
+    fun dokDistribusjonClient(
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+    ): DokdistribusjonClient {
         // dokdistfordeling bruker saf token scope
-        val safTokenScope =
-            if (isProduction) "api://prod-fss.teamdokumenthandtering.saf/.default" else "api://dev-fss.teamdokumenthandtering.saf-q1/.default"
-        return DokdistribusjonClientImpl(url) { tokenClient.createMachineToMachineToken(safTokenScope) }
+        return DokdistribusjonClientImpl(properties.dokdistfordelingUrl) {
+            machineTokenClient.createMachineToMachineToken(
+                properties.safScope
+            )
+        }
     }
 
     @Bean
-    fun aktorOppslagClient(tokenClient: AzureAdMachineToMachineTokenClient): AktorOppslagClient {
-
-        val pdl = pdl.invoke(if (isProduction) "prod-fss" else "dev-fss")
-        val pdlUrl =
-            if (isProduction) UrlUtils.createProdInternalIngressUrl(pdl.serviceName) else UrlUtils.createDevInternalIngressUrl(
-                pdl.serviceName
-            )
+    fun aktorOppslagClient(
+        properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient
+    ): AktorOppslagClient {
         val pdlClient = PdlClientImpl(
-            pdlUrl,
-            { tokenClient.createMachineToMachineToken(tokenScope(pdl)) },
+            properties.pdlUrl,
+            { tokenClient.createMachineToMachineToken(properties.pdlScope) },
             BehandlingsNummer.VEDTAKSTOTTE.value
         )
         return CachedAktorOppslagClient(PdlAktorOppslagClient(pdlClient))
@@ -223,13 +208,9 @@ class ClientConfig {
 
     @Bean
     fun unleashClient(properties: EnvironmentProperties): DefaultUnleash = DefaultUnleash(
-        UnleashConfig.builder()
-            .appName(ApplicationConfig.APPLICATION_NAME)
-            .instanceId(ApplicationConfig.APPLICATION_NAME)
-            .unleashAPI(properties.unleashUrl)
-            .apiKey(properties.unleashApiToken)
-            .environment(if (isProduction) "production" else "development")
-            .build()
+        UnleashConfig.builder().appName(ApplicationConfig.APPLICATION_NAME)
+            .instanceId(ApplicationConfig.APPLICATION_NAME).unleashAPI(properties.unleashUrl)
+            .apiKey(properties.unleashApiToken).environment(if (isProduction) "production" else "development").build()
     )
 
     @Bean
@@ -249,12 +230,10 @@ class ClientConfig {
 
     @Bean
     fun poaoTilgangClient(
-        properties: EnvironmentProperties,
-        tokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient
     ): PoaoTilgangClient {
         return PoaoTilgangCachedClient(
-            PoaoTilgangHttpClient(
-                properties.poaoTilgangUrl,
+            PoaoTilgangHttpClient(properties.poaoTilgangUrl,
                 { tokenClient.createMachineToMachineToken(properties.poaoTilgangScope) })
         )
     }
@@ -262,21 +241,5 @@ class ClientConfig {
     companion object {
         private val isProduction: Boolean
             get() = EnvironmentUtils.isProduction().orElseThrow()
-
-        private fun naisPreprodOrNaisAdeoIngress(appName: String, withAppContextPath: Boolean): String {
-            return if (isProduction) UrlUtils.createNaisAdeoIngressUrl(
-                appName,
-                withAppContextPath
-            ) else UrlUtils.createNaisPreprodIngressUrl(appName, "q1", withAppContextPath)
-        }
-
-        private fun tokenScope(downstreamApi: DownstreamApi): String {
-            return String.format(
-                "api://%s.%s.%s/.default",
-                downstreamApi.cluster,
-                downstreamApi.namespace,
-                downstreamApi.serviceName
-            )
-        }
     }
 }
