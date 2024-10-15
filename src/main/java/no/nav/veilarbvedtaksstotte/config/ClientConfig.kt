@@ -24,7 +24,6 @@ import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.pdl
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.regoppslag
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.saf
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbarena
-import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarboppfolging
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbperson
 import no.nav.veilarbvedtaksstotte.client.DownstreamAPIs.veilarbveileder
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
@@ -103,9 +102,12 @@ class ClientConfig {
     fun oppfolgingClient(tokenClient: AzureAdMachineToMachineTokenClient): VeilarboppfolgingClient {
         val veilarboppfolging = veilarboppfolging.invoke(if (isProduction) "prod-gcp" else "dev-fss")
         val url = "https://veilarboppfolging-gcp.intern.nav.no/veilarboppfolging"
+    //fun oppfolgingClient(tokenClient: AzureAdMachineToMachineTokenClient, properties: EnvironmentProperties): VeilarboppfolgingClient {
+    //    val veilarboppfolgingUrl = properties.veilarboppfolgingUrl
+    //    val veilarboppfolgingScope = properties.veilarboppfolgingScope
         return VeilarboppfolgingClientImpl(
-            url
-        ) { tokenClient.createMachineToMachineToken(tokenScope(veilarboppfolging)) }
+            veilarboppfolgingUrl
+        ) { tokenClient.createMachineToMachineToken(veilarboppfolgingScope) }
     }
 
     @Bean

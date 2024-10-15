@@ -17,6 +17,8 @@ data class EnvironmentProperties (
     val naisAadIssuer: String,
     val poaoTilgangUrl: String,
     val poaoTilgangScope: String,
+    val veilarboppfolgingUrl: String,
+    val veilarboppfolgingScope: String,
     val aiaBackendUrl: String,
     val tokenxDiscoveryUrl: String,
     val tokenxClientId: String

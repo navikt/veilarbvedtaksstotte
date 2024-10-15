@@ -29,7 +29,7 @@ jobs:
   test-build-and-push:
     name: Test, build and push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/gcp-migration'
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
     permissions:
@@ -52,13 +52,13 @@ jobs:
         uses: nais/docker-build-push@v0
         id: docker-build-push
         with:
-          team: pto
+          team: obo
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
 
-  deploy-prod:
-    name: Deploy application to prod
-    if: github.ref == 'refs/heads/master'
+  deploy-dev:
+    name: Deploy application to dev-gcp
+    if: github.ref == 'refs/heads/gcp-migration'
     needs: test-build-and-push
     runs-on: ubuntu-latest
     steps:
@@ -68,8 +68,31 @@ jobs:
       - name: Deploy application
         uses: nais/deploy/actions/deploy@v2
         env:
-          CLUSTER: prod-fss
-          RESOURCE: .nais/application/application-config-prod.yaml
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/application/gcp/application-config-dev.yaml
+          VAR: image=${{ needs.test-build-and-push.outputs.image }}
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release to dev-gcp
+          tag_name: release/dev@${{ env.IMAGE_TAG }}
+          prerelease: true
+
+  deploy-prod:
+    name: Deploy application to prod-gcp
+    if: github.ref == 'refs/heads/master-gcp'
+    needs: test-build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy application
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: .nais/application/gcp/application-config-prod.yaml
           VAR: image=${{ needs.test-build-and-push.outputs.image }}
 
       - name: Create release

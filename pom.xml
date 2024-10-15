@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.0</version>
+        <version>3.3.4</version>
         <relativePath/>
     </parent>
 
@@ -19,10 +19,10 @@
 
     <properties>
         <java.version>21</java.version>
-        <common.version>3.2024.02.21_11.18-8f9b43befae1</common.version>
+        <common.version>3.2024.04.22_13.50-7815154a2573</common.version>
         <kotlin.version>1.9.22</kotlin.version>
         <testcontainers.version>1.20.0</testcontainers.version>
-        <unleash.version>9.2.0</unleash.version>
+        <unleash.version>9.2.4</unleash.version>
 
         <!--   Used by SonarCloud     -->
         <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
@@ -106,7 +106,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.17.0</version>
+            <version>2.18.0</version>
         </dependency>
 
         <dependency>
@@ -298,7 +298,7 @@
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock-jre8-standalone</artifactId>
-            <version>2.35.1</version>
+            <version>2.35.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -309,7 +309,7 @@
         <dependency>
             <groupId>io.mockk</groupId>
             <artifactId>mockk-jvm</artifactId>
-            <version>1.13.8</version>
+            <version>1.13.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
