@@ -5,11 +5,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "app.kafka")
 data class KafkaProperties(
     val brokersUrl: String,
-    val endringPaOppfolgingsBrukerTopic: String,
-    val vedtakSendtTopic: String,
-    val vedtakStatusEndringTopic: String,
     val arenaVedtakTopic: String,
+    val endringPaOppfolgingsBrukerTopic: String,
     val siste14aVedtakTopic: String,
+    val sisteOppfolgingsperiodeTopic: String,
     val vedtakFattetDvhTopic: String,
-    val sisteOppfolgingsperiodeTopic: String
+    val vedtakSendtTopic: String,
+    val vedtakStatusEndringTopic: String
 )

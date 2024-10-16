@@ -47,16 +47,12 @@ spec:
       value: api://dev-gcp.paw.paw-arbeidssoker-besvarelse/.default
     - name: AIA_BACKEND_URL
       value: https://www.intern.dev.nav.no/aia-backend
-    - name: ARENA_VEDTAK_TOPIC
-      value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-q2
     - name: DOKARKIV_TOKEN_SCOPE
       value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
     - name: DOKARKIV_URL
       value: https://dokarkiv-q2.dev-fss-pub.nais.io
     - name: DOKDISTFORDELING_URL # bruker saf-scope
       value: https://dokdistfordeling.dev-fss-pub.nais.io
-    - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
-      value: pto.endring-paa-oppfolgingsbruker-v2
     - name: NORG2_URL
       value: https://norg2.intern.dev.nav.no/norg2
     - name: PDL_TOKEN_SCOPE
@@ -93,6 +89,11 @@ spec:
       value: api://dev-gcp.obo.veilarbveileder/.default
     - name: VEILARBVEILEDER_URL
       value: http://veilarbveileder.obo/veilarbveileder
+    # Topics
+    - name: ARENA_VEDTAK_TOPIC
+      value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-q2
+    - name: ENDRING_PA_OPPFOLGINGSBRUKER_TOPIC
+      value: pto.endring-paa-oppfolgingsbruker-v2
   azure:
     application:
       allowAllUsers: true
