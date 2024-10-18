@@ -29,7 +29,7 @@ jobs:
   test-build-and-push:
     name: Test, build and push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/gcp-migration'
+    if: github.ref == 'refs/heads/master'
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
     permissions:
@@ -58,7 +58,7 @@ jobs:
 
   deploy-dev:
     name: Deploy application to dev-gcp
-    if: github.ref == 'refs/heads/gcp-migration'
+    if: github.ref == 'refs/heads/dev'
     needs: test-build-and-push
     runs-on: ubuntu-latest
     steps:
