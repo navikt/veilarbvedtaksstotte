@@ -34,7 +34,7 @@ spec:
   gcp:
     sqlInstances:
       - type: POSTGRES_15
-        tier: db-custom-2-20480
+        tier: db-custom-8-53248
         databases:
           - name: veilarbvedtaksstotte
             envVarPrefix: DB
@@ -43,26 +43,52 @@ spec:
   kafka:
     pool: nav-prod
   env:
+    - name: AIA_BACKEND_TOKEN_SCOPE
+      value: api://prod-gcp.paw.paw-arbeidssoker-besvarelse/.default
     - name: AIA_BACKEND_URL
-      value: https://www.nav.no/aia-backend
+      value: http://aia-backend.paw/aia-backend
+    - name: DOKARKIV_TOKEN_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
+    - name: DOKARKIV_URL
+      value: https://dokarkiv.prod-fss-pub.nais.io
+    - name: DOKDISTFORDELING_URL # bruker saf-scope
+      value: https://dokdistfordeling.prod-fss-pub.nais.io
     - name: NORG2_URL
-      value: https://norg2.intern.nav.no
+      value: http://norg2.org/norg2
+    - name: PDL_TOKEN_SCOPE
+      value: api://prod-fss.pdl.pdl-api/.default
+    - name: PDL_URL
+      value: https://pdl-api.prod-fss-pub.nais.io
     - name: POAO_TILGANG_TOKEN_SCOPE
-      value: "api://prod-gcp.poao.poao-tilgang/.default"
+      value: api://prod-gcp.poao.poao-tilgang/.default
     - name: POAO_TILGANG_URL
-      value: "http://poao-tilgang.poao"
-    - name: SAF_URL
-      value: "https://saf.intern.nav.no"
+      value: http://poao-tilgang.poao
+    - name: PTO_PDFGEN_URL
+      value: http://pto-pdfgen.obo
+    - name: REGOPPSLAG_TOKEN_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.regoppslag/.default
+    - name: REGOPPSLAG_URL
+      value: https://regoppslag.prod-fss-pub.nais.io
     - name: SAF_TOKEN_SCOPE
-      value: "api://prod-fss.teamdokumenthandtering.saf/.default"
+      value: api://prod-fss.teamdokumenthandtering.saf/.default
+    - name: SAF_URL
+      value: https://saf.prod-fss-pub.nais.io
+    - name: VEILARBARENA_TOKEN_SCOPE
+      value: api://prod-fss.pto.veilarbarena/.default
+    - name: VEILARBARENA_URL
+      value: https://veilarbarena.prod-fss-pub.nais.io/veilarbarena
     - name: VEILARBOPPFOLGING_TOKEN_SCOPE
-      value: "api://prod-fss.pto.veilarboppfolging/.default"
+      value: api://prod-gcp.poao.veilarboppfolging/.default
     - name: VEILARBOPPFOLGING_URL
-      value: "https://veilarboppfolging.prod-fss-pub.nais.io/veilarboppfolging"
+      value: http://veilarboppfolging.poao/veilarboppfolging
+    - name: VEILARBPERSON_TOKEN_SCOPE
+      value: api://prod-gcp.obo.veilarbperson/.default
+    - name: VEILARBPERSON_URL
+      value: http://veilarbperson.obo/veilarbperson
     - name: VEILARBVEILEDER_TOKEN_SCOPE
-      value: "api://prod-fss.pto.veilarbveileder/.default"
+      value: api://prod-gcp.obo.veilarbveileder/.default
     - name: VEILARBVEILEDER_URL
-      value: "https://veilarbveileder.prod-fss-pub.nais.io/veilarbveileder"
+      value: http://veilarbveileder.obo/veilarbveileder
     # Topics
     - name: ENDRING_PA_OPPFOLGINGSBRUKER_TOPIC
       value: pto.endring-paa-oppfolgingsbruker-v2
@@ -97,8 +123,6 @@ spec:
         - application: pto-admin
           namespace: pto
           cluster: prod-fss
-        - application: aia-backend
-          namespace: paw
         - application: amt-person-service
           namespace: amt
           permissions:
@@ -112,13 +136,23 @@ spec:
           namespace: paw
         - application: pto-pdfgen
           namespace: obo
+        - application: veilarboppfolging
+          namespace: poao
+        - application: veilarbperson
+          namespace: obo
+        - application: veilarbveileder
+          namespace: obo
+        - application: poao-tilgang
+          namespace: poao
+        - application: norg2
+          namespace: org
       external:
         - host: team-obo-unleash-api.nav.cloud.nais.io
-        - host: www.nav.no
         - host: pdl-api.prod-fss-pub.nais.io
-        - host: veilarboppfolging.prod-fss-pub.nais.io
-        - host: veilarbveileder.prod-fss-pub.nais.io
         - host: veilarbarena.prod-fss-pub.nais.io
         - host: saf.prod-fss-pub.nais.io
+        - host: dokarkiv.prod-fss-pub.nais.io
+        - host: dokdistfordeling.prod-fss-pub.nais.io
+        - host: regoppslag.prod-fss-pub.nais.io
   envFrom:
     - secret: veilarbvedtaksstotte-unleash-api-token

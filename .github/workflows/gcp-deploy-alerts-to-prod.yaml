@@ -1,4 +1,4 @@
-name: Deploy alerts for veilarbvedtaksstotte to prod-fss
+name: Deploy alerts for veilarbvedtaksstotte to prod-gcp
 
 on:
   push:
