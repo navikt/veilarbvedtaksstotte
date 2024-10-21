@@ -43,7 +43,7 @@ public class SlettUtkastSchedule {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
-    @Scheduled(cron = EVERY_DAY_AT_01)
+    //@Scheduled(cron = EVERY_DAY_AT_01)
     public void startSlettingAvGamleUtkast() {
         if (leaderElectionClient.isLeader()) {
             JobRunner.run("slett_gamle_utkast", this::slettGamleUtkast);

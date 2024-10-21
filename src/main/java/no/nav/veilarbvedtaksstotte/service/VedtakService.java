@@ -114,7 +114,7 @@ public class VedtakService {
         metricsService.rapporterMetrikkerForFattetVedtak(vedtak);
     }
 
-    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
+    //@Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     public void journalforVedtak() {
         if (leaderElection.isLeader()) {
             List<Long> vedtakIds = vedtaksstotteRepository.hentVedtakForJournalforing(10);

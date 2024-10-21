@@ -18,7 +18,7 @@ class DistribuerJournalforteVedtakSchedule(
 
     val log = LoggerFactory.getLogger(DistribuerJournalforteVedtakSchedule::class.java)
 
-    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
+    //@Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     fun distribuerJournalforteVedtak() {
         if (leaderElection.isLeader) {
             JobRunner.run("distribuer_journalforte_vedtak") {
