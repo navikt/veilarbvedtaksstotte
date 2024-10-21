@@ -172,7 +172,9 @@ public class VedtakServiceTest extends DatabaseTest {
                 vedtakHendelserService,
                 dokumentService,
                 veilarbarenaService,
-                metricsService, leaderElectionClient);
+                metricsService,
+                leaderElectionClient,
+                unleashService);
     }
 
     @BeforeEach

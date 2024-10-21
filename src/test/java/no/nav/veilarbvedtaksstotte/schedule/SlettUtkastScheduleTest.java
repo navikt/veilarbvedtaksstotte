@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.schedule;
 
+import io.getunleash.DefaultUnleash;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
@@ -38,11 +39,13 @@ public class SlettUtkastScheduleTest extends DatabaseTest {
 
     private final VedtakService vedtakService = mock(VedtakService.class);
 
+    private final DefaultUnleash unleashService = mock(DefaultUnleash.class);
+
     static private VedtaksstotteRepository vedtaksstotteRepository;
 
     private final SlettUtkastSchedule slettUtkastSchedule = new SlettUtkastSchedule(
             leaderElectionClient, veilarboppfolgingClient,
-            aktorOppslagClient, vedtakService, vedtaksstotteRepository
+            aktorOppslagClient, vedtakService, vedtaksstotteRepository, unleashService
     );
 
     @BeforeAll

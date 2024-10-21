@@ -1,9 +1,11 @@
 package no.nav.veilarbvedtaksstotte.schedule
 
+import io.getunleash.DefaultUnleash
 import no.nav.common.job.JobRunner
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.DistribusjonService
+import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_GCP_SKRUDD_AV
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -14,12 +16,18 @@ class DistribuerJournalforteVedtakSchedule(
     val leaderElection: LeaderElectionClient,
     val distribusjonService: DistribusjonService,
     val vedtaksstotteRepository: VedtaksstotteRepository,
+    val unleashService: DefaultUnleash
 ) {
 
     val log = LoggerFactory.getLogger(DistribuerJournalforteVedtakSchedule::class.java)
 
     @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     fun distribuerJournalforteVedtak() {
+        if (unleashService.isEnabled(KAFKA_KONSUMERING_GCP_SKRUDD_AV)){
+            log.info("Kafka konsumeringsflagg er skrudd av, avbryter distribusjon av journalførte vedtak")
+            return
+        }
+
         if (leaderElection.isLeader) {
             JobRunner.run("distribuer_journalforte_vedtak") {
 
