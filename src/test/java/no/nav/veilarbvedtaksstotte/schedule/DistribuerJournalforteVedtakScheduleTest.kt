@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.schedule
 
+import io.getunleash.DefaultUnleash
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
@@ -35,18 +36,21 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
         lateinit var distribusjonService: DistribusjonService
         lateinit var vedtakRepository: VedtaksstotteRepository
         lateinit var distribuerJournalforteVedtakSchedule: DistribuerJournalforteVedtakSchedule
+        lateinit var unleashService: DefaultUnleash
 
         @BeforeAll
         @JvmStatic
         fun setup() {
             leaderElection = mock(LeaderElectionClient::class.java)
             dokdistribusjonClient = mock(DokdistribusjonClient::class.java)
+            unleashService = mock(DefaultUnleash::class.java)
             vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
             distribusjonService = DistribusjonService(vedtakRepository, dokdistribusjonClient)
             distribuerJournalforteVedtakSchedule = DistribuerJournalforteVedtakSchedule(
                 leaderElection = leaderElection,
                 distribusjonService = distribusjonService,
                 vedtaksstotteRepository = vedtakRepository,
+                unleashService = unleashService
             )
         }
     }
