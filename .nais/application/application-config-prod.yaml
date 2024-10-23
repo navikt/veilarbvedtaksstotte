@@ -25,8 +25,8 @@ spec:
     path: veilarbvedtaksstotte/internal/health/liveness
     initialDelay: 30
   replicas:
-    min: 2
-    max: 4
+    min: 0
+    max: 0
     cpuThresholdPercentage: 75
   resources:
     limits:
