@@ -11,7 +11,7 @@ spec:
   webproxy: true
   leaderElection: true
   ingresses:
-    - https://veilarbvedtaksstotte-gcp.intern.nav.no
+    - https://veilarbvedtaksstotte.intern.nav.no
   prometheus:
     enabled: true
     path: veilarbvedtaksstotte/internal/prometheus
