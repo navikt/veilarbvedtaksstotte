@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/logger")
-class Frontendlogger(val metricsClient: MetricsClient) {
+class Frontendlogger() {
 //    val log: Logger = LoggerFactory.getLogger(Frontendlogger::class.java)
 
     @PostMapping("/event")

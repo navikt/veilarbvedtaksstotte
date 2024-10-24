@@ -37,8 +37,6 @@ import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.tellVedtakEtterDato;
 @RequiredArgsConstructor
 public class MetricsService {
 
-    private final MetricsClient influxClient;
-
     private final VeilarboppfolgingClient oppfolgingClient;
 
     private final VeilarbarenaClient veilarbarenaClient;
@@ -83,7 +81,7 @@ public class MetricsService {
             event.addFieldToReport("hovedmal", vedtak.getHovedmal());
         }
 
-        influxClient.report(event);
+//        influxClient.report(event);
     }
 
     private void rapporterTidFraRegistrering(Vedtak vedtak) {
@@ -97,7 +95,7 @@ public class MetricsService {
         event.addFieldToReport("innsatsgruppe", getName(vedtak.getInnsatsgruppe()));
         event.addFieldToReport("dager", dagerFraRegistrering);
 
-        influxClient.report(event);
+//        influxClient.report(event);
     }
 
     /**
@@ -164,11 +162,11 @@ public class MetricsService {
         event.addFieldToReport("oppfolgingStartDato", toLocalDateTime(oppfolgingStartDato).toString());
         event.addFieldToReport("vedtakSendtDato", vedtakSendtDato.toString());
         event.addFieldToReport("enhetsId", vedtak.getOppfolgingsenhetId());
-        influxClient.report(event);
+//        influxClient.report(event);
     }
 
     public void rapporterUtkastSlettet() {
-        influxClient.report(createMetricEvent("utkast-slettet"));
+//        influxClient.report(createMetricEvent("utkast-slettet"));
     }
 
     public void rapporterTidMellomUtkastOpprettetTilGodkjent(Vedtak vedtak) {
@@ -177,7 +175,7 @@ public class MetricsService {
         Long sekunderBrukt = Duration.between(vedtak.getUtkastOpprettet(), LocalDateTime.now()).getSeconds();
         event.addFieldToReport("sekunder", sekunderBrukt);
 
-        influxClient.report(event);
+//        influxClient.report(event);
     }
 
     public void repporterDialogMeldingSendtAvVeilederOgBeslutter(String melding, String sendtAv) {
@@ -187,6 +185,6 @@ public class MetricsService {
         event.addFieldToReport("sendtAv", sendtAv);
         event.addFieldToReport("antallTegn", antallTegn);
 
-        influxClient.report(event);
+//        influxClient.report(event);
     }
 }

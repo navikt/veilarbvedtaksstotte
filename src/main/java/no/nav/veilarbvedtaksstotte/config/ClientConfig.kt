@@ -213,10 +213,10 @@ class ClientConfig {
             .apiKey(properties.unleashApiToken).environment(if (isProduction) "production" else "development").build()
     )
 
-    @Bean
-    fun influxMetricsClient(): MetricsClient {
-        return InfluxClient()
-    }
+//    @Bean
+//    fun influxMetricsClient(): MetricsClient {
+//        return InfluxClient()
+//    }
 
     @Bean
     fun leaderElectionClient(): LeaderElectionClient {
