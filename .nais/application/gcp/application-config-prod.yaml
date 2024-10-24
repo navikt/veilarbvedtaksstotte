@@ -29,7 +29,7 @@ spec:
     limits:
       memory: 1024Mi
     requests:
-      cpu: 500m
+      cpu: 300m
       memory: 768Mi #https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   gcp:
     sqlInstances:

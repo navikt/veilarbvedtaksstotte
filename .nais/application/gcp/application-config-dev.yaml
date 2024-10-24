@@ -29,8 +29,8 @@ spec:
     limits:
       memory: 1024Mi
     requests:
-      cpu: 500m
-      memory: 512Mi
+      cpu: 100m
+      memory: 768Mi #https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   gcp:
     sqlInstances:
       - type: POSTGRES_15
