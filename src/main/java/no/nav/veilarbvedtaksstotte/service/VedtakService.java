@@ -42,7 +42,6 @@ import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
-import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.KAFKA_KONSUMERING_GCP_SKRUDD_AV;
 
 @Slf4j
 @Service
@@ -68,7 +67,6 @@ public class VedtakService {
     private final MetricsService metricsService;
 
     private final LeaderElectionClient leaderElection;
-    private final DefaultUnleash unleashService;
 
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
@@ -119,11 +117,6 @@ public class VedtakService {
 
     @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     public void journalforVedtak() {
-        if (unleashService.isEnabled(KAFKA_KONSUMERING_GCP_SKRUDD_AV)){
-            log.info("Kafka konsumeringsflagg er skrudd av, avbryter distribusjon av journalførte vedtak");
-            return;
-        }
-
         if (leaderElection.isLeader()) {
             List<Long> vedtakIds = vedtaksstotteRepository.hentVedtakForJournalforing(10);
 

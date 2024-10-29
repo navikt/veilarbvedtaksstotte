@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDateTime;
-import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.KAFKA_KONSUMERING_GCP_SKRUDD_AV;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -45,15 +44,8 @@ public class SlettUtkastSchedule {
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
-    private final DefaultUnleash unleashService;
-
     @Scheduled(cron = EVERY_DAY_AT_01)
     public void startSlettingAvGamleUtkast() {
-        if (unleashService.isEnabled(KAFKA_KONSUMERING_GCP_SKRUDD_AV)){
-            log.info("Kafka konsumeringsflagg er skrudd av, avbryter distribusjon av journalførte vedtak");
-            return;
-        }
-
         if (leaderElectionClient.isLeader()) {
             JobRunner.run("slett_gamle_utkast", this::slettGamleUtkast);
         }
