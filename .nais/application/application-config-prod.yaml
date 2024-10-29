@@ -2,19 +2,16 @@ kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
   name: veilarbvedtaksstotte
-  namespace: pto
+  namespace: obo
   labels:
-    team: pto
+    team: obo
 spec:
   image: {{image}}
   port: 8080
   webproxy: true
   leaderElection: true
   ingresses:
-    - https://veilarbvedtaksstotte.prod-fss-pub.nais.io
     - https://veilarbvedtaksstotte.intern.nav.no
-    - https://app.adeo.no/veilarbvedtaksstotte
-    - https://veilarbvedtaksstotte.nais.adeo.no
   prometheus:
     enabled: true
     path: veilarbvedtaksstotte/internal/prometheus
@@ -32,30 +29,71 @@ spec:
     limits:
       memory: 1024Mi
     requests:
-      cpu: 500m
-      memory: 512Mi
-  vault:
-    enabled: true
-    paths:
-      - kvPath: /serviceuser/data/prod/srvveilarbvedtaksstotte
-        mountPath: /var/run/secrets/nais.io/service_user
-      - kvPath: /kv/prod/fss/veilarbvedtaksstotte/default
-        mountPath: /var/run/secrets/nais.io/vault
+      cpu: 300m
+      memory: 768Mi #https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_15
+        tier: db-custom-8-53248
+        databases:
+          - name: veilarbvedtaksstotte
+            envVarPrefix: DB
   secureLogs:
     enabled: true
   kafka:
     pool: nav-prod
   env:
-    - name: ENDRING_PA_OPPFOLGINGS_BRUKER_TOPIC
+    - name: AIA_BACKEND_TOKEN_SCOPE
+      value: api://prod-gcp.paw.paw-arbeidssoker-besvarelse/.default
+    - name: AIA_BACKEND_URL
+      value: http://aia-backend.paw/aia-backend
+    - name: DOKARKIV_TOKEN_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
+    - name: DOKARKIV_URL
+      value: https://dokarkiv.prod-fss-pub.nais.io
+    - name: DOKDISTFORDELING_URL # bruker saf-scope
+      value: https://dokdistfordeling.prod-fss-pub.nais.io
+    - name: NORG2_URL
+      value: http://norg2.org/norg2
+    - name: PDL_TOKEN_SCOPE
+      value: api://prod-fss.pdl.pdl-api/.default
+    - name: PDL_URL
+      value: https://pdl-api.prod-fss-pub.nais.io
+    - name: POAO_TILGANG_TOKEN_SCOPE
+      value: api://prod-gcp.poao.poao-tilgang/.default
+    - name: POAO_TILGANG_URL
+      value: http://poao-tilgang.poao
+    - name: PTO_PDFGEN_URL
+      value: http://pto-pdfgen.obo
+    - name: REGOPPSLAG_TOKEN_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.regoppslag/.default
+    - name: REGOPPSLAG_URL
+      value: https://regoppslag.prod-fss-pub.nais.io
+    - name: SAF_TOKEN_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.saf/.default
+    - name: SAF_URL
+      value: https://saf.prod-fss-pub.nais.io
+    - name: VEILARBARENA_TOKEN_SCOPE
+      value: api://prod-fss.pto.veilarbarena/.default
+    - name: VEILARBARENA_URL
+      value: https://veilarbarena.prod-fss-pub.nais.io/veilarbarena
+    - name: VEILARBOPPFOLGING_TOKEN_SCOPE
+      value: api://prod-gcp.poao.veilarboppfolging/.default
+    - name: VEILARBOPPFOLGING_URL
+      value: http://veilarboppfolging.poao/veilarboppfolging
+    - name: VEILARBPERSON_TOKEN_SCOPE
+      value: api://prod-gcp.obo.veilarbperson/.default
+    - name: VEILARBPERSON_URL
+      value: http://veilarbperson.obo/veilarbperson
+    - name: VEILARBVEILEDER_TOKEN_SCOPE
+      value: api://prod-gcp.obo.veilarbveileder/.default
+    - name: VEILARBVEILEDER_URL
+      value: http://veilarbveileder.obo/veilarbveileder
+    # Topics
+    - name: ENDRING_PA_OPPFOLGINGSBRUKER_TOPIC
       value: pto.endring-paa-oppfolgingsbruker-v2
     - name: ARENA_VEDTAK_TOPIC
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-p
-    - name: POAO_TILGANG_URL
-      value: http://poao-tilgang.poao.svc.nais.local
-    - name: POAO_TILGANG_SCOPE
-      value: api://prod-fss.poao.poao-tilgang/.default
-    - name: AIA_BACKEND_URL
-      value: https://www.nav.no/aia-backend
   azure:
     application:
       allowAllUsers: true
@@ -71,31 +109,22 @@ spec:
       rules:
         - application: veilarbportefoljeflatefs
           namespace: obo
-          cluster: prod-gcp
         - application: veilarbportefolje
           namespace: obo
-          cluster: prod-gcp
           permissions:
             roles:
               - "siste-14a-vedtak"
         - application: veilarbpersonflate
           namespace: poao
-          cluster: prod-gcp
         - application: beslutteroversikt
           namespace: obo
-          cluster: prod-gcp
         - application: mulighetsrommet-api
           namespace: team-mulighetsrommet
-          cluster: prod-gcp
         - application: pto-admin
           namespace: pto
           cluster: prod-fss
-        - application: aia-backend
-          namespace: paw
-          cluster: prod-gcp
         - application: amt-person-service
           namespace: amt
-          cluster: prod-gcp
           permissions:
             roles:
               - "siste-14a-vedtak"
@@ -103,17 +132,27 @@ spec:
       rules:
         - application: aia-backend
           namespace: paw
-          cluster: prod-gcp
         - application: paw-arbeidssoker-besvarelse
           namespace: paw
-          cluster: prod-gcp
         - application: pto-pdfgen
           namespace: obo
-          cluster: prod-gcp
+        - application: veilarboppfolging
+          namespace: poao
+        - application: veilarbperson
+          namespace: obo
+        - application: veilarbveileder
+          namespace: obo
+        - application: poao-tilgang
+          namespace: poao
+        - application: norg2
+          namespace: org
       external:
-        - host: team-obo-unleash-web.nav.cloud.nais.io
-        - host: veilarbveileder-gcp.intern.nav.no
-        - host: www.nav.no
+        - host: team-obo-unleash-api.nav.cloud.nais.io
+        - host: pdl-api.prod-fss-pub.nais.io
+        - host: veilarbarena.prod-fss-pub.nais.io
+        - host: saf.prod-fss-pub.nais.io
+        - host: dokarkiv.prod-fss-pub.nais.io
+        - host: dokdistfordeling.prod-fss-pub.nais.io
+        - host: regoppslag.prod-fss-pub.nais.io
   envFrom:
-    - configmap: pto-config
     - secret: veilarbvedtaksstotte-unleash-api-token
