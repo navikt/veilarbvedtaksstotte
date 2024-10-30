@@ -6,12 +6,7 @@ import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmA
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeArbeidssokerRegistretDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeCvDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
 import no.nav.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +47,17 @@ public class OyeblikksbildeRepository {
         try {
             String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
             return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapCvOyeblikksbilde, vedtakId, OyeblikksbildeType.CV_OG_JOBBPROFIL.name()));
-        }catch (Exception e){
+        } catch (Exception e) {
+            log.warn("Kan ikke hente oyeblikksbilde " + e, e);
+            return Optional.empty();
+        }
+    }
+
+    public Optional<OyeblikksbildeRegistreringDto> hentRegistreringOyeblikksbildeForVedtak(long vedtakId) {
+        try {
+            String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
+            return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapRegistreringOyeblikksbilde, vedtakId, OyeblikksbildeType.REGISTRERINGSINFO.name()));
+        } catch (Exception e) {
             log.warn("Kan ikke hente oyeblikksbilde " + e, e);
             return Optional.empty();
         }
@@ -62,8 +67,7 @@ public class OyeblikksbildeRepository {
         try {
             String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
             return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapArbeidssokerRegisteretOyeblikksbilde, vedtakId, OyeblikksbildeType.ARBEIDSSOKERREGISTRET.name()));
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             log.warn("Kan ikke hente oyeblikksbilde " + e, e);
             return Optional.empty();
         }
@@ -73,8 +77,7 @@ public class OyeblikksbildeRepository {
         try {
             String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
             return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapEgenvurderingOyeblikksbilde, vedtakId, OyeblikksbildeType.EGENVURDERING.name()));
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             log.warn("Kan ikke hente oyeblikksbilde " + e, e);
             return Optional.empty();
         }
@@ -217,6 +220,16 @@ public class OyeblikksbildeRepository {
     public String hentJournalfortDokumentId(long vedtakId, OyeblikksbildeType oyeblikksbildeType) {
         String sql = format("SELECT dokument_id FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
         return db.queryForObject(sql, String.class, vedtakId, oyeblikksbildeType.name());
+    }
+
+    @SneakyThrows
+    private static OyeblikksbildeRegistreringDto mapRegistreringOyeblikksbilde(ResultSet rs, int row) {
+        RegistreringResponseDto registreringsdataDto = JsonUtils.fromJson(rs.getString(JSON), RegistreringResponseDto.class);
+        return new OyeblikksbildeRegistreringDto(
+                registreringsdataDto,
+                rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty()
+        );
+
     }
 
 }

@@ -5,6 +5,7 @@ import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeArbeidssokerRegistretDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeCvDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeRegistreringDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
@@ -69,6 +70,11 @@ public class VedtakController {
     @GetMapping("{vedtakId}/oyeblikksbilde-cv")
     public OyeblikksbildeCvDto hentCVOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
         return oyeblikksbildeService.hentCVOyeblikksbildeForVedtak(vedtakId);
+    }
+
+    @GetMapping("{vedtakId}/oyeblikksbilde-registrering")
+    public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
+        return oyeblikksbildeService.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
     }
 
     @GetMapping("{vedtakId}/oyeblikksbilde-arbeidssokerRegistret")
