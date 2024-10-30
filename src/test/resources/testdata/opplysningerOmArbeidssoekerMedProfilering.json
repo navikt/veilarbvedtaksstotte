@@ -1,0 +1,53 @@
+{
+  "arbeidssoekerperiodeStartet": "2024-10-30T08:44:36.972Z",
+  "opplysningerOmArbeidssoeker": {
+    "opplysningerOmArbeidssoekerId": "4590dfe7-8215-4c1f-a852-762de0846cee",
+    "periodeId": "4676c384-3725-4fac-b541-ba36056efea2",
+    "sendtInnAv": {
+      "tidspunkt": "2024-10-30T08:51:04.927Z",
+      "utfoertAv": {
+        "type": "VEILEDER",
+        "id": "Z123456"
+      },
+      "kilde": "europe-north1-docker.pkg.dev/nais-management-233d/paw/paw-arbeidssokerregisteret-api-inngang:24.10.29.121-1",
+      "aarsak": "opplysning om arbeidssøker sendt inn"
+    },
+    "utdanning": {
+      "nus": "HOYERE_UTDANNING_5_ELLER_MER",
+      "bestaatt": "JA",
+      "godkjent": "JA"
+    },
+    "helse": {
+      "helsetilstandHindrerArbeid": "NEI"
+    },
+    "annet": {
+      "andreForholdHindrerArbeid": "NEI"
+    },
+    "jobbsituasjon": [
+      {
+        "beskrivelse": "VIL_BYTTE_JOBB",
+        "detaljer": {
+          "stilling_styrk08": "00",
+          "stilling": "Annen stilling"
+        }
+      }
+    ]
+  },
+  "profilering": {
+    "profileringId": "3c18f2f4-2b13-443b-8492-6059546d34ea",
+    "periodeId": "4676c384-3725-4fac-b541-ba36056efea2",
+    "opplysningerOmArbeidssoekerId": "4590dfe7-8215-4c1f-a852-762de0846cee",
+    "sendtInnAv": {
+      "tidspunkt": "2024-10-30T08:51:05.084Z",
+      "utfoertAv": {
+        "type": "SYSTEM",
+        "id": "paw-arbeidssoekerregisteret-monorepo-ekstern-24.10.30.29-1"
+      },
+      "kilde": "paw-arbeidssoekerregisteret-monorepo-ekstern-24.10.30.29-1",
+      "aarsak": "opplysninger-mottatt"
+    },
+    "profilertTil": "ANTATT_BEHOV_FOR_VEILEDNING",
+    "jobbetSammenhengendeSeksAvTolvSisteManeder": false,
+    "alder": 30
+  }
+}

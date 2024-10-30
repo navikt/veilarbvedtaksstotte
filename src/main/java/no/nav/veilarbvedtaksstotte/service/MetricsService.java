@@ -4,13 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.metrics.Event;
-import no.nav.common.metrics.MetricsClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -41,7 +40,7 @@ public class MetricsService {
 
     private final VeilarbarenaClient veilarbarenaClient;
 
-    private final VeilarbregistreringClient registreringClient;
+    private final ArbeidssoekerRegisteretService arbeidssoekerRegisteretService;
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
@@ -108,16 +107,16 @@ public class MetricsService {
         try {
             Fnr fnr = aktorOppslagClient.hentFnr(aktorId);
             List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId.get());
-            RegistreringResponseDto registreringData = registreringClient.hentRegistreringData(fnr.get());
+            OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(fnr);
             Optional<ZonedDateTime> startDato = oppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
                     .map(OppfolgingPeriodeDTO::getStartDato);
 
-            if (startDato.isEmpty() || registreringData == null) {
+            if (startDato.isEmpty() || opplysningerOmArbeidssoekerMedProfilering == null) {
                 return -1;
             }
 
             if (tellVedtakEtterDato(vedtakTilBruker, toLocalDateTime(startDato.get())) == 1) {
-                long registreringStart = localDateTimeToMillis(registreringData.registrering.getOpprettetDato());
+                long registreringStart = localDateTimeToMillis(opplysningerOmArbeidssoekerMedProfilering.getArbeidssoekerperiodeStartet().toLocalDateTime());
                 return localDateTimeToMillis(LocalDateTime.now()) - registreringStart;
             }
         } catch (Exception e) {

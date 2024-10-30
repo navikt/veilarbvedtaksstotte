@@ -1,10 +1,9 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
@@ -51,7 +50,7 @@ public class OyeblikksbildeRepositoryTest extends DatabaseTest {
     }
 
     @Test
-    public void testLagOgHentOyeblikksbilde() throws JsonProcessingException {
+    public void testLagOgHentOyeblikksbilde() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
@@ -69,14 +68,13 @@ public class OyeblikksbildeRepositoryTest extends DatabaseTest {
     }
 
     @Test
-    public void testOppdateringOyblikksbilde() throws JsonProcessingException {
+    public void testOppdateringOyblikksbilde() {
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
-        RegistreringResponseDto registreringResponseDto = JsonUtils.fromJson(getRegistreringData(), RegistreringResponseDto.class);
-
+        OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfileringResponseDto = JsonUtils.fromJson(getOpplysningerOmArbeidssoekerMedProfileringData(), OpplysningerOmArbeidssoekerMedProfilering.class);
+        oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfileringResponseDto);
         oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, new CvDto.CvMedError(CvErrorStatus.IKKE_DELT));
-        oyeblikksbildeRepository.upsertRegistreringOyeblikksbilde(vedtakId, registreringResponseDto);
 
         List<OyeblikksbildeDto> hentetOyeblikksbilderFørOppdatering = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
 
@@ -88,12 +86,13 @@ public class OyeblikksbildeRepositoryTest extends DatabaseTest {
 
 
         List<OyeblikksbildeDto> hentetOyeblikksbilderEtterOppdatering = oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
-        String jsonRegistreringsInfoFraDb = hentetOyeblikksbilderEtterOppdatering.stream()
-                .filter(o -> o.getOyeblikksbildeType() == OyeblikksbildeType.REGISTRERINGSINFO)
+
+        String jsonOpplysningerOmArbeidssoekerMedProfileringFraDb = hentetOyeblikksbilderEtterOppdatering.stream()
+                .filter(o -> o.getOyeblikksbildeType() == OyeblikksbildeType.ARBEIDSSOKERREGISTRET)
                 .map(OyeblikksbildeDto::getJson)
                 .findFirst().orElse("");
-        RegistreringResponseDto cvMedInnholdregistreringResponseDB = JsonUtils.fromJson(jsonRegistreringsInfoFraDb, RegistreringResponseDto.class);
-        assertEquals(cvMedInnholdregistreringResponseDB, registreringResponseDto);
+        OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfileringResponseDB = JsonUtils.fromJson(jsonOpplysningerOmArbeidssoekerMedProfileringFraDb, OpplysningerOmArbeidssoekerMedProfilering.class);
+        assertEquals(opplysningerOmArbeidssoekerMedProfileringResponseDB, opplysningerOmArbeidssoekerMedProfileringResponseDto);
 
 
         String jsonCVFraDB = hentetOyeblikksbilderEtterOppdatering.stream()
@@ -115,8 +114,8 @@ public class OyeblikksbildeRepositoryTest extends DatabaseTest {
         Assertions.assertTrue(oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId).isEmpty());
     }
 
-    private static String getRegistreringData() {
-        return readTestResourceFile("testdata/registrering.json");
+    private static String getOpplysningerOmArbeidssoekerMedProfileringData() {
+        return readTestResourceFile("testdata/opplysningerOmArbeidssoekerMedProfilering.json");
     }
 
 

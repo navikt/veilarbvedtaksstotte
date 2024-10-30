@@ -1,10 +1,11 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ProfileringResponse;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ProfilertTil;
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType;
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringsdataDto;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -14,11 +15,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class MalTypeService {
 
-    private VeilarbregistreringClient registreringClient;
+    private final ArbeidssoekerRegisteretService arbeidssoekerRegisteretService;
 
     @Autowired
-    public MalTypeService(VeilarbregistreringClient registreringClient) {
-        this.registreringClient = registreringClient;
+    public MalTypeService(ArbeidssoekerRegisteretService arbeidssoekerRegisteretService) {
+        this.arbeidssoekerRegisteretService = arbeidssoekerRegisteretService;
     }
 
     public MalType utledMalTypeFraVedtak(Vedtak vedtak, Fnr fnr) {
@@ -26,13 +27,12 @@ public class MalTypeService {
         Hovedmal hovedmal = vedtak.getHovedmal();
 
         if (Innsatsgruppe.STANDARD_INNSATS.equals(innsatsgruppe) && Hovedmal.SKAFFE_ARBEID.equals(hovedmal)) {
-            RegistreringResponseDto registreringData = registreringClient.hentRegistreringData(fnr.get());
+            OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoeker = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(fnr);
 
-            if (registreringData != null) {
-                RegistreringsdataDto.Profilering profilering = registreringData.registrering.getProfilering();
+            if (opplysningerOmArbeidssoeker != null && opplysningerOmArbeidssoeker.getProfilering() != null) {
+                ProfileringResponse profilering = opplysningerOmArbeidssoeker.getProfilering();
 
-                // Sykmeldte brukere har ikke profilering
-                if (profilering != null && profilering.getInnsatsgruppe() == RegistreringsdataDto.ProfilertInnsatsgruppe.STANDARD_INNSATS) {
+                if (profilering != null && profilering.getProfilertTil() == ProfilertTil.ANTATT_GODE_MULIGHETER) {
                     return MalType.STANDARD_INNSATS_SKAFFE_ARBEID_PROFILERING;
                 }
             }

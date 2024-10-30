@@ -61,8 +61,6 @@ class DokumentService(
 
         val behovsVurderingData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING }
-        val registreringData =
-            oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.REGISTRERINGSINFO }
         val cvData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.CV_OG_JOBBPROFIL }
         val arbeidssokerRegistretData =
@@ -76,8 +74,6 @@ class DokumentService(
 
         if (arbeidssokerRegistretData?.json != null){
             arbeidssokerRegistretPdf = pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData.json)
-        }else if (registreringData?.json != null){
-            registeringPdf = pdfService.produserRegisteringPdf(registreringData.json)
         }
 
         return journalforDokument(

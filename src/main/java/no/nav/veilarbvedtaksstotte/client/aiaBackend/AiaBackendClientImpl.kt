@@ -5,9 +5,7 @@ import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
@@ -34,23 +32,6 @@ class AiaBackendClientImpl(private val aiaBackendUrl: String, private val userTo
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
             log.debug("Behovsvurdering - responsestatus: {}", response.code)
-            if (response.code == 204) {
-                return null
-            }
-            return response.deserializeJsonOrThrow()
-        }
-    }
-
-    override fun hentEndringIRegistreringdata(endringIRegistreringdataRequest: EndringIRegistreringdataRequest): EndringIRegistreringsdataResponse? {
-        val request = Request.Builder()
-            .url(joinPaths(aiaBackendUrl, "/veileder/besvarelse"))
-            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-            .post(endringIRegistreringdataRequest.toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
-            .build()
-
-        client.newCall(request).execute().use { response ->
-            RestUtils.throwIfNotSuccessful(response)
-            log.debug("Endring i registreringsdata - responsestatus: {}", response.code)
             if (response.code == 204) {
                 return null
             }

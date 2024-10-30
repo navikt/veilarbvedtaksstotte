@@ -9,7 +9,6 @@ import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
@@ -44,24 +43,6 @@ class PdfService(
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeEgenVurderingPdf(
                     egenvurderingResponseDTO
-                )
-            )
-        } catch (e: Exception) {
-            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            throw e;
-        }
-    }
-
-    fun produserRegisteringPdf(data: String?): Optional<ByteArray> {
-        try {
-            if (data == null) return Optional.empty()
-
-            val registreringsdataResponseDto =
-                JsonUtils.objectMapper.readValue(data, RegistreringResponseDto::class.java);
-
-            return Optional.ofNullable(
-                pdfClient.genererOyeblikksbildeRegistreringPdf(
-                    registreringsdataResponseDto
                 )
             )
         } catch (e: Exception) {
