@@ -36,8 +36,6 @@ import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
 import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
@@ -106,23 +104,6 @@ class ClientConfig {
                 )
             }
         ) { machineTokenClient.createMachineToMachineToken(properties.veilarbpersonScope) }
-    }
-
-    @Bean
-    fun registreringClient(
-        properties: EnvironmentProperties,
-        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
-        authContextHolder: AuthContextHolder
-    ): VeilarbregistreringClient {
-        return VeilarbregistreringClientImpl(properties.veilarbpersonUrl)
-        {
-            AuthUtils.bearerToken(
-                aadOboTokenClient.exchangeOnBehalfOfToken(
-                    properties.veilarbpersonScope,
-                    authContextHolder.requireIdTokenString()
-                )
-            )
-        }
     }
 
     @Bean

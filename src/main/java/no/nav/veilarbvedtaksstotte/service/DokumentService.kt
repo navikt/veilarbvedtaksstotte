@@ -61,8 +61,6 @@ class DokumentService(
 
         val behovsVurderingData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING }
-        val registreringData =
-            oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.REGISTRERINGSINFO }
         val cvData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.CV_OG_JOBBPROFIL }
         val arbeidssokerRegistretData =
@@ -70,15 +68,8 @@ class DokumentService(
 
         val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json)
         val cvPDF = pdfService.produserCVPdf(cvData?.json)
+        val arbeidssokerRegistretPdf = pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData?.json)
 
-        var arbeidssokerRegistretPdf: Optional<ByteArray> = Optional.empty();
-        var registeringPdf: Optional<ByteArray> = Optional.empty();
-
-        if (arbeidssokerRegistretData?.json != null){
-            arbeidssokerRegistretPdf = pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData.json)
-        }else if (registreringData?.json != null){
-            registeringPdf = pdfService.produserRegisteringPdf(registreringData.json)
-        }
 
         return journalforDokument(
             tittel = tittel,
@@ -87,7 +78,6 @@ class DokumentService(
             oppfolgingssak = oppfolgingssak,
             malType = produserDokumentDTO.malType,
             dokument = dokument,
-            oyeblikksbildeRegistreringDokument = registeringPdf.getOrElse { null },
             oyeblikksbildeBehovsvurderingDokument = behovsVurderingPdf.getOrElse { null },
             oyeblikksbildeCVDokument = cvPDF.getOrElse { null },
             oyeblikksbildeArbeidssokerRegistretDokument = arbeidssokerRegistretPdf.getOrElse { null },
@@ -103,7 +93,6 @@ class DokumentService(
         oppfolgingssak: String,
         malType: MalType,
         dokument: ByteArray,
-        oyeblikksbildeRegistreringDokument: ByteArray?,
         oyeblikksbildeBehovsvurderingDokument: ByteArray?,
         oyeblikksbildeCVDokument: ByteArray?,
         oyeblikksbildeArbeidssokerRegistretDokument: ByteArray?,
@@ -121,20 +110,6 @@ class DokumentService(
                 )
             )
         )
-
-        if (oyeblikksbildeRegistreringDokument != null) {
-            dokumenterList.add(
-                OpprettJournalpostDTO.Dokument(
-                    tittel = OyeblikksbildePdfTemplate.REGISTRERINGSINFO.fileName,
-                    brevkode = BrevKode.of(OyeblikksbildeType.REGISTRERINGSINFO).name,
-                    dokumentvarianter = listOf(
-                        OpprettJournalpostDTO.DokumentVariant(
-                            "PDFA", fysiskDokument = oyeblikksbildeRegistreringDokument, variantformat = "ARKIV"
-                        )
-                    )
-                )
-            )
-        }
 
         if (oyeblikksbildeArbeidssokerRegistretDokument != null){
             dokumenterList.add(

@@ -7,7 +7,6 @@ import no.nav.common.rest.client.RestUtils
 import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
 import okhttp3.OkHttpClient
@@ -48,28 +47,6 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
         val request = Request.Builder()
             .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.CV_OG_JOBBPROFIL.templateName))
             .post(RestUtils.toJsonRequestBody(cvOyeblikksbildeData))
-            .build()
-
-        try {
-            client.newCall(request).execute().use { response ->
-                RestUtils.throwIfNotSuccessful(response)
-                val body = response.body
-                return if (body != null) body.bytes() else
-                    throw IllegalStateException("Generering av øyeblikkbilde feilet, tøm respons.")
-            }
-        } catch (e: Exception) {
-            throw ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Feil ved kall mot " + request.url.toString(),
-                e
-            )
-        }
-    }
-
-    override fun genererOyeblikksbildeRegistreringPdf(registreringOyeblikksbildeData: RegistreringResponseDto): ByteArray {
-        val request = Request.Builder()
-            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.REGISTRERINGSINFO.templateName))
-            .post(RestUtils.toJsonRequestBody(registreringOyeblikksbildeData))
             .build()
 
         try {

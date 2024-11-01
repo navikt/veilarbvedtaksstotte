@@ -11,7 +11,6 @@ import org.springframework.web.server.ResponseStatusException
 @Slf4j
 class ArbeidssoekerRegisteretService(
     private val oppslagArbeidssoekerregisteretClientImpl: OppslagArbeidssoekerregisteretClient,
-
     )  {
 
     fun hentSisteOpplysningerOmArbeidssoekerMedProfilering(fnr: Fnr): OpplysningerOmArbeidssoekerMedProfilering?{

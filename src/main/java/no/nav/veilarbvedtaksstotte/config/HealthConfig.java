@@ -5,6 +5,7 @@ import no.nav.common.health.selftest.SelfTestCheck;
 import no.nav.common.health.selftest.SelfTestChecks;
 import no.nav.common.health.selftest.SelfTestMeterBinder;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClient;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
@@ -12,7 +13,6 @@ import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
@@ -39,7 +39,7 @@ public class HealthConfig {
                                          AiaBackendClient aiaBackendClient,
                                          VeilarboppfolgingClient oppfolgingClient,
                                          VeilarbpersonClient veilarbpersonClient,
-                                         VeilarbregistreringClient registreringClient,
+                                         OppslagArbeidssoekerregisteretClient opplysningerOmArbeidssoekerregisterenClient,
                                          PdfClient pdfClient,
                                          SafClient safClient,
                                          Norg2Client norg2Client,
@@ -57,7 +57,7 @@ public class HealthConfig {
                 new SelfTestCheck("EgenvurderingClient", false, aiaBackendClient),
                 new SelfTestCheck("OppfolgingClient", false, oppfolgingClient),
                 new SelfTestCheck("PersonClient", false, veilarbpersonClient),
-                new SelfTestCheck("RegistreringClient (via veilarbperson)", false, registreringClient),
+                new SelfTestCheck("paw-arbeidssoekerregisteret-api-oppslagClient (via veilarbperson)", false, opplysningerOmArbeidssoekerregisterenClient),
                 new SelfTestCheck("SafClient", false, safClient),
                 new SelfTestCheck("veilarbveileder", false, veilarbveilederClient),
                 new SelfTestCheck("Ping database", true, () -> checkDbHealth(dataSourceHealthIndicator)),

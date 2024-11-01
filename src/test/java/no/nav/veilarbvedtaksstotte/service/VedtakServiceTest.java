@@ -14,12 +14,10 @@ import no.nav.poao_tilgang.client.Decision;
 import no.nav.poao_tilgang.client.PoaoTilgangClient;
 import no.nav.poao_tilgang.client.api.ApiResult;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.Besvarelse;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
@@ -33,8 +31,6 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
@@ -65,7 +61,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -121,7 +116,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final VeilederService veilederService = mock(VeilederService.class);
 
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
-    private static final VeilarbregistreringClient registreringClient = mock(VeilarbregistreringClient.class);
     private static final ArbeidssoekerRegisteretService arbeidssoekerRegistretService = mock(ArbeidssoekerRegisteretService.class);
     private static final AiaBackendClient aia_backend_client = mock(AiaBackendClient.class);
 
@@ -149,8 +143,8 @@ public class VedtakServiceTest extends DatabaseTest {
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
 
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
-        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, registreringClient, aia_backend_client, arbeidssoekerRegistretService);
-        MalTypeService malTypeService = new MalTypeService(registreringClient);
+        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
+        MalTypeService malTypeService = new MalTypeService(arbeidssoekerRegistretService);
         DokumentService dokumentService = new DokumentService(
                 regoppslagClient,
                 veilarbarenaClient,
@@ -195,9 +189,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentMålform(TEST_FNR)).thenReturn(Målform.NB);
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(new CvDto.CVMedInnhold(JsonUtils.fromJson(testCvData(), CvInnhold.class)));
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
-        when(registreringClient.hentRegistreringData(TEST_FNR.get())).thenReturn(JsonUtils.fromJson(testRegistreringsdata(), RegistreringResponseDto.class));
         when(aia_backend_client.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()))).thenReturn(JsonUtils.fromJson(testEgenvurderingData(), EgenvurderingResponseDTO.class));
-        when(aia_backend_client.hentEndringIRegistreringdata(new EndringIRegistreringdataRequest(TEST_FNR.get()))).thenReturn(getEndringIRegistreringsData());
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));
@@ -212,7 +204,6 @@ public class VedtakServiceTest extends DatabaseTest {
         when(enhetInfoService.utledEnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID)))
                 .thenReturn(new EnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID), new EnhetStedsadresse("", "", "", "", "", ""), ""));
         when(pdfService.produserDokument(any())).thenReturn(new byte[]{});
-        when(pdfService.produserRegisteringPdf(any())).thenReturn(Optional.of(new byte[]{}));
         when(pdfService.produserCVPdf(any())).thenReturn(Optional.of(new byte[]{}));
         when(pdfService.produserBehovsvurderingPdf(any())).thenReturn(Optional.of(new byte[]{}));
         when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
@@ -566,7 +557,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private void assertOyeblikksbildeForFattetVedtak(long vedtakId) {
         withContext(() -> {
             List<OyeblikksbildeDto> oyeblikksbilde = oyeblikksbildeService.hentOyeblikksbildeForVedtak(vedtakId);
-            assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.REGISTRERINGSINFO).map(x -> JsonUtils.fromJson(x.getJson(), RegistreringResponseDto.class)).allMatch(x -> x.equals(JsonUtils.fromJson(getOppdatertRegistreringsdata(), RegistreringResponseDto.class))));
+            assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.REGISTRERINGSINFO).map(x -> JsonUtils.fromJson(x.getJson(), OpplysningerOmArbeidssoekerMedProfilering.class)).allMatch(x -> x.equals(JsonUtils.fromJson(getOppdatertRegistreringsdata(), OpplysningerOmArbeidssoekerMedProfilering.class))));
             assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.CV_OG_JOBBPROFIL).map(x -> JsonUtils.fromJson(x.getJson(), CvInnhold.class)).allMatch(x -> x.equals(JsonUtils.fromJson(testCvData(), CvInnhold.class))));
             assertTrue(oyeblikksbilde.stream().filter(x -> x.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING).map(x -> JsonUtils.fromJson(x.getJson(), EgenvurderingDto.class)).allMatch(x -> x.equals(JsonUtils.fromJson(testOyeblikkbildeEgenvurderingData(), EgenvurderingDto.class))));
         });
@@ -576,50 +567,16 @@ public class VedtakServiceTest extends DatabaseTest {
         return readTestResourceFile("testdata/oyeblikksbilde-cv.json");
     }
 
+    private String getOppdatertRegistreringsdata() {
+        return readTestResourceFile("testdata/opplysningerOmArbeidssoekerMedProfilering.json");
+    }
+
     private String testEgenvurderingData() {
         return readTestResourceFile("testdata/egenvurdering-response.json");
     }
 
     private String testOyeblikkbildeEgenvurderingData() {
         return readTestResourceFile("testdata/egenvurdering-data.json");
-    }
-
-    private String testRegistreringsdata() {
-        return readTestResourceFile("testdata/registrering-data.json");
-    }
-
-    private String getOppdatertRegistreringsdata() {
-        return readTestResourceFile("testdata/registrering-oppdatert-data.json");
-    }
-
-    private EndringIRegistreringsdataResponse getEndringIRegistreringsData() {
-        return new EndringIRegistreringsdataResponse(
-                10004400,
-                new Besvarelse(
-                        new Besvarelse.Utdanning("HOYERE_UTDANNING_1_TIL_4", null, null, null, null),
-                        new Besvarelse.UtdanningBestatt("JA", null, null, null, null),
-                        new Besvarelse.UtdanningGodkjent("JA", null, null, null, null),
-                        new Besvarelse.HelseHinder("JA", null, null, null, null),
-                        new Besvarelse.AndreForhold("NEI", null, null, null, null),
-                        new Besvarelse.SisteStilling("INGEN_SVAR", null, null, null, null),
-                        new Besvarelse.DinSituasjon(
-                                "OPPSIGELSE",
-                                new Besvarelse.DinSituasjon.TilleggsData(null, "2023-07-31", "2023-07-19", null, null, null, null, null),
-                                null,
-                                null,
-                                "BRUKER",
-                                "2023-07-18T11:24:03.136693338"
-                        ),
-                        new Besvarelse.FremtidigSituasjon(null, null, null, null, null),
-                        new Besvarelse.TilbakeIArbeid(null, null, null, null, null)
-
-                ),
-                "BRUKER",
-                LocalDateTime.parse("2023-07-18T11:24:03.158629"),
-                LocalDateTime.parse("2023-07-17T11:27:25.299658"),
-                "BRUKER",
-                true
-        );
     }
 
     private JournalpostGraphqlResponse getMockedJournalpostGraphqlResponse() {

@@ -37,8 +37,6 @@ import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
 import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
@@ -67,7 +65,6 @@ class DokumentServiceTest {
     lateinit var veilarbveilederClient: VeilarbveilederClient
     lateinit var regoppslagClient: RegoppslagClient
     lateinit var dokarkivClient: DokarkivClient
-    lateinit var veilarbregistreringClient: VeilarbregistreringClient
     lateinit var pdfClient: PdfClient
     lateinit var norg2Client: Norg2Client
     lateinit var enhetInfoService: EnhetInfoService
@@ -97,7 +94,6 @@ class DokumentServiceTest {
         kontaktEnhet = kontaktEnhet
     )
     val forventetBrev = "brev".toByteArray()
-    val registreringPdf = "registering".toByteArray()
     val behovsvurderingPdf = "behovsvurdering".toByteArray()
     val arbeidssoekerRegisteretPdf = "arbeidssokerRegistret".toByteArray()
     val cvPdf = "CV".toByteArray()
@@ -150,17 +146,6 @@ class DokumentServiceTest {
                         {
                           "filtype": "PDFA",
                           "fysiskDokument": "${Base64.encode(forventetBrev)}",
-                          "variantformat": "ARKIV"
-                        }
-                      ]
-                    },
-                    {
-                      "tittel": "Svarene dine fra da du registrerte deg",
-                      "brevkode": "REGISTRERINGSINFO",
-                      "dokumentvarianter": [
-                        {
-                          "filtype": "PDFA",
-                          "fysiskDokument": "${Base64.encode(registreringPdf)}",
                           "variantformat": "ARKIV"
                         }
                       ]
@@ -228,7 +213,6 @@ class DokumentServiceTest {
         regoppslagClient = RegoppslagClientImpl(wiremockUrl) { "SYSTEM_USER_TOKEN" }
         dokarkivClient = DokarkivClientImpl(wiremockUrl) { "" }
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
-        veilarbregistreringClient = VeilarbregistreringClientImpl(wiremockUrl) { "" }
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""}, {""})
         oppslagArbeidssoekerregisteretClientImpl = OppslagArbeidssoekerregisteretClientImpl(wiremockUrl, {""})
         arbeidssoekerRegisteretService = ArbeidssoekerRegisteretService(oppslagArbeidssoekerregisteretClientImpl)
@@ -236,7 +220,7 @@ class DokumentServiceTest {
         pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)
         enhetInfoService = EnhetInfoService(norg2Client)
-        malTypeService = MalTypeService(veilarbregistreringClient)
+        malTypeService = MalTypeService(arbeidssoekerRegisteretService)
 
         val authService = mock(AuthService::class.java)
         val oyeblikksbildeRepository = mock(OyeblikksbildeRepository::class.java)
@@ -247,7 +231,6 @@ class DokumentServiceTest {
             oyeblikksbildeRepository,
             vedtaksstotteRepository,
             veilarbpersonClient,
-            veilarbregistreringClient,
             aiaBackendClient,
             arbeidssoekerRegisteretService
         )
@@ -313,12 +296,6 @@ class DokumentServiceTest {
         givenThat(
             post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikkbilde-behovsvurdering")).willReturn(
                 aResponse().withStatus(201).withBody(behovsvurderingPdf)
-            )
-        )
-
-        givenThat(
-            post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikkbilde-registrering")).willReturn(
-                aResponse().withStatus(201).withBody(registreringPdf)
             )
         )
 
@@ -434,7 +411,6 @@ class DokumentServiceTest {
                     oppfolgingssak = "OPPF_SAK",
                     malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
                     dokument = forventetBrev,
-                    oyeblikksbildeRegistreringDokument = registreringPdf,
                     oyeblikksbildeCVDokument = cvPdf,
                     oyeblikksbildeBehovsvurderingDokument = behovsvurderingPdf,
                     oyeblikksbildeArbeidssokerRegistretDokument = arbeidssoekerRegisteretPdf,

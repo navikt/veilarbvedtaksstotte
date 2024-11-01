@@ -6,14 +6,7 @@ import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmA
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeArbeidssokerRegistretDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeCvDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeRegistreringDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
 import no.nav.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +47,7 @@ public class OyeblikksbildeRepository {
         try {
             String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
             return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapCvOyeblikksbilde, vedtakId, OyeblikksbildeType.CV_OG_JOBBPROFIL.name()));
-        }catch (Exception e){
+        } catch (Exception e) {
             log.warn("Kan ikke hente oyeblikksbilde " + e, e);
             return Optional.empty();
         }
@@ -64,8 +57,7 @@ public class OyeblikksbildeRepository {
         try {
             String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
             return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapRegistreringOyeblikksbilde, vedtakId, OyeblikksbildeType.REGISTRERINGSINFO.name()));
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             log.warn("Kan ikke hente oyeblikksbilde " + e, e);
             return Optional.empty();
         }
@@ -74,9 +66,8 @@ public class OyeblikksbildeRepository {
     public Optional<OyeblikksbildeArbeidssokerRegistretDto> hentArbeidssokerRegistretOyeblikksbildeForVedtak(long vedtakId) {
         try {
             String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
-            return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapArbeidssokerRegistretgOyeblikksbilde, vedtakId, OyeblikksbildeType.ARBEIDSSOKERREGISTRET.name()));
-        }
-        catch (Exception e){
+            return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapArbeidssokerRegisteretOyeblikksbilde, vedtakId, OyeblikksbildeType.ARBEIDSSOKERREGISTRET.name()));
+        } catch (Exception e) {
             log.warn("Kan ikke hente oyeblikksbilde " + e, e);
             return Optional.empty();
         }
@@ -86,8 +77,7 @@ public class OyeblikksbildeRepository {
         try {
             String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
             return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapEgenvurderingOyeblikksbilde, vedtakId, OyeblikksbildeType.EGENVURDERING.name()));
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             log.warn("Kan ikke hente oyeblikksbilde " + e, e);
             return Optional.empty();
         }
@@ -118,31 +108,6 @@ public class OyeblikksbildeRepository {
             db.update(
                     "INSERT INTO OYEBLIKKSBILDE (VEDTAK_ID, OYEBLIKKSBILDE_TYPE, JSON) VALUES (?,?::OYEBLIKKSBILDE_TYPE,?::json)",
                     vedtakId, OyeblikksbildeType.CV_OG_JOBBPROFIL.name(), jsonCvDto
-            );
-        }
-    }
-
-    @SneakyThrows
-    public void upsertRegistreringOyeblikksbilde(long vedtakId, RegistreringResponseDto registreringsdataDto) {
-        String jsonRegistreringDto = JsonUtils.getObjectMapper().writeValueAsString(registreringsdataDto);
-
-        if (registreringsdataDto == null || jsonRegistreringDto == null || jsonRegistreringDto.isEmpty()) {
-            jsonRegistreringDto = """
-                    {"ingenData": "Personen har ikke registrert noen svar."}
-                    """;
-        }
-
-        Optional<OyeblikksbildeDto> oyeblikksbilde = hentOyeblikksbilde(vedtakId, OyeblikksbildeType.REGISTRERINGSINFO);
-
-        if (oyeblikksbilde.isPresent()) {
-            db.update(
-                    "UPDATE OYEBLIKKSBILDE SET JSON = ?::json WHERE VEDTAK_ID = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE",
-                    jsonRegistreringDto, vedtakId, OyeblikksbildeType.REGISTRERINGSINFO.name()
-            );
-        } else {
-            db.update(
-                    "INSERT INTO OYEBLIKKSBILDE (VEDTAK_ID, OYEBLIKKSBILDE_TYPE, JSON) VALUES (?,?::OYEBLIKKSBILDE_TYPE,?::json)",
-                    vedtakId, OyeblikksbildeType.REGISTRERINGSINFO.name(), jsonRegistreringDto
             );
         }
     }
@@ -230,15 +195,7 @@ public class OyeblikksbildeRepository {
     }
 
     @SneakyThrows
-    private static OyeblikksbildeRegistreringDto mapRegistreringOyeblikksbilde(ResultSet rs, int row) {
-        RegistreringResponseDto registreringsdataDto = JsonUtils.fromJson(rs.getString(JSON), RegistreringResponseDto.class);
-        return new OyeblikksbildeRegistreringDto()
-                .setData(registreringsdataDto)
-                .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
-    }
-
-    @SneakyThrows
-    private static OyeblikksbildeArbeidssokerRegistretDto mapArbeidssokerRegistretgOyeblikksbilde(ResultSet rs, int row) {
+    private static OyeblikksbildeArbeidssokerRegistretDto mapArbeidssokerRegisteretOyeblikksbilde(ResultSet rs, int row) {
         OpplysningerOmArbeidssoekerMedProfilering registreringsdataDto = JsonUtils.fromJson(rs.getString(JSON), OpplysningerOmArbeidssoekerMedProfilering.class);
         return new OyeblikksbildeArbeidssokerRegistretDto()
                 .setData(registreringsdataDto)
@@ -263,6 +220,16 @@ public class OyeblikksbildeRepository {
     public String hentJournalfortDokumentId(long vedtakId, OyeblikksbildeType oyeblikksbildeType) {
         String sql = format("SELECT dokument_id FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
         return db.queryForObject(sql, String.class, vedtakId, oyeblikksbildeType.name());
+    }
+
+    @SneakyThrows
+    private static OyeblikksbildeRegistreringDto mapRegistreringOyeblikksbilde(ResultSet rs, int row) {
+        RegistreringResponseDto registreringsdataDto = JsonUtils.fromJson(rs.getString(JSON), RegistreringResponseDto.class);
+        return new OyeblikksbildeRegistreringDto(
+                registreringsdataDto,
+                rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty()
+        );
+
     }
 
 }

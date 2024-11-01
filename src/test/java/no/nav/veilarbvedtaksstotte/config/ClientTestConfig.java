@@ -10,9 +10,7 @@ import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EndringIRegistreringsdataResponse;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EndringIRegistreringdataRequest;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClient;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
@@ -36,8 +34,6 @@ import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
-import no.nav.veilarbvedtaksstotte.client.registrering.VeilarbregistreringClient;
-import no.nav.veilarbvedtaksstotte.client.registrering.dto.RegistreringResponseDto;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
@@ -50,7 +46,6 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO
 import no.nav.veilarbvedtaksstotte.domain.Målform;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joda.time.Instant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -184,12 +179,6 @@ public class ClientTestConfig {
 
             @NotNull
             @Override
-            public byte[] genererOyeblikksbildeRegistreringPdf(@NotNull RegistreringResponseDto registreringOyeblikksbildeData) {
-                return new byte[0];
-            }
-
-            @NotNull
-            @Override
             public byte[] genererOyeblikksbildeCvPdf(@NotNull CvInnhold cvOyeblikksbildeData) {
                 return new byte[0];
             }
@@ -215,12 +204,6 @@ public class ClientTestConfig {
                 Map<String, String> egenvurderingstekster = new HashMap<>();
                 egenvurderingstekster.put("STANDARD_INNSATS", "Svar jeg klarer meg");
                 return new EgenvurderingResponseDTO("STANDARD_INNSATS", new Instant().toString(), "123456", new EgenvurderingResponseDTO.Tekster("testspm", egenvurderingstekster));
-            }
-
-            @Nullable
-            @Override
-            public EndringIRegistreringsdataResponse hentEndringIRegistreringdata(@NotNull EndringIRegistreringdataRequest endringIRegistreringdataRequest) {
-                return null;
             }
 
             @Override
@@ -277,22 +260,6 @@ public class ClientTestConfig {
             @Override
             public Målform hentMålform(@NotNull Fnr fnr) {
                 return Målform.NB;
-            }
-
-            @Override
-            public HealthCheckResult checkHealth() {
-                return HealthCheckResult.healthy();
-            }
-        };
-    }
-
-    @Bean
-    public VeilarbregistreringClient registreringClient() {
-        return new VeilarbregistreringClient() {
-
-            @Override
-            public RegistreringResponseDto hentRegistreringData(String fnr) {
-                return null;
             }
 
             @Override
