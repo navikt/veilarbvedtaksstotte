@@ -116,6 +116,9 @@ public class MetricsService {
             }
 
             if (tellVedtakEtterDato(vedtakTilBruker, toLocalDateTime(startDato.get())) == 1) {
+                if (opplysningerOmArbeidssoekerMedProfilering.getArbeidssoekerperiodeStartet() == null && opplysningerOmArbeidssoekerMedProfilering.getArbeidssoekerperiodeStartet().toLocalDateTime() == null) {
+                    return -1;
+                }
                 long registreringStart = localDateTimeToMillis(opplysningerOmArbeidssoekerMedProfilering.getArbeidssoekerperiodeStartet().toLocalDateTime());
                 return localDateTimeToMillis(LocalDateTime.now()) - registreringStart;
             }

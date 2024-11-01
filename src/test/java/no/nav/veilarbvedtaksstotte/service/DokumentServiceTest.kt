@@ -94,7 +94,6 @@ class DokumentServiceTest {
         kontaktEnhet = kontaktEnhet
     )
     val forventetBrev = "brev".toByteArray()
-    val registreringPdf = "registering".toByteArray()
     val behovsvurderingPdf = "behovsvurdering".toByteArray()
     val arbeidssoekerRegisteretPdf = "arbeidssokerRegistret".toByteArray()
     val cvPdf = "CV".toByteArray()
@@ -147,17 +146,6 @@ class DokumentServiceTest {
                         {
                           "filtype": "PDFA",
                           "fysiskDokument": "${Base64.encode(forventetBrev)}",
-                          "variantformat": "ARKIV"
-                        }
-                      ]
-                    },
-                    {
-                      "tittel": "Svarene dine fra da du registrerte deg",
-                      "brevkode": "REGISTRERINGSINFO",
-                      "dokumentvarianter": [
-                        {
-                          "filtype": "PDFA",
-                          "fysiskDokument": "${Base64.encode(registreringPdf)}",
                           "variantformat": "ARKIV"
                         }
                       ]
@@ -312,12 +300,6 @@ class DokumentServiceTest {
         )
 
         givenThat(
-            post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikkbilde-registrering")).willReturn(
-                aResponse().withStatus(201).withBody(registreringPdf)
-            )
-        )
-
-        givenThat(
             post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikkbilde-cv")).willReturn(
                 aResponse().withStatus(201).withBody(cvPdf)
             )
@@ -429,7 +411,6 @@ class DokumentServiceTest {
                     oppfolgingssak = "OPPF_SAK",
                     malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
                     dokument = forventetBrev,
-                    oyeblikksbildeRegistreringDokument = registreringPdf,
                     oyeblikksbildeCVDokument = cvPdf,
                     oyeblikksbildeBehovsvurderingDokument = behovsvurderingPdf,
                     oyeblikksbildeArbeidssokerRegistretDokument = arbeidssoekerRegisteretPdf,
