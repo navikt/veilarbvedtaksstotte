@@ -89,6 +89,6 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          name: Release to prod
+          name: Create release
           tag_name: release/prod@${{ env.IMAGE_TAG }}
           prerelease: false
