@@ -74,6 +74,8 @@ jobs:
     if: github.ref == 'refs/heads/main'
     name: Deploy application to prod-gcp
     needs: [test-build-and-push, deploy-dev]
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
