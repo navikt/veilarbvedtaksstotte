@@ -3,16 +3,14 @@ on:
   workflow_dispatch:
 env:
   PRINT_PAYLOAD: true
-permissions:
-  packages: write
-  contents: write
-  id-token: write
 jobs:
   build-and-push:
-    name: Build and push
-    runs-on: ubuntu-latest
+    name: Build and push image
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,6 +36,8 @@ jobs:
   deploy-prod:
     name: Deploy application to prod-gcp
     needs: build-and-push
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,5 +46,5 @@ jobs:
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: prod-gcp
-          RESOURCE: .nais/application/gcp/application-config-prod.yaml
+          RESOURCE: .nais/application/application-config-prod.yaml
           VAR: image=${{ needs.build-and-push.outputs.image }}

@@ -1,15 +1,13 @@
 name: Deploy unleash-apitoken
 on:
-  workflow_dispatch:
   push:
     branches:
-      - dev
-      - master
-      - gcp-migration
+      - main
     paths:
       - ".github/workflows/gcp/gcp-deploy-unleash-apitoken.yaml"
       - ".nais/application/unleash-apitoken-dev.yaml"
       - ".nais/application/unleash-apitoken-prod.yaml"
+  workflow_dispatch:
 
 jobs:
   deploy-dev:
@@ -20,6 +18,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Deploy unleash-apitoken
         uses: nais/deploy/actions/deploy@v2
         env:
@@ -28,17 +27,17 @@ jobs:
           PRINT_PAYLOAD: true
 
   deploy-prod:
+    if: github.ref == 'refs/heads/main'
     name: Deploy unleash-apitoken to prod
     permissions:
       id-token: write
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Deploy unleash-apitoken
         uses: nais/deploy/actions/deploy@v2
-        if: github.ref == 'refs/heads/dev'
         env:
           CLUSTER: prod-gcp
           RESOURCE: .nais/application/gcp/unleash-apitoken-prod.yaml
