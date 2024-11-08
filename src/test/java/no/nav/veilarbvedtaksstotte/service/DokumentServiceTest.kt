@@ -151,7 +151,7 @@ class DokumentServiceTest {
                       ]
                     },
                     {
-                      "tittel": "Svarene dine fra da du registrerte deg",
+                      "tittel": "Det du fortalte oss da du ble registrert som arbeidssoker",
                       "brevkode": "ARBEIDSSOKERREGISTRET",
                       "dokumentvarianter": [
                         {
