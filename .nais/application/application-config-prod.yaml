@@ -29,12 +29,12 @@ spec:
     limits:
       memory: 1024Mi
     requests:
-      cpu: 300m
+      cpu: 200m
       memory: 768Mi #https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   gcp:
     sqlInstances:
       - type: POSTGRES_15
-        tier: db-custom-8-53248
+        tier: db-custom-1-25600 # 1 vCPU, 25 GiB (25*1024 MB) RAM
         databases:
           - name: veilarbvedtaksstotte
             envVarPrefix: DB
