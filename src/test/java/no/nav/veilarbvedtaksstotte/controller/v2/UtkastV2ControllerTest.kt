@@ -55,13 +55,9 @@ class UtkastV2ControllerTest {
         val expectedResponse = """
             {
               "id": 0,
-              "aktorId": null,
               "hovedmal": null,
               "innsatsgruppe": null,
-              "vedtakStatus": null,
               "utkastSistOppdatert": null,
-              "vedtakFattet": null,
-              "utkastOpprettet": null,
               "begrunnelse": null,
               "veilederIdent": null,
               "veilederNavn": null,
@@ -69,13 +65,8 @@ class UtkastV2ControllerTest {
               "oppfolgingsenhetNavn": null,
               "beslutterIdent": null,
               "beslutterNavn": null,
-              "gjeldende": false,
               "opplysninger": null,
-              "journalpostId": null,
-              "dokumentInfoId": null,
-              "dokumentbestillingId": null,
               "beslutterProsessStatus": null,
-              "referanse": null
             }
             """.trimIndent()
 
