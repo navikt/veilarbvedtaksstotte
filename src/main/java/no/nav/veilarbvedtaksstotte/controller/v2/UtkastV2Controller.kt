@@ -28,6 +28,7 @@ class UtkastV2Controller(
         summary = "Hent vedtaksutkast",
         description = "Henter vedtaksutkastet for en spesifisert bruker.",
         responses = [
+            ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = VedtakUtkastDTO::class))]),
             ApiResponse(responseCode = "403", content = [Content(schema = Schema(hidden = true))]),
             ApiResponse(responseCode = "404", content = [Content(schema = Schema(hidden = true))]),
             ApiResponse(responseCode = "500", content = [Content(schema = Schema(hidden = true))])
@@ -42,6 +43,7 @@ class UtkastV2Controller(
         summary = "Har vedtaksutkast",
         description = "Sjekk om det eksisterer et vedtaksutkast for den spesifiserte brukeren.",
         responses = [
+            ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = Boolean::class))]),
             ApiResponse(responseCode = "403", content = [Content(schema = Schema(hidden = true))]),
             ApiResponse(responseCode = "500", content = [Content(schema = Schema(hidden = true))])
         ]
