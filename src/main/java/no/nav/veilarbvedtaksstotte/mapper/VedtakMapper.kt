@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.mapper
 
-import no.nav.veilarbvedtaksstotte.controller.dto.VedtakDTO
+import no.nav.veilarbvedtaksstotte.controller.dto.VedtakUtkastDTO
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 
-fun toVedtakDTO(vedtak: Vedtak): VedtakDTO {
-    return VedtakDTO(
+fun toVedtakUtkastDTO(vedtak: Vedtak): VedtakUtkastDTO {
+    return VedtakUtkastDTO(
         id = vedtak.id,
         aktorId = vedtak.aktorId,
         hovedmal = vedtak.hovedmal,

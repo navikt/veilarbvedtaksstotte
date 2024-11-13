@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.controller.dto
 
-import net.minidev.json.annotate.JsonIgnore
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
@@ -8,7 +7,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus
 import java.time.LocalDateTime
 import java.util.*
 
-data class VedtakDTO(
+data class VedtakUtkastDTO(
     val id: Long? = null,
     val aktorId: String? = null,
     val hovedmal: Hovedmal? = null,
