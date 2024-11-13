@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.controller.v2
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.veilarbvedtaksstotte.controller.dto.VedtakUtkastDTO
@@ -15,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v2")
 @Tag(
-        name = "Vedtaksutkast V2",
-        description = "Funksjonalitet knyttet til vedtaksutkast."
+    name = "Vedtaksutkast V2",
+    description = "Funksjonalitet knyttet til vedtaksutkast."
 )
 class UtkastV2Controller(
     val vedtakService: VedtakService
@@ -26,9 +28,9 @@ class UtkastV2Controller(
         summary = "Hent vedtaksutkast",
         description = "Henter vedtaksutkastet for en spesifisert bruker.",
         responses = [
-            ApiResponse(responseCode = "403"),
-            ApiResponse(responseCode = "404"),
-            ApiResponse(responseCode = "500")
+            ApiResponse(responseCode = "403", content = [Content(schema = Schema(hidden = true))]),
+            ApiResponse(responseCode = "404", content = [Content(schema = Schema(hidden = true))]),
+            ApiResponse(responseCode = "500", content = [Content(schema = Schema(hidden = true))])
         ]
     )
     fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): VedtakUtkastDTO {
@@ -40,8 +42,8 @@ class UtkastV2Controller(
         summary = "Har vedtaksutkast",
         description = "Sjekk om det eksisterer et vedtaksutkast for den spesifiserte brukeren.",
         responses = [
-            ApiResponse(responseCode = "403"),
-            ApiResponse(responseCode = "500")
+            ApiResponse(responseCode = "403", content = [Content(schema = Schema(hidden = true))]),
+            ApiResponse(responseCode = "500", content = [Content(schema = Schema(hidden = true))])
         ]
     )
     fun harUtkast(@RequestBody utkastRequest: UtkastRequest): Boolean {

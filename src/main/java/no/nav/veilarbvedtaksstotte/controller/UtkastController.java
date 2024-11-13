@@ -2,6 +2,8 @@ package no.nav.veilarbvedtaksstotte.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import no.nav.common.types.identer.Fnr;
@@ -42,9 +44,9 @@ public class UtkastController {
     @Operation(
             summary = "Hent status på beslutterprosessen for det spesifiserte vedtaksutkastet.",
             responses = {
-                    @ApiResponse(responseCode = "403"),
-                    @ApiResponse(responseCode = "404"),
-                    @ApiResponse(responseCode = "500")
+                    @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))
             }
     )
     public BeslutterprosessStatusDTO beslutterprosessStatus(
@@ -58,9 +60,9 @@ public class UtkastController {
             summary = "Opprett vedtaksutkast",
             description = "Oppretter et nytt vedtaksutkast knyttet til den spesifiserte brukeren.",
             responses = {
-                    @ApiResponse(responseCode = "400"),
-                    @ApiResponse(responseCode = "403"),
-                    @ApiResponse(responseCode = "500")
+                    @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))
             }
     )
     public void lagUtkast(@RequestBody LagUtkastDTO lagUtkastDTO) {
@@ -76,9 +78,9 @@ public class UtkastController {
             summary = "Fatt et vedtak",
             description = "Fatter et vedtak ved at det spesifiserte vedtaksutkastet låses for endringer samt at det journalføres/arkiveres og sendes til bruker.",
             responses = {
-                    @ApiResponse(responseCode = "403"),
-                    @ApiResponse(responseCode = "404"),
-                    @ApiResponse(responseCode = "500")
+                    @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))
             }
     )
     public void fattVedtak(
@@ -92,9 +94,9 @@ public class UtkastController {
             summary = "Oppdater vedtaksutkast",
             description = "Oppdaterer et vedtaksutkast med ny informasjon.",
             responses = {
-                    @ApiResponse(responseCode = "403"),
-                    @ApiResponse(responseCode = "404"),
-                    @ApiResponse(responseCode = "500")
+                    @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))
             }
     )
     public void oppdaterUtkast(
@@ -116,9 +118,9 @@ public class UtkastController {
             summary = "Hent forhåndsvisning av vedtaksutkast",
             description = "Genererer og returnerer et PDF-dokument for et gitt vedtaksutkast. PDF-dokumentet er en forhåndsvisning av PDF-dokumentet som eventuelt vil journalføres/arkiveres og sendes til bruker når vedtaket fattes.",
             responses = {
-                    @ApiResponse(responseCode = "403"),
-                    @ApiResponse(responseCode = "404"),
-                    @ApiResponse(responseCode = "500")
+                    @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))
             }
     )
     public ResponseEntity<byte[]> hentForhandsvisning(
@@ -135,10 +137,10 @@ public class UtkastController {
             summary = "Slett vedtaksutkast",
             description = "Sletter et vedtaksutkast.",
             responses = {
-                    @ApiResponse(responseCode = "400"),
-                    @ApiResponse(responseCode = "403"),
-                    @ApiResponse(responseCode = "404"),
-                    @ApiResponse(responseCode = "500")
+                    @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))
             }
     )
     public void deleteUtkast(
@@ -152,9 +154,9 @@ public class UtkastController {
             summary = "Ta over som ansvarlig veileder",
             description = "Innlogget/autentisert veileder tar over som ansvarlig veileder for det spesifiserte vedtaksutkastet.",
             responses = {
-                    @ApiResponse(responseCode = "403"),
-                    @ApiResponse(responseCode = "404"),
-                    @ApiResponse(responseCode = "500")
+                    @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+                    @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))
             }
     )
     public void oppdaterUtkast(
