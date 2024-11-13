@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import no.nav.veilarbvedtaksstotte.service.BeslutterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/beslutter")
+@Tag(name = "Beslutter", description = "Funksjonalitet knyttet til besluttere og beslutterprosesser.")
 public class BeslutterController {
 
 	private final BeslutterService beslutterService;
@@ -20,6 +23,10 @@ public class BeslutterController {
 	}
 
 	@PostMapping("/start")
+	@Operation(
+			summary = "Start beslutterprosess",
+			description = "Starter en beslutterprosess for det spesifiserte vedtaksutkastet."
+	)
 	public void startBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
 		beslutterService.startBeslutterProsess(vedtakId);
 	}
