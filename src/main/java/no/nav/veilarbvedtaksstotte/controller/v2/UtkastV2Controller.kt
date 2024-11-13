@@ -3,8 +3,10 @@ package no.nav.veilarbvedtaksstotte.controller.v2
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.veilarbvedtaksstotte.controller.dto.VedtakDTO
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.UtkastRequest
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.mapper.toVedtakDTO
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -30,8 +32,8 @@ class UtkastV2Controller(
             ApiResponse(responseCode = "500")
         ]
     )
-    fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): Vedtak {
-        return vedtakService.hentUtkast(utkastRequest.fnr)
+    fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): VedtakDTO {
+        return toVedtakDTO(vedtakService.hentUtkast(utkastRequest.fnr))
     }
 
     @PostMapping("/utkast/hent-harUtkast")
