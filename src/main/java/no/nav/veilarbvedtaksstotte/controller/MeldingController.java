@@ -56,7 +56,14 @@ public class MeldingController {
                             responseCode = "200",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    array = @ArraySchema(schema = @Schema(oneOf = {MeldingDTO.class, DialogMeldingDTO.class, SystemMeldingDTO.class}))
+                                    array = @ArraySchema(
+                                            schema = @Schema(
+                                                    // Vi må spesifisere `type = "object"` her for at renderingen i Swagger UI skal bli riktig
+                                                    // når vi bruker `anyOf`.
+                                                    type = "object",
+                                                    anyOf = {MeldingDTO.class, SystemMeldingDTO.class, DialogMeldingDTO.class}
+                                            )
+                                    )
                             )
                     ),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
