@@ -122,7 +122,7 @@ public class UtkastController {
             summary = "Hent forhåndsvisning av vedtaksutkast",
             description = "Genererer og returnerer et PDF-dokument for et gitt vedtaksutkast. PDF-dokumentet er en forhåndsvisning av PDF-dokumentet som eventuelt vil journalføres/arkiveres og sendes til bruker når vedtaket fattes.",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(type = "string", format = "binary"))),
+                    @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "binary"))),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))

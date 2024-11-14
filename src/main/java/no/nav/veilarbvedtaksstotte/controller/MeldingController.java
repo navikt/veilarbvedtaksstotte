@@ -14,6 +14,7 @@ import no.nav.veilarbvedtaksstotte.service.MeldingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.print.attribute.standard.Media;
 import java.util.List;
 
 @RestController
@@ -52,7 +54,10 @@ public class MeldingController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(array = @ArraySchema(schema = @Schema(oneOf = {MeldingDTO.class, DialogMeldingDTO.class, SystemMeldingDTO.class})))
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(oneOf = {MeldingDTO.class, DialogMeldingDTO.class, SystemMeldingDTO.class}))
+                            )
                     ),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),

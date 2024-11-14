@@ -9,6 +9,7 @@ import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,7 +43,10 @@ public class UtrullingController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(schema = @Schema(implementation = Boolean.class))
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = Boolean.class)
+                            )
                     ),
                     @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true))),
             }
@@ -58,7 +62,10 @@ public class UtrullingController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(schema = @Schema(implementation = Boolean.class))
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = Boolean.class)
+                            )
                     ),
                     @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true))),
             }

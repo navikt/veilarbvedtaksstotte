@@ -54,7 +54,13 @@ public class VedtakController {
             summary = "Hent fattet vedtak",
             description = "Henter det spesifiserte fattede § 14 a-vedtaket i dokumentformat. Per dags dato støttes kun PDF-dokument (application/pdf).",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(type = "string", format = "binary"))),
+                    @ApiResponse(
+                            responseCode = "200",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_PDF_VALUE,
+                                    schema = @Schema(type = "string", format = "binary")
+                            )
+                    ),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true))),
@@ -72,7 +78,13 @@ public class VedtakController {
             summary = "Hent øyeblikksbilde",
             description = "Henter en gitt type øyeblikksbilde knyttet til det spesifiserte § 14 a-vedtaket på dokumentformat. Per dags dato støttes kun PDF-dokument (application/pdf).",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(type = "string", format = "binary"))),
+                    @ApiResponse(
+                            responseCode = "200",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_PDF_VALUE,
+                                    schema = @Schema(type = "string", format = "binary")
+                            )
+                    ),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true))),
@@ -105,7 +117,13 @@ public class VedtakController {
             description = "Henter CV-opplysninger som ble journalført/arkivert sammen med vedtaket på tidspunktet når " +
                     "det spesifiserte § 14 a-vedtaket ble fattet.",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = OyeblikksbildeCvDto.class))),
+                    @ApiResponse(
+                            responseCode = "200",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = OyeblikksbildeCvDto.class)
+                            )
+                    ),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             }
     )
@@ -119,7 +137,13 @@ public class VedtakController {
             description = "Henter arbeidssøker-opplysninger (fra gammelt register) som ble journalført/arkivert sammen med vedtaket på tidspunktet når " +
                     "det spesifiserte § 14 a-vedtaket ble fattet.",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = OyeblikksbildeRegistreringDto.class))),
+                    @ApiResponse(
+                            responseCode = "200",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = OyeblikksbildeRegistreringDto.class)
+                            )
+                    ),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             }
     )
@@ -133,7 +157,13 @@ public class VedtakController {
             description = "Henter arbeidssøker-opplysninger (fra nytt register) som ble journalført/arkivert sammen med vedtaket på tidspunktet når " +
                     "det spesifiserte § 14 a-vedtaket ble fattet.",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = OyeblikksbildeArbeidssokerRegistretDto.class))),
+                    @ApiResponse(
+                            responseCode = "200",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = OyeblikksbildeArbeidssokerRegistretDto.class)
+                            )
+                    ),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             }
     )
@@ -147,7 +177,12 @@ public class VedtakController {
             description = "Henter arbeidssøker-opplysninger (fra nytt register) som ble journalført/arkivert sammen med vedtaket på tidspunktet når " +
                     "det spesifiserte § 14 a-vedtaket ble fattet.",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = OyeblikksbildeArbeidssokerRegistretDto.class))),
+                    @ApiResponse(
+                            responseCode = "200",
+                            content = @Content(
+                                    schema = @Schema(implementation = OyeblikksbildeArbeidssokerRegistretDto.class)
+                            )
+                    ),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             }
     )
@@ -166,7 +201,13 @@ public class VedtakController {
             summary = "Hent fattet § 14 a-vedtak (Arena)",
             description = "Henter det spesifiserte fattede § 14 a-vedtaket i dokumentformat. Per dags dato støttes kun PDF-dokument (application/pdf).",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(type = "string", format = "binary"))),
+                    @ApiResponse(
+                            responseCode = "200",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_PDF_VALUE,
+                                    schema = @Schema(type = "string", format = "binary")
+                            )
+                    ),
                     @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true))),
             }
     )

@@ -9,6 +9,7 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.service.BeslutteroversiktService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,7 +35,13 @@ public class BeslutteroversiktController {
             summary = "Søk",
             description = "Søker etter brukere og tilhørende vedtaksutkast som krever kvalitetssikring. Søket vil returnere brukere fra samtlige enheter som innlogget/autentisert bruker (veileder) er knyttet til og har tilgang til, med mindre en liste av enheter som det skal filtreres på oppgis i requesten.",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = BrukereMedAntall.class))),
+                    @ApiResponse(
+                            responseCode = "200",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = BrukereMedAntall.class)
+                            )
+                    ),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import no.nav.veilarbvedtaksstotte.controller.dto.KodeverkDTO;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalDetaljert;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.InnsatsgruppeDetaljert;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +31,10 @@ public class KodeverkController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = InnsatsgruppeDetaljert.class)))
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = InnsatsgruppeDetaljert.class))
+                            )
                     )
             }
     )
@@ -45,7 +49,10 @@ public class KodeverkController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = HovedmalDetaljert.class)))
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = HovedmalDetaljert.class))
+                            )
                     )
             }
     )
@@ -60,7 +67,10 @@ public class KodeverkController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = KodeverkDTO.class)))
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = KodeverkDTO.class))
+                            )
                     )
             }
     )
