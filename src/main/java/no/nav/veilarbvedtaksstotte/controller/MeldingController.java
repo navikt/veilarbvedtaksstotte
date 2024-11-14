@@ -6,8 +6,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import no.nav.veilarbvedtaksstotte.controller.dto.DialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.MeldingDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.OpprettDialogMeldingDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SystemMeldingDTO;
 import no.nav.veilarbvedtaksstotte.service.MeldingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +59,7 @@ public class MeldingController {
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true)))
             }
     )
-    public List<MeldingDTO> hentDialogMeldinger(@RequestParam("vedtakId") long vedtakId) {
+    public List<? extends MeldingDTO> hentDialogMeldinger(@RequestParam("vedtakId") long vedtakId) {
         if (vedtakService.erFattet(vedtakId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
