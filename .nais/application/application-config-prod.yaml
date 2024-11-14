@@ -34,7 +34,7 @@ spec:
   gcp:
     sqlInstances:
       - type: POSTGRES_15
-        tier: db-custom-4-22528 # 4 vCPU, 22 GiB (22*1024 MB) RAM
+        tier: db-custom-1-6656 # 1 vCPU, 6.5 GiB (6.5*1024 MB) RAM
         databases:
           - name: veilarbvedtaksstotte
             envVarPrefix: DB
