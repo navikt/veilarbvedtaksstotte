@@ -110,6 +110,6 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
     }
 
     override fun checkHealth(): HealthCheckResult? {
-        return HealthCheckUtils.pingUrl(joinPaths(pdfGenUrl, "/is_alive"), client)
+        return HealthCheckUtils.pingUrl(joinPaths(pdfGenUrl, "/internal/is_alive"), client)
     }
 }
