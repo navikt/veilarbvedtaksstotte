@@ -232,7 +232,7 @@ public class VedtakServiceTest extends DatabaseTest {
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                     .setBegrunnelse("En begrunnelse")
                     .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                    .setOpplysninger(Arrays.asList(VedtakOpplysningKilder.REGISTRERING.getDesc(), VedtakOpplysningKilder.EGENVURDERING.getDesc(), VedtakOpplysningKilder.CV.getDesc()));
+                    .setOpplysninger(Arrays.asList(VedtakOpplysningKilder.REGISTRERING.getDesc(), VedtakOpplysningKilder.EGENVURDERING.getDesc(), VedtakOpplysningKilder.CV.getDesc(), VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc()));
 
             vedtakService.oppdaterUtkast(utkast.getId(), oppdaterDto);
             assertOppdatertUtkast(oppdaterDto);
@@ -270,7 +270,7 @@ public class VedtakServiceTest extends DatabaseTest {
             vedtakService.lagUtkast(TEST_FNR);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-            List<String> kilder = List.of(VedtakOpplysningKilder.REGISTRERING.getDesc(), VedtakOpplysningKilder.CV.getDesc());
+            List<String> kilder = List.of(VedtakOpplysningKilder.REGISTRERING.getDesc(), VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc(), VedtakOpplysningKilder.CV.getDesc());
             kilderRepository.lagKilder(kilder, utkast.getId());
 
             OppdaterUtkastDTO oppdaterUtkastDTO = new OppdaterUtkastDTO();
@@ -295,7 +295,7 @@ public class VedtakServiceTest extends DatabaseTest {
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             List<String> gamleKilder = List.of(VedtakOpplysningKilder.REGISTRERING.getDesc(), VedtakOpplysningKilder.EGENVURDERING.getDesc());
-            List<String> nyeKilder = List.of(VedtakOpplysningKilder.EGENVURDERING.getDesc(), VedtakOpplysningKilder.CV.getDesc());
+            List<String> nyeKilder = List.of(VedtakOpplysningKilder.EGENVURDERING.getDesc(), VedtakOpplysningKilder.CV.getDesc(), VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc());
             kilderRepository.lagKilder(gamleKilder, utkast.getId());
 
             OppdaterUtkastDTO oppdaterUtkastDTO = new OppdaterUtkastDTO();
@@ -495,7 +495,7 @@ public class VedtakServiceTest extends DatabaseTest {
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                     .setBegrunnelse("En begrunnelse")
                     .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                    .setOpplysninger(Arrays.asList(VedtakOpplysningKilder.CV.getDesc(), VedtakOpplysningKilder.EGENVURDERING.getDesc(), VedtakOpplysningKilder.REGISTRERING.getDesc()));
+                    .setOpplysninger(Arrays.asList(VedtakOpplysningKilder.CV.getDesc(), VedtakOpplysningKilder.EGENVURDERING.getDesc(), VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc()));
 
             List<String> kilder = List.of("CV-en/jobbønskene dine på nav.no", "Svarene dine om behov for veiledning", "Svarene dine fra da du registrerte deg");
 
