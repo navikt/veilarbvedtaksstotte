@@ -7,6 +7,6 @@ import no.nav.common.types.identer.Fnr;
 @Data
 public class LagUtkastDTO {
 
-    @Schema(description = "Fødselsnummeret til brukeren vedtaksutkastet skal knyttes til")
+    @Schema(description = "Fødselsnummeret til en oppfølgingsbruker")
     Fnr fnr;
 }

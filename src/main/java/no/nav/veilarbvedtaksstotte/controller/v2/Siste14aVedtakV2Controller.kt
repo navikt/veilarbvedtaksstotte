@@ -1,5 +1,10 @@
 package no.nav.veilarbvedtaksstotte.controller.v2
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.controller.dto.Siste14aVedtakDTO
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
@@ -14,12 +19,30 @@ import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/api/v2")
+@Tag(
+    name = "Siste § 14 a-vedtak V2",
+    description = "Funksjonalitet knyttet til siste § 14 a-vedtak."
+)
 class Siste14aVedtakV2Controller(
     val authService: AuthService,
     val siste14aVedtakService: Siste14aVedtakService
 ) {
 
     @PostMapping("/hent-siste-14a-vedtak")
+    @Operation(
+        summary = "Hent siste 14a vedtak",
+        description = "Henter det siste registrerte § 14 a-vedtaket for den spesifiserte brukeren.",
+        responses = [
+            ApiResponse(
+                responseCode = "200",
+                content = [Content(schema = Schema(implementation = Siste14aVedtakDTO::class))]
+            ),
+            ApiResponse(
+                responseCode = "403",
+                content = [Content(schema = Schema(hidden = true))]
+            )
+        ]
+    )
     fun hentSiste14aVedtak(@RequestBody siste14aVedtakRequest: Siste14aVedtakRequest): Siste14aVedtakDTO? {
         sjekkTilgang(siste14aVedtakRequest.fnr)
 
@@ -34,8 +57,7 @@ class Siste14aVedtakV2Controller(
             }
         } else if (authService.erEksternBruker()) {
             authService.sjekkEksternbrukerTilgangTilBruker(fnr)
-        }
-        else {
+        } else {
             authService.sjekkVeilederTilgangTilBruker(fnr)
         }
     }
