@@ -52,7 +52,7 @@ public class MeldingController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = MeldingDTO.class)))
+                            content = @Content(array = @ArraySchema(schema = @Schema(oneOf = {MeldingDTO.class, DialogMeldingDTO.class, SystemMeldingDTO.class})))
                     ),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
