@@ -53,7 +53,7 @@ public class MeldingService {
         }
     }
 
-    public List<MeldingDTO> hentMeldinger(long vedtakId) {
+    public List<? extends MeldingDTO> hentMeldinger(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
 

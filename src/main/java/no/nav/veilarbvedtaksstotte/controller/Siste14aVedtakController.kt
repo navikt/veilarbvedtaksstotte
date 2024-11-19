@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller
 
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.controller.dto.Siste14aVedtakDTO
 import no.nav.veilarbvedtaksstotte.service.AuthService
@@ -13,6 +14,10 @@ import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/api")
+@Tag(
+    name = "Siste § 14 a-vedtak",
+    description = "Funksjonalitet knyttet til siste § 14 a-vedtak."
+)
 class Siste14aVedtakController(
     val authService: AuthService,
     val siste14aVedtakService: Siste14aVedtakService
