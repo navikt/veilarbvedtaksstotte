@@ -33,6 +33,7 @@ import java.util.List;
         name = "Fattede § 14 a-vedtak",
         description = """
                 Funksjonalitet knyttet til fattede § 14 a-vedtak.
+                
                 Kommentar om øyeblikksbilde: begrepet "øyeblikksbilde" blir her brukt om opplysninger fra tidspunktet når § 14 a-vedtaket ble fattet og som har blitt journalført/arkivert sammen med selve vedtaket.
                 """
 )

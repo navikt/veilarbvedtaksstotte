@@ -52,7 +52,7 @@ public class MeldingController {
     @Operation(
             summary = "Hent meldinger",
             description = "Henter alle meldinger mellom ansvarlig veileder og kvalitetssikrer som er knyttet til det " +
-                    "spesifiserte vedtaksutkastet.",
+                    "spesifiserte utkastet til § 14 a-vedtak.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",

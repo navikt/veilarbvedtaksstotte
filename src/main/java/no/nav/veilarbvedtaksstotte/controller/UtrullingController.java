@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/utrulling")
 @Tag(
         name = "Utrulling",
-        description = "Funksjonalitet knyttet til utrulling (hvilke kontorer som har tilgang til løsningen)."
+        description = "Funksjonalitet knyttet til utrulling av vedtaksløsningen for § 14 a (hvilke kontorer som har tilgang til løsningen)."
 )
 public class UtrullingController {
 

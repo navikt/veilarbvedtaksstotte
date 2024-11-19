@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v2/vedtak")
 @Tag(
-    name = "Vedtak V2",
-    description = "Funksjonalitet knyttet til § 14 a-vedtak."
+    name = "Fattede § 14 a-vedtak V2",
+    description = "Funksjonalitet knyttet til fattede § 14 a-vedtak."
 )
 class VedtakV2Controller(
     val vedtakService: VedtakService,
@@ -29,7 +29,7 @@ class VedtakV2Controller(
     @PostMapping("/hent-fattet")
     @Operation(
         summary = "Hent fattede § 14 a-vedtak",
-        description = "Henter fattede § 14 a-vedtak for den spesifiserte brukeren.",
+        description = "Henter fattede § 14 a-vedtak for den spesifiserte brukeren hvor ny vedtaksløsning for § 14 a (denne applikasjonen) er kilden.",
         responses = [
             ApiResponse(
                 responseCode = "200",
@@ -47,8 +47,8 @@ class VedtakV2Controller(
 
     @PostMapping("/hent-arena")
     @Operation(
-        summary = "Hent § 14 a-vedtak fra Arena",
-        description = "Henter arkiverte § 14 a-vedtak fra Arena for den spesifiserte brukeren.",
+        summary = "Hent fattede (arkiverte) § 14 a-vedtak fra Arena",
+        description = "Henter metadata om fattede (arkiverte) § 14 a-vedtak for den spesifiserte brukeren hvor Arena er kilden.",
         responses = [
             ApiResponse(
                 responseCode = "200",
