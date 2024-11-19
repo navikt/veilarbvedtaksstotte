@@ -22,8 +22,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/utkast")
 @Tag(
-        name = "Vedtaksutkast",
-        description = "Funksjonalitet knyttet til vedtaksutkast."
+        name = "Utkast til § 14 a-vedtak",
+        description = "Funksjonalitet knyttet til utkast til § 14 a-vedtak."
 )
 public class UtkastController {
 
@@ -42,7 +42,7 @@ public class UtkastController {
 
     @GetMapping("/{vedtakId}/beslutterprosessStatus")
     @Operation(
-            summary = "Hent status på beslutterprosessen for det spesifiserte vedtaksutkastet.",
+            summary = "Hent status på beslutterprosessen for det spesifiserte utkastet til § 14 a-vedtak.",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = BeslutterprosessStatusDTO.class))),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
@@ -51,15 +51,15 @@ public class UtkastController {
             }
     )
     public BeslutterprosessStatusDTO beslutterprosessStatus(
-            @PathVariable("vedtakId") @Parameter(description = "ID-en til et vedtaksutkast") long vedtakId
+            @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
         return new BeslutterprosessStatusDTO(vedtakService.hentBeslutterprosessStatus(vedtakId));
     }
 
     @PostMapping
     @Operation(
-            summary = "Opprett vedtaksutkast",
-            description = "Oppretter et nytt vedtaksutkast knyttet til den spesifiserte brukeren.",
+            summary = "Opprett utkast til § 14 a-vedtak",
+            description = "Oppretter et nytt utkast til § 14 a-vedtak knyttet til den spesifiserte brukeren.",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema())),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
@@ -77,8 +77,16 @@ public class UtkastController {
 
     @PostMapping("/{vedtakId}/fattVedtak")
     @Operation(
-            summary = "Fatt et vedtak",
-            description = "Fatter et vedtak ved at det spesifiserte vedtaksutkastet låses for endringer samt at det journalføres/arkiveres og sendes til bruker.",
+            summary = "Fatt et § 14 a-vedtak",
+            description = """
+            Fatter et § 14 a-vedtak. Dette innebærer at:
+            
+            * det spesifiserte utkastet til § 14 a-vedtak låses for endringer
+            * det genereres et PDF-dokument som representerer vedtaket og innholdet
+            * det genereres PDF-dokumenter for tilleggsinformasjon, som f.eks. øybelikksbildet
+            * PDF-dokumentene (vedtaket og tilleggsinformasjonen) journalføres og arkiveres
+            * brev om vedtaket sendes til bruker i brukers foretrukne kanal (digitalt eller fysisk)
+            """,
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema())),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
@@ -87,15 +95,15 @@ public class UtkastController {
             }
     )
     public void fattVedtak(
-            @PathVariable("vedtakId") @Parameter(description = "ID-en til et vedtaksutkast") long vedtakId
+            @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
         vedtakService.fattVedtak(vedtakId);
     }
 
     @PutMapping("/{vedtakId}")
     @Operation(
-            summary = "Oppdater vedtaksutkast",
-            description = "Oppdaterer et vedtaksutkast med ny informasjon.",
+            summary = "Oppdater utkastet til § 14 a-vedtak",
+            description = "Oppdaterer et utkast til § 14 a-vedtak med ny informasjon.",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema())),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
@@ -104,7 +112,7 @@ public class UtkastController {
             }
     )
     public void oppdaterUtkast(
-            @PathVariable("vedtakId") @Parameter(description = "ID-en til et vedtaksutkast") long vedtakId,
+            @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId,
             @RequestBody OppdaterUtkastDTO vedtakDTO
     ) {
         vedtakService.oppdaterUtkast(vedtakId, vedtakDTO);
@@ -119,8 +127,8 @@ public class UtkastController {
 
     @GetMapping(value = "/{vedtakId}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     @Operation(
-            summary = "Hent forhåndsvisning av vedtaksutkast",
-            description = "Genererer og returnerer et PDF-dokument for et gitt vedtaksutkast. PDF-dokumentet er en forhåndsvisning av PDF-dokumentet som eventuelt vil journalføres/arkiveres og sendes til bruker når vedtaket fattes.",
+            summary = "Hent forhåndsvisning av et utkast til § 14 a-vedtak",
+            description = "Genererer og returnerer et PDF-dokument for et gitt utkast til § 14 a-vedtak. PDF-dokumentet er en forhåndsvisning av PDF-dokumentet som eventuelt vil journalføres/arkiveres og sendes til bruker når vedtaket fattes.",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "binary"))),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
@@ -129,7 +137,7 @@ public class UtkastController {
             }
     )
     public ResponseEntity<byte[]> hentForhandsvisning(
-            @PathVariable("vedtakId") @Parameter(description = "ID-en til et vedtaksutkast") long vedtakId
+            @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
         byte[] utkastPdf = vedtakService.produserDokumentUtkast(vedtakId);
         return ResponseEntity.ok()
@@ -139,8 +147,8 @@ public class UtkastController {
 
     @DeleteMapping("/{vedtakId}")
     @Operation(
-            summary = "Slett vedtaksutkast",
-            description = "Sletter et vedtaksutkast.",
+            summary = "Slett utkast til § 14 a-vedtak",
+            description = "Sletter det spesifiserte utkastet til § 14 a-vedtak.",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema())),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
@@ -150,7 +158,7 @@ public class UtkastController {
             }
     )
     public void deleteUtkast(
-            @PathVariable("vedtakId") @Parameter(description = "ID-en til et vedtaksutkast") long vedtakId
+            @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
         vedtakService.slettUtkastSomVeileder(vedtakId);
     }
@@ -158,7 +166,7 @@ public class UtkastController {
     @PostMapping("/{vedtakId}/overta")
     @Operation(
             summary = "Ta over som ansvarlig veileder",
-            description = "Innlogget/autentisert veileder tar over som ansvarlig veileder for det spesifiserte vedtaksutkastet.",
+            description = "Innlogget/autentisert veileder tar over som ansvarlig veileder for det spesifiserte utkastet til § 14 a-vedtak.",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema())),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
@@ -167,7 +175,7 @@ public class UtkastController {
             }
     )
     public void oppdaterUtkast(
-            @PathVariable("vedtakId") @Parameter(description = "ID-en til et vedtaksutkast") long vedtakId
+            @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
         vedtakService.taOverUtkast(vedtakId);
     }

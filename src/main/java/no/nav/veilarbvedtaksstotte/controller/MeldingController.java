@@ -30,9 +30,11 @@ import java.util.List;
 @RequestMapping("/api/meldinger")
 @Tag(
         name = "Meldinger",
-        description = "Funksjonalitet knyttet til meldinger/meldingskanal mellom ansvarlig veileder og kvalitetssikrer. " +
-                "Alle meldinger er knyttet til et gitt vedtaksutkast. Meldinger kan enten være produsert av systemet " +
-                "(f.eks. i forbindelse med endring av status på kvalitetssikring) eller skrevet av ansvarlig veileder/kvalitetssikrer."
+        description = """
+                Funksjonalitet knyttet til meldinger/meldingskanal mellom ansvarlig veileder og kvalitetssikrer. Alle meldinger er knyttet til et gitt utkast til § 14 a-vedtak. Meldinger kan enten:
+                * være skrevet av ansvarlig veileder/kvalitetssikrer
+                * være produsert av systemet (f.eks. i forbindelse med endring av status på kvalitetssikring)
+                """
 )
 public class MeldingController {
 
@@ -82,7 +84,7 @@ public class MeldingController {
     @PostMapping
     @Operation(
             summary = "Opprett melding",
-            description = "Opprettet en ny melding og knytter den til det spesifiserte vedtaksutkastet. Meldingen vil " +
+            description = "Oppretter en ny melding og knytter den til det spesifiserte vedtaksutkastet. Meldingen vil " +
                     "bli synlig i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer."
     )
     public void opprettDialogMelding(@RequestParam("vedtakId") long vedtakId, @RequestBody OpprettDialogMeldingDTO opprettDialogMeldingDTO) {

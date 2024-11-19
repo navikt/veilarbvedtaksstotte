@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/open/api/kodeverk")
 @Tag(
-        name = "Kodeverk",
-        description = "Funksjonalitet knyttet til veilarbvedtaksstotte sitt kodeverk."
+        name = "Kodeverk for § 14 a-vedtak",
+        description = "Funksjonalitet knyttet til kodeverk for data fra § 14 a-vedtak (innsatsgruppe og hovedmål)."
 )
 public class KodeverkController {
     KodeverkDTO kodeverk = new KodeverkDTO();
@@ -27,7 +27,7 @@ public class KodeverkController {
     @GetMapping("/innsatsgruppe")
     @Operation(
             summary = "Hent kodeverk for innsatsgruppe",
-            description = "Henter kodeverket for innsatsgruppe.",
+            description = "Henter kodeverket for innsatsgrupper. En innsatsgruppe representerer konklusjonen i et § 14 a-vedtak. Med konklusjon menes hvilken/hvor mye arbeidsrettet oppfølging en bruker har rett på.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -45,7 +45,7 @@ public class KodeverkController {
     @GetMapping("/hovedmal")
     @Operation(
             summary = "Hent kodeverk for hovedmål",
-            description = "Henter kodeverket for hovedmål.",
+            description = "Henter kodeverket for hovedmål. Et hovedmål representerer brukers mål med den arbeidsrettede oppfølgingen og er en del av begrunnelsen i et § 14 a-vedtak.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -63,7 +63,12 @@ public class KodeverkController {
     @GetMapping("/innsatsgruppeoghovedmal")
     @Operation(
             summary = "Hent kodeverk for innsatsgruppe og hovedmål",
-            description = "Henter kodeverket for både innsatsgruppe og hovedmål.",
+            description = """
+            Henter kodeverket for både innsatsgruppe og hovedmål.
+            
+            En innsatsgruppe representerer konklusjonen i et § 14 a-vedtak. Med konklusjon menes hvilken/hvor mye arbeidsrettet oppfølging en bruker har rett på.
+            Et hovedmål representerer brukers mål med den arbeidsrettede oppfølgingen og er en del av begrunnelsen i et § 14 a-vedtak.
+            """,
             responses = {
                     @ApiResponse(
                             responseCode = "200",

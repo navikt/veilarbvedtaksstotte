@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/beslutteroversikt")
 @Tag(
         name = "Kvalitetssikringsoversikt",
-        description = "Funksjonalitet knyttet til kvalitetssikringsoversikten."
+        description = "Funksjonalitet knyttet til kvalitetssikringsoversikten. Kvalitetssikringsoversikten gir mulighet " +
+                "for kvalitetssikrere å følge opp utkast til § 14 a-vedtak som krever kvalitetssikring."
 )
 public class BeslutteroversiktController {
 
@@ -33,7 +34,21 @@ public class BeslutteroversiktController {
     @PostMapping("/sok")
     @Operation(
             summary = "Søk",
-            description = "Søker etter brukere og tilhørende vedtaksutkast som krever kvalitetssikring. Søket vil returnere brukere fra samtlige enheter som innlogget/autentisert bruker (veileder) er knyttet til og har tilgang til, med mindre en liste av enheter som det skal filtreres på oppgis i requesten.",
+            description = """
+                    Søker etter utkast til § 14 a-vedtak som krever kvalitetssikring. " +
+                    Søket støtter paginering, sortering og følgende filtreringsmuligheter:
+                    
+                    * filtrering på en liste med Nav-enheter
+                      * default oppførsel er å hente utkast for alle Nav-enheter som autentisert kvalitetssikrer har tilgang til
+                    * filtrering på kvalitetssikringsstatusen til utkastet
+                      * default oppførsel er å inkludere alle utkast uavhengig av status
+                    * filtrering på autentisert kvalitetssikrer egne brukere
+                      * default oppførsel er å inkludere alle utkast for alle brukere på alle Nav-enhetene som autentisert kvalitetssikrer har tilgang til
+                    * filtrering på navn eller fødselsnummer på bruker som utkastet er knyttet til
+                      * default oppførsel er å ikke filtrere på navn eller fødselsnummer
+                    
+                    Se `BeslutteroversiktSok`-modellen for detaljert beskrivelse av de ulike parametrene.
+                    """,
             responses = {
                     @ApiResponse(
                             responseCode = "200",

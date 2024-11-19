@@ -39,7 +39,7 @@ public class UtrullingController {
     @GetMapping("/tilhorerVeilederUtrulletKontor")
     @Operation(
             summary = "Tilhører veileder utrullet enhet",
-            description = "Sjekker om innlogget/autentisert bruker (veileder) tilhører (har tilgang til) minst en NAV-enhet hvor løsningen er rullet ut.",
+            description = "Sjekker om innlogget/autentisert veileder tilhører (har tilgang til) minst en Nav-enhet hvor løsningen for § 14 a-vedtak er rullet ut.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -58,7 +58,7 @@ public class UtrullingController {
     @GetMapping("/erUtrullet")
     @Operation(
             summary = "Er utrullet til enhet",
-            description = "Sjekker om løsningen er rullet ut til spesifisert NAV-enhet.",
+            description = "Sjekker om løsningen for § 14 a-vedtak er rullet ut til spesifisert Nav-enhet.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",

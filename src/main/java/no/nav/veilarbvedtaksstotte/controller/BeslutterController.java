@@ -28,10 +28,13 @@ public class BeslutterController {
     @PostMapping("/start")
     @Operation(
             summary = "Start kvalitetssikring",
-            description = "Starter kvalitetssikring for det spesifiserte vedtaksutkastet. " +
-                    "Informasjon om brukeren som er knyttet til vedtaksutkastet samt øvrig informasjon fra vedtaksutkastet " +
-                    "vil bli lagt til i kvalitetssikringsoversikten og en systemmelding om at kvalitetssikring er startet vil bli produsert" +
-                    "og postet i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer.",
+            description = """
+                    Starter kvalitetssikring for det spesifiserte utkastet til § 14 a-vedtak. Følgende tilleggssteg vil utføres:
+                    
+                    * informasjon fra utkastet og om brukeren brukeren det er knyttet til vil bli lagt til i kvalitetssikringsoversikten
+                    * det produseres en systemmelding om at kvalitetssikring er startet
+                    * systemmeldingen postes i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer
+                    """,
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content()),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
@@ -47,10 +50,13 @@ public class BeslutterController {
     @PostMapping("/avbryt")
     @Operation(
             summary = "Avbryt kvalitetssikring",
-            description = "Avbryter kvalitetssikring for det spesifiserte vedtaksutkastet. " +
-                    "Informasjon om brukeren som er knyttet til vedtaksutkastet samt øvrig informasjon fra vedtaksutkastet " +
-                    "vil bli fjernet fra kvalitetssikringsoversikten og en systemmelding om at kvalitetssikring er avbrutt vil bli produsert" +
-                    "og postet i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer.",
+            description = """
+                    Avbryter kvalitetssikring for det spesifiserte utkastet for § 14 a-vedtak. Følgende tilleggssteg vil utføres:
+                    
+                    * informasjon fra utkastet og om brukeren brukeren det er knyttet til vil bli fjernet fra kvalitetssikringsoversikten
+                    * det produseres en systemmelding om at kvalitetssikring er avbrutt
+                    * systemmeldingen postes i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer
+                    """,
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content()),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
@@ -66,10 +72,13 @@ public class BeslutterController {
     @PostMapping("/bliBeslutter")
     @Operation(
             summary = "Bli kvalitetssikrer",
-            description = "Innlogget/autentisert bruker (veileder) blir kvalitetssikrer for det spesifiserte vedtaksutkastet." +
-                    "Kvalitetssikringsoversikten vil bli oppdatert med informasjon om kvalitetssikreren og en systemmelding om " +
-                    "at vedtakutkastet har fått en kvalitetssikrer vil bli produsert og postet i meldingskanalen mellom ansvarlig " +
-                    "veileder og kvalitetssikrer",
+            description = """
+                    Innlogget/autentisert veileder blir kvalitetssikrer for det spesifiserte utkastet for § 14 a-vedtak. Følgende tilleggssteg vil utføres:
+                    
+                    * kvalitetssikringsoversikten blir oppdatert med informasjon om kvalitetssikreren
+                    * det produseres en systemmelding om at utkastet har fått en kvalitetssikrer
+                    * systemmeldingen postes i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer
+                    """,
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content()),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
@@ -84,10 +93,14 @@ public class BeslutterController {
 
     @PostMapping("/godkjenn")
     @Operation(
-            summary = "Godkjenn vedtaksutkast",
-            description = "Godkjenn det spesifiserte vedtaksutkastet. Informasjon om brukeren som er knyttet til vedtaksutkastet " +
-                    "samt øvrig informasjon fra vedtaksutkastet vil bli fjernet fra kvalitetssikringsoversikten og en systemmelding " +
-                    "om at vedtaksutkastet er godkjent vil bli produsert og postet i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer.",
+            summary = "Godkjenn utkast til § 14 a-vedtak",
+            description = """
+                    Godkjenn det spesifiserte utkastet til § 14 a-vedtak. Følgende tilleggssteg vil utføres:
+                    
+                    * informasjon fra utkastet og om brukeren brukeren det er knyttet til vil bli fjernet fra kvalitetssikringsoversikten
+                    * det blir produsert en systemmelding om at vedtaksutkastet er godkjent
+                    * systemmeldingen postes i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer
+                    """,
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content()),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
@@ -104,12 +117,16 @@ public class BeslutterController {
     @Operation(
             summary = "Oppdater status på kvalitetssikringen",
             description = """
-                    Oppdaterer og setter ny status for kvalitetssikringen:
+                    Oppdaterer og setter ny status for kvalitetssikringen av utkast til § 14 a-vedtak:
                     
-                    * dersom innlogget/autentisert bruker er ansvarlig veileder for vedtaksutkastet vil ny status bli "Klar til kvalitetssikrer"
-                    * dersom innlogget/autentisert bruker er kvalitetssikrer for vedtaksutkastet vil ny status bli "Klar til ansvarlig veileder"
+                    * dersom innlogget/autentisert veileder er ansvarlig veileder for utkastet vil ny status bli "Klar til kvalitetssikrer"
+                    * dersom innlogget/autentisert veileder er kvalitetssikrer for utkastet vil ny status bli "Klar til ansvarlig veileder"
                     
-                    Kvalitetssikringsoversikten vil bli oppdatert med informasjon om ny status og en systemmelding om at vedtakutkastet har fått en ny status bli produsert og postet i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer.
+                    Følgende tilleggssteg vil bli utført:
+                    
+                    * kvalitetssikringsoversikten vil bli oppdatert med informasjon om ny status
+                    * det produseres en systemmelding om at vedtakutkastet har fått en ny status
+                    * systemmeldingen postes i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer
                     """,
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content()),

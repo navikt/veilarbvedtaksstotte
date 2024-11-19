@@ -30,7 +30,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vedtak")
 @Tag(
-        name = "Fattede vedtak",
+        name = "Fattede § 14 a-vedtak",
         description = """
                 Funksjonalitet knyttet til fattede § 14 a-vedtak.
                 Kommentar om øyeblikksbilde: begrepet "øyeblikksbilde" blir her brukt om opplysninger fra tidspunktet når § 14 a-vedtaket ble fattet og som har blitt journalført/arkivert sammen med selve vedtaket.
@@ -51,7 +51,7 @@ public class VedtakController {
 
     @GetMapping(value = "{vedtakId}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     @Operation(
-            summary = "Hent fattet vedtak",
+            summary = "Hent fattet § 14 a-vedtak",
             description = "Henter det spesifiserte fattede § 14 a-vedtaket i dokumentformat. Per dags dato støttes kun PDF-dokument (application/pdf).",
             responses = {
                     @ApiResponse(
@@ -114,8 +114,8 @@ public class VedtakController {
     @GetMapping("{vedtakId}/oyeblikksbilde-cv")
     @Operation(
             summary = "Hent CV-øyeblikksbilde",
-            description = "Henter CV-opplysninger som ble journalført/arkivert sammen med vedtaket på tidspunktet når " +
-                    "det spesifiserte § 14 a-vedtaket ble fattet.",
+            description = "Henter CV-opplysninger som ble journalført/arkivert sammen med det spesifiserte § 14 a-vedtaket " +
+                    "på tidspunktet når det ble fattet.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -134,8 +134,8 @@ public class VedtakController {
     @GetMapping("{vedtakId}/oyeblikksbilde-registrering")
     @Operation(
             summary = "Hent arbeidssøkerregistrering-øyeblikksbilde (gammelt register)",
-            description = "Henter arbeidssøker-opplysninger (fra gammelt register) som ble journalført/arkivert sammen med vedtaket på tidspunktet når " +
-                    "det spesifiserte § 14 a-vedtaket ble fattet.",
+            description = "Henter arbeidssøker-opplysninger (fra gammelt register) som ble journalført/arkivert sammen " +
+                    "med det spesifiserte § 14 a-vedtaket på tidspunktet når det ble fattet.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",

@@ -17,16 +17,16 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v2")
 @Tag(
-    name = "Vedtaksutkast V2",
-    description = "Funksjonalitet knyttet til vedtaksutkast."
+    name = "Utkast til § 14 a-vedtak V2",
+    description = "Funksjonalitet knyttet til utkast til § 14 a-vedtak."
 )
 class UtkastV2Controller(
     val vedtakService: VedtakService
 ) {
     @PostMapping("/hent-utkast")
     @Operation(
-        summary = "Hent vedtaksutkast",
-        description = "Henter vedtaksutkastet for en spesifisert bruker.",
+        summary = "Hent utkast til § 14 a-vedtak",
+        description = "Henter utkast til § 14 a-vedtak for en spesifisert bruker.",
         responses = [
             ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = VedtakUtkastDTO::class))]),
             ApiResponse(responseCode = "403", content = [Content(schema = Schema(hidden = true))]),
@@ -40,8 +40,8 @@ class UtkastV2Controller(
 
     @PostMapping("/utkast/hent-harUtkast")
     @Operation(
-        summary = "Har vedtaksutkast",
-        description = "Sjekk om det eksisterer et vedtaksutkast for den spesifiserte brukeren.",
+        summary = "Har utkast til § 14 a-vedtak",
+        description = "Sjekk om det eksisterer et utkast til § 14 a-vedtak for den spesifiserte brukeren.",
         responses = [
             ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = Boolean::class))]),
             ApiResponse(responseCode = "403", content = [Content(schema = Schema(hidden = true))]),

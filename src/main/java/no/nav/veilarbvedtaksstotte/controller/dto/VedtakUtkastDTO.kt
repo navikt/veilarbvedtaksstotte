@@ -7,7 +7,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import java.time.LocalDateTime
 
 data class VedtakUtkastDTO(
-    @Schema(description = "ID-en til vedtaket")
+    @Schema(description = "ID-en til utkastet til § 14 a-vedtak")
     val id: Long? = null,
     @Schema(description = "Hovedmålet med oppfølgingen")
     val hovedmal: Hovedmal? = null,

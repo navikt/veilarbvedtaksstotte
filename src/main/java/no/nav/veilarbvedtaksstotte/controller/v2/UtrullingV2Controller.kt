@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v2/utrulling")
 @Tag(
     name = "Utrulling V2",
-    description = "Funksjonalitet knyttet til utrulling (hvilke kontorer som har tilgang til løsningen)."
+    description = "Funksjonalitet knyttet til utrulling av vedtaksløsningen for § 14 a (hvilke kontorer som har tilgang til løsningen)."
 )
 class UtrullingV2Controller(
     val utrullingService: UtrullingService
@@ -25,7 +25,7 @@ class UtrullingV2Controller(
     @PostMapping("/hent-tilhorerBrukerUtrulletKontor")
     @Operation(
         summary = "Tilhører bruker utrullet enhet",
-        description = "Sjekker om spesifisert bruker tilhører en NAV-enhet hvor løsningen er rullet ut.",
+        description = "Sjekker om spesifisert bruker tilhører en NAV-enhet hvor løsningen for § 14 a-vedtak er rullet ut.",
         responses = [
             ApiResponse(
                 responseCode = "200",
