@@ -38,6 +38,10 @@ spec:
         databases:
           - name: veilarbvedtaksstotte
             envVarPrefix: DB
+    bigQueryDatasets:
+      - description: Contains big data, supporting big queries, for use in big ideas.
+        name: vedtaksstotte_14a_dataset
+        permission: READWRITE
   secureLogs:
     enabled: true
   kafka:
