@@ -43,9 +43,14 @@ spec:
         databases:
           - name: veilarbvedtaksstotte
             envVarPrefix: DB
+            users:
+              - name: bigquery_user
     bigQueryDatasets:
       - description: Contains big data, supporting big queries, for use in big ideas.
         name: vedtaksstotte_14a_dataset
+        permission: READWRITE
+      - description: Test-datasett for saksstatistikk for 14a
+        name: sak_statistikk_dataset_test
         permission: READWRITE
   secureLogs:
     enabled: true
