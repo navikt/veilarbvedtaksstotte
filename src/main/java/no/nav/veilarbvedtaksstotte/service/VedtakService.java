@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import io.getunleash.DefaultUnleash;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -16,15 +15,13 @@ import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Kilde;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
-import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
-import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
-import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
-import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -67,6 +64,7 @@ public class VedtakService {
     private final MetricsService metricsService;
 
     private final LeaderElectionClient leaderElection;
+    private final SakStatistikkService sakStatistikkService;
 
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
@@ -141,7 +139,7 @@ public class VedtakService {
             if (journalpost.getDokumenter().isEmpty()) {
                 log.error("Ingen dokumentInfoId i respons fra journalføring");
             } else {
-                dokumentInfoId = journalpost.getDokumenter().get(0).getDokumentInfoId();
+                dokumentInfoId = journalpost.getDokumenter().getFirst().getDokumentInfoId();
             }
             boolean journalpostferdigstilt = journalpost.getJournalpostferdigstilt();
 
@@ -197,6 +195,9 @@ public class VedtakService {
         vedtaksstotteRepository.opprettUtkast(aktorId, innloggetVeilederIdent, oppfolgingsenhetId);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
+        Boolean lagreStatistikk = sakStatistikkService.leggTilStatistikkRadUtkast(utkast.getId(), aktorId, innloggetVeilederIdent, oppfolgingsenhetId);
+
+
 
         vedtakStatusEndringService.utkastOpprettet(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.UTKAST_OPPRETTET, innloggetVeilederIdent);
@@ -233,9 +234,7 @@ public class VedtakService {
                 Arrays.stream(journalpost.getData().getJournalpost().dokumenter)
                         .filter(journalfortDokument -> OyeblikksbildeType.contains(journalfortDokument.brevkode))
                         .forEach(
-                                journalfortDokument -> {
-                                    oyeblikksbildeService.lagreJournalfortDokumentId(vedtakId, journalfortDokument.dokumentInfoId, OyeblikksbildeType.from(BrevKode.valueOf(journalfortDokument.brevkode)));
-                                }
+                                journalfortDokument -> oyeblikksbildeService.lagreJournalfortDokumentId(vedtakId, journalfortDokument.dokumentInfoId, OyeblikksbildeType.from(BrevKode.valueOf(journalfortDokument.brevkode)))
                         );
                 log.info(format(
                         "Oppdatert dokumentId for oyeblikksbilde for vedtakId: %s",
