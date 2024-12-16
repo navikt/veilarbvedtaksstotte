@@ -19,6 +19,7 @@ import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
 import no.nav.veilarbvedtaksstotte.service.PdfService
+import no.nav.veilarbvedtaksstotte.service.SakStatistikkService
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
 import no.nav.veilarbvedtaksstotte.utils.PostgresContainer
 import no.nav.veilarbvedtaksstotte.utils.SingletonKafkaContainer
@@ -53,7 +54,8 @@ import javax.sql.DataSource
     KafkaConsumerConfig::class,
     DokumentdistribusjonMeterBinder::class,
     PdfService::class,
-    ArbeidssoekerRegisteretService::class
+    ArbeidssoekerRegisteretService::class,
+    SakStatistikkService::class
 )
 class ApplicationTestConfig {
     @Bean
