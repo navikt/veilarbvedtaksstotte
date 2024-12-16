@@ -7,6 +7,7 @@ import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.veilarbvedtaksstotte.repository.UtrullingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Import;
         OyeblikksbildeRepository.class,
         VedtaksstotteRepository.class,
         UtrullingRepository.class,
-        ArenaVedtakRepository.class
+        ArenaVedtakRepository.class,
+        SakStatistikkRepository.class
 })
 public class RepositoryTestConfig {}
