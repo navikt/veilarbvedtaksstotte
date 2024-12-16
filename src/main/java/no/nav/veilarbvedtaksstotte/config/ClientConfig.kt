@@ -9,8 +9,6 @@ import no.nav.common.client.aktoroppslag.PdlAktorOppslagClient
 import no.nav.common.client.pdl.PdlClientImpl
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.job.leader_election.LeaderElectionHttpClient
-import no.nav.common.metrics.InfluxClient
-import no.nav.common.metrics.MetricsClient
 import no.nav.common.token_client.client.AzureAdMachineToMachineTokenClient
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.common.utils.AuthUtils
