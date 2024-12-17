@@ -195,7 +195,7 @@ public class VedtakService {
         vedtaksstotteRepository.opprettUtkast(aktorId, innloggetVeilederIdent, oppfolgingsenhetId);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
-        Boolean lagreStatistikk = sakStatistikkService.leggTilStatistikkRadUtkast(utkast.getId(), aktorId, innloggetVeilederIdent, oppfolgingsenhetId);
+        sakStatistikkService.leggTilStatistikkRadUtkast(utkast.getId(), aktorId, fnr, innloggetVeilederIdent, oppfolgingsenhetId);
 
 
 
