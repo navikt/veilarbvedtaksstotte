@@ -34,6 +34,7 @@ import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
@@ -128,6 +129,8 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
     private static final SakStatistikkService sakStatistikkService = mock(SakStatistikkService.class);
     private static final PdfService pdfService = mock(PdfService.class);
+    private static final VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
+    private static final DefaultUnleash  unleashClient = mock(DefaultUnleash.class);
 
     @BeforeAll
     public static void setupOnce() {
@@ -139,7 +142,7 @@ public class VedtakServiceTest extends DatabaseTest {
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
         SakStatistikkRepository sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
-        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository,authService, aktorOppslagClient);
+        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository,authService, aktorOppslagClient, veilarboppfolgingClient, unleashClient);
 
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(arbeidssoekerRegistretService);
