@@ -8,16 +8,19 @@ import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.OppfolgingRequest;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import static no.nav.common.rest.client.RestUtils.toJsonRequestBody;
@@ -51,6 +54,21 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
             RestUtils.throwIfNotSuccessful(response);
             return RestUtils.getBodyStr(response)
                     .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingPeriodeDTO.class));
+        }
+    }
+
+    @Cacheable(CacheConfig.OPPFOLGINGPERIODE_SAK_CACHE_NAME)
+    @SneakyThrows
+    public SakDTO hentOppfolgingsperiodeSak(UUID oppfolgingsperiodeId) {
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarboppfolgingUrl, "/api/v3/sak/" + oppfolgingsperiodeId))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+                .post(RequestBody.create("", null))
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestUtils.throwIfNotSuccessful(response);
+            return RestUtils.parseJsonResponseOrThrow(response, SakDTO.class);
         }
     }
 
