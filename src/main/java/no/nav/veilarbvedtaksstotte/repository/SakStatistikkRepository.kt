@@ -82,12 +82,14 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             sakStatistikkRad.versjon
         )
     }
+
     fun hentSakStatistikkListeAlt(behandlingId: BigInteger): List<SakStatistikk> {
         val parameters = MapSqlParameterSource("behandlingId", behandlingId)
         val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $BEHANDLING_ID = :behandlingId"
 
         return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
     }
+
     fun hentSakStatistikkListe(aktorId: String): List<SakStatistikk> {
         val parameters = MapSqlParameterSource("aktorId", aktorId)
 
@@ -95,21 +97,6 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
 
         return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
     }
-    /*
-    fun insertSakStatistikkRadUtkast(behandlingId: String, aktorId: String, opprettetAv: String, ansvarligEnhet: String) {
-        val parameters = MapSqlParameterSource()
-            .addValue("behandlingId", behandlingId.toBigInteger(), Types.BIGINT)
-            .addValue("aktorId", aktorId, Types.VARCHAR)
-            .addValue("opprettetAv", opprettetAv, Types.VARCHAR)
-            .addValue("ansvarligEnhet", ansvarligEnhet, Types.VARCHAR)
-            .addValue("avsender", "Oppfølgingsvedtak § 14 a", Types.VARCHAR)
-            .addValue("versjon", "Dockerimage_tag_1", Types.VARCHAR)
-
-        val sql = """INSERT INTO $SAK_STATISTIKK_TABLE ($BEHANDLING_ID, $AKTOR_ID, $OPPRETTET_AV, $ANSVARLIG_ENHET, $AVSENDER, $VERSJON) 
-                 VALUES (:behandlingId, :aktorId, :opprettetAv, :ansvarligEnhet, :avsender, :versjon)"""
-        jdbcTemplate.update(sql, parameters)
-    }
-*/
 
     private val sakStatistikkRowMapper: RowMapper<SakStatistikk> = RowMapper { rs, _ ->
         SakStatistikk(
