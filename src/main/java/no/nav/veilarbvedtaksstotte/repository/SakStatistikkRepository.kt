@@ -49,15 +49,15 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 $ENDRET_TID, $TEKNISK_TID, $SAK_YTELSE, $BEHANDLING_TYPE, $BEHANDLING_STATUS, 
                 $BEHANDLING_RESULTAT, $BEHANDLING_METODE, $INNSATSGRUPPE, $HOVEDMAL, $OPPRETTET_AV, $SAKSBEHANDLER, $ANSVARLIG_BESLUTTER,
                 $ANSVARLIG_ENHET, $AVSENDER, $VERSJON)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 
             """
 
         jdbcTemplate.update(
             sql,
-            sakStatistikkRad.behandlingId,
             sakStatistikkRad.aktorId,
             sakStatistikkRad.oppfolgingPeriodeUUID,
+            sakStatistikkRad.behandlingId,
             sakStatistikkRad.behandlingUuid,
             sakStatistikkRad.relatertBehandlingId,
             sakStatistikkRad.relatertFagsystem,
