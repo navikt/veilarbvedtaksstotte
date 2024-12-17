@@ -10,15 +10,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 class SakStatistikkRepositoryTest : DatabaseTest() {
-    /*
-    class VedtakUtkast(
-        val id: String,
-        val aktorId: String,
-        val veilederIdent: String,
-        val oppfolgingsenhetId: String,
-    )
 
-     */
     companion object {
         lateinit var sakStatistikkRepository: SakStatistikkRepository
 
@@ -30,28 +22,31 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
     }
 
     @Test
-    fun `lagre statistikkrad`() {
+    fun `lagre statistikkrad vedtak`() {
 
         val statistikkRad = SakStatistikk(
+            aktorId = "2004140973848",
+            oppfolgingPeriodeUUID = UUID.fromString("1a930d0d-6931-403e-852c-b85e39673aaf"),
             behandlingId = 3001.toBigInteger(),
             behandlingUuid = UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
             relatertBehandlingId = null,
             relatertFagsystem = null,
             sakId = "Arbeidsoppfølging",
-            aktorId = "2004140973848",
             mottattTid = LocalDateTime.now().minusDays(2),
-            registrertTid = LocalDateTime.now(),
-            ferdigbehandletTid = null,
+            registrertTid = LocalDateTime.now().minusDays(1),
+            ferdigbehandletTid = LocalDateTime.now(),
             endretTid = LocalDateTime.now(),
             tekniskTid = LocalDateTime.now().plusHours(1),
-            sakYtelse = null,
+            sakYtelse = "BIST14A_IKVAL",
             behandlingType = "VEDTAK",
-            behandlingStatus = "UTKAST",
-            behandlingResultat = null,
+            behandlingStatus = "SENDT",
+            behandlingResultat = "STANDARD_INNSATS",
             behandlingMetode = "MANUELL",
+            innsatsgruppe = "STANDARD_INNSATS",
+            hovedmal = "SKAFFE_ARBEID",
             opprettetAv = "Z123456",
             saksbehandler = "Z123456",
-            ansvarligBeslutter = null,
+            ansvarligBeslutter = "Z123456",
             ansvarligEnhet = "0220",
             avsender = "Oppfølgingsvedtak § 14 a",
             versjon = "Dockerimage_tag_1"

@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.domain.statistikk
 
-import no.nav.common.types.identer.AktorId
 import java.math.BigInteger
 import java.time.LocalDateTime
 import java.util.*
@@ -8,11 +7,12 @@ import java.util.*
 
 data class SakStatistikk(
     val behandlingId: BigInteger,
+    val aktorId: String,
+    val oppfolgingPeriodeUUID: UUID? = null,
     val behandlingUuid: UUID? = null,
     val relatertBehandlingId: BigInteger? = null,
     val relatertFagsystem: String? = null,
     val sakId: String? = null,
-    val aktorId: String,
     val mottattTid: LocalDateTime,
     val registrertTid: LocalDateTime? = null,
     val ferdigbehandletTid: LocalDateTime? = null,
@@ -23,6 +23,8 @@ data class SakStatistikk(
     val behandlingStatus: String? = null,
     val behandlingResultat: String? = null,
     val behandlingMetode: String? = null,
+    val innsatsgruppe: String? = null,
+    val hovedmal: String? = null,
     val opprettetAv: String? = null,
     val saksbehandler: String? = null,
     val ansvarligBeslutter: String? = null,
