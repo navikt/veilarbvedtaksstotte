@@ -39,6 +39,7 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
@@ -56,6 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
@@ -221,6 +223,11 @@ public class ClientTestConfig {
                 OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
                 periode.setStartDato(ZonedDateTime.now().minusDays(10));
                 return Collections.singletonList(periode);
+            }
+
+            @Override
+            public SakDTO hentOppfolgingsperiodeSak(UUID oppfolgingsperiodeId) {
+                return new SakDTO(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), 123456789012L);
             }
 
             @Override
