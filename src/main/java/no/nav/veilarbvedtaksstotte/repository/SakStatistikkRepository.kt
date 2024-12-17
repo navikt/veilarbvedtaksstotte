@@ -97,6 +97,13 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
 
         return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
     }
+    fun hentSakStatistikkListeInnenforOppfolgingsperiode(oppfolgingsperiodeUuid: UUID): List<SakStatistikk> {
+        val parameters = MapSqlParameterSource("oppfolgingPeriodeUuid", oppfolgingsperiodeUuid)
+
+        val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $OPPFOLGING_PERIODE_UUID = :oppfolgingPeriodeUuid"
+
+        return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
+    }
 
     private val sakStatistikkRowMapper: RowMapper<SakStatistikk> = RowMapper { rs, _ ->
         SakStatistikk(
