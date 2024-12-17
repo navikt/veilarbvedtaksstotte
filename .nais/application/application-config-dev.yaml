@@ -35,9 +35,23 @@ spec:
     sqlInstances:
       - type: POSTGRES_15
         tier: db-f1-micro
+        flags:
+          - name: cloudsql.enable_pgaudit
+            value: "on"
+          - name: pgaudit.log
+            value: "all"
         databases:
           - name: veilarbvedtaksstotte
             envVarPrefix: DB
+            users:
+              - name: bigquery_user
+    bigQueryDatasets:
+      - description: Contains big data, supporting big queries, for use in big ideas.
+        name: vedtaksstotte_14a_dataset
+        permission: READWRITE
+      - description: Test-datasett for saksstatistikk for 14a
+        name: sak_statistikk_dataset_test
+        permission: READWRITE
   secureLogs:
     enabled: true
   kafka:
