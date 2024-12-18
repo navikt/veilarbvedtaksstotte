@@ -34,6 +34,7 @@ import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
@@ -48,11 +49,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
-import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
-import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
-import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
-import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
-import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
@@ -104,7 +101,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private static VedtaksstotteRepository vedtaksstotteRepository;
     private static KilderRepository kilderRepository;
     private static MeldingRepository meldingRepository;
-
+    private static SakStatistikkRepository sakStatistikkRepository;
     private static VedtakService vedtakService;
     private static OyeblikksbildeService oyeblikksbildeService;
     private static AuthService authService;
@@ -130,8 +127,10 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final SafClient safClient = mock(SafClient.class);
     private static final MetricsService metricsService = mock(MetricsService.class);
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
-
+    private static final SakStatistikkService sakStatistikkService = mock(SakStatistikkService.class);
     private static final PdfService pdfService = mock(PdfService.class);
+    private static final VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
+    private static final DefaultUnleash  unleashClient = mock(DefaultUnleash.class);
 
     @BeforeAll
     public static void setupOnce() {
@@ -141,8 +140,10 @@ public class VedtakServiceTest extends DatabaseTest {
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
-
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
+        SakStatistikkRepository sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
+        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, unleashClient);
+
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(arbeidssoekerRegistretService);
         DokumentService dokumentService = new DokumentService(
@@ -167,7 +168,8 @@ public class VedtakServiceTest extends DatabaseTest {
                 dokumentService,
                 veilarbarenaService,
                 metricsService,
-                leaderElectionClient);
+                leaderElectionClient,
+                sakStatistikkService);
     }
 
     @BeforeEach

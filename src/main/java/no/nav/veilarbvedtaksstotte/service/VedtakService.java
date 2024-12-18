@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import io.getunleash.DefaultUnleash;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +20,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Kilde;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
-import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
-import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
-import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
-import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -67,6 +63,7 @@ public class VedtakService {
     private final MetricsService metricsService;
 
     private final LeaderElectionClient leaderElection;
+    private final SakStatistikkService sakStatistikkService;
 
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
@@ -133,21 +130,18 @@ public class VedtakService {
         try {
             Fnr brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
 
-            OpprettetJournalpostDTO journalpost =
-                    dokumentService.produserOgJournalforDokumenterForVedtak(vedtak, brukerFnr);
+            OpprettetJournalpostDTO journalpost = dokumentService.produserOgJournalforDokumenterForVedtak(vedtak, brukerFnr);
 
             String journalpostId = journalpost.getJournalpostId();
             String dokumentInfoId = null;
             if (journalpost.getDokumenter().isEmpty()) {
                 log.error("Ingen dokumentInfoId i respons fra journalføring");
             } else {
-                dokumentInfoId = journalpost.getDokumenter().get(0).getDokumentInfoId();
+                dokumentInfoId = journalpost.getDokumenter().getFirst().getDokumentInfoId();
             }
             boolean journalpostferdigstilt = journalpost.getJournalpostferdigstilt();
 
-            log.info(format(
-                    "Journalføring utført: journalpostId=%s, dokumentInfoId=%s, ferdigstilt=%s",
-                    journalpostId, dokumentInfoId, journalpostferdigstilt));
+            log.info(format("Journalføring utført: journalpostId=%s, dokumentInfoId=%s, ferdigstilt=%s", journalpostId, dokumentInfoId, journalpostferdigstilt));
 
             vedtaksstotteRepository.lagreJournalforingVedtak(vedtak.getId(), journalpostId, dokumentInfoId);
 
@@ -186,9 +180,7 @@ public class VedtakService {
         String aktorId = authKontekst.getAktorId();
 
         if (vedtaksstotteRepository.hentUtkast(aktorId) != null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Kan ikke lage utkast til bruker som allerede har et utkast"
-            );
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Kan ikke lage utkast til bruker som allerede har et utkast");
         }
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
@@ -197,6 +189,8 @@ public class VedtakService {
         vedtaksstotteRepository.opprettUtkast(aktorId, innloggetVeilederIdent, oppfolgingsenhetId);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
+        sakStatistikkService.leggTilStatistikkRadUtkast(utkast.getId(), aktorId, fnr, innloggetVeilederIdent, oppfolgingsenhetId);
+
 
         vedtakStatusEndringService.utkastOpprettet(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.UTKAST_OPPRETTET, innloggetVeilederIdent);
@@ -209,10 +203,7 @@ public class VedtakService {
 
         oppdaterUtkastFraDto(utkast, vedtakDTO);
 
-        List<String> utkastKilder = kilderRepository.hentKilderForVedtak(utkast.getId())
-                .stream()
-                .map(Kilde::getTekst)
-                .collect(Collectors.toList());
+        List<String> utkastKilder = kilderRepository.hentKilderForVedtak(utkast.getId()).stream().map(Kilde::getTekst).collect(Collectors.toList());
 
         transactor.executeWithoutResult((status) -> {
             vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
@@ -230,16 +221,8 @@ public class VedtakService {
             JournalpostGraphqlResponse journalpost = safClient.hentJournalpost(journalpostId);
 
             if (journalpost.getData().getJournalpost().dokumenter != null) {
-                Arrays.stream(journalpost.getData().getJournalpost().dokumenter)
-                        .filter(journalfortDokument -> OyeblikksbildeType.contains(journalfortDokument.brevkode))
-                        .forEach(
-                                journalfortDokument -> {
-                                    oyeblikksbildeService.lagreJournalfortDokumentId(vedtakId, journalfortDokument.dokumentInfoId, OyeblikksbildeType.from(BrevKode.valueOf(journalfortDokument.brevkode)));
-                                }
-                        );
-                log.info(format(
-                        "Oppdatert dokumentId for oyeblikksbilde for vedtakId: %s",
-                        vedtakId));
+                Arrays.stream(journalpost.getData().getJournalpost().dokumenter).filter(journalfortDokument -> OyeblikksbildeType.contains(journalfortDokument.brevkode)).forEach(journalfortDokument -> oyeblikksbildeService.lagreJournalfortDokumentId(vedtakId, journalfortDokument.dokumentInfoId, OyeblikksbildeType.from(BrevKode.valueOf(journalfortDokument.brevkode))));
+                log.info(format("Oppdatert dokumentId for oyeblikksbilde for vedtakId: %s", vedtakId));
             }
         } catch (Exception e) {
             log.error("Feil med oppdatering av dokumentId for oyeblikksbilde " + e, e);
@@ -367,20 +350,13 @@ public class VedtakService {
     }
 
     private void flettInnOpplysinger(Vedtak vedtak) {
-        List<String> opplysninger = kilderRepository
-                .hentKilderForVedtak(vedtak.getId())
-                .stream()
-                .map(Kilde::getTekst)
-                .collect(Collectors.toList());
+        List<String> opplysninger = kilderRepository.hentKilderForVedtak(vedtak.getId()).stream().map(Kilde::getTekst).collect(Collectors.toList());
 
         vedtak.setOpplysninger(opplysninger);
     }
 
     private void flettInnVeilederNavn(Vedtak vedtak) {
-        veilederService
-                .hentVeilederEllerNull(vedtak.getVeilederIdent())
-                .map(Veileder::getNavn)
-                .ifPresent(vedtak::setVeilederNavn);
+        veilederService.hentVeilederEllerNull(vedtak.getVeilederIdent()).map(Veileder::getNavn).ifPresent(vedtak::setVeilederNavn);
     }
 
     private void flettInnBeslutterNavn(Vedtak vedtak) {
@@ -388,10 +364,7 @@ public class VedtakService {
             return;
         }
 
-        veilederService
-                .hentVeilederEllerNull(vedtak.getBeslutterIdent())
-                .map(Veileder::getNavn)
-                .ifPresent(vedtak::setBeslutterNavn);
+        veilederService.hentVeilederEllerNull(vedtak.getBeslutterIdent()).map(Veileder::getNavn).ifPresent(vedtak::setBeslutterNavn);
     }
 
     private void flettInnEnhetNavn(Vedtak vedtak) {
@@ -433,10 +406,7 @@ public class VedtakService {
 
         boolean harIkkeBegrunnelse = vedtak.getBegrunnelse() == null || vedtak.getBegrunnelse().trim().isEmpty();
         boolean erStandard = innsatsgruppe == Innsatsgruppe.STANDARD_INNSATS;
-        boolean erGjeldendeVedtakVarig =
-                gjeldendeVedtak != null &&
-                        (gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS ||
-                                gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
+        boolean erGjeldendeVedtakVarig = gjeldendeVedtak != null && (gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS || gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
 
         if (harIkkeBegrunnelse && erStandard && erGjeldendeVedtakVarig) {
             throw new IllegalStateException("Vedtak mangler begrunnelse siden gjeldende vedtak er varig");
@@ -444,8 +414,7 @@ public class VedtakService {
             throw new IllegalStateException("Vedtak mangler begrunnelse");
         }
 
-        if (vedtak.getJournalpostId() != null ||
-                vedtak.getDokumentInfoId() != null) {
+        if (vedtak.getJournalpostId() != null || vedtak.getDokumentInfoId() != null) {
             throw new IllegalStateException("Vedtak er allerede journalført");
         }
     }
