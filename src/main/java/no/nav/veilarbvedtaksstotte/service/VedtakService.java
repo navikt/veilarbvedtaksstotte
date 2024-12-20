@@ -254,6 +254,7 @@ public class VedtakService {
     }
 
     public void slettUtkast(Vedtak utkast) {
+
         long utkastId = utkast.getId();
 
         transactor.executeWithoutResult((status) -> {
@@ -264,6 +265,7 @@ public class VedtakService {
             oyeblikksbildeService.slettOyeblikksbilde(utkastId);
             vedtaksstotteRepository.slettUtkast(utkastId);
             vedtakStatusEndringService.utkastSlettet(utkast);
+            sakStatistikkService.leggTilStatistikkRadUtkastSlett(utkastId, utkast.getAktorId(), Fnr.of(utkast.getAktorId()), utkast.getVeilederIdent(), utkast.getOppfolgingsenhetId());
         });
 
         metricsService.rapporterUtkastSlettet();
