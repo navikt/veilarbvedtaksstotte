@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito.reset
 
 class SakStatistikkServiceTest   {
@@ -12,5 +14,10 @@ class SakStatistikkServiceTest   {
     @BeforeEach
     fun before() {
         reset(sakStatistikkService)
+    }
+    @Test
+    fun `SakStatistikkService test nummer en`() {
+
+        Assertions.assertEquals("Test1", "Test1")
     }
 }
