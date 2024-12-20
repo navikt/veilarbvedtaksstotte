@@ -24,7 +24,9 @@ class SakStatistikkService @Autowired constructor(
         val statistikkListe =
             sakStatistikkRepository.hentSakStatistikkListeInnenforOppfolgingsperiode(oppfolgingsperiodeUuid)
         val antallUtkast =
-            statistikkListe.stream().filter { item: SakStatistikk -> item.behandlingMetode == "UTKAST" }.toList().size
+            statistikkListe.stream()
+                .filter { item: SakStatistikk -> item.behandlingStatus == SakStatistikk.BehandlingStatus.UTKAST.name }
+                .toList().size
         return antallUtkast == 0
     }
 
@@ -55,6 +57,49 @@ class SakStatistikkService @Autowired constructor(
                     mottattTid = mottattTid,
                     endretTid = LocalDateTime.now(),
                     tekniskTid = LocalDateTime.now(),
+                    behandlingType = SakStatistikk.BehandlingType.VEDTAK.name,
+                    behandlingStatus = SakStatistikk.BehandlingStatus.UTKAST.name,
+                    behandlingMetode = SakStatistikk.BehandlingMetode.MANUELL.name,
+                    opprettetAv = veilederIdent,
+                    ansvarligEnhet = oppfolgingsenhetId,
+                    avsender = AVSENDER,
+                    versjon = "Dockerimage_tag_1"
+                )
+                sakStatistikkRepository.insertSakStatistikkRad(sakStatistikk)
+            }
+        }
+    }
+
+    fun leggTilStatistikkRadUtkastSlett(
+        behandlingId: Long, aktorId: String, fnr: Fnr, veilederIdent: String, oppfolgingsenhetId: String
+    ) {
+        //TODO: Hent mottattTid (som er start oppfølgingsperiode på første vedtak, vi må komme tilbake til hva det er ved seinere vedtak i samme periode.
+        //TODO: Avsender er en konstant, versjon må hentes fra Docker-image
+        val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
+
+        if (statistikkPaa) {
+
+            val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
+            oppfolgingsperiode.ifPresent {
+                val mottattTid = if (hentStatistikkRader(oppfolgingsperiode.get().uuid)) {
+                    LocalDateTime.now()
+                } else {
+                    veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr).get().startDato.toLocalDateTime()
+                }
+
+
+                val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
+                val sakStatistikk = SakStatistikk(
+                    aktorId = aktorId,
+                    oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
+                    behandlingId = behandlingId.toBigInteger(),
+                    sakId = sakId.toString(),
+                    mottattTid = mottattTid,
+                    endretTid = LocalDateTime.now(),
+                    tekniskTid = LocalDateTime.now(),
+                    behandlingType = SakStatistikk.BehandlingType.VEDTAK.name,
+                    behandlingStatus = SakStatistikk.BehandlingStatus.AVBRUTT.name,
+                    behandlingMetode = SakStatistikk.BehandlingMetode.MANUELL.name,
                     opprettetAv = veilederIdent,
                     ansvarligEnhet = oppfolgingsenhetId,
                     avsender = AVSENDER,

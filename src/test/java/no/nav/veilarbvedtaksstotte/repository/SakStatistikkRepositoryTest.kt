@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -11,6 +12,7 @@ import java.util.*
 
 class SakStatistikkRepositoryTest : DatabaseTest() {
 
+    //TODO: Sjekke testdekning, og se om testene er gode nok
     companion object {
         lateinit var sakStatistikkRepository: SakStatistikkRepository
 
@@ -38,12 +40,12 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
             endretTid = LocalDateTime.now(),
             tekniskTid = LocalDateTime.now().plusHours(1),
             sakYtelse = "BIST14A_IKVAL",
-            behandlingType = "VEDTAK",
-            behandlingStatus = "SENDT",
-            behandlingResultat = "STANDARD_INNSATS",
-            behandlingMetode = "MANUELL",
-            innsatsgruppe = "STANDARD_INNSATS",
-            hovedmal = "SKAFFE_ARBEID",
+            behandlingType = SakStatistikk.BehandlingType.VEDTAK.name,
+            behandlingStatus = SakStatistikk.BehandlingStatus.SENDT.name,
+            behandlingResultat = Innsatsgruppe.STANDARD_INNSATS.name,
+            behandlingMetode = SakStatistikk.BehandlingMetode.MANUELL.name,
+            innsatsgruppe = SakStatistikk.Innsatsgruppe.STANDARD_INNSATS.name,
+            hovedmal = SakStatistikk.Hovedmal.SKAFFE_ARBEID.name,
             opprettetAv = "Z123456",
             saksbehandler = "Z123456",
             ansvarligBeslutter = "Z123456",
@@ -54,7 +56,7 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
         sakStatistikkRepository.insertSakStatistikkRad(statistikkRad)
         val lagretStatistikkRadAlt = sakStatistikkRepository.hentSakStatistikkListeAlt(3001.toBigInteger())
         val lagretStatistikkRad = sakStatistikkRepository.hentSakStatistikkListe("2004140973848")
-        assertEquals(lagretStatistikkRadAlt.get(0).behandlingId, lagretStatistikkRad.get(1).behandlingId)
+        assertEquals(/* expected = */ lagretStatistikkRadAlt.get(0).behandlingId, /* actual = */ lagretStatistikkRad.get(1).behandlingId)
     }
 
     @Test
@@ -72,10 +74,12 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
             endretTid = LocalDateTime.now(),
             tekniskTid = LocalDateTime.now().plusHours(1),
             sakYtelse = null,
-            behandlingType = "VEDTAK",
-            behandlingStatus = "UTKAST",
+            behandlingType = SakStatistikk.BehandlingType.VEDTAK.name,
+            behandlingStatus = SakStatistikk.BehandlingStatus.UTKAST.name,
             behandlingResultat = null,
-            behandlingMetode = "MANUELL",
+            behandlingMetode = SakStatistikk.BehandlingMetode.MANUELL.name,
+            innsatsgruppe = null,
+            hovedmal = null,
             opprettetAv = "Z123456",
             saksbehandler = "Z123456",
             ansvarligBeslutter = null,
