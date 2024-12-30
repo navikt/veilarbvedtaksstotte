@@ -19,14 +19,48 @@ class SakStatistikkService @Autowired constructor(
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
     private val unleashClient: DefaultUnleash
 ) {
+    fun fyllSakStatistikk(
+        aktorId: String,
+        oppfolgingsperiodeUuid: UUID,
+        behandlingId: Long,
+        sakId: Long,
+        mottattTid: LocalDateTime,
+        endretTid: LocalDateTime,
+        tekniskTid: LocalDateTime,
+        behandlingType: SakStatistikk.BehandlingType,
+        behandlingStatus: SakStatistikk.BehandlingStatus,
+        behandlingMetode: SakStatistikk.BehandlingMetode,
+        opprettetAv: String,
+        ansvarligEnhet: String,
+        avsender: String,
+        versjon: String
+    ): SakStatistikk {
+
+        val sakStatistikk = SakStatistikk(
+            aktorId = aktorId,
+            oppfolgingPeriodeUUID = oppfolgingsperiodeUuid,
+            behandlingId = behandlingId.toBigInteger(),
+            sakId = sakId.toString(),
+            mottattTid = mottattTid,
+            endretTid = endretTid,
+            tekniskTid = tekniskTid,
+            behandlingType = behandlingType.name,
+            behandlingStatus = behandlingStatus.name,
+            behandlingMetode = behandlingMetode.name,
+            opprettetAv = opprettetAv,
+            ansvarligEnhet = ansvarligEnhet,
+            avsender = avsender,
+            versjon = versjon
+        )
+        return sakStatistikk
+    }
 
     fun hentStatistikkRader(oppfolgingsperiodeUuid: UUID): Boolean {
         val statistikkListe =
             sakStatistikkRepository.hentSakStatistikkListeInnenforOppfolgingsperiode(oppfolgingsperiodeUuid)
-        val antallUtkast =
-            statistikkListe.stream()
-                .filter { item: SakStatistikk -> item.behandlingStatus == SakStatistikk.BehandlingStatus.UTKAST.name }
-                .toList().size
+        val antallUtkast = statistikkListe.stream()
+            .filter { item: SakStatistikk -> item.behandlingStatus == SakStatistikk.BehandlingStatus.UTKAST.name }
+            .toList().size
         return antallUtkast == 0
     }
 
@@ -49,23 +83,25 @@ class SakStatistikkService @Autowired constructor(
 
 
                 val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
-                val sakStatistikk = SakStatistikk(
-                    aktorId = aktorId,
-                    oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
-                    behandlingId = behandlingId.toBigInteger(),
-                    sakId = sakId.toString(),
-                    mottattTid = mottattTid,
-                    endretTid = LocalDateTime.now(),
-                    tekniskTid = LocalDateTime.now(),
-                    behandlingType = SakStatistikk.BehandlingType.VEDTAK.name,
-                    behandlingStatus = SakStatistikk.BehandlingStatus.UTKAST.name,
-                    behandlingMetode = SakStatistikk.BehandlingMetode.MANUELL.name,
-                    opprettetAv = veilederIdent,
-                    ansvarligEnhet = oppfolgingsenhetId,
-                    avsender = AVSENDER,
-                    versjon = "Dockerimage_tag_1"
+
+                sakStatistikkRepository.insertSakStatistikkRad(
+                    fyllSakStatistikk(
+                        aktorId,
+                        oppfolgingsperiode.get().uuid,
+                        behandlingId,
+                        sakId,
+                        mottattTid,
+                        LocalDateTime.now(),
+                        LocalDateTime.now(),
+                        SakStatistikk.BehandlingType.VEDTAK,
+                        SakStatistikk.BehandlingStatus.UTKAST,
+                        SakStatistikk.BehandlingMetode.MANUELL,
+                        veilederIdent,
+                        oppfolgingsenhetId,
+                        AVSENDER,
+                        "Dockerimage_tag_1"
+                    )
                 )
-                sakStatistikkRepository.insertSakStatistikkRad(sakStatistikk)
             }
         }
     }
@@ -87,25 +123,26 @@ class SakStatistikkService @Autowired constructor(
                     veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr).get().startDato.toLocalDateTime()
                 }
 
-
                 val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
-                val sakStatistikk = SakStatistikk(
-                    aktorId = aktorId,
-                    oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
-                    behandlingId = behandlingId.toBigInteger(),
-                    sakId = sakId.toString(),
-                    mottattTid = mottattTid,
-                    endretTid = LocalDateTime.now(),
-                    tekniskTid = LocalDateTime.now(),
-                    behandlingType = SakStatistikk.BehandlingType.VEDTAK.name,
-                    behandlingStatus = SakStatistikk.BehandlingStatus.AVBRUTT.name,
-                    behandlingMetode = SakStatistikk.BehandlingMetode.MANUELL.name,
-                    opprettetAv = veilederIdent,
-                    ansvarligEnhet = oppfolgingsenhetId,
-                    avsender = AVSENDER,
-                    versjon = "Dockerimage_tag_1"
+
+                sakStatistikkRepository.insertSakStatistikkRad(
+                    fyllSakStatistikk(
+                        aktorId,
+                        oppfolgingsperiode.get().uuid,
+                        behandlingId,
+                        sakId,
+                        mottattTid,
+                        LocalDateTime.now(),
+                        LocalDateTime.now(),
+                        SakStatistikk.BehandlingType.VEDTAK,
+                        SakStatistikk.BehandlingStatus.AVBRUTT,
+                        SakStatistikk.BehandlingMetode.MANUELL,
+                        veilederIdent,
+                        oppfolgingsenhetId,
+                        AVSENDER,
+                        "Dockerimage_tag_1"
+                    )
                 )
-                sakStatistikkRepository.insertSakStatistikkRad(sakStatistikk)
             }
         }
     }
