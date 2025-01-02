@@ -13,7 +13,7 @@ data class SakStatistikk(
     val relatertBehandlingId: BigInteger? = null,
     val relatertFagsystem: String? = null,
     val sakId: String? = null,
-    val mottattTid: LocalDateTime,
+    val mottattTid: LocalDateTime? = null,
     val registrertTid: LocalDateTime? = null,
     val ferdigbehandletTid: LocalDateTime? = null,
     val endretTid: LocalDateTime? = null,
