@@ -18,10 +18,9 @@ private const val AVSENDER = "Oppfølgingsvedtak § 14 a"
 class SakStatistikkService @Autowired constructor(
     private val sakStatistikkRepository: SakStatistikkRepository,
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
+    private val vedtaksstotteRepository: VedtaksstotteRepository,
     private val unleashClient: DefaultUnleash
 ) {
-    private final val vedtaksstotteRepository: VedtaksstotteRepository = TODO("initialize me")
-
     fun fyllSakStatistikk(
         aktorId: String,
         oppfolgingsperiodeUuid: UUID,
