@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import io.getunleash.DefaultUnleash
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.SAK_STATISTIKK_PAA
 import java.util.UUID
 
@@ -19,12 +20,16 @@ class SakStatistikkService @Autowired constructor(
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
     private val unleashClient: DefaultUnleash
 ) {
+    private final val vedtaksstotteRepository: VedtaksstotteRepository = TODO("initialize me")
+
     fun fyllSakStatistikk(
         aktorId: String,
         oppfolgingsperiodeUuid: UUID,
         behandlingId: Long,
         sakId: Long,
         mottattTid: LocalDateTime,
+        registrertTid: LocalDateTime,
+        ferdigbehandletTid: LocalDateTime,
         endretTid: LocalDateTime,
         tekniskTid: LocalDateTime,
         behandlingType: SakStatistikk.BehandlingType,
@@ -93,6 +98,8 @@ class SakStatistikkService @Autowired constructor(
                         mottattTid,
                         LocalDateTime.now(),
                         LocalDateTime.now(),
+                        LocalDateTime.now(),
+                        LocalDateTime.now(),
                         SakStatistikk.BehandlingType.VEDTAK,
                         SakStatistikk.BehandlingStatus.UTKAST,
                         SakStatistikk.BehandlingMetode.MANUELL,
@@ -125,6 +132,8 @@ class SakStatistikkService @Autowired constructor(
 
                 val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
 
+                val utkast = vedtaksstotteRepository.hentUtkast(aktorId)
+
                 sakStatistikkRepository.insertSakStatistikkRad(
                     fyllSakStatistikk(
                         aktorId,
@@ -132,6 +141,8 @@ class SakStatistikkService @Autowired constructor(
                         behandlingId,
                         sakId,
                         mottattTid,
+                        utkast.utkastOpprettet,
+                        LocalDateTime.now(),
                         LocalDateTime.now(),
                         LocalDateTime.now(),
                         SakStatistikk.BehandlingType.VEDTAK,
