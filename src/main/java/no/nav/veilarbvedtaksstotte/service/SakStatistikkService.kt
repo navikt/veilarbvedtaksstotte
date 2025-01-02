@@ -1,13 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import io.getunleash.DefaultUnleash
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
-import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.SAK_STATISTIKK_PAA
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -20,10 +17,8 @@ private const val AVSENDER = "Oppfølgingsvedtak § 14 a"
 class SakStatistikkService @Autowired constructor(
     private val sakStatistikkRepository: SakStatistikkRepository,
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
-    private val vedtaksstotteRepository: VedtaksstotteRepository,
     private val unleashClient: DefaultUnleash
 ) {
-    private val log: Logger = LoggerFactory.getLogger(SakStatistikkService::class.java)
     fun fyllSakStatistikk(
         aktorId: String,
         oppfolgingsperiodeUuid: UUID,
@@ -134,9 +129,6 @@ class SakStatistikkService @Autowired constructor(
 
                 val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
 
-                val utkast = vedtaksstotteRepository.hentUtkast(aktorId)
-                log.debug("Fra utkast: utkastOpprettet={}", utkast.utkastOpprettet)
-
                 sakStatistikkRepository.insertSakStatistikkRad(
                     fyllSakStatistikk(
                         aktorId,
@@ -144,7 +136,7 @@ class SakStatistikkService @Autowired constructor(
                         behandlingId,
                         sakId,
                         mottattTid,
-                        utkast.utkastOpprettet,
+                        LocalDateTime.now(),
                         LocalDateTime.now(),
                         LocalDateTime.now(),
                         LocalDateTime.now(),
