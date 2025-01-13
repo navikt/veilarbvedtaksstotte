@@ -13,7 +13,7 @@ data class SakStatistikk(
     val relatertBehandlingId: BigInteger? = null,
     val relatertFagsystem: String? = null,
     val sakId: String? = null,
-    val mottattTid: LocalDateTime,
+    val mottattTid: LocalDateTime? = null,
     val registrertTid: LocalDateTime? = null,
     val ferdigbehandletTid: LocalDateTime? = null,
     val endretTid: LocalDateTime? = null,
@@ -31,4 +31,24 @@ data class SakStatistikk(
     val ansvarligEnhet: String? = null,
     val avsender: String? = null,
     val versjon: String? = null,
-)
+) {
+    enum class BehandlingType {
+        VEDTAK, REVURDERING
+    }
+
+    enum class BehandlingStatus {
+        UTKAST, AVBRUTT, SENDT, HISTORISK
+    }
+
+    enum class BehandlingMetode {
+        MANUELL, AUTOMATISK, DELVIS_AUTOMATISK
+    }
+
+    enum class Innsatsgruppe {
+        STANDARD_INNSATS, SITUASJONSBESTEMT_INNSATS, SPESIELT_TILPASSET_INNSATS, GRADERT_VARIG_TILPASSET_INNSATS, VARIG_TILPASSET_INNSATS
+    }
+
+    enum class Hovedmal {
+        SKAFFE_ARBEID, BEHOLDE_ARBEID
+    }
+}
