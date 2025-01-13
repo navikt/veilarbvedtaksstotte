@@ -109,7 +109,7 @@ public class VedtakService {
 
         vedtakStatusEndringService.vedtakSendt(vedtak.getId());
 
-        metricsService.rapporterMetrikkerForFattetVedtak(vedtak);
+        metricsService.rapporterMetrikkerForFattetVedtak(vedtak, brukerFnr);
     }
 
     @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)

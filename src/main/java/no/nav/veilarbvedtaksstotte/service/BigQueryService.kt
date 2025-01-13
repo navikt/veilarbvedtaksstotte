@@ -1,0 +1,67 @@
+package no.nav.veilarbvedtaksstotte.service
+
+import com.google.cloud.bigquery.BigQueryOptions
+import com.google.cloud.bigquery.InsertAllRequest
+import com.google.cloud.bigquery.TableId
+import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
+
+
+@Service
+class BigQueryService(@Value("\${gcp.projectId}") val projectId: String) {
+    private final val DATASET_NAME = "sak_statistikk_dataset_test"
+    private final val TABLE_NAME = "sak_statistikk_vedtak14a_table_test"
+    val vedtakStatistikkTable = TableId.of(DATASET_NAME, TABLE_NAME)
+
+    val bigQuery = BigQueryOptions.newBuilder().setProjectId(projectId).build().service
+    val log = LoggerFactory.getLogger(BigQueryService::class.java)
+
+    fun TableId.insertRequest(row: Map<String, Any?>): InsertAllRequest {
+        return InsertAllRequest.newBuilder(this).addRow(row).build()
+    }
+
+    fun logEvent(sakStatistikk: SakStatistikk) {
+        val vedtakStatistikkRow = mapOf(
+            "behandling_id" to sakStatistikk.behandlingId.toString(),
+            "aktor_id" to sakStatistikk.aktorId,
+            "oppfolging_periode_uuid" to sakStatistikk.oppfolgingPeriodeUUID.toString(),
+            "behandling_uuid" to sakStatistikk.behandlingUuid.toString(),
+            "relatert_behandling_id" to sakStatistikk.relatertBehandlingId.toString(),
+            "relatert_fagsystem" to sakStatistikk.relatertFagsystem,
+            "sak_id" to sakStatistikk.sakId,
+            "mottatt_tid" to sakStatistikk.mottattTid,
+            "registrert_tid" to sakStatistikk.registrertTid,
+            "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid,
+            "endret_tid" to sakStatistikk.endretTid,
+            "teknisk_tid" to sakStatistikk.tekniskTid,
+            "sak_ytelse" to sakStatistikk.sakYtelse,
+            "behandling_type" to sakStatistikk.behandlingType,
+            "behandling_status" to sakStatistikk.behandlingStatus,
+            "behandling_resultat" to sakStatistikk.behandlingResultat,
+            "behandling_metode" to sakStatistikk.behandlingMetode,
+            "innsatsgruppe" to sakStatistikk.innsatsgruppe,
+            "hovedmal" to sakStatistikk.hovedmal,
+            "opprettet_av" to sakStatistikk.opprettetAv,
+            "saksbehandler" to sakStatistikk.saksbehandler,
+            "ansvarlig_beslutter" to sakStatistikk.ansvarligBeslutter,
+            "ansvarlig_enhet" to sakStatistikk.ansvarligEnhet,
+            "avsender" to sakStatistikk.avsender,
+            "versjon" to sakStatistikk.versjon,
+        )
+        val moteEvent = vedtakStatistikkTable.insertRequest(vedtakStatistikkRow)
+        insertWhileToleratingErrors(moteEvent)
+    }
+    private fun insertWhileToleratingErrors(insertRequest: InsertAllRequest) {
+        runCatching {
+            val response = bigQuery.insertAll(insertRequest)
+            val errors = response.insertErrors
+            if (errors.isNotEmpty()) {
+                log.error("Error inserting bigquery rows {}", errors)
+            }
+        }.onFailure {
+            log.error("BigQuery error", it)
+        }
+    }
+}
