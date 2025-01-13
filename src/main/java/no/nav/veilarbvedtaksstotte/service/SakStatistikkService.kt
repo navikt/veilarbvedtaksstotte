@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.utils.SAK_STATISTIKK_PAA
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.math.BigInteger
 import java.time.LocalDateTime
 import java.util.*
 
