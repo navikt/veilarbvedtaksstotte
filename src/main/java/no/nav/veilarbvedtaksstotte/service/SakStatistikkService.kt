@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.utils.SAK_STATISTIKK_PAA
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.math.BigInteger
 import java.time.LocalDateTime
 import java.util.*
 
@@ -103,9 +104,15 @@ class SakStatistikkService @Autowired constructor(
                     opprettetAv = veilederIdent,
                     ansvarligEnhet = oppfolgingsenhetId,
                     avsender = AVSENDER,
-                    versjon = "Dockerimage_tag_1"
+                    versjon = environmentProperties.naisAppImage
                 )
-                sakStatistikkRepository.insertSakStatistikkRad(sakStatistikk)
+                try {
+                    sakStatistikkRepository.insertSakStatistikkRad(sakStatistikk)
+                    bigQueryService.logEvent(sakStatistikk)
+                } catch (e: Exception) {
+                    secureLog.error("Kunne ikke lagre sakstatistikk", e)
+                }
+
             }
         }
     }
