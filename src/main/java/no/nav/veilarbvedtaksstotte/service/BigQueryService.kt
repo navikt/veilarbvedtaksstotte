@@ -7,12 +7,13 @@ import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.time.format.DateTimeFormatter
 
 
 @Service
 class BigQueryService(@Value("\${gcp.projectId}") val projectId: String) {
     private final val DATASET_NAME = "sak_statistikk_dataset_test"
-    private final val TABLE_NAME = "sak_statistikk_vedtak14a_table_test"
+    private final val TABLE_NAME = "14a_vedtak_tabell"
     val vedtakStatistikkTable = TableId.of(DATASET_NAME, TABLE_NAME)
 
     val bigQuery = BigQueryOptions.newBuilder().setProjectId(projectId).build().service
@@ -24,18 +25,18 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String) {
 
     fun logEvent(sakStatistikk: SakStatistikk) {
         val vedtakStatistikkRow = mapOf(
-          //  "behandling_id" to sakStatistikk.behandlingId.toLong(),
+            "behandling_id" to sakStatistikk.behandlingId.toInt(),
             "aktor_id" to sakStatistikk.aktorId,
             "oppfolging_periode_uuid" to sakStatistikk.oppfolgingPeriodeUUID.toString(),
             "behandling_uuid" to sakStatistikk.behandlingUuid.toString(),
-         //   "relatert_behandling_id" to sakStatistikk.relatertBehandlingId?.toLong(),
+            "relatert_behandling_id" to sakStatistikk.relatertBehandlingId?.toInt(),
             "relatert_fagsystem" to sakStatistikk.relatertFagsystem,
             "sak_id" to sakStatistikk.sakId,
-         //   "mottatt_tid" to sakStatistikk.mottattTid.toString(),
+            "mottatt_tid" to sakStatistikk.mottattTid.toString(),
             "registrert_tid" to sakStatistikk.registrertTid.toString(),
-         //   "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid,
-         //   "endret_tid" to sakStatistikk.endretTid,
-         //   "teknisk_tid" to sakStatistikk.tekniskTid,
+            "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid.toString(),
+            "endret_tid" to sakStatistikk.endretTid.toString(),
+            "teknisk_tid" to sakStatistikk.tekniskTid.toString(),
             "sak_ytelse" to sakStatistikk.sakYtelse,
             "behandling_type" to sakStatistikk.behandlingType,
             "behandling_status" to sakStatistikk.behandlingStatus,

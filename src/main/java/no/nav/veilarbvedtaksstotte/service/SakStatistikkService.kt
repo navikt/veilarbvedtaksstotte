@@ -104,9 +104,15 @@ class SakStatistikkService @Autowired constructor(
                     opprettetAv = veilederIdent,
                     ansvarligEnhet = oppfolgingsenhetId,
                     avsender = AVSENDER,
-                    versjon = "Dockerimage_tag_1"
+                    versjon = environmentProperties.naisAppImage
                 )
-                sakStatistikkRepository.insertSakStatistikkRad(sakStatistikk)
+                try {
+                    sakStatistikkRepository.insertSakStatistikkRad(sakStatistikk)
+                    bigQueryService.logEvent(sakStatistikk)
+                } catch (e: Exception) {
+                    secureLog.error("Kunne ikke lagre sakstatistikk", e)
+                }
+
             }
         }
     }
