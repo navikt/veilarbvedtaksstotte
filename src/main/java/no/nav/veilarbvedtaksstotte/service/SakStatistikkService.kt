@@ -53,7 +53,7 @@ class SakStatistikkService @Autowired constructor(
                 relatertFagsystem = AVSENDER
 
             }
-            log.debug("siste14aVedtakArena: {}", siste14aVedtakArena)
+            log.info("siste14aVedtakArena: {}", siste14aVedtakArena)
             if (siste14aVedtakArena != null) {
                 if (siste14aVedtakArena.fraDato.isAfter(oppfolgingsperiode.get().startDato.toLocalDate())) {
                     if (nestSisteNyeVedtak != null) {
