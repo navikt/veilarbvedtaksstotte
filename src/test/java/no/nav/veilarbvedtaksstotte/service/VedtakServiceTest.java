@@ -134,6 +134,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final DefaultUnleash  unleashClient = mock(DefaultUnleash.class);
     private static final BigQueryService bigQueryService = mock(BigQueryService.class);
     private static final EnvironmentProperties environmentProperties = mock(EnvironmentProperties.class);
+    private static final Siste14aVedtakService siste14aVedtakService = mock(Siste14aVedtakService.class);
 
     @BeforeAll
     public static void setupOnce() {
@@ -145,7 +146,7 @@ public class VedtakServiceTest extends DatabaseTest {
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
         SakStatistikkRepository sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
-        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, bigQueryService, unleashClient, environmentProperties, vedtaksstotteRepository);
+        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, bigQueryService, unleashClient, environmentProperties, vedtaksstotteRepository, siste14aVedtakService);
 
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(arbeidssoekerRegistretService);

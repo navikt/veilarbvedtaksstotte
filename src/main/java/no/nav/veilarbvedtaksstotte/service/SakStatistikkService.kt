@@ -24,7 +24,8 @@ class SakStatistikkService @Autowired constructor(
     private val bigQueryService: BigQueryService,
     private val unleashClient: DefaultUnleash,
     private val environmentProperties: EnvironmentProperties,
-    private val vedtaksstotteRepository: VedtaksstotteRepository
+    private val vedtaksstotteRepository: VedtaksstotteRepository,
+    private val siste14aVedtakService: Siste14aVedtakService
 
 ) {
     fun lagreSakstatistikkrad(vedtak: Vedtak, fnr: Fnr) {
@@ -32,16 +33,34 @@ class SakStatistikkService @Autowired constructor(
         if (statistikkPaa) {
             val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
             val eksisterendeVedtak = vedtaksstotteRepository.hentFattedeVedtak(vedtak.aktorId)
-            var highestBehandlingIdVedtak : Long? = null
+            val siste14aVedtakArena = siste14aVedtakService.siste14aVedtakFraArena(fnr)
+            var nestSisteBehandlingId: Long? = null
+            var nestSisteNyeVedtak: Vedtak? = null
             var behandlingType = "VEDTAK"
+            var relatertFagsystem: String? = null
+
             if (eksisterendeVedtak.size > 1) {
                 val oppfolgingsperiodeStartDato = oppfolgingsperiode.get().startDato.toLocalDateTime()
 
                 val filteredVedtak =
                     eksisterendeVedtak.filter { it.vedtakFattet?.isAfter(oppfolgingsperiodeStartDato) == true && it.id != vedtak.id }
-                 highestBehandlingIdVedtak = filteredVedtak.maxByOrNull { it.id }?.id
+
+                nestSisteNyeVedtak = filteredVedtak.maxByOrNull { it.id }
+                nestSisteBehandlingId = nestSisteNyeVedtak?.id
+                relatertFagsystem = "Oppfølgingsvedtak § 14 a"
+
             }
-            if (highestBehandlingIdVedtak != null) {
+            if (siste14aVedtakArena != null) {
+                if (siste14aVedtakArena.fraDato.isAfter(oppfolgingsperiode.get().startDato.toLocalDate())) {
+                    if (nestSisteNyeVedtak != null) {
+                        if (siste14aVedtakArena.fraDato.isAfter(nestSisteNyeVedtak.vedtakFattet.toLocalDate())) {
+                            nestSisteBehandlingId = siste14aVedtakArena.vedtakId
+                            relatertFagsystem = "Arena"
+                        }
+                    }
+                }
+            }
+            if (nestSisteBehandlingId != null) {
                 behandlingType = "REVURDERING"
             }
             val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
@@ -51,8 +70,8 @@ class SakStatistikkService @Autowired constructor(
                 aktorId = vedtak.aktorId,
                 oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
                 behandlingUuid = vedtak.referanse,
-                relatertBehandlingId = highestBehandlingIdVedtak?.toBigInteger(), //dersom dette er nr 2 eller mer i oppfolgingsperioden
-                relatertFagsystem = null, //dersom dette er nr 2 eller mer i oppfolgingsperioden,
+                relatertBehandlingId = nestSisteBehandlingId?.toBigInteger(), //dersom dette er nr 2 eller mer i oppfolgingsperioden
+                relatertFagsystem = relatertFagsystem, //dersom dette er nr 2 eller mer i oppfolgingsperioden,
                 sakId = sakId.toString(),
                 mottattTid = oppfolgingsperiode.get().startDato.toLocalDateTime(),
                 registrertTid = vedtak.utkastOpprettet,

@@ -33,6 +33,13 @@ class Siste14aVedtakService(
         return siste14aVedtakMedKilder(identer).siste14aVedtak
     }
 
+    fun siste14aVedtakFraArena(fnr: EksternBrukerId): ArenaVedtak? {
+        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
+        val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
+        val sisteArenaVedtak = finnSisteArenaVedtak(arenaVedtakListe)
+        return sisteArenaVedtak
+    }
+
     private data class Siste14aVedtakMedGrunnlag(
         val siste14aVedtak: Siste14aVedtak?,
         val arenaVedtak: List<ArenaVedtak>
