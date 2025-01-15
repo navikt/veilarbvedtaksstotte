@@ -63,7 +63,7 @@ public class VedtakService {
     private final MetricsService metricsService;
 
     private final LeaderElectionClient leaderElection;
-    private final SakStatistikkService sakStatistikkService;
+   // private final SakStatistikkService sakStatistikkService;
 
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
@@ -189,8 +189,9 @@ public class VedtakService {
         vedtaksstotteRepository.opprettUtkast(aktorId, innloggetVeilederIdent, oppfolgingsenhetId);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
+        /* Tar ikke med statistikk for utkast ennå
         sakStatistikkService.leggTilStatistikkRadUtkast(utkast.getId(), aktorId, fnr, innloggetVeilederIdent, oppfolgingsenhetId);
-
+        */
 
         vedtakStatusEndringService.utkastOpprettet(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.UTKAST_OPPRETTET, innloggetVeilederIdent);
