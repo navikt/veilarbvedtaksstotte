@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.*
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 private const val AVSENDER = "Oppfølgingsvedtak § 14 a"
 
@@ -32,7 +30,6 @@ class SakStatistikkService @Autowired constructor(
 ) {
     fun lagreSakstatistikkrad(vedtak: Vedtak, fnr: Fnr) {
         val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
-        val log: Logger = LoggerFactory.getLogger(SakStatistikkRepository::class.java)
         if (statistikkPaa) {
             val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
             val eksisterendeVedtak = vedtaksstotteRepository.hentFattedeVedtak(vedtak.aktorId)
@@ -53,7 +50,7 @@ class SakStatistikkService @Autowired constructor(
                 relatertFagsystem = AVSENDER
 
             }
-            log.info("siste14aVedtakArena: {}", siste14aVedtakArena)
+            secureLog.info("siste14aVedtakArena: {}", siste14aVedtakArena)
             if (siste14aVedtakArena != null) {
                 if (siste14aVedtakArena.fraDato.isAfter(oppfolgingsperiode.get().startDato.toLocalDate())) {
                     if (nestSisteNyeVedtak != null) {
