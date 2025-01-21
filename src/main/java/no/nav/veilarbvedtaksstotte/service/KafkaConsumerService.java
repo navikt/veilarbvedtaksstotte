@@ -63,7 +63,7 @@ public class KafkaConsumerService {
 
         if (aktorId == null) {
             log.warn("Fant ingen AktørID for bruker. Ignorerer melding. Se SecureLogs for detaljer.");
-            log.warn("Fant ingen AktørID for bruker. Ignorerer melding. Bruker (fnr): {}", fnr);
+            SecureLog.getSecureLog().warn("Fant ingen AktørID for bruker. Ignorerer melding. Bruker (fnr): {}", fnr);
             return;
         }
 
