@@ -69,15 +69,21 @@ public class KafkaConsumerService {
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId.toString());
 
-        if (utkast != null && !utkast.getOppfolgingsenhetId().equals(oppfolgingsenhetId)) {
-            log.info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Se SecureLogs for detaljer.");
-            SecureLog.getSecureLog().info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Bruker (AktørID): {}, forrige oppfølgingsenhet: {}, ny oppfølgingsenhet: {}.", aktorId, utkast.getOppfolgingsenhetId(), oppfolgingsenhetId);
-            Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
-            vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
-            beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
-        } else {
-            log.info("Oppfølgingsenhet for bruker er uendret, ignorerer melding.");
+        if (utkast == null) {
+            log.info("Fant ingen utkast for bruker, ignorerer melding.");
+            return;
         }
+
+        if (utkast.getOppfolgingsenhetId().equals(oppfolgingsenhetId)) {
+            log.info("Oppfølgingsenhet for bruker er uendret, ignorerer melding.");
+            return;
+        }
+
+        log.info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Se SecureLogs for detaljer.");
+        SecureLog.getSecureLog().info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Bruker (AktørID): {}, forrige oppfølgingsenhet: {}, ny oppfølgingsenhet: {}.", aktorId, utkast.getOppfolgingsenhetId(), oppfolgingsenhetId);
+        Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
+        vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
+        beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
     }
 
     public void behandleArenaVedtak(ConsumerRecord<String, ArenaVedtakRecord> arenaVedtakRecord) {
