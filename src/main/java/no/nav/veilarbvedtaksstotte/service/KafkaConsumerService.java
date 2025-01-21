@@ -14,6 +14,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,18 +55,28 @@ public class KafkaConsumerService {
     }
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
+        log.info("Behandler melding på topic {}.", kafkaOppfolgingsbrukerEndring.topic());
+
         Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
         AktorId aktorId = hentAktorIdMedDevSjekk(fnr); //AktorId kan være null i dev
         String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
+
         if (aktorId == null) {
+            log.warn("Fant ingen AktørID for bruker. Ignorerer melding. Se SecureLogs for detaljer.");
+            log.warn("Fant ingen AktørID for bruker. Ignorerer melding. Bruker (fnr): {}", fnr);
             return;
         }
+
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId.toString());
 
         if (utkast != null && !utkast.getOppfolgingsenhetId().equals(oppfolgingsenhetId)) {
+            log.info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Se SecureLogs for detaljer.");
+            SecureLog.getSecureLog().info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Bruker (AktørID): {}, forrige oppfølgingsenhet: {}, ny oppfølgingsenhet: {}.", aktorId, utkast.getOppfolgingsenhetId(), oppfolgingsenhetId);
             Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
             vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
             beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
+        } else {
+            log.info("Oppfølgingsenhet for bruker er uendret, ignorerer melding.");
         }
     }
 
