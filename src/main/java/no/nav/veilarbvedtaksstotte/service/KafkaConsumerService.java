@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
+import no.nav.common.client.aktorregister.IngenGjeldendeIdentException;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.client.utils.graphql.GraphqlErrorException;
 import no.nav.common.types.identer.AktorId;
@@ -126,7 +127,7 @@ public class KafkaConsumerService {
     private AktorId hentAktorIdMedDevSjekk(Fnr fnr) {
         try {
             return aktorOppslagClient.hentAktorId(fnr);
-        } catch (GraphqlErrorException e) {
+        } catch (GraphqlErrorException | IngenGjeldendeIdentException e) {
             if (isDevelopment().orElse(false)) {
                 log.info("Prøvde å hente prodlik bruker i dev. Returnerer null");
                 return null;
