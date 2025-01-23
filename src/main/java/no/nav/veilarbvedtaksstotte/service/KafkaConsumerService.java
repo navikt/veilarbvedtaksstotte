@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
+import no.nav.common.client.aktorregister.IngenGjeldendeIdentException;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.client.utils.graphql.GraphqlErrorException;
 import no.nav.common.types.identer.AktorId;
@@ -14,6 +15,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,19 +56,35 @@ public class KafkaConsumerService {
     }
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
+        log.info("Behandler melding på topic {}.", kafkaOppfolgingsbrukerEndring.topic());
+
         Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
         AktorId aktorId = hentAktorIdMedDevSjekk(fnr); //AktorId kan være null i dev
         String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
+
         if (aktorId == null) {
+            log.warn("Fant ingen AktørID for bruker. Ignorerer melding. Se SecureLogs for detaljer.");
+            SecureLog.getSecureLog().warn("Fant ingen AktørID for bruker. Ignorerer melding. Bruker (fnr): {}", fnr);
             return;
         }
+
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId.toString());
 
-        if (utkast != null && !utkast.getOppfolgingsenhetId().equals(oppfolgingsenhetId)) {
-            Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
-            vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
-            beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
+        if (utkast == null) {
+            log.info("Fant ingen utkast for bruker, ignorerer melding.");
+            return;
         }
+
+        if (utkast.getOppfolgingsenhetId().equals(oppfolgingsenhetId)) {
+            log.info("Oppfølgingsenhet for bruker er uendret, ignorerer melding.");
+            return;
+        }
+
+        log.info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Se SecureLogs for detaljer.");
+        SecureLog.getSecureLog().info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Bruker (AktørID): {}, forrige oppfølgingsenhet: {}, ny oppfølgingsenhet: {}.", aktorId, utkast.getOppfolgingsenhetId(), oppfolgingsenhetId);
+        Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
+        vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
+        beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
     }
 
     public void behandleArenaVedtak(ConsumerRecord<String, ArenaVedtakRecord> arenaVedtakRecord) {
@@ -126,7 +144,7 @@ public class KafkaConsumerService {
     private AktorId hentAktorIdMedDevSjekk(Fnr fnr) {
         try {
             return aktorOppslagClient.hentAktorId(fnr);
-        } catch (GraphqlErrorException e) {
+        } catch (GraphqlErrorException | IngenGjeldendeIdentException e) {
             if (isDevelopment().orElse(false)) {
                 log.info("Prøvde å hente prodlik bruker i dev. Returnerer null");
                 return null;

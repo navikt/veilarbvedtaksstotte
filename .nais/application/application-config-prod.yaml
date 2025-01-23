@@ -38,6 +38,8 @@ spec:
         databases:
           - name: veilarbvedtaksstotte
             envVarPrefix: DB
+            users:
+              - name: bigquery_user_prod
   secureLogs:
     enabled: true
   kafka:
