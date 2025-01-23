@@ -13,6 +13,7 @@ data class EnvironmentProperties (
     val naisAadClientId: String,
     val naisAadDiscoveryUrl: String,
     val naisAadIssuer: String,
+    val naisAppImage: String,
     val norg2Url: String,
     val pdlScope: String,
     val pdlUrl: String,

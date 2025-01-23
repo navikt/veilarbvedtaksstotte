@@ -18,6 +18,7 @@ import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
+import no.nav.veilarbvedtaksstotte.service.BigQueryService
 import no.nav.veilarbvedtaksstotte.service.PdfService
 import no.nav.veilarbvedtaksstotte.service.SakStatistikkService
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
@@ -55,7 +56,8 @@ import javax.sql.DataSource
     DokumentdistribusjonMeterBinder::class,
     PdfService::class,
     ArbeidssoekerRegisteretService::class,
-    SakStatistikkService::class
+    SakStatistikkService::class,
+    BigQueryService::class
 )
 class ApplicationTestConfig {
     @Bean
