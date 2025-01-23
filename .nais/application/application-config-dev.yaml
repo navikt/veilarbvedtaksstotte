@@ -144,6 +144,8 @@ spec:
           permissions:
             roles:
               - "siste-14a-vedtak"
+        - application: modiapersonoversikt-api
+          namespace: personoversikt
     outbound:
       rules:
         - application: paw-arbeidssoker-besvarelse
