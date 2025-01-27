@@ -46,6 +46,7 @@ import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -142,6 +143,7 @@ public class VedtakServiceTest extends DatabaseTest {
         kilderRepository = spy(new KilderRepository(jdbcTemplate));
         meldingRepository = spy(new MeldingRepository(jdbcTemplate));
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
+        sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
@@ -555,6 +557,8 @@ public class VedtakServiceTest extends DatabaseTest {
             assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
             assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
             assertOyeblikksbildeForFattetVedtak(sendtVedtak.getId());
+
+             List<SakStatistikk> sakStatistikk = sakStatistikkRepository.hentSakStatistikkListe(sendtVedtak.getAktorId());
         });
         verify(vedtakHendelserService).vedtakSendt(any());
     }
