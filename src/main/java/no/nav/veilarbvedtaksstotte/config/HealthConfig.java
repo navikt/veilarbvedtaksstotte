@@ -36,7 +36,7 @@ public class HealthConfig {
 
     @Bean
     public SelfTestChecks selfTestChecks(VeilarbarenaClient arenaClient,
-                                         AiaBackendClient aiaBackendClient,
+//                                         AiaBackendClient aiaBackendClient,
                                          VeilarboppfolgingClient oppfolgingClient,
                                          VeilarbpersonClient veilarbpersonClient,
                                          OppslagArbeidssoekerregisteretClient opplysningerOmArbeidssoekerregisterenClient,
@@ -54,7 +54,7 @@ public class HealthConfig {
                 new SelfTestCheck("ArenaClient", false, arenaClient),
                 new SelfTestCheck("pto-pdfgen", false, pdfClient),
                 new SelfTestCheck("Norg2", true, norg2Client),
-                new SelfTestCheck("EgenvurderingClient", false, aiaBackendClient),
+//                new SelfTestCheck("EgenvurderingClient", false, aiaBackendClient),
                 new SelfTestCheck("OppfolgingClient", false, oppfolgingClient),
                 new SelfTestCheck("PersonClient", false, veilarbpersonClient),
                 new SelfTestCheck("paw-arbeidssoekerregisteret-api-oppslagClient (via veilarbperson)", false, opplysningerOmArbeidssoekerregisterenClient),
