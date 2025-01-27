@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.annotations.EksterntEndepunkt
 import no.nav.veilarbvedtaksstotte.controller.dto.Siste14aVedtakDTO
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
@@ -28,6 +29,7 @@ class Siste14aVedtakV2Controller(
     val siste14aVedtakService: Siste14aVedtakService
 ) {
 
+    @EksterntEndepunkt
     @PostMapping("/hent-siste-14a-vedtak")
     @Operation(
         summary = "Hent siste 14a vedtak",
