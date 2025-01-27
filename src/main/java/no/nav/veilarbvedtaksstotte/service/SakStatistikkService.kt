@@ -154,5 +154,46 @@ class SakStatistikkService @Autowired constructor(
             }
         }
     }
+    fun leggTilStatistikkRadUtkastSlett(
+        behandlingId: Long, aktorId: String, fnr: Fnr, veilederIdent: String, oppfolgingsenhetId: String
+    ) {
+        //TODO: Hent mottattTid (som er start oppfølgingsperiode på første vedtak, vi må komme tilbake til hva det er ved seinere vedtak i samme periode.
+        //TODO: Avsender er en konstant, versjon må hentes fra Docker-image
+        val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
+
+        if (statistikkPaa) {
+
+            val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
+            oppfolgingsperiode.ifPresent {
+                val mottattTid = if (hentStatistikkRader(oppfolgingsperiode.get().uuid)) {
+                    LocalDateTime.now()
+                } else {
+                    veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr).get().startDato.toLocalDateTime()
+                }
+
+                val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
+
+                val sakStatistikk = SakStatistikk(
+                    aktorId = aktorId,
+                    oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
+                    behandlingId = behandlingId.toBigInteger(),
+                    sakId = sakId.toString(),
+                    mottattTid = mottattTid,
+                    endretTid = LocalDateTime.now(),
+                    tekniskTid = LocalDateTime.now(),
+                    opprettetAv = veilederIdent,
+                    ansvarligEnhet = oppfolgingsenhetId,
+                    avsender = AVSENDER,
+                    versjon = environmentProperties.naisAppImage
+                )
+                try {
+                    sakStatistikkRepository.insertSakStatistikkRad(sakStatistikk)
+                    bigQueryService.logEvent(sakStatistikk)
+                } catch (e: Exception) {
+                    secureLog.error("Kunne ikke lagre sakstatistikk", e)
+                }
+            }
+        }
+    }
 }
 
