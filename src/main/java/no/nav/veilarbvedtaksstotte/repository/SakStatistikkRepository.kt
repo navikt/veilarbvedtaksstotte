@@ -56,35 +56,38 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 
             """
-
-        jdbcTemplate.update(
-            sql,
-            sakStatistikkRad.aktorId,
-            sakStatistikkRad.oppfolgingPeriodeUUID,
-            sakStatistikkRad.behandlingId,
-            sakStatistikkRad.behandlingUuid,
-            sakStatistikkRad.relatertBehandlingId,
-            sakStatistikkRad.relatertFagsystem,
-            sakStatistikkRad.sakId,
-            sakStatistikkRad.mottattTid,
-            sakStatistikkRad.registrertTid,
-            sakStatistikkRad.ferdigbehandletTid,
-            sakStatistikkRad.endretTid,
-            sakStatistikkRad.tekniskTid,
-            sakStatistikkRad.sakYtelse,
-            sakStatistikkRad.behandlingType,
-            sakStatistikkRad.behandlingStatus,
-            sakStatistikkRad.behandlingResultat,
-            sakStatistikkRad.behandlingMetode,
-            sakStatistikkRad.innsatsgruppe,
-            sakStatistikkRad.hovedmal,
-            sakStatistikkRad.opprettetAv,
-            sakStatistikkRad.saksbehandler,
-            sakStatistikkRad.ansvarligBeslutter,
-            sakStatistikkRad.ansvarligEnhet,
-            sakStatistikkRad.avsender,
-            sakStatistikkRad.versjon
-        )
+        try {
+            jdbcTemplate.update(
+                sql,
+                sakStatistikkRad.aktorId,
+                sakStatistikkRad.oppfolgingPeriodeUUID,
+                sakStatistikkRad.behandlingId,
+                sakStatistikkRad.behandlingUuid,
+                sakStatistikkRad.relatertBehandlingId,
+                sakStatistikkRad.relatertFagsystem,
+                sakStatistikkRad.sakId,
+                sakStatistikkRad.mottattTid,
+                sakStatistikkRad.registrertTid,
+                sakStatistikkRad.ferdigbehandletTid,
+                sakStatistikkRad.endretTid,
+                sakStatistikkRad.tekniskTid,
+                sakStatistikkRad.sakYtelse,
+                sakStatistikkRad.behandlingType,
+                sakStatistikkRad.behandlingStatus,
+                sakStatistikkRad.behandlingResultat,
+                sakStatistikkRad.behandlingMetode,
+                sakStatistikkRad.innsatsgruppe,
+                sakStatistikkRad.hovedmal,
+                sakStatistikkRad.opprettetAv,
+                sakStatistikkRad.saksbehandler,
+                sakStatistikkRad.ansvarligBeslutter,
+                sakStatistikkRad.ansvarligEnhet,
+                sakStatistikkRad.avsender,
+                sakStatistikkRad.versjon
+            )
+        } catch (e: Exception) {
+            log.error("Kunne ikke lagre sakStatistikkRad, sakStatistikkRad: {}", sakStatistikkRad)
+        }
     }
 
     fun hentSakStatistikkListeAlt(behandlingId: BigInteger): List<SakStatistikk> {
@@ -97,61 +100,61 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             log.error("Kunne ikke hente sakStatistikkListeAlt", e)
             return emptyList()
         }
-}
-
-fun hentSakStatistikkListe(aktorId: String): List<SakStatistikk> {
-    try {
-    val parameters = MapSqlParameterSource("aktorId", aktorId)
-
-    val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $AKTOR_ID = :aktorId"
-
-    return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
-    } catch (e: Exception) {
-        log.error("Kunne ikke hente sakStatistikkListe", e)
-        return emptyList()
     }
-}
 
-fun hentSakStatistikkListeInnenforOppfolgingsperiode(oppfolgingsperiodeUuid: UUID): List<SakStatistikk> {
-    try {
-    val parameters = MapSqlParameterSource("oppfolgingPeriodeUuid", oppfolgingsperiodeUuid)
+    fun hentSakStatistikkListe(aktorId: String): List<SakStatistikk> {
+        try {
+            val parameters = MapSqlParameterSource("aktorId", aktorId)
 
-    val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $OPPFOLGING_PERIODE_UUID = :oppfolgingPeriodeUuid"
+            val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $AKTOR_ID = :aktorId"
 
-    return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
-    } catch (e: Exception) {
-        log.error("Kunne ikke hente sakStatistikkListeInnenforOppfolgingsperiode", e)
-        return emptyList()
+            return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
+        } catch (e: Exception) {
+            log.error("Kunne ikke hente sakStatistikkListe", e)
+            return emptyList()
+        }
     }
-}
 
-private val sakStatistikkRowMapper: RowMapper<SakStatistikk> = RowMapper { rs, _ ->
-    SakStatistikk(
-        aktorId = rs.getString(AKTOR_ID),
-        oppfolgingPeriodeUUID = rs.getString(OPPFOLGING_PERIODE_UUID)?.let { UUID.fromString(it) },
-        behandlingId = rs.getBigDecimal(BEHANDLING_ID).toBigInteger(),
-        behandlingUuid = rs.getString(BEHANDLING_UUID)?.let { UUID.fromString(it) },
-        relatertBehandlingId = rs.getBigDecimal(RELATERT_BEHANDLING_ID)?.toBigInteger(),
-        relatertFagsystem = rs.getString(RELATERT_FAGSYSTEM),
-        sakId = rs.getString(SAK_ID),
-        mottattTid = rs.getTimestamp(MOTTATT_TID).toLocalDateTime(),
-        registrertTid = rs.getTimestamp(REGISTRERT_TID).toLocalDateTime(),
-        ferdigbehandletTid = rs.getTimestamp(FERDIGBEHANDLET_TID)?.toLocalDateTime(),
-        endretTid = rs.getTimestamp(ENDRET_TID)?.toLocalDateTime(),
-        tekniskTid = rs.getTimestamp(TEKNISK_TID)?.toLocalDateTime(),
-        sakYtelse = rs.getString(SAK_YTELSE),
-        behandlingType = rs.getString(BEHANDLING_TYPE),
-        behandlingStatus = rs.getString(BEHANDLING_STATUS),
-        behandlingResultat = rs.getString(BEHANDLING_RESULTAT),
-        behandlingMetode = rs.getString(BEHANDLING_METODE),
-        innsatsgruppe = rs.getString(INNSATSGRUPPE),
-        hovedmal = rs.getString(HOVEDMAL),
-        opprettetAv = rs.getString(OPPRETTET_AV),
-        saksbehandler = rs.getString(SAKSBEHANDLER),
-        ansvarligBeslutter = rs.getString(ANSVARLIG_BESLUTTER),
-        ansvarligEnhet = rs.getString(ANSVARLIG_ENHET),
-        avsender = rs.getString(AVSENDER),
-        versjon = rs.getString(VERSJON)
-    )
-}
+    fun hentSakStatistikkListeInnenforOppfolgingsperiode(oppfolgingsperiodeUuid: UUID): List<SakStatistikk> {
+        try {
+            val parameters = MapSqlParameterSource("oppfolgingPeriodeUuid", oppfolgingsperiodeUuid)
+
+            val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $OPPFOLGING_PERIODE_UUID = :oppfolgingPeriodeUuid"
+
+            return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
+        } catch (e: Exception) {
+            log.error("Kunne ikke hente sakStatistikkListeInnenforOppfolgingsperiode", e)
+            return emptyList()
+        }
+    }
+
+    private val sakStatistikkRowMapper: RowMapper<SakStatistikk> = RowMapper { rs, _ ->
+        SakStatistikk(
+            aktorId = rs.getString(AKTOR_ID),
+            oppfolgingPeriodeUUID = rs.getString(OPPFOLGING_PERIODE_UUID)?.let { UUID.fromString(it) },
+            behandlingId = rs.getBigDecimal(BEHANDLING_ID).toBigInteger(),
+            behandlingUuid = rs.getString(BEHANDLING_UUID)?.let { UUID.fromString(it) },
+            relatertBehandlingId = rs.getBigDecimal(RELATERT_BEHANDLING_ID)?.toBigInteger(),
+            relatertFagsystem = rs.getString(RELATERT_FAGSYSTEM),
+            sakId = rs.getString(SAK_ID),
+            mottattTid = rs.getTimestamp(MOTTATT_TID).toLocalDateTime(),
+            registrertTid = rs.getTimestamp(REGISTRERT_TID).toLocalDateTime(),
+            ferdigbehandletTid = rs.getTimestamp(FERDIGBEHANDLET_TID)?.toLocalDateTime(),
+            endretTid = rs.getTimestamp(ENDRET_TID)?.toLocalDateTime(),
+            tekniskTid = rs.getTimestamp(TEKNISK_TID)?.toLocalDateTime(),
+            sakYtelse = rs.getString(SAK_YTELSE),
+            behandlingType = rs.getString(BEHANDLING_TYPE),
+            behandlingStatus = rs.getString(BEHANDLING_STATUS),
+            behandlingResultat = rs.getString(BEHANDLING_RESULTAT),
+            behandlingMetode = rs.getString(BEHANDLING_METODE),
+            innsatsgruppe = rs.getString(INNSATSGRUPPE),
+            hovedmal = rs.getString(HOVEDMAL),
+            opprettetAv = rs.getString(OPPRETTET_AV),
+            saksbehandler = rs.getString(SAKSBEHANDLER),
+            ansvarligBeslutter = rs.getString(ANSVARLIG_BESLUTTER),
+            ansvarligEnhet = rs.getString(ANSVARLIG_ENHET),
+            avsender = rs.getString(AVSENDER),
+            versjon = rs.getString(VERSJON)
+        )
+    }
 }
