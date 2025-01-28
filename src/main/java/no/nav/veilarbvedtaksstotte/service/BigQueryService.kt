@@ -28,7 +28,6 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String) {
             "behandling_id" to sakStatistikk.behandlingId.toInt(),
             "aktor_id" to sakStatistikk.aktorId,
             "oppfolging_periode_uuid" to sakStatistikk.oppfolgingPeriodeUUID.toString(),
-            "behandling_uuid" to sakStatistikk.behandlingUuid.toString(),
             "relatert_behandling_id" to sakStatistikk.relatertBehandlingId?.toInt(),
             "relatert_fagsystem" to sakStatistikk.relatertFagsystem,
             "sak_id" to sakStatistikk.sakId,

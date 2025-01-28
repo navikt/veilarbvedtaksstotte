@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.utils
 
+import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -26,6 +27,14 @@ object TimeUtils {
     @JvmStatic
     fun toInstant(localDateTime: LocalDateTime): Instant {
         return toZonedDateTime(localDateTime).toInstant()
+    }
+
+    @JvmStatic
+    fun toTimestampOrNull(instant: Instant?): Timestamp? {
+        if (instant == null) {
+            return null
+        }
+        return Timestamp.from(instant)
     }
 
     @JvmStatic
