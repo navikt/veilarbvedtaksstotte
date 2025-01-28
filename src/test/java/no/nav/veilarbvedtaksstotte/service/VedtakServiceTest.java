@@ -37,6 +37,7 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adres
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
+import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.Målform;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
@@ -45,6 +46,7 @@ import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -131,6 +133,9 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final PdfService pdfService = mock(PdfService.class);
     private static final VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
     private static final DefaultUnleash  unleashClient = mock(DefaultUnleash.class);
+    private static final BigQueryService bigQueryService = mock(BigQueryService.class);
+    private static final EnvironmentProperties environmentProperties = mock(EnvironmentProperties.class);
+    private static final Siste14aVedtakService siste14aVedtakService = mock(Siste14aVedtakService.class);
 
     @BeforeAll
     public static void setupOnce() {
@@ -138,11 +143,12 @@ public class VedtakServiceTest extends DatabaseTest {
         kilderRepository = spy(new KilderRepository(jdbcTemplate));
         meldingRepository = spy(new MeldingRepository(jdbcTemplate));
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
+        sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
         SakStatistikkRepository sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
-        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, unleashClient);
+        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, bigQueryService, unleashClient, environmentProperties, vedtaksstotteRepository, siste14aVedtakService);
 
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(arbeidssoekerRegistretService);
@@ -168,8 +174,8 @@ public class VedtakServiceTest extends DatabaseTest {
                 dokumentService,
                 veilarbarenaService,
                 metricsService,
-                leaderElectionClient,
-                sakStatistikkService);
+                leaderElectionClient
+                );
     }
 
     @BeforeEach
@@ -551,6 +557,8 @@ public class VedtakServiceTest extends DatabaseTest {
             assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
             assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
             assertOyeblikksbildeForFattetVedtak(sendtVedtak.getId());
+
+             List<SakStatistikk> sakStatistikk = sakStatistikkRepository.hentSakStatistikkListe(sendtVedtak.getAktorId());
         });
         verify(vedtakHendelserService).vedtakSendt(any());
     }

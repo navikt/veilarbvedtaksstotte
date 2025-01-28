@@ -55,11 +55,12 @@ public class MetricsService {
         return ldt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
-    public void rapporterMetrikkerForFattetVedtak(Vedtak vedtak) {
+    public void rapporterMetrikkerForFattetVedtak(Vedtak vedtak, Fnr fnr) {
         try {
             rapporterVedtakSendt(vedtak);
             rapporterTidFraRegistrering(vedtak);
             rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak);
+     //       sakStatistikkService.lagreSakstatistikkrad(vedtak, fnr);
         } catch (Exception e) {
             log.warn("Klarte ikke rapportere metrikker for fattet vedtak", e);
         }
