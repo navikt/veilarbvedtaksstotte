@@ -1,7 +1,10 @@
 package no.nav.veilarbvedtaksstotte.repository
 
+import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
+import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.statistikk.*
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
@@ -12,6 +15,8 @@ import java.math.BigInteger
 import java.util.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.math.BigDecimal
+import java.time.ZonedDateTime
 
 @Repository
 class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
@@ -60,7 +65,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         try {
             jdbcTemplate.update(
                 sql,
-                sakStatistikkRad.aktorId,
+                sakStatistikkRad.aktorId.get(),
                 sakStatistikkRad.oppfolgingPeriodeUUID,
                 sakStatistikkRad.behandlingId,
                 sakStatistikkRad.relatertBehandlingId,
@@ -72,7 +77,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 TimeUtils.toTimestampOrNull(sakStatistikkRad.endretTid),
                 TimeUtils.toTimestampOrNull(sakStatistikkRad.tekniskTid),
                 sakStatistikkRad.sakYtelse,
-                sakStatistikkRad.behandlingType.name,
+                sakStatistikkRad.behandlingType?.name,
                 sakStatistikkRad.behandlingStatus.name,
                 sakStatistikkRad.behandlingResultat?.name,
                 sakStatistikkRad.behandlingMetode.name,
@@ -128,9 +133,42 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         }
     }
 
+
+    fun hentForrigeVedtakFraSammeOppfolgingsperiode(startOppfolgingsperiodeDato: ZonedDateTime, aktorId: AktorId, fnr: Fnr, gjeldendeVedtakId: BigInteger): Siste14aSaksstatistikk? {
+        val sql = """
+            SELECT vedtak_id as id, fra_dato as fattet_dato, 'ARENA' AS kilde
+            FROM ARENA_VEDTAK
+            WHERE FNR = ?
+            AND FRA_DATO > ?
+            UNION ALL
+            SELECT id, vedtak_fattet as fattet_dato, 'VEDTAKSSTOTTE' AS kilde
+            FROM VEDTAK
+            WHERE AKTOR_ID = ?
+            AND VEDTAK_FATTET > ? AND ID != ?
+        """.trimIndent()
+        return jdbcTemplate.query(
+            sql,
+            rowMapper,
+            fnr.get(),
+            TimeUtils.toTimestampOrNull(startOppfolgingsperiodeDato.toInstant()),
+            aktorId.get(),
+            TimeUtils.toTimestampOrNull(startOppfolgingsperiodeDato.toInstant()),
+            gjeldendeVedtakId
+        ).maxByOrNull { it.fattet_dato }
+    }
+
+    private val rowMapper: RowMapper<Siste14aSaksstatistikk> = RowMapper { rs, _ ->
+        Siste14aSaksstatistikk(
+            id = rs.getString("id").toBigInteger(),
+            fattet_dato = rs.getTimestamp("fattet_dato").toInstant(),
+            fraArena = rs.getString("kilde") == "ARENA"
+        )
+    }
+
+
     private val sakStatistikkRowMapper: RowMapper<SakStatistikk> = RowMapper { rs, _ ->
         SakStatistikk(
-            aktorId = rs.getString(AKTOR_ID),
+            aktorId = AktorId.of(rs.getString(AKTOR_ID)),
             oppfolgingPeriodeUUID = UUID.fromString(rs.getString(OPPFOLGING_PERIODE_UUID)),
             behandlingId = rs.getString(BEHANDLING_ID).toBigInteger(),
             relatertBehandlingId = rs.getString(RELATERT_BEHANDLING_ID)?.toBigInteger(),

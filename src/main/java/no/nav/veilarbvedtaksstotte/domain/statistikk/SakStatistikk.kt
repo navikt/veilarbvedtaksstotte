@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.domain.statistikk
 
+import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import java.math.BigInteger
@@ -9,28 +10,28 @@ import java.util.*
 const val SAK_YTELSE = "ARBEIDSRETTET_OPPFOLGINGSBEHOV"
 
 data class SakStatistikk(
-    val behandlingId: BigInteger,
-    val aktorId: String,
+    val behandlingId: BigInteger? = null,
+    val aktorId: AktorId,
     val relatertBehandlingId: BigInteger? = null,
     val relatertFagsystem: Fagsystem? = null,
     val sakId: String? = null,
-    val mottattTid: Instant,
-    val registrertTid: Instant,
+    val mottattTid: Instant? = null,
+    val registrertTid: Instant? = null,
     val ferdigbehandletTid: Instant? = null,
-    val endretTid: Instant,
+    val endretTid: Instant? = null,
     val tekniskTid: Instant? = null,
     val sakYtelse: String? = null,
-    val behandlingType: BehandlingType,
+    val behandlingType: BehandlingType? = null,
     val behandlingStatus: BehandlingStatus,
     val behandlingResultat: BehandlingResultat? = null,
     val behandlingMetode: BehandlingMetode,
-    val opprettetAv: String,
-    val saksbehandler: String,
+    val opprettetAv: String? = null,
+    val saksbehandler: String? = null,
     val ansvarligBeslutter: String? = null,
     val ansvarligEnhet: EnhetId? = null,
     val avsender: Fagsystem = Fagsystem.OPPFOLGINGSVEDTAK_14A,
     val versjon: String? = null,
-    val oppfolgingPeriodeUUID: UUID,
+    val oppfolgingPeriodeUUID: UUID? = null,
     val innsatsgruppe: BehandlingResultat? = null,
     val hovedmal: HovedmalNy? = null
 )
