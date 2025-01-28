@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import no.nav.veilarbvedtaksstotte.annotations.EksterntEndepunkt;
 import no.nav.veilarbvedtaksstotte.controller.dto.KodeverkDTO;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalDetaljert;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.InnsatsgruppeDetaljert;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class KodeverkController {
     KodeverkDTO kodeverk = new KodeverkDTO();
 
+    @EksterntEndepunkt
     @GetMapping("/innsatsgruppe")
     @Operation(
             summary = "Hent kodeverk for innsatsgruppe",
@@ -42,6 +44,7 @@ public class KodeverkController {
         return kodeverk.getInnsatsgrupper();
     }
 
+    @EksterntEndepunkt
     @GetMapping("/hovedmal")
     @Operation(
             summary = "Hent kodeverk for hovedmål",
@@ -60,6 +63,7 @@ public class KodeverkController {
         return kodeverk.getHovedmal();
     }
 
+    @EksterntEndepunkt
     @GetMapping("/innsatsgruppeoghovedmal")
     @Operation(
             summary = "Hent kodeverk for innsatsgruppe og hovedmål",
