@@ -1,6 +1,13 @@
+# IntelliJ
 .idea/*
 !.idea/runConfigurations/
 *.iml
 
+# Genererte filer
 target/
+
+# jenv
+.java-version
+
+# Diverse
 bash.exe.stackdump
