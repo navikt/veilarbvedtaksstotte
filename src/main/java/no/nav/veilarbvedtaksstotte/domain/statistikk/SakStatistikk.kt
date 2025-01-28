@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.domain.statistikk
 
 import no.nav.common.types.identer.EnhetId
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import java.math.BigInteger
 import java.time.Instant
@@ -33,7 +32,7 @@ data class SakStatistikk(
     val versjon: String? = null,
     val oppfolgingPeriodeUUID: UUID,
     val innsatsgruppe: BehandlingResultat? = null,
-    val hovedmal: Hovedmal? = null
+    val hovedmal: HovedmalNy? = null
 )
 
 enum class BehandlingType {
@@ -74,4 +73,9 @@ enum class BehandlingMetode {
 enum class Fagsystem {
     ARENA,
     OPPFOLGINGSVEDTAK_14A
+}
+
+enum class HovedmalNy {
+    SKAFFE_ARBEID,
+    BEHOLDE_ARBEID
 }

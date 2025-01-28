@@ -1,13 +1,7 @@
 package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.EnhetId
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingType
-import no.nav.veilarbvedtaksstotte.domain.statistikk.Fagsystem
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
+import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
@@ -154,7 +148,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             behandlingResultat = rs.getString(BEHANDLING_RESULTAT)?.let { BehandlingResultat.valueOf(it) },
             behandlingMetode = BehandlingMetode.valueOf(rs.getString(BEHANDLING_METODE)),
             innsatsgruppe = rs.getString(INNSATSGRUPPE)?.let { BehandlingResultat.valueOf(it) },
-            hovedmal = rs.getString(HOVEDMAL)?.let { Hovedmal.valueOf(it) },
+            hovedmal = rs.getString(HOVEDMAL)?.let { HovedmalNy.valueOf(it) },
             opprettetAv = rs.getString(OPPRETTET_AV),
             saksbehandler = rs.getString(SAKSBEHANDLER),
             ansvarligBeslutter = rs.getString(ANSVARLIG_BESLUTTER),

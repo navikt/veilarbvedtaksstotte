@@ -2,14 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingType
-import no.nav.veilarbvedtaksstotte.domain.statistikk.Fagsystem
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SAK_YTELSE
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
+import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -51,7 +44,7 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
             behandlingResultat = BehandlingResultat.GODE_MULIGHETER,
             behandlingMetode = BehandlingMetode.MANUELL,
             innsatsgruppe = BehandlingResultat.GODE_MULIGHETER,
-            hovedmal = Hovedmal.SKAFFE_ARBEID,
+            hovedmal = HovedmalNy.BEHOLDE_ARBEID,
             opprettetAv = "Z123456",
             saksbehandler = "Z123456",
             ansvarligBeslutter = "Z123456",
