@@ -5,13 +5,7 @@ import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingType
-import no.nav.veilarbvedtaksstotte.domain.statistikk.Fagsystem
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SAK_YTELSE
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
-import no.nav.veilarbvedtaksstotte.domain.statistikk.toBehandlingResultat
+import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -91,7 +85,7 @@ class SakStatistikkService @Autowired constructor(
                 behandlingResultat = vedtak.innsatsgruppe.toBehandlingResultat(),
                 behandlingMetode = BehandlingMetode.MANUELL,
                 innsatsgruppe = vedtak.innsatsgruppe.toBehandlingResultat(),
-                hovedmal = vedtak.hovedmal,
+                hovedmal = HovedmalNy.valueOf(vedtak.hovedmal.toString()),
                 opprettetAv = vedtak.veilederIdent,
                 saksbehandler = vedtak.veilederIdent,
                 ansvarligBeslutter = vedtak.veilederIdent, // dersom kvalitetssikrer så blir dette en annen
