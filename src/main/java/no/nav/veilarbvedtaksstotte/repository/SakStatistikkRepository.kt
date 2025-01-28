@@ -87,7 +87,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 sakStatistikkRad.versjon
             )
         } catch (e: Exception) {
-            log.error("Kunne ikke lagre sakStatistikkRad, sakStatistikkRad: {}", sakStatistikkRad)
+            log.error("Kunne ikke lagre sakStatistikkRad, feil: {} , sakStatistikkRad: {}", e, sakStatistikkRad)
         }
     }
 
