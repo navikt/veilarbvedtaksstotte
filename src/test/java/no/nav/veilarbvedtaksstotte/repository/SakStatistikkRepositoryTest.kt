@@ -30,7 +30,7 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
             aktorId = "2004140973848",
             oppfolgingPeriodeUUID = UUID.fromString("1a930d0d-6931-403e-852c-b85e39673aaf"),
             behandlingId = 3001.toBigInteger(),
-            relatertBehandlingId = null,
+            relatertBehandlingId = 3000.toBigInteger(),
             relatertFagsystem = null,
             sakId = "Arbeidsoppfølging",
             mottattTid = Instant.now().minus(2, ChronoUnit.DAYS),

@@ -42,7 +42,7 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String) {
             "behandling_resultat" to sakStatistikk.behandlingResultat,
             "behandling_metode" to sakStatistikk.behandlingMetode,
             "innsatsgruppe" to sakStatistikk.innsatsgruppe,
-            "hovedmal" to sakStatistikk.hovedmal,
+            "hovedmal" to sakStatistikk.hovedmal?.name,
             "opprettet_av" to sakStatistikk.opprettetAv,
             "saksbehandler" to sakStatistikk.saksbehandler,
             "ansvarlig_beslutter" to sakStatistikk.ansvarligBeslutter,

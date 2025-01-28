@@ -63,9 +63,8 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 sakStatistikkRad.aktorId,
                 sakStatistikkRad.oppfolgingPeriodeUUID,
                 sakStatistikkRad.behandlingId,
-
                 sakStatistikkRad.relatertBehandlingId,
-                sakStatistikkRad.relatertFagsystem,
+                sakStatistikkRad.relatertFagsystem?.name,
                 sakStatistikkRad.sakId,
                 TimeUtils.toTimestampOrNull(sakStatistikkRad.mottattTid),
                 TimeUtils.toTimestampOrNull(sakStatistikkRad.registrertTid),
