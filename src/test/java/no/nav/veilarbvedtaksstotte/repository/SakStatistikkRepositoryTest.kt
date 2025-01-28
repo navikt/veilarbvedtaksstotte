@@ -27,7 +27,7 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
     fun `lagre statistikkrad vedtak`() {
 
         val statistikkRad = SakStatistikk(
-            aktorId = "2004140973848",
+            aktorId = AktorId.of("2004140973848"),
             oppfolgingPeriodeUUID = UUID.fromString("1a930d0d-6931-403e-852c-b85e39673aaf"),
             behandlingId = 3001.toBigInteger(),
             relatertBehandlingId = 3000.toBigInteger(),
@@ -65,7 +65,7 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
             relatertBehandlingId = null,
             relatertFagsystem = null,
             sakId = null,
-            aktorId = "2004140973848",
+            aktorId = AktorId.of("2004140973848"),
             mottattTid = Instant.now().minus(2, ChronoUnit.DAYS),
             registrertTid = Instant.now(),
             ferdigbehandletTid = null,
