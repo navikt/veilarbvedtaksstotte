@@ -46,8 +46,6 @@ public class MetricsService {
 
     private final AktorOppslagClient aktorOppslagClient;
 
-    private final SakStatistikkService sakStatistikkService;
-
 
     private static Event createMetricEvent(String tagName) {
         return new Event(APPLICATION_NAME + ".metrikker." + tagName);
@@ -62,7 +60,7 @@ public class MetricsService {
             rapporterVedtakSendt(vedtak);
             rapporterTidFraRegistrering(vedtak);
             rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak);
-            sakStatistikkService.lagreSakstatistikkrad(vedtak, fnr);
+     //       sakStatistikkService.lagreSakstatistikkrad(vedtak, fnr);
         } catch (Exception e) {
             log.warn("Klarte ikke rapportere metrikker for fattet vedtak", e);
         }
