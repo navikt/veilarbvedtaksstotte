@@ -7,14 +7,14 @@ import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.time.format.DateTimeFormatter
 
 
 @Service
-class BigQueryService(@Value("\${gcp.projectId}") val projectId: String) {
-    private final val DATASET_NAME = "sak_statistikk_dataset_test"
-    private final val TABLE_NAME = "14a_vedtak_tabell"
-    val vedtakStatistikkTable = TableId.of(DATASET_NAME, TABLE_NAME)
+class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
+                      @Value("\${gcp.bq.datasetName}") val datasetName: String,
+                      @Value("\${gcp.bq.tableName}") val tableName: String) {
+
+    val vedtakStatistikkTable = TableId.of(datasetName, tableName)
 
     val bigQuery = BigQueryOptions.newBuilder().setProjectId(projectId).build().service
     val log = LoggerFactory.getLogger(BigQueryService::class.java)

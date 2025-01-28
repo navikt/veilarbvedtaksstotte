@@ -108,6 +108,12 @@ spec:
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-q2
     - name: ENDRING_PA_OPPFOLGINGSBRUKER_TOPIC
       value: pto.endring-paa-oppfolgingsbruker-v2
+    # BigQuery
+    - name: BQ_DATASET_NAME
+      value: sak_statistikk_dataset_test
+    - name: BQ_TABLE_NAME
+      value: 14a_vedtak_tabell
+
   azure:
     application:
       allowAllUsers: true
