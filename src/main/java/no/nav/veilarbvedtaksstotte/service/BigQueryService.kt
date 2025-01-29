@@ -33,7 +33,6 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
             "sak_id" to sakStatistikk.sakId,
             "mottatt_tid" to sakStatistikk.mottattTid.toString(),
             "registrert_tid" to sakStatistikk.registrertTid.toString(),
-            "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid.toString(),
             "endret_tid" to sakStatistikk.endretTid.toString(),
             "teknisk_tid" to sakStatistikk.tekniskTid.toString(),
             "sak_ytelse" to sakStatistikk.sakYtelse,
@@ -50,7 +49,12 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
             "avsender" to sakStatistikk.avsender.name,
             "versjon" to sakStatistikk.versjon,
         )
-        val moteEvent = vedtakStatistikkTable.insertRequest(vedtakStatistikkRow)
+        val vedtaksstatistikkTilBigQuery = vedtakStatistikkRow.apply {
+            if (sakStatistikk.ferdigbehandletTid != null) {
+                "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid.toString()
+            }
+        }
+        val moteEvent = vedtakStatistikkTable.insertRequest(vedtaksstatistikkTilBigQuery)
         insertWhileToleratingErrors(moteEvent)
     }
     private fun insertWhileToleratingErrors(insertRequest: InsertAllRequest) {
