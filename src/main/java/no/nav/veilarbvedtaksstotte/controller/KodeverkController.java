@@ -68,17 +68,17 @@ public class KodeverkController {
     @Operation(
             summary = "Hent kodeverk for innsatsgruppe og hovedmål",
             description = """
-            Henter kodeverket for både innsatsgruppe og hovedmål.
-            
-            En innsatsgruppe representerer konklusjonen i et § 14 a-vedtak. Med konklusjon menes hvilken/hvor mye arbeidsrettet oppfølging en bruker har rett på.
-            Et hovedmål representerer brukers mål med den arbeidsrettede oppfølgingen og er en del av begrunnelsen i et § 14 a-vedtak.
-            """,
+                    Henter kodeverket for både innsatsgruppe og hovedmål.
+                    
+                    En innsatsgruppe representerer konklusjonen i et § 14 a-vedtak. Med konklusjon menes hvilken/hvor mye arbeidsrettet oppfølging en bruker har rett på.
+                    Et hovedmål representerer brukers mål med den arbeidsrettede oppfølgingen og er en del av begrunnelsen i et § 14 a-vedtak.
+                    """,
             responses = {
                     @ApiResponse(
                             responseCode = "200",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    array = @ArraySchema(schema = @Schema(implementation = KodeverkDTO.class))
+                                    schema = @Schema(implementation = KodeverkDTO.class)
                             )
                     )
             }
