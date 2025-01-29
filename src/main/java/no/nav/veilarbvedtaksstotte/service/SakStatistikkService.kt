@@ -1,7 +1,9 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import io.getunleash.DefaultUnleash
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
+import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties
@@ -20,6 +22,7 @@ import java.time.ZoneOffset
 class SakStatistikkService @Autowired constructor(
     private val sakStatistikkRepository: SakStatistikkRepository,
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
+    private val aktorOppslagClient: AktorOppslagClient,
     private val bigQueryService: BigQueryService,
     private val unleashClient: DefaultUnleash,
     private val environmentProperties: EnvironmentProperties
@@ -42,7 +45,7 @@ class SakStatistikkService @Autowired constructor(
                 sakStatistikkRepository.insertSakStatistikkRad(populertMedOppfolgingsperiodeData)
                 bigQueryService.logEvent(populertMedOppfolgingsperiodeData)
             } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre sakstatistikk", e)
+                secureLog.error("Kunne ikke lagre fattetvedtak - sakstatistikk", e)
             }
         }
     }
@@ -66,17 +69,19 @@ class SakStatistikkService @Autowired constructor(
                 sakStatistikkRepository.insertSakStatistikkRad(populertMedOppfolgingsperiodeData)
                 bigQueryService.logEvent(populertMedOppfolgingsperiodeData)
             } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre sakstatistikk", e)
+                secureLog.error("Kunne ikke lagre opprettutkast - sakstatistikk", e)
             }
         }
     }
     fun slettetUtkast(
-        vedtak: Vedtak, fnr: Fnr
+        vedtak: Vedtak
     ) {
         val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
         if (statistikkPaa) {
             val statistikkRad = SakStatistikk(
-                aktorId = AktorId(vedtak.aktorId),
+                aktorId = aktorId,
                 behandlingStatus = BehandlingStatus.AVBRUTT,
                 behandlingMetode = BehandlingMetode.MANUELL,
             )
@@ -89,7 +94,7 @@ class SakStatistikkService @Autowired constructor(
                 sakStatistikkRepository.insertSakStatistikkRad(populertMedOppfolgingsperiodeData)
                 bigQueryService.logEvent(populertMedOppfolgingsperiodeData)
             } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre sakstatistikk", e)
+                secureLog.error("Kunne ikke lagre slettetutkast - sakstatistikk", e)
             }
         }
     }
@@ -106,12 +111,13 @@ class SakStatistikkService @Autowired constructor(
     private fun populerSakstatistikkMedVedtakData(sakStatistikk: SakStatistikk, vedtak: Vedtak): SakStatistikk {
         return sakStatistikk.copy(
             behandlingId = vedtak.id.toBigInteger(),
-            registrertTid = vedtak.utkastOpprettet.toInstant(ZoneOffset.UTC),
-            behandlingResultat = vedtak.innsatsgruppe.toBehandlingResultat(),
-            innsatsgruppe = vedtak.innsatsgruppe.toBehandlingResultat(),
-            hovedmal = HovedmalNy.valueOf(vedtak.hovedmal.toString()),
+            registrertTid = vedtak.utkastOpprettet?.toInstant(ZoneOffset.UTC),
+            behandlingResultat = vedtak.innsatsgruppe?.toBehandlingResultat(),
+            innsatsgruppe = vedtak.innsatsgruppe?.toBehandlingResultat(),
+            hovedmal = vedtak.hovedmal?.let { HovedmalNy.valueOf(it.toString())},
             opprettetAv = vedtak.veilederIdent,
             saksbehandler = vedtak.veilederIdent,
+            ansvarligEnhet = vedtak.oppfolgingsenhetId?.let { EnhetId.of(it) },
         )
     }
     private fun populerSakStatistikkMedOppfolgingsperiodeData(sakStatistikk: SakStatistikk, fnr: Fnr): SakStatistikk {
@@ -128,7 +134,7 @@ class SakStatistikkService @Autowired constructor(
             sakId = sakId.toString(),
 
             relatertBehandlingId = tidligereVedtakIOppfolgingsperioden?.id,
-            relatertFagsystem =  if (tidligereVedtakIOppfolgingsperioden != null) relatertFagsystem else null,
+            relatertFagsystem =  tidligereVedtakIOppfolgingsperioden?.let { relatertFagsystem },
             behandlingType = if (tidligereVedtakIOppfolgingsperioden != null) BehandlingType.REVURDERING else BehandlingType.FORSTEGANGSBEHANDLING
         )
 

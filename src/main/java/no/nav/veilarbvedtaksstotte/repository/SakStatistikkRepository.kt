@@ -146,16 +146,15 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             WHERE AKTOR_ID = ?
             AND VEDTAK_FATTET > ? AND ID != ?
         """.trimIndent()
-
-         return jdbcTemplate.query(
-             sql,
-             rowMapper,
-             fnr.get(),
-             startOppfolgingsperiodeDato,
-             aktorId.get(),
-             startOppfolgingsperiodeDato,
-             gjeldendeVedtakId
-         ).maxByOrNull { it.fattet_dato }
+        return jdbcTemplate.query(
+            sql,
+            rowMapper,
+            fnr.get(),
+            TimeUtils.toTimestampOrNull(startOppfolgingsperiodeDato.toInstant()),
+            aktorId.get(),
+            TimeUtils.toTimestampOrNull(startOppfolgingsperiodeDato.toInstant()),
+            gjeldendeVedtakId
+        ).maxByOrNull { it.fattet_dato }
     }
 
     private val rowMapper: RowMapper<Siste14aSaksstatistikk> = RowMapper { rs, _ ->
