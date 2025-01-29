@@ -7,6 +7,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -114,7 +115,7 @@ public class VedtakHendelserService {
                 new Siste14aVedtak(
                         AktorId.of(vedtak.getAktorId()),
                         vedtak.getInnsatsgruppe(),
-                        Siste14aVedtak.HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal()),
+                        HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal()),
                         toZonedDateTime(vedtak.getVedtakFattet()),
                         false));
     }

@@ -11,7 +11,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal.BEHOLDE_ARBEID
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID
