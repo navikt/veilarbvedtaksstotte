@@ -54,8 +54,9 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
                 "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid.toString()
             }
         }
-        val moteEvent = vedtakStatistikkTable.insertRequest(vedtaksstatistikkTilBigQuery)
-        insertWhileToleratingErrors(moteEvent)
+        val vedtaksstatistikkTilBigQuery = vedtakStatistikkRow.filter { it.value != null }
+        val vedtak14aEvent = vedtakStatistikkTable.insertRequest(vedtaksstatistikkTilBigQuery)
+        insertWhileToleratingErrors(vedtak14aEvent)
     }
     private fun insertWhileToleratingErrors(insertRequest: InsertAllRequest) {
         runCatching {

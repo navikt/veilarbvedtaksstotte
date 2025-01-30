@@ -6,6 +6,7 @@ import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import org.junit.Assert.assertNull
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
