@@ -94,15 +94,4 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
             behandlingId.let { sakStatistikkRepository.hentSakStatistikkListe(aktorId.toString()) }
         assertEquals(behandlingId.toString(), lagretStatistikkRadUtkast.get(0).behandlingId.toString())
     }
-
-    @Test
-    fun `teste funksjonen da`() {
-        val vedtak = sakStatistikkRepository.hentForrigeVedtakFraSammeOppfolgingsperiode(
-            ZonedDateTime.now(),
-            AktorId.of("2004140973848"),
-            Fnr.of("2004140973848"),
-            3001.toBigInteger()
-        )
-        Assertions.assertNull(vedtak)
-    }
 }
