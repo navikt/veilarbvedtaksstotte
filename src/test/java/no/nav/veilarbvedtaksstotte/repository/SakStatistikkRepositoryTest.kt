@@ -2,12 +2,16 @@ package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
+import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
+import org.junit.Assert.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import java.time.Instant
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 
@@ -27,7 +31,7 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
     fun `lagre statistikkrad vedtak`() {
 
         val statistikkRad = SakStatistikk(
-            aktorId = "2004140973848",
+            aktorId = AktorId.of("2004140973848"),
             oppfolgingPeriodeUUID = UUID.fromString("1a930d0d-6931-403e-852c-b85e39673aaf"),
             behandlingId = 3001.toBigInteger(),
             relatertBehandlingId = 3000.toBigInteger(),
@@ -65,7 +69,7 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
             relatertBehandlingId = null,
             relatertFagsystem = null,
             sakId = null,
-            aktorId = "2004140973848",
+            aktorId = AktorId.of("2004140973848"),
             mottattTid = Instant.now().minus(2, ChronoUnit.DAYS),
             registrertTid = Instant.now(),
             ferdigbehandletTid = null,
@@ -90,5 +94,16 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
         val lagretStatistikkRadUtkast =
             behandlingId.let { sakStatistikkRepository.hentSakStatistikkListe(aktorId.toString()) }
         assertEquals(behandlingId.toString(), lagretStatistikkRadUtkast.get(0).behandlingId.toString())
+    }
+
+    @Test
+    fun `teste funksjonen da`() {
+        val vedtak = sakStatistikkRepository.hentForrigeVedtakFraSammeOppfolgingsperiode(
+            ZonedDateTime.now(),
+            AktorId.of("2004140973848"),
+            Fnr.of("2004140973848"),
+            3001.toBigInteger()
+        )
+        assertNull(vedtak)
     }
 }
