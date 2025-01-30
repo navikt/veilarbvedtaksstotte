@@ -26,7 +26,7 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
     fun logEvent(sakStatistikk: SakStatistikk) {
         val vedtakStatistikkRow = mapOf(
             "behandling_id" to sakStatistikk.behandlingId?.toInt(),
-            "aktor_id" to sakStatistikk.aktorId.get(),
+            "aktor_id" to sakStatistikk.aktorId?.get(),
             "oppfolging_periode_uuid" to sakStatistikk.oppfolgingPeriodeUUID.toString(),
             "relatert_behandling_id" to sakStatistikk.relatertBehandlingId?.toInt(),
             "relatert_fagsystem" to sakStatistikk.relatertFagsystem?.name,
