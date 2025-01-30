@@ -4,7 +4,6 @@ import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.statistikk.*
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
@@ -15,7 +14,6 @@ import java.math.BigInteger
 import java.util.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @Repository
@@ -65,7 +63,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         try {
             jdbcTemplate.update(
                 sql,
-                sakStatistikkRad.aktorId.get(),
+                sakStatistikkRad.aktorId?.get(),
                 sakStatistikkRad.oppfolgingPeriodeUUID,
                 sakStatistikkRad.behandlingId,
                 sakStatistikkRad.relatertBehandlingId,
@@ -154,13 +152,13 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             aktorId.get(),
             TimeUtils.toTimestampOrNull(startOppfolgingsperiodeDato.toInstant()),
             gjeldendeVedtakId
-        ).maxByOrNull { it.fattet_dato }
+        ).maxByOrNull { it.fattetDato }
     }
 
     private val rowMapper: RowMapper<Siste14aSaksstatistikk> = RowMapper { rs, _ ->
         Siste14aSaksstatistikk(
             id = rs.getString("id").toBigInteger(),
-            fattet_dato = rs.getTimestamp("fattet_dato").toInstant(),
+            fattetDato = rs.getTimestamp("fattet_dato").toInstant(),
             fraArena = rs.getString("kilde") == "ARENA"
         )
     }

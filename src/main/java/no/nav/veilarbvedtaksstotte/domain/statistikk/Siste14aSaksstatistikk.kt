@@ -5,6 +5,6 @@ import java.time.Instant
 
 data class Siste14aSaksstatistikk(
     val id: BigInteger,
-    val fattet_dato: Instant,
+    val fattetDato: Instant,
     val fraArena: Boolean,
 )

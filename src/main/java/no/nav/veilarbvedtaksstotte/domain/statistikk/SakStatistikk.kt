@@ -11,7 +11,7 @@ const val SAK_YTELSE = "ARBEIDSRETTET_OPPFOLGINGSBEHOV"
 
 data class SakStatistikk(
     val behandlingId: BigInteger? = null,
-    val aktorId: AktorId,
+    val aktorId: AktorId? = null,
     val relatertBehandlingId: BigInteger? = null,
     val relatertFagsystem: Fagsystem? = null,
     val sakId: String? = null,
@@ -79,4 +79,56 @@ enum class Fagsystem {
 enum class HovedmalNy {
     SKAFFE_ARBEID,
     BEHOLDE_ARBEID
+}
+
+
+fun SakStatistikk.validate() {
+    if (behandlingId == null) {
+        throw IllegalStateException("behandlingId kan ikke være null")
+    }
+    if (aktorId == null) {
+        throw IllegalStateException("aktorId kan ikke være null")
+    }
+    if (mottattTid == null) {
+        throw IllegalStateException("mottattTid kan ikke være null")
+    }
+    if (registrertTid == null) {
+        throw IllegalStateException("registrertTid kan ikke være null")
+    }
+    if (endretTid == null) {
+        throw IllegalStateException("endretTid kan ikke være null")
+    }
+    if (tekniskTid == null) {
+        throw IllegalStateException("tekniskTid kan ikke være null")
+    }
+    if (sakYtelse == null) {
+        throw IllegalStateException("sakYtelse kan ikke være null")
+    }
+    if (behandlingType == null) {
+        throw IllegalStateException("behandlingType kan ikke være null")
+    }
+    if (behandlingStatus == null) {
+        throw IllegalStateException("behandlingStatus kan ikke være null")
+    }
+    if (behandlingMetode == null) {
+        throw IllegalStateException("behandlingMetode kan ikke være null")
+    }
+    if (opprettetAv == null) {
+        throw IllegalStateException("opprettetAv kan ikke være null")
+    }
+    if (saksbehandler == null) {
+        throw IllegalStateException("saksbehandler kan ikke være null")
+    }
+    if (ansvarligEnhet == null) {
+        throw IllegalStateException("ansvarligEnhet kan ikke være null")
+    }
+    if (avsender == null) {
+        throw IllegalStateException("avsender kan ikke være null")
+    }
+    if (versjon == null) {
+        throw IllegalStateException("versjon kan ikke være null")
+    }
+    if (oppfolgingPeriodeUUID == null) {
+        throw IllegalStateException("oppfolgingPeriodeUUID kan ikke være null")
+    }
 }
