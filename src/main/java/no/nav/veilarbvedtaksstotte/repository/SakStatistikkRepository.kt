@@ -65,7 +65,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         try {
             jdbcTemplate.update(
                 sql,
-                sakStatistikkRad.aktorId.get(),
+                sakStatistikkRad.aktorId?.get(),
                 sakStatistikkRad.oppfolgingPeriodeUUID,
                 sakStatistikkRad.behandlingId,
                 sakStatistikkRad.relatertBehandlingId,
