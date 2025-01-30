@@ -79,7 +79,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
         private var oyeblikksbildeService: OyeblikksbildeService? = null
         private var authService: AuthService? = null
         private var sakStatistikkService: SakStatistikkService? = null
-
         private val unleashClient: DefaultUnleash = mock()
         private val leaderElectionClient: LeaderElectionClient = mock()
         private val vedtakHendelserService: VedtakHendelserService = mock()
@@ -101,7 +100,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
         private val veilarboppfolgingClient: VeilarboppfolgingClient = mock()
         private val bigQueryService: BigQueryService = mock()
         private val environmentProperties: EnvironmentProperties = mock()
-        private val siste14aVedtakService: Siste14aVedtakService = mock()
+        private val sakStatistikkService2: SakStatistikkService = mock()
 
         @JvmStatic
         @BeforeAll
@@ -155,7 +154,8 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 dokumentService,
                 veilarbarenaService,
                 metricsService,
-                leaderElectionClient
+                leaderElectionClient,
+                sakStatistikkService2
             )
         }
     }
@@ -242,8 +242,8 @@ class SakStatistikkServiceTest : DatabaseTest() {
             .thenReturn(mockedOppfolgingsSak)
 
         sakStatistikkService = SakStatistikkService(
-            sakStatistikkRepository!!, veilarboppfolgingClient, bigQueryService, unleashClient, environmentProperties,
-            vedtaksstotteRepository!!, siste14aVedtakService)
+            sakStatistikkRepository!!, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, unleashClient, environmentProperties,
+            )
     }
 
     @Test
@@ -253,14 +253,15 @@ class SakStatistikkServiceTest : DatabaseTest() {
             fattVedtak()
             val vedtaket = hentVedtak()
             println("Vedtaket $vedtaket")
-            sakStatistikkService!!.lagreSakstatistikkrad(vedtaket, TestData.TEST_FNR)
+            sakStatistikkService!!.fattetVedtak(vedtaket, TestData.TEST_FNR)
             val statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            println("Statistikkliste fattet lengde ${statistikkListe.size}")
             Assertions.assertFalse(
                 statistikkListe.isEmpty(),
                 "Statistikklista skal ikke være tom"
             )
-            val lagretRad = statistikkListe[0]
+            val lagretRad = statistikkListe.last()
             Assertions.assertEquals(
                 BehandlingStatus.FATTET,
                 lagretRad.behandlingStatus,
@@ -278,14 +279,15 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 val utkastet =
                     vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
                 println("Utkastet $utkastet")
-                sakStatistikkService!!.lagreSakstatistikkrad(utkastet, TestData.TEST_FNR)
+                sakStatistikkService!!.opprettetUtkast(utkastet, TestData.TEST_FNR)
                 val statistikkListe =
                     sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+                println("Statistikkliste utkast lengde ${statistikkListe.size}")
                 Assertions.assertFalse(
                     statistikkListe.isEmpty(),
                     "Statistikklista skal ikke være tom"
                 )
-                val lagretRad = statistikkListe[0]
+                val lagretRad = statistikkListe.last()
                 Assertions.assertEquals(
                     BehandlingStatus.UNDER_BEHANDLING,
                     lagretRad.behandlingStatus,
