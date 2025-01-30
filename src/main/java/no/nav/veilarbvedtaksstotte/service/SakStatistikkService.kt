@@ -26,7 +26,7 @@ class SakStatistikkService @Autowired constructor(
     private val unleashClient: DefaultUnleash,
     private val environmentProperties: EnvironmentProperties,
     private val vedtaksstotteRepository: VedtaksstotteRepository,
-    private val siste14aVedtakService: Siste14aVedtakService
+    private val siste14aVedtakService: Siste14aVedtakService,
 
 ) {
     fun lagreSakstatistikkrad(vedtak: Vedtak, fnr: Fnr) {
