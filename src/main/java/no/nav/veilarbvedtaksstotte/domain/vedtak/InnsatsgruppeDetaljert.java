@@ -1,8 +1,5 @@
 package no.nav.veilarbvedtaksstotte.domain.vedtak;
 
-import lombok.Getter;
-
-@Getter
 public enum InnsatsgruppeDetaljert {
     STANDARD_INNSATS(Innsatsgruppe.STANDARD_INNSATS, "Gode muligheter", ArenaInnsatsgruppeKode.IKVAL),
     SITUASJONSBESTEMT_INNSATS(Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, "Trenger veiledning", ArenaInnsatsgruppeKode.BFORM),
@@ -10,9 +7,21 @@ public enum InnsatsgruppeDetaljert {
     GRADERT_VARIG_TILPASSET_INNSATS(Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS, "Jobbe delvis", ArenaInnsatsgruppeKode.VARIG),
     VARIG_TILPASSET_INNSATS(Innsatsgruppe.VARIG_TILPASSET_INNSATS, "Liten mulighet til å jobbe", ArenaInnsatsgruppeKode.VARIG);
 
-    final Innsatsgruppe kode;
-    final String beskrivelse;
-    final ArenaInnsatsgruppeKode arenaKode;
+    public Innsatsgruppe getKode() {
+        return this.kode;
+    }
+
+    public String getBeskrivelse() {
+        return this.beskrivelse;
+    }
+
+    public ArenaInnsatsgruppeKode getArenaKode() {
+        return this.arenaKode;
+    }
+
+    private final Innsatsgruppe kode;
+    private final String beskrivelse;
+    private final ArenaInnsatsgruppeKode arenaKode;
 
     InnsatsgruppeDetaljert(Innsatsgruppe kode, String beskrivelse, ArenaInnsatsgruppeKode arenaKode) {
         this.kode = kode;

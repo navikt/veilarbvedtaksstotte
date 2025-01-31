@@ -40,7 +40,7 @@ class KodeverkController {
         )]
     )
     fun getInnsatsgrupper(): List<InnsatsgruppeKodeverkDTO> {
-        return kodeverk.innsatsgruppe
+        return kodeverk.innsatsgrupper
     }
 
     @EksterntEndepunkt
@@ -65,12 +65,10 @@ class KodeverkController {
     @Operation(
         summary = "Hent kodeverk for innsatsgruppe og hovedmål",
         description = """
-                    Henter kodeverket for både innsatsgruppe og hovedmål.
-                    
-                    En innsatsgruppe representerer konklusjonen i et § 14 a-vedtak. Med konklusjon menes hvilken/hvor mye arbeidsrettet oppfølging en bruker har rett på.
-                    Et hovedmål representerer brukers mål med den arbeidsrettede oppfølgingen og er en del av begrunnelsen i et § 14 a-vedtak.
-                    
-                    """,
+    Henter kodeverket for både innsatsgruppe og hovedmål.
+
+    En innsatsgruppe representerer konklusjonen i et § 14 a-vedtak. Med konklusjon menes hvilken/hvor mye arbeidsrettet oppfølging en bruker har rett på.
+    Et hovedmål representerer brukers mål med den arbeidsrettede oppfølgingen og er en del av begrunnelsen i et § 14 a-vedtak.""",
         responses = [ApiResponse(
             responseCode = "200",
             content = [Content(
@@ -85,11 +83,11 @@ class KodeverkController {
 
     private fun lagKodeverk(): KodeverkDTO {
         return KodeverkDTO(
-            innsatsgruppe = InnsatsgruppeDetaljert.entries.map {
+            innsatsgrupper = InnsatsgruppeDetaljert.entries.map {
                 InnsatsgruppeKodeverkDTO(
                     kode = it.kode,
                     beskrivelse = it.beskrivelse,
-                    arenaKode = it.arenaKode
+                    arenakode = it.arenaKode
                 )
             },
             hovedmal = HovedmalDetaljert.entries.map {
