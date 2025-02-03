@@ -32,7 +32,7 @@ class AuthService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun sjekkVeilederTilgangTilBruker(tilgangType: TilgangType = TilgangType.SKRIVE, fnr: Fnr) {
+    fun sjekkVeilederTilgangTilBruker(tilgangType: TilgangType, fnr: Fnr) {
         sjekkVeilederTilgangTilBruker(
             tilgangType = tilgangType,
             fnrSupplier = { fnr },
@@ -40,7 +40,7 @@ class AuthService(
         )
     }
 
-    fun sjekkTilgangTilBrukerOgEnhet(tilgangType: TilgangType = TilgangType.SKRIVE, fnr: Fnr): AuthKontekst {
+    fun sjekkTilgangTilBrukerOgEnhet(tilgangType: TilgangType, fnr: Fnr): AuthKontekst {
         return sjekkTilgangTilBrukerOgEnhet(
             tilgangType = tilgangType,
             fnrSupplier = { fnr },
@@ -48,7 +48,7 @@ class AuthService(
         )
     }
 
-    fun sjekkTilgangTilBrukerOgEnhet(tilgangType: TilgangType = TilgangType.SKRIVE, aktorId: AktorId): AuthKontekst {
+    fun sjekkTilgangTilBrukerOgEnhet(tilgangType: TilgangType, aktorId: AktorId): AuthKontekst {
         return sjekkTilgangTilBrukerOgEnhet(
             tilgangType = tilgangType,
             fnrSupplier = { aktorOppslagClient.hentFnr(aktorId) },

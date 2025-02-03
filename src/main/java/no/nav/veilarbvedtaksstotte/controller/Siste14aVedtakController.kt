@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.common.types.identer.Fnr
+import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.controller.dto.Siste14aVedtakDTO
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
@@ -38,7 +39,7 @@ class Siste14aVedtakController(
                 throw ResponseStatusException(HttpStatus.FORBIDDEN);
             }
         } else {
-            authService.sjekkVeilederTilgangTilBruker(fnr = fnr)
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.LESE, fnr = fnr)
         }
     }
 }

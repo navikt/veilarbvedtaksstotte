@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.controller
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.common.types.identer.Fnr
+import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
 import org.apache.commons.lang3.RandomStringUtils
@@ -81,7 +82,7 @@ class Siste14aVedtakControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr = fnr)
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.SKRIVE, fnr = fnr)
         } answers { }
 
         val response = mockMvc.perform(MockMvcRequestBuilders.get("/api/siste-14a-vedtak").queryParam("fnr", fnr.get()))
@@ -98,7 +99,7 @@ class Siste14aVedtakControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr = fnr)
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.SKRIVE, fnr = fnr)
         } throws ResponseStatusException(HttpStatus.FORBIDDEN)
 
         val response = mockMvc.perform(MockMvcRequestBuilders.get("/api/siste-14a-vedtak").queryParam("fnr", fnr.get()))

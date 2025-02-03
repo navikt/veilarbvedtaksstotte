@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.controller.v2
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.common.types.identer.Fnr
+import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
@@ -39,7 +40,7 @@ class UtkastV2ControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr = fnr)
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.SKRIVE, fnr = fnr)
         } answers { }
 
         every {
