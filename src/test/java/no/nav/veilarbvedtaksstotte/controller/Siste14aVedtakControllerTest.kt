@@ -81,7 +81,7 @@ class Siste14aVedtakControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr)
+            authService.sjekkVeilederTilgangTilBruker(fnr = fnr)
         } answers { }
 
         val response = mockMvc.perform(MockMvcRequestBuilders.get("/api/siste-14a-vedtak").queryParam("fnr", fnr.get()))
@@ -98,7 +98,7 @@ class Siste14aVedtakControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr)
+            authService.sjekkVeilederTilgangTilBruker(fnr = fnr)
         } throws ResponseStatusException(HttpStatus.FORBIDDEN)
 
         val response = mockMvc.perform(MockMvcRequestBuilders.get("/api/siste-14a-vedtak").queryParam("fnr", fnr.get()))

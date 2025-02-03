@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
@@ -68,7 +69,7 @@ public class VedtakService {
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(vedtak);
 
         if (veilarbarenaService.erBrukerInaktivIArena(Fnr.of(authKontekst.getFnr()))) {
@@ -157,12 +158,12 @@ public class VedtakService {
 
     public BeslutterProsessStatus hentBeslutterprosessStatus(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         return utkast.getBeslutterProsessStatus();
     }
 
     public Vedtak hentUtkast(Fnr fnr) {
-        AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(fnr);
+        AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr);
         String aktorId = authKontekst.getAktorId();
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
@@ -176,7 +177,7 @@ public class VedtakService {
     }
 
     public void lagUtkast(Fnr fnr) {
-        AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(fnr);
+        AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr);
         String aktorId = authKontekst.getAktorId();
 
         if (vedtaksstotteRepository.hentUtkast(aktorId) != null) {
@@ -199,7 +200,7 @@ public class VedtakService {
 
     public void oppdaterUtkast(long vedtakId, OppdaterUtkastDTO vedtakDTO) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
 
         oppdaterUtkastFraDto(utkast, vedtakDTO);
@@ -248,7 +249,7 @@ public class VedtakService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Kun utkast kan slettes");
         }
 
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
 
         slettUtkast(utkast);
@@ -271,7 +272,7 @@ public class VedtakService {
     }
 
     public List<Vedtak> hentFattedeVedtak(Fnr fnr) {
-        String aktorId = authService.sjekkTilgangTilBrukerOgEnhet(fnr).getAktorId();
+        String aktorId = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr).getAktorId();
         List<Vedtak> vedtak = vedtaksstotteRepository.hentFattedeVedtak(aktorId);
 
         vedtak.forEach(this::flettInnVedtakInformasjon);
@@ -289,7 +290,7 @@ public class VedtakService {
     public byte[] produserDokumentUtkast(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
 
-        AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
         flettInnOpplysinger(utkast);
 
@@ -301,7 +302,7 @@ public class VedtakService {
         if (vedtak == null || !SENDT.equals(vedtak.getVedtakStatus())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke fattet vedtak");
         }
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         return safClient.hentVedtakPdf(vedtak.getJournalpostId(), vedtak.getDokumentInfoId());
     }
 
@@ -310,7 +311,7 @@ public class VedtakService {
         if (vedtak == null || !SENDT.equals(vedtak.getVedtakStatus())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke fattet vedtak");
         }
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         return safClient.hentVedtakPdf(vedtak.getJournalpostId(), dokumentInfoId);
     }
 
@@ -320,14 +321,14 @@ public class VedtakService {
     }
 
     public boolean harUtkast(Fnr fnr) {
-        String aktorId = authService.sjekkTilgangTilBrukerOgEnhet(fnr).getAktorId();
+        String aktorId = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr).getAktorId();
         return vedtaksstotteRepository.hentUtkast(aktorId) != null;
     }
 
     public void taOverUtkast(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
 
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         Veileder veileder = veilederService.hentVeileder(innloggetVeilederIdent);

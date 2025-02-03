@@ -39,7 +39,7 @@ class UtkastV2ControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr)
+            authService.sjekkVeilederTilgangTilBruker(fnr = fnr)
         } answers { }
 
         every {

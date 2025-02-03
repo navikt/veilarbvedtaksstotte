@@ -60,7 +60,7 @@ class Siste14aVedtakV2Controller(
         } else if (authService.erEksternBruker()) {
             authService.sjekkEksternbrukerTilgangTilBruker(fnr)
         } else {
-            authService.sjekkVeilederTilgangTilBruker(fnr)
+            authService.sjekkVeilederTilgangTilBruker(fnr = fnr)
         }
     }
 }
