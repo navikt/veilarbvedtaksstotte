@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.common.types.identer.Fnr
+import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
@@ -96,7 +97,7 @@ class Siste14aVedtakV2ControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr = fnr)
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.LESE, fnr = fnr)
         } answers { }
 
         val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
@@ -119,7 +120,7 @@ class Siste14aVedtakV2ControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr = fnr)
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.LESE, fnr = fnr)
         } throws ResponseStatusException(HttpStatus.FORBIDDEN)
 
         val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")

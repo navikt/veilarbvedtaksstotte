@@ -77,7 +77,7 @@ public class BeslutterServiceTest {
     @BeforeEach
     public void setup() {
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
-        doReturn(authKontekst).when(authService).sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, any(Fnr.class));
+        doReturn(authKontekst).when(authService).sjekkTilgangTilBrukerOgEnhet(eq(TilgangType.SKRIVE), any(Fnr.class));
         doReturn(TEST_FNR).when(authService).getFnrOrThrow(TEST_AKTOR_ID);
 
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
