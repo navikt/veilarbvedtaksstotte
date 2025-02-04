@@ -47,7 +47,9 @@ import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO
 import no.nav.veilarbvedtaksstotte.domain.Målform
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
+import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
@@ -67,7 +69,6 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.collections.listOf
 
 class SakStatistikkServiceTest : DatabaseTest() {
     companion object {
@@ -157,11 +158,13 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 leaderElectionClient,
                 sakStatistikkService2
             )
+
         }
     }
 
     @BeforeEach
     fun setup() {
+
         DbTestUtils.cleanupDb(jdbcTemplate)
         reset(veilederService, meldingRepository, unleashClient, dokarkivClient, vedtakHendelserService)
 
@@ -240,61 +243,154 @@ class SakStatistikkServiceTest : DatabaseTest() {
             .thenReturn(mockedOppfolgingsPeriode)
         whenever(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any()))
             .thenReturn(mockedOppfolgingsSak)
+        whenever(environmentProperties.naisAppImage)
+            .thenReturn("naisAppImage")
 
         sakStatistikkService = SakStatistikkService(
-            sakStatistikkRepository!!, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, unleashClient, environmentProperties,
-            )
+            sakStatistikkRepository!!,
+            veilarboppfolgingClient,
+            aktorOppslagClient,
+            bigQueryService,
+            unleashClient,
+            environmentProperties,
+        )
     }
 
     @Test
-    fun legg_til_statistikkrad_naar_vedtak_er_fattet() {
+    fun alle_statistikktester() {
+
+        //legg_til_statistikkrad_naar_vedtak_er_fattet
+
         withContext {
             gittUtkastKlarForUtsendelse()
             fattVedtak()
             val vedtaket = hentVedtak()
             println("Vedtaket $vedtaket")
             sakStatistikkService!!.fattetVedtak(vedtaket, TestData.TEST_FNR)
-            val statistikkListe =
+            var statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
             println("Statistikkliste fattet lengde ${statistikkListe.size}")
             Assertions.assertFalse(
                 statistikkListe.isEmpty(),
                 "Statistikklista skal ikke være tom"
             )
-            val lagretRad = statistikkListe.last()
+            var lagretRad = statistikkListe.last()
             Assertions.assertEquals(
                 BehandlingStatus.FATTET,
                 lagretRad.behandlingStatus,
                 "Behandling status skal være FATTET"
             )
+
+            //legg_til_statistikkrad_naar_utkast_er_opprettet() {
+
+            vedtakService!!.lagUtkast(TestData.TEST_FNR)
+            var utkastet =
+                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            println("Utkastet $utkastet")
+             sakStatistikkService!!.opprettetUtkast(utkastet, TestData.TEST_FNR)
+            statistikkListe =
+                sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            println("Statistikkliste utkast lengde ${statistikkListe.size}")
+            Assertions.assertFalse(
+                statistikkListe.isEmpty(),
+                "Statistikklista skal ikke være tom"
+            )
+            lagretRad = statistikkListe.last()
+            Assertions.assertEquals(
+                BehandlingStatus.UNDER_BEHANDLING,
+                lagretRad.behandlingStatus,
+                "Behandling status skal være UNDER_BEHANDLING"
+            )
+
+            //legg_til_statistikkrad_naar_utkast_slettes
+
+            utkastet =
+                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            println("Utkast som skal slettes $utkastet")
+            vedtakService!!.slettUtkast(utkastet)
+             sakStatistikkService!!.slettetUtkast(utkastet)
+            statistikkListe =
+                sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            println("Statistikkliste utkast lengde ${statistikkListe.size}")
+            Assertions.assertFalse(
+                statistikkListe.isEmpty(),
+                "Statistikklista skal ikke være tom"
+            )
+            lagretRad = statistikkListe.last()
+            Assertions.assertEquals(
+                BehandlingStatus.AVBRUTT,
+                lagretRad.behandlingStatus,
+                "Behandling status skal være AVBRUTT"
+            )
+
+            //legg_til_statistikkrad_utkast_som_er_revurdering
+
+            vedtakService!!.lagUtkast(TestData.TEST_FNR)
+            utkastet =
+                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            println("Utkast som er revurdering $utkastet")
+            sakStatistikkService!!.opprettetUtkast(utkastet, TestData.TEST_FNR)
+            statistikkListe =
+                sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            println("Statistikkliste revurdering lengde ${statistikkListe.size}")
+            Assertions.assertFalse(
+                statistikkListe.isEmpty(),
+                "Statistikklista skal ikke være tom"
+            )
+            lagretRad = statistikkListe.last()
+            Assertions.assertEquals(
+                BehandlingStatus.UNDER_BEHANDLING,
+                lagretRad.behandlingStatus,
+                "Behandling status skal være UNDER_BEHANDLING"
+            )
+            Assertions.assertEquals(
+                lagretRad.relatertBehandlingId,
+                statistikkListe.first().behandlingId,
+                "Relatert behandling id skal være lik 1 (første vedtak)"
+            )
+
+            //Legg til statistikkrad som er totrinns behandling
+
+            val behandlingsId = statistikkListe.last().behandlingId?.toLong()
+            val oppdaterDto = OppdaterUtkastDTO()
+                .setHovedmal(Hovedmal.SKAFFE_ARBEID)
+                .setBegrunnelse("En begrunnelse")
+                .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
+                .setOpplysninger(
+                    Arrays.asList(
+                        VedtakOpplysningKilder.REGISTRERING.desc,
+                        VedtakOpplysningKilder.EGENVURDERING.desc,
+                        VedtakOpplysningKilder.CV.desc,
+                        VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.desc
+                    )
+                )
+            vedtakService!!.oppdaterUtkast(
+                behandlingsId!!,
+                oppdaterDto
+            )
+            utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            utkastet.setBeslutterIdent(TestData.TEST_BESLUTTER_IDENT)
+            utkastet.setBeslutterNavn(TestData.TEST_BESLUTTER_NAVN)
+            utkastet.setBeslutterProsessStatus(BeslutterProsessStatus.GODKJENT_AV_BESLUTTER)
+            vedtaksstotteRepository!!.oppdaterUtkast(utkastet.id, utkastet)
+            println("Utkast som er totrinns $utkastet")
+            vedtaksstotteRepository!!.ferdigstillVedtak(utkastet.id)
+            sakStatistikkService!!.fattetVedtak(vedtaksstotteRepository!!.hentVedtak(utkastet.id), TestData.TEST_FNR)
+            statistikkListe =
+                sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            println("Statistikkliste totrinns behandling lengde ${statistikkListe.size}")
+            Assertions.assertFalse(
+                statistikkListe.isEmpty(),
+                "Statistikklista skal ikke være tom"
+            )
+            lagretRad = statistikkListe.last()
+            Assertions.assertEquals(
+                BehandlingMetode.TOTRINNS,
+                lagretRad.behandlingMetode,
+                "Behandling metode skal være TOTRINNS"
+            )
         }
     }
-
-
-        @Test
-        fun legg_til_statistikkrad_naar_utkast_er_opprettet() {
-            withContext {
-                gittTilgang()
-                vedtakService!!.lagUtkast(TestData.TEST_FNR)
-                val utkastet =
-                    vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
-                println("Utkastet $utkastet")
-                sakStatistikkService!!.opprettetUtkast(utkastet, TestData.TEST_FNR)
-                val statistikkListe =
-                    sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-                println("Statistikkliste utkast lengde ${statistikkListe.size}")
-                Assertions.assertFalse(
-                    statistikkListe.isEmpty(),
-                    "Statistikklista skal ikke være tom"
-                )
-                val lagretRad = statistikkListe.last()
-                Assertions.assertEquals(
-                    BehandlingStatus.UNDER_BEHANDLING,
-                    lagretRad.behandlingStatus,
-                    "Behandling status skal være UNDER_BEHANDLING"
-                )
-            }
-        }
 
     private fun gittTilgang() {
         whenever(utrullingService.erUtrullet(any())).thenReturn(true)
@@ -319,7 +415,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 .setBegrunnelse("En begrunnelse")
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
                 .setOpplysninger(
-                    Arrays.asList(
+                    listOf(
                         VedtakOpplysningKilder.CV.desc,
                         VedtakOpplysningKilder.EGENVURDERING.desc,
                         VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.desc
@@ -351,7 +447,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
             vedtakService!!.fattVedtak(utkast.id)
         }
     }
-
+   
     private fun testCvData(): String {
         return readTestResourceFile("testdata/oyeblikksbilde-cv.json")
     }
@@ -393,7 +489,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
 
     private val mockedOppfolgingsPeriode: Optional<OppfolgingPeriodeDTO>
         get() {
-            val oppfolgingsPeriode =OppfolgingPeriodeDTO()
+            val oppfolgingsPeriode = OppfolgingPeriodeDTO()
             oppfolgingsPeriode.uuid = UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
             oppfolgingsPeriode.startDato =
                 ZonedDateTime.of(
