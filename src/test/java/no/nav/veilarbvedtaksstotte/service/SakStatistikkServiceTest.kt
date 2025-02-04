@@ -270,9 +270,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
             var statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
             println("Statistikkliste fattet lengde ${statistikkListe.size}")
-            Assertions.assertFalse(
-                statistikkListe.isEmpty(),
-                "Statistikklista skal ikke være tom"
+            Assertions.assertTrue(
+                statistikkListe.size == 1,
+                "Statistikklista skal ha lengde 1"
             )
             var lagretRad = statistikkListe.last()
             Assertions.assertEquals(
@@ -291,9 +291,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
             println("Statistikkliste utkast lengde ${statistikkListe.size}")
-            Assertions.assertFalse(
-                statistikkListe.isEmpty(),
-                "Statistikklista skal ikke være tom"
+            Assertions.assertTrue(
+                statistikkListe.size == 2,
+                "Statistikklista skal ha lengde 2"
             )
             lagretRad = statistikkListe.last()
             Assertions.assertEquals(
@@ -312,9 +312,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
             println("Statistikkliste utkast lengde ${statistikkListe.size}")
-            Assertions.assertFalse(
-                statistikkListe.isEmpty(),
-                "Statistikklista skal ikke være tom"
+            Assertions.assertTrue(
+                statistikkListe.size == 3,
+                "Statistikklista skal ha lengde 3"
             )
             lagretRad = statistikkListe.last()
             Assertions.assertEquals(
@@ -333,9 +333,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
             println("Statistikkliste revurdering lengde ${statistikkListe.size}")
-            Assertions.assertFalse(
-                statistikkListe.isEmpty(),
-                "Statistikklista skal ikke være tom"
+            Assertions.assertTrue(
+                statistikkListe.size == 4,
+                "Statistikklista skal ha lengde 4"
             )
             lagretRad = statistikkListe.last()
             Assertions.assertEquals(
@@ -379,9 +379,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
             println("Statistikkliste totrinns behandling lengde ${statistikkListe.size}")
-            Assertions.assertFalse(
-                statistikkListe.isEmpty(),
-                "Statistikklista skal ikke være tom"
+            Assertions.assertTrue(
+                statistikkListe.size == 5,
+                "Statistikklista skal ha lengde 5"
             )
             lagretRad = statistikkListe.last()
             Assertions.assertEquals(
