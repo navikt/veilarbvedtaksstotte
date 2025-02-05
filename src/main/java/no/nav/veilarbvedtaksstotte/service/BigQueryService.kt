@@ -25,19 +25,19 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
 
     fun logEvent(sakStatistikk: SakStatistikk) {
         val vedtakStatistikkRow = mapOf(
-            "behandling_id" to sakStatistikk.behandlingId.toInt(),
-            "aktor_id" to sakStatistikk.aktorId,
+            "behandling_id" to sakStatistikk.behandlingId?.toInt(),
+            "aktor_id" to sakStatistikk.aktorId?.get(),
             "oppfolging_periode_uuid" to sakStatistikk.oppfolgingPeriodeUUID.toString(),
             "relatert_behandling_id" to sakStatistikk.relatertBehandlingId?.toInt(),
             "relatert_fagsystem" to sakStatistikk.relatertFagsystem?.name,
             "sak_id" to sakStatistikk.sakId,
             "mottatt_tid" to sakStatistikk.mottattTid.toString(),
             "registrert_tid" to sakStatistikk.registrertTid.toString(),
-            "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid.toString(),
+            "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid?.let { it.toString() },
             "endret_tid" to sakStatistikk.endretTid.toString(),
             "teknisk_tid" to sakStatistikk.tekniskTid.toString(),
             "sak_ytelse" to sakStatistikk.sakYtelse,
-            "behandling_type" to sakStatistikk.behandlingType.name,
+            "behandling_type" to sakStatistikk.behandlingType?.name,
             "behandling_status" to sakStatistikk.behandlingStatus.name,
             "behandling_resultat" to sakStatistikk.behandlingResultat?.name,
             "behandling_metode" to sakStatistikk.behandlingMetode.name,
@@ -50,8 +50,9 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
             "avsender" to sakStatistikk.avsender.name,
             "versjon" to sakStatistikk.versjon,
         )
-        val moteEvent = vedtakStatistikkTable.insertRequest(vedtakStatistikkRow)
-        insertWhileToleratingErrors(moteEvent)
+        val vedtaksstatistikkTilBigQuery = vedtakStatistikkRow.filter { it.value != null }
+        val vedtak14aEvent = vedtakStatistikkTable.insertRequest(vedtaksstatistikkTilBigQuery)
+        insertWhileToleratingErrors(vedtak14aEvent)
     }
     private fun insertWhileToleratingErrors(insertRequest: InsertAllRequest) {
         runCatching {
