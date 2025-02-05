@@ -269,7 +269,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
             sakStatistikkService!!.fattetVedtak(vedtaket, TestData.TEST_FNR)
             var statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-            println("Statistikkliste fattet lengde ${statistikkListe.size}")
+        //    println("Statistikkliste fattet lengde ${statistikkListe.size}")
             Assertions.assertTrue(
                 statistikkListe.size == 1,
                 "Statistikklista skal ha lengde 1"
@@ -286,11 +286,11 @@ class SakStatistikkServiceTest : DatabaseTest() {
             vedtakService!!.lagUtkast(TestData.TEST_FNR)
             var utkastet =
                 vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
-            println("Utkastet $utkastet")
+        //    println("Utkastet $utkastet")
              sakStatistikkService!!.opprettetUtkast(utkastet, TestData.TEST_FNR)
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-            println("Statistikkliste utkast lengde ${statistikkListe.size}")
+        //    println("Statistikkliste utkast lengde ${statistikkListe.size}")
             Assertions.assertTrue(
                 statistikkListe.size == 2,
                 "Statistikklista skal ha lengde 2"
@@ -306,12 +306,12 @@ class SakStatistikkServiceTest : DatabaseTest() {
 
             utkastet =
                 vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
-            println("Utkast som skal slettes $utkastet")
+        //    println("Utkast som skal slettes $utkastet")
             vedtakService!!.slettUtkast(utkastet)
              sakStatistikkService!!.slettetUtkast(utkastet)
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-            println("Statistikkliste utkast lengde ${statistikkListe.size}")
+        //    println("Statistikkliste utkast lengde ${statistikkListe.size}")
             Assertions.assertTrue(
                 statistikkListe.size == 3,
                 "Statistikklista skal ha lengde 3"
@@ -328,11 +328,11 @@ class SakStatistikkServiceTest : DatabaseTest() {
             vedtakService!!.lagUtkast(TestData.TEST_FNR)
             utkastet =
                 vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
-            println("Utkast som er revurdering $utkastet")
+        //    println("Utkast som er revurdering $utkastet")
             sakStatistikkService!!.opprettetUtkast(utkastet, TestData.TEST_FNR)
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-            println("Statistikkliste revurdering lengde ${statistikkListe.size}")
+        //    println("Statistikkliste revurdering lengde ${statistikkListe.size}")
             Assertions.assertTrue(
                 statistikkListe.size == 4,
                 "Statistikklista skal ha lengde 4"
@@ -357,7 +357,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 .setBegrunnelse("En begrunnelse")
                 .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
                 .setOpplysninger(
-                    Arrays.asList(
+                    listOf(
                         VedtakOpplysningKilder.REGISTRERING.desc,
                         VedtakOpplysningKilder.EGENVURDERING.desc,
                         VedtakOpplysningKilder.CV.desc,
@@ -373,12 +373,12 @@ class SakStatistikkServiceTest : DatabaseTest() {
             utkastet.setBeslutterNavn(TestData.TEST_BESLUTTER_NAVN)
             utkastet.setBeslutterProsessStatus(BeslutterProsessStatus.GODKJENT_AV_BESLUTTER)
             vedtaksstotteRepository!!.oppdaterUtkast(utkastet.id, utkastet)
-            println("Utkast som er totrinns $utkastet")
+        //    println("Utkast som er totrinns $utkastet")
             vedtaksstotteRepository!!.ferdigstillVedtak(utkastet.id)
             sakStatistikkService!!.fattetVedtak(vedtaksstotteRepository!!.hentVedtak(utkastet.id), TestData.TEST_FNR)
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-            println("Statistikkliste totrinns behandling lengde ${statistikkListe.size}")
+        //    println("Statistikkliste totrinns behandling lengde ${statistikkListe.size}")
             Assertions.assertTrue(
                 statistikkListe.size == 5,
                 "Statistikklista skal ha lengde 5"
