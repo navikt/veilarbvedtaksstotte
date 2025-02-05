@@ -79,9 +79,10 @@ class SakStatistikkService @Autowired constructor(
         vedtak: Vedtak
     ) {
         val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
-        val aktorId = AktorId(vedtak.aktorId)
-        val fnr = aktorOppslagClient.hentFnr(aktorId)
         if (statistikkPaa) {
+            val aktorId = AktorId(vedtak.aktorId)
+            val fnr = aktorOppslagClient.hentFnr(aktorId)
+
             val statistikkRad = SakStatistikk(
                 behandlingStatus = BehandlingStatus.AVBRUTT,
                 behandlingMetode = BehandlingMetode.MANUELL,
