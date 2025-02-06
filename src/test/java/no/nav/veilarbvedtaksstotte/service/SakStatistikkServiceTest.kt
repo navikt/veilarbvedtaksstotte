@@ -265,11 +265,11 @@ class SakStatistikkServiceTest : DatabaseTest() {
             gittUtkastKlarForUtsendelse()
             fattVedtak()
             val vedtaket = hentVedtak()
-            println("Vedtaket $vedtaket")
+            //    println("Vedtaket $vedtaket")
             sakStatistikkService!!.fattetVedtak(vedtaket, TestData.TEST_FNR)
             var statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-        //    println("Statistikkliste fattet lengde ${statistikkListe.size}")
+            println("Statistikkliste fattet lengde ${statistikkListe.size}")
             Assertions.assertTrue(
                 statistikkListe.size == 1,
                 "Statistikklista skal ha lengde 1"
@@ -280,17 +280,77 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 lagretRad.behandlingStatus,
                 "Behandling status skal være FATTET"
             )
+            Assertions.assertNotNull(
+                lagretRad.behandlingResultat,
+                "Behandling resultat skal finnes"
+            )
+            Assertions.assertNotNull(
+                lagretRad.mottattTid,
+                "Mottatt tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.registrertTid,
+                "Registrert tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.ferdigbehandletTid,
+                "Ferdigbehandlet tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.endretTid,
+                "Endret tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.tekniskTid,
+                "Teknisk tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.opprettetAv,
+                "Opprettet av skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.saksbehandler,
+                "Saksbehandler skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.ansvarligEnhet,
+                "Ansvarlig enhet skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.behandlingMetode,
+                "Behandlingsmetode skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.avsender,
+                "Avsender skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.versjon,
+                "Versjon skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.oppfolgingPeriodeUUID,
+                "OppfolgingsperiodeUUID skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.innsatsgruppe,
+                "Innsatsgruppe skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.hovedmal,
+                "Hovedmål av skal være utfylt"
+            )
 
             //legg_til_statistikkrad_naar_utkast_er_opprettet() {
 
             vedtakService!!.lagUtkast(TestData.TEST_FNR)
             var utkastet =
                 vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
-        //    println("Utkastet $utkastet")
-             sakStatistikkService!!.opprettetUtkast(utkastet, TestData.TEST_FNR)
+            println("Utkastet $utkastet")
+            sakStatistikkService!!.opprettetUtkast(utkastet, TestData.TEST_FNR)
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-        //    println("Statistikkliste utkast lengde ${statistikkListe.size}")
+            println("Statistikkliste utkast lengde ${statistikkListe.size}")
             Assertions.assertTrue(
                 statistikkListe.size == 2,
                 "Statistikklista skal ha lengde 2"
@@ -301,17 +361,69 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 lagretRad.behandlingStatus,
                 "Behandling status skal være UNDER_BEHANDLING"
             )
+            Assertions.assertNull(
+                lagretRad.behandlingResultat,
+                "Behandling resultat skal være null"
+            )
+            Assertions.assertNotNull(
+                lagretRad.mottattTid,
+                "Mottatt tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.registrertTid,
+                "Registrert tid skal være utfylt"
+            )
+            Assertions.assertNull(
+                lagretRad.ferdigbehandletTid,
+                "Ferdigbehandlet tid skal være null"
+            )
+            Assertions.assertNotNull(
+                lagretRad.endretTid,
+                "Endret tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.tekniskTid,
+                "Teknisk tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.opprettetAv,
+                "Opprettet av skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.saksbehandler,
+                "Saksbehandler skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.ansvarligEnhet,
+                "Ansvarlig enhet skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.behandlingMetode,
+                "Behandlingsmetode skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.avsender,
+                "Avsender skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.versjon,
+                "Versjon skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.oppfolgingPeriodeUUID,
+                "OppfolgingsperiodeUUID skal være utfylt"
+            )
 
             //legg_til_statistikkrad_naar_utkast_slettes
 
             utkastet =
                 vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
-        //    println("Utkast som skal slettes $utkastet")
+            println("Utkast som skal slettes $utkastet")
             vedtakService!!.slettUtkast(utkastet)
-             sakStatistikkService!!.slettetUtkast(utkastet)
+            sakStatistikkService!!.slettetUtkast(utkastet)
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-        //    println("Statistikkliste utkast lengde ${statistikkListe.size}")
+            println("Statistikkliste utkast lengde ${statistikkListe.size}")
             Assertions.assertTrue(
                 statistikkListe.size == 3,
                 "Statistikklista skal ha lengde 3"
@@ -322,17 +434,68 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 lagretRad.behandlingStatus,
                 "Behandling status skal være AVBRUTT"
             )
-
+            Assertions.assertNull(
+                lagretRad.behandlingResultat,
+                "Behandling resultat skal være null"
+            )
+            Assertions.assertNotNull(
+                lagretRad.mottattTid,
+                "Mottatt tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.registrertTid,
+                "Registrert tid skal være utfylt"
+            )
+            Assertions.assertNull(
+                lagretRad.ferdigbehandletTid,
+                "Ferdigbehandlet tid skal være null"
+            )
+            Assertions.assertNotNull(
+                lagretRad.endretTid,
+                "Endret tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.tekniskTid,
+                "Teknisk tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.opprettetAv,
+                "Opprettet av skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.saksbehandler,
+                "Saksbehandler skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.ansvarligEnhet,
+                "Ansvarlig enhet skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.behandlingMetode,
+                "Behandlingsmetode skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.avsender,
+                "Avsender skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.versjon,
+                "Versjon skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.oppfolgingPeriodeUUID,
+                "OppfolgingsperiodeUUID skal være utfylt"
+            )
             //legg_til_statistikkrad_utkast_som_er_revurdering
 
             vedtakService!!.lagUtkast(TestData.TEST_FNR)
             utkastet =
                 vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
-        //    println("Utkast som er revurdering $utkastet")
+            println("Utkast som er revurdering $utkastet")
             sakStatistikkService!!.opprettetUtkast(utkastet, TestData.TEST_FNR)
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-        //    println("Statistikkliste revurdering lengde ${statistikkListe.size}")
+            println("Statistikkliste revurdering lengde ${statistikkListe.size}")
             Assertions.assertTrue(
                 statistikkListe.size == 4,
                 "Statistikklista skal ha lengde 4"
@@ -347,6 +510,58 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 lagretRad.relatertBehandlingId,
                 statistikkListe.first().behandlingId,
                 "Relatert behandling id skal være lik 1 (første vedtak)"
+            )
+            Assertions.assertNull(
+                lagretRad.behandlingResultat,
+                "Behandling resultat skal være null"
+            )
+            Assertions.assertNotNull(
+                lagretRad.mottattTid,
+                "Mottatt tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.registrertTid,
+                "Registrert tid skal være utfylt"
+            )
+            Assertions.assertNull(
+                lagretRad.ferdigbehandletTid,
+                "Ferdigbehandlet tid skal være null"
+            )
+            Assertions.assertNotNull(
+                lagretRad.endretTid,
+                "Endret tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.tekniskTid,
+                "Teknisk tid skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.opprettetAv,
+                "Opprettet av skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.saksbehandler,
+                "Saksbehandler skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.ansvarligEnhet,
+                "Ansvarlig enhet skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.behandlingMetode,
+                "Behandlingsmetode skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.avsender,
+                "Avsender skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.versjon,
+                "Versjon skal være utfylt"
+            )
+            Assertions.assertNotNull(
+                lagretRad.oppfolgingPeriodeUUID,
+                "OppfolgingsperiodeUUID skal være utfylt"
             )
 
             //Legg til statistikkrad som er totrinns behandling
@@ -373,17 +588,24 @@ class SakStatistikkServiceTest : DatabaseTest() {
             utkastet.setBeslutterNavn(TestData.TEST_BESLUTTER_NAVN)
             utkastet.setBeslutterProsessStatus(BeslutterProsessStatus.GODKJENT_AV_BESLUTTER)
             vedtaksstotteRepository!!.oppdaterUtkast(utkastet.id, utkastet)
-        //    println("Utkast som er totrinns $utkastet")
+            println("Utkast som er totrinns $utkastet")
             vedtaksstotteRepository!!.ferdigstillVedtak(utkastet.id)
             sakStatistikkService!!.fattetVedtak(vedtaksstotteRepository!!.hentVedtak(utkastet.id), TestData.TEST_FNR)
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
-        //    println("Statistikkliste totrinns behandling lengde ${statistikkListe.size}")
+            println("Statistikkliste totrinns behandling lengde ${statistikkListe.size}")
+            println("Statistikkrad totrinns behandling ${statistikkListe.last()}")
+
             Assertions.assertTrue(
                 statistikkListe.size == 5,
                 "Statistikklista skal ha lengde 5"
             )
             lagretRad = statistikkListe.last()
+
+            Assertions.assertNull(
+                lagretRad.ferdigbehandletTid,
+                "Ferdigbehandlet tid skal være null"
+            )
             Assertions.assertEquals(
                 BehandlingMetode.TOTRINNS,
                 lagretRad.behandlingMetode,
@@ -447,7 +669,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
             vedtakService!!.fattVedtak(utkast.id)
         }
     }
-   
+
     private fun testCvData(): String {
         return readTestResourceFile("testdata/oyeblikksbilde-cv.json")
     }
