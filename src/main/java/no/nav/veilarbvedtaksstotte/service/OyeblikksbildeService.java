@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
@@ -54,13 +55,13 @@ public class OyeblikksbildeService {
 
     public List<OyeblikksbildeDto> hentOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
     }
 
     public OyeblikksbildeCvDto hentCVOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
 
         Optional<OyeblikksbildeCvDto> oyeblikksbildeCvDto = oyeblikksbildeRepository.hentCVOyeblikksbildeForVedtak(vedtakId);
 
@@ -69,7 +70,7 @@ public class OyeblikksbildeService {
 
     public OyeblikksbildeArbeidssokerRegistretDto hentArbeidssokerRegistretOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         Optional<OyeblikksbildeArbeidssokerRegistretDto> oyeblikksbildeRegistreringDto = oyeblikksbildeRepository.hentArbeidssokerRegistretOyeblikksbildeForVedtak(vedtakId);
 
         return oyeblikksbildeRegistreringDto.orElseGet(() -> new OyeblikksbildeArbeidssokerRegistretDto(null, false));
@@ -77,7 +78,7 @@ public class OyeblikksbildeService {
 
     public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         Optional<OyeblikksbildeEgenvurderingDto> oyeblikksbildeEgenvurderingDto = oyeblikksbildeRepository.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
 
         return oyeblikksbildeEgenvurderingDto.orElseGet(() -> new OyeblikksbildeEgenvurderingDto(null, false));
@@ -85,7 +86,7 @@ public class OyeblikksbildeService {
 
     public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         Optional<OyeblikksbildeRegistreringDto> oyeblikksbildeRegistreringDto = oyeblikksbildeRepository.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
         return oyeblikksbildeRegistreringDto.orElseGet(() -> new OyeblikksbildeRegistreringDto(null, false));
     }

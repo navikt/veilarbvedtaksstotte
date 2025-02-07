@@ -31,16 +31,29 @@ class AuthService(
     private val poaoTilgangClient: PoaoTilgangClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-    fun sjekkVeilederTilgangTilBruker(fnr: Fnr) {
-        sjekkVeilederTilgangTilBruker({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
+
+    fun sjekkVeilederTilgangTilBruker(tilgangType: TilgangType, fnr: Fnr) {
+        sjekkVeilederTilgangTilBruker(
+            tilgangType = tilgangType,
+            fnrSupplier = { fnr },
+            aktorIdSupplier = { aktorOppslagClient.hentAktorId(fnr) }
+        )
     }
 
-    fun sjekkTilgangTilBrukerOgEnhet(fnr: Fnr): AuthKontekst {
-        return sjekkTilgangTilBrukerOgEnhet({ fnr }) { aktorOppslagClient.hentAktorId(fnr) }
+    fun sjekkTilgangTilBrukerOgEnhet(tilgangType: TilgangType, fnr: Fnr): AuthKontekst {
+        return sjekkTilgangTilBrukerOgEnhet(
+            tilgangType = tilgangType,
+            fnrSupplier = { fnr },
+            aktorIdSupplier = { aktorOppslagClient.hentAktorId(fnr) }
+        )
     }
 
-    fun sjekkTilgangTilBrukerOgEnhet(aktorId: AktorId): AuthKontekst {
-        return sjekkTilgangTilBrukerOgEnhet({ aktorOppslagClient.hentFnr(aktorId) }) { aktorId }
+    fun sjekkTilgangTilBrukerOgEnhet(tilgangType: TilgangType, aktorId: AktorId): AuthKontekst {
+        return sjekkTilgangTilBrukerOgEnhet(
+            tilgangType = tilgangType,
+            fnrSupplier = { aktorOppslagClient.hentFnr(aktorId) },
+            aktorIdSupplier = { aktorId }
+        )
     }
 
     fun sjekkEksternbrukerTilgangTilBruker(fnr: Fnr) {
@@ -56,6 +69,7 @@ class AuthService(
     }
 
     private fun sjekkVeilederTilgangTilBruker(
+        tilgangType: TilgangType,
         fnrSupplier: Supplier<Fnr>,
         aktorIdSupplier: Supplier<AktorId>
     ): Pair<Fnr, AktorId> {
@@ -65,7 +79,7 @@ class AuthService(
 
         val veilederTilgangTilPerson = poaoTilgangClient.evaluatePolicy(
             NavAnsattTilgangTilEksternBrukerPolicyInput(
-                hentInnloggetVeilederUUID(), TilgangType.SKRIVE, fnr.get()
+                hentInnloggetVeilederUUID(), tilgangType, fnr.get()
             )
         ).getOrThrow()
 
@@ -77,10 +91,15 @@ class AuthService(
     }
 
     private fun sjekkTilgangTilBrukerOgEnhet(
+        tilgangType: TilgangType,
         fnrSupplier: Supplier<Fnr>,
         aktorIdSupplier: Supplier<AktorId>
     ): AuthKontekst {
-        val fnrAktorIdPair = sjekkVeilederTilgangTilBruker(fnrSupplier, aktorIdSupplier)
+        val fnrAktorIdPair = sjekkVeilederTilgangTilBruker(
+            tilgangType = tilgangType,
+            fnrSupplier = fnrSupplier,
+            aktorIdSupplier = aktorIdSupplier
+        )
         val fnr = fnrAktorIdPair.first
         val aktorId = fnrAktorIdPair.second
         val enhet = sjekkTilgangTilEnhet(fnr.get())
@@ -112,7 +131,7 @@ class AuthService(
 
     fun harInnloggetVeilederTilgangTilBrukere(brukerFnrs: List<String>): Map<String, Boolean> {
         val tilgangTilBrukere: MutableMap<String, Boolean> = HashMap();
-        brukerFnrs.forEach{
+        brukerFnrs.forEach {
             val permitTilgang = poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
                     hentInnloggetVeilederUUID(), TilgangType.SKRIVE, it

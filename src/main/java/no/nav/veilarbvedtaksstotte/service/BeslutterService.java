@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.RequiredArgsConstructor;
 import no.nav.common.types.identer.AktorId;
+import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
@@ -48,7 +49,7 @@ public class BeslutterService {
 
     public void startBeslutterProsess(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
 
         if (!InnsatsgruppeUtils.skalHaBeslutter(utkast.getInnsatsgruppe())) {
@@ -67,7 +68,7 @@ public class BeslutterService {
 
     public void avbrytBeslutterProsess(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
 
         if (!erBeslutterProsessStartet(utkast.getBeslutterProsessStatus())) {
@@ -85,7 +86,7 @@ public class BeslutterService {
 
     public void bliBeslutter(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
@@ -115,7 +116,7 @@ public class BeslutterService {
 
     public void setGodkjentAvBeslutter(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
@@ -136,7 +137,7 @@ public class BeslutterService {
 
     public void oppdaterBeslutterProsessStatus(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         BeslutterProsessStatus nyStatus;

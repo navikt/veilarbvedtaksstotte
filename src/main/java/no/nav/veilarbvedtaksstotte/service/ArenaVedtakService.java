@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.Fnr;
+import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
@@ -36,7 +37,7 @@ public class ArenaVedtakService {
     }
 
     public List<ArkivertVedtak> hentVedtakFraArena(Fnr fnr) {
-        authService.sjekkTilgangTilBrukerOgEnhet(fnr);
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr);
         return hentArkiverteVedtakFraArena(fnr);
     }
 
