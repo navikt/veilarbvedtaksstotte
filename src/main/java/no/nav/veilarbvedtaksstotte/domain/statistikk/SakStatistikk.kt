@@ -22,9 +22,9 @@ data class SakStatistikk(
     val tekniskTid: Instant? = null,
     val sakYtelse: String? = null,
     val behandlingType: BehandlingType? = null,
-    val behandlingStatus: BehandlingStatus,
+    val behandlingStatus: BehandlingStatus? = null,
     val behandlingResultat: BehandlingResultat? = null,
-    val behandlingMetode: BehandlingMetode,
+    val behandlingMetode: BehandlingMetode? = null,
     val opprettetAv: String? = null,
     val saksbehandler: String? = null,
     val ansvarligBeslutter: String? = null,
@@ -121,9 +121,6 @@ fun SakStatistikk.validate() {
     }
     if (ansvarligEnhet == null) {
         throw IllegalStateException("ansvarligEnhet kan ikke være null")
-    }
-    if (avsender == null) {
-        throw IllegalStateException("avsender kan ikke være null")
     }
     if (versjon == null) {
         throw IllegalStateException("versjon kan ikke være null")
