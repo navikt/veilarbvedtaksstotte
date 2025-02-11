@@ -33,7 +33,8 @@ class SakStatistikkService @Autowired constructor(
             val statistikkRad = SakStatistikk(
                 ferdigbehandletTid = Instant.now(),
                 behandlingStatus = BehandlingStatus.FATTET,
-                behandlingMetode = BehandlingMetode.MANUELL,
+                behandlingMetode = if(vedtak.beslutterIdent != null) BehandlingMetode.TOTRINNS else BehandlingMetode.MANUELL,
+                ansvarligBeslutter = vedtak.beslutterIdent
             )
 
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
@@ -81,19 +82,16 @@ class SakStatistikkService @Autowired constructor(
             val aktorId = AktorId(vedtak.aktorId)
             val fnr = aktorOppslagClient.hentFnr(aktorId)
 
-            val statistikkRad = SakStatistikk(
-                behandlingStatus = BehandlingStatus.AVBRUTT,
-                behandlingMetode = BehandlingMetode.MANUELL,
-            )
-
-            val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+            val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
             val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
             val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
                 innsatsgruppe = null,
                 hovedmal = null,
-                behandlingResultat = null
+                behandlingResultat = null,
+                behandlingStatus = BehandlingStatus.AVBRUTT,
+                behandlingMetode = BehandlingMetode.MANUELL,
             )
 
             try {
@@ -102,6 +100,111 @@ class SakStatistikkService @Autowired constructor(
                 bigQueryService.logEvent(ferdigpopulertStatistikkRad)
             } catch (e: Exception) {
                 secureLog.error("Kunne ikke lagre slettetutkast - sakstatistikk", e)
+            }
+        }
+    }
+
+    fun startetKvalitetssikring (vedtak: Vedtak) {
+        val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
+        if (statistikkPaa) {
+            val aktorId = AktorId(vedtak.aktorId)
+            val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+            val statistikkRad = SakStatistikk(
+                behandlingStatus = BehandlingStatus.SENDT_TIL_KVALITETSSIKRING,
+                behandlingMetode = BehandlingMetode.TOTRINNS,
+            )
+            val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+            val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+            try {
+                ferdigpopulertStatistikkRad.validate()
+                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
+                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
+            } catch (e: Exception) {
+                secureLog.error("Kunne ikke lagre startetKvalitetssikring - sakstatistikk", e)
+            }
+        }
+    }
+
+    fun bliEllerTaOverSomKvalitetssikrer(vedtak: Vedtak, innloggetVeileder: String) {
+        val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
+        if (statistikkPaa) {
+            val aktorId = AktorId(vedtak.aktorId)
+            val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+            val statistikkRad = SakStatistikk(
+                behandlingStatus = BehandlingStatus.SENDT_TIL_KVALITETSSIKRING,
+                behandlingMetode = BehandlingMetode.TOTRINNS,
+                ansvarligBeslutter = innloggetVeileder,
+            )
+            val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+            val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+            try {
+                ferdigpopulertStatistikkRad.validate()
+                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
+                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
+            } catch (e: Exception) {
+                secureLog.error("Kunne ikke lagre bliEllerTaOverSomKvalitetssikrer - sakstatistikk", e)
+            }
+        }
+    }
+
+    fun avbrytKvalitetssikringsprosess(vedtak: Vedtak) {
+        val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
+        if (statistikkPaa) {
+            val aktorId = AktorId(vedtak.aktorId)
+            val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+            val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
+            val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+            val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+                ansvarligBeslutter = null,
+                behandlingResultat = null,
+                hovedmal = null,
+                innsatsgruppe = null,
+                behandlingStatus = BehandlingStatus.UNDER_BEHANDLING,
+                behandlingMetode = BehandlingMetode.MANUELL,
+            )
+
+            try {
+                ferdigpopulertStatistikkRad.validate()
+                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
+                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
+            } catch (e: Exception) {
+                secureLog.error("Kunne ikke lagre avbrytKvalitetssikringsprosess - sakstatistikk", e)
+            }
+        }
+    }
+
+    fun overtattUtkast(vedtak: Vedtak, innloggetVeilederIdent: String, erAlleredeBeslutter: Boolean) {
+        val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
+        if (statistikkPaa) {
+            val aktorId = AktorId(vedtak.aktorId)
+            val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+            val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
+            val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+            val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+                ansvarligBeslutter = if (erAlleredeBeslutter) innloggetVeilederIdent else vedtak.beslutterIdent,
+                behandlingStatus = if (vedtak.beslutterProsessStatus != null) BehandlingStatus.SENDT_TIL_KVALITETSSIKRING else BehandlingStatus.UNDER_BEHANDLING,
+                behandlingMetode = if (vedtak.beslutterProsessStatus != null) BehandlingMetode.TOTRINNS else BehandlingMetode.MANUELL,
+                saksbehandler = innloggetVeilederIdent
+            )
+
+            try {
+                ferdigpopulertStatistikkRad.validate()
+                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
+                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
+            } catch (e: Exception) {
+                secureLog.error("Kunne ikke lagre overtattUtkast - sakstatistikk", e)
             }
         }
     }
