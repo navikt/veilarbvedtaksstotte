@@ -47,6 +47,8 @@ public class BeslutterService {
 
     private final MetricsService metricsService;
 
+    private final SakStatistikkService sakStatistikkService;
+
     public void startBeslutterProsess(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
@@ -64,6 +66,7 @@ public class BeslutterService {
         vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
         vedtakStatusEndringService.beslutterProsessStartet(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_PROSESS_STARTET, utkast.getVeilederIdent());
+        sakStatistikkService.startetKvalitetssikring(utkast);
     }
 
     public void avbrytBeslutterProsess(long vedtakId) {
@@ -81,6 +84,7 @@ public class BeslutterService {
             vedtaksstotteRepository.setBeslutter(utkast.getId(), null);
             vedtakStatusEndringService.beslutterProsessAvbrutt(utkast);
             meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_PROSESS_AVBRUTT, utkast.getVeilederIdent());
+            sakStatistikkService.avbrytKvalitetssikringsprosess(utkast);
         });
     }
 
@@ -112,6 +116,8 @@ public class BeslutterService {
             vedtakStatusEndringService.tattOverForBeslutter(utkast, innloggetVeilederIdent);
             meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_BESLUTTER, innloggetVeilederIdent);
         }
+
+        sakStatistikkService.bliEllerTaOverSomKvalitetssikrer(utkast, innloggetVeilederIdent);
     }
 
     public void setGodkjentAvBeslutter(long vedtakId) {
@@ -155,7 +161,6 @@ public class BeslutterService {
         }
 
         vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), nyStatus);
-
         if (nyStatus == BeslutterProsessStatus.KLAR_TIL_BESLUTTER) {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_BESLUTTER, innloggetVeilederIdent);

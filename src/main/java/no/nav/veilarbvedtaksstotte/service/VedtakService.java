@@ -345,6 +345,7 @@ public class VedtakService {
             vedtaksstotteRepository.oppdaterUtkastVeileder(utkast.getId(), innloggetVeilederIdent);
             beslutteroversiktRepository.oppdaterVeileder(utkast.getId(), veileder.getNavn());
             meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_VEILEDER, innloggetVeilederIdent);
+            sakStatistikkService.overtattUtkast(utkast, innloggetVeilederIdent, erAlleredeBeslutter);
         });
 
         vedtakStatusEndringService.tattOverForVeileder(utkast, innloggetVeilederIdent);
