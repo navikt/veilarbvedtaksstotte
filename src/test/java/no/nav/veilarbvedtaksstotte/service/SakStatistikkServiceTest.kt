@@ -565,8 +565,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
             )
 
             //Legg til statistikkrad som er totrinns behandling
+            //Legg til statistikkrad som er sendt til kvalitetssikrer
 
-            val behandlingsId = statistikkListe.last().behandlingId?.toLong()
+            var behandlingsId = statistikkListe.last().behandlingId?.toLong()
             val oppdaterDto = OppdaterUtkastDTO()
                 .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                 .setBegrunnelse("En begrunnelse")
@@ -584,32 +585,118 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 oppdaterDto
             )
             utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
-            utkastet.setBeslutterIdent(TestData.TEST_BESLUTTER_IDENT)
-            utkastet.setBeslutterNavn(TestData.TEST_BESLUTTER_NAVN)
             utkastet.setBeslutterProsessStatus(BeslutterProsessStatus.GODKJENT_AV_BESLUTTER)
             vedtaksstotteRepository!!.oppdaterUtkast(utkastet.id, utkastet)
             println("Utkast som er totrinns $utkastet")
-            vedtaksstotteRepository!!.ferdigstillVedtak(utkastet.id)
-            sakStatistikkService!!.fattetVedtak(vedtaksstotteRepository!!.hentVedtak(utkastet.id), TestData.TEST_FNR)
+            sakStatistikkService!!.startetKvalitetssikring(vedtaksstotteRepository!!.hentVedtak(utkastet.id))
+            sakStatistikkService!!.bliEllerTaOverSomKvalitetssikrer(
+                vedtaksstotteRepository!!.hentVedtak(utkastet.id),
+                TestData.TEST_BESLUTTER_IDENT
+            )
             statistikkListe =
                 sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
             println("Statistikkliste totrinns behandling lengde ${statistikkListe.size}")
             println("Statistikkrad totrinns behandling ${statistikkListe.last()}")
 
             Assertions.assertTrue(
-                statistikkListe.size == 5,
-                "Statistikklista skal ha lengde 5"
+                statistikkListe.size == 6,
+                "Statistikklista skal ha lengde 6"
             )
             lagretRad = statistikkListe.last()
-
+            println("LagretRad ${lagretRad}")
             Assertions.assertNull(
                 lagretRad.ferdigbehandletTid,
-                "Ferdigbehandlet tid skal være null"
+                "Ferdigbehandlet tid skal ikke være utfylt"
+            )
+            Assertions.assertEquals(
+                BehandlingStatus.SENDT_TIL_KVALITETSSIKRING,
+                lagretRad.behandlingStatus,
+                "Behandling status skal være SENDT_TIL_KVALITETSSIKRING"
             )
             Assertions.assertEquals(
                 BehandlingMetode.TOTRINNS,
                 lagretRad.behandlingMetode,
                 "Behandling metode skal være TOTRINNS"
+            )
+            Assertions.assertEquals(
+                lagretRad.ansvarligBeslutter,
+                TestData.TEST_BESLUTTER_IDENT,
+                "Ansvarlig beslutter  skal være lik TEST_BESLUTTER_IDENT"
+            )
+//Legg til statistikkrad for å overta som kvalitetssikrer
+            utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            vedtaksstotteRepository!!.setBeslutter(utkastet.id, TestData.TEST_BESLUTTER_IDENT_2)
+            utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            vedtaksstotteRepository!!.oppdaterUtkast(utkastet.id, utkastet)
+            println("Utkast som har byttet kvalitetssikrer $utkastet")
+            sakStatistikkService!!.bliEllerTaOverSomKvalitetssikrer(
+                vedtaksstotteRepository!!.hentVedtak(utkastet.id),
+                TestData.TEST_BESLUTTER_IDENT_2
+            )
+            statistikkListe =
+                sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            println("Statistikkliste overtatt kvalitetssikring lengde ${statistikkListe.size}")
+            println("Statistikkrad overtatt kvalitetssikring ${statistikkListe.last()}")
+
+            Assertions.assertTrue(
+                statistikkListe.size == 7,
+                "Statistikklista skal ha lengde 7"
+            )
+            lagretRad = statistikkListe.last()
+            println("LagretRad ${lagretRad}")
+            Assertions.assertNull(
+                lagretRad.ferdigbehandletTid,
+                "Ferdigbehandlet tid skal ikke være utfylt"
+            )
+            Assertions.assertEquals(
+                BehandlingStatus.SENDT_TIL_KVALITETSSIKRING,
+                lagretRad.behandlingStatus,
+                "Behandling status skal være SENDT_TIL_KVALITETSSIKRING"
+            )
+            Assertions.assertEquals(
+                BehandlingMetode.TOTRINNS,
+                lagretRad.behandlingMetode,
+                "Behandling metode skal være TOTRINNS"
+            )
+            Assertions.assertEquals(
+                lagretRad.ansvarligBeslutter,
+                TestData.TEST_BESLUTTER_IDENT_2,
+                "Ansvarlig beslutter skal være lik TEST_BESLUTTER_IDENT_2"
+            )
+
+// Legg til statistikkrad for overta utkast
+            utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            behandlingsId = statistikkListe.last().behandlingId?.toLong()
+            vedtaksstotteRepository!!.oppdaterUtkastVeileder(utkastet.id, TestData.TEST_VEILEDER_IDENT_2)
+            utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            utkastet.setBeslutterProsessStatus(BeslutterProsessStatus.GODKJENT_AV_BESLUTTER)
+             vedtaksstotteRepository!!.oppdaterUtkast(utkastet.id, utkastet)
+            println("Utkast som er overtatt $utkastet")
+            sakStatistikkService!!.overtattUtkast(
+                vedtaksstotteRepository!!.hentVedtak(utkastet.id),
+                TestData.TEST_VEILEDER_IDENT_2,
+                false
+            )
+
+            statistikkListe =
+                sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            println("Statistikkliste overtatt utkast lengde ${statistikkListe.size}")
+            println("Statistikkrad overtatt utkast ${statistikkListe.last()}")
+
+            Assertions.assertTrue(
+                statistikkListe.size == 8,
+                "Statistikklista skal ha lengde 8"
+            )
+            lagretRad = statistikkListe.last()
+            println("LagretRad ${lagretRad}")
+            Assertions.assertNull(
+                lagretRad.ferdigbehandletTid,
+                "Ferdigbehandlet tid skal ikke være utfylt"
+            )
+            Assertions.assertEquals(
+                lagretRad.saksbehandler,
+                TestData.TEST_VEILEDER_IDENT_2,
+                "Saksbehandler skal være lik TEST_VEILEDER_IDENT_2"
             )
         }
     }
@@ -733,5 +820,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 sakId = TestData.SAK_ID
             )
         }
+
 }
 

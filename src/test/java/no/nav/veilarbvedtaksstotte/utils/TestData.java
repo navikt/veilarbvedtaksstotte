@@ -14,6 +14,7 @@ public class TestData {
     public final static Fnr TEST_FNR = Fnr.of("12345678912");
     public final static String TEST_AKTOR_ID = "123";
     public final static String TEST_VEILEDER_IDENT = "Z123456";
+    public final static String TEST_VEILEDER_IDENT_2 = "Z654321";
     public final static String TEST_IKKE_ANSVARLIG_VEILEDER_IDENT = "Z987654";
     public final static String TEST_VEILEDER_NAVN = "Veileder Veilederen";
     public final static String TEST_OPPFOLGINGSENHET_ID = "1234";
@@ -31,4 +32,5 @@ public class TestData {
 
     public final static String TEST_BESLUTTER_NAVN = "Beslutter Besluttersen";
     public final static String TEST_BESLUTTER_IDENT = "Z748932";
+    public final static String TEST_BESLUTTER_IDENT_2 = "Z239847";
 }
