@@ -26,9 +26,7 @@ class SakStatistikkService @Autowired constructor(
     private val bigQueryService: BigQueryService,
     private val unleashClient: DefaultUnleash,
     private val environmentProperties: EnvironmentProperties
-
-
-    ) {
+) {
     fun fattetVedtak(vedtak: Vedtak, fnr: Fnr) {
         val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
         if (statistikkPaa) {
