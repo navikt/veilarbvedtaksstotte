@@ -5,6 +5,7 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties
 import no.nav.veilarbvedtaksstotte.domain.statistikk.*
@@ -12,6 +13,8 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.utils.SAK_STATISTIKK_PAA
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -155,7 +158,9 @@ class SakStatistikkService @Autowired constructor(
 
     fun kvalitetssikrerGodkjenner(vedtak: Vedtak, innloggetVeileder: String) {
         val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
+        val log: Logger = LoggerFactory.getLogger(AiaBackendClientImpl::class.java)
         if (statistikkPaa) {
+            log.debug("Er i kvalitetssikrerGodkjenner - sakstatistikk")
             val aktorId = AktorId(vedtak.aktorId)
             val fnr = aktorOppslagClient.hentFnr(aktorId)
 
