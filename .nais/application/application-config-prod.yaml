@@ -46,7 +46,7 @@ spec:
     pool: nav-prod
   env:
     - name: AIA_BACKEND_TOKEN_SCOPE
-      value: api://prod-gcp.paw.paw-arbeidssoker-besvarelse/.default
+      value: api://prod-gcp.paw.aia-backend/.default
     - name: AIA_BACKEND_URL
       value: http://aia-backend.paw/aia-backend
     - name: DOKARKIV_TOKEN_SCOPE
