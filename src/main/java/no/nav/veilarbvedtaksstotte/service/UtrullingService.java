@@ -60,7 +60,7 @@ public class UtrullingService {
 
     public boolean tilhorerBrukerUtrulletKontor(Fnr fnr) {
         try {
-            return veilarbarenaClient.hentOppfolgingsbruker(fnr)
+            return veilarbarenaClient.hentOppfolgingsbrukerUtenCache(fnr)
                     .map(VeilarbArenaOppfolging::getNavKontor)
                     .map(EnhetId::of)
                     .map(utrullingRepository::erUtrullet)

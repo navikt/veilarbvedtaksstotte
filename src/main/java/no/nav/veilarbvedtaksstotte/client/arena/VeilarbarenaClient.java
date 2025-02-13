@@ -10,6 +10,7 @@ public interface VeilarbarenaClient extends HealthCheck {
 
     Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr);
 
-    Optional<String> oppfolgingssak(Fnr fnr);
+    Optional<VeilarbArenaOppfolging> hentOppfolgingsbrukerUtenCache(Fnr fnr);
 
+    Optional<String> oppfolgingssak(Fnr fnr);
 }
