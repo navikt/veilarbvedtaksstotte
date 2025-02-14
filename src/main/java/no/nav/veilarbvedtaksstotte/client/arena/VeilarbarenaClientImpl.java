@@ -59,8 +59,6 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
         var oppdatertOppfolgingsBruker = new VeilarbArenaOppfolging(navKontor, oppfolgingsbruker.get().getFormidlingsgruppekode(), oppfolgingsbruker.get().getKvalifiseringsgruppekode());
 
-        log.info("Oppdatert navKontor fra: {} med navKontor: {}", oppfolgingsbruker.get().getNavKontor(), navKontor);
-
         return Optional.of(oppdatertOppfolgingsBruker);
     }
 
