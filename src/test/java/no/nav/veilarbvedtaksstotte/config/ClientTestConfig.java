@@ -151,11 +151,6 @@ public class ClientTestConfig {
             }
 
             @Override
-            public Optional<VeilarbArenaOppfolging> hentOppfolgingsbrukerUtenCache(Fnr fnr) {
-                return Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL"));
-            }
-
-            @Override
             public Optional<String> oppfolgingssak(Fnr fnr) {
                 return Optional.of(TEST_OPPFOLGINGSSAK);
             }
