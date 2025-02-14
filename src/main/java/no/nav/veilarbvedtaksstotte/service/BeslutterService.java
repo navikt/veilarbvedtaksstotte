@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
@@ -25,6 +26,7 @@ import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVe
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterForVedtak;
 import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.erBeslutterProsessStartet;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BeslutterService {
@@ -139,6 +141,8 @@ public class BeslutterService {
         vedtakStatusEndringService.godkjentAvBeslutter(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);
         metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(utkast);
+        // TODO Er det her man burde sette at veileder har godtkjent?
+        log.info("Vedtak godkjent av beslutter - statistikk");
     }
 
     public void oppdaterBeslutterProsessStatus(long vedtakId) {
@@ -165,10 +169,14 @@ public class BeslutterService {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_BESLUTTER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilBeslutter(utkast);
+            //TODO kanskje det burde være noen sakrad her?
+            log.info("Sendt til beslutter - statistikk - behandlinggsstatus: SENDT_TIL_KVALITETSSIKRING");
         } else {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_VEILEDER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilVeileder(utkast);
+            //TODO kanskje det burde være noen sakrad her?
+            log.info("Sendt til veileder - statistikk - behandlinggsstatus: UNDER_BEHANDLING");
         }
     }
 

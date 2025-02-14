@@ -54,7 +54,8 @@ public class MeldingService {
 
         if (erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
             metricsService.repporterDialogMeldingSendtAvVeilederOgBeslutter(melding, "beslutter");
-            log.debug("opprettBrukerdialogMelding: melding sendt av beslutter ${}", utkast.getBeslutterProsessStatus());
+            log.info("opprettBrukerdialogMelding: melding sendt av beslutter ${}", utkast.getBeslutterProsessStatus());
+            //TODO flytte denne koden til beslutterservice isteden?
             if (utkast.getBeslutterProsessStatus() == BeslutterProsessStatus.GODKJENT_AV_BESLUTTER) {
                 sakStatistikkService.kvalitetssikrerGodkjenner(utkast, innloggetVeilederIdent);
             }

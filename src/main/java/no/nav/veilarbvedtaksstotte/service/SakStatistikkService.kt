@@ -160,7 +160,7 @@ class SakStatistikkService @Autowired constructor(
         val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
         val log: Logger = LoggerFactory.getLogger(AiaBackendClientImpl::class.java)
         if (statistikkPaa) {
-            log.debug("Er i kvalitetssikrerGodkjenner - sakstatistikk")
+            log.info("Er i kvalitetssikrerGodkjenner - sakstatistikk")
             val aktorId = AktorId(vedtak.aktorId)
             val fnr = aktorOppslagClient.hentFnr(aktorId)
 
