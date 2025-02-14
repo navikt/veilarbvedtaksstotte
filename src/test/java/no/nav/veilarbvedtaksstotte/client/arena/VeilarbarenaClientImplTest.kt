@@ -82,7 +82,7 @@ class VeilarbarenaClientImplTest {
                     "navKontor": "$TEST_NAVKONTOR"
                 }
             """
-        val stubMapping = WireMock.stubFor(
+        WireMock.givenThat(
             WireMock.post(WireMock.urlEqualTo("/api/v3/hent-oppfolgingsbruker"))
                 .withRequestBody(WireMock.equalToJson("{\"fnr\":\"$TEST_FNR\"}"))
                 .willReturn(
@@ -93,10 +93,8 @@ class VeilarbarenaClientImplTest {
         )
 
         veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)
-        veilarbarenaClient.oppdaterOppfolgingsbruker(TEST_FNR, TEST_OPPDATERT_NAVKONTOR)
-        WireMock.removeStub(stubMapping)
+        val oppdatertOppfolgingsbruker = veilarbarenaClient.oppdaterOppfolgingsbruker(TEST_FNR, TEST_OPPDATERT_NAVKONTOR)
 
-        val oppdatertOppfolgingsbruker = veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)
         assertEquals(TEST_OPPDATERT_NAVKONTOR, oppdatertOppfolgingsbruker.get().navKontor)
 
     }
