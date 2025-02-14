@@ -63,6 +63,9 @@ public class KafkaConsumerService {
         log.info("Behandler melding på topic {}.", kafkaOppfolgingsbrukerEndring.topic());
 
         Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
+
+        veilarbarenaClient.oppdaterOppfolgingsbruker(fnr, kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet());
+
         AktorId aktorId = hentAktorIdMedDevSjekk(fnr); //AktorId kan være null i dev
         String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
 
@@ -89,8 +92,6 @@ public class KafkaConsumerService {
         Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
         vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
         beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
-
-        veilarbarenaClient.oppdaterOppfolgingsbruker(fnr, enhet.getEnhetNr());
     }
 
     public void behandleArenaVedtak(ConsumerRecord<String, ArenaVedtakRecord> arenaVedtakRecord) {
