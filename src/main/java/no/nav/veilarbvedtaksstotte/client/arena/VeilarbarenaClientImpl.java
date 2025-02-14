@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.arena;
 
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
@@ -28,6 +29,7 @@ import static no.nav.common.utils.AuthUtils.bearerToken;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
+@Slf4j
 public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
     private final String veilarbarenaUrl;
@@ -56,6 +58,9 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
         }
 
         var oppdatertOppfolgingsBruker = new VeilarbArenaOppfolging(navKontor, oppfolgingsbruker.get().getFormidlingsgruppekode(), oppfolgingsbruker.get().getKvalifiseringsgruppekode());
+
+        log.info("Oppdatert navKontor fra: {} med navKontor: {}", oppfolgingsbruker.get().getNavKontor(), navKontor);
+
         return Optional.of(oppdatertOppfolgingsBruker);
     }
 
