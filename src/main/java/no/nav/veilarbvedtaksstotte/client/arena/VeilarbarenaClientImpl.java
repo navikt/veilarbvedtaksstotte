@@ -12,6 +12,8 @@ import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.springframework.cache.Cache;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -45,9 +47,18 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
         return hentOppfolgingsbrukerIntern(fnr);
     }
 
-    public Optional<VeilarbArenaOppfolging> hentOppfolgingsbrukerUtenCache(Fnr fnr) {
-        return hentOppfolgingsbrukerIntern(fnr);
+    @CachePut(value = CacheConfig.ARENA_BRUKER_CACHE_NAME, key = "#fnr")
+    public Optional<VeilarbArenaOppfolging> oppdaterOppfolgingsbruker(Fnr fnr, String navKontor) {
+        var oppfolgingsbruker = hentOppfolgingsbrukerIntern(fnr);
+
+        if (oppfolgingsbruker.isEmpty()) {
+            return Optional.empty();
+        }
+
+        var oppdatertOppfolgingsBruker = new VeilarbArenaOppfolging(navKontor, oppfolgingsbruker.get().getFormidlingsgruppekode(), oppfolgingsbruker.get().getKvalifiseringsgruppekode());
+        return Optional.of(oppdatertOppfolgingsBruker);
     }
+
 
     private Optional<VeilarbArenaOppfolging> hentOppfolgingsbrukerIntern(Fnr fnr) {
         Request request = new Request.Builder()
