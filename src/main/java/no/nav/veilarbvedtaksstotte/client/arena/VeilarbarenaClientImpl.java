@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.arena;
 
 import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
@@ -13,7 +12,6 @@ import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
@@ -29,7 +27,7 @@ import static no.nav.common.utils.AuthUtils.bearerToken;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-@Slf4j
+
 public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
     private final String veilarbarenaUrl;
