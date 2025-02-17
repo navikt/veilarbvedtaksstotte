@@ -127,7 +127,6 @@ public class BeslutterService {
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
-
         if (!erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kun beslutter kan godkjenne vedtak");
         }
@@ -141,10 +140,7 @@ public class BeslutterService {
         vedtakStatusEndringService.godkjentAvBeslutter(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);
         metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(utkast);
-        log.info("opprettBrukerdialogMelding: melding sendt av beslutter ${}", utkast.getBeslutterProsessStatus());
-        if (utkast.getBeslutterProsessStatus() == BeslutterProsessStatus.GODKJENT_AV_BESLUTTER) {
-            sakStatistikkService.kvalitetssikrerGodkjenner(utkast, innloggetVeilederIdent);
-        }
+        sakStatistikkService.kvalitetssikrerGodkjenner(utkast, innloggetVeilederIdent);
         log.info("Vedtak godkjent av beslutter - statistikk");
     }
 
