@@ -12,6 +12,7 @@ import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import static no.nav.common.rest.client.RestUtils.toJsonRequestBody;
 import static no.nav.common.utils.AuthUtils.bearerToken;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+
 
 public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
@@ -42,6 +44,24 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
 
     @Cacheable(CacheConfig.ARENA_BRUKER_CACHE_NAME)
     public Optional<VeilarbArenaOppfolging> hentOppfolgingsbruker(Fnr fnr) {
+        return hentOppfolgingsbrukerIntern(fnr);
+    }
+
+    @CachePut(value = CacheConfig.ARENA_BRUKER_CACHE_NAME, key = "#fnr")
+    public Optional<VeilarbArenaOppfolging> oppdaterOppfolgingsbruker(Fnr fnr, String navKontor) {
+        var oppfolgingsbruker = hentOppfolgingsbrukerIntern(fnr);
+
+        if (oppfolgingsbruker.isEmpty()) {
+            return Optional.empty();
+        }
+
+        var oppdatertOppfolgingsBruker = new VeilarbArenaOppfolging(navKontor, oppfolgingsbruker.get().getFormidlingsgruppekode(), oppfolgingsbruker.get().getKvalifiseringsgruppekode());
+
+        return Optional.of(oppdatertOppfolgingsBruker);
+    }
+
+
+    private Optional<VeilarbArenaOppfolging> hentOppfolgingsbrukerIntern(Fnr fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarbarenaUrl, "/api/v3/hent-oppfolgingsbruker"))
                 .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineToken.get()))
