@@ -156,6 +156,30 @@ class SakStatistikkService @Autowired constructor(
         }
     }
 
+    fun sendtTilbakeFraKvalitetssikrer(vedtak: Vedtak) {
+        val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
+        if (statistikkPaa) {
+            val aktorId = AktorId(vedtak.aktorId)
+            val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+            val statistikkRad = SakStatistikk(
+                behandlingStatus = BehandlingStatus.UNDER_BEHANDLING,
+                behandlingMetode = BehandlingMetode.TOTRINNS
+            )
+            val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+            val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+            try {
+                ferdigpopulertStatistikkRad.validate()
+                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
+                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
+            } catch (e: Exception) {
+                secureLog.error("Kunne ikke lagre bliEllerTaOverSomKvalitetssikrer - sakstatistikk", e)
+            }
+        }
+    }
+
     fun kvalitetssikrerGodkjenner(vedtak: Vedtak, innloggetVeileder: String) {
         val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
         val log: Logger = LoggerFactory.getLogger(AiaBackendClientImpl::class.java)

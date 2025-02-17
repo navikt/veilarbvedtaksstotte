@@ -14,6 +14,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
+import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils;
@@ -50,6 +51,7 @@ public class BeslutterService {
     private final MetricsService metricsService;
 
     private final SakStatistikkService sakStatistikkService;
+    private final SakStatistikkRepository sakStatistikkRepository;
 
     public void startBeslutterProsess(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
@@ -168,14 +170,14 @@ public class BeslutterService {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_BESLUTTER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilBeslutter(utkast);
-            //TODO kanskje det burde være noen sakrad her?
-            log.info("Sendt til beslutter - statistikk - behandlinggsstatus: SENDT_TIL_KVALITETSSIKRING");
+            sakStatistikkService.startetKvalitetssikring(utkast);
+            log.info("Sendt til beslutter - statistikk - behandlinggstatus: SENDT_TIL_KVALITETSSIKRING");
         } else {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_VEILEDER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilVeileder(utkast);
-            //TODO kanskje det burde være noen sakrad her?
-            log.info("Sendt til veileder - statistikk - behandlinggsstatus: UNDER_BEHANDLING");
+            sakStatistikkService.sendtTilbakeFraKvalitetssikrer(utkast);
+            log.info("Sendt til veileder - statistikk - behandlingsstatus: UNDER_BEHANDLING");
         }
     }
 
