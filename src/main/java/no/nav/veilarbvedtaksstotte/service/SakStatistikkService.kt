@@ -265,6 +265,7 @@ class SakStatistikkService @Autowired constructor(
 
     private fun sjekkOmPersonErKode6(fnr: Fnr, sakStatistikk: SakStatistikk): SakStatistikk {
         val tilgangsattributterResponse = poaoTilgangClient.hentTilgangsAttributter(fnr.get()).getOrThrow()
+        secureLog.error("Fått diskresjonskode fra poao-tilgang: ${tilgangsattributterResponse.diskresjonskode}")
         if (tilgangsattributterResponse.diskresjonskode === Diskresjonskode.STRENGT_FORTROLIG || tilgangsattributterResponse.diskresjonskode === Diskresjonskode.STRENGT_FORTROLIG_UTLAND) {
             return sakStatistikk.copy(
                 opprettetAv = "-5",
