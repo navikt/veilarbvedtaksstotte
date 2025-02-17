@@ -51,7 +51,6 @@ public class BeslutterService {
     private final MetricsService metricsService;
 
     private final SakStatistikkService sakStatistikkService;
-    private final SakStatistikkRepository sakStatistikkRepository;
 
     public void startBeslutterProsess(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
