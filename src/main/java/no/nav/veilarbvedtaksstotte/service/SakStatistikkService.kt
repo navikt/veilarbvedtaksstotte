@@ -5,7 +5,8 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
+import no.nav.poao_tilgang.api.dto.response.Diskresjonskode
+import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties
 import no.nav.veilarbvedtaksstotte.domain.statistikk.*
@@ -29,7 +30,8 @@ class SakStatistikkService @Autowired constructor(
     private val aktorOppslagClient: AktorOppslagClient,
     private val bigQueryService: BigQueryService,
     private val unleashClient: DefaultUnleash,
-    private val environmentProperties: EnvironmentProperties
+    private val environmentProperties: EnvironmentProperties,
+    private val poaoTilgangClient: PoaoTilgangClient
 ) {
     fun fattetVedtak(vedtak: Vedtak, fnr: Fnr) {
         val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
@@ -43,7 +45,8 @@ class SakStatistikkService @Autowired constructor(
 
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
 
             try {
                 ferdigpopulertStatistikkRad.validate()
@@ -67,7 +70,8 @@ class SakStatistikkService @Autowired constructor(
 
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
 
             try {
                 ferdigpopulertStatistikkRad.validate()
@@ -89,8 +93,9 @@ class SakStatistikkService @Autowired constructor(
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
             val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val populertMedKode6Sjekk = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
 
-            val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+            val ferdigpopulertStatistikkRad = populertMedKode6Sjekk.copy(
                 innsatsgruppe = null,
                 hovedmal = null,
                 behandlingResultat = null,
@@ -120,7 +125,9 @@ class SakStatistikkService @Autowired constructor(
             )
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
+
 
             try {
                 ferdigpopulertStatistikkRad.validate()
@@ -145,7 +152,9 @@ class SakStatistikkService @Autowired constructor(
             )
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
+
 
             try {
                 ferdigpopulertStatistikkRad.validate()
@@ -217,8 +226,9 @@ class SakStatistikkService @Autowired constructor(
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
             val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val populertMedKode6Sjekk = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
 
-            val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+            val ferdigpopulertStatistikkRad = populertMedKode6Sjekk.copy(
                 ansvarligBeslutter = null,
                 behandlingResultat = null,
                 hovedmal = null,
@@ -246,8 +256,9 @@ class SakStatistikkService @Autowired constructor(
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
             val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+            val populertMedKode6Sjekk = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
 
-            val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+            val ferdigpopulertStatistikkRad = populertMedKode6Sjekk.copy(
                 ansvarligBeslutter = if (erAlleredeBeslutter) innloggetVeilederIdent else vedtak.beslutterIdent,
                 behandlingStatus = if (vedtak.beslutterProsessStatus != null) BehandlingStatus.SENDT_TIL_KVALITETSSIKRING else BehandlingStatus.UNDER_BEHANDLING,
                 behandlingMetode = if (vedtak.beslutterProsessStatus != null) BehandlingMetode.TOTRINNS else BehandlingMetode.MANUELL,
@@ -303,6 +314,20 @@ class SakStatistikkService @Autowired constructor(
             relatertFagsystem =  tidligereVedtakIOppfolgingsperioden?.let { relatertFagsystem },
             behandlingType = if (tidligereVedtakIOppfolgingsperioden != null) BehandlingType.REVURDERING else BehandlingType.FORSTEGANGSBEHANDLING
         )
+    }
+
+    private fun sjekkOmPersonErKode6(fnr: Fnr, sakStatistikk: SakStatistikk): SakStatistikk {
+        val tilgangsattributterResponse = poaoTilgangClient.hentTilgangsAttributter(fnr.get()).getOrThrow()
+        secureLog.error("Fått diskresjonskode fra poao-tilgang: ${tilgangsattributterResponse.diskresjonskode}")
+        if (tilgangsattributterResponse.diskresjonskode === Diskresjonskode.STRENGT_FORTROLIG || tilgangsattributterResponse.diskresjonskode === Diskresjonskode.STRENGT_FORTROLIG_UTLAND) {
+            return sakStatistikk.copy(
+                opprettetAv = "-5",
+                saksbehandler = "-5",
+                ansvarligBeslutter = if(sakStatistikk.ansvarligBeslutter != null ) "-5" else null,
+                ansvarligEnhet = EnhetId.of("-5")
+            )
+        }
+        return sakStatistikk
     }
 }
 
