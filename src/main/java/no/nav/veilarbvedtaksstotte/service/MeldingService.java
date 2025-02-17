@@ -7,7 +7,6 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.DialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.MeldingDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.SystemMeldingDTO;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -30,19 +29,17 @@ public class MeldingService {
     private final MeldingRepository meldingRepository;
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final MetricsService metricsService;
-    private final SakStatistikkService sakStatistikkService;
 
     @Autowired
     public MeldingService(
             AuthService authService, VeilederService veilederService,
             MeldingRepository meldingRepository, VedtaksstotteRepository vedtaksstotteRepository,
-            MetricsService metricsService, SakStatistikkService sakStatistikkService) {
+            MetricsService metricsService) {
         this.authService = authService;
         this.veilederService = veilederService;
         this.meldingRepository = meldingRepository;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.metricsService = metricsService;
-        this.sakStatistikkService = sakStatistikkService;
     }
 
     public void opprettBrukerDialogMelding(long vedtakId, String melding) {
@@ -54,11 +51,6 @@ public class MeldingService {
 
         if (erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
             metricsService.repporterDialogMeldingSendtAvVeilederOgBeslutter(melding, "beslutter");
-            log.info("opprettBrukerdialogMelding: melding sendt av beslutter ${}", utkast.getBeslutterProsessStatus());
-            //TODO flytte denne koden til beslutterservice isteden?
-            if (utkast.getBeslutterProsessStatus() == BeslutterProsessStatus.GODKJENT_AV_BESLUTTER) {
-                sakStatistikkService.kvalitetssikrerGodkjenner(utkast, innloggetVeilederIdent);
-            }
         } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, utkast)) {
             metricsService.repporterDialogMeldingSendtAvVeilederOgBeslutter(melding, "veileder");
         }
