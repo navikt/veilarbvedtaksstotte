@@ -129,13 +129,11 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final SafClient safClient = mock(SafClient.class);
     private static final MetricsService metricsService = mock(MetricsService.class);
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
-    private static final SakStatistikkService sakStatistikkService = mock(SakStatistikkService.class);
     private static final PdfService pdfService = mock(PdfService.class);
     private static final VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
     private static final DefaultUnleash  unleashClient = mock(DefaultUnleash.class);
     private static final BigQueryService bigQueryService = mock(BigQueryService.class);
     private static final EnvironmentProperties environmentProperties = mock(EnvironmentProperties.class);
-    private static final Siste14aVedtakService siste14aVedtakService = mock(Siste14aVedtakService.class);
 
     @BeforeAll
     public static void setupOnce() {
@@ -148,7 +146,7 @@ public class VedtakServiceTest extends DatabaseTest {
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
         SakStatistikkRepository sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
-        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, unleashClient, environmentProperties);
+        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, unleashClient, environmentProperties, poaoTilgangClient);
 
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(arbeidssoekerRegistretService);
