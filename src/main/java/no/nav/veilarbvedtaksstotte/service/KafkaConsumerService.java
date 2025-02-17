@@ -7,6 +7,7 @@ import no.nav.common.client.norg2.Enhet;
 import no.nav.common.client.utils.graphql.GraphqlErrorException;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
@@ -40,25 +41,31 @@ public class KafkaConsumerService {
 
     private final AktorOppslagClient aktorOppslagClient;
 
+    private final VeilarbarenaClient veilarbarenaClient;
+
     @Autowired
     public KafkaConsumerService(
             Siste14aVedtakService siste14aVedtakService,
             VedtaksstotteRepository vedtaksstotteRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
             Norg2Client norg2Client,
-            AktorOppslagClient aktorOppslagClient
-    ) {
+            AktorOppslagClient aktorOppslagClient,
+            VeilarbarenaClient veilarbarenaClient) {
         this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.norg2Client = norg2Client;
         this.aktorOppslagClient = aktorOppslagClient;
+        this.veilarbarenaClient = veilarbarenaClient;
     }
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
         log.info("Behandler melding på topic {}.", kafkaOppfolgingsbrukerEndring.topic());
 
         Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
+
+        veilarbarenaClient.oppdaterOppfolgingsbruker(fnr, kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet());
+
         AktorId aktorId = hentAktorIdMedDevSjekk(fnr); //AktorId kan være null i dev
         String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
 
