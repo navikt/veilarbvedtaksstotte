@@ -8,6 +8,9 @@ import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.AktorId
 import no.nav.common.utils.fn.UnsafeRunnable
 import no.nav.poao_tilgang.client.TilgangType
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
+import no.nav.veilarbvedtaksstotte.client.person.dto.Adressebeskyttelse
+import no.nav.veilarbvedtaksstotte.client.person.dto.Gradering
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
@@ -42,6 +45,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
         private val unleashClient: DefaultUnleash = mock()
         private val aktorOppslagClient: AktorOppslagClient = mock()
         private val veilarboppfolgingClient: VeilarboppfolgingClient = mock()
+        private val veilarbpersonClient: VeilarbpersonClient = mock()
         private val environmentProperties: EnvironmentProperties = mock()
 
         @JvmStatic
@@ -56,7 +60,8 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 aktorOppslagClient,
                 mock(),
                 unleashClient,
-                environmentProperties
+                environmentProperties,
+                veilarbpersonClient
             )
             vedtakService = VedtakService(
                 transactor,
@@ -102,6 +107,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
         )
         whenever(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(mockedOppfolgingsSak)
         whenever(environmentProperties.naisAppImage).thenReturn("naisAppImage")
+        whenever(veilarbpersonClient.hentAdressebeskyttelse(any())).thenReturn(Adressebeskyttelse(Gradering.UGRADERT))
     }
 
     @Test
