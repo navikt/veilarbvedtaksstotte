@@ -10,6 +10,8 @@ import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.utils.fn.UnsafeRunnable
+import no.nav.poao_tilgang.api.dto.response.Diskresjonskode
+import no.nav.poao_tilgang.api.dto.response.TilgangsattributterResponse
 import no.nav.poao_tilgang.client.Decision.Permit
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.api.ApiResult
@@ -53,6 +55,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
 import no.nav.veilarbvedtaksstotte.repository.*
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
@@ -64,6 +67,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.mockito.kotlin.*
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -245,6 +249,8 @@ class SakStatistikkServiceTest : DatabaseTest() {
             .thenReturn(mockedOppfolgingsSak)
         whenever(environmentProperties.naisAppImage)
             .thenReturn("naisAppImage")
+        whenever(poaoTilgangClient.hentTilgangsAttributter(any()))
+            .thenReturn(ApiResult.success(TilgangsattributterResponse(TestData.TEST_NAVKONTOR, false, Diskresjonskode.UGRADERT)))
 
         sakStatistikkService = SakStatistikkService(
             sakStatistikkRepository!!,
@@ -253,6 +259,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
             bigQueryService,
             unleashClient,
             environmentProperties,
+            poaoTilgangClient
         )
     }
 
@@ -603,7 +610,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 "Statistikklista skal ha lengde 6"
             )
             lagretRad = statistikkListe.last()
-            println("LagretRad ${lagretRad}")
+            println("LagretRad $lagretRad")
             Assertions.assertNull(
                 lagretRad.ferdigbehandletTid,
                 "Ferdigbehandlet tid skal ikke være utfylt"
@@ -643,7 +650,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 "Statistikklista skal ha lengde 7"
             )
             lagretRad = statistikkListe.last()
-            println("LagretRad ${lagretRad}")
+            println("LagretRad $lagretRad")
             Assertions.assertNull(
                 lagretRad.ferdigbehandletTid,
                 "Ferdigbehandlet tid skal ikke være utfylt"
@@ -666,7 +673,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
 
 // Legg til statistikkrad for overta utkast
             utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
-            behandlingsId = statistikkListe.last().behandlingId?.toLong()
             vedtaksstotteRepository!!.oppdaterUtkastVeileder(utkastet.id, TestData.TEST_VEILEDER_IDENT_2)
             utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
             utkastet.setBeslutterProsessStatus(BeslutterProsessStatus.GODKJENT_AV_BESLUTTER)
@@ -688,7 +694,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 "Statistikklista skal ha lengde 8"
             )
             lagretRad = statistikkListe.last()
-            println("LagretRad ${lagretRad}")
+            println("LagretRad $lagretRad")
             Assertions.assertNull(
                 lagretRad.ferdigbehandletTid,
                 "Ferdigbehandlet tid skal ikke være utfylt"
