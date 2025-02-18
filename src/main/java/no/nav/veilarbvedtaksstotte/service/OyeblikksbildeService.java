@@ -53,13 +53,18 @@ public class OyeblikksbildeService {
         this.arbeidssoekerRegisteretService = arbeidssoekerRegisteretService;
     }
 
+    // Kun brukt i test
     public List<OyeblikksbildeDto> hentOyeblikksbildeForVedtak(long vedtakId) {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
     }
 
     public OyeblikksbildeCvDto hentCVOyeblikksbildeForVedtak(long vedtakId) {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
 
@@ -69,6 +74,8 @@ public class OyeblikksbildeService {
     }
 
     public OyeblikksbildeArbeidssokerRegistretDto hentArbeidssokerRegistretOyeblikksbildeForVedtak(long vedtakId) {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         Optional<OyeblikksbildeArbeidssokerRegistretDto> oyeblikksbildeRegistreringDto = oyeblikksbildeRepository.hentArbeidssokerRegistretOyeblikksbildeForVedtak(vedtakId);
@@ -77,6 +84,8 @@ public class OyeblikksbildeService {
     }
 
     public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         Optional<OyeblikksbildeEgenvurderingDto> oyeblikksbildeEgenvurderingDto = oyeblikksbildeRepository.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
@@ -85,6 +94,8 @@ public class OyeblikksbildeService {
     }
 
     public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbildeForVedtak(long vedtakId) {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         Optional<OyeblikksbildeRegistreringDto> oyeblikksbildeRegistreringDto = oyeblikksbildeRepository.hentRegistreringOyeblikksbildeForVedtak(vedtakId);

@@ -44,8 +44,10 @@ public class BeslutterController {
             }
     )
     public void startBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
-        beslutterService.startBeslutterProsess(vedtakId);
-    }
+        // Sjekkar utrulling for kontoret til brukar ✅
+
+		beslutterService.startBeslutterProsess(vedtakId);
+	}
 
     @PostMapping("/avbryt")
     @Operation(
@@ -66,8 +68,10 @@ public class BeslutterController {
             }
     )
     public void avbrytBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
-        beslutterService.avbrytBeslutterProsess(vedtakId);
-    }
+        // Sjekkar utrulling for kontoret til brukar ✅
+
+		beslutterService.avbrytBeslutterProsess(vedtakId);
+	}
 
     @PostMapping("/bliBeslutter")
     @Operation(
@@ -88,8 +92,10 @@ public class BeslutterController {
             }
     )
     public void bliBeslutter(@RequestParam("vedtakId") long vedtakId) {
-        beslutterService.bliBeslutter(vedtakId);
-    }
+        // Sjekkar utrulling for kontoret til brukar ✅
+
+		beslutterService.bliBeslutter(vedtakId);
+	}
 
     @PostMapping("/godkjenn")
     @Operation(
@@ -110,8 +116,10 @@ public class BeslutterController {
             }
     )
     public void godkjennVedtak(@RequestParam("vedtakId") long vedtakId) {
-        beslutterService.setGodkjentAvBeslutter(vedtakId);
-    }
+        // Sjekkar utrulling for kontoret til brukar ✅
+
+		beslutterService.setGodkjentAvBeslutter(vedtakId);
+	}
 
     @PutMapping("/status")
     @Operation(
@@ -137,7 +145,9 @@ public class BeslutterController {
             }
     )
     public void oppdaterBeslutterProsessStatus(@RequestParam("vedtakId") long vedtakId) {
-        beslutterService.oppdaterBeslutterProsessStatus(vedtakId);
-    }
+        // Sjekkar utrulling for kontoret til brukar ✅
+
+		beslutterService.oppdaterBeslutterProsessStatus(vedtakId);
+	}
 
 }

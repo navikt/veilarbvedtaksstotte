@@ -74,6 +74,7 @@ public class MeldingController {
             }
     )
     public List<? extends MeldingDTO> hentDialogMeldinger(@RequestParam("vedtakId") long vedtakId) {
+        // Sjekkar utrulling for kontoret til brukar ✅
         if (vedtakService.erFattet(vedtakId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -88,6 +89,8 @@ public class MeldingController {
                     "bli synlig i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer."
     )
     public void opprettDialogMelding(@RequestParam("vedtakId") long vedtakId, @RequestBody OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         if (vedtakService.erFattet(vedtakId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }

@@ -37,6 +37,8 @@ public class UtkastController {
     @Deprecated(forRemoval = true)
     @GetMapping
     public Vedtak hentUtkast(@RequestParam("fnr") Fnr fnr) {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         return vedtakService.hentUtkast(fnr);
     }
 
@@ -53,6 +55,7 @@ public class UtkastController {
     public BeslutterprosessStatusDTO beslutterprosessStatus(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
+        // Sjekkar utrulling for kontoret til brukar ✅
         return new BeslutterprosessStatusDTO(vedtakService.hentBeslutterprosessStatus(vedtakId));
     }
 
@@ -68,6 +71,8 @@ public class UtkastController {
             }
     )
     public void lagUtkast(@RequestBody LagUtkastDTO lagUtkastDTO) {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         if (lagUtkastDTO == null || lagUtkastDTO.getFnr() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing fnr");
         }
@@ -97,6 +102,7 @@ public class UtkastController {
     public void fattVedtak(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
+        // Sjekkar utrulling for kontoret til brukar ✅
         vedtakService.fattVedtak(vedtakId);
     }
 
@@ -115,6 +121,7 @@ public class UtkastController {
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId,
             @RequestBody OppdaterUtkastDTO vedtakDTO
     ) {
+        // Sjekkar utrulling for kontoret til brukar ✅
         vedtakService.oppdaterUtkast(vedtakId, vedtakDTO);
     }
 
@@ -122,6 +129,8 @@ public class UtkastController {
     @Deprecated(forRemoval = true)
     @GetMapping("{fnr}/harUtkast")
     public boolean harUtkast(@PathVariable("fnr") Fnr fnr) {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         return vedtakService.harUtkast(fnr);
     }
 
@@ -139,6 +148,7 @@ public class UtkastController {
     public ResponseEntity<byte[]> hentForhandsvisning(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
+        // Sjekkar utrulling for kontoret til brukar ✅
         byte[] utkastPdf = vedtakService.produserDokumentUtkast(vedtakId);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev-utkast.pdf")
@@ -160,6 +170,8 @@ public class UtkastController {
     public void deleteUtkast(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         vedtakService.slettUtkastSomVeileder(vedtakId);
     }
 
@@ -177,6 +189,7 @@ public class UtkastController {
     public void oppdaterUtkast(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
+        // Sjekkar utrulling for kontoret til brukar ✅
         vedtakService.taOverUtkast(vedtakId);
     }
 }

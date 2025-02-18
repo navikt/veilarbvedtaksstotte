@@ -42,6 +42,8 @@ class VedtakV2Controller(
         ]
     )
     fun hentFattedeVedtak(@RequestBody vedtakRequest: VedtakRequest): List<Vedtak> {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         return vedtakService.hentFattedeVedtak(vedtakRequest.fnr)
     }
 
@@ -65,6 +67,8 @@ class VedtakV2Controller(
         ]
     )
     fun hentVedtakFraArena(@RequestBody vedtakRequest: VedtakRequest): List<ArkivertVedtak> {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         return arenaVedtakService.hentVedtakFraArena(vedtakRequest.fnr)
     }
 }

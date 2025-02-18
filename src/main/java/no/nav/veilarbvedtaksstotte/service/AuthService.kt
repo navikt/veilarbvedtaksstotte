@@ -41,6 +41,8 @@ class AuthService(
     }
 
     fun sjekkTilgangTilBrukerOgEnhet(tilgangType: TilgangType, fnr: Fnr): AuthKontekst {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         return sjekkTilgangTilBrukerOgEnhet(
             tilgangType = tilgangType,
             fnrSupplier = { fnr },
@@ -49,6 +51,8 @@ class AuthService(
     }
 
     fun sjekkTilgangTilBrukerOgEnhet(tilgangType: TilgangType, aktorId: AktorId): AuthKontekst {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         return sjekkTilgangTilBrukerOgEnhet(
             tilgangType = tilgangType,
             fnrSupplier = { aktorOppslagClient.hentFnr(aktorId) },
@@ -95,6 +99,8 @@ class AuthService(
         fnrSupplier: Supplier<Fnr>,
         aktorIdSupplier: Supplier<AktorId>
     ): AuthKontekst {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         val fnrAktorIdPair = sjekkVeilederTilgangTilBruker(
             tilgangType = tilgangType,
             fnrSupplier = fnrSupplier,
@@ -150,6 +156,8 @@ class AuthService(
     }
 
     private fun sjekkTilgangTilEnhet(fnr: String): String {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         val enhet = veilarbarenaService.hentOppfolgingsenhet(Fnr.of(fnr))
             .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
         if (!utrullingService.erUtrullet(enhet)) {

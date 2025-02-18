@@ -35,6 +35,8 @@ class UtkastV2Controller(
         ]
     )
     fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): VedtakUtkastDTO {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         return toVedtakUtkastDTO(vedtakService.hentUtkast(utkastRequest.fnr))
     }
 
@@ -49,6 +51,8 @@ class UtkastV2Controller(
         ]
     )
     fun harUtkast(@RequestBody utkastRequest: UtkastRequest): Boolean {
+        // Sjekkar utrulling for kontoret til brukar ✅
+
         return vedtakService.harUtkast(utkastRequest.fnr)
     }
 }
