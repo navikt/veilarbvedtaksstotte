@@ -14,8 +14,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.utils.SAK_STATISTIKK_PAA
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -166,7 +164,7 @@ class SakStatistikkService @Autowired constructor(
         }
     }
 
-    fun sendtTilbakeFraKvalitetssikrer(vedtak: Vedtak) {
+    fun sendtTilbakeFraKvalitetssikrer(vedtak: Vedtak, innloggetVeileder: String) {
         val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
         if (statistikkPaa) {
             val aktorId = AktorId(vedtak.aktorId)
@@ -174,7 +172,8 @@ class SakStatistikkService @Autowired constructor(
 
             val statistikkRad = SakStatistikk(
                 behandlingStatus = BehandlingStatus.UNDER_BEHANDLING,
-                behandlingMetode = BehandlingMetode.TOTRINNS
+                behandlingMetode = BehandlingMetode.TOTRINNS,
+                ansvarligBeslutter = innloggetVeileder
             )
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
