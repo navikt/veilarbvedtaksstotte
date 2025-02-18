@@ -14,7 +14,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
-import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils;
@@ -169,14 +168,10 @@ public class BeslutterService {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_BESLUTTER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilBeslutter(utkast);
-            sakStatistikkService.startetKvalitetssikring(utkast);
-            log.info("Sendt til beslutter - statistikk - behandlinggstatus: SENDT_TIL_KVALITETSSIKRING");
         } else {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_VEILEDER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilVeileder(utkast);
-            sakStatistikkService.sendtTilbakeFraKvalitetssikrer(utkast);
-            log.info("Sendt til veileder - statistikk - behandlingsstatus: UNDER_BEHANDLING");
         }
     }
 
