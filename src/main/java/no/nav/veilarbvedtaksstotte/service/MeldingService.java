@@ -57,8 +57,8 @@ public class MeldingService {
             log.info("Sendt til veileder - statistikk - behandlingsstatus: UNDER_BEHANDLING");
         } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, utkast)) {
             metricsService.repporterDialogMeldingSendtAvVeilederOgBeslutter(melding, "veileder");
-            sakStatistikkService.startetKvalitetssikring(utkast);
-            log.info("Sendt til beslutter - statistikk - behandlingsstatus: SENDT_TIL_KVALITETSSIKRING");
+            sakStatistikkService.sendtTilbakeFraVeileder(utkast);
+            log.info("Sendt til beslutter - statistikk - behandlingsstatus: SENDT_TIL_KVALITETSSIKRING ${}", utkast.getBeslutterIdent());
         }
     }
 
