@@ -11,7 +11,9 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO
 import no.nav.veilarbvedtaksstotte.repository.UtrullingRepository;
 import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,4 +83,11 @@ public class UtrullingService {
         return utrullingRepository.erMinstEnEnhetUtrullet(enhetIder);
     }
 
+
+    public void sjekkAtBrukerTilhorerUtrulletKontor(Fnr fnr) {
+        if (!tilhorerBrukerUtrulletKontor(fnr)) {
+            log.info("Vedtaksstøtte er ikke utrullet for enheten til bruker. Tilgang er stoppet");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten til bruker");
+        }
+    }
 }

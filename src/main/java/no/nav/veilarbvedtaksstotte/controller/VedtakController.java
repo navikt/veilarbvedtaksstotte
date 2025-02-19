@@ -15,6 +15,7 @@ import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
+import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -42,12 +43,14 @@ public class VedtakController {
     private final VedtakService vedtakService;
     private final ArenaVedtakService arenaVedtakService;
     private final OyeblikksbildeService oyeblikksbildeService;
+    private final UtrullingService utrullingService;
 
     @Autowired
-    public VedtakController(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService) {
+    public VedtakController(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService, UtrullingService utrullingService) {
         this.vedtakService = vedtakService;
         this.arenaVedtakService = arenaVedtakService;
         this.oyeblikksbildeService = oyeblikksbildeService;
+        this.utrullingService = utrullingService;
     }
 
     @GetMapping(value = "{vedtakId}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -112,7 +115,7 @@ public class VedtakController {
     @Deprecated(forRemoval = true)
     @GetMapping("/fattet")
     public List<Vedtak> hentFattedeVedtak(@RequestParam("fnr") Fnr fnr) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(fnr);
 
         return vedtakService.hentFattedeVedtak(fnr);
     }
@@ -208,7 +211,7 @@ public class VedtakController {
     @Deprecated(forRemoval = true)
     @GetMapping("/arena")
     public List<ArkivertVedtak> hentVedtakFraArena(@RequestParam("fnr") Fnr fnr) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(fnr);
 
         return arenaVedtakService.hentVedtakFraArena(fnr);
     }

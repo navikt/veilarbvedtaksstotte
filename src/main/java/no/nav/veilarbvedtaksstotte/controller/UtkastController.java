@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.controller.dto.BeslutterprosessStatusDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.LagUtkastDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,16 +29,18 @@ import org.springframework.web.server.ResponseStatusException;
 public class UtkastController {
 
     private final VedtakService vedtakService;
+    private final UtrullingService utrullingService;
 
     @Autowired
-    public UtkastController(VedtakService vedtakService) {
+    public UtkastController(VedtakService vedtakService, UtrullingService utrullingService) {
         this.vedtakService = vedtakService;
+        this.utrullingService = utrullingService;
     }
 
     @Deprecated(forRemoval = true)
     @GetMapping
     public Vedtak hentUtkast(@RequestParam("fnr") Fnr fnr) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(fnr);
 
         return vedtakService.hentUtkast(fnr);
     }
@@ -71,7 +74,7 @@ public class UtkastController {
             }
     )
     public void lagUtkast(@RequestBody LagUtkastDTO lagUtkastDTO) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(lagUtkastDTO.getFnr());
 
         if (lagUtkastDTO == null || lagUtkastDTO.getFnr() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing fnr");
@@ -129,7 +132,7 @@ public class UtkastController {
     @Deprecated(forRemoval = true)
     @GetMapping("{fnr}/harUtkast")
     public boolean harUtkast(@PathVariable("fnr") Fnr fnr) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(fnr);
 
         return vedtakService.harUtkast(fnr);
     }
