@@ -141,7 +141,6 @@ public class BeslutterService {
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);
         metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(utkast);
         sakStatistikkService.kvalitetssikrerGodkjenner(utkast, innloggetVeilederIdent);
-        log.info("Vedtak godkjent av beslutter - statistikk");
     }
 
     public void oppdaterBeslutterProsessStatus(long vedtakId) {
