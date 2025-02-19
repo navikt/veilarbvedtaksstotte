@@ -59,7 +59,7 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
     }
 
     @Test
-    fun `lagre statistikkrad utkast`() {
+    fun `lagre statistikkrad for utkast`() {
         val statistikkRad2 = SakStatistikk(
             behandlingId = 3002.toBigInteger(),
             relatertBehandlingId = null,
