@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.client.arena;
 
-import lombok.Value;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
@@ -84,27 +83,4 @@ public class VeilarbarenaClientImpl implements VeilarbarenaClient {
         return HealthCheckUtils.pingUrl(joinPaths(veilarbarenaUrl, "/internal/isReady"), client);
     }
 
-    @Override
-    public Optional<String> oppfolgingssak(Fnr fnr) {
-        Request request = new Request.Builder()
-                .url(joinPaths(veilarbarenaUrl, "/api/v2/hent-oppfolgingssak"))
-                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineToken.get()))
-                .post(toJsonRequestBody(new VeilarbarenaOppfolgingRequest(fnr)))
-                .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            if (response.code() == NOT_FOUND.value()) {
-                return Optional.empty();
-            }
-            RestUtils.throwIfNotSuccessful(response);
-            return Optional.of(parseJsonResponseOrThrow(response, ArenaOppfolgingssak.class).getOppfolgingssakId());
-        } catch (Exception e) {
-            throw new IllegalStateException("Fant ikke oppfolgingssak i Arena for bruker.", e);
-        }
-    }
-
-    @Value
-    public static class ArenaOppfolgingssak {
-        String oppfolgingssakId;
-    }
 }

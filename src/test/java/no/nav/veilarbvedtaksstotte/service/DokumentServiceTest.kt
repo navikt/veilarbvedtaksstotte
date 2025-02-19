@@ -39,6 +39,9 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder
@@ -61,6 +64,7 @@ class DokumentServiceTest {
 
     lateinit var authContextHolder: AuthContextHolder
     lateinit var veilarbarenaClient: VeilarbarenaClient
+    lateinit var veilarboppfolgingClient: VeilarboppfolgingClient
     lateinit var veilarbpersonClient: VeilarbpersonClient
     lateinit var veilarbveilederClient: VeilarbveilederClient
     lateinit var regoppslagClient: RegoppslagClient
@@ -134,8 +138,8 @@ class DokumentServiceTest {
                     "idType": "FNR"
                   },
                   "sak": {
-                    "fagsakId": "OPPF_SAK",
-                    "fagsaksystem": "AO01",
+                    "fagsakId": "123456",
+                    "fagsaksystem": "ARBEIDSOPPFOLGING",
                     "sakstype": "FAGSAK"
                   },
                   "dokumenter": [
@@ -213,6 +217,7 @@ class DokumentServiceTest {
         regoppslagClient = RegoppslagClientImpl(wiremockUrl) { "SYSTEM_USER_TOKEN" }
         dokarkivClient = DokarkivClientImpl(wiremockUrl) { "" }
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
+        veilarboppfolgingClient = mock(VeilarboppfolgingClient::class.java)
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""}, {""})
         oppslagArbeidssoekerregisteretClientImpl = OppslagArbeidssoekerregisteretClientImpl(wiremockUrl, {""})
         arbeidssoekerRegisteretService = ArbeidssoekerRegisteretService(oppslagArbeidssoekerregisteretClientImpl)
@@ -244,7 +249,7 @@ class DokumentServiceTest {
 
         dokumentService = DokumentService(
             regoppslagClient = regoppslagClient,
-            veilarbarenaClient = veilarbarenaClient,
+            veilarboppfolgingClient = veilarboppfolgingClient,
             veilarbpersonClient = veilarbpersonClient,
             dokarkivClient = dokarkivClient,
             malTypeService = malTypeService,
@@ -408,7 +413,7 @@ class DokumentServiceTest {
                     tittel = "Tittel",
                     enhetId = EnhetId("ENHET_ID"),
                     fnr = Fnr("fnr"),
-                    oppfolgingssak = "OPPF_SAK",
+                    oppfolgingssak = SakDTO(UUID.randomUUID(), 123456, "ARBEIDSOPPFOLGING", "OPP"),
                     malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
                     dokument = forventetBrev,
                     oyeblikksbildeCVDokument = cvPdf,
