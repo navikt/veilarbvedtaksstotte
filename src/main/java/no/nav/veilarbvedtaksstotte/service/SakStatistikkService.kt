@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 
 
 @Service
@@ -34,7 +35,7 @@ class SakStatistikkService @Autowired constructor(
         val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
         if (statistikkPaa) {
             val statistikkRad = SakStatistikk(
-                ferdigbehandletTid = Instant.now(),
+                ferdigbehandletTid = Instant.now().truncatedTo(ChronoUnit.SECONDS),
                 behandlingStatus = BehandlingStatus.FATTET,
                 behandlingMetode = if(vedtak.beslutterIdent != null) BehandlingMetode.TOTRINNS else BehandlingMetode.MANUELL,
                 ansvarligBeslutter = vedtak.beslutterIdent
@@ -253,7 +254,7 @@ class SakStatistikkService @Autowired constructor(
         return sakStatistikk.copy(
             aktorId = AktorId.of(vedtak.aktorId),
             behandlingId = vedtak.id.toBigInteger(),
-            registrertTid = vedtak.utkastOpprettet?.toInstant(ZoneOffset.UTC),
+            registrertTid = vedtak.utkastOpprettet?.toInstant(ZoneOffset.of("+01:00"))?.truncatedTo(ChronoUnit.SECONDS),
             behandlingResultat = vedtak.innsatsgruppe?.toBehandlingResultat(),
             innsatsgruppe = vedtak.innsatsgruppe?.toBehandlingResultat(),
             hovedmal = vedtak.hovedmal?.let { HovedmalNy.valueOf(it.toString())},
@@ -271,8 +272,7 @@ class SakStatistikkService @Autowired constructor(
 
         return sakStatistikk.copy(
             oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
-            mottattTid = if (tidligereVedtakIOppfolgingsperioden != null) sakStatistikk.registrertTid else oppfolgingsperiode.get().startDato.toInstant(), //TODO må gjøre noe med datoen mtp UTC her
-
+            mottattTid = if (tidligereVedtakIOppfolgingsperioden != null) sakStatistikk.registrertTid else oppfolgingsperiode.get().startDato.toInstant().truncatedTo(ChronoUnit.SECONDS),
             sakId = sakId.toString(),
 
             relatertBehandlingId = tidligereVedtakIOppfolgingsperioden?.id,
