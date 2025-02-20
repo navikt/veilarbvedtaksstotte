@@ -43,16 +43,9 @@ class SakStatistikkService @Autowired constructor(
 
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
-            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
+            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
-            try {
-                ferdigpopulertStatistikkRad.validate()
-                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
-                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
-            } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre fattetvedtak - sakstatistikk", e)
-            }
+            lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
         }
     }
 
@@ -68,16 +61,9 @@ class SakStatistikkService @Autowired constructor(
 
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
-            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
+            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
-            try {
-                ferdigpopulertStatistikkRad.validate()
-                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
-                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
-            } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre opprettutkast - sakstatistikk", e)
-            }
+            lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
         }
     }
     fun slettetUtkast(
@@ -91,9 +77,8 @@ class SakStatistikkService @Autowired constructor(
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
             val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
-            val populertMedKode6Sjekk = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
 
-            val ferdigpopulertStatistikkRad = populertMedKode6Sjekk.copy(
+            val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
                 innsatsgruppe = null,
                 hovedmal = null,
                 behandlingResultat = null,
@@ -101,13 +86,7 @@ class SakStatistikkService @Autowired constructor(
                 behandlingMetode = BehandlingMetode.MANUELL,
             )
 
-            try {
-                ferdigpopulertStatistikkRad.validate()
-                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
-                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
-            } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre slettetutkast - sakstatistikk", e)
-            }
+            lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
         }
     }
 
@@ -123,17 +102,9 @@ class SakStatistikkService @Autowired constructor(
             )
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
-            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
+            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
-
-            try {
-                ferdigpopulertStatistikkRad.validate()
-                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
-                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
-            } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre startetKvalitetssikring - sakstatistikk", e)
-            }
+            lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
         }
     }
 
@@ -150,17 +121,9 @@ class SakStatistikkService @Autowired constructor(
             )
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
-            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
+            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
-
-            try {
-                ferdigpopulertStatistikkRad.validate()
-                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
-                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
-            } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre bliEllerTaOverSomKvalitetssikrer - sakstatistikk", e)
-            }
+            lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
         }
     }
 
@@ -177,17 +140,9 @@ class SakStatistikkService @Autowired constructor(
             )
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
-            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
+            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
-
-            try {
-                ferdigpopulertStatistikkRad.validate()
-                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
-                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
-            } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre startetKvalitetssikring - sakstatistikk", e)
-            }
+            lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
         }
     }
     fun sendtTilbakeFraKvalitetssikrer(vedtak: Vedtak, innloggetVeileder: String) {
@@ -203,16 +158,9 @@ class SakStatistikkService @Autowired constructor(
             )
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
-            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
+            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
-            try {
-                ferdigpopulertStatistikkRad.validate()
-                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
-                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
-            } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre bliEllerTaOverSomKvalitetssikrer - sakstatistikk", e)
-            }
+            lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
         }
     }
 
@@ -229,16 +177,9 @@ class SakStatistikkService @Autowired constructor(
             )
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-            val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
-            val ferdigpopulertStatistikkRad = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
+            val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
-            try {
-                ferdigpopulertStatistikkRad.validate()
-                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
-                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
-            } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre kvalitetssikrerGodkjenner - sakstatistikk", e)
-            }
+            lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
         }
     }
 
@@ -251,9 +192,8 @@ class SakStatistikkService @Autowired constructor(
             val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
             val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
             val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
-            val populertMedKode6Sjekk = sjekkOmPersonErKode6(fnr, populertMedOppfolgingsperiodeData)
 
-            val ferdigpopulertStatistikkRad = populertMedKode6Sjekk.copy(
+            val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
                 ansvarligBeslutter = null,
                 behandlingResultat = null,
                 hovedmal = null,
@@ -262,13 +202,7 @@ class SakStatistikkService @Autowired constructor(
                 behandlingMetode = BehandlingMetode.MANUELL,
             )
 
-            try {
-                ferdigpopulertStatistikkRad.validate()
-                sakStatistikkRepository.insertSakStatistikkRad(ferdigpopulertStatistikkRad)
-                bigQueryService.logEvent(ferdigpopulertStatistikkRad)
-            } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre avbrytKvalitetssikringsprosess - sakstatistikk", e)
-            }
+            lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
         }
     }
 
@@ -289,15 +223,17 @@ class SakStatistikkService @Autowired constructor(
                 saksbehandler = innloggetVeilederIdent
             )
 
-            val populertMedKode6Sjekk = sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad)
+            lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+        }
+    }
 
-            try {
-                populertMedKode6Sjekk.validate()
-                sakStatistikkRepository.insertSakStatistikkRad(populertMedKode6Sjekk)
-                bigQueryService.logEvent(populertMedKode6Sjekk)
-            } catch (e: Exception) {
-                secureLog.error("Kunne ikke lagre overtattUtkast - sakstatistikk", e)
-            }
+    private fun lagreStatistikkRadIdbOgSendTilBQ(statistikkRad: SakStatistikk) {
+        try {
+            statistikkRad.validate()
+            val sekvensnummer = sakStatistikkRepository.insertSakStatistikkRad(statistikkRad)
+            bigQueryService.logEvent(statistikkRad.copy(sekvensnummer = sekvensnummer))
+        } catch (e: Exception) {
+            secureLog.error("Kunne ikke lagre sakStatistikkRad, feil: {} , sakStatistikkRad: {}", e, statistikkRad)
         }
     }
 

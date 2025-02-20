@@ -10,6 +10,7 @@ import java.util.*
 const val SAK_YTELSE = "ARBEIDSRETTET_OPPFOLGINGSBEHOV"
 
 data class SakStatistikk(
+    val sekvensnummer: Long? = null,
     val behandlingId: BigInteger? = null,
     val aktorId: AktorId? = null,
     val relatertBehandlingId: BigInteger? = null,

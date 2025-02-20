@@ -55,7 +55,7 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
         sakStatistikkRepository.insertSakStatistikkRad(statistikkRad)
         val lagretStatistikkRadAlt = sakStatistikkRepository.hentSakStatistikkListeAlt(3001.toBigInteger())
         val lagretStatistikkRad = sakStatistikkRepository.hentSakStatistikkListe("2004140973848")
-        assertEquals(lagretStatistikkRadAlt.get(0).behandlingId, lagretStatistikkRad.get(1).behandlingId)
+        assertEquals(lagretStatistikkRadAlt[0].behandlingId, lagretStatistikkRad[1].behandlingId)
     }
 
     @Test
@@ -86,9 +86,10 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
         )
         val aktorId = AktorId.of("2004140973848")
         val behandlingId = 3002.toBigInteger()
-        sakStatistikkRepository.insertSakStatistikkRad(statistikkRad2)
+        val sekvensnummer = sakStatistikkRepository.insertSakStatistikkRad(statistikkRad2)
         val lagretStatistikkRadUtkast =
             behandlingId.let { sakStatistikkRepository.hentSakStatistikkListe(aktorId.toString()) }
-        assertEquals(behandlingId.toString(), lagretStatistikkRadUtkast.get(0).behandlingId.toString())
+        assertEquals(sekvensnummer, lagretStatistikkRadUtkast[0].sekvensnummer)
+        assertEquals(behandlingId.toString(), lagretStatistikkRadUtkast[0].behandlingId.toString())
     }
 }
