@@ -116,7 +116,7 @@ public class VeilarboppfolgingClientImplTest {
                         .withBody(response))
         );
 
-        SakDTO expectedSakDTO = new SakDTO(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), 123456789012L);
+        SakDTO expectedSakDTO = new SakDTO(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), 123456789012L, "ARBEIDSOPPFOLGING", "OPP");
 
         SakDTO oppfolgingSak = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiodeId);
 
