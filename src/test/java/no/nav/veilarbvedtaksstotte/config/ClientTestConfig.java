@@ -67,7 +67,6 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_JOURNALPOST_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSSAK;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 
 @Configuration
@@ -156,11 +155,6 @@ public class ClientTestConfig {
             }
 
             @Override
-            public Optional<String> oppfolgingssak(Fnr fnr) {
-                return Optional.of(TEST_OPPFOLGINGSSAK);
-            }
-
-            @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();
             }
@@ -232,7 +226,7 @@ public class ClientTestConfig {
 
             @Override
             public SakDTO hentOppfolgingsperiodeSak(UUID oppfolgingsperiodeId) {
-                return new SakDTO(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), 123456789012L);
+                return new SakDTO(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), 123456789012L, "ARBEIDSOPPFOLGING", "OPP");
             }
 
             @Override
