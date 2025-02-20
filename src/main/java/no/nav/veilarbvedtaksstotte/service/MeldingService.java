@@ -43,8 +43,6 @@ public class MeldingService {
     }
 
     public void opprettBrukerDialogMelding(long vedtakId, String melding) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
@@ -59,7 +57,6 @@ public class MeldingService {
     }
 
     public List<? extends MeldingDTO> hentMeldinger(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 

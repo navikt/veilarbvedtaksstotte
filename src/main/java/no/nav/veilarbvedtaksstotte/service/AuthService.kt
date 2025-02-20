@@ -7,11 +7,7 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.Pair
-import no.nav.poao_tilgang.client.EksternBrukerTilgangTilEksternBrukerPolicyInput
-import no.nav.poao_tilgang.client.NavAnsattTilgangTilEksternBrukerPolicyInput
-import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
-import no.nav.poao_tilgang.client.PoaoTilgangClient
-import no.nav.poao_tilgang.client.TilgangType
+import no.nav.poao_tilgang.client.*
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import org.slf4j.LoggerFactory
@@ -41,8 +37,6 @@ class AuthService(
     }
 
     fun sjekkTilgangTilBrukerOgEnhet(tilgangType: TilgangType, fnr: Fnr): AuthKontekst {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         return sjekkTilgangTilBrukerOgEnhet(
             tilgangType = tilgangType,
             fnrSupplier = { fnr },
@@ -51,8 +45,6 @@ class AuthService(
     }
 
     fun sjekkTilgangTilBrukerOgEnhet(tilgangType: TilgangType, aktorId: AktorId): AuthKontekst {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         return sjekkTilgangTilBrukerOgEnhet(
             tilgangType = tilgangType,
             fnrSupplier = { aktorOppslagClient.hentFnr(aktorId) },
@@ -99,8 +91,6 @@ class AuthService(
         fnrSupplier: Supplier<Fnr>,
         aktorIdSupplier: Supplier<AktorId>
     ): AuthKontekst {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         val fnrAktorIdPair = sjekkVeilederTilgangTilBruker(
             tilgangType = tilgangType,
             fnrSupplier = fnrSupplier,
@@ -156,14 +146,8 @@ class AuthService(
     }
 
     private fun sjekkTilgangTilEnhet(fnr: String): String {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         val enhet = veilarbarenaService.hentOppfolgingsenhet(Fnr.of(fnr))
             .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
-        if (!utrullingService.erUtrullet(enhet)) {
-            log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet)
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten")
-        }
 
         val veilederTilgangTilEnhet = poaoTilgangClient.evaluatePolicy(
             NavAnsattTilgangTilNavEnhetPolicyInput(

@@ -52,8 +52,6 @@ public class BeslutterService {
     private final SakStatistikkService sakStatistikkService;
 
     public void startBeslutterProsess(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
@@ -74,8 +72,6 @@ public class BeslutterService {
     }
 
     public void avbrytBeslutterProsess(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
@@ -95,8 +91,6 @@ public class BeslutterService {
     }
 
     public void bliBeslutter(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
@@ -129,8 +123,6 @@ public class BeslutterService {
     }
 
     public void setGodkjentAvBeslutter(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
@@ -152,8 +144,6 @@ public class BeslutterService {
     }
 
     public void oppdaterBeslutterProsessStatus(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 

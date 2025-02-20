@@ -37,8 +37,6 @@ public class ArenaVedtakService {
     }
 
     public List<ArkivertVedtak> hentVedtakFraArena(Fnr fnr) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr);
         return hentArkiverteVedtakFraArena(fnr);
     }

@@ -68,8 +68,6 @@ public class VedtakService {
 
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(vedtak);
@@ -159,16 +157,12 @@ public class VedtakService {
     }
 
     public BeslutterProsessStatus hentBeslutterprosessStatus(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         return utkast.getBeslutterProsessStatus();
     }
 
     public Vedtak hentUtkast(Fnr fnr) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr);
         String aktorId = authKontekst.getAktorId();
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
@@ -183,8 +177,6 @@ public class VedtakService {
     }
 
     public void lagUtkast(Fnr fnr) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr);
         String aktorId = authKontekst.getAktorId();
 
@@ -206,8 +198,6 @@ public class VedtakService {
     }
 
     public void oppdaterUtkast(long vedtakId, OppdaterUtkastDTO vedtakDTO) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
@@ -252,8 +242,6 @@ public class VedtakService {
     }
 
     public void slettUtkastSomVeileder(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentVedtak(vedtakId);
 
         if (utkast.getVedtakStatus() != VedtakStatus.UTKAST) {
@@ -283,8 +271,6 @@ public class VedtakService {
     }
 
     public List<Vedtak> hentFattedeVedtak(Fnr fnr) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         String aktorId = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr).getAktorId();
         List<Vedtak> vedtak = vedtaksstotteRepository.hentFattedeVedtak(aktorId);
 
@@ -301,8 +287,6 @@ public class VedtakService {
     }
 
     public byte[] produserDokumentUtkast(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
 
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
@@ -313,8 +297,6 @@ public class VedtakService {
     }
 
     public byte[] hentVedtakPdf(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         if (vedtak == null || !SENDT.equals(vedtak.getVedtakStatus())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke fattet vedtak");
@@ -324,8 +306,6 @@ public class VedtakService {
     }
 
     public byte[] hentOyeblikksbildePdf(long vedtakId, String dokumentInfoId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         if (vedtak == null || !SENDT.equals(vedtak.getVedtakStatus())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke fattet vedtak");
@@ -340,15 +320,11 @@ public class VedtakService {
     }
 
     public boolean harUtkast(Fnr fnr) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         String aktorId = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr).getAktorId();
         return vedtaksstotteRepository.hentUtkast(aktorId) != null;
     }
 
     public void taOverUtkast(long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
-
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
 
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));

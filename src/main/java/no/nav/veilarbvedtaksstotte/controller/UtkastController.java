@@ -75,11 +75,11 @@ public class UtkastController {
             }
     )
     public void lagUtkast(@RequestBody LagUtkastDTO lagUtkastDTO) {
-        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(lagUtkastDTO.getFnr());
-
         if (lagUtkastDTO == null || lagUtkastDTO.getFnr() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing fnr");
         }
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(lagUtkastDTO.getFnr());
+
         vedtakService.lagUtkast(lagUtkastDTO.getFnr());
     }
 
