@@ -58,7 +58,8 @@ public class UtkastController {
     public BeslutterprosessStatusDTO beslutterprosessStatus(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         return new BeslutterprosessStatusDTO(vedtakService.hentBeslutterprosessStatus(vedtakId));
     }
 
@@ -105,7 +106,8 @@ public class UtkastController {
     public void fattVedtak(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         vedtakService.fattVedtak(vedtakId);
     }
 
@@ -124,7 +126,8 @@ public class UtkastController {
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId,
             @RequestBody OppdaterUtkastDTO vedtakDTO
     ) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         vedtakService.oppdaterUtkast(vedtakId, vedtakDTO);
     }
 
@@ -151,7 +154,8 @@ public class UtkastController {
     public ResponseEntity<byte[]> hentForhandsvisning(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         byte[] utkastPdf = vedtakService.produserDokumentUtkast(vedtakId);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev-utkast.pdf")
@@ -173,7 +177,7 @@ public class UtkastController {
     public void deleteUtkast(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
         vedtakService.slettUtkastSomVeileder(vedtakId);
     }
@@ -192,7 +196,8 @@ public class UtkastController {
     public void oppdaterUtkast(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         vedtakService.taOverUtkast(vedtakId);
     }
 }

@@ -7,11 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeArbeidssokerRegistretDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeCvDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeRegistreringDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
@@ -20,11 +16,7 @@ import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -71,7 +63,7 @@ public class VedtakController {
             }
     )
     public ResponseEntity<byte[]> hentVedtakPdf(@PathVariable("vedtakId") long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
         byte[] vedtakPdf = vedtakService.hentVedtakPdf(vedtakId);
         return ResponseEntity.ok()
@@ -97,7 +89,7 @@ public class VedtakController {
             }
     )
     public ResponseEntity<byte[]> hentVedtakOyeblikksCVPdf(@PathVariable("vedtakId") long vedtakId, @PathVariable("oyeblikksbildeType") String oyeblikksbildeInputType) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
         OyeblikksbildeType oyeblikksbildeType = OyeblikksbildeType.valueOf(oyeblikksbildeInputType);
         String dokumentId = oyeblikksbildeService.hentJournalfortDokumentId(vedtakId, oyeblikksbildeType);
@@ -138,7 +130,7 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeCvDto hentCVOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
         return oyeblikksbildeService.hentCVOyeblikksbildeForVedtak(vedtakId);
     }
@@ -160,7 +152,7 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
         return oyeblikksbildeService.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
     }
@@ -182,7 +174,7 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeArbeidssokerRegistretDto hentArbeidssokerRegistretOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
         return oyeblikksbildeService.hentArbeidssokerRegistretOyeblikksbildeForVedtak(vedtakId);
     }
@@ -203,7 +195,7 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
         return oyeblikksbildeService.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
     }

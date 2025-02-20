@@ -6,12 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import no.nav.veilarbvedtaksstotte.service.BeslutterService;
+import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/beslutter")
@@ -19,10 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class BeslutterController {
 
     private final BeslutterService beslutterService;
+    private final UtrullingService utrullingService;
 
     @Autowired
-    public BeslutterController(BeslutterService beslutterService) {
+    public BeslutterController(BeslutterService beslutterService, UtrullingService utrullingService) {
         this.beslutterService = beslutterService;
+        this.utrullingService = utrullingService;
     }
 
     @PostMapping("/start")
@@ -44,10 +43,10 @@ public class BeslutterController {
             }
     )
     public void startBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
-		beslutterService.startBeslutterProsess(vedtakId);
-	}
+        beslutterService.startBeslutterProsess(vedtakId);
+    }
 
     @PostMapping("/avbryt")
     @Operation(
@@ -68,10 +67,10 @@ public class BeslutterController {
             }
     )
     public void avbrytBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
-		beslutterService.avbrytBeslutterProsess(vedtakId);
-	}
+        beslutterService.avbrytBeslutterProsess(vedtakId);
+    }
 
     @PostMapping("/bliBeslutter")
     @Operation(
@@ -92,10 +91,10 @@ public class BeslutterController {
             }
     )
     public void bliBeslutter(@RequestParam("vedtakId") long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
-		beslutterService.bliBeslutter(vedtakId);
-	}
+        beslutterService.bliBeslutter(vedtakId);
+    }
 
     @PostMapping("/godkjenn")
     @Operation(
@@ -116,10 +115,10 @@ public class BeslutterController {
             }
     )
     public void godkjennVedtak(@RequestParam("vedtakId") long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
-		beslutterService.setGodkjentAvBeslutter(vedtakId);
-	}
+        beslutterService.setGodkjentAvBeslutter(vedtakId);
+    }
 
     @PutMapping("/status")
     @Operation(
@@ -145,9 +144,9 @@ public class BeslutterController {
             }
     )
     public void oppdaterBeslutterProsessStatus(@RequestParam("vedtakId") long vedtakId) {
-        // Sjekkar utrulling for kontoret til brukar ✅
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
 
-		beslutterService.oppdaterBeslutterProsessStatus(vedtakId);
-	}
+        beslutterService.oppdaterBeslutterProsessStatus(vedtakId);
+    }
 
 }
