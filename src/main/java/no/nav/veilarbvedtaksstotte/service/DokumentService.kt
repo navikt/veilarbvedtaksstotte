@@ -174,7 +174,7 @@ class DokumentService(
             ),
             dokumenter = dokumenterList
         )
-
+        log.info("Oppretter journalpost for sakId: ${request.sak.fagsakId}, fagsaksystem: ${request.sak.fagsaksystem} og type: ${request.sak.sakstype}")
         return dokarkivClient.opprettJournalpost(request)
     }
 
