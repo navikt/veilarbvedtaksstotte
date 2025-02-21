@@ -4,159 +4,76 @@ import io.getunleash.DefaultUnleash
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
-import no.nav.common.client.norg2.Enhet
-import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.AktorId
-import no.nav.common.types.identer.EnhetId
 import no.nav.common.utils.fn.UnsafeRunnable
-import no.nav.poao_tilgang.client.Decision.Permit
-import no.nav.poao_tilgang.client.PoaoTilgangClient
-import no.nav.poao_tilgang.client.api.ApiResult
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
-import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
-import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost.JournalpostDokument
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse.JournalpostReponseData
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO
-import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO.DokumentInfoId
-import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
-import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse
-import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto.CVMedInnhold
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
-import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
-import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO
-import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType
+import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
-import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO
-import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder
-import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
-import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.repository.*
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
-import no.nav.veilarbvedtaksstotte.utils.JsonUtils.fromJson
 import no.nav.veilarbvedtaksstotte.utils.SAK_STATISTIKK_PAA
 import no.nav.veilarbvedtaksstotte.utils.TestData
-import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
 import org.junit.jupiter.api.*
 import org.mockito.kotlin.*
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
 
 class SakStatistikkServiceTest : DatabaseTest() {
 
     companion object {
         private var vedtaksstotteRepository: VedtaksstotteRepository? = null
-        private var kilderRepository: KilderRepository? = null
-        private var meldingRepository: MeldingRepository? = null
+        private var sakStatistikkService: SakStatistikkService? = null
         private var sakStatistikkRepository: SakStatistikkRepository? = null
         private var vedtakService: VedtakService? = null
-        private var oyeblikksbildeService: OyeblikksbildeService? = null
-        private var authService: AuthService? = null
-        private var sakStatistikkService: SakStatistikkService? = null
+        private var authService: AuthService = mock()
+        private var kilderRepository: KilderRepository = mock()
         private val unleashClient: DefaultUnleash = mock()
-        private val leaderElectionClient: LeaderElectionClient = mock()
-        private val vedtakHendelserService: VedtakHendelserService = mock()
-        private val veilederService: VeilederService = mock()
-        private val veilarbpersonClient: VeilarbpersonClient = mock()
-        private val arbeidssoekerRegistretService: ArbeidssoekerRegisteretService = mock()
-        private val aia_backend_client: AiaBackendClient = mock()
-        private val regoppslagClient: RegoppslagClient = mock()
         private val aktorOppslagClient: AktorOppslagClient = mock()
-        private val veilarbarenaClient: VeilarbarenaClient = mock()
-        private val dokarkivClient: DokarkivClient = mock()
-        private val veilarbveilederClient: VeilarbveilederClient = mock()
-        private val utrullingService: UtrullingService = mock()
-        private val enhetInfoService: EnhetInfoService = mock()
-        private val safClient: SafClient = mock()
-        private val metricsService: MetricsService = mock()
-        private val poaoTilgangClient: PoaoTilgangClient = mock()
-        private val pdfService: PdfService = mock()
         private val veilarboppfolgingClient: VeilarboppfolgingClient = mock()
-        private val bigQueryService: BigQueryService = mock()
         private val environmentProperties: EnvironmentProperties = mock()
-        private val sakStatistikkService2: SakStatistikkService = mock()
 
         @JvmStatic
         @BeforeAll
         fun setupOnce() {
-            val veilarbarenaService = VeilarbarenaService(veilarbarenaClient)
-            kilderRepository = spy(KilderRepository(jdbcTemplate))
-            meldingRepository = spy(MeldingRepository(jdbcTemplate))
             vedtaksstotteRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
+            sakStatistikkRepository = SakStatistikkRepository(jdbcTemplate)
 
-            val oyeblikksbildeRepository = OyeblikksbildeRepository(jdbcTemplate)
-            val beslutteroversiktRepository = BeslutteroversiktRepository(jdbcTemplate)
-            authService = spy(
-                AuthService(
-                    aktorOppslagClient,
-                    veilarbarenaService,
-                    AuthContextHolderThreadLocal.instance(),
-                    utrullingService,
-                    poaoTilgangClient
-                )
-            )
-
-            oyeblikksbildeService = OyeblikksbildeService(
-                authService,
-                oyeblikksbildeRepository,
-                vedtaksstotteRepository,
-                veilarbpersonClient,
-                aia_backend_client,
-                arbeidssoekerRegistretService
-            )
-            val malTypeService = MalTypeService(arbeidssoekerRegistretService)
-            val dokumentService = DokumentService(
-                regoppslagClient,
+            sakStatistikkService = SakStatistikkService(
+                sakStatistikkRepository!!,
                 veilarboppfolgingClient,
-                veilarbpersonClient,
-                dokarkivClient,
-                malTypeService,
-                oyeblikksbildeService!!,
-                pdfService
+                aktorOppslagClient,
+                mock(),
+                unleashClient,
+                environmentProperties
             )
             vedtakService = VedtakService(
                 transactor,
                 vedtaksstotteRepository,
-                beslutteroversiktRepository,
+                mock(),
                 kilderRepository,
-                meldingRepository,
-                safClient,
+                mock(),
+                mock(),
                 authService,
-                oyeblikksbildeService,
-                veilederService,
-                vedtakHendelserService,
-                dokumentService,
-                veilarbarenaService,
-                metricsService,
-                leaderElectionClient,
-                sakStatistikkService2
+                mock(),
+                mock(),
+                mock(),
+                mock(),
+                mock(),
+                mock(),
+                mock(),
+                sakStatistikkService
             )
 
         }
@@ -164,103 +81,27 @@ class SakStatistikkServiceTest : DatabaseTest() {
 
     @BeforeEach
     fun setup() {
-
         DbTestUtils.cleanupDb(jdbcTemplate)
-        sakStatistikkRepository = SakStatistikkRepository(jdbcTemplate)
-        reset(veilederService, meldingRepository, unleashClient, dokarkivClient, vedtakHendelserService)
         doReturn(TestData.TEST_VEILEDER_IDENT).`when`(authService)?.innloggetVeilederIdent
-        doReturn(UUID.randomUUID()).`when`(authService)?.hentInnloggetVeilederUUID()
+        whenever(kilderRepository.hentKilderForVedtak(any())).thenReturn(listOf(Kilde()))
+        whenever(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TestData.TEST_FNR)).thenReturn(
+            AuthKontekst(TestData.TEST_FNR.get(), TestData.TEST_AKTOR_ID, TestData.TEST_OPPFOLGINGSENHET_ID)
+        )
+        whenever(
+            authService.sjekkTilgangTilBrukerOgEnhet(
+                TilgangType.SKRIVE,
+                AktorId.of(TestData.TEST_AKTOR_ID)
+            )
+        ).thenReturn(AuthKontekst(TestData.TEST_FNR.get(), TestData.TEST_AKTOR_ID, TestData.TEST_OPPFOLGINGSENHET_ID))
+        whenever(authService.getFnrOrThrow(TestData.TEST_AKTOR_ID)).thenReturn(TestData.TEST_FNR)
 
-        whenever(veilederService.hentEnhetNavn(TestData.TEST_OPPFOLGINGSENHET_ID)).thenReturn(TestData.TEST_OPPFOLGINGSENHET_NAVN)
-        whenever(veilederService.hentVeileder(TestData.TEST_VEILEDER_IDENT)).thenReturn(
-            Veileder(
-                TestData.TEST_VEILEDER_IDENT, TestData.TEST_VEILEDER_NAVN
-            )
-        )
-        whenever(veilederService.hentVeilederEllerNull(TestData.TEST_VEILEDER_IDENT)).thenReturn(
-            Optional.of(
-                Veileder(
-                    TestData.TEST_VEILEDER_IDENT, TestData.TEST_VEILEDER_NAVN
-                )
-            )
-        )
-
-        whenever(regoppslagClient.hentPostadresse(any())).thenReturn(
-            RegoppslagResponseDTO(
-                "", RegoppslagResponseDTO.Adresse(AdresseType.NORSKPOSTADRESSE, "", "", "", "", "", "", "")
-            )
-        )
-
-        whenever(veilarbpersonClient.hentMålform(TestData.TEST_FNR)).thenReturn(Målform.NB)
-        whenever(veilarbpersonClient.hentCVOgJobbprofil(TestData.TEST_FNR.get())).thenReturn(
-            CVMedInnhold(
-                fromJson(
-                    testCvData(), CvInnhold::class.java
-                )
-            )
-        )
-        whenever(veilarbpersonClient.hentPersonNavn(TestData.TEST_FNR.get())).thenReturn(
-            PersonNavn(
-                "Fornavn", null, "Etternavn", null
-            )
-        )
-
-        whenever(aia_backend_client.hentEgenvurdering(any<EgenvurderingForPersonRequest>())).thenReturn(
-            fromJson(
-                testEgenvurderingData(), EgenvurderingResponseDTO::class.java
-            )
-        )
-
-        whenever(aktorOppslagClient.hentAktorId(TestData.TEST_FNR)).thenReturn(AktorId.of(TestData.TEST_AKTOR_ID))
         whenever(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(TestData.TEST_FNR)
-
-        whenever(veilarbarenaClient.hentOppfolgingsbruker(TestData.TEST_FNR)).thenReturn(
-            Optional.of(
-                VeilarbArenaOppfolging(TestData.TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")
-            )
-        )
-        whenever(dokarkivClient.opprettJournalpost(any<OpprettJournalpostDTO>())).thenReturn(
-            OpprettetJournalpostDTO(
-                TestData.TEST_JOURNALPOST_ID, true, listOf(DokumentInfoId(TestData.TEST_DOKUMENT_ID))
-            )
-        )
-        whenever(veilarbveilederClient.hentVeileder(TestData.TEST_VEILEDER_IDENT)).thenReturn(
-            Veileder(
-                TestData.TEST_VEILEDER_IDENT, TestData.TEST_VEILEDER_NAVN
-            )
-        )
-
-        whenever(enhetInfoService.hentEnhet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(
-            Enhet().setNavn(
-                TestData.TEST_OPPFOLGINGSENHET_NAVN
-            )
-        )
-        whenever(enhetInfoService.utledEnhetKontaktinformasjon(any<EnhetId>())).thenReturn(
-            EnhetKontaktinformasjon(
-                EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID), EnhetStedsadresse("", "", "", "", "", ""), ""
-            )
-        )
-
-        whenever(pdfService.produserDokument(any())).thenReturn(byteArrayOf())
-        whenever(pdfService.produserCVPdf(any())).thenReturn(Optional.of(byteArrayOf()))
-        whenever(pdfService.produserBehovsvurderingPdf(any())).thenReturn(Optional.of(byteArrayOf()))
-        whenever(poaoTilgangClient.evaluatePolicy(any())).thenReturn(ApiResult(null, Permit))
-        whenever(safClient.hentJournalpost(any())).thenReturn(mockedJournalpostGraphqlResponse)
         whenever(unleashClient.isEnabled(SAK_STATISTIKK_PAA)).thenReturn(true)
         whenever(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(TestData.TEST_FNR)).thenReturn(
             mockedOppfolgingsPeriode
         )
         whenever(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(mockedOppfolgingsSak)
         whenever(environmentProperties.naisAppImage).thenReturn("naisAppImage")
-
-        sakStatistikkService = SakStatistikkService(
-            sakStatistikkRepository!!,
-            veilarboppfolgingClient,
-            aktorOppslagClient,
-            bigQueryService,
-            unleashClient,
-            environmentProperties
-        )
     }
 
     @Test
@@ -443,8 +284,8 @@ class SakStatistikkServiceTest : DatabaseTest() {
             fattVedtak()
             val vedtaket = hentVedtak()
             sakStatistikkService!!.fattetVedtak(vedtaket, TestData.TEST_FNR)
-            vedtakService!!.lagUtkast(TestData.TEST_FNR)
             val nestSisteRad = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID).last()
+            vedtakService!!.lagUtkast(TestData.TEST_FNR)
             sakStatistikkService!!.opprettetUtkast(
                 vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID), TestData.TEST_FNR
             )
@@ -589,7 +430,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
 
     @Test
     fun legg_til_statistikkrad_for_a_overta_utkast() {
-        sakStatistikkRepository = SakStatistikkRepository(jdbcTemplate)
         withContext {
             gittUtkastKlarForUtsendelse()
             var utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
@@ -615,11 +455,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
         }
     }
 
-    private fun gittTilgang() {
-        whenever(utrullingService.erUtrullet(any())).thenReturn(true)
-        whenever(poaoTilgangClient.evaluatePolicy(any())).thenReturn(ApiResult(null, Permit))
-    }
-
     private fun withContext(runnable: UnsafeRunnable) {
         AuthContextHolderThreadLocal.instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, TestData.TEST_VEILEDER_IDENT), runnable)
@@ -627,7 +462,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
 
     private fun gittUtkastKlarForUtsendelse() {
         withContext {
-            gittTilgang()
             vedtakService!!.lagUtkast(TestData.TEST_FNR)
             val utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
 
@@ -659,49 +493,10 @@ class SakStatistikkServiceTest : DatabaseTest() {
 
     private fun fattVedtak() {
         withContext {
-            gittTilgang()
             val utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
             vedtakService!!.fattVedtak(utkast.id)
         }
     }
-
-    private fun testCvData(): String {
-        return readTestResourceFile("testdata/oyeblikksbilde-cv.json")
-    }
-
-    private fun testEgenvurderingData(): String {
-        return readTestResourceFile("testdata/egenvurdering-response.json")
-    }
-
-    private val mockedJournalpostGraphqlResponse: JournalpostGraphqlResponse
-        get() {
-            val journalpostGraphqlResponse = JournalpostGraphqlResponse()
-            journalpostGraphqlResponse.data = JournalpostReponseData().setJournalpost(mockedJournalpost)
-            return journalpostGraphqlResponse
-        }
-
-    private val mockedJournalpost: Journalpost
-        get() {
-            val journalpost = Journalpost()
-            journalpost.journalpostId = "journalpost123"
-            journalpost.tittel = "titel"
-
-            val journalpostDokument1 = JournalpostDokument()
-            journalpostDokument1.brevkode = BrevKode.EGENVURDERING.name
-            journalpostDokument1.dokumentInfoId = "111111"
-
-            val journalpostDokument2 = JournalpostDokument()
-            journalpostDokument2.brevkode = BrevKode.REGISTRERINGSINFO.name
-            journalpostDokument2.dokumentInfoId = "222222"
-
-            val journalpostDokument3 = JournalpostDokument()
-            journalpostDokument3.brevkode = BrevKode.CV_OG_JOBBPROFIL.name
-            journalpostDokument3.dokumentInfoId = "333333"
-
-
-            journalpost.dokumenter = arrayOf(journalpostDokument1, journalpostDokument2, journalpostDokument3)
-            return journalpost
-        }
 
     private val mockedOppfolgingsPeriode: Optional<OppfolgingPeriodeDTO>
         get() {
