@@ -240,9 +240,9 @@
             <version>${unleash.version}</version>
         </dependency>
         <dependency>
-            <groupId>no.nav.poao-tilgang</groupId>
+            <groupId>com.github.navikt.poao-tilgang</groupId>
             <artifactId>client</artifactId>
-            <version>2025.02.06_13.37-958e35e7373d</version>
+            <version>2024.03.04_10.19-63a652788672</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

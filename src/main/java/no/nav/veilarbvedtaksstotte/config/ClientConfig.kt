@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.config
 
-import com.github.benmanes.caffeine.cache.Caffeine
 import io.getunleash.DefaultUnleash
 import io.getunleash.util.UnleashConfig
 import no.nav.common.auth.context.AuthContextHolder
@@ -14,8 +13,9 @@ import no.nav.common.token_client.client.AzureAdMachineToMachineTokenClient
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.common.utils.AuthUtils
 import no.nav.common.utils.EnvironmentUtils
-import no.nav.poao_tilgang.api.dto.response.TilgangsattributterResponse
-import no.nav.poao_tilgang.client.*
+import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
+import no.nav.poao_tilgang.client.PoaoTilgangClient
+import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClientImpl
@@ -42,7 +42,6 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.time.Duration
 
 @Configuration
 class ClientConfig {
@@ -214,10 +213,7 @@ class ClientConfig {
     ): PoaoTilgangClient {
         return PoaoTilgangCachedClient(
             PoaoTilgangHttpClient(properties.poaoTilgangUrl,
-                { tokenClient.createMachineToMachineToken(properties.poaoTilgangScope) }),
-            tilgangsAttributterCache = Caffeine.newBuilder()
-                .expireAfterWrite(Duration.ofMinutes(1))
-                .build()
+                { tokenClient.createMachineToMachineToken(properties.poaoTilgangScope) })
         )
     }
 

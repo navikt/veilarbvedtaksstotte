@@ -1,7 +1,5 @@
 package no.nav.veilarbvedtaksstotte.mock
 
-import no.nav.poao_tilgang.api.dto.response.Diskresjonskode
-import no.nav.poao_tilgang.api.dto.response.TilgangsattributterResponse
 import no.nav.poao_tilgang.client.AdGruppe
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.NorskIdent
@@ -10,7 +8,6 @@ import no.nav.poao_tilgang.client.PolicyInput
 import no.nav.poao_tilgang.client.PolicyRequest
 import no.nav.poao_tilgang.client.PolicyResult
 import no.nav.poao_tilgang.client.api.ApiResult
-import no.nav.veilarbvedtaksstotte.utils.TestData
 import java.util.*
 
 class PoaoTilgangClientMock : PoaoTilgangClient {
@@ -32,14 +29,6 @@ class PoaoTilgangClientMock : PoaoTilgangClient {
 
     override fun hentAdGrupper(navAnsattAzureId: UUID): ApiResult<List<AdGruppe>> {
         TODO("Not yet implemented")
-    }
-
-    override fun hentTilgangsAttributter(norskIdent: NorskIdent): ApiResult<TilgangsattributterResponse> {
-        return ApiResult.success(TilgangsattributterResponse(
-            kontor = TestData.TEST_NAVKONTOR,
-            skjermet = false,
-            diskresjonskode = Diskresjonskode.UGRADERT
-        ))
     }
 
 }
