@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
@@ -20,6 +21,7 @@ import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVe
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterForVedtak;
 
 @Service
+@Slf4j
 public class MeldingService {
 
     private final AuthService authService;

@@ -2,15 +2,12 @@ package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
-import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import java.time.Instant
-import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 

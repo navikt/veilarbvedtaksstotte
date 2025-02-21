@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
@@ -25,6 +26,7 @@ import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVe
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterForVedtak;
 import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.erBeslutterProsessStartet;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BeslutterService {
@@ -125,7 +127,6 @@ public class BeslutterService {
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
-
         if (!erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kun beslutter kan godkjenne vedtak");
         }
@@ -139,6 +140,7 @@ public class BeslutterService {
         vedtakStatusEndringService.godkjentAvBeslutter(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);
         metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(utkast);
+        sakStatistikkService.kvalitetssikrerGodkjenner(utkast, innloggetVeilederIdent);
     }
 
     public void oppdaterBeslutterProsessStatus(long vedtakId) {
@@ -165,10 +167,12 @@ public class BeslutterService {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_BESLUTTER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilBeslutter(utkast);
+            sakStatistikkService.sendtTilbakeFraVeileder(utkast);
         } else {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_VEILEDER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilVeileder(utkast);
+            sakStatistikkService.sendtTilbakeFraKvalitetssikrer(utkast, innloggetVeilederIdent);
         }
     }
 
