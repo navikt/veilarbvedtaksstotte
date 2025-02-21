@@ -29,19 +29,17 @@ public class MeldingService {
     private final MeldingRepository meldingRepository;
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final MetricsService metricsService;
-    private final SakStatistikkService sakStatistikkService;
 
     @Autowired
     public MeldingService(
             AuthService authService, VeilederService veilederService,
             MeldingRepository meldingRepository, VedtaksstotteRepository vedtaksstotteRepository,
-            MetricsService metricsService, SakStatistikkService sakStatistikkService) {
+            MetricsService metricsService) {
         this.authService = authService;
         this.veilederService = veilederService;
         this.meldingRepository = meldingRepository;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.metricsService = metricsService;
-        this.sakStatistikkService = sakStatistikkService;
     }
 
     public void opprettBrukerDialogMelding(long vedtakId, String melding) {
@@ -53,10 +51,8 @@ public class MeldingService {
 
         if (erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
             metricsService.repporterDialogMeldingSendtAvVeilederOgBeslutter(melding, "beslutter");
-            sakStatistikkService.sendtTilbakeFraKvalitetssikrer(utkast, innloggetVeilederIdent);
         } else if (erAnsvarligVeilederForVedtak(innloggetVeilederIdent, utkast)) {
             metricsService.repporterDialogMeldingSendtAvVeilederOgBeslutter(melding, "veileder");
-            sakStatistikkService.sendtTilbakeFraVeileder(utkast);
         }
     }
 

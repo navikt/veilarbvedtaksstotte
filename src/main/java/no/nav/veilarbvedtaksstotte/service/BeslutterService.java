@@ -167,10 +167,12 @@ public class BeslutterService {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_BESLUTTER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilBeslutter(utkast);
+            sakStatistikkService.sendtTilbakeFraVeileder(utkast);
         } else {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_VEILEDER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilVeileder(utkast);
+            sakStatistikkService.sendtTilbakeFraKvalitetssikrer(utkast, innloggetVeilederIdent);
         }
     }
 
