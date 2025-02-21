@@ -10,8 +10,6 @@ import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.utils.fn.UnsafeRunnable
-import no.nav.poao_tilgang.api.dto.response.Diskresjonskode
-import no.nav.poao_tilgang.api.dto.response.TilgangsattributterResponse
 import no.nav.poao_tilgang.client.Decision.Permit
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.api.ApiResult
@@ -254,13 +252,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
         )
         whenever(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(mockedOppfolgingsSak)
         whenever(environmentProperties.naisAppImage).thenReturn("naisAppImage")
-        whenever(poaoTilgangClient.hentTilgangsAttributter(any())).thenReturn(
-            ApiResult.success(
-                TilgangsattributterResponse(
-                    TestData.TEST_NAVKONTOR, false, Diskresjonskode.UGRADERT
-                )
-            )
-        )
 
         sakStatistikkService = SakStatistikkService(
             sakStatistikkRepository!!,
@@ -268,8 +259,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
             aktorOppslagClient,
             bigQueryService,
             unleashClient,
-            environmentProperties,
-            poaoTilgangClient
+            environmentProperties
         )
     }
 
