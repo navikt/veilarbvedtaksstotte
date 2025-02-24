@@ -4,6 +4,7 @@ import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.statistikk.*
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
@@ -96,6 +97,39 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         }
     }
 
+    fun hentForrigeVedtakFraSammeOppfolgingsperiode(startOppfolgingsperiodeDato: ZonedDateTime, aktorId: AktorId, fnr: Fnr, gjeldendeVedtakId: BigInteger): Siste14aSaksstatistikk? {
+        val sql = """
+            SELECT vedtak_id as id, fra_dato as fattet_dato, 'ARENA' AS kilde
+            FROM ARENA_VEDTAK
+            WHERE FNR = ?
+            AND FRA_DATO > ?
+            UNION ALL
+            SELECT id, vedtak_fattet as fattet_dato, 'VEDTAKSSTOTTE' AS kilde
+            FROM VEDTAK
+            WHERE AKTOR_ID = ?
+            AND VEDTAK_FATTET > ? AND ID != ?
+        """.trimIndent()
+        return jdbcTemplate.query(
+            sql,
+            rowMapper,
+            fnr.get(),
+            TimeUtils.toTimestampOrNull(startOppfolgingsperiodeDato.toInstant()),
+            aktorId.get(),
+            TimeUtils.toTimestampOrNull(startOppfolgingsperiodeDato.toInstant()),
+            gjeldendeVedtakId
+        ).maxByOrNull { it.fattetDato }
+    }
+
+    fun hentOpprettetAvFraVedtak(vedtak: Vedtak): String? {
+        val sql = "SELECT $OPPRETTET_AV FROM $SAK_STATISTIKK_TABLE WHERE $BEHANDLING_ID = ? ORDER BY $SEKVENSNUMMER LIMIT 1"
+        return try {
+            jdbcTemplate.queryForObject(sql, String::class.java, vedtak.id)
+        } catch (e: Exception) {
+            log.error("Kunne ikke hente opprettetAv for vedtakId: $vedtak.id", e)
+            vedtak.veilederIdent
+        }
+    }
+
     fun hentSakStatistikkListeAlt(behandlingId: BigInteger): List<SakStatistikk> {
         try {
             val parameters = MapSqlParameterSource("behandlingId", behandlingId)
@@ -119,29 +153,6 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             log.error("Kunne ikke hente sakStatistikkListe", e)
             return emptyList()
         }
-    }
-
-    fun hentForrigeVedtakFraSammeOppfolgingsperiode(startOppfolgingsperiodeDato: ZonedDateTime, aktorId: AktorId, fnr: Fnr, gjeldendeVedtakId: BigInteger): Siste14aSaksstatistikk? {
-        val sql = """
-            SELECT vedtak_id as id, fra_dato as fattet_dato, 'ARENA' AS kilde
-            FROM ARENA_VEDTAK
-            WHERE FNR = ?
-            AND FRA_DATO > ?
-            UNION ALL
-            SELECT id, vedtak_fattet as fattet_dato, 'VEDTAKSSTOTTE' AS kilde
-            FROM VEDTAK
-            WHERE AKTOR_ID = ?
-            AND VEDTAK_FATTET > ? AND ID != ?
-        """.trimIndent()
-        return jdbcTemplate.query(
-            sql,
-            rowMapper,
-            fnr.get(),
-            TimeUtils.toTimestampOrNull(startOppfolgingsperiodeDato.toInstant()),
-            aktorId.get(),
-            TimeUtils.toTimestampOrNull(startOppfolgingsperiodeDato.toInstant()),
-            gjeldendeVedtakId
-        ).maxByOrNull { it.fattetDato }
     }
 
     private val rowMapper: RowMapper<Siste14aSaksstatistikk> = RowMapper { rs, _ ->
