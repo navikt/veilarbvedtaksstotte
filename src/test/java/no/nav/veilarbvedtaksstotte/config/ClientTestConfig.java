@@ -30,10 +30,7 @@ import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
+import no.nav.veilarbvedtaksstotte.client.person.dto.*;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
@@ -246,6 +243,12 @@ public class ClientTestConfig {
     @Bean
     public VeilarbpersonClient personClient() {
         return new VeilarbpersonClient() {
+            @NotNull
+            @Override
+            public Adressebeskyttelse hentAdressebeskyttelse(@NotNull Fnr fnr) {
+                return new Adressebeskyttelse(Gradering.UGRADERT);
+            }
+
             @Override
             public PersonNavn hentPersonNavn(String fnr) {
                 PersonNavn personNavn = new PersonNavn(
