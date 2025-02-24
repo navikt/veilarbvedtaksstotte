@@ -139,9 +139,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 lagretRad.endretTid, "Endret tid skal være utfylt"
             )
             Assertions.assertNotNull(
-                lagretRad.tekniskTid, "Teknisk tid skal være utfylt"
-            )
-            Assertions.assertNotNull(
                 lagretRad.opprettetAv, "Opprettet av skal være utfylt"
             )
             Assertions.assertNotNull(
@@ -199,9 +196,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 lagretRad.endretTid, "Endret tid skal være utfylt"
             )
             Assertions.assertNotNull(
-                lagretRad.tekniskTid, "Teknisk tid skal være utfylt"
-            )
-            Assertions.assertNotNull(
                 lagretRad.opprettetAv, "Opprettet av skal være utfylt"
             )
             Assertions.assertNotNull(
@@ -254,9 +248,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
             )
             Assertions.assertNotNull(
                 lagretRad.endretTid, "Endret tid skal være utfylt"
-            )
-            Assertions.assertNotNull(
-                lagretRad.tekniskTid, "Teknisk tid skal være utfylt"
             )
             Assertions.assertNotNull(
                 lagretRad.opprettetAv, "Opprettet av skal være utfylt"
@@ -321,9 +312,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
             )
             Assertions.assertNotNull(
                 lagretRad.endretTid, "Endret tid skal være utfylt"
-            )
-            Assertions.assertNotNull(
-                lagretRad.tekniskTid, "Teknisk tid skal være utfylt"
             )
             Assertions.assertNotNull(
                 lagretRad.opprettetAv, "Opprettet av skal være utfylt"

@@ -20,7 +20,6 @@ data class SakStatistikk(
     val registrertTid: Instant? = null,
     val ferdigbehandletTid: Instant? = null,
     val endretTid: Instant? = null,
-    val tekniskTid: Instant? = null,
     val sakYtelse: String? = null,
     val behandlingType: BehandlingType? = null,
     val behandlingStatus: BehandlingStatus? = null,
@@ -99,9 +98,6 @@ fun SakStatistikk.validate() {
     }
     if (endretTid == null) {
         throw IllegalStateException("endretTid kan ikke være null")
-    }
-    if (tekniskTid == null) {
-        throw IllegalStateException("tekniskTid kan ikke være null")
     }
     if (sakYtelse == null) {
         throw IllegalStateException("sakYtelse kan ikke være null")
