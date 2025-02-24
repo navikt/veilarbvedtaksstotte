@@ -255,7 +255,7 @@ class SakStatistikkService @Autowired constructor(
             behandlingResultat = vedtak.innsatsgruppe?.toBehandlingResultat(),
             innsatsgruppe = vedtak.innsatsgruppe?.toBehandlingResultat(),
             hovedmal = vedtak.hovedmal?.let { HovedmalNy.valueOf(it.toString())},
-            opprettetAv = vedtak.veilederIdent,
+            opprettetAv = sakStatistikkRepository.hentOpprettetAvFraVedtak(vedtak),
             saksbehandler = vedtak.veilederIdent,
             ansvarligEnhet = vedtak.oppfolgingsenhetId?.let { EnhetId.of(it) },
         )
