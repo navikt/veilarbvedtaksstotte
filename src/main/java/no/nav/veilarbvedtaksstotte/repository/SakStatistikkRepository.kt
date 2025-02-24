@@ -24,6 +24,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
     val namedParameterJdbcTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
     val SAK_STATISTIKK_TABLE = "SAK_STATISTIKK"
+    val SEKVENSNUMMER = "SEKVENSNUMMER"
     val AKTOR_ID = "AKTOR_ID"
     val OPPFOLGING_PERIODE_UUID = "OPPFOLGING_PERIODE_UUID"
     val BEHANDLING_ID = "BEHANDLING_ID"
@@ -49,7 +50,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
     val AVSENDER = "AVSENDER"
     val VERSJON = "VERSJON"
 
-    fun insertSakStatistikkRad(sakStatistikkRad: SakStatistikk) {
+    fun insertSakStatistikkRad(sakStatistikkRad: SakStatistikk): Long? {
         val sql =
             """
                 INSERT INTO $SAK_STATISTIKK_TABLE ($AKTOR_ID, $OPPFOLGING_PERIODE_UUID, $BEHANDLING_ID, $RELATERT_BEHANDLING_ID,
@@ -58,11 +59,12 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 $BEHANDLING_RESULTAT, $BEHANDLING_METODE, $INNSATSGRUPPE, $HOVEDMAL, $OPPRETTET_AV, $SAKSBEHANDLER, $ANSVARLIG_BESLUTTER,
                 $ANSVARLIG_ENHET, $AVSENDER, $VERSJON)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                
+                RETURNING $SEKVENSNUMMER
             """
-        try {
-            jdbcTemplate.update(
+        return try {
+            jdbcTemplate.queryForObject(
                 sql,
+                Long::class.java,
                 sakStatistikkRad.aktorId?.get(),
                 sakStatistikkRad.oppfolgingPeriodeUUID,
                 sakStatistikkRad.behandlingId,
@@ -90,6 +92,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             )
         } catch (e: Exception) {
             log.error("Kunne ikke lagre sakStatistikkRad, feil: {} , sakStatistikkRad: {}", e, sakStatistikkRad)
+            null
         }
     }
 
@@ -117,20 +120,6 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             return emptyList()
         }
     }
-
-    fun hentSakStatistikkListeInnenforOppfolgingsperiode(oppfolgingsperiodeUuid: UUID): List<SakStatistikk> {
-        try {
-            val parameters = MapSqlParameterSource("oppfolgingPeriodeUuid", oppfolgingsperiodeUuid)
-
-            val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $OPPFOLGING_PERIODE_UUID = :oppfolgingPeriodeUuid"
-
-            return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
-        } catch (e: Exception) {
-            log.error("Kunne ikke hente sakStatistikkListeInnenforOppfolgingsperiode", e)
-            return emptyList()
-        }
-    }
-
 
     fun hentForrigeVedtakFraSammeOppfolgingsperiode(startOppfolgingsperiodeDato: ZonedDateTime, aktorId: AktorId, fnr: Fnr, gjeldendeVedtakId: BigInteger): Siste14aSaksstatistikk? {
         val sql = """
@@ -166,6 +155,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
 
     private val sakStatistikkRowMapper: RowMapper<SakStatistikk> = RowMapper { rs, _ ->
         SakStatistikk(
+            sekvensnummer = rs.getLong(SEKVENSNUMMER),
             aktorId = AktorId.of(rs.getString(AKTOR_ID)),
             oppfolgingPeriodeUUID = UUID.fromString(rs.getString(OPPFOLGING_PERIODE_UUID)),
             behandlingId = rs.getString(BEHANDLING_ID).toBigInteger(),
