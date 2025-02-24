@@ -36,7 +36,6 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
     val REGISTRERT_TID = "REGISTRERT_TID"
     val FERDIGBEHANDLET_TID = "FERDIGBEHANDLET_TID"
     val ENDRET_TID = "ENDRET_TID"
-    val TEKNISK_TID = "TEKNISK_TID"
     val SAK_YTELSE = "SAK_YTELSE"
     val BEHANDLING_TYPE = "BEHANDLING_TYPE"
     val BEHANDLING_STATUS = "BEHANDLING_STATUS"
@@ -56,10 +55,10 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             """
                 INSERT INTO $SAK_STATISTIKK_TABLE ($AKTOR_ID, $OPPFOLGING_PERIODE_UUID, $BEHANDLING_ID, $RELATERT_BEHANDLING_ID,
                 $RELATERT_FAGSYSTEM, $SAK_ID, $MOTTATT_TID, $REGISTRERT_TID, $FERDIGBEHANDLET_TID,
-                $ENDRET_TID, $TEKNISK_TID, $SAK_YTELSE, $BEHANDLING_TYPE, $BEHANDLING_STATUS, 
+                $ENDRET_TID, $SAK_YTELSE, $BEHANDLING_TYPE, $BEHANDLING_STATUS, 
                 $BEHANDLING_RESULTAT, $BEHANDLING_METODE, $INNSATSGRUPPE, $HOVEDMAL, $OPPRETTET_AV, $SAKSBEHANDLER, $ANSVARLIG_BESLUTTER,
                 $ANSVARLIG_ENHET, $AVSENDER, $VERSJON)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING $SEKVENSNUMMER
             """
         return try {
@@ -76,7 +75,6 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 TimeUtils.toTimestampOrNull(sakStatistikkRad.registrertTid),
                 TimeUtils.toTimestampOrNull(sakStatistikkRad.ferdigbehandletTid),
                 TimeUtils.toTimestampOrNull(sakStatistikkRad.endretTid),
-                TimeUtils.toTimestampOrNull(sakStatistikkRad.tekniskTid),
                 sakStatistikkRad.sakYtelse,
                 sakStatistikkRad.behandlingType?.name,
                 sakStatistikkRad.behandlingStatus?.name,
@@ -177,7 +175,6 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             registrertTid = rs.getTimestamp(REGISTRERT_TID).toInstant(),
             ferdigbehandletTid = rs.getTimestamp(FERDIGBEHANDLET_TID)?.toInstant(),
             endretTid = rs.getTimestamp(ENDRET_TID).toInstant(),
-            tekniskTid = rs.getTimestamp(TEKNISK_TID)?.toInstant(),
             sakYtelse = rs.getString(SAK_YTELSE),
             behandlingType = BehandlingType.valueOf(rs.getString(BEHANDLING_TYPE)),
             behandlingStatus = BehandlingStatus.valueOf(rs.getString(BEHANDLING_STATUS)),

@@ -240,7 +240,6 @@ class SakStatistikkService @Autowired constructor(
     private fun populerSakstatistikkMedStatiskeData(sakStatistikk: SakStatistikk): SakStatistikk {
         return sakStatistikk.copy(
             endretTid = Instant.now(),
-            tekniskTid = Instant.now(),
             sakYtelse = SAK_YTELSE,
             avsender = Fagsystem.OPPFOLGINGSVEDTAK_14A,
             versjon = environmentProperties.naisAppImage
