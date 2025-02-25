@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -146,6 +147,10 @@ public class KafkaConsumerService {
 
         log.info("Setter gjeldende vedtak {} til historisk", gjeldendeVedtak.getId());
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(gjeldendeVedtak.getId());
+    }
+
+    public void behandleOppfolgingsperiode(ConsumerRecord<String, KafkaOppfolgingsperiode> oppfolgingsperiodeConsumerRecord) {
+        log.info("Konsumerte fra pto.oppfolgingsperiode-v1");
     }
 
     private AktorId hentAktorIdMedDevSjekk(Fnr fnr) {
