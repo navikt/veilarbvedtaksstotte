@@ -10,6 +10,7 @@ import no.nav.veilarbvedtaksstotte.controller.v2.dto.VedtakRequest
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService
+import no.nav.veilarbvedtaksstotte.service.UtrullingService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 class VedtakV2Controller(
     val vedtakService: VedtakService,
     val arenaVedtakService: ArenaVedtakService,
+    private val utrullingService: UtrullingService,
 ) {
     @PostMapping("/hent-fattet")
     @Operation(
@@ -42,6 +44,8 @@ class VedtakV2Controller(
         ]
     )
     fun hentFattedeVedtak(@RequestBody vedtakRequest: VedtakRequest): List<Vedtak> {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakRequest.fnr)
+
         return vedtakService.hentFattedeVedtak(vedtakRequest.fnr)
     }
 
@@ -65,6 +69,8 @@ class VedtakV2Controller(
         ]
     )
     fun hentVedtakFraArena(@RequestBody vedtakRequest: VedtakRequest): List<ArkivertVedtak> {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakRequest.fnr);
+
         return arenaVedtakService.hentVedtakFraArena(vedtakRequest.fnr)
     }
 }

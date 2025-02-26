@@ -7,11 +7,7 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.Pair
-import no.nav.poao_tilgang.client.EksternBrukerTilgangTilEksternBrukerPolicyInput
-import no.nav.poao_tilgang.client.NavAnsattTilgangTilEksternBrukerPolicyInput
-import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
-import no.nav.poao_tilgang.client.PoaoTilgangClient
-import no.nav.poao_tilgang.client.TilgangType
+import no.nav.poao_tilgang.client.*
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import org.slf4j.LoggerFactory
@@ -152,10 +148,6 @@ class AuthService(
     private fun sjekkTilgangTilEnhet(fnr: String): String {
         val enhet = veilarbarenaService.hentOppfolgingsenhet(Fnr.of(fnr))
             .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
-        if (!utrullingService.erUtrullet(enhet)) {
-            log.info("Vedtaksstøtte er ikke utrullet for enhet {}. Tilgang er stoppet", enhet)
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten")
-        }
 
         val veilederTilgangTilEnhet = poaoTilgangClient.evaluatePolicy(
             NavAnsattTilgangTilNavEnhetPolicyInput(

@@ -187,21 +187,6 @@ class AuthServiceTest {
     }
 
     @Test
-    fun sjekkTilgangTilBrukerOgEnhet__kaster_exception_dersom_enhet_ikke_er_utrullet() {
-        whenever(
-            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
-        ).thenReturn(ApiResult.success(Decision.Permit))
-        `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(false)
-        withContext(UserRole.INTERN) {
-            assertThrowsWithMessage<ResponseStatusException>(
-                """403 FORBIDDEN "Vedtaksstøtte er ikke utrullet for enheten""""
-            ) {
-                authService.sjekkTilgangTilBrukerOgEnhet(tilgangType = TilgangType.SKRIVE, fnr = TestData.TEST_FNR)
-            }
-        }
-    }
-
-    @Test
     fun `erSystemBrukerMedSystemTilSystemTilgang er true for system med rolle access_as_application`() {
         authContextHolder.withContext(
             systemMedRoller("access_as_application")

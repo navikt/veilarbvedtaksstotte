@@ -6,6 +6,7 @@ import no.nav.common.types.identer.Fnr
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.service.AuthService
+import no.nav.veilarbvedtaksstotte.service.UtrullingService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,6 +24,9 @@ class UtkastV2ControllerTest {
 
     @MockkBean
     lateinit var vedtakService: VedtakService
+
+    @MockkBean
+    lateinit var utrullingService: UtrullingService
 
     @Autowired
     lateinit var mockMvc: MockMvc
@@ -46,6 +50,10 @@ class UtkastV2ControllerTest {
         every {
             vedtakService.hentUtkast(fnr)
         } returns Vedtak()
+
+        every {
+            utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(fnr)
+        } answers {}
 
         val request = """
             {

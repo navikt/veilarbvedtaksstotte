@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.veilarbvedtaksstotte.controller.dto.VedtakUtkastDTO
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.UtkastRequest
 import no.nav.veilarbvedtaksstotte.mapper.toVedtakUtkastDTO
+import no.nav.veilarbvedtaksstotte.service.UtrullingService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -21,7 +22,8 @@ import org.springframework.web.bind.annotation.RestController
     description = "Funksjonalitet knyttet til utkast til § 14 a-vedtak."
 )
 class UtkastV2Controller(
-    val vedtakService: VedtakService
+    val vedtakService: VedtakService,
+    private val utrullingService: UtrullingService
 ) {
     @PostMapping("/hent-utkast")
     @Operation(
@@ -35,6 +37,8 @@ class UtkastV2Controller(
         ]
     )
     fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): VedtakUtkastDTO {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(utkastRequest.fnr)
+
         return toVedtakUtkastDTO(vedtakService.hentUtkast(utkastRequest.fnr))
     }
 
@@ -49,6 +53,8 @@ class UtkastV2Controller(
         ]
     )
     fun harUtkast(@RequestBody utkastRequest: UtkastRequest): Boolean {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(utkastRequest.fnr)
+
         return vedtakService.harUtkast(utkastRequest.fnr)
     }
 }
