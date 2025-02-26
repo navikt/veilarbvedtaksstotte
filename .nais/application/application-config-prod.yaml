@@ -137,8 +137,6 @@ spec:
       rules:
         - application: aia-backend
           namespace: paw
-        - application: paw-arbeidssoker-besvarelse
-          namespace: paw
         - application: pto-pdfgen
           namespace: obo
         - application: veilarboppfolging
