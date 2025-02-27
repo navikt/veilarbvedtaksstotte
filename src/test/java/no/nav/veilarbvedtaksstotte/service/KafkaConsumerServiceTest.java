@@ -47,13 +47,17 @@ public class KafkaConsumerServiceTest {
 
     private final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
 
+    private final BrukerIdenterService brukerIdenterService = mock(BrukerIdenterService.class);
+
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             siste14aVedtakService,
             vedtaksstotteRepository,
             beslutteroversiktRepository,
             norg2Client,
             aktorOppslagClient,
-            veilarbarenaClient);
+            veilarbarenaClient,
+            brukerIdenterService
+    );
 
     @Test
     public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {

@@ -7,6 +7,7 @@ import no.nav.common.client.norg2.Enhet;
 import no.nav.common.client.utils.graphql.GraphqlErrorException;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.person.pdl.aktor.v2.Aktor;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
@@ -43,6 +44,8 @@ public class KafkaConsumerService {
 
     private final VeilarbarenaClient veilarbarenaClient;
 
+    private final BrukerIdenterService brukerIdenterService;
+
     @Autowired
     public KafkaConsumerService(
             Siste14aVedtakService siste14aVedtakService,
@@ -50,13 +53,16 @@ public class KafkaConsumerService {
             BeslutteroversiktRepository beslutteroversiktRepository,
             Norg2Client norg2Client,
             AktorOppslagClient aktorOppslagClient,
-            VeilarbarenaClient veilarbarenaClient) {
+            VeilarbarenaClient veilarbarenaClient,
+            BrukerIdenterService brukerIdenterService
+    ) {
         this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.norg2Client = norg2Client;
         this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbarenaClient = veilarbarenaClient;
+        this.brukerIdenterService = brukerIdenterService;
     }
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
@@ -146,6 +152,10 @@ public class KafkaConsumerService {
 
         log.info("Setter gjeldende vedtak {} til historisk", gjeldendeVedtak.getId());
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(gjeldendeVedtak.getId());
+    }
+
+    public void behandlePdlAktorV2Melding(ConsumerRecord<AktorId, Aktor> aktorRecord) {
+        brukerIdenterService.behandlePdlAktorV2Melding(aktorRecord);
     }
 
     private AktorId hentAktorIdMedDevSjekk(Fnr fnr) {
