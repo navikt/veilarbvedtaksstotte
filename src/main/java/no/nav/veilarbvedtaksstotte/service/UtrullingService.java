@@ -93,16 +93,8 @@ public class UtrullingService {
 
     public void sjekkAtBrukerTilhorerUtrulletKontor(long vedtakId) {
         try {
-            Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-            if (vedtak == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke vedtak");
-            }
-
-            AktorId aktorId = AktorId.of(vedtak.getAktorId());
-            Fnr fnr = aktorOppslagClient.hentFnr(aktorId);
-
+            Fnr fnr = finnFodselsnummerFraVedtakId(vedtakId);
             sjekkAtBrukerTilhorerUtrulletKontor(fnr);
-
         } catch (ResponseStatusException responseStatusException) {
             throw responseStatusException;
         } catch (Exception e) {
@@ -116,5 +108,17 @@ public class UtrullingService {
             log.info("Vedtaksstøtte er ikke utrullet for enheten til bruker. Tilgang er stoppet");
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten til bruker");
         }
+    }
+
+    private Fnr finnFodselsnummerFraVedtakId(long vedtakId) {
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+
+        if (vedtak == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke vedtak med vedtakId " + vedtakId);
+        }
+
+        AktorId aktorId = AktorId.of(vedtak.getAktorId());
+
+        return aktorOppslagClient.hentFnr(aktorId);
     }
 }
