@@ -9,6 +9,7 @@ data class KafkaProperties(
     val endringPaOppfolgingsBrukerTopic: String,
     val siste14aVedtakTopic: String,
     val sisteOppfolgingsperiodeTopic: String,
+    val oppfolgingsperiodeTopic: String,
     val vedtakFattetDvhTopic: String,
     val vedtakSendtTopic: String,
     val vedtakStatusEndringTopic: String
