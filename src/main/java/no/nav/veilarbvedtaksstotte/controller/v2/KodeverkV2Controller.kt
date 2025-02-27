@@ -86,6 +86,8 @@ class KodeverkV2Controller {
             innsatsgrupper = InnsatsgruppeDetaljertV2.entries.map {
                 InnsatsgruppeKodeverkDTO(
                     kode = it.kode,
+                    gammelKode = it.gammelKode,
+                    arenaKode = it.arenaKode,
                     beskrivelse = it.beskrivelse,
                 )
             },
