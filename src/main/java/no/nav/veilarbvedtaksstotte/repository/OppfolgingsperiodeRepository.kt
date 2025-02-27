@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsperiode
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
@@ -21,11 +22,12 @@ class OppfolgingsperiodeRepository(val jdbcTemplate: JdbcTemplate) {
     fun insertOppfolgingsperiode(oppfolgingsperiode: KafkaOppfolgingsperiode) {
         val sql =
             """
-                INSERT INTO $OPPFOLGINGSPERIODE_TABLE ($OPPFOLGINGSPERIODEUUID, $AKTORID, $STARTDATO, $SLUTTDATO, $STARTET_BEGRUNNELSE)
-        VALUES (?, ?, ?, ?, ?)
-                 """
+                INSERT INTO $OPPFOLGINGSPERIODE_TABLE($OPPFOLGINGSPERIODEUUID,$AKTORID,$STARTDATO,$SLUTTDATO,$STARTET_BEGRUNNELSE)
+                VALUES (?, ?, ?, ?, ?)
+            """
         try {
-           jdbcTemplate.update(sql, oppfolgingsperiode.uuid, oppfolgingsperiode.aktorId, oppfolgingsperiode.startDato, oppfolgingsperiode.sluttDato, oppfolgingsperiode.startetBegrunnelse)
+            jdbcTemplate.update(sql, oppfolgingsperiode.uuid, oppfolgingsperiode.aktorId, TimeUtils.toTimestampOrNull(oppfolgingsperiode.startDato?.toInstant()),
+                TimeUtils.toTimestampOrNull(oppfolgingsperiode.sluttDato?.toInstant()), oppfolgingsperiode.startetBegrunnelse)
         } catch (e: Exception) {
             log.error("Kunne ikke lagre oppfølgingsperiode, feil: {} , oppfolgingsperiode: {}", e, oppfolgingsperiode)
         }
