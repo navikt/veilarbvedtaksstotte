@@ -96,6 +96,11 @@ spec:
       value: pto.endring-paa-oppfolgingsbruker-v2
     - name: ARENA_VEDTAK_TOPIC
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-p
+    # BigQuery
+    - name: BQ_DATASET_NAME
+      value: 14a_vedtak_statistikk
+    - name: BQ_TABLE_NAME
+      value: statistikk_dvh_fellestabell
   azure:
     application:
       allowAllUsers: true
