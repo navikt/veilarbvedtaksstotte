@@ -47,8 +47,8 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
             "saksbehandler" to sakStatistikk.saksbehandler,
             "ansvarlig_beslutter" to sakStatistikk.ansvarligBeslutter,
             "ansvarlig_enhet" to sakStatistikk.ansvarligEnhet?.get(),
-            "avsender" to sakStatistikk.avsender.name,
-            "versjon" to sakStatistikk.versjon,
+            "fagsystem_navn" to sakStatistikk.fagsystem_navn.name,
+            "fagsystem_versjon" to sakStatistikk.fagsystem_versjon,
         )
         val vedtaksstatistikkTilBigQuery = vedtakStatistikkRow.filter { it.value != null }
         val vedtak14aEvent = vedtakStatistikkTable.insertRequest(vedtaksstatistikkTilBigQuery)
