@@ -1,23 +1,52 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import com.google.cloud.bigquery.BigQueryException
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.InsertAllRequest
+import com.google.cloud.bigquery.StandardTableDefinition
+import com.google.cloud.bigquery.TableDefinition
 import com.google.cloud.bigquery.TableId
+import com.google.cloud.bigquery.TableInfo
 import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
+import no.nav.veilarbvedtaksstotte.domain.statistikk.vedtakStatistikkSchema
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 
 @Service
-class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
-                      @Value("\${gcp.bq.datasetName}") val datasetName: String,
-                      @Value("\${gcp.bq.tableName}") val tableName: String) {
+class BigQueryService(
+    @Value("\${gcp.projectId}") val projectId: String,
+    @Value("\${gcp.bq.datasetName}") val datasetName: String,
+    @Value("\${gcp.bq.tableName}") val tableName: String
+) {
 
     val vedtakStatistikkTable = TableId.of(datasetName, tableName)
-
+    val schema = vedtakStatistikkSchema
     val bigQuery = BigQueryOptions.newBuilder().setProjectId(projectId).build().service
     val log = LoggerFactory.getLogger(BigQueryService::class.java)
+
+    fun TableExists(): Boolean {
+        val table = bigQuery.getTable(vedtakStatistikkTable)
+        return table != null && table.exists() // table will be null if it is not found and setThrowNotFound is not set to `true`
+    }
+
+    // TODO: fiks/kjør denne riktig
+    fun CreateBQTable(): Boolean {
+        if (!TableExists()) {
+            try {
+                val tableDefinition: TableDefinition = StandardTableDefinition.of(schema)
+                val tableInfo: TableInfo = TableInfo.newBuilder(vedtakStatistikkTable, tableDefinition).build()
+
+                bigQuery.create(tableInfo)
+
+                log.info("BigQuery-tabellen ble opprettet i {} {}.", datasetName, tableName)
+            } catch (e: BigQueryException) {
+                log.error("BigQuery-tabellen ble ikke opprettet.", e)
+            }
+        }
+        return true
+    }
 
     fun TableId.insertRequest(row: Map<String, Any?>): InsertAllRequest {
         return InsertAllRequest.newBuilder(this).addRow(row).build()
@@ -34,7 +63,7 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
             "sak_id" to sakStatistikk.sakId,
             "mottatt_tid" to sakStatistikk.mottattTid.toString(),
             "registrert_tid" to sakStatistikk.registrertTid.toString(),
-            "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid?.let { it.toString() },
+            "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid?.toString(),
             "endret_tid" to sakStatistikk.endretTid.toString(),
             "sak_ytelse" to sakStatistikk.sakYtelse,
             "behandling_type" to sakStatistikk.behandlingType?.name,
@@ -54,6 +83,7 @@ class BigQueryService(@Value("\${gcp.projectId}") val projectId: String,
         val vedtak14aEvent = vedtakStatistikkTable.insertRequest(vedtaksstatistikkTilBigQuery)
         insertWhileToleratingErrors(vedtak14aEvent)
     }
+
     private fun insertWhileToleratingErrors(insertRequest: InsertAllRequest) {
         runCatching {
             val response = bigQuery.insertAll(insertRequest)
