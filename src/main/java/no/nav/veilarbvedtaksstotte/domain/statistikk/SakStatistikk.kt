@@ -29,8 +29,8 @@ data class SakStatistikk(
     val saksbehandler: String? = null,
     val ansvarligBeslutter: String? = null,
     val ansvarligEnhet: EnhetId? = null,
-    val avsender: Fagsystem = Fagsystem.OPPFOLGINGSVEDTAK_14A,
-    val versjon: String? = null,
+    val fagsystem_navn: Fagsystem = Fagsystem.OPPFOLGINGSVEDTAK_14A,
+    val fagsystem_versjon: String? = null,
     val oppfolgingPeriodeUUID: UUID? = null,
     val innsatsgruppe: BehandlingResultat? = null,
     val hovedmal: HovedmalNy? = null

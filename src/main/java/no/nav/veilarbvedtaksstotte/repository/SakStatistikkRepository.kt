@@ -47,8 +47,8 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
     val SAKSBEHANDLER = "SAKSBEHANDLER"
     val ANSVARLIG_BESLUTTER = "ANSVARLIG_BESLUTTER"
     val ANSVARLIG_ENHET = "ANSVARLIG_ENHET"
-    val AVSENDER = "AVSENDER"
-    val VERSJON = "VERSJON"
+    val FAGSYSTEM_NAVN = "AVSENDER"
+    val FAGSYSTEM_VERSJON = "VERSJON"
 
     fun insertSakStatistikkRad(sakStatistikkRad: SakStatistikk): Long? {
         val sql =
@@ -57,7 +57,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 $RELATERT_FAGSYSTEM, $SAK_ID, $MOTTATT_TID, $REGISTRERT_TID, $FERDIGBEHANDLET_TID,
                 $ENDRET_TID, $SAK_YTELSE, $BEHANDLING_TYPE, $BEHANDLING_STATUS, 
                 $BEHANDLING_RESULTAT, $BEHANDLING_METODE, $INNSATSGRUPPE, $HOVEDMAL, $OPPRETTET_AV, $SAKSBEHANDLER, $ANSVARLIG_BESLUTTER,
-                $ANSVARLIG_ENHET, $AVSENDER, $VERSJON)
+                $ANSVARLIG_ENHET, $FAGSYSTEM_NAVN, $FAGSYSTEM_VERSJON)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING $SEKVENSNUMMER
             """
@@ -86,8 +86,8 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 sakStatistikkRad.saksbehandler,
                 sakStatistikkRad.ansvarligBeslutter,
                 sakStatistikkRad.ansvarligEnhet?.get(),
-                sakStatistikkRad.avsender.name,
-                sakStatistikkRad.versjon
+                sakStatistikkRad.fagsystem_navn.name,
+                sakStatistikkRad.fagsystem_versjon
             )
         } catch (e: Exception) {
             log.error("Kunne ikke lagre sakStatistikkRad, feil: {} , sakStatistikkRad: {}", e, sakStatistikkRad)
@@ -186,8 +186,8 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             saksbehandler = rs.getString(SAKSBEHANDLER),
             ansvarligBeslutter = rs.getString(ANSVARLIG_BESLUTTER),
             ansvarligEnhet = EnhetId.of(rs.getString(ANSVARLIG_ENHET)),
-            avsender = Fagsystem.valueOf(rs.getString(AVSENDER)),
-            versjon = rs.getString(VERSJON)
+            fagsystem_navn = Fagsystem.valueOf(rs.getString(FAGSYSTEM_NAVN)),
+            fagsystem_versjon = rs.getString(FAGSYSTEM_VERSJON)
         )
     }
 }

@@ -241,8 +241,8 @@ class SakStatistikkService @Autowired constructor(
         return sakStatistikk.copy(
             endretTid = Instant.now(),
             sakYtelse = SAK_YTELSE,
-            avsender = Fagsystem.OPPFOLGINGSVEDTAK_14A,
-            versjon = environmentProperties.naisAppImage
+            fagsystem_navn = Fagsystem.OPPFOLGINGSVEDTAK_14A,
+            fagsystem_versjon = environmentProperties.naisAppImage
         )
     }
 
