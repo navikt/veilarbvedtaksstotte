@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config
 
+import com.google.cloud.bigquery.BigQuery
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.getunleash.DefaultUnleash
@@ -55,14 +56,7 @@ import javax.sql.DataSource
     HealthConfig::class,
     KafkaProducerConfig::class,
     KafkaConsumerConfig::class,
-    DokumentdistribusjonMeterBinder::class,
-    PdfService::class,
-    ArbeidssoekerRegisteretService::class,
-    SakStatistikkService::class,
-    SakStatistikkRepository::class,
-    SisteOppfolgingPeriodeRepository::class,
-    BigQueryService::class,
-    BigQueryConfig::class
+    DokumentdistribusjonMeterBinder::class
 )
 class ApplicationTestConfig {
     @Bean
@@ -168,6 +162,11 @@ class ApplicationTestConfig {
                 Pair(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
             )
         )
+    }
+
+    @Bean
+    fun bigQueryConfig(): BigQuery {
+        return Mockito.mock(BigQuery::class.java)
     }
 
     @PostConstruct
