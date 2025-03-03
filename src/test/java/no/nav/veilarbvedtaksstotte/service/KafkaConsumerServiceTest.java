@@ -50,6 +50,8 @@ public class KafkaConsumerServiceTest {
 
     private final SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository = mock(SisteOppfolgingPeriodeRepository.class);
 
+    private final BrukerIdenterService brukerIdenterService = mock(BrukerIdenterService.class);
+
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             siste14aVedtakService,
             vedtaksstotteRepository,
@@ -57,7 +59,9 @@ public class KafkaConsumerServiceTest {
             sisteOppfolgingPeriodeRepository,
             norg2Client,
             aktorOppslagClient,
-            veilarbarenaClient);
+            veilarbarenaClient,
+            brukerIdenterService
+    );
 
     @Test
     public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {

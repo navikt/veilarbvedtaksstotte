@@ -21,6 +21,7 @@ import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import no.nav.veilarbvedtaksstotte.service.BigQueryService
+import no.nav.veilarbvedtaksstotte.service.BrukerIdenterService
 import no.nav.veilarbvedtaksstotte.service.PdfService
 import no.nav.veilarbvedtaksstotte.service.SakStatistikkService
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
@@ -60,8 +61,9 @@ import javax.sql.DataSource
     ArbeidssoekerRegisteretService::class,
     SakStatistikkService::class,
     SakStatistikkRepository::class,
-    SisteOppfolgingPeriodeRepository::class,
     BigQueryService::class,
+    BrukerIdenterService::class,
+    SisteOppfolgingPeriodeRepository::class
 )
 class ApplicationTestConfig {
     @Bean
