@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config
 
+import com.google.cloud.bigquery.BigQuery
+import com.google.cloud.bigquery.BigQueryOptions
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.getunleash.DefaultUnleash
@@ -82,6 +84,11 @@ class ApplicationTestConfig {
     @Bean
     fun dataSource(postgresContainer: PostgresContainer): DataSource {
         return postgresContainer.createDataSource()
+    }
+
+    @Bean
+    fun bigQuery(): BigQuery {
+        return BigQueryOptions.getDefaultInstance().service
     }
 
     @Bean

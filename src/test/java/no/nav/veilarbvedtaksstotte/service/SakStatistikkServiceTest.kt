@@ -151,10 +151,10 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 lagretRad.behandlingMetode, "Behandlingsmetode skal være utfylt"
             )
             Assertions.assertNotNull(
-                lagretRad.avsender, "Avsender skal være utfylt"
+                lagretRad.fagsystemNavn, "Fagsystemnavn skal være utfylt"
             )
             Assertions.assertNotNull(
-                lagretRad.versjon, "Versjon skal være utfylt"
+                lagretRad.fagsystemVersjon, "Fagsystemversjon skal være utfylt"
             )
             Assertions.assertNotNull(
                 lagretRad.oppfolgingPeriodeUUID, "OppfolgingsperiodeUUID skal være utfylt"
@@ -208,10 +208,10 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 lagretRad.behandlingMetode, "Behandlingsmetode skal være utfylt"
             )
             Assertions.assertNotNull(
-                lagretRad.avsender, "Avsender skal være utfylt"
+                lagretRad.fagsystemNavn, "Fagsystemnavn skal være utfylt"
             )
             Assertions.assertNotNull(
-                lagretRad.versjon, "Versjon skal være utfylt"
+                lagretRad.fagsystemVersjon, "Fagsystemversjon skal være utfylt"
             )
             Assertions.assertNotNull(
                 lagretRad.oppfolgingPeriodeUUID, "OppfolgingsperiodeUUID skal være utfylt"
@@ -262,10 +262,10 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 lagretRad.behandlingMetode, "Behandlingsmetode skal være utfylt"
             )
             Assertions.assertNotNull(
-                lagretRad.avsender, "Avsender skal være utfylt"
+                lagretRad.fagsystemNavn, "Fagsystemnavn skal være utfylt"
             )
             Assertions.assertNotNull(
-                lagretRad.versjon, "Versjon skal være utfylt"
+                lagretRad.fagsystemVersjon, "Fagsystemversjon skal være utfylt"
             )
             Assertions.assertNotNull(
                 lagretRad.oppfolgingPeriodeUUID, "OppfolgingsperiodeUUID skal være utfylt"
@@ -326,10 +326,10 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 lagretRad.behandlingMetode, "Behandlingsmetode skal være utfylt"
             )
             Assertions.assertNotNull(
-                lagretRad.avsender, "Avsender skal være utfylt"
+                lagretRad.fagsystemNavn, "Fagsystemnavn skal være utfylt"
             )
             Assertions.assertNotNull(
-                lagretRad.versjon, "Versjon skal være utfylt"
+                lagretRad.fagsystemVersjon, "Fagsystemversjon skal være utfylt"
             )
             Assertions.assertNotNull(
                 lagretRad.oppfolgingPeriodeUUID, "OppfolgingsperiodeUUID skal være utfylt"
