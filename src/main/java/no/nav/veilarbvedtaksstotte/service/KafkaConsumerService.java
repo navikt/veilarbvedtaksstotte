@@ -16,6 +16,7 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -44,6 +45,8 @@ public class KafkaConsumerService {
 
     private final VeilarbarenaClient veilarbarenaClient;
 
+    private final SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository;
+
     private final BrukerIdenterService brukerIdenterService;
 
     @Autowired
@@ -51,6 +54,7 @@ public class KafkaConsumerService {
             Siste14aVedtakService siste14aVedtakService,
             VedtaksstotteRepository vedtaksstotteRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
+            SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository,
             Norg2Client norg2Client,
             AktorOppslagClient aktorOppslagClient,
             VeilarbarenaClient veilarbarenaClient,
@@ -59,6 +63,7 @@ public class KafkaConsumerService {
         this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
+        this.sisteOppfolgingPeriodeRepository = sisteOppfolgingPeriodeRepository;
         this.norg2Client = norg2Client;
         this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbarenaClient = veilarbarenaClient;
@@ -124,6 +129,11 @@ public class KafkaConsumerService {
 
         if (startDato == null && sluttDato != null) {
             throw new IllegalStateException("Oppfølgingsperiode har sluttdato men ingen startdato.");
+        }
+
+        if (startDato != null) {
+            sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(sisteOppfolgingsperiode);
+            log.info("Siste oppfølgingsperiode har blitt upsertet");
         }
 
         if (sluttDato == null) {
