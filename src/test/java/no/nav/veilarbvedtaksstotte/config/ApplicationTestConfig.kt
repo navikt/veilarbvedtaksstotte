@@ -89,11 +89,6 @@ class ApplicationTestConfig {
     }
 
     @Bean
-    fun bigQuery(): BigQuery {
-        return BigQueryOptions.getDefaultInstance().service
-    }
-
-    @Bean
     fun transactionTemplate(postgresContainer: PostgresContainer): TransactionTemplate {
         return TransactionTemplate(DataSourceTransactionManager(postgresContainer.createDataSource()))
     }

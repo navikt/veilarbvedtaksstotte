@@ -15,14 +15,14 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class BigQueryConfiguration(
+class BigQueryConfig(
     @Value("\${gcp.projectId}") val projectId: String,
     @Value("\${gcp.bq.datasetName}") val datasetName: String,
     @Value("\${gcp.bq.tableName}") val tableName: String
 ) {
 
     @Bean
-    fun bigQueryConfig(): BigQuery {
+    fun bigQueryConfiguration(): BigQuery {
         val bigQuery: BigQuery = BigQueryOptions.newBuilder().setProjectId(projectId).build().service
         val vedtakStatistikkTable: TableId = TableId.of(datasetName, tableName)
         val schema = vedtakStatistikkSchema
