@@ -86,8 +86,8 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 sakStatistikkRad.saksbehandler,
                 sakStatistikkRad.ansvarligBeslutter,
                 sakStatistikkRad.ansvarligEnhet?.get(),
-                sakStatistikkRad.fagsystem_navn.name,
-                sakStatistikkRad.fagsystem_versjon
+                sakStatistikkRad.fagsystemNavn.name,
+                sakStatistikkRad.fagsystemVersjon
             )
         } catch (e: Exception) {
             log.error("Kunne ikke lagre sakStatistikkRad, feil: {} , sakStatistikkRad: {}", e, sakStatistikkRad)
@@ -186,8 +186,8 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             saksbehandler = rs.getString(SAKSBEHANDLER),
             ansvarligBeslutter = rs.getString(ANSVARLIG_BESLUTTER),
             ansvarligEnhet = EnhetId.of(rs.getString(ANSVARLIG_ENHET)),
-            fagsystem_navn = Fagsystem.valueOf(rs.getString(FAGSYSTEM_NAVN)),
-            fagsystem_versjon = rs.getString(FAGSYSTEM_VERSJON)
+            fagsystemNavn = Fagsystem.valueOf(rs.getString(FAGSYSTEM_NAVN)),
+            fagsystemVersjon = rs.getString(FAGSYSTEM_VERSJON)
         )
     }
 }

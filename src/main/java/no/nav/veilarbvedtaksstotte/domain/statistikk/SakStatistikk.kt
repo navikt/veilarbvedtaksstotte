@@ -29,8 +29,8 @@ data class SakStatistikk(
     val saksbehandler: String? = null,
     val ansvarligBeslutter: String? = null,
     val ansvarligEnhet: EnhetId? = null,
-    val fagsystem_navn: Fagsystem = Fagsystem.OPPFOLGINGSVEDTAK_14A,
-    val fagsystem_versjon: String? = null,
+    val fagsystemNavn: Fagsystem = Fagsystem.OPPFOLGINGSVEDTAK_14A,
+    val fagsystemVersjon: String? = null,
     val oppfolgingPeriodeUUID: UUID? = null,
     val innsatsgruppe: BehandlingResultat? = null,
     val hovedmal: HovedmalNy? = null
@@ -120,7 +120,7 @@ fun SakStatistikk.validate() {
     if (ansvarligEnhet == null) {
         throw IllegalStateException("ansvarligEnhet kan ikke være null")
     }
-    if (versjon == null) {
+    if (fagsystemVersjon == null) {
         throw IllegalStateException("versjon kan ikke være null")
     }
     if (oppfolgingPeriodeUUID == null) {
