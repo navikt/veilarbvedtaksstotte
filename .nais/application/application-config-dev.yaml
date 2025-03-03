@@ -52,6 +52,9 @@ spec:
       - description: Test-datasett for saksstatistikk for 14a
         name: sak_statistikk_dataset_test
         permission: READWRITE
+      - description: Datasett for statistikk for 14a vedtak
+        name: 14a_vedtak_statistikk
+        permission: READWRITE
   secureLogs:
     enabled: true
   kafka:
