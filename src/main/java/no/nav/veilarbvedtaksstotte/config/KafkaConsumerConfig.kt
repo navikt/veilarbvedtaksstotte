@@ -11,11 +11,14 @@ import no.nav.common.kafka.consumer.util.ConsumerUtils
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
+import no.nav.common.types.identer.AktorId
+import no.nav.person.pdl.aktor.v2.Aktor
 import no.nav.veilarbvedtaksstotte.domain.kafka.*
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
 import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_GCP_SKRUDD_AV
 import no.nav.veilarbvedtaksstotte.utils.LES_FRA_OPPFOLGINGSPERIODE_TOPIC_SKRUDD_PAA
+import no.nav.veilarbvedtaksstotte.utils.LES_FRA_PDL_AKTOR_V2_TOPIC_SKRUDD_PAA
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -46,6 +49,30 @@ class KafkaConsumerConfig {
                 kafkaProperties,
                 meterRegistry,
                 kafkaConsumerRepository
+            )
+        )
+    }
+
+    @Bean
+    fun consumerAivenConfigPdlAktorV2(
+        kafkaConsumerService: KafkaConsumerService,
+        kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer,
+        kafkaProperties: KafkaProperties,
+        meterRegistry: MeterRegistry,
+        kafkaConsumerRepository: KafkaConsumerRepository
+    ): ConsumerAivenConfig {
+        return ConsumerAivenConfig(
+            listOf(
+                KafkaConsumerClientBuilder.TopicConfig<AktorId, Aktor>()
+                    .withLogging()
+                    .withMetrics(meterRegistry)
+                    .withStoreOnFailure(kafkaConsumerRepository)
+                    .withConsumerConfig(
+                        kafkaProperties.pdlAktorV2Topic,
+                        Deserializers.aivenAvroDeserializer(),
+                        Deserializers.aivenAvroDeserializer(),
+                        Consumer { kafkaConsumerService.behandlePdlAktorV2Melding(it) }
+                    )
             )
         )
     }
@@ -109,6 +136,26 @@ class KafkaConsumerConfig {
             .withToggle {
                 unleashService.isEnabled(KAFKA_KONSUMERING_GCP_SKRUDD_AV)
                         || !unleashService.isEnabled(LES_FRA_OPPFOLGINGSPERIODE_TOPIC_SKRUDD_PAA)
+            }
+            .build()
+
+        aivenConsumerClient.start()
+
+        return aivenConsumerClient
+    }
+
+    @Bean(destroyMethod = "stop")
+    fun aivenConsumerClientPdlAktorV2(
+        environmentContext: KafkaEnvironmentContext,
+        @Qualifier("consumerAivenConfigPdlAktorV2") consumerAivenConfig: ConsumerAivenConfig,
+        unleashService: DefaultUnleash
+    ): KafkaConsumerClient {
+        val aivenConsumerClient = KafkaConsumerClientBuilder.builder()
+            .withProperties(environmentContext.aivenConsumerClientProperties)
+            .withTopicConfigs(consumerAivenConfig.configs)
+            .withToggle {
+                unleashService.isEnabled(KAFKA_KONSUMERING_GCP_SKRUDD_AV)
+                        || !unleashService.isEnabled(LES_FRA_PDL_AKTOR_V2_TOPIC_SKRUDD_PAA)
             }
             .build()
 
@@ -227,3 +274,4 @@ class KafkaConsumerConfig {
         }
     }
 }
+

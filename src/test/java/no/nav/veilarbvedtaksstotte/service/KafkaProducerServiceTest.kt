@@ -3,20 +3,17 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
 import no.nav.common.types.identer.AktorId
-import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
+import no.nav.veilarbvedtaksstotte.IntegrationTestBase
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal.BEHOLDE_ARBEID
+import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN
+import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -24,18 +21,11 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
-@SpringBootTest(classes = [ApplicationTestConfig::class])
-@ActiveProfiles("local")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class KafkaProducerServiceTest {
-
+class KafkaProducerServiceTest : IntegrationTestBase() {
     @MockBean
     lateinit var producerRecordStorage: KafkaProducerRecordStorage
 

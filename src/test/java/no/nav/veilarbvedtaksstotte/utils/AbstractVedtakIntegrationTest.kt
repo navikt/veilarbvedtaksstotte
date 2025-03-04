@@ -4,7 +4,7 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
+import no.nav.veilarbvedtaksstotte.IntegrationTestBase
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
@@ -15,19 +15,13 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.random.Random
 
-@SpringBootTest(classes = [ApplicationTestConfig::class])
-@ActiveProfiles("local")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-abstract class AbstractVedtakIntegrationTest {
+abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
 
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate

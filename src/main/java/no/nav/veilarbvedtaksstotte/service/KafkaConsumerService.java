@@ -7,6 +7,7 @@ import no.nav.common.client.norg2.Enhet;
 import no.nav.common.client.utils.graphql.GraphqlErrorException;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.person.pdl.aktor.v2.Aktor;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
@@ -16,6 +17,7 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.OppfolgingsperiodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.SecureLog;
@@ -47,22 +49,31 @@ public class KafkaConsumerService {
 
     private final VeilarbarenaClient veilarbarenaClient;
 
+    private final SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository;
+
+    private final BrukerIdenterService brukerIdenterService;
+
     @Autowired
     public KafkaConsumerService(
             Siste14aVedtakService siste14aVedtakService,
             VedtaksstotteRepository vedtaksstotteRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
             OppfolgingsperiodeRepository oppfolgingsperiodeRepository,
+            SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository,
             Norg2Client norg2Client,
             AktorOppslagClient aktorOppslagClient,
-            VeilarbarenaClient veilarbarenaClient) {
+            VeilarbarenaClient veilarbarenaClient,
+            BrukerIdenterService brukerIdenterService
+    ) {
         this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.oppfolgingsperiodeRepository = oppfolgingsperiodeRepository;
+        this.sisteOppfolgingPeriodeRepository = sisteOppfolgingPeriodeRepository;
         this.norg2Client = norg2Client;
         this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbarenaClient = veilarbarenaClient;
+        this.brukerIdenterService = brukerIdenterService;
     }
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
@@ -126,6 +137,11 @@ public class KafkaConsumerService {
             throw new IllegalStateException("Oppfølgingsperiode har sluttdato men ingen startdato.");
         }
 
+        if (startDato != null) {
+            sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(sisteOppfolgingsperiode);
+            log.info("Siste oppfølgingsperiode har blitt upsertet");
+        }
+
         if (sluttDato == null) {
             // Vi er bare interessert i oppfølgingsperiode dersom den er avsluttet, dvs. sluttDato != null
             log.debug("Siste oppfølgingsperiode har ingen sluttdato - ignorerer melding.");
@@ -157,6 +173,10 @@ public class KafkaConsumerService {
     public void behandleOppfolgingsperiode(ConsumerRecord<String, KafkaOppfolgingsperiode> oppfolgingsperiodeConsumerRecord) {
         oppfolgingsperiodeRepository.insertOppfolgingsperiode(oppfolgingsperiodeConsumerRecord.value());
         log.info("Konsumerte fra pto.oppfolgingsperiode-v1");
+    }
+
+    public void behandlePdlAktorV2Melding(ConsumerRecord<AktorId, Aktor> aktorRecord) {
+        brukerIdenterService.behandlePdlAktorV2Melding(aktorRecord);
     }
 
     private AktorId hentAktorIdMedDevSjekk(Fnr fnr) {

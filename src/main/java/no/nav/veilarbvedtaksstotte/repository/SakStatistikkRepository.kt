@@ -3,19 +3,26 @@ package no.nav.veilarbvedtaksstotte.repository
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.domain.statistikk.*
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingType
+import no.nav.veilarbvedtaksstotte.domain.statistikk.Fagsystem
+import no.nav.veilarbvedtaksstotte.domain.statistikk.HovedmalNy
+import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
+import no.nav.veilarbvedtaksstotte.domain.statistikk.Siste14aSaksstatistikk
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
 import java.math.BigInteger
-import java.util.*
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.time.ZonedDateTime
+import java.util.*
 
 @Repository
 class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
@@ -47,8 +54,8 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
     val SAKSBEHANDLER = "SAKSBEHANDLER"
     val ANSVARLIG_BESLUTTER = "ANSVARLIG_BESLUTTER"
     val ANSVARLIG_ENHET = "ANSVARLIG_ENHET"
-    val AVSENDER = "AVSENDER"
-    val VERSJON = "VERSJON"
+    val FAGSYSTEM_NAVN = "FAGSYSTEM_NAVN"
+    val FAGSYSTEM_VERSJON = "FAGSYSTEM_VERSJON"
 
     fun insertSakStatistikkRad(sakStatistikkRad: SakStatistikk): Long? {
         val sql =
@@ -57,7 +64,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 $RELATERT_FAGSYSTEM, $SAK_ID, $MOTTATT_TID, $REGISTRERT_TID, $FERDIGBEHANDLET_TID,
                 $ENDRET_TID, $SAK_YTELSE, $BEHANDLING_TYPE, $BEHANDLING_STATUS, 
                 $BEHANDLING_RESULTAT, $BEHANDLING_METODE, $INNSATSGRUPPE, $HOVEDMAL, $OPPRETTET_AV, $SAKSBEHANDLER, $ANSVARLIG_BESLUTTER,
-                $ANSVARLIG_ENHET, $AVSENDER, $VERSJON)
+                $ANSVARLIG_ENHET, $FAGSYSTEM_NAVN, $FAGSYSTEM_VERSJON)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING $SEKVENSNUMMER
             """
@@ -86,8 +93,8 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 sakStatistikkRad.saksbehandler,
                 sakStatistikkRad.ansvarligBeslutter,
                 sakStatistikkRad.ansvarligEnhet?.get(),
-                sakStatistikkRad.avsender.name,
-                sakStatistikkRad.versjon
+                sakStatistikkRad.fagsystemNavn.name,
+                sakStatistikkRad.fagsystemVersjon
             )
         } catch (e: Exception) {
             log.error("Kunne ikke lagre sakStatistikkRad, feil: {} , sakStatistikkRad: {}", e, sakStatistikkRad)
@@ -186,8 +193,8 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             saksbehandler = rs.getString(SAKSBEHANDLER),
             ansvarligBeslutter = rs.getString(ANSVARLIG_BESLUTTER),
             ansvarligEnhet = EnhetId.of(rs.getString(ANSVARLIG_ENHET)),
-            avsender = Fagsystem.valueOf(rs.getString(AVSENDER)),
-            versjon = rs.getString(VERSJON)
+            fagsystemNavn = Fagsystem.valueOf(rs.getString(FAGSYSTEM_NAVN)),
+            fagsystemVersjon = rs.getString(FAGSYSTEM_VERSJON)
         )
     }
 }

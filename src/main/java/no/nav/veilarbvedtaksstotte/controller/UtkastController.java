@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.controller.dto.BeslutterprosessStatusDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.LagUtkastDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
+import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,15 +29,19 @@ import org.springframework.web.server.ResponseStatusException;
 public class UtkastController {
 
     private final VedtakService vedtakService;
+    private final UtrullingService utrullingService;
 
     @Autowired
-    public UtkastController(VedtakService vedtakService) {
+    public UtkastController(VedtakService vedtakService, UtrullingService utrullingService) {
         this.vedtakService = vedtakService;
+        this.utrullingService = utrullingService;
     }
 
     @Deprecated(forRemoval = true)
     @GetMapping
     public Vedtak hentUtkast(@RequestParam("fnr") Fnr fnr) {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(fnr);
+
         return vedtakService.hentUtkast(fnr);
     }
 
@@ -53,6 +58,8 @@ public class UtkastController {
     public BeslutterprosessStatusDTO beslutterprosessStatus(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         return new BeslutterprosessStatusDTO(vedtakService.hentBeslutterprosessStatus(vedtakId));
     }
 
@@ -71,6 +78,8 @@ public class UtkastController {
         if (lagUtkastDTO == null || lagUtkastDTO.getFnr() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing fnr");
         }
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(lagUtkastDTO.getFnr());
+
         vedtakService.lagUtkast(lagUtkastDTO.getFnr());
     }
 
@@ -97,6 +106,8 @@ public class UtkastController {
     public void fattVedtak(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         vedtakService.fattVedtak(vedtakId);
     }
 
@@ -115,6 +126,8 @@ public class UtkastController {
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId,
             @RequestBody OppdaterUtkastDTO vedtakDTO
     ) {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         vedtakService.oppdaterUtkast(vedtakId, vedtakDTO);
     }
 
@@ -122,6 +135,8 @@ public class UtkastController {
     @Deprecated(forRemoval = true)
     @GetMapping("{fnr}/harUtkast")
     public boolean harUtkast(@PathVariable("fnr") Fnr fnr) {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(fnr);
+
         return vedtakService.harUtkast(fnr);
     }
 
@@ -139,6 +154,8 @@ public class UtkastController {
     public ResponseEntity<byte[]> hentForhandsvisning(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         byte[] utkastPdf = vedtakService.produserDokumentUtkast(vedtakId);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev-utkast.pdf")
@@ -160,6 +177,8 @@ public class UtkastController {
     public void deleteUtkast(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         vedtakService.slettUtkastSomVeileder(vedtakId);
     }
 
@@ -177,6 +196,8 @@ public class UtkastController {
     public void oppdaterUtkast(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
+        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+
         vedtakService.taOverUtkast(vedtakId);
     }
 }

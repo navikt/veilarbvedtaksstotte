@@ -53,6 +53,7 @@ public class OyeblikksbildeService {
         this.arbeidssoekerRegisteretService = arbeidssoekerRegisteretService;
     }
 
+    // Kun brukt i test
     public List<OyeblikksbildeDto> hentOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));

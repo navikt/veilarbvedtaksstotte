@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.OppfolgingsperiodeRepository;
+import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
@@ -44,14 +45,21 @@ public class KafkaConsumerServiceTest {
     private final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClientImpl.class);
     private final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
 
+    private final SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository = mock(SisteOppfolgingPeriodeRepository.class);
+
+    private final BrukerIdenterService brukerIdenterService = mock(BrukerIdenterService.class);
+
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             siste14aVedtakService,
             vedtaksstotteRepository,
             beslutteroversiktRepository,
             oppfolgingsperiodeRepository,
+            sisteOppfolgingPeriodeRepository,
             norg2Client,
             aktorOppslagClient,
-            veilarbarenaClient);
+            veilarbarenaClient,
+            brukerIdenterService
+    );
 
     @Test
     public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {

@@ -48,8 +48,8 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
             saksbehandler = "Z123456",
             ansvarligBeslutter = "Z123456",
             ansvarligEnhet = EnhetId.of("0220"),
-            avsender = Fagsystem.OPPFOLGINGSVEDTAK_14A,
-            versjon = "Dockerimage_tag_1"
+            fagsystemNavn = Fagsystem.OPPFOLGINGSVEDTAK_14A,
+            fagsystemVersjon = "Dockerimage_tag_1"
         )
         sakStatistikkRepository.insertSakStatistikkRad(statistikkRad)
         val lagretStatistikkRadAlt = sakStatistikkRepository.hentSakStatistikkListeAlt(3001.toBigInteger())
@@ -78,8 +78,8 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
             saksbehandler = "Z123456",
             ansvarligBeslutter = null,
             ansvarligEnhet = EnhetId.of("0220"),
-            avsender = Fagsystem.OPPFOLGINGSVEDTAK_14A,
-            versjon = "Dockerimage_tag_1",
+            fagsystemNavn = Fagsystem.OPPFOLGINGSVEDTAK_14A,
+            fagsystemVersjon = "Dockerimage_tag_1",
             oppfolgingPeriodeUUID = UUID.fromString("1a930d0d-6931-403e-852c-b85e39673aaf"),
         )
         val aktorId = AktorId.of("2004140973848")
