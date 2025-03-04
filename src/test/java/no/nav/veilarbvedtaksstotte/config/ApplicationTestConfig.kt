@@ -18,7 +18,6 @@ import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
-import no.nav.veilarbvedtaksstotte.repository.OppfolgingsperiodeRepository
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import no.nav.veilarbvedtaksstotte.service.BrukerIdenterService
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
@@ -55,8 +54,7 @@ import javax.sql.DataSource
     KafkaConsumerConfig::class,
     DokumentdistribusjonMeterBinder::class,
     BrukerIdenterService::class,
-    SisteOppfolgingPeriodeRepository::class,
-    OppfolgingsperiodeRepository::class
+    SisteOppfolgingPeriodeRepository::class
 )
 class ApplicationTestConfig {
     @Bean

@@ -12,13 +12,11 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
-import no.nav.veilarbvedtaksstotte.repository.OppfolgingsperiodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -41,8 +39,6 @@ public class KafkaConsumerService {
 
     private final BeslutteroversiktRepository beslutteroversiktRepository;
 
-    private final OppfolgingsperiodeRepository oppfolgingsperiodeRepository;
-
     private final Norg2Client norg2Client;
 
     private final AktorOppslagClient aktorOppslagClient;
@@ -58,7 +54,6 @@ public class KafkaConsumerService {
             Siste14aVedtakService siste14aVedtakService,
             VedtaksstotteRepository vedtaksstotteRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
-            OppfolgingsperiodeRepository oppfolgingsperiodeRepository,
             SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository,
             Norg2Client norg2Client,
             AktorOppslagClient aktorOppslagClient,
@@ -68,7 +63,6 @@ public class KafkaConsumerService {
         this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
-        this.oppfolgingsperiodeRepository = oppfolgingsperiodeRepository;
         this.sisteOppfolgingPeriodeRepository = sisteOppfolgingPeriodeRepository;
         this.norg2Client = norg2Client;
         this.aktorOppslagClient = aktorOppslagClient;
@@ -168,11 +162,6 @@ public class KafkaConsumerService {
 
         log.info("Setter gjeldende vedtak {} til historisk", gjeldendeVedtak.getId());
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(gjeldendeVedtak.getId());
-    }
-
-    public void behandleOppfolgingsperiode(ConsumerRecord<String, KafkaOppfolgingsperiode> oppfolgingsperiodeConsumerRecord) {
-        oppfolgingsperiodeRepository.insertOppfolgingsperiode(oppfolgingsperiodeConsumerRecord.value());
-        log.info("Konsumerte fra pto.oppfolgingsperiode-v1");
     }
 
     public void behandlePdlAktorV2Melding(ConsumerRecord<AktorId, Aktor> aktorRecord) {

@@ -10,7 +10,6 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
-import no.nav.veilarbvedtaksstotte.repository.OppfolgingsperiodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -21,7 +20,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import static no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImplTest.veilarbarenaClient;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
@@ -39,21 +37,16 @@ public class KafkaConsumerServiceTest {
 
     private final VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
     private final BeslutteroversiktRepository beslutteroversiktRepository = mock(BeslutteroversiktRepository.class);
-    private final OppfolgingsperiodeRepository oppfolgingsperiodeRepository = mock(OppfolgingsperiodeRepository.class);
     private final Norg2Client norg2Client = mock(Norg2Client.class);
     private final Siste14aVedtakService siste14aVedtakService = mock(Siste14aVedtakService.class);
     private final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClientImpl.class);
     private final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
-
     private final SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository = mock(SisteOppfolgingPeriodeRepository.class);
-
     private final BrukerIdenterService brukerIdenterService = mock(BrukerIdenterService.class);
-
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             siste14aVedtakService,
             vedtaksstotteRepository,
             beslutteroversiktRepository,
-            oppfolgingsperiodeRepository,
             sisteOppfolgingPeriodeRepository,
             norg2Client,
             aktorOppslagClient,

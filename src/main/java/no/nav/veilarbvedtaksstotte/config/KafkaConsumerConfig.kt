@@ -17,7 +17,6 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.*
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
 import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_GCP_SKRUDD_AV
-import no.nav.veilarbvedtaksstotte.utils.LES_FRA_OPPFOLGINGSPERIODE_TOPIC_SKRUDD_PAA
 import no.nav.veilarbvedtaksstotte.utils.LES_FRA_PDL_AKTOR_V2_TOPIC_SKRUDD_PAA
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.beans.factory.annotation.Qualifier
@@ -78,30 +77,6 @@ class KafkaConsumerConfig {
     }
 
     @Bean
-    fun consumerAivenConfigOppfolgingsperiode(
-        kafkaConsumerService: KafkaConsumerService,
-        kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer,
-        kafkaProperties: KafkaProperties,
-        meterRegistry: MeterRegistry,
-        kafkaConsumerRepository: KafkaConsumerRepository
-    ): ConsumerAivenConfig {
-        return ConsumerAivenConfig(
-            listOf(
-                KafkaConsumerClientBuilder.TopicConfig<String, KafkaOppfolgingsperiode>()
-                    .withLogging()
-                    .withMetrics(meterRegistry)
-                    .withStoreOnFailure(kafkaConsumerRepository)
-                    .withConsumerConfig(
-                        kafkaProperties.oppfolgingsperiodeTopic,
-                        Deserializers.stringDeserializer(),
-                        Deserializers.jsonDeserializer(KafkaOppfolgingsperiode::class.java),
-                        Consumer { kafkaConsumerService.behandleOppfolgingsperiode(it) }
-                    )
-            )
-        )
-    }
-
-    @Bean
     fun kafkaConsumerRepository(jdbcTemplate: JdbcTemplate): KafkaConsumerRepository {
         return PostgresJdbcTemplateConsumerRepository(jdbcTemplate)
     }
@@ -124,25 +99,6 @@ class KafkaConsumerConfig {
         return aivenConsumerClient
     }
 
-    @Bean(destroyMethod = "stop")
-    fun aivenConsumerClientOppfolgingsperiode(
-        environmentContext: KafkaEnvironmentContext,
-        @Qualifier("consumerAivenConfigOppfolgingsperiode") consumerAivenConfig: ConsumerAivenConfig,
-        unleashService: DefaultUnleash
-    ): KafkaConsumerClient {
-        val aivenConsumerClient = KafkaConsumerClientBuilder.builder()
-            .withProperties(environmentContext.aivenConsumerClientProperties)
-            .withTopicConfigs(consumerAivenConfig.configs)
-            .withToggle {
-                unleashService.isEnabled(KAFKA_KONSUMERING_GCP_SKRUDD_AV)
-                        || !unleashService.isEnabled(LES_FRA_OPPFOLGINGSPERIODE_TOPIC_SKRUDD_PAA)
-            }
-            .build()
-
-        aivenConsumerClient.start()
-
-        return aivenConsumerClient
-    }
 
     @Bean(destroyMethod = "stop")
     fun aivenConsumerClientPdlAktorV2(
