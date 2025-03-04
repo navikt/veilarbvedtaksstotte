@@ -52,6 +52,9 @@ spec:
       - description: Test-datasett for saksstatistikk for 14a
         name: sak_statistikk_dataset_test
         permission: READWRITE
+      - description: Datasett for statistikk for 14a vedtak
+        name: 14a_vedtak_statistikk
+        permission: READWRITE
   secureLogs:
     enabled: true
   kafka:
@@ -110,9 +113,9 @@ spec:
       value: pto.endring-paa-oppfolgingsbruker-v2
     # BigQuery
     - name: BQ_DATASET_NAME
-      value: sak_statistikk_dataset_test
+      value: 14a_vedtak_statistikk
     - name: BQ_TABLE_NAME
-      value: 14a_vedtak_tabell
+      value: statistikk_dvh_fellestabell
 
   azure:
     application:
@@ -155,8 +158,6 @@ spec:
     outbound:
       rules:
         - application: aia-backend
-          namespace: paw
-        - application: paw-arbeidssoker-besvarelse
           namespace: paw
         - application: poao-tilgang
           namespace: poao

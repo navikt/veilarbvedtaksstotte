@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config
 
+import com.google.cloud.bigquery.BigQuery
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.getunleash.DefaultUnleash
@@ -13,17 +14,12 @@ import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.metrics.MetricsClient
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.poao_tilgang.client.PoaoTilgangClient
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
-import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
-import no.nav.veilarbvedtaksstotte.service.BigQueryService
 import no.nav.veilarbvedtaksstotte.service.BrukerIdenterService
-import no.nav.veilarbvedtaksstotte.service.PdfService
-import no.nav.veilarbvedtaksstotte.service.SakStatistikkService
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
 import no.nav.veilarbvedtaksstotte.utils.PostgresContainer
 import no.nav.veilarbvedtaksstotte.utils.SingletonKafkaContainer
@@ -57,11 +53,6 @@ import javax.sql.DataSource
     KafkaProducerConfig::class,
     KafkaConsumerConfig::class,
     DokumentdistribusjonMeterBinder::class,
-    PdfService::class,
-    ArbeidssoekerRegisteretService::class,
-    SakStatistikkService::class,
-    SakStatistikkRepository::class,
-    BigQueryService::class,
     BrukerIdenterService::class,
     SisteOppfolgingPeriodeRepository::class
 )
@@ -169,6 +160,11 @@ class ApplicationTestConfig {
                 Pair(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
             )
         )
+    }
+
+    @Bean
+    fun bigQueryConfig(): BigQuery {
+        return Mockito.mock(BigQuery::class.java)
     }
 
     @PostConstruct
