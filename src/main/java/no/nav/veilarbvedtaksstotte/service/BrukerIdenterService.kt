@@ -6,9 +6,9 @@ import no.nav.common.types.identer.Id
 import no.nav.person.pdl.aktor.v2.Aktor
 import no.nav.person.pdl.aktor.v2.Identifikator
 import no.nav.person.pdl.aktor.v2.Type
-import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
 import no.nav.veilarbvedtaksstotte.domain.Gruppe
 import no.nav.veilarbvedtaksstotte.domain.IdentDetaljer
+import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,46 +33,61 @@ class BrukerIdenterService(
      * @see <a href="https://pdl-docs.ansatt.nav.no/ekstern/index.html#identitetshendelser_pa_kafka">PDL - Identitetshendelser på Kafka</a>
      */
     @Transactional
-    fun behandlePdlAktorV2Melding(aktorRecord: ConsumerRecord<AktorId, Aktor>) {
+    fun behandlePdlAktorV2Melding(aktorRecord: ConsumerRecord<AktorId?, Aktor?>) {
         logger.info("Behandler melding: topic ${aktorRecord.topic()}, offset ${aktorRecord.offset()}, partisjon ${aktorRecord.partition()}.")
 
-        valider(aktorRecord)
+        try {
+            val validertAktorId = tilValidertAktorId(aktorRecord.key())
+            val validertIdentDetaljerListe = tilValidertIdentDetaljerListe(aktorRecord.value())
 
-        val identer = aktorRecord.value().identifikatorer.map(::toIdent)
-        val nyPersonNokkel = brukerIdenterRepository.genererPersonNokkel()
-        val kanskjeEksisterendePersonNokler = brukerIdenterRepository.hentTilknyttedePersoner(identer.map { it.ident })
+            if (validertIdentDetaljerListe == null) {
+                brukerIdenterRepository.slett(validertAktorId)
+                return
+            }
 
-        if (kanskjeEksisterendePersonNokler.isNotEmpty()) {
-            logger.info("Identer eksisterte fra før med personnøkler: ${kanskjeEksisterendePersonNokler.joinToString(",")}. Lagrer identer på ny personnøkkel: $nyPersonNokkel.")
-        } else {
-            logger.info("Lagrer identer på personnøkkel: $nyPersonNokkel.")
+            val nyPersonNokkel = brukerIdenterRepository.genererPersonNokkel()
+            val eksisterendePersonNokler =
+                brukerIdenterRepository.hentTilknyttedePersoner(validertIdentDetaljerListe.map { it.ident })
+
+            if (eksisterendePersonNokler.isNotEmpty()) {
+                logger.info(
+                    "Identer eksisterte fra før med personnøkler: ${
+                        eksisterendePersonNokler.joinToString(
+                            ","
+                        )
+                    }. Lagrer identer på ny personnøkkel: $nyPersonNokkel."
+                )
+            } else {
+                logger.info("Lagrer identer på personnøkkel: $nyPersonNokkel.")
+            }
+
+            brukerIdenterRepository.lagre(
+                personNokkel = nyPersonNokkel,
+                identifikatorer = validertIdentDetaljerListe,
+                slettEksisterendePersonNokler = eksisterendePersonNokler
+            )
+        } catch (e: IllegalStateException) {
+            throw BrukerIdenterValideringException("Validering av pdl.aktor-v2 consumer record feilet.", e)
         }
-
-        brukerIdenterRepository.lagre(
-            personNokkel = nyPersonNokkel,
-            identifikatorer = identer,
-            slettEksisterendePersonNokler = kanskjeEksisterendePersonNokler
-        )
     }
 
 
     companion object {
-        private fun valider(aktorRecord: ConsumerRecord<AktorId, Aktor>) {
-            try {
-                valider(aktorRecord.key())
-                valider(aktorRecord.value())
-            } catch (e: IllegalStateException) {
-                throw BrukerIdenterValideringException("Validering av pdl.aktor-v2 consumer record feilet.", e)
-            }
-        }
+        private fun tilValidertAktorId(kafkaRecordKey: AktorId?): AktorId {
+            checkNotNull(kafkaRecordKey) { "'key' var: null. Forventet: en Aktør-ID." }
 
-        private fun valider(aktorId: AktorId) {
-            val aktorIdString = aktorId.get()
+            val aktorIdString = kafkaRecordKey.get()
             check(aktorIdString.length == 13) { "Ugyldig lengde på Aktør-ID: ${aktorIdString.length}. Forventet lengde: 13." }
+
+            return kafkaRecordKey
         }
 
-        private fun valider(aktor: Aktor) {
-            val identifikatorer = aktor.identifikatorer
+        private fun tilValidertIdentDetaljerListe(kafkaRecordValue: Aktor?): List<IdentDetaljer>? {
+            if (kafkaRecordValue == null) {
+                return null
+            }
+
+            val identifikatorer = kafkaRecordValue.identifikatorer
 
             checkNotNull(identifikatorer) { "'identifikatorer' var: null. Forventet: en liste med identifikatorer, eller en tom liste." }
 
@@ -80,6 +95,8 @@ class BrukerIdenterService(
                 checkNotNull(it.idnummer) { "'idnummer' var: null. Forventet: en string." }
                 checkNotNull(it.type) { "'type' var: null. Forventet: en identifikatortype." }
             }
+
+            return identifikatorer.map(::toIdent)
         }
 
         fun toIdent(identifikator: Identifikator): IdentDetaljer {
