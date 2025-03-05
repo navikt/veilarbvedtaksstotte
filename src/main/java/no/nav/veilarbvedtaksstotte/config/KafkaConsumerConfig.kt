@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config
 
+import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG
+import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG
 import io.getunleash.DefaultUnleash
 import io.micrometer.core.instrument.MeterRegistry
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider
@@ -12,6 +14,7 @@ import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
 import no.nav.common.types.identer.AktorId
+import no.nav.common.utils.EnvironmentUtils
 import no.nav.person.pdl.aktor.v2.Aktor
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2
@@ -63,6 +66,24 @@ class KafkaConsumerConfig {
         meterRegistry: MeterRegistry,
         kafkaConsumerRepository: KafkaConsumerRepository
     ): ConsumerAivenConfig {
+        val schemaRegistryUrl = EnvironmentUtils.getRequiredProperty("KAFKA_SCHEMA_REGISTRY");
+        val keyDeserializer = Deserializers.aivenAvroDeserializer<String>()
+        keyDeserializer.configure(
+            mapOf(
+                SCHEMA_REGISTRY_URL_CONFIG to schemaRegistryUrl,
+                SPECIFIC_AVRO_READER_CONFIG to true
+            ),
+            true
+        )
+        val valueDeserializer = Deserializers.aivenAvroDeserializer<Aktor>()
+        valueDeserializer.configure(
+            mapOf(
+                SPECIFIC_AVRO_READER_CONFIG to true,
+                SCHEMA_REGISTRY_URL_CONFIG to schemaRegistryUrl,
+            ),
+            false
+        )
+
         return ConsumerAivenConfig(
             listOf(
                 KafkaConsumerClientBuilder.TopicConfig<String, Aktor>()
@@ -71,8 +92,8 @@ class KafkaConsumerConfig {
                     .withStoreOnFailure(kafkaConsumerRepository)
                     .withConsumerConfig(
                         kafkaProperties.pdlAktorV2Topic,
-                        Deserializers.aivenAvroDeserializer(),
-                        Deserializers.aivenAvroDeserializer(),
+                        keyDeserializer,
+                        valueDeserializer,
                         Consumer { kafkaConsumerService.behandlePdlAktorV2Melding(it) }
                     )
             )
