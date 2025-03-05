@@ -17,7 +17,7 @@ class SakStatistikkBatchService @Autowired constructor(
 ) {
     private val log: Logger = LoggerFactory.getLogger(SakStatistikkBatchService::class.java)
     // TODO: Endre cron til å kjøre på riktig tidspunkt
-    @Scheduled(cron = "0 15 13 5 3 *") // Kjører 5. mars kl 11:30
+    @Scheduled(cron = "0 30 15 5 3 *") // Kjører 5. mars kl 11:30
     fun lastInnFattedeVedtak(){
         log.info("Klar for å laste inn fattede Vedtak")
         val fattedeVedtak: List<Vedtak> = vedtaksstotteRepository.hentFattedeVedtak(10000, 0)
