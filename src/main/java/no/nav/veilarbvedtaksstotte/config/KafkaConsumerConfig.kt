@@ -65,7 +65,7 @@ class KafkaConsumerConfig {
     ): ConsumerAivenConfig {
         return ConsumerAivenConfig(
             listOf(
-                KafkaConsumerClientBuilder.TopicConfig<AktorId, Aktor>()
+                KafkaConsumerClientBuilder.TopicConfig<String, Aktor>()
                     .withLogging()
                     .withMetrics(meterRegistry)
                     .withStoreOnFailure(kafkaConsumerRepository)

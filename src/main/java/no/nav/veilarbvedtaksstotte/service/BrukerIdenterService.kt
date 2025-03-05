@@ -33,7 +33,7 @@ class BrukerIdenterService(
      * @see <a href="https://pdl-docs.ansatt.nav.no/ekstern/index.html#identitetshendelser_pa_kafka">PDL - Identitetshendelser på Kafka</a>
      */
     @Transactional
-    fun behandlePdlAktorV2Melding(aktorRecord: ConsumerRecord<AktorId?, Aktor?>) {
+    fun behandlePdlAktorV2Melding(aktorRecord: ConsumerRecord<String?, Aktor?>) {
         logger.info("Behandler melding: topic ${aktorRecord.topic()}, offset ${aktorRecord.offset()}, partisjon ${aktorRecord.partition()}.")
 
         val validertAktorId = tilValidertAktorId(aktorRecord.key())
@@ -69,14 +69,13 @@ class BrukerIdenterService(
 
 
     companion object {
-        private fun tilValidertAktorId(kafkaRecordKey: AktorId?): AktorId {
+        private fun tilValidertAktorId(kafkaRecordKey: String?): AktorId {
             return try {
                 checkNotNull(kafkaRecordKey) { "'key' var: null. Forventet: en Aktør-ID." }
 
-                val aktorIdString = kafkaRecordKey.get()
-                check(aktorIdString.length == 13) { "Ugyldig lengde på Aktør-ID: ${aktorIdString.length}. Forventet lengde: 13." }
+                check(kafkaRecordKey.length == 13) { "Ugyldig lengde på Aktør-ID: ${kafkaRecordKey.length}. Forventet lengde: 13." }
 
-                kafkaRecordKey
+                AktorId.of(kafkaRecordKey)
             } catch (e: IllegalStateException) {
                 throw BrukerIdenterValideringException("Validering av pdl.aktor-v2 consumer record feilet.", e)
             }
