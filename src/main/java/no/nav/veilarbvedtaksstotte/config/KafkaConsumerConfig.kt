@@ -103,7 +103,7 @@ class KafkaConsumerConfig {
     }
 
     @Bean(destroyMethod = "stop")
-    fun aivenConsumerClientOppfolgingsperiode(
+    fun aivenConsumerClientPdlAktorV2(
         environmentContext: KafkaEnvironmentContext,
         @Qualifier("consumerAivenConfigPdlAktorV2") consumerAivenConfig: ConsumerAivenConfig,
         unleashService: DefaultUnleash
