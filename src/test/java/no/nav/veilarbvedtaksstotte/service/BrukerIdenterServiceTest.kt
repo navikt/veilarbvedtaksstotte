@@ -5,10 +5,11 @@ import no.nav.person.pdl.aktor.v2.Aktor
 import no.nav.person.pdl.aktor.v2.Identifikator
 import no.nav.person.pdl.aktor.v2.Type
 import no.nav.veilarbvedtaksstotte.IntegrationTestBase
+import no.nav.veilarbvedtaksstotte.domain.Gruppe
+import no.nav.veilarbvedtaksstotte.domain.IdentDetaljer
+import no.nav.veilarbvedtaksstotte.domain.PersonMedIdenter
 import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
-import no.nav.veilarbvedtaksstotte.repository.Gruppe
-import no.nav.veilarbvedtaksstotte.repository.Ident
-import no.nav.veilarbvedtaksstotte.repository.PersonMedIdenter
+import no.nav.veilarbvedtaksstotte.service.BrukerIdenterService.Companion.toIdent
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -52,7 +53,7 @@ class BrukerIdenterServiceTest(
             jdbcTemplate.query(sql, { rs, _ ->
                 PersonMedIdenter(
                     personNokkel = rs.getString("person"),
-                    ident = Ident(
+                    identDetaljer = IdentDetaljer(
                         ident = EksternBrukerId.of(rs.getString("ident")),
                         historisk = rs.getBoolean("historisk"),
                         gruppe = Gruppe.valueOf(rs.getString("gruppe")),
@@ -69,7 +70,7 @@ class BrukerIdenterServiceTest(
         val tidligerePersonSekvensVerdi = brukerIdenterRepository.genererPersonNokkel()
         brukerIdenterRepository.lagre(
             tidligerePersonSekvensVerdi,
-            tidligereKafkaRecord.value().identifikatorer.map(Identifikator::toIdent)
+            tidligereKafkaRecord.value().identifikatorer.map(::toIdent)
         )
 
         // When
@@ -95,7 +96,7 @@ class BrukerIdenterServiceTest(
         val identerNyPerson = jdbcTemplate.query(hentAlleIdenterForPersonSql, { rs, _ ->
             PersonMedIdenter(
                 personNokkel = rs.getString("person"),
-                ident = Ident(
+                identDetaljer = IdentDetaljer(
                     ident = EksternBrukerId.of(rs.getString("ident")),
                     historisk = rs.getBoolean("historisk"),
                     gruppe = Gruppe.valueOf(rs.getString("gruppe")),
@@ -104,9 +105,9 @@ class BrukerIdenterServiceTest(
         }, nyKafkaRecord.key().toString())
         val antallPersonNoklerEtterBehandlingFaktisk = identerNyPerson.map { it.personNokkel }.toSet().size
         val antallPersonNoklerEtterBehandlingForventet = 1
-        val alleIdenterForPersonEtterBehandlingFaktisk = identerNyPerson.map { it.ident }
+        val alleIdenterForPersonEtterBehandlingFaktisk = identerNyPerson.map { it.identDetaljer }
         val alleIdenterForPersonEtterBehandlingForventet =
-            nyKafkaRecord.value().identifikatorer.map { it.toIdent() }
+            nyKafkaRecord.value().identifikatorer.map { toIdent(it) }
 
         assertThat(antallRaderTidligerePersonFaktisk!!).isEqualTo(antallRaderTidligerePersonForventet)
         assertThat(antallPersonNoklerEtterBehandlingFaktisk).isEqualTo(antallPersonNoklerEtterBehandlingForventet)
@@ -124,11 +125,11 @@ class BrukerIdenterServiceTest(
         val tidligereKafkaRecordPerson2 = genererRandomPdlAktorV2TopicConsumerRecord()
         brukerIdenterRepository.lagre(
             tidligerePersonSekvensVerdiPerson1,
-            tidligereKafkaRecordPerson1.value().identifikatorer.map(Identifikator::toIdent)
+            tidligereKafkaRecordPerson1.value().identifikatorer.map(::toIdent)
         )
         brukerIdenterRepository.lagre(
             tidligerePersonSekvensVerdiPerson2,
-            tidligereKafkaRecordPerson2.value().identifikatorer.map(Identifikator::toIdent)
+            tidligereKafkaRecordPerson2.value().identifikatorer.map(::toIdent)
         )
 
         // When
@@ -164,7 +165,7 @@ class BrukerIdenterServiceTest(
         val identerNyPerson = jdbcTemplate.query(hentAlleIdenterForPersonSql, { rs, _ ->
             PersonMedIdenter(
                 personNokkel = rs.getString("person"),
-                ident = Ident(
+                identDetaljer = IdentDetaljer(
                     ident = EksternBrukerId.of(rs.getString("ident")),
                     historisk = rs.getBoolean("historisk"),
                     gruppe = Gruppe.valueOf(rs.getString("gruppe")),
@@ -173,9 +174,9 @@ class BrukerIdenterServiceTest(
         }, nyKafkaRecord.key().toString())
         val antallPersonNoklerEtterBehandlingFaktisk = identerNyPerson.map { it.personNokkel }.toSet().size
         val antallPersonNoklerEtterBehandlingForventet = 1
-        val alleIdenterForPersonEtterBehandlingFaktisk = identerNyPerson.map { it.ident }
+        val alleIdenterForPersonEtterBehandlingFaktisk = identerNyPerson.map { it.identDetaljer }
         val alleIdenterForPersonEtterBehandlingForventet =
-            nyKafkaRecord.value().identifikatorer.map { it.toIdent() }
+            nyKafkaRecord.value().identifikatorer.map { toIdent(it) }
 
         assertThat(antallRaderTidligerePerson1Faktisk!!).isEqualTo(antallRaderTidligerePerson1Forventet)
         assertThat(antallRaderTidligerePerson2Faktisk!!).isEqualTo(antallRaderTidligerePerson2Forventet)
@@ -196,7 +197,7 @@ class BrukerIdenterServiceTest(
                 )
             val personIdenter1 = listOf(
                 PersonMedIdenter(
-                    personNokkel = "1", Ident(
+                    personNokkel = "1", IdentDetaljer(
                         ident = aktor1.first,
                         historisk = false,
                         gruppe = Gruppe.AKTORID,
@@ -212,14 +213,14 @@ class BrukerIdenterServiceTest(
             )
             val personIdenter2s = listOf(
                 PersonMedIdenter(
-                    personNokkel = "1", Ident(
+                    personNokkel = "1", IdentDetaljer(
                         ident = AktorId.of("2222222222222"),
                         historisk = false,
                         gruppe = Gruppe.AKTORID
                     )
                 ),
                 PersonMedIdenter(
-                    personNokkel = "1", Ident(
+                    personNokkel = "1", IdentDetaljer(
                         ident = Fnr.of("22222222222"),
                         historisk = false,
                         gruppe = Gruppe.FOLKEREGISTERIDENT
@@ -238,28 +239,28 @@ class BrukerIdenterServiceTest(
                 )
             val personIdenter3s = listOf(
                 PersonMedIdenter(
-                    personNokkel = "1", Ident(
+                    personNokkel = "1", IdentDetaljer(
                         ident = AktorId.of("4444444444444"),
                         historisk = false,
                         gruppe = Gruppe.AKTORID
                     )
                 ),
                 PersonMedIdenter(
-                    personNokkel = "1", Ident(
+                    personNokkel = "1", IdentDetaljer(
                         ident = AktorId.of("3333333333333"),
                         historisk = true,
                         gruppe = Gruppe.AKTORID
                     )
                 ),
                 PersonMedIdenter(
-                    personNokkel = "1", Ident(
+                    personNokkel = "1", IdentDetaljer(
                         ident = Fnr.of("44444444444"),
                         historisk = false,
                         gruppe = Gruppe.FOLKEREGISTERIDENT
                     )
                 ),
                 PersonMedIdenter(
-                    personNokkel = "1", Ident(
+                    personNokkel = "1", IdentDetaljer(
                         ident = Fnr.of("33333333333"),
                         historisk = true,
                         gruppe = Gruppe.FOLKEREGISTERIDENT

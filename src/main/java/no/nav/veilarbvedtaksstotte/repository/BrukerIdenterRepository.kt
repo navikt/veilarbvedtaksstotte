@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.Id
+import no.nav.veilarbvedtaksstotte.domain.IdentDetaljer
+import no.nav.veilarbvedtaksstotte.domain.PersonNokkel
 import no.nav.veilarbvedtaksstotte.utils.DbUtils.toPostgresArray
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
@@ -19,13 +21,13 @@ class BrukerIdenterRepository(
      * først, før [identifikatorer] lagres på [personNokkel].
      *
      * @param personNokkel en [PersonNokkel] som [identifikatorer] skal lagres på
-     * @param identifikatorer en liste med [Ident] som skal lagres på personen
+     * @param identifikatorer en liste med [IdentDetaljer] som skal lagres på personen
      * @param slettEksisterendePersonNokler en liste med [PersonNokkel] som skal slettes, default er en tom liste
      */
     @Transactional
     fun lagre(
         personNokkel: PersonNokkel,
-        identifikatorer: List<Ident>,
+        identifikatorer: List<IdentDetaljer>,
         slettEksisterendePersonNokler: List<PersonNokkel> = emptyList()
     ) {
 
@@ -58,31 +60,8 @@ class BrukerIdenterRepository(
      * @see [BrukerIdenterRepository.lagre]
      */
     fun genererPersonNokkel(): PersonNokkel {
-        val sql = "SELECT nextval('BRUKER_IDENTER_PERSON_SEQ')";
+        val sql = "SELECT nextval('BRUKER_IDENTER_PERSON_SEQ')"
         return jdbcTemplate.queryForObject(sql, PersonNokkel::class.java)
             ?: throw IllegalStateException("Kunne ikke hente ny verdi fra \"BRUKER_IDENTER_PERSON_SEQ\" sekvensen.")
     }
 }
-
-/**
- * Representerer mapping-nøkkelen vi bruker internt for å koble flere identer (AktørID, fødselsnummer, osv.) til en
- * og samme fysiske person. Typen er et alias for [String], for å gjøre den mer meningsbærende.
- */
-typealias PersonNokkel = String
-
-enum class Gruppe {
-    FOLKEREGISTERIDENT,
-    AKTORID,
-    NPID
-}
-
-data class Ident(
-    val ident: Id,
-    val historisk: Boolean,
-    val gruppe: Gruppe
-)
-
-data class PersonMedIdenter(
-    val personNokkel: PersonNokkel,
-    val ident: Ident
-)
