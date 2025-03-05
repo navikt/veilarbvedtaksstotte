@@ -164,7 +164,7 @@ public class KafkaConsumerService {
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(gjeldendeVedtak.getId());
     }
 
-    public void behandlePdlAktorV2Melding(ConsumerRecord<AktorId, Aktor> aktorRecord) {
+    public void behandlePdlAktorV2Melding(ConsumerRecord<String, Aktor> aktorRecord) {
         brukerIdenterService.behandlePdlAktorV2Melding(aktorRecord);
     }
 
