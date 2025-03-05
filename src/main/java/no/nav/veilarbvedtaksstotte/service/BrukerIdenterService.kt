@@ -36,50 +36,50 @@ class BrukerIdenterService(
     fun behandlePdlAktorV2Melding(aktorRecord: ConsumerRecord<AktorId?, Aktor?>) {
         logger.info("Behandler melding: topic ${aktorRecord.topic()}, offset ${aktorRecord.offset()}, partisjon ${aktorRecord.partition()}.")
 
-        try {
-            val validertAktorId = tilValidertAktorId(aktorRecord.key())
-            val validertIdentDetaljerListe = tilValidertIdentDetaljerListe(aktorRecord.value())
+        val validertAktorId = tilValidertAktorId(aktorRecord.key())
+        val validertIdentDetaljerListe = tilValidertIdentDetaljerListe(aktorRecord.value())
 
-            if (validertIdentDetaljerListe == null) {
-                brukerIdenterRepository.slett(validertAktorId)
-                return
-            }
-
-            val nyPersonNokkel = brukerIdenterRepository.genererPersonNokkel()
-            val eksisterendePersonNokler =
-                brukerIdenterRepository.hentTilknyttedePersoner(validertIdentDetaljerListe.map { it.ident })
-
-            if (eksisterendePersonNokler.isNotEmpty()) {
-                logger.info(
-                    "Identer eksisterte fra før med personnøkler: ${
-                        eksisterendePersonNokler.joinToString(
-                            ","
-                        )
-                    }. Lagrer identer på ny personnøkkel: $nyPersonNokkel."
-                )
-            } else {
-                logger.info("Lagrer identer på personnøkkel: $nyPersonNokkel.")
-            }
-
-            brukerIdenterRepository.lagre(
-                personNokkel = nyPersonNokkel,
-                identifikatorer = validertIdentDetaljerListe,
-                slettEksisterendePersonNokler = eksisterendePersonNokler
-            )
-        } catch (e: IllegalStateException) {
-            throw BrukerIdenterValideringException("Validering av pdl.aktor-v2 consumer record feilet.", e)
+        if (validertIdentDetaljerListe == null) {
+            brukerIdenterRepository.slett(validertAktorId)
+            return
         }
+
+        val nyPersonNokkel = brukerIdenterRepository.genererPersonNokkel()
+        val eksisterendePersonNokler =
+            brukerIdenterRepository.hentTilknyttedePersoner(validertIdentDetaljerListe.map { it.ident })
+
+        if (eksisterendePersonNokler.isNotEmpty()) {
+            logger.info(
+                "Identer eksisterte fra før med personnøkler: ${
+                    eksisterendePersonNokler.joinToString(
+                        ","
+                    )
+                }. Lagrer identer på ny personnøkkel: $nyPersonNokkel."
+            )
+        } else {
+            logger.info("Lagrer identer på personnøkkel: $nyPersonNokkel.")
+        }
+
+        brukerIdenterRepository.lagre(
+            personNokkel = nyPersonNokkel,
+            identifikatorer = validertIdentDetaljerListe,
+            slettEksisterendePersonNokler = eksisterendePersonNokler
+        )
     }
 
 
     companion object {
         private fun tilValidertAktorId(kafkaRecordKey: AktorId?): AktorId {
-            checkNotNull(kafkaRecordKey) { "'key' var: null. Forventet: en Aktør-ID." }
+            return try {
+                checkNotNull(kafkaRecordKey) { "'key' var: null. Forventet: en Aktør-ID." }
 
-            val aktorIdString = kafkaRecordKey.get()
-            check(aktorIdString.length == 13) { "Ugyldig lengde på Aktør-ID: ${aktorIdString.length}. Forventet lengde: 13." }
+                val aktorIdString = kafkaRecordKey.get()
+                check(aktorIdString.length == 13) { "Ugyldig lengde på Aktør-ID: ${aktorIdString.length}. Forventet lengde: 13." }
 
-            return kafkaRecordKey
+                kafkaRecordKey
+            } catch (e: IllegalStateException) {
+                throw BrukerIdenterValideringException("Validering av pdl.aktor-v2 consumer record feilet.", e)
+            }
         }
 
         private fun tilValidertIdentDetaljerListe(kafkaRecordValue: Aktor?): List<IdentDetaljer>? {
@@ -87,16 +87,20 @@ class BrukerIdenterService(
                 return null
             }
 
-            val identifikatorer = kafkaRecordValue.identifikatorer
+            return try {
+                val identifikatorer = kafkaRecordValue.identifikatorer
 
-            checkNotNull(identifikatorer) { "'identifikatorer' var: null. Forventet: en liste med identifikatorer, eller en tom liste." }
+                checkNotNull(identifikatorer) { "'identifikatorer' var: null. Forventet: en liste med identifikatorer, eller en tom liste." }
 
-            identifikatorer.forEach {
-                checkNotNull(it.idnummer) { "'idnummer' var: null. Forventet: en string." }
-                checkNotNull(it.type) { "'type' var: null. Forventet: en identifikatortype." }
+                identifikatorer.forEach {
+                    checkNotNull(it.idnummer) { "'idnummer' var: null. Forventet: en string." }
+                    checkNotNull(it.type) { "'type' var: null. Forventet: en identifikatortype." }
+                }
+
+                identifikatorer.map(::toIdent)
+            } catch (e: IllegalStateException) {
+                throw BrukerIdenterValideringException("Validering av pdl.aktor-v2 consumer record feilet.", e)
             }
-
-            return identifikatorer.map(::toIdent)
         }
 
         fun toIdent(identifikator: Identifikator): IdentDetaljer {
