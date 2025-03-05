@@ -14,7 +14,7 @@ class SakStatistikkBatchService @Autowired constructor(
     private val authService: AuthService
 ) {
     // TODO: Endre cron til å kjøre på riktig tidspunkt
-    @Scheduled(cron = "0 30 11 5 3 *") // Kjører 5. mars kl 11:30
+    @Scheduled(cron = "0 30 12 5 3 *") // Kjører 5. mars kl 11:30
     fun lastInnFattedeVedtak(){
         val fattedeVedtak: List<Vedtak> = vedtaksstotteRepository.hentFattedeVedtak(10000, 0)
         fattedeVedtak.forEach { vedtak ->
