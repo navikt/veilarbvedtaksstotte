@@ -14,6 +14,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -184,6 +185,22 @@ class BrukerIdenterServiceTest(
         assertThat(alleIdenterForPersonEtterBehandlingFaktisk).containsExactlyInAnyOrderElementsOf(
             alleIdenterForPersonEtterBehandlingForventet
         )
+    }
+
+    @Test
+    fun `samme person og ident skal ikke kunne lagres flere ganger`() {
+        // Given
+        val randomAktorIdIdentifikator = genererRandomIdentifikator(type = Type.AKTORID)
+        val randomFolkeregisteridentIdentifikator = genererRandomIdentifikator(type = Type.FOLKEREGISTERIDENT)
+        val identifikatorer = listOf(
+            randomAktorIdIdentifikator,
+            randomAktorIdIdentifikator,
+            randomFolkeregisteridentIdentifikator
+        )
+        val aktorRecord = ConsumerRecord("pdl.aktor-v2", 0, 1, genererRandomAktorId(), Aktor(identifikatorer))
+
+        // When/Then
+        assertThrows<RuntimeException> { brukerIdenterService.behandlePdlAktorV2Melding(aktorRecord) }
     }
 
     companion object {
