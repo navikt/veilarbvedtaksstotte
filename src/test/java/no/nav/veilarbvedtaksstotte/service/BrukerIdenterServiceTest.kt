@@ -38,7 +38,7 @@ class BrukerIdenterServiceTest(
     @ParameterizedTest
     @MethodSource("aktorIdOgAktorSource")
     fun `skal lagre alle identifikatorer når vi ikke har lagret noe for personen fra før`(
-        kafkaRecord: ConsumerRecord<AktorId, Aktor>,
+        kafkaRecord: ConsumerRecord<AktorId?, Aktor?>,
         forventetResultat: List<PersonMedIdenter>
     ) {
         // When
@@ -71,7 +71,7 @@ class BrukerIdenterServiceTest(
         val tidligerePersonSekvensVerdi = brukerIdenterRepository.genererPersonNokkel()
         brukerIdenterRepository.lagre(
             tidligerePersonSekvensVerdi,
-            tidligereKafkaRecord.value().identifikatorer.map(::toIdent)
+            tidligereKafkaRecord.value()!!.identifikatorer.map(::toIdent)
         )
 
         // When
@@ -80,7 +80,7 @@ class BrukerIdenterServiceTest(
             0,
             0,
             tidligereKafkaRecord.key(),
-            genererRandomPdlAktorV2TopicConsumerRecord(recordKey = tidligereKafkaRecord.key()).value()
+            genererRandomPdlAktorV2TopicConsumerRecord(recordKey = tidligereKafkaRecord.key()!!).value()
         )
         brukerIdenterService.behandlePdlAktorV2Melding(nyKafkaRecord)
 
@@ -108,7 +108,7 @@ class BrukerIdenterServiceTest(
         val antallPersonNoklerEtterBehandlingForventet = 1
         val alleIdenterForPersonEtterBehandlingFaktisk = identerNyPerson.map { it.identDetaljer }
         val alleIdenterForPersonEtterBehandlingForventet =
-            nyKafkaRecord.value().identifikatorer.map { toIdent(it) }
+            nyKafkaRecord.value()!!.identifikatorer.map { toIdent(it) }
 
         assertThat(antallRaderTidligerePersonFaktisk!!).isEqualTo(antallRaderTidligerePersonForventet)
         assertThat(antallPersonNoklerEtterBehandlingFaktisk).isEqualTo(antallPersonNoklerEtterBehandlingForventet)
@@ -126,11 +126,11 @@ class BrukerIdenterServiceTest(
         val tidligereKafkaRecordPerson2 = genererRandomPdlAktorV2TopicConsumerRecord()
         brukerIdenterRepository.lagre(
             tidligerePersonSekvensVerdiPerson1,
-            tidligereKafkaRecordPerson1.value().identifikatorer.map(::toIdent)
+            tidligereKafkaRecordPerson1.value()!!.identifikatorer.map(::toIdent)
         )
         brukerIdenterRepository.lagre(
             tidligerePersonSekvensVerdiPerson2,
-            tidligereKafkaRecordPerson2.value().identifikatorer.map(::toIdent)
+            tidligereKafkaRecordPerson2.value()!!.identifikatorer.map(::toIdent)
         )
 
         // When
@@ -142,9 +142,9 @@ class BrukerIdenterServiceTest(
             nyKafkaRecordKey,
             Aktor(
                 buildList {
-                    addAll(genererRandomPdlAktorV2TopicConsumerRecord(recordKey = nyKafkaRecordKey).value().identifikatorer)
-                    add(tidligereKafkaRecordPerson1.value().identifikatorer.first())
-                    add(tidligereKafkaRecordPerson2.value().identifikatorer.first())
+                    addAll(genererRandomPdlAktorV2TopicConsumerRecord(recordKey = nyKafkaRecordKey).value()!!.identifikatorer)
+                    add(tidligereKafkaRecordPerson1.value()!!.identifikatorer.first())
+                    add(tidligereKafkaRecordPerson2.value()!!.identifikatorer.first())
                 }
             )
         )
@@ -201,6 +201,30 @@ class BrukerIdenterServiceTest(
 
         // When/Then
         assertThrows<RuntimeException> { brukerIdenterService.behandlePdlAktorV2Melding(aktorRecord) }
+    }
+
+    @Test
+    fun `skal slette ident knyttet til kafka record key dersom vi mottar tombstone`() {
+        // Given
+        val aktorRecordKey = genererRandomAktorId()
+        val opprinneligAktorRecord = genererRandomPdlAktorV2TopicConsumerRecord(recordKey = aktorRecordKey)
+        val opprinnligPersonNokkel = brukerIdenterRepository.genererPersonNokkel()
+        brukerIdenterRepository.lagre(
+            personNokkel = opprinnligPersonNokkel,
+            identifikatorer = opprinneligAktorRecord.value()!!.identifikatorer.map(::toIdent)
+        )
+
+        // When
+        val tombstoneAktorRecord =
+            genererRandomPdlAktorV2TopicConsumerRecord(recordKey = aktorRecordKey, tombstone = true)
+        brukerIdenterService.behandlePdlAktorV2Melding(tombstoneAktorRecord)
+
+        // Then
+        val antallRaderSql = "SELECT COUNT(*) FROM bruker_identer WHERE ident = ?"
+        val antallRaderOpprinneligIdentifikatorFaktisk =
+            jdbcTemplate.queryForObject(antallRaderSql, Int::class.java, aktorRecordKey.get())
+        val antallRaderOpprinneligPersonForventet = 0
+        assertThat(antallRaderOpprinneligIdentifikatorFaktisk!!).isEqualTo(antallRaderOpprinneligPersonForventet)
     }
 
     companion object {
@@ -303,18 +327,23 @@ class BrukerIdenterServiceTest(
 
         private fun genererRandomPdlAktorV2TopicConsumerRecord(
             recordKey: AktorId = genererRandomAktorId(),
+            tombstone: Boolean = false,
             antallHistoriskeIdenter: Int = 0,
             offset: Long = 0,
-            partition: Int = 0
-        ): ConsumerRecord<AktorId, Aktor> {
-            val fnr = genererRandomNorskIdent()
-            val identifikatorer = buildList {
-                add(Identifikator(recordKey.get(), Type.AKTORID, true))
-                add(Identifikator(fnr.get(), Type.FOLKEREGISTERIDENT, true))
-                addAll((1..antallHistoriskeIdenter).map { genererRandomIdentifikator(historisk = true) })
+            partition: Int = 0,
+        ): ConsumerRecord<AktorId?, Aktor?> {
+            return if (tombstone) {
+                ConsumerRecord("pdl.aktor-v2", partition, offset, recordKey, null)
+            } else {
+                val fnr = genererRandomNorskIdent()
+                val identifikatorer = buildList {
+                    add(Identifikator(recordKey.get(), Type.AKTORID, true))
+                    add(Identifikator(fnr.get(), Type.FOLKEREGISTERIDENT, true))
+                    addAll((1..antallHistoriskeIdenter).map { genererRandomIdentifikator(historisk = true) })
+                }
+                val recordValue = Aktor(identifikatorer)
+                ConsumerRecord("pdl.aktor-v2", partition, offset, recordKey, recordValue)
             }
-            val recordValue = Aktor(identifikatorer)
-            return ConsumerRecord("pdl.aktor-v2", partition, offset, recordKey, recordValue)
         }
 
         private fun genererRandomIdentifikator(
