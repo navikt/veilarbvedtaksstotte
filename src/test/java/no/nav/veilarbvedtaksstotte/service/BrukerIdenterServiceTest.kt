@@ -30,7 +30,7 @@ class BrukerIdenterServiceTest(
 ) : IntegrationTestBase() {
 
     @BeforeEach
-    fun cleanup() {
+    fun reset() {
         jdbcTemplate.update("TRUNCATE TABLE bruker_identer")
         jdbcTemplate.update("ALTER SEQUENCE bruker_identer_person_seq RESTART WITH 1")
     }
@@ -225,6 +225,36 @@ class BrukerIdenterServiceTest(
             jdbcTemplate.queryForObject(antallRaderSql, Int::class.java, aktorRecordKey.get())
         val antallRaderOpprinneligPersonForventet = 0
         assertThat(antallRaderOpprinneligIdentifikatorFaktisk!!).isEqualTo(antallRaderOpprinneligPersonForventet)
+    }
+
+    @Test
+    fun `melding med key på uventet format skal feile validering og resultere i exception`() {
+        // Given
+        val ukjentFormatAktorRecord = ConsumerRecord(
+            "pdl.aktor-v2",
+            0,
+            1,
+            AktorId.of("1"),
+            Aktor(listOf(genererRandomIdentifikator()))
+        )
+
+        // When/Then
+        assertThrows<BrukerIdenterValideringException> { brukerIdenterService.behandlePdlAktorV2Melding(ukjentFormatAktorRecord) }
+    }
+
+    @Test
+    fun `melding med value på uventet format skal feile validering og resultere i exception`() {
+        // Given
+        val ukjentFormatAktorRecord = ConsumerRecord(
+            "pdl.aktor-v2",
+            0,
+            1,
+            genererRandomAktorId(),
+            Aktor(null)
+        )
+
+        // When/Then
+        assertThrows<BrukerIdenterValideringException> { brukerIdenterService.behandlePdlAktorV2Melding(ukjentFormatAktorRecord) }
     }
 
     companion object {
