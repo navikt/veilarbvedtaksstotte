@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.micrometer.core.annotation.Timed
 import lombok.extern.slf4j.Slf4j
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Id
@@ -33,6 +34,7 @@ class BrukerIdenterService(
      * @see <a href="https://pdl-docs.ansatt.nav.no/ekstern/index.html#identitetshendelser_pa_kafka">PDL - Identitetshendelser på Kafka</a>
      */
     @Transactional
+    @Timed(value = "obo.veilarbvedtaksstotte.kafka.pdl-aktor-v2.processing-time", description = "Time spent by veilarbvedtaksstotte processing Kafka-records on the pdl.aktor-v2 topic")
     fun behandlePdlAktorV2Melding(aktorRecord: ConsumerRecord<String?, Aktor?>) {
         logger.info("Behandler melding: topic ${aktorRecord.topic()}, offset ${aktorRecord.offset()}, partisjon ${aktorRecord.partition()}.")
 
