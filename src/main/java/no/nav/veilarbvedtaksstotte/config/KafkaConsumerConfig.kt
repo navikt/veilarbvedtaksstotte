@@ -61,7 +61,6 @@ class KafkaConsumerConfig {
     @Bean
     fun consumerAivenConfigPdlAktorV2(
         kafkaConsumerService: KafkaConsumerService,
-        kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer,
         kafkaProperties: KafkaProperties,
         meterRegistry: MeterRegistry,
         kafkaConsumerRepository: KafkaConsumerRepository
