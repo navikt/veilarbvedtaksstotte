@@ -9,6 +9,7 @@ import no.nav.person.pdl.aktor.v2.Identifikator
 import no.nav.person.pdl.aktor.v2.Type
 import no.nav.veilarbvedtaksstotte.domain.Gruppe
 import no.nav.veilarbvedtaksstotte.domain.IdentDetaljer
+import no.nav.veilarbvedtaksstotte.domain.PersonNokkel
 import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -34,41 +35,81 @@ class BrukerIdenterService(
      * @see <a href="https://pdl-docs.ansatt.nav.no/ekstern/index.html#identitetshendelser_pa_kafka">PDL - Identitetshendelser på Kafka</a>
      */
     @Transactional
-    @Timed(value = "obo.veilarbvedtaksstotte.kafka.pdl-aktor-v2.processing-time", description = "Time spent by veilarbvedtaksstotte processing Kafka-records on the pdl.aktor-v2 topic")
+    @Timed(
+        value = "obo.veilarbvedtaksstotte.kafka.pdl-aktor-v2.processing-time",
+        description = "Time spent by veilarbvedtaksstotte processing Kafka-records on the pdl.aktor-v2 topic"
+    )
     fun behandlePdlAktorV2Melding(aktorRecord: ConsumerRecord<String?, Aktor?>) {
         logger.info("Behandler melding: topic ${aktorRecord.topic()}, offset ${aktorRecord.offset()}, partisjon ${aktorRecord.partition()}.")
 
-        val validertAktorId = tilValidertAktorId(aktorRecord.key())
-        val validertIdentDetaljerListe = tilValidertIdentDetaljerListe(aktorRecord.value())
+        Person(
+            aktorId = tilValidertAktorId(aktorRecord.key()),
+            identDetaljerListe = tilValidertIdentDetaljerListe(aktorRecord.value())
+        )
+            .let(::hentEksisterendePersonNokler)
+            .also(::slettIdenterKnyttetTilPersonNokler)
+            .also(::lagreIdenterPaNyPersonNokkel)
+    }
 
-        if (validertIdentDetaljerListe == null) {
-            brukerIdenterRepository.slett(validertAktorId)
+    /**
+     * Henter eksisterende personnøkler, hvis noen, knyttet til personen vi mottok melding på:
+     *
+     * * dersom det var en "tombstone" melding (dvs. `person.identDetaljerListe` er `null`) forsøker vi å hente personnøkler knyttet til `person.aktorId`
+     * * ellers forsøker vi å hente personnøkler knyttet til alle [Id]-ene i `person.identDetaljerListe`
+     */
+    private fun hentEksisterendePersonNokler(person: Person): Person {
+        return if (person.identDetaljerListe == null) {
+            // Det er en "tombstone" melding
+            logger.info("Mottok tombstone melding, forsøker å hente eksisterende personnøkler knyttet til Kafka-key (Aktør-ID).")
+            brukerIdenterRepository.hentTilknyttedePersoner(listOf(person.aktorId))
+        } else {
+            logger.info("Forsøker å hente eksisterende personnøkler knyttet til identer i Kafka-melding.")
+            brukerIdenterRepository.hentTilknyttedePersoner(person.identDetaljerListe.map { it.ident })
+        }.let {
+            person.copy(eksisterendePersonNokler = it)
+        }
+    }
+
+    /**
+     * Sletter alle identer knyttet til [Person.eksisterendePersonNokler], hvis noen
+     */
+    private fun slettIdenterKnyttetTilPersonNokler(person: Person) {
+        if (person.eksisterendePersonNokler.isNotEmpty()) {
+            logger.info(
+                "Sletter eksisterende personnøkler knyttet til identer i melding: ${
+                    person.eksisterendePersonNokler.joinToString(
+                        ","
+                    )
+                }."
+            )
+            brukerIdenterRepository.slett(person.eksisterendePersonNokler)
+        }
+    }
+
+    /**
+     * Lagrer alle [Person.identDetaljerListe] på en ny personnøkkel, hvis noen
+     */
+    private fun lagreIdenterPaNyPersonNokkel(
+        person: Person
+    ) {
+        val nyPersonNokkel = brukerIdenterRepository.genererPersonNokkel()
+
+        if (person.identDetaljerListe == null) {
+            // Siden det var en "tombstone" melding er det ingen identer å lagre, og vi er derfor ferdige
             return
         }
 
-        val nyPersonNokkel = brukerIdenterRepository.genererPersonNokkel()
-        val eksisterendePersonNokler =
-            brukerIdenterRepository.hentTilknyttedePersoner(validertIdentDetaljerListe.map { it.ident })
-
-        if (eksisterendePersonNokler.isNotEmpty()) {
-            logger.info(
-                "Identer eksisterte fra før med personnøkler: ${
-                    eksisterendePersonNokler.joinToString(
-                        ","
-                    )
-                }. Lagrer identer på ny personnøkkel: $nyPersonNokkel."
-            )
-        } else {
-            logger.info("Lagrer identer på personnøkkel: $nyPersonNokkel.")
+        if (person.identDetaljerListe.isEmpty()) {
+            // Vi hadde ikke forventet en tom liste med identer for en melding som ikke var "tombstone"
+            return
         }
 
+        logger.info("Lagrer identer på ny personnøkkel: $nyPersonNokkel")
         brukerIdenterRepository.lagre(
             personNokkel = nyPersonNokkel,
-            identifikatorer = validertIdentDetaljerListe,
-            slettEksisterendePersonNokler = eksisterendePersonNokler
+            identifikatorer = person.identDetaljerListe
         )
     }
-
 
     companion object {
         private fun tilValidertAktorId(kafkaRecordKey: String?): AktorId {
@@ -120,5 +161,11 @@ class BrukerIdenterService(
         }
     }
 }
+
+data class Person(
+    val aktorId: AktorId,
+    val identDetaljerListe: List<IdentDetaljer>?,
+    val eksisterendePersonNokler: List<PersonNokkel> = emptyList()
+)
 
 data class BrukerIdenterValideringException(val melding: String, val aarsak: Throwable) : Throwable(melding, aarsak)
