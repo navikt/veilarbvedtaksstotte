@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.repository
 
-import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Id
 import no.nav.veilarbvedtaksstotte.domain.IdentDetaljer
 import no.nav.veilarbvedtaksstotte.domain.PersonNokkel
@@ -18,24 +17,14 @@ class BrukerIdenterRepository(
     /**
      * Lagrer en liste med identer på en og samme person gitt ved [personNokkel].
      *
-     * Dersom [slettEksisterendePersonNokler] inneholder en eller flere [PersonNokkel] vil alle innslag på disse nøklene slettes
-     * først, før [identifikatorer] lagres på [personNokkel].
-     *
      * @param personNokkel en [PersonNokkel] som [identifikatorer] skal lagres på
      * @param identifikatorer en liste med [IdentDetaljer] som skal lagres på personen
-     * @param slettEksisterendePersonNokler en liste med [PersonNokkel] som skal slettes, default er en tom liste
      */
     @Transactional
     fun lagre(
         personNokkel: PersonNokkel,
-        identifikatorer: List<IdentDetaljer>,
-        slettEksisterendePersonNokler: List<PersonNokkel> = emptyList()
+        identifikatorer: List<IdentDetaljer>
     ) {
-
-        if (slettEksisterendePersonNokler.isNotEmpty()) {
-            val slettSql = "DELETE FROM bruker_identer WHERE person = any(?::varchar[])"
-            jdbcTemplate.update(slettSql, toPostgresArray(slettEksisterendePersonNokler))
-        }
 
         val identifikatorerArguments = identifikatorer.map {
             arrayOf(personNokkel, it.ident.toString(), it.historisk, it.gruppe.toString())
@@ -66,8 +55,8 @@ class BrukerIdenterRepository(
             ?: throw IllegalStateException("Kunne ikke hente ny verdi fra \"BRUKER_IDENTER_PERSON_SEQ\" sekvensen.")
     }
 
-    fun slett(aktorRecordKey: AktorId) {
-        val sql = "DELETE FROM bruker_identer WHERE ident = ?"
-        jdbcTemplate.update(sql, aktorRecordKey.get())
+    fun slett(personerNokler: List<PersonNokkel>) {
+        val slettSql = "DELETE FROM bruker_identer WHERE person = any(?::varchar[])"
+        jdbcTemplate.update(slettSql, toPostgresArray(personerNokler))
     }
 }
