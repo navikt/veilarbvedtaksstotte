@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.domain.Gruppe
 import no.nav.veilarbvedtaksstotte.domain.IdentDetaljer
 import no.nav.veilarbvedtaksstotte.domain.PersonNokkel
 import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
+import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,7 +41,8 @@ class BrukerIdenterService(
         description = "Time spent by veilarbvedtaksstotte processing Kafka-records on the pdl.aktor-v2 topic"
     )
     fun behandlePdlAktorV2Melding(aktorRecord: ConsumerRecord<String?, Aktor?>) {
-        logger.info("Behandler melding: topic ${aktorRecord.topic()}, offset ${aktorRecord.offset()}, partisjon ${aktorRecord.partition()}.")
+        logger.info("Behandler melding. Topic: ${aktorRecord.topic()}, offset: ${aktorRecord.offset()}, partisjon: ${aktorRecord.partition()}.")
+        secureLog.info("Behandler melding. Topic: ${aktorRecord.topic()}, offset: ${aktorRecord.offset()}, partisjon: ${aktorRecord.partition()}, key: ${aktorRecord.key()}.")
 
         Person(
             aktorId = tilValidertAktorId(aktorRecord.key()),
@@ -60,11 +62,15 @@ class BrukerIdenterService(
     private fun hentEksisterendePersonNokler(person: Person): Person {
         return if (person.identDetaljerListe == null) {
             // Det er en "tombstone" melding
-            logger.info("Mottok tombstone melding, forsøker å hente eksisterende personnøkler knyttet til Kafka-key (Aktør-ID).")
             brukerIdenterRepository.hentTilknyttedePersoner(listOf(person.aktorId))
+                .also {
+                    logger.info("Mottok tombstone melding. Hentet ${it.size} eksisterende personnøkler knyttet til Kafka-key (Aktør-ID).")
+                }
         } else {
-            logger.info("Forsøker å hente eksisterende personnøkler knyttet til identer i Kafka-melding.")
             brukerIdenterRepository.hentTilknyttedePersoner(person.identDetaljerListe.map { it.ident })
+                .also {
+                    logger.info("Hentet ${it.size} eksisterende personnøkler knyttet til identer i Kafka-melding.")
+                }
         }.let {
             person.copy(eksisterendePersonNokler = it)
         }
@@ -75,14 +81,11 @@ class BrukerIdenterService(
      */
     private fun slettIdenterKnyttetTilPersonNokler(person: Person) {
         if (person.eksisterendePersonNokler.isNotEmpty()) {
-            logger.info(
-                "Sletter eksisterende personnøkler knyttet til identer i melding: ${
-                    person.eksisterendePersonNokler.joinToString(
-                        ","
-                    )
-                }."
-            )
+            val slettedePersonNoklerString = person.eksisterendePersonNokler.joinToString(",")
             brukerIdenterRepository.slett(person.eksisterendePersonNokler)
+                .also {
+                    logger.info("Slettet eksisterende identer knyttet til personnøkler: $slettedePersonNoklerString.")
+                }
         }
     }
 
@@ -101,14 +104,15 @@ class BrukerIdenterService(
 
         if (person.identDetaljerListe.isEmpty()) {
             // Vi hadde ikke forventet en tom liste med identer for en melding som ikke var "tombstone"
+            logger.warn("Mottok en tom liste med identer. Ingen identer ble lagret for personen.")
             return
         }
 
-        logger.info("Lagrer identer på ny personnøkkel: $nyPersonNokkel")
         brukerIdenterRepository.lagre(
             personNokkel = nyPersonNokkel,
             identifikatorer = person.identDetaljerListe
         )
+        logger.info("Lagret identer på ny personnøkkel: $nyPersonNokkel.")
     }
 
     companion object {
