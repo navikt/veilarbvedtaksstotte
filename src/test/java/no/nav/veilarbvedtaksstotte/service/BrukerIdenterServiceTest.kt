@@ -20,6 +20,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.queryForObject
 import java.util.stream.Stream
 import kotlin.random.Random
 
@@ -223,8 +224,37 @@ class BrukerIdenterServiceTest(
         val antallRaderSql = "SELECT COUNT(*) FROM bruker_identer WHERE ident = ?"
         val antallRaderOpprinneligIdentifikatorFaktisk =
             jdbcTemplate.queryForObject(antallRaderSql, Int::class.java, aktorRecordKey)
+        val antallRaderOpprinneligIdentifikatorForventet = 0
+        assertThat(antallRaderOpprinneligIdentifikatorFaktisk!!).isEqualTo(antallRaderOpprinneligIdentifikatorForventet)
+    }
+
+    @Test
+    fun `skal slette alle personer knyttet til kafka record key dersom vi mottar tombstone`() {
+        // Given
+        val aktorRecordKey = genererRandomAktorId().get()
+        val opprinneligAktorRecord =
+            genererRandomPdlAktorV2TopicConsumerRecord(recordKey = aktorRecordKey, antallHistoriskeIdenter = 2)
+        val opprinneligPersonNokkel = brukerIdenterRepository.genererPersonNokkel()
+        brukerIdenterRepository.lagre(
+            personNokkel = opprinneligPersonNokkel,
+            identifikatorer = opprinneligAktorRecord.value()!!.identifikatorer.map(::toIdent)
+        )
+
+        // When
+        val tombstoneAktorRecord =
+            genererRandomPdlAktorV2TopicConsumerRecord(recordKey = aktorRecordKey, tombstone = true)
+        brukerIdenterService.behandlePdlAktorV2Melding(tombstoneAktorRecord)
+
+        // Then
+        val antallRaderForPersonSql = "SELECT COUNT(*) FROM bruker_identer WHERE person = ?"
+        val antallRaderTotaltSql = "SELECT COUNT(*) FROM bruker_identer"
+        val antallRaderOpprinneligPersonFaktisk =
+            jdbcTemplate.queryForObject(antallRaderForPersonSql, Int::class.java, opprinneligPersonNokkel)
+        val antallRaderTotaltFaktisk = jdbcTemplate.queryForObject(antallRaderTotaltSql, Int::class.java)
         val antallRaderOpprinneligPersonForventet = 0
-        assertThat(antallRaderOpprinneligIdentifikatorFaktisk!!).isEqualTo(antallRaderOpprinneligPersonForventet)
+        val antallRaderTotaltForventet = 0
+        assertThat(antallRaderOpprinneligPersonFaktisk!!).isEqualTo(antallRaderOpprinneligPersonForventet)
+        assertThat(antallRaderTotaltFaktisk!!).isEqualTo(antallRaderTotaltForventet)
     }
 
     @Test
@@ -239,7 +269,11 @@ class BrukerIdenterServiceTest(
         )
 
         // When/Then
-        assertThrows<BrukerIdenterValideringException> { brukerIdenterService.behandlePdlAktorV2Melding(ukjentFormatAktorRecord) }
+        assertThrows<BrukerIdenterValideringException> {
+            brukerIdenterService.behandlePdlAktorV2Melding(
+                ukjentFormatAktorRecord
+            )
+        }
     }
 
     @Test
@@ -254,7 +288,11 @@ class BrukerIdenterServiceTest(
         )
 
         // When/Then
-        assertThrows<BrukerIdenterValideringException> { brukerIdenterService.behandlePdlAktorV2Melding(ukjentFormatAktorRecord) }
+        assertThrows<BrukerIdenterValideringException> {
+            brukerIdenterService.behandlePdlAktorV2Melding(
+                ukjentFormatAktorRecord
+            )
+        }
     }
 
     companion object {
