@@ -264,7 +264,7 @@
         <dependency>
             <groupId>com.github.navikt.poao-tilgang</groupId>
             <artifactId>client</artifactId>
-            <version>2024.03.04_10.19-63a652788672</version>
+            <version>2025.03.04_14.22-6bd90058fa5b</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
