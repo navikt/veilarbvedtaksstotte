@@ -20,8 +20,8 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
             """
                 INSERT INTO $SISTE_OPPFOLGING_PERIODE_TABELL ($OPPFOLGINGSPERIODE_ID, $AKTORID, $STARTDATO, $SLUTTDATO)
                 VALUES (?, ?, ?, ?)
-                ON CONFLICT ($OPPFOLGINGSPERIODE_ID) DO UPDATE
-                SET $AKTORID = EXCLUDED.$AKTORID,
+                ON CONFLICT ($AKTORID) DO UPDATE
+                SET $OPPFOLGINGSPERIODE_ID = EXCLUDED.$OPPFOLGINGSPERIODE_ID,
                     $STARTDATO = EXCLUDED.$STARTDATO,
                     $SLUTTDATO = EXCLUDED.$SLUTTDATO
             """
