@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.print.attribute.standard.Media;
 import java.util.List;
 
 @RestController
@@ -77,7 +76,7 @@ public class MeldingController {
             }
     )
     public List<? extends MeldingDTO> hentDialogMeldinger(@RequestParam("vedtakId") long vedtakId) {
-        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
 
         if (vedtakService.erFattet(vedtakId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
@@ -93,7 +92,7 @@ public class MeldingController {
                     "bli synlig i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer."
     )
     public void opprettDialogMelding(@RequestParam("vedtakId") long vedtakId, @RequestBody OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
-        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId);
+        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
 
         if (vedtakService.erFattet(vedtakId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);

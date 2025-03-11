@@ -59,19 +59,19 @@ class UtrullingServiceTest {
             assertThrowsWithMessage<ResponseStatusException>(
                 """403 FORBIDDEN "Vedtaksstøtte er ikke utrullet for enheten til bruker""""
             ) {
-                utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(fnr)
+                utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr)
             }
         }
     }
 
     @Test
-    fun sjekkAtBrukerTilhorerUtrulletKontor__får_feilmelding_når_vedtak_mangler() {
+    fun sjekkOmMinstEnFeaturetoggleErPa__får_feilmelding_når_vedtak_mangler() {
         `when`(utrullingRepository.erUtrullet(any())).thenReturn(false)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>(
-                """404 NOT_FOUND "Fant ikke vedtak""""
+                """404 NOT_FOUND "Fant ikke vedtak med vedtakId $vedtakId""""
             ) {
-                utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakId)
+                utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId)
             }
         }
     }
@@ -85,7 +85,7 @@ class UtrullingServiceTest {
             assertThrowsWithMessage<ResponseStatusException>(
                 """403 FORBIDDEN "Vedtaksstøtte er ikke utrullet for enheten til bruker""""
             ) {
-                utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(fnr)
+                utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr)
             }
         }
     }
