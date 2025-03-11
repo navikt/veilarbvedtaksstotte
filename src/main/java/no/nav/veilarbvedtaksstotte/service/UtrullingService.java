@@ -91,13 +91,6 @@ public class UtrullingService {
         return utrullingRepository.erMinstEnEnhetUtrullet(enhetIder);
     }
 
-    public void sjekkAtBrukerTilhorerUtrulletKontor(Fnr fnr) {
-        if (!tilhorerBrukerUtrulletKontor(fnr)) {
-            log.info("Vedtaksstøtte er ikke utrullet for enheten til bruker. Tilgang er stoppet");
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten til bruker");
-        }
-    }
-
     /**
      * Sjekkar om veileder skal ha tilgang til løysinga.
      * <p>
@@ -106,13 +99,20 @@ public class UtrullingService {
      * - Løysinga er påskrudd for veileder. (Unleash) TODO implementer dette.
      * <p>
      * Utløyser unntak dersom:
-     * - veileder ikkje skal ha tilgang til løysinga
-     * <p>
-     * ResponseStatusException(HttpStatus.NOT_FOUND) – ugyldig vedtakId
-     * ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
+     * <li>
+     * veileder ikkje skal ha tilgang til løysinga
+     * </li>
+     *
+     * @Exception ResponseStatusException(HttpStatus.NOT_FOUND) – ugyldig vedtakId
+     * @Exception ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
      */
     public void sjekkOmMinstEnFeaturetoggleErPa(Fnr fnr) {
-        sjekkAtBrukerTilhorerUtrulletKontor(fnr);
+        if (tilhorerBrukerUtrulletKontor(fnr)) {
+            return;
+        }
+
+        log.info("Vedtaksstøtte er ikke utrullet for enheten til bruker. Tilgang er stoppet");
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten til bruker");
     }
 
     /**
@@ -123,12 +123,16 @@ public class UtrullingService {
      * - Løysinga er påskrudd for veileder. (Unleash) TODO implementer dette.
      * <p>
      * Utløyser unntak dersom:
-     * - veileder ikkje skal ha tilgang til løysinga
-     * - vedtakId er ugyldig eller ein ikkje finn fødselsnummer for innbyggar frå aktorId i vedtaket
-     * <p>
+     * <li>
+     * veileder ikkje skal ha tilgang til løysinga
+     * </li>
+     * <li>
+     * vedtakId er ugyldig eller ein ikkje finn fødselsnummer for innbyggar frå aktorId i vedtaket
+     * </li>
+     *
      * @Exception IngenGjeldendeIdentException – Finn ikkje fødselsnummer frå aktorId i vedtaket som er sendt inn
-     * ResponseStatusException(HttpStatus.NOT_FOUND) – ugyldig vedtakId
-     * ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
+     * @Exception ResponseStatusException(HttpStatus.NOT_FOUND) – ugyldig vedtakId
+     * @Exception ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
      */
     public void sjekkOmMinstEnFeaturetoggleErPa(long vedtakId) {
         Fnr fnr = finnFodselsnummerFraVedtakId(vedtakId);
@@ -136,7 +140,7 @@ public class UtrullingService {
     }
 
 
-    private Fnr finnFodselsnummerFraVedtakId(long vedtakId) {
+    private Fnr finnFodselsnummerFraVedtakId(long vedtakId) throws ResponseStatusException {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
 
         if (vedtak == null) {
