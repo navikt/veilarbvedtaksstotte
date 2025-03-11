@@ -46,13 +46,11 @@ class BrukerIdenterServiceTest(
         brukerIdenterService.behandlePdlAktorV2Melding(kafkaRecord)
 
         // Then
-        val sql = """
-            SELECT bi2.* FROM bruker_identer bi1
-            INNER JOIN bruker_identer bi2 ON bi1.person = bi2.person
-            WHERE bi1.ident = ?
-        """.trimIndent()
+        val hentPersonNokkelSql = "SELECT person FROM bruker_identer WHERE ident = ?";
+        val hentIdenterSql = "SELECT * FROM bruker_identer WHERE person = ?"
+        val personNokkel = jdbcTemplate.queryForObject(hentPersonNokkelSql, String::class.java, kafkaRecord.key())
         val personMedIdenter =
-            jdbcTemplate.query(sql, { rs, _ ->
+            jdbcTemplate.query(hentIdenterSql, { rs, _ ->
                 PersonMedIdenter(
                     personNokkel = rs.getString("person"),
                     identDetaljer = IdentDetaljer(
@@ -61,7 +59,7 @@ class BrukerIdenterServiceTest(
                         gruppe = Gruppe.valueOf(rs.getString("gruppe")),
                     )
                 )
-            }, kafkaRecord.key())
+            }, personNokkel)
         assertThat(personMedIdenter).containsExactlyInAnyOrderElementsOf(forventetResultat)
     }
 
@@ -90,11 +88,9 @@ class BrukerIdenterServiceTest(
         val antallRaderTidligerePersonFaktisk =
             jdbcTemplate.queryForObject(antallRaderSql, Int::class.java, tidligerePersonSekvensVerdi)
         val antallRaderTidligerePersonForventet = 0
-        val hentAlleIdenterForPersonSql = """
-            SELECT bi2.* FROM bruker_identer bi1
-            INNER JOIN bruker_identer bi2 on bi1.person = bi2.person
-            WHERE bi1.ident = ?
-            """.trimIndent()
+        val hentPersonNokkelSql = "SELECT person FROM bruker_identer WHERE ident = ?"
+        val personNokkel = jdbcTemplate.queryForObject(hentPersonNokkelSql, String::class.java, nyKafkaRecord.key())
+        val hentAlleIdenterForPersonSql = "SELECT * FROM bruker_identer WHERE person = ?"
         val identerNyPerson = jdbcTemplate.query(hentAlleIdenterForPersonSql, { rs, _ ->
             PersonMedIdenter(
                 personNokkel = rs.getString("person"),
@@ -104,7 +100,7 @@ class BrukerIdenterServiceTest(
                     gruppe = Gruppe.valueOf(rs.getString("gruppe")),
                 )
             )
-        }, nyKafkaRecord.key())
+        }, personNokkel)
         val antallPersonNoklerEtterBehandlingFaktisk = identerNyPerson.map { it.personNokkel }.toSet().size
         val antallPersonNoklerEtterBehandlingForventet = 1
         val alleIdenterForPersonEtterBehandlingFaktisk = identerNyPerson.map { it.identDetaljer }
@@ -159,11 +155,9 @@ class BrukerIdenterServiceTest(
         val antallRaderTidligerePerson2Faktisk =
             jdbcTemplate.queryForObject(antallRaderSql, Int::class.java, tidligerePersonSekvensVerdiPerson2)
         val antallRaderTidligerePerson2Forventet = 0
-        val hentAlleIdenterForPersonSql = """
-            SELECT bi2.* FROM bruker_identer bi1
-            INNER JOIN bruker_identer bi2 on bi1.person = bi2.person
-            WHERE bi1.ident = ?
-            """.trimIndent()
+        val hentPersonNokkelSql = "SELECT person FROM bruker_identer WHERE ident = ?"
+        val personNokkel = jdbcTemplate.queryForObject(hentPersonNokkelSql, String::class.java, nyKafkaRecord.key())
+        val hentAlleIdenterForPersonSql = "SELECT * FROM bruker_identer WHERE person = ?"
         val identerNyPerson = jdbcTemplate.query(hentAlleIdenterForPersonSql, { rs, _ ->
             PersonMedIdenter(
                 personNokkel = rs.getString("person"),
@@ -173,7 +167,7 @@ class BrukerIdenterServiceTest(
                     gruppe = Gruppe.valueOf(rs.getString("gruppe")),
                 )
             )
-        }, nyKafkaRecord.key())
+        }, personNokkel)
         val antallPersonNoklerEtterBehandlingFaktisk = identerNyPerson.map { it.personNokkel }.toSet().size
         val antallPersonNoklerEtterBehandlingForventet = 1
         val alleIdenterForPersonEtterBehandlingFaktisk = identerNyPerson.map { it.identDetaljer }

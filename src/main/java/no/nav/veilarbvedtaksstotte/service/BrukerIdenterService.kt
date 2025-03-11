@@ -14,9 +14,11 @@ import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 @Slf4j
@@ -61,10 +63,10 @@ class BrukerIdenterService(
      */
     private fun hentEksisterendePersonNokler(person: Person): Person {
         return if (person.identDetaljerListe == null) {
-            // Det er en "tombstone" melding
+            // Det er en "tombstone"-melding
             brukerIdenterRepository.hentTilknyttedePersoner(listOf(person.aktorId))
                 .also {
-                    logger.info("Mottok tombstone melding. Hentet ${it.size} eksisterende personnøkler knyttet til Kafka-key (Aktør-ID).")
+                    logger.info("Mottok tombstone-melding. Hentet ${it.size} eksisterende personnøkler knyttet til Kafka-key (Aktør-ID).")
                 }
         } else {
             brukerIdenterRepository.hentTilknyttedePersoner(person.identDetaljerListe.map { it.ident })
@@ -83,9 +85,7 @@ class BrukerIdenterService(
         if (person.eksisterendePersonNokler.isNotEmpty()) {
             val slettedePersonNoklerString = person.eksisterendePersonNokler.joinToString(",")
             brukerIdenterRepository.slett(person.eksisterendePersonNokler)
-                .also {
-                    logger.info("Slettet eksisterende identer knyttet til personnøkler: $slettedePersonNoklerString.")
-                }
+            logger.info("Slettet eksisterende identer knyttet til personnøkler: $slettedePersonNoklerString.")
         }
     }
 
@@ -95,19 +95,12 @@ class BrukerIdenterService(
     private fun lagreIdenterPaNyPersonNokkel(
         person: Person
     ) {
-        val nyPersonNokkel = brukerIdenterRepository.genererPersonNokkel()
-
         if (person.identDetaljerListe == null) {
             // Siden det var en "tombstone" melding er det ingen identer å lagre, og vi er derfor ferdige
             return
         }
 
-        if (person.identDetaljerListe.isEmpty()) {
-            // Vi hadde ikke forventet en tom liste med identer for en melding som ikke var "tombstone"
-            logger.warn("Mottok en tom liste med identer. Ingen identer ble lagret for personen.")
-            return
-        }
-
+        val nyPersonNokkel = brukerIdenterRepository.genererPersonNokkel()
         brukerIdenterRepository.lagre(
             personNokkel = nyPersonNokkel,
             identifikatorer = person.identDetaljerListe
@@ -136,7 +129,8 @@ class BrukerIdenterService(
             return try {
                 val identifikatorer = kafkaRecordValue.identifikatorer
 
-                checkNotNull(identifikatorer) { "'identifikatorer' var: null. Forventet: en liste med identifikatorer, eller en tom liste." }
+                checkNotNull(identifikatorer) { "'identifikatorer' var: null. Forventet: en liste med identifikatorer." }
+                check(identifikatorer.size > 0) { "'identifikatorer' var tom. Forventet: minst en identifikator." }
 
                 identifikatorer.forEach {
                     checkNotNull(it.idnummer) { "'idnummer' var: null. Forventet: en string." }
@@ -166,6 +160,9 @@ class BrukerIdenterService(
     }
 }
 
+/**
+ * Value-object for å kunne samle Aktør-ID (fra Kafka-key), identer (fra Kafka-Value) samt eksisterende personnøkler (fra DB).
+ */
 data class Person(
     val aktorId: AktorId,
     val identDetaljerListe: List<IdentDetaljer>?,
