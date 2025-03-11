@@ -91,18 +91,6 @@ public class UtrullingService {
         return utrullingRepository.erMinstEnEnhetUtrullet(enhetIder);
     }
 
-    public void sjekkAtBrukerTilhorerUtrulletKontor(long vedtakId) {
-        try {
-            Fnr fnr = finnFodselsnummerFraVedtakId(vedtakId);
-            sjekkAtBrukerTilhorerUtrulletKontor(fnr);
-        } catch (ResponseStatusException responseStatusException) {
-            throw responseStatusException;
-        } catch (Exception e) {
-            log.info("Greide ikke sjekke om vedtaksstøtte er utrullet for enheten til bruker. Tilgang er stoppet");
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Greide ikke sjekke om vedtaksstøtte er utrullet for enheten til bruker");
-        }
-    }
-
     public void sjekkAtBrukerTilhorerUtrulletKontor(Fnr fnr) {
         if (!tilhorerBrukerUtrulletKontor(fnr)) {
             log.info("Vedtaksstøtte er ikke utrullet for enheten til bruker. Tilgang er stoppet");
@@ -110,10 +98,49 @@ public class UtrullingService {
         }
     }
 
+    /**
+     * Sjekkar om veileder skal ha tilgang til løysinga.
+     * <p>
+     * Køyrer utan unntak dersom minst ein av sjekkane fungerer:
+     * - Løysinga er påskrudd på kontoret til innbyggaren det skal behandlast informasjon for. (UtrullingService)
+     * - Løysinga er påskrudd for veileder. (Unleash) TODO implementer dette.
+     * <p>
+     * Utløyser unntak dersom:
+     * - veileder ikkje skal ha tilgang til løysinga
+     * <p>
+     * ResponseStatusException(HttpStatus.NOT_FOUND) – ugyldig vedtakId
+     * ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
+     */
+    public void sjekkOmMinstEnFeaturetoggleErPa(Fnr fnr) {
+        sjekkAtBrukerTilhorerUtrulletKontor(fnr);
+    }
+
+    /**
+     * Sjekkar om veileder skal ha tilgang til løysinga.
+     * <p>
+     * Køyrer utan unntak dersom minst ein av sjekkane fungerer:
+     * - Løysinga er påskrudd på kontoret til innbyggaren det skal behandlast informasjon for. (UtrullingService)
+     * - Løysinga er påskrudd for veileder. (Unleash) TODO implementer dette.
+     * <p>
+     * Utløyser unntak dersom:
+     * - veileder ikkje skal ha tilgang til løysinga
+     * - vedtakId er ugyldig eller ein ikkje finn fødselsnummer for innbyggar frå aktorId i vedtaket
+     * <p>
+     * @Exception IngenGjeldendeIdentException – Finn ikkje fødselsnummer frå aktorId i vedtaket som er sendt inn
+     * ResponseStatusException(HttpStatus.NOT_FOUND) – ugyldig vedtakId
+     * ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
+     */
+    public void sjekkOmMinstEnFeaturetoggleErPa(long vedtakId) {
+        Fnr fnr = finnFodselsnummerFraVedtakId(vedtakId);
+        sjekkOmMinstEnFeaturetoggleErPa(fnr);
+    }
+
+
     private Fnr finnFodselsnummerFraVedtakId(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
 
         if (vedtak == null) {
+            log.info("Sjekk om innbygger tilhører utrullet kontor: Finner ikke vedtak for id, og derfor heller ikke tilhørende fnr. Tilgang er stoppet. VedtakId: " + vedtakId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fant ikke vedtak med vedtakId " + vedtakId);
         }
 
