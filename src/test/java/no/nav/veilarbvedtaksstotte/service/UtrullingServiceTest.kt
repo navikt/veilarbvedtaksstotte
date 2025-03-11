@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
@@ -16,8 +17,10 @@ import no.nav.veilarbvedtaksstotte.repository.UtrullingRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
+import no.nav.veilarbvedtaksstotte.utils.VIS_VEDTAKSLOSNING_14A
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
@@ -33,6 +36,7 @@ class UtrullingServiceTest {
     var veilarbveilederClient = mock(VeilarbveilederClient::class.java)
     var norg2Client = mock(Norg2Client::class.java)
     var vedtaksstotteRepository = mock(VedtaksstotteRepository::class.java)
+    var unleashClient = mock(DefaultUnleash::class.java)
 
     var utrullingService = UtrullingService(
         utrullingRepository,
@@ -40,7 +44,8 @@ class UtrullingServiceTest {
         veilarbveilederClient,
         norg2Client,
         vedtaksstotteRepository,
-        aktorOppslagClient
+        aktorOppslagClient,
+        unleashClient
     )
     val fnr = Fnr.of("01010111111")
     val vedtakId: Long = 1
@@ -57,7 +62,7 @@ class UtrullingServiceTest {
         `when`(utrullingRepository.erUtrullet(any())).thenReturn(false)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>(
-                """403 FORBIDDEN "Vedtaksstøtte er ikke utrullet for enheten til bruker""""
+                """403 FORBIDDEN "Vedtaksstøtte er ikke utrullet for veileder""""
             ) {
                 utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr)
             }
@@ -83,8 +88,21 @@ class UtrullingServiceTest {
         `when`(vedtaksstotteRepository.hentVedtak(vedtakId)).thenReturn(vedtak)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>(
-                """403 FORBIDDEN "Vedtaksstøtte er ikke utrullet for enheten til bruker""""
+                """403 FORBIDDEN "Vedtaksstøtte er ikke utrullet for veileder""""
             ) {
+                utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr)
+            }
+        }
+    }
+
+    @Test
+    fun sjekkAtBrukerTilhorerUtrulletKontor__ikke_utløser_unntak_dersom_unleashtoggle_er_pa() {
+        val vedtak = Vedtak()
+        `when`(utrullingRepository.erUtrullet(any())).thenReturn(false)
+        `when`(vedtaksstotteRepository.hentVedtak(vedtakId)).thenReturn(vedtak)
+        `when`(unleashClient.isEnabled(VIS_VEDTAKSLOSNING_14A)).thenReturn(true)
+        withContext(UserRole.INTERN) {
+            assertDoesNotThrow {
                 utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr)
             }
         }

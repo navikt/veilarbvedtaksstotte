@@ -1,6 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
@@ -22,6 +24,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.VIS_VEDTAKSLOSNING_14A;
+
 @Service
 @Slf4j
 public class UtrullingService {
@@ -35,6 +39,7 @@ public class UtrullingService {
     private final Norg2Client norg2Client;
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final AktorOppslagClient aktorOppslagClient;
+    private final DefaultUnleash unleashClient;
 
     @Autowired
     public UtrullingService(
@@ -42,13 +47,14 @@ public class UtrullingService {
             VeilarbarenaClient veilarbarenaClient,
             VeilarbveilederClient veilarbveilederClient,
             Norg2Client norg2Client,
-            VedtaksstotteRepository vedtaksstotteRepository, AktorOppslagClient aktorOppslagClient) {
+            VedtaksstotteRepository vedtaksstotteRepository, AktorOppslagClient aktorOppslagClient, DefaultUnleash unleashClient) {
         this.utrullingRepository = utrullingRepository;
         this.veilarbarenaClient = veilarbarenaClient;
         this.veilarbveilederClient = veilarbveilederClient;
         this.norg2Client = norg2Client;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.aktorOppslagClient = aktorOppslagClient;
+        this.unleashClient = unleashClient;
     }
 
     public List<UtrulletEnhet> hentAlleUtrullinger() {
@@ -96,7 +102,7 @@ public class UtrullingService {
      * <p>
      * Køyrer utan unntak dersom minst ein av sjekkane fungerer:
      * - Løysinga er påskrudd på kontoret til innbyggaren det skal behandlast informasjon for. (UtrullingService)
-     * - Løysinga er påskrudd for veileder. (Unleash) TODO implementer dette.
+     * - Løysinga er påskrudd for veileder. (Unleash)
      * <p>
      * Utløyser unntak dersom:
      * <li>
@@ -107,12 +113,16 @@ public class UtrullingService {
      * @Exception ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
      */
     public void sjekkOmMinstEnFeaturetoggleErPa(Fnr fnr) {
+        boolean erUnleashTogglePaForVeileder = unleashClient.isEnabled(VIS_VEDTAKSLOSNING_14A);
+        if (erUnleashTogglePaForVeileder) {
+            return;
+        }
+
         if (tilhorerBrukerUtrulletKontor(fnr)) {
             return;
         }
 
-        log.info("Vedtaksstøtte er ikke utrullet for enheten til bruker. Tilgang er stoppet");
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for enheten til bruker");
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for veileder");
     }
 
     /**
@@ -120,7 +130,7 @@ public class UtrullingService {
      * <p>
      * Køyrer utan unntak dersom minst ein av sjekkane fungerer:
      * - Løysinga er påskrudd på kontoret til innbyggaren det skal behandlast informasjon for. (UtrullingService)
-     * - Løysinga er påskrudd for veileder. (Unleash) TODO implementer dette.
+     * - Løysinga er påskrudd for veileder. (Unleash)
      * <p>
      * Utløyser unntak dersom:
      * <li>
