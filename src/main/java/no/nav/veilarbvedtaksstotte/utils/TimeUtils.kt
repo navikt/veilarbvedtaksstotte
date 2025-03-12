@@ -25,6 +25,13 @@ object TimeUtils {
     }
 
     @JvmStatic
+    fun toZonedDateTime(timestamp: Timestamp?): ZonedDateTime? {
+        if (timestamp == null) return null
+
+        return ZonedDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())
+    }
+
+    @JvmStatic
     fun toInstant(localDateTime: LocalDateTime): Instant {
         return toZonedDateTime(localDateTime).toInstant()
     }
@@ -38,7 +45,7 @@ object TimeUtils {
     }
 
     @JvmStatic
-    fun now(): LocalDateTime{
+    fun now(): LocalDateTime {
         return LocalDateTime.now().truncatedTo(ChronoUnit.MICROS)
     }
 }
