@@ -23,10 +23,25 @@ class AuthService(
     private val aktorOppslagClient: AktorOppslagClient,
     private val veilarbarenaService: VeilarbarenaService,
     private val authContextHolder: AuthContextHolder,
-    private val utrullingService: UtrullingService,
     private val poaoTilgangClient: PoaoTilgangClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    fun sjekkVeilederUtenModiarolleTilgangTilBruker (
+        fnr: Fnr
+    ) {
+        sjekkInternBruker()
+
+        val veilederTilgangTilPerson = poaoTilgangClient.evaluatePolicy(
+            NavAnsattUtenModiarolleTilgangTilEksternBrukerPolicyInput(
+                hentInnloggetVeilederUUID(), fnr.get()
+            )
+        ).getOrThrow()
+
+        if (veilederTilgangTilPerson.isDeny) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
+    }
 
     fun sjekkVeilederTilgangTilBruker(tilgangType: TilgangType, fnr: Fnr) {
         sjekkVeilederTilgangTilBruker(

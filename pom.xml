@@ -262,9 +262,9 @@
             <version>${unleash.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.navikt.poao-tilgang</groupId>
+            <groupId>no.nav.poao-tilgang</groupId>
             <artifactId>client</artifactId>
-            <version>2024.03.04_10.19-63a652788672</version>
+            <version>2025.03.12_12.27-7bf8f47b2458</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
