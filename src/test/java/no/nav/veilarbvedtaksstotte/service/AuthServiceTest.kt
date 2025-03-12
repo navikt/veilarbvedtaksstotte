@@ -18,7 +18,6 @@ import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
 import org.mockito.kotlin.whenever
 import org.springframework.web.server.ResponseStatusException
@@ -28,10 +27,9 @@ class AuthServiceTest {
     var authContextHolder = AuthContextHolderThreadLocal.instance()
     var aktorOppslagClient = mock(AktorOppslagClient::class.java)
     var veilarbarenaService = mock(VeilarbarenaService::class.java)
-    var utrullingService = mock(UtrullingService::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
     var authService =
-        AuthService(aktorOppslagClient, veilarbarenaService, authContextHolder, utrullingService, poaoTilgangClient)
+        AuthService(aktorOppslagClient, veilarbarenaService, authContextHolder, poaoTilgangClient)
 
     @BeforeEach
     fun setup() {
@@ -102,7 +100,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilEnhet__skal_bruke_poao_tilgang_hvis_toggle_er_pa() {
-        `when`(utrullingService.erUtrullet(any())).thenReturn(true)
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
@@ -119,7 +116,6 @@ class AuthServiceTest {
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
-        `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) {
             authService.sjekkTilgangTilBrukerOgEnhet(
                 tilgangType = TilgangType.SKRIVE,
@@ -130,7 +126,6 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBrukerOgEnhet__kaster_exception_for_andre_enn_ekstern_bruker() {
-        `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         Arrays.stream(UserRole.values()).filter { userRole: UserRole -> userRole != UserRole.INTERN }
             .forEach { userRole: UserRole ->
                 withContext(userRole) {
@@ -149,7 +144,6 @@ class AuthServiceTest {
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Deny("", "")))
-        `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
                 authService.sjekkTilgangTilBrukerOgEnhet(tilgangType = TilgangType.SKRIVE, fnr = TestData.TEST_FNR)
@@ -162,7 +156,6 @@ class AuthServiceTest {
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Deny("", "")))
-        `when`(utrullingService.erUtrullet(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID))).thenReturn(true)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
                 authService.sjekkTilgangTilBrukerOgEnhet(tilgangType = TilgangType.SKRIVE, fnr = TestData.TEST_FNR)

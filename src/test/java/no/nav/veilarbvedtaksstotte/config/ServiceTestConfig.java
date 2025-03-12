@@ -33,7 +33,8 @@ import org.springframework.context.annotation.Import;
         BigQueryService.class,
         SakStatistikkService.class,
         ArbeidssoekerRegisteretService.class,
-        PdfService.class
+        PdfService.class,
+        Gjeldende14aVedtakService.class
 })
 public class ServiceTestConfig {
 }
