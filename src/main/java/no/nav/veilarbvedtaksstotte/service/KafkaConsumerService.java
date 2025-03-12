@@ -150,7 +150,7 @@ public class KafkaConsumerService {
 
         if (sluttDato == null) {
             // Vi er bare interessert i oppfølgingsperiode dersom den er avsluttet, dvs. sluttDato != null
-            log.debug("Siste oppfølgingsperiode har ingen sluttdato - ignorerer melding.");
+            log.info("Siste oppfølgingsperiode har ingen sluttdato - ignorerer melding.");
             return;
         }
 
@@ -158,7 +158,7 @@ public class KafkaConsumerService {
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(aktorId);
 
         if (gjeldendeVedtak == null) {
-            log.debug("Brukeren har ingen gjeldende vedtak - ignorerer melding.");
+            log.info("Brukeren har ingen gjeldende vedtak - ignorerer melding.");
             return;
         }
 
