@@ -23,7 +23,6 @@ import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
 import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_GCP_SKRUDD_AV
 import no.nav.veilarbvedtaksstotte.utils.LES_FRA_PDL_AKTOR_V2_TOPIC_SKRUDD_PAA
-import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -92,7 +91,12 @@ class KafkaConsumerConfig {
                         kafkaProperties.pdlAktorV2Topic,
                         keyDeserializer,
                         valueDeserializer,
-                        Consumer { kafkaConsumerService.behandlePdlAktorV2Melding(it) }
+                        Consumer {
+                            kafkaConsumerService.behandleKafkaMelding(
+                                it,
+                                kafkaConsumerService::behandlePdlAktorV2Melding
+                            )
+                        }
                     )
             )
         )
@@ -191,9 +195,10 @@ class KafkaConsumerConfig {
                         kafkaProperties.vedtakStatusEndringTopic,
                         Deserializers.stringDeserializer(),
                         Deserializers.jsonDeserializer(KafkaVedtakStatusEndring::class.java),
-                        Consumer { melding: ConsumerRecord<String, KafkaVedtakStatusEndring> ->
-                            kafkaVedtakStatusEndringConsumer.konsumer(
-                                melding
+                        Consumer {
+                            kafkaConsumerService.behandleKafkaMelding(
+                                it,
+                                kafkaVedtakStatusEndringConsumer::konsumer
                             )
                         })
 
@@ -208,9 +213,10 @@ class KafkaConsumerConfig {
                     kafkaProperties.arenaVedtakTopic,
                     Deserializers.stringDeserializer(),
                     Deserializers.jsonDeserializer(ArenaVedtakRecord::class.java),
-                    Consumer { arenaVedtakRecord: ConsumerRecord<String, ArenaVedtakRecord> ->
-                        kafkaConsumerService.behandleArenaVedtak(
-                            arenaVedtakRecord
+                    Consumer {
+                        kafkaConsumerService.behandleKafkaMelding(
+                            it,
+                            kafkaConsumerService::behandleArenaVedtak
                         )
                     })
             val oppfolgingsbrukerEndringClientConfigBuilder =
@@ -224,9 +230,10 @@ class KafkaConsumerConfig {
                         Deserializers.jsonDeserializer(
                             KafkaOppfolgingsbrukerEndringV2::class.java
                         ),
-                        Consumer { kafkaOppfolgingsbrukerEndringV2: ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> ->
-                            kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
-                                kafkaOppfolgingsbrukerEndringV2
+                        Consumer {
+                            kafkaConsumerService.behandleKafkaMelding(
+                                it,
+                                kafkaConsumerService::flyttingAvOppfolgingsbrukerTilNyEnhet
                             )
                         })
 
@@ -239,7 +246,12 @@ class KafkaConsumerConfig {
                         kafkaProperties.sisteOppfolgingsperiodeTopic,
                         Deserializers.stringDeserializer(),
                         Deserializers.jsonDeserializer(KafkaSisteOppfolgingsperiode::class.java),
-                        Consumer { kafkaConsumerService.behandleSisteOppfolgingsperiode(it) }
+                        Consumer {
+                            kafkaConsumerService.behandleKafkaMelding(
+                                it,
+                                kafkaConsumerService::behandleSisteOppfolgingsperiode
+                            )
+                        }
                     )
 
             return listOf(
