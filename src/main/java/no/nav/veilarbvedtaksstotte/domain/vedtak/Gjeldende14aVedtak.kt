@@ -5,6 +5,7 @@ import java.time.ZonedDateTime
 
 data class Gjeldende14aVedtak(
     val aktorId: AktorId,
+    val vedtakId: String,
     val innsatsgruppe: Innsatsgruppe,
     val hovedmal: HovedmalMedOkeDeltakelse?,
     val fattetDato: ZonedDateTime,
