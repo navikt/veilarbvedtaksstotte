@@ -24,7 +24,7 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
             """
                 SELECT * FROM $SISTE_OPPFOLGING_PERIODE_TABELL 
                 WHERE $AKTORID = ?
-                AND $SLUTTDATO IS NOT NULL;
+                AND $SLUTTDATO IS NULL;
             """.trimIndent()
 
         try {
