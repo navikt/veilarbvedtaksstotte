@@ -1,38 +1,21 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import no.nav.common.types.identer.AktorId
+import no.nav.common.types.identer.EksternBrukerId
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
 @Service
-class Gjeldende14aVedtakService {
+class Gjeldende14aVedtakService(
+    @Autowired
+    val siste14aVedtakService: Siste14aVedtakService
+) {
 
-    /*
-        "Initiell datalast - engangsjobb"
-
-        1. Lag et database view (identer_i_veilarbvedtaksstotte) som inneholder alle identer vi har minst et vedtak på
-
-        2. Konfigurere og deploye nytt topic: obo.oppfolgingsvedtak-14a.
-
-        3. Ta alle eksisterende vedtak (vedtak + arena_vedtak), finne hvilke som er gjeldende, og publisere disse på
-        obo.oppfolgingsvedtak-14a
-            1.1 Hent <batch_size> identer fra "identer_i_veilarbvedtaksstotte"
-            1.2 For alle identer hent siste § 14 a-vedtak
-            1.3 For alle siste § 14 a-vedtak
-                1.3.1 Sjekk om vedtaket er gjeldende
-                    1.3.1.a Dersom ja: putt melding i "utboks" (kafka_producer_record)
-                    1.3.1.b Dersom nei: gjør ingenting, fortsett
-
-        "Daglig oppførsel"
-
-     */
-
-    fun hentGjeldende14aVedtak(brukerIdent: AktorId): Gjeldende14aVedtak? {
-
+    fun hentGjeldende14aVedtak(brukerIdent: EksternBrukerId): Gjeldende14aVedtak? {
+        TODO()
     }
 
     companion object {
