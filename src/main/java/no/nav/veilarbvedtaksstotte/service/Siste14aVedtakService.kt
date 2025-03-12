@@ -28,8 +28,8 @@ class Siste14aVedtakService(
 
     val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
 
-    fun siste14aVedtak(fnr: EksternBrukerId): Siste14aVedtak? {
-        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
+    fun siste14aVedtak(eksternBrukerId: EksternBrukerId): Siste14aVedtak? {
+        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(eksternBrukerId)
         return siste14aVedtakMedKilder(identer).siste14aVedtak
     }
 
