@@ -6,8 +6,8 @@ import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -23,7 +23,8 @@ class Siste14aVedtakService(
     val vedtakRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
     val aktorOppslagClient: AktorOppslagClient,
-    val arenaVedtakService: ArenaVedtakService
+    val arenaVedtakService: ArenaVedtakService,
+    val gjeldende14aVedtakService: Gjeldende14aVedtakService,
 ) {
 
     val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
@@ -112,11 +113,13 @@ class Siste14aVedtakService(
             // Idempotent oppdatering/lagring av vedtak fra Arena
             val harOppdatertVedtakFraArena = arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
 
+
             // Oppdateringer som følger kunne vært gjort uavhengig av idempotent oppdatering/lagring over, og kunne
             // blitt utført uavhengig f.eks. i en scheduled task. Ved å sjekke om `arenaVedtak` har ført til en
             // oppdatering over, unngår man å behandle gamle meldinger ved ny last på topic.
             if (harOppdatertVedtakFraArena) {
                 settVedtakTilHistoriskOgSendSiste14aVedtakPaKafka(arenaVedtak)
+                gjeldende14aVedtakService.behandleGjeldende14aVedtak(arenaVedtak)
             }
         }
     }

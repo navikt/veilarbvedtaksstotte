@@ -5,6 +5,7 @@ import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage;
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,19 @@ public class KafkaProducerService {
                                 kafkaProperties.getSiste14aVedtakTopic(),
                                 siste14aVedtak.getAktorId().get(),
                                 siste14aVedtak));
+
+        producerRecordStorage.store(producerRecord);
+    }
+
+    public void sendGjeldende14aVedtak(Gjeldende14aVedtak gjeldende14aVedtak) {
+        ProducerRecord<byte[], byte[]> producerRecord =
+                serializeJsonRecord(
+                        new ProducerRecord<>(
+                                kafkaProperties.getOppfolgingsVedtak14aTopic(),
+                                gjeldende14aVedtak.getAktorId().get(),
+                                gjeldende14aVedtak
+                        )
+                );
 
         producerRecordStorage.store(producerRecord);
     }

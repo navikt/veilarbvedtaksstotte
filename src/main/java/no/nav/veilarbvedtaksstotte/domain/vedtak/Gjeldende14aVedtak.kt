@@ -9,6 +9,7 @@ data class Gjeldende14aVedtak(
     val innsatsgruppe: Innsatsgruppe,
     val hovedmal: HovedmalMedOkeDeltakelse?,
     val fattetDato: ZonedDateTime,
+    val vedtakId: Long
 )
 
 fun Siste14aVedtak.toGjeldende14aVedtak(): Gjeldende14aVedtak = Gjeldende14aVedtak(

@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.EksternBrukerId
+import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.toGjeldende14aVedtak
@@ -16,8 +17,15 @@ import java.time.ZonedDateTime
 class Gjeldende14aVedtakService (
     @Autowired val siste14aVedtakService: Siste14aVedtakService,
     @Autowired val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
-    @Autowired val aktorOppslagClient: AktorOppslagClient
+    @Autowired val aktorOppslagClient: AktorOppslagClient,
+    @Autowired val kafkaProducerService: KafkaProducerService
 ) {
+
+    fun behandleGjeldende14aVedtak(arenaVedtak: ArenaVedtak) {
+        val gjeldende14aVedtak = hentGjeldende14aVedtak(arenaVedtak.fnr)
+        if(arenaVedtak.vedtakId == gjeldende14aVedtak?.vedtakId)
+            kafkaProducerService.sendGjeldende14aVedtak(gjeldende14aVedtak)
+    }
 
     fun hentGjeldende14aVedtak(brukerIdent: EksternBrukerId): Gjeldende14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(brukerIdent)
