@@ -21,7 +21,7 @@
         <java.version>21</java.version>
         <common.version>3.2024.10.25_13.44-9db48a0dbe67</common.version>
         <kotlin.version>2.1.10</kotlin.version>
-        <testcontainers.version>1.20.5</testcontainers.version>
+        <testcontainers.version>1.20.6</testcontainers.version>
         <unleash.version>10.0.2</unleash.version>
 
         <!--   Used by SonarCloud     -->
@@ -52,7 +52,7 @@
             <plugin>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro-maven-plugin</artifactId>
-                <version>1.11.4</version>
+                <version>1.12.0</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
@@ -196,7 +196,7 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
-            <version>6.2.0</version>
+            <version>6.3.0</version>
         </dependency>
 
         <!-- Common Dependencies -->
@@ -355,7 +355,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.18.3</version>
+            <version>1.19.1</version>
         </dependency>
     </dependencies>
 
