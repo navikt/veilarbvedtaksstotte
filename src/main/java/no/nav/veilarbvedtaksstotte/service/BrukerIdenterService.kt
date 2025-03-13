@@ -43,9 +43,6 @@ class BrukerIdenterService(
         description = "Time spent by veilarbvedtaksstotte processing Kafka-records on the pdl.aktor-v2 topic"
     )
     fun behandlePdlAktorV2Melding(aktorRecord: ConsumerRecord<String?, Aktor?>) {
-        logger.info("Behandler melding. Topic: ${aktorRecord.topic()}, offset: ${aktorRecord.offset()}, partisjon: ${aktorRecord.partition()}.")
-        secureLog.info("Behandler melding. Topic: ${aktorRecord.topic()}, offset: ${aktorRecord.offset()}, partisjon: ${aktorRecord.partition()}, key: ${aktorRecord.key()}.")
-
         Person(
             aktorId = tilValidertAktorId(aktorRecord.key()),
             identDetaljerListe = tilValidertIdentDetaljerListe(aktorRecord.value())

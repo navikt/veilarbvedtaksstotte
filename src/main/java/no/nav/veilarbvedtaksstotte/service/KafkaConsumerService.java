@@ -7,6 +7,7 @@ import no.nav.common.client.norg2.Enhet;
 import no.nav.common.client.utils.graphql.GraphqlErrorException;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.common.utils.IdUtils;
 import no.nav.person.pdl.aktor.v2.Aktor;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
@@ -20,6 +21,7 @@ import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +51,8 @@ public class KafkaConsumerService {
 
     private final BrukerIdenterService brukerIdenterService;
 
+    private static final String MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY = "kafka_consumer_correlation_id";
+
     @Autowired
     public KafkaConsumerService(
             Siste14aVedtakService siste14aVedtakService,
@@ -70,9 +74,17 @@ public class KafkaConsumerService {
         this.brukerIdenterService = brukerIdenterService;
     }
 
-    public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
-        log.info("Behandler melding på topic {}.", kafkaOppfolgingsbrukerEndring.topic());
+    public <K, V> void behandleKafkaMelding(ConsumerRecord<K, V> melding, KafkaMeldingBehandler<K, V> meldingBehandler) {
+        MDC.put(MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY, IdUtils.generateId());
+        try {
+            log.info("Behandler Kafka-melding. Topic: {}, offset: {}, partisjon: {}.", melding.topic(), melding.offset(), melding.partition());
+            meldingBehandler.behandleMelding(melding);
+        } finally {
+            MDC.remove(MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY);
+        }
+    }
 
+    public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
         Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
 
         veilarbarenaClient.oppdaterOppfolgingsbruker(fnr, kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet());
@@ -138,7 +150,7 @@ public class KafkaConsumerService {
 
         if (sluttDato == null) {
             // Vi er bare interessert i oppfølgingsperiode dersom den er avsluttet, dvs. sluttDato != null
-            log.debug("Siste oppfølgingsperiode har ingen sluttdato - ignorerer melding.");
+            log.info("Siste oppfølgingsperiode har ingen sluttdato - ignorerer melding.");
             return;
         }
 
@@ -146,7 +158,7 @@ public class KafkaConsumerService {
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(aktorId);
 
         if (gjeldendeVedtak == null) {
-            log.debug("Brukeren har ingen gjeldende vedtak - ignorerer melding.");
+            log.info("Brukeren har ingen gjeldende vedtak - ignorerer melding.");
             return;
         }
 
