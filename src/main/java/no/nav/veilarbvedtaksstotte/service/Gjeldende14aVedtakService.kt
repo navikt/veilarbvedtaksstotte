@@ -34,7 +34,7 @@ class Gjeldende14aVedtakService (
     }
 
     companion object {
-        private val LANSERINGSDATO_VEILARBOPPFOLGING_OPPFOLGINGSPERIODE: ZonedDateTime =
+        val LANSERINGSDATO_VEILARBOPPFOLGING_OPPFOLGINGSPERIODE: ZonedDateTime =
             ZonedDateTime.of(2017, 12, 4, 0, 0, 0, 0, ZoneId.systemDefault())
 
         fun sjekkOmVedtakErGjeldende(
