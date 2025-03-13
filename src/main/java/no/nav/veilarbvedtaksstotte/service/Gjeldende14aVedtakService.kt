@@ -1,25 +1,40 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.EksternBrukerId
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.toGjeldende14aVedtak
+import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
 @Service
-class Gjeldende14aVedtakService(
-    @Autowired
-    val siste14aVedtakService: Siste14aVedtakService
+class Gjeldende14aVedtakService (
+    @Autowired val siste14aVedtakService: Siste14aVedtakService,
+    @Autowired val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
+    @Autowired val aktorOppslagClient: AktorOppslagClient
 ) {
 
     fun hentGjeldende14aVedtak(brukerIdent: EksternBrukerId): Gjeldende14aVedtak? {
-        TODO()
+        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(brukerIdent)
+        val innevarendeoppfolgingsperiode = sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(identer.aktorId) ?: return null
+        val siste14aVedtak = siste14aVedtakService.siste14aVedtak(brukerIdent) ?: return null
+
+        val erGjeldende: Boolean = sjekkOmVedtakErGjeldende(siste14aVedtak, innevarendeoppfolgingsperiode.startdato)
+
+        return if (erGjeldende) {
+            siste14aVedtak.toGjeldende14aVedtak()
+        } else {
+            null
+        }
     }
 
     companion object {
-        private val LANSERINGSDATO_VEILARBOPPFOLGING_OPPFOLGINGSPERIODE: ZonedDateTime =
+        val LANSERINGSDATO_VEILARBOPPFOLGING_OPPFOLGINGSPERIODE: ZonedDateTime =
             ZonedDateTime.of(2017, 12, 4, 0, 0, 0, 0, ZoneId.systemDefault())
 
         fun sjekkOmVedtakErGjeldende(

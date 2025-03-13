@@ -28,9 +28,7 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostD
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
+import no.nav.veilarbvedtaksstotte.client.person.dto.*;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
@@ -133,7 +131,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
     private static final PdfService pdfService = mock(PdfService.class);
     private static final VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
-    private static final DefaultUnleash  unleashClient = mock(DefaultUnleash.class);
     private static final BigQueryService bigQueryService = mock(BigQueryService.class);
     private static final EnvironmentProperties environmentProperties = mock(EnvironmentProperties.class);
 
@@ -148,7 +145,7 @@ public class VedtakServiceTest extends DatabaseTest {
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), poaoTilgangClient));
         SakStatistikkRepository sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
-        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, unleashClient, environmentProperties, veilarbpersonClient);
+        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, environmentProperties, veilarbpersonClient);
 
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(arbeidssoekerRegistretService);
@@ -195,6 +192,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilederService.hentVeilederEllerNull(TEST_VEILEDER_IDENT)).thenReturn(Optional.of(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN)));
         when(regoppslagClient.hentPostadresse(any())).thenReturn(
                 new RegoppslagResponseDTO("", new Adresse(NORSKPOSTADRESSE, "", "", "", "", "", "", "")));
+        when(veilarbpersonClient.hentAdressebeskyttelse(TEST_FNR)).thenReturn(new Adressebeskyttelse(Gradering.UGRADERT));
         when(veilarbpersonClient.hentMålform(TEST_FNR)).thenReturn(Målform.NB);
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(new CvDto.CVMedInnhold(JsonUtils.fromJson(testCvData(), CvInnhold.class)));
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
