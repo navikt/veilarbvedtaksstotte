@@ -27,7 +27,7 @@ class Gjeldende14aVedtakService (
         val erGjeldende: Boolean = sjekkOmVedtakErGjeldende(siste14aVedtak, innevarendeoppfolgingsperiode.startdato)
 
         return if (erGjeldende) {
-            siste14aVedtak.toGjeldende14aVedtak() //PS 2025-03-12 dette objektet har ikke vedtakId :) Fortsettelse følger
+            siste14aVedtak.toGjeldende14aVedtak()
         } else {
             null
         }
