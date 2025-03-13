@@ -121,13 +121,14 @@ public class VedtakHendelserService {
     }
 
     private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {
-        return new KafkaVedtakSendt()
-                .setId(vedtak.getId())
-                .setAktorId(vedtak.getAktorId())
-                .setHovedmal(vedtak.getHovedmal())
-                .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setVedtakSendt(vedtak.getVedtakFattet())
-                .setEnhetId(vedtak.getOppfolgingsenhetId());
+        return new KafkaVedtakSendt(
+                vedtak.getId(),
+                vedtak.getVedtakFattet(),
+                vedtak.getInnsatsgruppe(),
+                vedtak.getHovedmal(),
+                vedtak.getAktorId(),
+                vedtak.getOppfolgingsenhetId()
+        );
     }
 
     private KafkaVedtakStatusEndring lagVedtakStatusEndring(Vedtak vedtak, VedtakStatusEndring endring) {

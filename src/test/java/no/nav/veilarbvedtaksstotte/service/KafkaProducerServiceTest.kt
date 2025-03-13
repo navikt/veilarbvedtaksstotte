@@ -64,13 +64,14 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
 
     @Test
     fun `lagrer forventet record verdi for sending av vedtak`() {
-        val kafkaVedtakSendt = KafkaVedtakSendt()
-        kafkaVedtakSendt.setId(123)
-        kafkaVedtakSendt.setVedtakSendt(LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234))
-        kafkaVedtakSendt.setInnsatsgruppe(SPESIELT_TILPASSET_INNSATS)
-        kafkaVedtakSendt.setHovedmal(BEHOLDE_ARBEID)
-        kafkaVedtakSendt.setAktorId(TEST_AKTOR_ID)
-        kafkaVedtakSendt.setEnhetId(TEST_OPPFOLGINGSENHET_ID)
+        val kafkaVedtakSendt = KafkaVedtakSendt(
+            id = 123,
+            vedtakSendt = LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234),
+            innsatsgruppe = SPESIELT_TILPASSET_INNSATS,
+            hovedmal = BEHOLDE_ARBEID,
+            aktorId = TEST_AKTOR_ID,
+            enhetId = TEST_OPPFOLGINGSENHET_ID
+        )
 
         kafkaProducerService.sendVedtakSendt(kafkaVedtakSendt)
 

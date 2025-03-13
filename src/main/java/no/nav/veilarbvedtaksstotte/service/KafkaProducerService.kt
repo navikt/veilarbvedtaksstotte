@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import lombok.extern.slf4j.Slf4j
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
 import no.nav.common.kafka.producer.util.ProducerUtils
 import no.nav.common.types.identer.AktorId
@@ -12,7 +11,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.stereotype.Service
 
-@Slf4j
 @Service
 class KafkaProducerService(
     private val producerRecordStorage: KafkaProducerRecordStorage,
@@ -44,12 +42,12 @@ class KafkaProducerService(
         producerRecordStorage.store(producerRecord)
     }
 
-    fun sendSiste14aVedtak(siste14aVedtak: Siste14aVedtak) {
+    fun sendSiste14aVedtak(siste14aVedtak: Siste14aVedtak?) {
         val producerRecord =
             ProducerUtils.serializeJsonRecord(
                 ProducerRecord(
                     kafkaProperties.siste14aVedtakTopic,
-                    siste14aVedtak.aktorId.get(),
+                    siste14aVedtak?.aktorId?.get(),
                     siste14aVedtak
                 )
             )
@@ -57,7 +55,7 @@ class KafkaProducerService(
         producerRecordStorage.store(producerRecord)
     }
 
-    fun sendGjeldende14aVedtak(aktorId: AktorId, gjeldende14aVedtakKafkaDto: Gjeldende14aVedtakKafkaDTO) {
+    fun sendGjeldende14aVedtak(aktorId: AktorId, gjeldende14aVedtakKafkaDto: Gjeldende14aVedtakKafkaDTO?) {
         val producerRecord =
             ProducerUtils.serializeJsonRecord(
                 ProducerRecord(

@@ -51,8 +51,6 @@ public class KafkaConsumerService {
 
     private final BrukerIdenterService brukerIdenterService;
 
-    private final Gjeldende14aVedtakService gjeldende14aVedtakService;
-
     private static final String MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY = "kafka_consumer_correlation_id";
 
     @Autowired
@@ -64,8 +62,7 @@ public class KafkaConsumerService {
             Norg2Client norg2Client,
             AktorOppslagClient aktorOppslagClient,
             VeilarbarenaClient veilarbarenaClient,
-            BrukerIdenterService brukerIdenterService,
-            Gjeldende14aVedtakService gjeldende14aVedtakService
+            BrukerIdenterService brukerIdenterService
     ) {
         this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
@@ -75,7 +72,6 @@ public class KafkaConsumerService {
         this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbarenaClient = veilarbarenaClient;
         this.brukerIdenterService = brukerIdenterService;
-        this.gjeldende14aVedtakService = gjeldende14aVedtakService;
     }
 
     public <K, V> void behandleKafkaMelding(ConsumerRecord<K, V> melding, KafkaMeldingBehandler<K, V> meldingBehandler) {
