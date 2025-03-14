@@ -52,7 +52,7 @@ class UtkastV2ControllerTest {
         } returns Vedtak()
 
         every {
-            utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(fnr)
+            utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr)
         } answers {}
 
         val request = """
