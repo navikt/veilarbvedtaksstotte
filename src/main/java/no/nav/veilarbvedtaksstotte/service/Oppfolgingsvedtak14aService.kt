@@ -58,16 +58,15 @@ class Oppfolgingsvedtak14aService @Autowired constructor(
                 "Fant ingen gjeldende § 14 a-vedtak for person med Aktør-ID {}. Sendte tombstone-melding.",
                 aktorId.get()
             )
+            return
         }
 
-        if (arenaVedtak.vedtakId.toString() == gjeldende14aVedtak?.vedtakId) {
-            kafkaProducerService.sendGjeldende14aVedtak(aktorId, gjeldende14aVedtak.toGjeldende14aVedtakKafkaDTO())
-            log.info("Mottat § 14 a-vedtak fra Arena er nytt gjeldende vedtak for person. Sender melding om gjeldende § 14 a-vedtak.")
-            SecureLog.secureLog.info(
-                "Mottat § 14 a-vedtak fra Arena er nytt gjeldende vedtak for person med Aktør-ID {}. Sender melding om gjeldende § 14 a-vedtak.",
-                aktorId.get()
-            )
-        }
+        kafkaProducerService.sendGjeldende14aVedtak(aktorId, gjeldende14aVedtak.toGjeldende14aVedtakKafkaDTO())
+        log.info("Mottat § 14 a-vedtak fra Arena er nytt gjeldende vedtak for person. Sender melding om gjeldende § 14 a-vedtak.")
+        SecureLog.secureLog.info(
+            "Mottat § 14 a-vedtak fra Arena er nytt gjeldende vedtak for person med Aktør-ID {}. Sender melding om gjeldende § 14 a-vedtak.",
+            aktorId.get()
+        )
     }
 
     fun siste14aVedtak(eksternBrukerId: EksternBrukerId): Siste14aVedtak? {
