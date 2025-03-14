@@ -24,7 +24,7 @@ import org.springframework.jdbc.core.queryForObject
 import java.util.stream.Stream
 import kotlin.random.Random
 
-class BrukerIdenterServiceTest(
+class IdGeneratorServiceTest(
     @Autowired val jdbcTemplate: JdbcTemplate,
     @Autowired val brukerIdenterService: BrukerIdenterService,
     @Autowired val brukerIdenterRepository: BrukerIdenterRepository

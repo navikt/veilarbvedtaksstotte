@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.kafka
 
-import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.After
@@ -8,8 +7,6 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
-import no.nav.veilarbvedtaksstotte.service.BrukerIdenterServiceTest.Companion.genererRandomAktorId
-import no.nav.veilarbvedtaksstotte.service.BrukerIdenterServiceTest.Companion.genererRandomNorskIdent
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.Oppfolgingsvedtak14aService
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
@@ -22,7 +19,8 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import java.time.LocalDate
@@ -73,14 +71,6 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
 
     @Test
     fun `konsumerer melding med gydlige verdier`() {
-        `when`(aktorOppslagClient.hentIdenter(any())).thenReturn(
-            BrukerIdenter(
-                Fnr.of(genererRandomNorskIdent().toString()),
-                genererRandomAktorId(),
-                emptyList(),
-                emptyList()
-            )
-        )
         ArenaInnsatsgruppe.entries.map { it.name }.forEach { innsatsgruppe ->
             ArenaHovedmal.entries.map { it.name }.plus(null).forEach { hovedmal ->
 
