@@ -8,7 +8,7 @@ import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Gjeldende14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
-import no.nav.veilarbvedtaksstotte.service.Gjeldende14aVedtakService
+import no.nav.veilarbvedtaksstotte.service.Oppfolgingsvedtak14aService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -29,7 +29,7 @@ class Gjeldende14avedtakControllerTest {
     lateinit var authService: AuthService
 
     @MockkBean
-    lateinit var gjeldende14aVedtakService: Gjeldende14aVedtakService
+    lateinit var oppfolgingsvedtak14aService: Oppfolgingsvedtak14aService
 
     @Autowired
     lateinit var objectMapper: ObjectMapper
@@ -42,7 +42,7 @@ class Gjeldende14avedtakControllerTest {
     @BeforeEach
     fun beforeEach() {
         every {
-            gjeldende14aVedtakService.hentGjeldende14aVedtak(fnr)
+            oppfolgingsvedtak14aService.hentGjeldende14aVedtak(fnr)
         } returns null
     }
 

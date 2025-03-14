@@ -59,7 +59,7 @@ class KafkaProducerService(
         val producerRecord =
             ProducerUtils.serializeJsonRecord(
                 ProducerRecord(
-                    kafkaProperties.oppfolgingsVedtak14aTopic,
+                    kafkaProperties.gjeldende14aVedtakTopic,
                     aktorId.get(),
                     gjeldende14aVedtakKafkaDto
                 )
