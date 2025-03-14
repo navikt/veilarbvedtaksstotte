@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import io.getunleash.DefaultUnleash
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
@@ -24,7 +23,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.repository.*
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
-import no.nav.veilarbvedtaksstotte.utils.SAK_STATISTIKK_PAA
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import org.junit.jupiter.api.*
 import org.mockito.kotlin.*
@@ -42,7 +40,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
         private var vedtakService: VedtakService? = null
         private var authService: AuthService = mock()
         private var kilderRepository: KilderRepository = mock()
-        private val unleashClient: DefaultUnleash = mock()
         private val aktorOppslagClient: AktorOppslagClient = mock()
         private val veilarboppfolgingClient: VeilarboppfolgingClient = mock()
         private val veilarbpersonClient: VeilarbpersonClient = mock()
@@ -59,7 +56,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 veilarboppfolgingClient,
                 aktorOppslagClient,
                 mock(),
-                unleashClient,
                 environmentProperties,
                 veilarbpersonClient
             )
@@ -101,7 +97,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
         whenever(authService.getFnrOrThrow(TestData.TEST_AKTOR_ID)).thenReturn(TestData.TEST_FNR)
 
         whenever(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(TestData.TEST_FNR)
-        whenever(unleashClient.isEnabled(SAK_STATISTIKK_PAA)).thenReturn(true)
         whenever(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(TestData.TEST_FNR)).thenReturn(
             mockedOppfolgingsPeriode
         )
@@ -474,7 +469,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 "Svarene dine fra da du registrerte deg"
             )
 
-            kilderRepository!!.lagKilder(kilder, utkast.id)
+            kilderRepository.lagKilder(kilder, utkast.id)
             vedtakService!!.oppdaterUtkast(utkast.id, oppdaterDto)
         }
     }

@@ -28,7 +28,7 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
             """.trimIndent()
 
         try {
-            return jdbcTemplate.queryForObject(sql, sisteOppfolgingsperiodeRowMapper, aktorId)
+            return jdbcTemplate.queryForObject(sql, sisteOppfolgingsperiodeRowMapper, aktorId.get())
         } catch (e: Exception) {
             secureLog.error(
                 "Kunne ikke hente siste oppfolgingsperiode for aktorId: $aktorId",
