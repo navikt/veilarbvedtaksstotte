@@ -7,7 +7,7 @@ import no.nav.common.types.identer.Fnr
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
-import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
+import no.nav.veilarbvedtaksstotte.service.Oppfolgingsvedtak14aService
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -30,7 +30,7 @@ class Siste14aVedtakV2ControllerTest {
     lateinit var authService: AuthService
 
     @MockkBean
-    lateinit var siste14aVedtakService: Siste14aVedtakService
+    lateinit var oppfolgingsvedtak14AService: Oppfolgingsvedtak14aService
 
     @Autowired
     lateinit var objectMapper: ObjectMapper
@@ -43,7 +43,7 @@ class Siste14aVedtakV2ControllerTest {
     @BeforeEach
     fun beforeEach() {
         every {
-            siste14aVedtakService.siste14aVedtak(fnr)
+            oppfolgingsvedtak14AService.siste14aVedtak(fnr)
         } returns null
     }
 

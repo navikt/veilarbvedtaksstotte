@@ -8,7 +8,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
-import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
+import no.nav.veilarbvedtaksstotte.service.Oppfolgingsvedtak14aService
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.KafkaTestUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
@@ -37,7 +37,7 @@ class Siste14aVedtakKafkaProducerTest : AbstractVedtakIntegrationTest() {
     lateinit var kafkaContainer: KafkaContainer
 
     @Autowired
-    lateinit var siste14aVedtakService: Siste14aVedtakService
+    lateinit var oppfolgingsvedtak14AService: Oppfolgingsvedtak14aService
 
     @Test
     fun `produserer melding for siste 14a vedtak basert på nytt vedtak`() {
@@ -60,7 +60,7 @@ class Siste14aVedtakKafkaProducerTest : AbstractVedtakIntegrationTest() {
             BrukerIdenter(arenaVedtak.fnr, aktorId, emptyList(), emptyList())
         )
 
-        siste14aVedtakService.behandleEndringFraArena(arenaVedtak)
+        oppfolgingsvedtak14AService.behandleEndringFraArena(arenaVedtak)
 
         val konsumerteMeldinger: AtomicReference<MutableMap<AktorId, Siste14aVedtak>> = AtomicReference(mutableMapOf())
 

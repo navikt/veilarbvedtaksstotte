@@ -20,7 +20,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import static no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImplTest.veilarbarenaClient;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
@@ -42,7 +41,7 @@ public class KafkaConsumerServiceTest {
 
     private final Norg2Client norg2Client = mock(Norg2Client.class);
 
-    private final Siste14aVedtakService siste14aVedtakService = mock(Siste14aVedtakService.class);
+    private final Oppfolgingsvedtak14aService oppfolgingsvedtak14AService = mock(Oppfolgingsvedtak14aService.class);
 
     private final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClientImpl.class);
 
@@ -53,7 +52,7 @@ public class KafkaConsumerServiceTest {
     private final BrukerIdenterService brukerIdenterService = mock(BrukerIdenterService.class);
 
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
-            siste14aVedtakService,
+            oppfolgingsvedtak14AService,
             vedtaksstotteRepository,
             beslutteroversiktRepository,
             sisteOppfolgingPeriodeRepository,

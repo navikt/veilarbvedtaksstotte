@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 class KafkaRepubliseringService(
     val vedtaksstotteRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
-    val siste14aVedtakService: Siste14aVedtakService,
+    val oppfolgingsvedtak14AService: Oppfolgingsvedtak14aService,
     val dvhRapporteringService: DvhRapporteringService
 ) {
 
@@ -29,7 +29,7 @@ class KafkaRepubliseringService(
                     " Antall brukere i Arena=${brukereFraArena.size}"
         )
 
-        alleBrukere.forEach { aktorId -> siste14aVedtakService.republiserKafkaSiste14aVedtak(aktorId) }
+        alleBrukere.forEach { aktorId -> oppfolgingsvedtak14AService.republiserKafkaSiste14aVedtak(aktorId) }
     }
 
     fun republiserVedtak14aFattetDvh(batchSize: Int) {

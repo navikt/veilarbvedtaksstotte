@@ -23,7 +23,7 @@ import kotlin.random.Random.Default.nextLong
 
 class KafkaRepubliseringServiceTest : DatabaseTest() {
 
-    val siste14aVedtakService = mockk<Siste14aVedtakService>()
+    val oppfolgingsvedtak14AService = mockk<Oppfolgingsvedtak14aService>()
     val dvhRapporteringService = mockk<DvhRapporteringService>()
 
     lateinit var vedtaksstotteRepository: VedtaksstotteRepository
@@ -37,7 +37,7 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
         vedtaksstotteRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
         arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
         kafkaRepubliseringService = KafkaRepubliseringService(
-            vedtaksstotteRepository, arenaVedtakRepository, siste14aVedtakService, dvhRapporteringService
+            vedtaksstotteRepository, arenaVedtakRepository, oppfolgingsvedtak14AService, dvhRapporteringService
         )
     }
 
@@ -53,24 +53,24 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
         brukereMedVedtakFraArena.map { lagreVedtakFraArena(it) }
 
         every {
-            siste14aVedtakService.republiserKafkaSiste14aVedtak(any())
+            oppfolgingsvedtak14AService.republiserKafkaSiste14aVedtak(any())
         } answers {}
 
         kafkaRepubliseringService.republiserSiste14aVedtak()
 
         verify(exactly = brukereMedFattetVedtakFraDenneLøsningen.size + brukereMedVedtakFraArena.size) {
-            siste14aVedtakService.republiserKafkaSiste14aVedtak(any())
+            oppfolgingsvedtak14AService.republiserKafkaSiste14aVedtak(any())
         }
 
         brukereMedFattetVedtakFraDenneLøsningen.forEach {
             verify {
-                siste14aVedtakService.republiserKafkaSiste14aVedtak(it)
+                oppfolgingsvedtak14AService.republiserKafkaSiste14aVedtak(it)
             }
         }
 
         brukereMedVedtakFraArena.forEach {
             verify {
-                siste14aVedtakService.republiserKafkaSiste14aVedtak(it)
+                oppfolgingsvedtak14AService.republiserKafkaSiste14aVedtak(it)
             }
         }
     }

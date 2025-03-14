@@ -8,7 +8,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
-import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
+import no.nav.veilarbvedtaksstotte.service.Oppfolgingsvedtak14aService
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.now
@@ -35,7 +35,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
 
 
     @SpyBean
-    lateinit var siste14aVedtakService: Siste14aVedtakService
+    lateinit var oppfolgingsvedtak14AService: Oppfolgingsvedtak14aService
 
     @Autowired
     lateinit var kafkaConsumerService: KafkaConsumerService
@@ -66,7 +66,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
         TestUtils.verifiserAsynkront(
             10, TimeUnit.SECONDS
         ) {
-            verify(siste14aVedtakService).behandleEndringFraArena(forventetArenaVedtak)
+            verify(oppfolgingsvedtak14AService).behandleEndringFraArena(forventetArenaVedtak)
         }
     }
 
@@ -101,7 +101,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
                 TestUtils.verifiserAsynkront(
                     10, TimeUnit.SECONDS
                 ) {
-                    verify(siste14aVedtakService).behandleEndringFraArena(forventetArenaVedtak)
+                    verify(oppfolgingsvedtak14AService).behandleEndringFraArena(forventetArenaVedtak)
                 }
             }
         }
@@ -128,7 +128,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
 
         kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
 
-        verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
+        verify(oppfolgingsvedtak14AService, never()).behandleEndringFraArena(any())
     }
 
     @Test
@@ -141,7 +141,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
 
         kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
 
-        verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
+        verify(oppfolgingsvedtak14AService, never()).behandleEndringFraArena(any())
     }
 
     @Test
@@ -157,7 +157,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
             kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
         }
 
-        verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
+        verify(oppfolgingsvedtak14AService, never()).behandleEndringFraArena(any())
     }
 
     @Test
@@ -173,7 +173,7 @@ class ArenaVedtakConsumerTest : AbstractVedtakIntegrationTest() {
             kafkaConsumerService.behandleArenaVedtak(kafkaRecord(arenaVedtakRecord))
         }
 
-        verify(siste14aVedtakService, never()).behandleEndringFraArena(any())
+        verify(oppfolgingsvedtak14AService, never()).behandleEndringFraArena(any())
     }
 
     private fun <T> any(): T = Mockito.any()

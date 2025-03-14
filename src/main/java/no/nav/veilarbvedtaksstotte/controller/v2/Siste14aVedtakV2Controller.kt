@@ -11,7 +11,7 @@ import no.nav.veilarbvedtaksstotte.annotations.EksterntEndepunkt
 import no.nav.veilarbvedtaksstotte.controller.dto.Siste14aVedtakDTO
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
-import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
+import no.nav.veilarbvedtaksstotte.service.Oppfolgingsvedtak14aService
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -27,7 +27,7 @@ import org.springframework.web.server.ResponseStatusException
 )
 class Siste14aVedtakV2Controller(
     val authService: AuthService,
-    val siste14aVedtakService: Siste14aVedtakService
+    val oppfolgingsvedtak14AService: Oppfolgingsvedtak14aService
 ) {
 
     @EksterntEndepunkt
@@ -49,7 +49,7 @@ class Siste14aVedtakV2Controller(
     fun hentSiste14aVedtak(@RequestBody siste14aVedtakRequest: Siste14aVedtakRequest): Siste14aVedtakDTO? {
         sjekkLesetilgang(siste14aVedtakRequest.fnr)
 
-        return siste14aVedtakService.siste14aVedtak(siste14aVedtakRequest.fnr)
+        return oppfolgingsvedtak14AService.siste14aVedtak(siste14aVedtakRequest.fnr)
             ?.let { Siste14aVedtakDTO.fraSiste14aVedtak(it) }
     }
 

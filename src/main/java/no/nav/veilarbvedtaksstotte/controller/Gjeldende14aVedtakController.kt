@@ -12,7 +12,7 @@ import no.nav.veilarbvedtaksstotte.controller.dto.Gjeldende14aVedtakDto
 import no.nav.veilarbvedtaksstotte.controller.dto.toGjeldende14aVedtakDto
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Gjeldende14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
-import no.nav.veilarbvedtaksstotte.service.Gjeldende14aVedtakService
+import no.nav.veilarbvedtaksstotte.service.Oppfolgingsvedtak14aService
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -29,7 +29,7 @@ import org.springframework.web.server.ResponseStatusException
 )
 class Gjeldende14aVedtakController(
     val authService: AuthService,
-    val gjeldende14aVedtakService: Gjeldende14aVedtakService
+    val oppfolgingsvedtak14aService: Oppfolgingsvedtak14aService
 ) {
 
     @EksterntEndepunkt
@@ -52,7 +52,7 @@ class Gjeldende14aVedtakController(
         sjekkLesetilgang(
             fnr = gjeldende14aVedtakRequest.fnr,
             veilederTilgangssjekk = ::sjekkVeilederUtenModiarolleTilgangTilBruker)
-        return gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)?.toGjeldende14aVedtakDto()
+        return oppfolgingsvedtak14aService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)?.toGjeldende14aVedtakDto()
     }
 
     @PostMapping("/hent-gjeldende-14a-vedtak")
@@ -75,7 +75,7 @@ class Gjeldende14aVedtakController(
             fnr = gjeldende14aVedtakRequest.fnr,
             veilederTilgangssjekk = ::sjekkVeilederTilgangTilBruker
         )
-        return gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)?.toGjeldende14aVedtakDto()
+        return oppfolgingsvedtak14aService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)?.toGjeldende14aVedtakDto()
     }
 
 

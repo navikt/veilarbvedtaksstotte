@@ -35,7 +35,7 @@ import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 @Slf4j
 public class KafkaConsumerService {
 
-    private final Siste14aVedtakService siste14aVedtakService;
+    private final Oppfolgingsvedtak14aService oppfolgingsvedtak14AService;
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
@@ -55,7 +55,7 @@ public class KafkaConsumerService {
 
     @Autowired
     public KafkaConsumerService(
-            Siste14aVedtakService siste14aVedtakService,
+            Oppfolgingsvedtak14aService oppfolgingsvedtak14AService,
             VedtaksstotteRepository vedtaksstotteRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
             SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository,
@@ -64,7 +64,7 @@ public class KafkaConsumerService {
             VeilarbarenaClient veilarbarenaClient,
             BrukerIdenterService brukerIdenterService
     ) {
-        this.siste14aVedtakService = siste14aVedtakService;
+        this.oppfolgingsvedtak14AService = oppfolgingsvedtak14AService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.sisteOppfolgingPeriodeRepository = sisteOppfolgingPeriodeRepository;
@@ -120,7 +120,7 @@ public class KafkaConsumerService {
     public void behandleArenaVedtak(ConsumerRecord<String, ArenaVedtakRecord> arenaVedtakRecord) {
         ArenaVedtak arenaVedtak = ArenaVedtak.fraRecord(arenaVedtakRecord.value());
         if (arenaVedtak != null) {
-            siste14aVedtakService.behandleEndringFraArena(arenaVedtak);
+            oppfolgingsvedtak14AService.behandleEndringFraArena(arenaVedtak);
         } else {
             log.info(format("Behandler ikke melding fra Arena med kvalifiseringsgruppe = %s og hovedmål = %s",
                     arenaVedtakRecord.value().getAfter().getKvalifiseringsgruppe(),

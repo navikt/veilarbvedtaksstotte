@@ -24,10 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.time.LocalDate
 
-class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
+class Oppfolgingsvedtak14AServiceTest : AbstractVedtakIntegrationTest() {
 
     @Autowired
-    lateinit var siste14aVedtakService: Siste14aVedtakService
+    lateinit var oppfolgingsvedtak14AService: Oppfolgingsvedtak14aService
 
     @MockBean
     lateinit var kafkaProducerService: KafkaProducerService
@@ -299,7 +299,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
 
         assertAntallVedtakFraArena(identer, 0)
 
-        siste14aVedtakService.behandleEndringFraArena(
+        oppfolgingsvedtak14AService.behandleEndringFraArena(
             arenaVedtak(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
@@ -337,7 +337,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         assertFattedeVedtakFraNyLøsning(identer, 1)
         assertNotNull(vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()))
 
-        siste14aVedtakService.behandleEndringFraArena(
+        oppfolgingsvedtak14AService.behandleEndringFraArena(
             arenaVedtak(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
@@ -374,7 +374,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         assertAntallVedtakFraArena(identer, 0)
         assertFattedeVedtakFraNyLøsning(identer, 1)
 
-        siste14aVedtakService.behandleEndringFraArena(
+        oppfolgingsvedtak14AService.behandleEndringFraArena(
             arenaVedtak(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BATT,
@@ -413,7 +413,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         assertFattedeVedtakFraNyLøsning(identer, 1)
         assertNotNull(vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get()))
 
-        siste14aVedtakService.behandleEndringFraArena(
+        oppfolgingsvedtak14AService.behandleEndringFraArena(
             arenaVedtak(
                 fnr = identer.fnr,
                 innsatsgruppe = ArenaInnsatsgruppe.BFORM,
@@ -451,7 +451,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
 
         assertAntallVedtakFraArena(identer, 1)
 
-        siste14aVedtakService.behandleEndringFraArena(
+        oppfolgingsvedtak14AService.behandleEndringFraArena(
             arenaVedtak(
                 fnr = identer.fnr,
                 fraDato = LocalDate.now().minusDays(1),
@@ -488,7 +488,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
 
         assertAntallVedtakFraArena(identer, 1)
 
-        siste14aVedtakService.behandleEndringFraArena(
+        oppfolgingsvedtak14AService.behandleEndringFraArena(
             arenaVedtak(
                 fnr = identer.historiskeFnr[0],
                 fraDato = LocalDate.now().minusDays(1),
@@ -529,7 +529,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     fun assertSiste14aVedtak(identer: BrukerIdenter, forventet: Siste14aVedtak?) {
         assertEquals(
             forventet,
-            siste14aVedtakService.siste14aVedtak(identer.fnr),
+            oppfolgingsvedtak14AService.siste14aVedtak(identer.fnr),
             "Siste 14a vedtak"
         )
     }

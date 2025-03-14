@@ -23,7 +23,7 @@ import org.springframework.context.annotation.Import;
         DokumentService.class,
         DistribusjonService.class,
         UtrullingService.class,
-        Siste14aVedtakService.class,
+        Oppfolgingsvedtak14aService.class,
         KafkaProducerService.class,
         KafkaConsumerService.class,
         KafkaRepubliseringService.class,
@@ -33,8 +33,7 @@ import org.springframework.context.annotation.Import;
         BigQueryService.class,
         SakStatistikkService.class,
         ArbeidssoekerRegisteretService.class,
-        PdfService.class,
-        Gjeldende14aVedtakService.class
+        PdfService.class
 })
 public class ServiceTestConfig {
 }
