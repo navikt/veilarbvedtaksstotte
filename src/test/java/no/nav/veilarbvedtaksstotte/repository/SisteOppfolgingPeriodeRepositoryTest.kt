@@ -4,11 +4,11 @@ import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.domain.oppfolgingsperiode.SisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -43,7 +43,7 @@ class SisteOppfolgingPeriodeRepositoryTest : DatabaseTest() {
         // given
         val uuid = UUID.fromString("955b2735-e824-4f2a-b703-76658760a4cc")
         val aktorId = AktorId.of("2228184718032")
-        val startdato = ZonedDateTime.now()
+        val startdato = ZonedDateTime.of(2025, 3, 14, 15, 9, 26, 0, ZoneId.systemDefault())
         val sluttdato = null
 
         val oppfolgingsperiodeFraKafka = KafkaSisteOppfolgingsperiode(
@@ -66,6 +66,7 @@ class SisteOppfolgingPeriodeRepositoryTest : DatabaseTest() {
             sluttdato = sluttdato
         )
 
+        assertNotNull(innevarendeOppfolgingsperiode)
         assertEquals(forventetOppfolgingsperiode, innevarendeOppfolgingsperiode)
     }
 
