@@ -12,6 +12,7 @@ import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -201,6 +202,8 @@ class SakStatistikkService @Autowired constructor(
     }
 
     private fun lagreStatistikkRadIdbOgSendTilBQ(statistikkRad: SakStatistikk) {
+        val log = LoggerFactory.getLogger(DokumentService::class.java)
+        log.info("Lagrer sakStatistikkRad: $statistikkRad")
         try {
             statistikkRad.validate()
             val sekvensnummer = sakStatistikkRepository.insertSakStatistikkRad(statistikkRad)
