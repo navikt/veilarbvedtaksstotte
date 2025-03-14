@@ -203,7 +203,7 @@ class SakStatistikkService @Autowired constructor(
 
     private fun lagreStatistikkRadIdbOgSendTilBQ(statistikkRad: SakStatistikk) {
         val log = LoggerFactory.getLogger(DokumentService::class.java)
-        log.info("Lagrer sakStatistikkRad: $statistikkRad")
+        log.info("Lagrer sakStatistikkRad: ${statistikkRad.sekvensnummer}")
         try {
             statistikkRad.validate()
             val sekvensnummer = sakStatistikkRepository.insertSakStatistikkRad(statistikkRad)

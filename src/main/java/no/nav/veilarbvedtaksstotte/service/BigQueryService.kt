@@ -53,7 +53,7 @@ class BigQueryService(
             "fagsystem_versjon" to sakStatistikk.fagsystemVersjon,
         )
         val vedtaksstatistikkTilBigQuery = vedtakStatistikkRow.filter { it.value != null }
-        log.info("Logging event to BigQuery: {}", vedtaksstatistikkTilBigQuery)
+        log.info("Logging event to BigQuery")
         val vedtak14aEvent = vedtakStatistikkTable.insertRequest(vedtaksstatistikkTilBigQuery)
         insertWhileToleratingErrors(vedtak14aEvent)
     }
