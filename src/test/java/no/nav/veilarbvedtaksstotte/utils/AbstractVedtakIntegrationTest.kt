@@ -15,8 +15,8 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.random.Random
@@ -32,7 +32,7 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
     @Autowired
     lateinit var arenaVedtakRepository: ArenaVedtakRepository
 
-    @MockBean
+    @MockitoBean
     lateinit var aktorOppslagClient: AktorOppslagClient
 
     fun lagreFattetVedtak(
@@ -125,7 +125,8 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
     fun gittBrukerIdenter(
         antallHistoriskeFnr: Int = 1, antallHistoriskeAktorId: Int = 1
     ): BrukerIdenter {
-        val brukerIdenter = BrukerIdenter(Fnr(RandomStringUtils.randomNumeric(11)),
+        val brukerIdenter = BrukerIdenter(
+            Fnr(RandomStringUtils.randomNumeric(11)),
             AktorId(RandomStringUtils.randomNumeric(13)),
             (1..antallHistoriskeFnr).map { Fnr(RandomStringUtils.randomNumeric(11)) },
             (1..antallHistoriskeAktorId).map { AktorId(RandomStringUtils.randomNumeric(11)) })

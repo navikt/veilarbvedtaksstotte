@@ -13,13 +13,14 @@ import no.nav.veilarbvedtaksstotte.utils.SecureLog
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
 @Service
-class Oppfolgingsvedtak14aService(
+class Oppfolgingsvedtak14aService @Autowired constructor(
     val transactor: TransactionTemplate,
     val kafkaProducerService: KafkaProducerService,
     val vedtakRepository: VedtaksstotteRepository,

@@ -423,15 +423,15 @@ class BrukerIdenterServiceTest(
             )
         }
 
-        private fun getRandomType(): Type {
+        fun getRandomType(): Type {
             return Type.entries[Random.nextInt(0, Type.entries.size)]
         }
 
-        private fun genererRandomAktorId(): AktorId {
+        fun genererRandomAktorId(): AktorId {
             return AktorId.of(genererRandomStringBestaaendeAvTall(13))
         }
 
-        private fun genererRandomNorskIdent(): NorskIdent {
+        fun genererRandomNorskIdent(): NorskIdent {
             return NorskIdent.of(genererRandomStringBestaaendeAvTall(11))
         }
 
