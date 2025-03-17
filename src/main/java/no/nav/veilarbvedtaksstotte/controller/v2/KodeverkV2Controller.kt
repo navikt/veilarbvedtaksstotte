@@ -7,9 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.veilarbvedtaksstotte.annotations.EksterntEndepunkt
-import no.nav.veilarbvedtaksstotte.controller.v2.dto.HovedmalKodeverkDTO
-import no.nav.veilarbvedtaksstotte.controller.v2.dto.InnsatsgruppeKodeverkDTO
-import no.nav.veilarbvedtaksstotte.controller.v2.dto.KodeverkV2DTO
+import no.nav.veilarbvedtaksstotte.controller.v2.dto.*
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalDetaljertV2
 import no.nav.veilarbvedtaksstotte.domain.vedtak.InnsatsgruppeDetaljertV2
 import org.springframework.http.MediaType
@@ -35,11 +33,11 @@ class KodeverkV2Controller {
             responseCode = "200",
             content = [Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                array = ArraySchema(schema = Schema(implementation = InnsatsgruppeKodeverkDTO::class))
+                array = ArraySchema(schema = Schema(implementation = InnsatsgruppeKodeverkV2DTO::class))
             )]
         )]
     )
-    fun getInnsatsgrupper(): List<InnsatsgruppeKodeverkDTO> {
+    fun getInnsatsgrupper(): List<InnsatsgruppeKodeverkV2DTO> {
         return kodeverk.innsatsgrupper
     }
 
@@ -52,11 +50,11 @@ class KodeverkV2Controller {
             responseCode = "200",
             content = [Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                array = ArraySchema(schema = Schema(implementation = HovedmalKodeverkDTO::class))
+                array = ArraySchema(schema = Schema(implementation = HovedmalKodeverkV2DTO::class))
             )]
         )]
     )
-    fun getHovedmal(): List<HovedmalKodeverkDTO> {
+    fun getHovedmal(): List<HovedmalKodeverkV2DTO> {
         return kodeverk.hovedmal
     }
 
@@ -84,7 +82,7 @@ class KodeverkV2Controller {
     private fun lagKodeverk(): KodeverkV2DTO {
         return KodeverkV2DTO(
             innsatsgrupper = InnsatsgruppeDetaljertV2.entries.map {
-                InnsatsgruppeKodeverkDTO(
+                InnsatsgruppeKodeverkV2DTO(
                     kode = it.kode,
                     gammelKode = it.gammelKode,
                     arenaKode = it.arenaKode,
@@ -92,7 +90,7 @@ class KodeverkV2Controller {
                 )
             },
             hovedmal = HovedmalDetaljertV2.entries.map {
-                HovedmalKodeverkDTO(
+                HovedmalKodeverkV2DTO(
                     kode = it.kode,
                     beskrivelse = it.beskrivelse
                 )
