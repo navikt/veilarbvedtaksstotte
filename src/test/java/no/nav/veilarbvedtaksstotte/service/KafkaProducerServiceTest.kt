@@ -7,10 +7,13 @@ import no.nav.veilarbvedtaksstotte.IntegrationTestBase
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtakKafkaDTO
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal.BEHOLDE_ARBEID
+import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
+import no.nav.veilarbvedtaksstotte.domain.vedtak.InnsatsgruppeV2
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
@@ -118,6 +121,33 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
         assertEqualJson(forventet, deserialize(argumentCaptor.value.value()))
     }
 
+    @Test
+    fun `lagrer forventet record verdi for gjeldende § 14 a-vedtak`() {
+        // Given
+        val aktorId = AktorId("11111111111")
+        val gjeldende14aVedtakKafkaDTO = Gjeldende14aVedtakKafkaDTO(
+            aktorId = aktorId,
+            innsatsgruppe = InnsatsgruppeV2.GODE_MULIGHETER,
+            hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(BEHOLDE_ARBEID)
+        )
+
+        // When
+        kafkaProducerService.sendGjeldende14aVedtak(aktorId, gjeldende14aVedtakKafkaDTO)
+
+        // Then
+        verify(producerRecordStorage).store(argumentCaptor.capture())
+
+        //language=JSON
+        val forventet = """
+            {
+              "aktorId": "11111111111",
+              "innsatsgruppe": "GODE_MULIGHETER",
+              "hovedmal": "BEHOLDE_ARBEID"
+            }
+        """.trimIndent()
+
+        assertEqualJson(forventet, deserialize(argumentCaptor.value.value()))
+    }
 
     fun assertEqualJson(expexted: String, actual: String) {
         assertEquals(JsonUtils.objectMapper.readTree(expexted), JsonUtils.objectMapper.readTree(actual))
