@@ -43,7 +43,7 @@ public class BeslutterController {
             }
     )
     public void startBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         beslutterService.startBeslutterProsess(vedtakId);
     }
@@ -67,7 +67,7 @@ public class BeslutterController {
             }
     )
     public void avbrytBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         beslutterService.avbrytBeslutterProsess(vedtakId);
     }
@@ -91,7 +91,7 @@ public class BeslutterController {
             }
     )
     public void bliBeslutter(@RequestParam("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         beslutterService.bliBeslutter(vedtakId);
     }
@@ -115,7 +115,7 @@ public class BeslutterController {
             }
     )
     public void godkjennVedtak(@RequestParam("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         beslutterService.setGodkjentAvBeslutter(vedtakId);
     }
@@ -144,7 +144,7 @@ public class BeslutterController {
             }
     )
     public void oppdaterBeslutterProsessStatus(@RequestParam("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         beslutterService.oppdaterBeslutterProsessStatus(vedtakId);
     }

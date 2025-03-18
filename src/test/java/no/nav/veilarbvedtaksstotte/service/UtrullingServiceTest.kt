@@ -64,19 +64,19 @@ class UtrullingServiceTest {
             assertThrowsWithMessage<ResponseStatusException>(
                 """403 FORBIDDEN "Vedtaksstøtte er ikke utrullet for veileder""""
             ) {
-                utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr)
+                utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr)
             }
         }
     }
 
     @Test
-    fun sjekkOmMinstEnFeaturetoggleErPa__får_feilmelding_når_vedtak_mangler() {
+    fun sjekkOmVeilederSkalHaTilgangTilNyLosning__får_feilmelding_når_vedtak_mangler() {
         `when`(utrullingRepository.erUtrullet(any())).thenReturn(false)
         withContext(UserRole.INTERN) {
             assertThrowsWithMessage<ResponseStatusException>(
                 """404 NOT_FOUND "Fant ikke vedtak med vedtakId $vedtakId""""
             ) {
-                utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId)
+                utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId)
             }
         }
     }
@@ -90,7 +90,7 @@ class UtrullingServiceTest {
             assertThrowsWithMessage<ResponseStatusException>(
                 """403 FORBIDDEN "Vedtaksstøtte er ikke utrullet for veileder""""
             ) {
-                utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr)
+                utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr)
             }
         }
     }
@@ -103,7 +103,7 @@ class UtrullingServiceTest {
         `when`(unleashClient.isEnabled(VIS_VEDTAKSLOSNING_14A)).thenReturn(true)
         withContext(UserRole.INTERN) {
             assertDoesNotThrow {
-                utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr)
+                utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr)
             }
         }
     }

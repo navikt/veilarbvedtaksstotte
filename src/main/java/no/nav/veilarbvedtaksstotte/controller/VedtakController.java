@@ -63,7 +63,7 @@ public class VedtakController {
             }
     )
     public ResponseEntity<byte[]> hentVedtakPdf(@PathVariable("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         byte[] vedtakPdf = vedtakService.hentVedtakPdf(vedtakId);
         return ResponseEntity.ok()
@@ -89,7 +89,7 @@ public class VedtakController {
             }
     )
     public ResponseEntity<byte[]> hentVedtakOyeblikksCVPdf(@PathVariable("vedtakId") long vedtakId, @PathVariable("oyeblikksbildeType") String oyeblikksbildeInputType) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         OyeblikksbildeType oyeblikksbildeType = OyeblikksbildeType.valueOf(oyeblikksbildeInputType);
         String dokumentId = oyeblikksbildeService.hentJournalfortDokumentId(vedtakId, oyeblikksbildeType);
@@ -107,7 +107,7 @@ public class VedtakController {
     @Deprecated(forRemoval = true)
     @GetMapping("/fattet")
     public List<Vedtak> hentFattedeVedtak(@RequestParam("fnr") Fnr fnr) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr);
 
         return vedtakService.hentFattedeVedtak(fnr);
     }
@@ -130,7 +130,7 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeCvDto hentCVOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         return oyeblikksbildeService.hentCVOyeblikksbildeForVedtak(vedtakId);
     }
@@ -152,7 +152,7 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         return oyeblikksbildeService.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
     }
@@ -174,7 +174,7 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeArbeidssokerRegistretDto hentArbeidssokerRegistretOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         return oyeblikksbildeService.hentArbeidssokerRegistretOyeblikksbildeForVedtak(vedtakId);
     }
@@ -195,7 +195,7 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         return oyeblikksbildeService.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
     }
@@ -203,7 +203,7 @@ public class VedtakController {
     @Deprecated(forRemoval = true)
     @GetMapping("/arena")
     public List<ArkivertVedtak> hentVedtakFraArena(@RequestParam("fnr") Fnr fnr) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr);
 
         return arenaVedtakService.hentVedtakFraArena(fnr);
     }

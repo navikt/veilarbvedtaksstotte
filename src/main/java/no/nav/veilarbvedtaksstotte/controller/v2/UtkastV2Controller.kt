@@ -37,7 +37,7 @@ class UtkastV2Controller(
         ]
     )
     fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): VedtakUtkastDTO {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(utkastRequest.fnr)
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(utkastRequest.fnr)
 
         return toVedtakUtkastDTO(vedtakService.hentUtkast(utkastRequest.fnr))
     }
@@ -53,7 +53,7 @@ class UtkastV2Controller(
         ]
     )
     fun harUtkast(@RequestBody utkastRequest: UtkastRequest): Boolean {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(utkastRequest.fnr)
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(utkastRequest.fnr)
 
         return vedtakService.harUtkast(utkastRequest.fnr)
     }

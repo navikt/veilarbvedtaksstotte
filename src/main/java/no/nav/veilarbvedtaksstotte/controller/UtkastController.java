@@ -40,7 +40,7 @@ public class UtkastController {
     @Deprecated(forRemoval = true)
     @GetMapping
     public Vedtak hentUtkast(@RequestParam("fnr") Fnr fnr) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr);
 
         return vedtakService.hentUtkast(fnr);
     }
@@ -58,7 +58,7 @@ public class UtkastController {
     public BeslutterprosessStatusDTO beslutterprosessStatus(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         return new BeslutterprosessStatusDTO(vedtakService.hentBeslutterprosessStatus(vedtakId));
     }
@@ -78,7 +78,7 @@ public class UtkastController {
         if (lagUtkastDTO == null || lagUtkastDTO.getFnr() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing fnr");
         }
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(lagUtkastDTO.getFnr());
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(lagUtkastDTO.getFnr());
 
         vedtakService.lagUtkast(lagUtkastDTO.getFnr());
     }
@@ -106,7 +106,7 @@ public class UtkastController {
     public void fattVedtak(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         vedtakService.fattVedtak(vedtakId);
     }
@@ -126,7 +126,7 @@ public class UtkastController {
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId,
             @RequestBody OppdaterUtkastDTO vedtakDTO
     ) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         vedtakService.oppdaterUtkast(vedtakId, vedtakDTO);
     }
@@ -135,7 +135,7 @@ public class UtkastController {
     @Deprecated(forRemoval = true)
     @GetMapping("{fnr}/harUtkast")
     public boolean harUtkast(@PathVariable("fnr") Fnr fnr) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(fnr);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr);
 
         return vedtakService.harUtkast(fnr);
     }
@@ -154,7 +154,7 @@ public class UtkastController {
     public ResponseEntity<byte[]> hentForhandsvisning(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         byte[] utkastPdf = vedtakService.produserDokumentUtkast(vedtakId);
         return ResponseEntity.ok()
@@ -177,7 +177,7 @@ public class UtkastController {
     public void deleteUtkast(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         vedtakService.slettUtkastSomVeileder(vedtakId);
     }
@@ -196,7 +196,7 @@ public class UtkastController {
     public void oppdaterUtkast(
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         vedtakService.taOverUtkast(vedtakId);
     }

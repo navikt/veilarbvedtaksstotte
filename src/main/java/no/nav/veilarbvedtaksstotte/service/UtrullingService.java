@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import io.getunleash.DefaultUnleash;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
@@ -112,7 +111,7 @@ public class UtrullingService {
      * @Exception ResponseStatusException(HttpStatus.NOT_FOUND) – ugyldig vedtakId
      * @Exception ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
      */
-    public void sjekkOmMinstEnFeaturetoggleErPa(Fnr fnr) {
+    public void sjekkOmVeilederSkalHaTilgangTilNyLosning(Fnr fnr) {
         boolean erUnleashTogglePaForVeileder = unleashClient.isEnabled(VIS_VEDTAKSLOSNING_14A);
         if (erUnleashTogglePaForVeileder) {
             return;
@@ -144,11 +143,21 @@ public class UtrullingService {
      * @Exception ResponseStatusException(HttpStatus.NOT_FOUND) – ugyldig vedtakId
      * @Exception ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
      */
-    public void sjekkOmMinstEnFeaturetoggleErPa(long vedtakId) {
-        Fnr fnr = finnFodselsnummerFraVedtakId(vedtakId);
-        sjekkOmMinstEnFeaturetoggleErPa(fnr);
-    }
+    public void sjekkOmVeilederSkalHaTilgangTilNyLosning(long vedtakId) {
+        boolean erUnleashTogglePaForVeileder = unleashClient.isEnabled(VIS_VEDTAKSLOSNING_14A);
+        if (erUnleashTogglePaForVeileder) {
+            return;
+        }
 
+        // finnFodselsnummerFraVedtakId-funksjonen kallar fleire repository,
+        // så vi gjer denne kun når veiledar ikkje har tilgang via unleash, så sparar vi oss for unaudsynte databasekall
+        Fnr fnr = finnFodselsnummerFraVedtakId(vedtakId);
+        if (tilhorerBrukerUtrulletKontor(fnr)) {
+            return;
+        }
+
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vedtaksstøtte er ikke utrullet for veileder");
+    }
 
     private Fnr finnFodselsnummerFraVedtakId(long vedtakId) throws ResponseStatusException {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);

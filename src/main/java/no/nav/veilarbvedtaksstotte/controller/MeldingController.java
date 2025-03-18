@@ -76,7 +76,7 @@ public class MeldingController {
             }
     )
     public List<? extends MeldingDTO> hentDialogMeldinger(@RequestParam("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         if (vedtakService.erFattet(vedtakId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
@@ -92,7 +92,7 @@ public class MeldingController {
                     "bli synlig i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer."
     )
     public void opprettDialogMelding(@RequestParam("vedtakId") long vedtakId, @RequestBody OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
-        utrullingService.sjekkOmMinstEnFeaturetoggleErPa(vedtakId);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
 
         if (vedtakService.erFattet(vedtakId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
