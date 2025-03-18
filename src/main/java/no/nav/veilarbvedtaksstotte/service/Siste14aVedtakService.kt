@@ -4,14 +4,13 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.utils.EnvironmentUtils.isDevelopment
-import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
+import no.nav.veilarbvedtaksstotte.config.KafkaProperties
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
-import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
+import no.nav.veilarbvedtaksstotte.service.Gjeldende14aVedtakService.Companion.sjekkOmVedtakErGjeldende
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -25,7 +24,8 @@ class Siste14aVedtakService(
     val arenaVedtakRepository: ArenaVedtakRepository,
     val aktorOppslagClient: AktorOppslagClient,
     val arenaVedtakService: ArenaVedtakService,
-    val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository
+    val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
+    private val kafkaProperties: KafkaProperties
 ) {
 
     val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
@@ -121,10 +121,31 @@ class Siste14aVedtakService(
                 if (mottattArenaVedtakErNyesteVedtak) {
                     settEksisterendeGjeldende14aVedtakTilHistorisk(identer)
                     kafkaProducerService.sendSiste14aVedtak(siste14aVedtakMedGrunnlag.siste14aVedtak)
+
+                    val innevaerendeOppfolgingsperiode =
+                        sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(identer.aktorId)
+                    val mottattArenaVedtakErGjeldendeVedtak = if (
+                        siste14aVedtakMedGrunnlag.siste14aVedtak != null &&
+                        innevaerendeOppfolgingsperiode != null
+                    ) {
+                        sjekkOmVedtakErGjeldende(
+                            siste14aVedtakMedGrunnlag.siste14aVedtak,
+                            innevaerendeOppfolgingsperiode.startdato
+                        )
+                    } else {
+                        false
+                    }
+                    if (mottattArenaVedtakErGjeldendeVedtak) {
+                        kafkaProducerService.sendGjeldende14aVedtak(
+                            identer.aktorId,
+                            siste14aVedtakMedGrunnlag.siste14aVedtak?.toGjeldende14aVedtakKafkaDTO()
+                        )
+                    }
                 } else {
                     log.info(
-                        "Publiserer ikke § 14 a-vedtak fra Arena videre på egne topics. " +
-                                "Årsak: det finnes vedtak (enten fra Arena eller ny løsning) for personen som er nyere."
+                        "Publiserer ikke § 14 a-vedtak fra Arena videre på {}. " +
+                                "Årsak: det finnes vedtak (enten fra Arena eller ny løsning) for personen som er nyere.",
+                        kafkaProperties.siste14aVedtakTopic
                     )
                 }
             }

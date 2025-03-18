@@ -21,7 +21,7 @@ class Gjeldende14aVedtakService (
 
     fun hentGjeldende14aVedtak(brukerIdent: EksternBrukerId): Gjeldende14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(brukerIdent)
-        val innevarendeoppfolgingsperiode = sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(identer.aktorId) ?: return null
+        val innevarendeoppfolgingsperiode = sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(identer.aktorId) ?: return null
         val siste14aVedtak = siste14aVedtakService.siste14aVedtak(brukerIdent) ?: return null
 
         val erGjeldende: Boolean = sjekkOmVedtakErGjeldende(siste14aVedtak, innevarendeoppfolgingsperiode.startdato)
@@ -41,6 +41,10 @@ class Gjeldende14aVedtakService (
             siste14aVedtakForBruker: Siste14aVedtak,
             startDatoInnevarendeOppfolgingsperiode: ZonedDateTime
         ): Boolean {
+            if(siste14aVedtakForBruker == null) {
+                return false
+            }
+
             // 2025-02-18
             // Vi har oppdaget at vedtak fattet i Arena får "fattetDato" lik midnatt den dagen vedtaket ble fattet.
             // Derfor har vi valgt å innfør en "grace periode" på 4 døgn. Dvs. dersom vedtaket ble fattet etter

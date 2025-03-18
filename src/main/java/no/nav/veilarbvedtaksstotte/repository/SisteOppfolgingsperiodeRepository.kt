@@ -19,7 +19,7 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
     val STARTDATO = "STARTDATO"
     val SLUTTDATO = "SLUTTDATO"
 
-    fun hentInnevarendeOppfolgingsperiode(aktorId: AktorId): SisteOppfolgingsperiode? {
+    fun hentInnevaerendeOppfolgingsperiode(aktorId: AktorId): SisteOppfolgingsperiode? {
         val sql =
             """
                 SELECT * FROM $SISTE_OPPFOLGING_PERIODE_TABELL 
