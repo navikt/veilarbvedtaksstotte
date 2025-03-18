@@ -7,3 +7,11 @@ data class Gjeldende14aVedtakKafkaDTO(
     val innsatsgruppe: Innsatsgruppe,
     val hovedmal: HovedmalMedOkeDeltakelse?
 )
+
+fun Vedtak.toGjeldende14aVedtakKafkaDTO(): Gjeldende14aVedtakKafkaDTO {
+    return Gjeldende14aVedtakKafkaDTO(
+        aktorId = AktorId(aktorId),
+        innsatsgruppe = innsatsgruppe,
+        hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(hovedmal)
+    )
+}
