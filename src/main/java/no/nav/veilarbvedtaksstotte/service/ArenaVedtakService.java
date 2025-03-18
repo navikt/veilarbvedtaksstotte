@@ -47,15 +47,15 @@ public class ArenaVedtakService {
     }
 
     /**
-     * @param arenaVedtak Kafka-melding om vedtak fra Arena
-     * @return true dersom behandling av Kafka-melding fører til lagring/oppdatering i databasen
      * Idempotent behandling av Kafka-melding om vedtak fra Arena. Lagrer kun siste vedtak per fnr.
      * For minst mulig logikk så:
      * - Tas det her ikke høyde for endring av fnr, dvs lagring per fnr og ikke per bruker
      * - Lagrer siste vedtak fra Arena selv om det finnes et nyere vedtak i denne løsningen
+     *
+     * @param arenaVedtak Kafka-melding om vedtak fra Arena
+     * @return true dersom behandling av Kafka-melding fører til lagring/oppdatering i databasen
      */
     public Boolean behandleVedtakFraArena(ArenaVedtak arenaVedtak) {
-
         if (MODIA_REG_USER.equals(arenaVedtak.getRegUser())) {
             log.info("Behandler ikke melding om vedtak fra Arena med hendelsesId={} og fraDato={}. " +
                             "Årsak: vedtaket er fattet i ny vedtaksløsning i Modia arbeidsrettet oppfølging (dvs. regUser={}) og er allerede behandlet.",

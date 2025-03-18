@@ -6,10 +6,11 @@ import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
+import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.slf4j.LoggerFactory
@@ -23,14 +24,15 @@ class Siste14aVedtakService(
     val vedtakRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
     val aktorOppslagClient: AktorOppslagClient,
-    val arenaVedtakService: ArenaVedtakService
+    val arenaVedtakService: ArenaVedtakService,
+    val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository
 ) {
 
     val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
 
     fun siste14aVedtak(eksternBrukerId: EksternBrukerId): Siste14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(eksternBrukerId)
-        return siste14aVedtakMedKilder(identer).siste14aVedtak
+        return hentSiste14aVedtakMedGrunnlag(identer).siste14aVedtak
     }
 
     private data class Siste14aVedtakMedGrunnlag(
@@ -38,47 +40,47 @@ class Siste14aVedtakService(
         val arenaVedtak: List<ArenaVedtak>
     )
 
-    private fun siste14aVedtakMedKilder(
+    private fun hentSiste14aVedtakMedGrunnlag(
         identer: BrukerIdenter
     ): Siste14aVedtakMedGrunnlag {
-        val sisteVedtakNyLøsning: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId);
+        val nyesteVedtakFraNyLosning: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId)
         val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
 
-
-        if (sisteVedtakNyLøsning == null && arenaVedtakListe.isEmpty()) {
+        // Har ingen vedtak hverken fra ny løsning eller fra Arena
+        if (nyesteVedtakFraNyLosning == null && arenaVedtakListe.isEmpty()) {
             return Siste14aVedtakMedGrunnlag(
                 siste14aVedtak = null,
                 arenaVedtak = arenaVedtakListe
             )
         }
 
-        val sisteArenaVedtak = finnSisteArenaVedtak(arenaVedtakListe)
+        val nyesteVedtakFraArena = finnNyeste(arenaVedtakListe)
 
         // Siste vedtak fra denne løsningen
         if (
-            (sisteVedtakNyLøsning != null && sisteArenaVedtak == null) ||
-            (sisteVedtakNyLøsning != null && sisteArenaVedtak != null &&
-                    sisteVedtakNyLøsning.vedtakFattet.isAfter(sisteArenaVedtak.beregnetFattetTidspunkt()))
+            (nyesteVedtakFraNyLosning != null && nyesteVedtakFraArena == null) ||
+            (nyesteVedtakFraNyLosning != null && nyesteVedtakFraArena != null &&
+                    nyesteVedtakFraNyLosning.vedtakFattet.isAfter(nyesteVedtakFraArena.beregnetFattetTidspunkt()))
         ) {
             return Siste14aVedtakMedGrunnlag(
                 siste14aVedtak = Siste14aVedtak(
                     aktorId = identer.aktorId,
-                    innsatsgruppe = sisteVedtakNyLøsning.innsatsgruppe,
-                    hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(sisteVedtakNyLøsning.hovedmal),
-                    fattetDato = toZonedDateTime(sisteVedtakNyLøsning.vedtakFattet),
+                    innsatsgruppe = nyesteVedtakFraNyLosning.innsatsgruppe,
+                    hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(nyesteVedtakFraNyLosning.hovedmal),
+                    fattetDato = toZonedDateTime(nyesteVedtakFraNyLosning.vedtakFattet),
                     fraArena = false,
                 ),
                 arenaVedtak = arenaVedtakListe
             )
 
             // Siste vedtak fra Arena
-        } else if (sisteArenaVedtak != null) {
+        } else if (nyesteVedtakFraArena != null) {
             return Siste14aVedtakMedGrunnlag(
                 siste14aVedtak = Siste14aVedtak(
                     aktorId = identer.aktorId,
-                    innsatsgruppe = ArenaInnsatsgruppe.tilInnsatsgruppe(sisteArenaVedtak.innsatsgruppe),
-                    hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(sisteArenaVedtak.hovedmal),
-                    fattetDato = toZonedDateTime(sisteArenaVedtak.fraDato.atStartOfDay()),
+                    innsatsgruppe = ArenaInnsatsgruppe.tilInnsatsgruppe(nyesteVedtakFraArena.innsatsgruppe),
+                    hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(nyesteVedtakFraArena.hovedmal),
+                    fattetDato = toZonedDateTime(nyesteVedtakFraArena.fraDato.atStartOfDay()),
                     fraArena = true,
                 ),
                 arenaVedtak = arenaVedtakListe
@@ -92,7 +94,7 @@ class Siste14aVedtakService(
         )
     }
 
-    private fun finnSisteArenaVedtak(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {
+    private fun finnNyeste(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {
         return arenaVedtakListe.stream().max(Comparator.comparing(ArenaVedtak::fraDato)).orElse(null)
     }
 
@@ -103,39 +105,56 @@ class Siste14aVedtakService(
         // er riktig selv ved ved retries i feilhåndteringen til Kafka-konsumenten.
         transactor.executeWithoutResult {
             // Idempotent oppdatering/lagring av vedtak fra Arena
-            val harOppdatertVedtakFraArena = arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
+            val vedtakFraMeldingBleLagret = arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
 
             // Oppdateringer som følger kunne vært gjort uavhengig av idempotent oppdatering/lagring over, og kunne
             // blitt utført uavhengig f.eks. i en scheduled task. Ved å sjekke om `arenaVedtak` har ført til en
             // oppdatering over, unngår man å behandle gamle meldinger ved ny last på topic.
-            if (harOppdatertVedtakFraArena) {
-                settVedtakTilHistoriskOgSendSiste14aVedtakPaKafka(arenaVedtak)
+            if (vedtakFraMeldingBleLagret) {
+                val identer = hentIdenterMedDevSjekk(arenaVedtak.fnr)
+                    ?: return@executeWithoutResult // Prodlik q1 data er ikke tilgjengelig i dev
+
+                val siste14aVedtakMedGrunnlag = hentSiste14aVedtakMedGrunnlag(identer)
+                val mottattArenaVedtakErNyesteVedtak =
+                    sjekkOmVedtakErDetNyeste(arenaVedtak, siste14aVedtakMedGrunnlag)
+
+                if (mottattArenaVedtakErNyesteVedtak) {
+                    settEksisterendeGjeldende14aVedtakTilHistorisk(identer)
+                    kafkaProducerService.sendSiste14aVedtak(siste14aVedtakMedGrunnlag.siste14aVedtak)
+                } else {
+                    log.info(
+                        "Publiserer ikke § 14 a-vedtak fra Arena videre på egne topics. " +
+                                "Årsak: det finnes vedtak (enten fra Arena eller ny løsning) for personen som er nyere."
+                    )
+                }
             }
         }
     }
 
-    private fun settVedtakTilHistoriskOgSendSiste14aVedtakPaKafka(arenaVedtak: ArenaVedtak) {
-        val identer = hentIdenterMedDevSjekk(arenaVedtak.fnr) ?: return // Prodlik q1 data er ikke tilgjengelig i dev
+    private fun sjekkOmVedtakErDetNyeste(
+        vedtakSomSkalSjekkes: ArenaVedtak,
+        siste14aVedtakMedGrunnlag: Siste14aVedtakMedGrunnlag
+    ): Boolean {
+        val nyesteVedtakErFraArena = siste14aVedtakMedGrunnlag.siste14aVedtak?.fraArena ?: false
 
-        val (siste14aVedtak, arenaVedtakListe) = siste14aVedtakMedKilder(identer)
-        val fraArena = siste14aVedtak?.fraArena ?: false
+        if (!nyesteVedtakErFraArena) {
+            return false
+        }
 
-        // hindrer at vi republiserer siste14aVedtak dersom eldre meldinger skulle bli konsumert:
-        val sisteFraArena = finnSisteArenaVedtak(arenaVedtakListe)
-        val erSisteFraArena = fraArena && sisteFraArena?.hendelseId == arenaVedtak.hendelseId
+        val sisteFraArena = finnNyeste(siste14aVedtakMedGrunnlag.arenaVedtak)
 
-        if (erSisteFraArena) {
-            val siste14aVedtakNyLøsning: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
-            if (siste14aVedtakNyLøsning !== null) {
-                setGjeldendeVedtakTilHistorisk(siste14aVedtakNyLøsning.id)
-            }
-            kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
-        } else {
-            log.info(
-                """Publiserer ikke siste 14a vedtak basert på behandlet melding (fraArena=$fraArena, erSisteFraArena=$erSisteFraArena)
-                |Behandlet melding har hendelseId=${arenaVedtak.hendelseId}
-                |Siste melding har hendelseId=${sisteFraArena?.hendelseId}""".trimMargin()
-            )
+        // `arenaVedtak` representerer en nylig mottatt melding om et § 14 a-vedtak fattet i Arena.
+        // Dersom vi er inne i denne funksjonen betyr det implisitt at `arenaVedtak` har blitt lagret og overskrevet
+        // et eventuelt eksisterende Arena-vedtak for den samme personen. Nå trenger vi å finne ut om det nylig lagrede
+        // Arena-vedtaket også er det siste § 14 a-vedtaket for personen (av alle vedtak fra ny løsning og Arena).
+        // Dersom det er det så må vi også publisere melding på siste § 14 a-vedtak topicet.
+        return sisteFraArena?.hendelseId == vedtakSomSkalSjekkes.hendelseId
+    }
+
+    private fun settEksisterendeGjeldende14aVedtakTilHistorisk(identer: BrukerIdenter) {
+        val siste14aVedtakNyLosning: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
+        if (siste14aVedtakNyLosning !== null) {
+            setGjeldendeVedtakTilHistorisk(siste14aVedtakNyLosning.id)
         }
     }
 
@@ -149,7 +168,7 @@ class Siste14aVedtakService(
     fun republiserKafkaSiste14aVedtak(eksernBrukerId: EksternBrukerId) {
         val identer = hentIdenterMedDevSjekk(eksernBrukerId) ?: return // Prodlik q1 data er ikke tilgjengelig i dev
 
-        val (siste14aVedtak) = siste14aVedtakMedKilder(identer)
+        val (siste14aVedtak) = hentSiste14aVedtakMedGrunnlag(identer)
         val fraArena = siste14aVedtak?.fraArena ?: false
         kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
         log.info("Siste 14a vedtak republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte")
