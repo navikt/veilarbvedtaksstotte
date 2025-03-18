@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import io.getunleash.DefaultUnleash;
+import io.getunleash.UnleashContext;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.types.identer.AktorId;
@@ -39,6 +40,7 @@ public class UtrullingService {
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final AktorOppslagClient aktorOppslagClient;
     private final DefaultUnleash unleashClient;
+    private final AuthService authService;
 
     @Autowired
     public UtrullingService(
@@ -46,7 +48,10 @@ public class UtrullingService {
             VeilarbarenaClient veilarbarenaClient,
             VeilarbveilederClient veilarbveilederClient,
             Norg2Client norg2Client,
-            VedtaksstotteRepository vedtaksstotteRepository, AktorOppslagClient aktorOppslagClient, DefaultUnleash unleashClient) {
+            VedtaksstotteRepository vedtaksstotteRepository,
+            AktorOppslagClient aktorOppslagClient,
+            DefaultUnleash unleashClient,
+            AuthService authService) {
         this.utrullingRepository = utrullingRepository;
         this.veilarbarenaClient = veilarbarenaClient;
         this.veilarbveilederClient = veilarbveilederClient;
@@ -54,6 +59,7 @@ public class UtrullingService {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.aktorOppslagClient = aktorOppslagClient;
         this.unleashClient = unleashClient;
+        this.authService = authService;
     }
 
     public List<UtrulletEnhet> hentAlleUtrullinger() {
@@ -112,8 +118,7 @@ public class UtrullingService {
      * @Exception ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
      */
     public void sjekkOmVeilederSkalHaTilgangTilNyLosning(Fnr fnr) {
-        boolean erUnleashTogglePaForVeileder = unleashClient.isEnabled(VIS_VEDTAKSLOSNING_14A);
-        if (erUnleashTogglePaForVeileder) {
+        if (erUnleashTogglePaForVeileder()) {
             return;
         }
 
@@ -144,8 +149,7 @@ public class UtrullingService {
      * @Exception ResponseStatusException(HttpStatus.FORBIDDEN) – veileder skal ikkje ha tilgang.
      */
     public void sjekkOmVeilederSkalHaTilgangTilNyLosning(long vedtakId) {
-        boolean erUnleashTogglePaForVeileder = unleashClient.isEnabled(VIS_VEDTAKSLOSNING_14A);
-        if (erUnleashTogglePaForVeileder) {
+        if (erUnleashTogglePaForVeileder()) {
             return;
         }
 
@@ -170,5 +174,10 @@ public class UtrullingService {
         AktorId aktorId = AktorId.of(vedtak.getAktorId());
 
         return aktorOppslagClient.hentFnr(aktorId);
+    }
+
+    public boolean erUnleashTogglePaForVeileder() {
+        UnleashContext unleashContext = UnleashContext.builder().userId(authService.getInnloggetVeilederIdent()).build();
+        return unleashClient.isEnabled(VIS_VEDTAKSLOSNING_14A, unleashContext);
     }
 }

@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import io.getunleash.DefaultUnleash
+import io.getunleash.UnleashContext
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
@@ -21,11 +22,14 @@ import no.nav.veilarbvedtaksstotte.utils.VIS_VEDTAKSLOSNING_14A
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
+import org.mockito.kotlin.capture
 
 class UtrullingServiceTest {
     var authContextHolder = AuthContextHolderThreadLocal.instance()
@@ -37,6 +41,7 @@ class UtrullingServiceTest {
     var norg2Client = mock(Norg2Client::class.java)
     var vedtaksstotteRepository = mock(VedtaksstotteRepository::class.java)
     var unleashClient = mock(DefaultUnleash::class.java)
+    var authService = mock(AuthService::class.java)
 
     var utrullingService = UtrullingService(
         utrullingRepository,
@@ -45,7 +50,8 @@ class UtrullingServiceTest {
         norg2Client,
         vedtaksstotteRepository,
         aktorOppslagClient,
-        unleashClient
+        unleashClient,
+        authService
     )
     val fnr = Fnr.of("01010111111")
     val vedtakId: Long = 1
@@ -55,6 +61,7 @@ class UtrullingServiceTest {
         `when`(aktorOppslagClient.hentAktorId(TestData.TEST_FNR)).thenReturn(AktorId.of(TestData.TEST_AKTOR_ID))
         `when`(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(TestData.TEST_FNR)
         `when`(veilarbarenaService.hentOppfolgingsenhet(TestData.TEST_FNR)).thenReturn(Optional.of(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID)))
+        `when`(authService.innloggetVeilederIdent).thenReturn(TestData.TEST_VEILEDER_IDENT)
     }
 
     @Test
@@ -100,7 +107,8 @@ class UtrullingServiceTest {
         val vedtak = Vedtak()
         `when`(utrullingRepository.erUtrullet(any())).thenReturn(false)
         `when`(vedtaksstotteRepository.hentVedtak(vedtakId)).thenReturn(vedtak)
-        `when`(unleashClient.isEnabled(VIS_VEDTAKSLOSNING_14A)).thenReturn(true)
+        val unleashContextCaptor = ArgumentCaptor.forClass(UnleashContext::class.java)
+        `when`(unleashClient.isEnabled(eq(VIS_VEDTAKSLOSNING_14A), capture(unleashContextCaptor))).thenReturn(true)
         withContext(UserRole.INTERN) {
             assertDoesNotThrow {
                 utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr)
