@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
 import no.nav.common.types.identer.AktorId
@@ -16,6 +17,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.InnsatsgruppeV2
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
+import no.nav.veilarbvedtaksstotte.utils.PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.time.LocalDateTime
@@ -37,6 +40,9 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
 
     @Autowired
     lateinit var kafkaProducerService: KafkaProducerService
+
+    @Autowired
+    lateinit var unleashService: DefaultUnleash
 
     @Test
     fun `lagrer forventet record verdi for oppdatering av siste vedtak`() {
@@ -124,6 +130,7 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
     @Test
     fun `lagrer forventet record verdi for gjeldende § 14 a-vedtak`() {
         // Given
+        `when`(unleashService.isEnabled(PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA)).thenReturn(true)
         val aktorId = AktorId("11111111111")
         val gjeldende14aVedtakKafkaDTO = Gjeldende14aVedtakKafkaDTO(
             aktorId = aktorId,

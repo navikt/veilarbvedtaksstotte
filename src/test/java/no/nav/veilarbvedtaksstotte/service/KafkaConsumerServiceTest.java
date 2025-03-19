@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import io.getunleash.DefaultUnleash;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.types.identer.AktorId;
@@ -44,8 +43,6 @@ public class KafkaConsumerServiceTest {
 
     private final KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
 
-    private final DefaultUnleash unleashService = mock(DefaultUnleash.class);
-
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             siste14aVedtakService,
             vedtaksstotteRepository,
@@ -55,8 +52,7 @@ public class KafkaConsumerServiceTest {
             aktorOppslagClient,
             veilarbarenaClient,
             brukerIdenterService,
-            kafkaProducerService,
-            unleashService
+            kafkaProducerService
     );
 
     @Test
