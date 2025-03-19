@@ -166,4 +166,5 @@ data class Person(
     val eksisterendePersonNokler: List<PersonNokkel> = emptyList()
 )
 
-data class BrukerIdenterValideringException(val melding: String, val aarsak: Throwable) : Throwable(melding, aarsak)
+data class BrukerIdenterValideringException(val melding: String, val aarsak: Throwable) :
+    RuntimeException(melding, aarsak)

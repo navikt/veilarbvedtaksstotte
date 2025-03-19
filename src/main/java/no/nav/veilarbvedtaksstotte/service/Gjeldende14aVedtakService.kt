@@ -18,6 +18,9 @@ class Gjeldende14aVedtakService (
     @Autowired val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
     @Autowired val aktorOppslagClient: AktorOppslagClient
 ) {
+//    fun hentGjeldende14aVedtak(brukerIdenter: Set<EksternBrukerId>): Map<EksternBrukerId, Gjeldende14aVedtak?> {
+//
+//    }
 
     fun hentGjeldende14aVedtak(brukerIdent: EksternBrukerId): Gjeldende14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(brukerIdent)
