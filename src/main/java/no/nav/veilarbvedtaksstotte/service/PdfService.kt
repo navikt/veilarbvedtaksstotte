@@ -28,6 +28,7 @@ class PdfService(
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
 
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
+        log.debug("BREVDATAOPPSLAG: {}", brevdataOppslag.toString())
         val brevdata = DokumentService.mapBrevdata(dto, brevdataOppslag)
 
         return pdfClient.genererPdf(brevdata)
