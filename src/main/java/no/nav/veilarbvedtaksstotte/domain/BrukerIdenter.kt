@@ -28,5 +28,5 @@ data class IdentDetaljer(
 
 data class PersonMedIdenter(
     val personNokkel: PersonNokkel,
-    val identDetaljer: IdentDetaljer
+    val identDetaljer: Set<IdentDetaljer>
 )
