@@ -43,20 +43,11 @@ class Siste14aVedtakService(
     private fun hentSiste14aVedtakMedGrunnlag(
         identer: BrukerIdenter
     ): Siste14aVedtakMedGrunnlag {
+        val alleArenaVedtakForPersonen = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
         val nyesteVedtakFraNyLosning: Vedtak? = vedtakRepository.hentSisteVedtak(identer.aktorId)
-        val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
+        val nyesteVedtakFraArena = finnNyeste(alleArenaVedtakForPersonen)
 
-        // Har ingen vedtak hverken fra ny løsning eller fra Arena
-        if (nyesteVedtakFraNyLosning == null && arenaVedtakListe.isEmpty()) {
-            return Siste14aVedtakMedGrunnlag(
-                siste14aVedtak = null,
-                arenaVedtak = arenaVedtakListe
-            )
-        }
-
-        val nyesteVedtakFraArena = finnNyeste(arenaVedtakListe)
-
-        // Siste vedtak fra denne løsningen
+        // Det nyeste vedtaket for personen kommer fra denne løsningen
         if (
             (nyesteVedtakFraNyLosning != null && nyesteVedtakFraArena == null) ||
             (nyesteVedtakFraNyLosning != null && nyesteVedtakFraArena != null &&
@@ -70,11 +61,12 @@ class Siste14aVedtakService(
                     fattetDato = toZonedDateTime(nyesteVedtakFraNyLosning.vedtakFattet),
                     fraArena = false,
                 ),
-                arenaVedtak = arenaVedtakListe
+                arenaVedtak = alleArenaVedtakForPersonen
             )
+        }
 
-            // Siste vedtak fra Arena
-        } else if (nyesteVedtakFraArena != null) {
+        // Det nyeste vedtaket for personen kommer fra Arena
+        if (nyesteVedtakFraArena != null) {
             return Siste14aVedtakMedGrunnlag(
                 siste14aVedtak = Siste14aVedtak(
                     aktorId = identer.aktorId,
@@ -83,14 +75,13 @@ class Siste14aVedtakService(
                     fattetDato = toZonedDateTime(nyesteVedtakFraArena.fraDato.atStartOfDay()),
                     fraArena = true,
                 ),
-                arenaVedtak = arenaVedtakListe
+                arenaVedtak = alleArenaVedtakForPersonen
             )
         }
 
-        // Ingen vedtak
         return Siste14aVedtakMedGrunnlag(
             siste14aVedtak = null,
-            arenaVedtak = arenaVedtakListe
+            arenaVedtak = emptyList()
         )
     }
 
