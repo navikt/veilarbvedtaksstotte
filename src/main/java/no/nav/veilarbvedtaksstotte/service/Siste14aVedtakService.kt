@@ -12,23 +12,24 @@ import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.Gjeldende14aVedtakService.Companion.sjekkOmVedtakErGjeldende
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 
 @Service
 class Siste14aVedtakService(
-    val transactor: TransactionTemplate,
-    val kafkaProducerService: KafkaProducerService,
-    val vedtakRepository: VedtaksstotteRepository,
-    val arenaVedtakRepository: ArenaVedtakRepository,
-    val aktorOppslagClient: AktorOppslagClient,
-    val arenaVedtakService: ArenaVedtakService,
-    val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
+    private val transactor: TransactionTemplate,
+    private val kafkaProducerService: KafkaProducerService,
+    private val vedtakRepository: VedtaksstotteRepository,
+    private val arenaVedtakRepository: ArenaVedtakRepository,
+    private val aktorOppslagClient: AktorOppslagClient,
+    private val arenaVedtakService: ArenaVedtakService,
+    private val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
     private val kafkaProperties: KafkaProperties
 ) {
 
-    val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
+    val log: Logger = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
 
     fun siste14aVedtak(eksternBrukerId: EksternBrukerId): Siste14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(eksternBrukerId)
