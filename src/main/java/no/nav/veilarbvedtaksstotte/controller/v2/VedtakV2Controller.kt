@@ -44,7 +44,7 @@ class VedtakV2Controller(
         ]
     )
     fun hentFattedeVedtak(@RequestBody vedtakRequest: VedtakRequest): List<Vedtak> {
-        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakRequest.fnr)
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakRequest.fnr)
 
         return vedtakService.hentFattedeVedtak(vedtakRequest.fnr)
     }
@@ -69,7 +69,7 @@ class VedtakV2Controller(
         ]
     )
     fun hentVedtakFraArena(@RequestBody vedtakRequest: VedtakRequest): List<ArkivertVedtak> {
-        utrullingService.sjekkAtBrukerTilhorerUtrulletKontor(vedtakRequest.fnr);
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakRequest.fnr);
 
         return arenaVedtakService.hentVedtakFraArena(vedtakRequest.fnr)
     }
