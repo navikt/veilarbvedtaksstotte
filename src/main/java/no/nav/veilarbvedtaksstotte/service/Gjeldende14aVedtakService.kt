@@ -20,6 +20,9 @@ class Gjeldende14aVedtakService(
     @Autowired val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
     @Autowired val aktorOppslagClient: AktorOppslagClient
 ) {
+//    fun hentGjeldende14aVedtak(brukerIdenter: Set<EksternBrukerId>): Map<EksternBrukerId, Gjeldende14aVedtak?> {
+//
+//    }
 
     val logger: Logger = LoggerFactory.getLogger(Gjeldende14aVedtakService::class.java)
 
