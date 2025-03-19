@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.EksternBrukerId
@@ -10,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
+import no.nav.veilarbvedtaksstotte.utils.PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -25,7 +27,8 @@ class Siste14aVedtakService(
     private val aktorOppslagClient: AktorOppslagClient,
     private val arenaVedtakService: ArenaVedtakService,
     private val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
-    private val kafkaProperties: KafkaProperties
+    private val kafkaProperties: KafkaProperties,
+    private val unleashService: DefaultUnleash
 ) {
 
     val log: Logger = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
@@ -141,7 +144,10 @@ class Siste14aVedtakService(
             )
         }
 
-        if (erMottattArenaVedtakGjeldende) {
+        if (erMottattArenaVedtakGjeldende && unleashService.isEnabled(
+                PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA
+            )
+        ) {
             kafkaProducerService.sendGjeldende14aVedtak(
                 identer.aktorId,
                 siste14aVedtakMedGrunnlag.siste14aVedtak?.toGjeldende14aVedtakKafkaDTO()

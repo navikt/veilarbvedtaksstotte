@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.types.identer.AktorId;
@@ -20,19 +21,8 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import static no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImplTest.veilarbarenaClient;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
+import static org.mockito.Mockito.*;
 
 public class KafkaConsumerServiceTest {
 
@@ -54,6 +44,8 @@ public class KafkaConsumerServiceTest {
 
     private final KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
 
+    private final DefaultUnleash unleashService = mock(DefaultUnleash.class);
+
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             siste14aVedtakService,
             vedtaksstotteRepository,
@@ -63,7 +55,8 @@ public class KafkaConsumerServiceTest {
             aktorOppslagClient,
             veilarbarenaClient,
             brukerIdenterService,
-            kafkaProducerService
+            kafkaProducerService,
+            unleashService
     );
 
     @Test

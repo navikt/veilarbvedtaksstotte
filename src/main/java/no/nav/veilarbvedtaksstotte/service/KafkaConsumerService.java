@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.aktorregister.IngenGjeldendeIdentException;
@@ -30,6 +31,7 @@ import java.time.ZonedDateTime;
 
 import static java.lang.String.format;
 import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA;
 
 @Service
 @Slf4j
@@ -53,6 +55,8 @@ public class KafkaConsumerService {
 
     private final KafkaProducerService kafkaProducerService;
 
+    private final DefaultUnleash unleashService;
+
     private static final String MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY = "kafka_consumer_correlation_id";
 
     @Autowired
@@ -65,7 +69,9 @@ public class KafkaConsumerService {
             AktorOppslagClient aktorOppslagClient,
             VeilarbarenaClient veilarbarenaClient,
             BrukerIdenterService brukerIdenterService,
-            KafkaProducerService kafkaProducerService) {
+            KafkaProducerService kafkaProducerService,
+            DefaultUnleash unleashService
+    ) {
         this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
@@ -75,6 +81,7 @@ public class KafkaConsumerService {
         this.veilarbarenaClient = veilarbarenaClient;
         this.brukerIdenterService = brukerIdenterService;
         this.kafkaProducerService = kafkaProducerService;
+        this.unleashService = unleashService;
     }
 
     public <K, V> void behandleKafkaMelding(ConsumerRecord<K, V> melding, KafkaMeldingBehandler<K, V> meldingBehandler) {
@@ -177,7 +184,10 @@ public class KafkaConsumerService {
 
         log.info("Setter gjeldende vedtak {} til historisk", gjeldendeVedtak.getId());
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(gjeldendeVedtak.getId());
-        kafkaProducerService.sendGjeldende14aVedtak(new AktorId(gjeldendeVedtak.getAktorId()), null);
+
+        if (unleashService.isEnabled(PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA)) {
+            kafkaProducerService.sendGjeldende14aVedtak(new AktorId(gjeldendeVedtak.getAktorId()), null);
+        }
     }
 
     public void behandlePdlAktorV2Melding(ConsumerRecord<String, Aktor> aktorRecord) {
