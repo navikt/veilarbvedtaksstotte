@@ -10,7 +10,6 @@ import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient.Adresse.Companion.fraEnhetPostadresse
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO
@@ -221,27 +220,12 @@ class DokumentService(
 
             val mottaker = PdfClient.Mottaker(
                 navn = dto.navn,
-                adresselinje1 = dto.adresse.adresselinje1,
-                adresselinje2 = dto.adresse.adresselinje2,
-                adresselinje3 = dto.adresse.adresselinje3,
-                postnummer = dto.adresse.postnummer,
-                poststed = dto.adresse.poststed,
-                land = dto.adresse.land
+                fodselsnummer = dto.brukerFnr
             )
             val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
-            val postadresse = fraEnhetPostadresse(brevdataOppslag.enhetKontaktinformasjon.postadresse)
-
 
             val enhetNavn = brevdataOppslag.enhet.navn ?: throw IllegalStateException(
                 "Manglende navn for enhet ${brevdataOppslag.enhet.enhetNr}"
-            )
-
-            val kontaktEnhetNavn = brevdataOppslag.kontaktEnhet.navn ?: throw IllegalStateException(
-                "Manglende navn for enhet ${brevdataOppslag.kontaktEnhet.enhetNr}"
-            )
-
-            val telefonnummer = brevdataOppslag.enhetKontaktinformasjon.telefonnummer ?: throw IllegalStateException(
-                "Manglende telefonnummer for enhet ${brevdataOppslag.enhetKontaktinformasjon.enhetNr}"
             )
 
             val begrunnelseAvsnitt =
@@ -251,12 +235,9 @@ class DokumentService(
                 malType = dto.malType,
                 veilederNavn = brevdataOppslag.veilederNavn,
                 navKontor = enhetNavn,
-                kontaktEnhetNavn = kontaktEnhetNavn,
-                kontaktTelefonnummer = telefonnummer,
                 dato = dato,
                 malform = brevdataOppslag.malform,
                 mottaker = mottaker,
-                postadresse = postadresse,
                 begrunnelse = begrunnelseAvsnitt,
                 kilder = dto.opplysninger,
                 utkast = dto.utkast
