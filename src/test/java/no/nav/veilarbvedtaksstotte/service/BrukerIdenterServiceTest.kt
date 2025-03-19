@@ -8,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.IntegrationTestBase
 import no.nav.veilarbvedtaksstotte.domain.Gruppe
 import no.nav.veilarbvedtaksstotte.domain.IdentDetaljer
 import no.nav.veilarbvedtaksstotte.domain.PersonMedIdenter
+import no.nav.veilarbvedtaksstotte.domain.PersonNokkel
 import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
 import no.nav.veilarbvedtaksstotte.service.BrukerIdenterService.Companion.toIdent
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -20,7 +21,6 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.core.queryForObject
 import java.util.stream.Stream
 import kotlin.random.Random
 
@@ -40,27 +40,26 @@ class BrukerIdenterServiceTest(
     @MethodSource("aktorIdOgAktorSource")
     fun `skal lagre alle identifikatorer når vi ikke har lagret noe for personen fra før`(
         kafkaRecord: ConsumerRecord<String?, Aktor?>,
-        forventetResultat: List<PersonMedIdenter>
+        forventetResultat: PersonMedIdenter
     ) {
         // When
         brukerIdenterService.behandlePdlAktorV2Melding(kafkaRecord)
 
         // Then
         val hentPersonNokkelSql = "SELECT person FROM bruker_identer WHERE ident = ?";
-        val hentIdenterSql = "SELECT * FROM bruker_identer WHERE person = ?"
-        val personNokkel = jdbcTemplate.queryForObject(hentPersonNokkelSql, String::class.java, kafkaRecord.key())
-        val personMedIdenter =
+        val hentIdenterSql = "SELECT ident, historisk, gruppe FROM bruker_identer WHERE person = ?"
+        val personNokkel = jdbcTemplate.queryForObject(hentPersonNokkelSql, PersonNokkel::class.java, kafkaRecord.key())
+        val personIdentDetaljer =
             jdbcTemplate.query(hentIdenterSql, { rs, _ ->
-                PersonMedIdenter(
-                    personNokkel = rs.getString("person"),
-                    identDetaljer = IdentDetaljer(
-                        ident = EksternBrukerId.of(rs.getString("ident")),
-                        historisk = rs.getBoolean("historisk"),
-                        gruppe = Gruppe.valueOf(rs.getString("gruppe")),
-                    )
+                IdentDetaljer(
+                    ident = EksternBrukerId.of(rs.getString("ident")),
+                    historisk = rs.getBoolean("historisk"),
+                    gruppe = Gruppe.valueOf(rs.getString("gruppe")),
                 )
-            }, personNokkel)
-        assertThat(personMedIdenter).containsExactlyInAnyOrderElementsOf(forventetResultat)
+            }, personNokkel).toSet()
+        val personMedIdenter = PersonMedIdenter(personNokkel = personNokkel!!, identDetaljer = personIdentDetaljer)
+        assertThat(personMedIdenter.personNokkel).isEqualTo(forventetResultat.personNokkel)
+        assertThat(personMedIdenter.identDetaljer).containsExactlyInAnyOrderElementsOf(forventetResultat.identDetaljer)
     }
 
     @Test
@@ -89,21 +88,23 @@ class BrukerIdenterServiceTest(
             jdbcTemplate.queryForObject(antallRaderSql, Int::class.java, tidligerePersonSekvensVerdi)
         val antallRaderTidligerePersonForventet = 0
         val hentPersonNokkelSql = "SELECT person FROM bruker_identer WHERE ident = ?"
-        val personNokkel = jdbcTemplate.queryForObject(hentPersonNokkelSql, String::class.java, nyKafkaRecord.key())
-        val hentAlleIdenterForPersonSql = "SELECT * FROM bruker_identer WHERE person = ?"
-        val identerNyPerson = jdbcTemplate.query(hentAlleIdenterForPersonSql, { rs, _ ->
-            PersonMedIdenter(
-                personNokkel = rs.getString("person"),
-                identDetaljer = IdentDetaljer(
-                    ident = EksternBrukerId.of(rs.getString("ident")),
-                    historisk = rs.getBoolean("historisk"),
-                    gruppe = Gruppe.valueOf(rs.getString("gruppe")),
-                )
+        val antallUnikePersonNoklerSql = "SELECT COUNT(distinct person) FROM bruker_identer"
+        val personNokkel =
+            jdbcTemplate.queryForObject(hentPersonNokkelSql, PersonNokkel::class.java, nyKafkaRecord.key())
+        val hentAlleIdenterForPersonSql = "SELECT ident, historisk, gruppe FROM bruker_identer WHERE person = ?"
+        val identDetaljerNyPerson = jdbcTemplate.query(hentAlleIdenterForPersonSql, { rs, _ ->
+            IdentDetaljer(
+                ident = EksternBrukerId.of(rs.getString("ident")),
+                historisk = rs.getBoolean("historisk"),
+                gruppe = Gruppe.valueOf(rs.getString("gruppe")),
             )
-        }, personNokkel)
-        val antallPersonNoklerEtterBehandlingFaktisk = identerNyPerson.map { it.personNokkel }.toSet().size
+        }, personNokkel).toSet()
+        val personMedIdenterNyPerson =
+            PersonMedIdenter(personNokkel = personNokkel!!, identDetaljer = identDetaljerNyPerson)
+        val antallPersonNoklerEtterBehandlingFaktisk =
+            jdbcTemplate.queryForObject(antallUnikePersonNoklerSql, Int::class.java)
         val antallPersonNoklerEtterBehandlingForventet = 1
-        val alleIdenterForPersonEtterBehandlingFaktisk = identerNyPerson.map { it.identDetaljer }
+        val alleIdenterForPersonEtterBehandlingFaktisk = personMedIdenterNyPerson.identDetaljer
         val alleIdenterForPersonEtterBehandlingForventet =
             nyKafkaRecord.value()!!.identifikatorer.map { toIdent(it) }
 
@@ -148,29 +149,31 @@ class BrukerIdenterServiceTest(
         brukerIdenterService.behandlePdlAktorV2Melding(nyKafkaRecord)
 
         // Then
-        val antallRaderSql = "SELECT COUNT(*) FROM bruker_identer WHERE person = ?"
+        val antallBrukerIdenterSql = "SELECT COUNT(*) FROM bruker_identer WHERE person = ?"
         val antallRaderTidligerePerson1Faktisk =
-            jdbcTemplate.queryForObject(antallRaderSql, Int::class.java, tidligerePersonSekvensVerdiPerson1)
+            jdbcTemplate.queryForObject(antallBrukerIdenterSql, Int::class.java, tidligerePersonSekvensVerdiPerson1)
         val antallRaderTidligerePerson1Forventet = 0
         val antallRaderTidligerePerson2Faktisk =
-            jdbcTemplate.queryForObject(antallRaderSql, Int::class.java, tidligerePersonSekvensVerdiPerson2)
+            jdbcTemplate.queryForObject(antallBrukerIdenterSql, Int::class.java, tidligerePersonSekvensVerdiPerson2)
         val antallRaderTidligerePerson2Forventet = 0
+        val antallPersonNoklerSql = "SELECT COUNT(distinct person) FROM bruker_identer"
         val hentPersonNokkelSql = "SELECT person FROM bruker_identer WHERE ident = ?"
-        val personNokkel = jdbcTemplate.queryForObject(hentPersonNokkelSql, String::class.java, nyKafkaRecord.key())
-        val hentAlleIdenterForPersonSql = "SELECT * FROM bruker_identer WHERE person = ?"
-        val identerNyPerson = jdbcTemplate.query(hentAlleIdenterForPersonSql, { rs, _ ->
-            PersonMedIdenter(
-                personNokkel = rs.getString("person"),
-                identDetaljer = IdentDetaljer(
-                    ident = EksternBrukerId.of(rs.getString("ident")),
-                    historisk = rs.getBoolean("historisk"),
-                    gruppe = Gruppe.valueOf(rs.getString("gruppe")),
-                )
+        val personNokkel =
+            jdbcTemplate.queryForObject(hentPersonNokkelSql, PersonNokkel::class.java, nyKafkaRecord.key())
+        val hentAlleIdenterForPersonSql = "SELECT ident, historisk, gruppe FROM bruker_identer WHERE person = ?"
+        val identDetaljerNyPerson = jdbcTemplate.query(hentAlleIdenterForPersonSql, { rs, _ ->
+            IdentDetaljer(
+                ident = EksternBrukerId.of(rs.getString("ident")),
+                historisk = rs.getBoolean("historisk"),
+                gruppe = Gruppe.valueOf(rs.getString("gruppe")),
             )
-        }, personNokkel)
-        val antallPersonNoklerEtterBehandlingFaktisk = identerNyPerson.map { it.personNokkel }.toSet().size
+        }, personNokkel).toSet()
+        val personMedIdenterNyPerson =
+            PersonMedIdenter(personNokkel = personNokkel!!, identDetaljer = identDetaljerNyPerson)
+        val antallPersonNoklerEtterBehandlingFaktisk =
+            jdbcTemplate.queryForObject(antallPersonNoklerSql, Int::class.java)
         val antallPersonNoklerEtterBehandlingForventet = 1
-        val alleIdenterForPersonEtterBehandlingFaktisk = identerNyPerson.map { it.identDetaljer }
+        val alleIdenterForPersonEtterBehandlingFaktisk = personMedIdenterNyPerson.identDetaljer
         val alleIdenterForPersonEtterBehandlingForventet =
             nyKafkaRecord.value().identifikatorer.map { toIdent(it) }
 
@@ -292,15 +295,14 @@ class BrukerIdenterServiceTest(
     companion object {
         @JvmStatic
         private fun aktorIdOgAktorSource(): Stream<Arguments> {
-            val aktor1 =
-                AktorId.of("1111111111111") to Aktor(
-                    listOf(
-                        Identifikator("1111111111111", Type.AKTORID, true)
-                    )
+            val aktor1 = AktorId.of("1111111111111") to Aktor(
+                listOf(
+                    Identifikator("1111111111111", Type.AKTORID, true)
                 )
-            val personIdenter1 = listOf(
-                PersonMedIdenter(
-                    personNokkel = "1", IdentDetaljer(
+            )
+            val personIdenter1 = PersonMedIdenter(
+                personNokkel = "1", setOf(
+                    IdentDetaljer(
                         ident = aktor1.first,
                         historisk = false,
                         gruppe = Gruppe.AKTORID,
@@ -314,62 +316,56 @@ class BrukerIdenterServiceTest(
                     Identifikator("22222222222", Type.FOLKEREGISTERIDENT, true)
                 )
             )
-            val personIdenter2s = listOf(
+            val personIdenter2 =
                 PersonMedIdenter(
-                    personNokkel = "1", IdentDetaljer(
-                        ident = AktorId.of("2222222222222"),
-                        historisk = false,
-                        gruppe = Gruppe.AKTORID
+                    personNokkel = "1", setOf(
+                        IdentDetaljer(
+                            ident = AktorId.of("2222222222222"),
+                            historisk = false,
+                            gruppe = Gruppe.AKTORID
+                        ),
+                        IdentDetaljer(
+                            ident = Fnr.of("22222222222"),
+                            historisk = false,
+                            gruppe = Gruppe.FOLKEREGISTERIDENT
+                        )
                     )
-                ),
-                PersonMedIdenter(
-                    personNokkel = "1", IdentDetaljer(
-                        ident = Fnr.of("22222222222"),
-                        historisk = false,
-                        gruppe = Gruppe.FOLKEREGISTERIDENT
-                    )
+                )
+
+
+            val aktor3 = AktorId.of("4444444444444") to Aktor(
+                listOf(
+                    Identifikator("4444444444444", Type.AKTORID, true),
+                    Identifikator("3333333333333", Type.AKTORID, false),
+                    Identifikator("44444444444", Type.FOLKEREGISTERIDENT, true),
+                    Identifikator("33333333333", Type.FOLKEREGISTERIDENT, false)
                 )
             )
-
-            val aktor3 =
-                AktorId.of("4444444444444") to Aktor(
-                    listOf(
-                        Identifikator("4444444444444", Type.AKTORID, true),
-                        Identifikator("3333333333333", Type.AKTORID, false),
-                        Identifikator("44444444444", Type.FOLKEREGISTERIDENT, true),
-                        Identifikator("33333333333", Type.FOLKEREGISTERIDENT, false)
-                    )
-                )
-            val personIdenter3s = listOf(
-                PersonMedIdenter(
-                    personNokkel = "1", IdentDetaljer(
+            val personIdenter3 = PersonMedIdenter(
+                personNokkel = "1", setOf(
+                    IdentDetaljer(
                         ident = AktorId.of("4444444444444"),
                         historisk = false,
                         gruppe = Gruppe.AKTORID
-                    )
-                ),
-                PersonMedIdenter(
-                    personNokkel = "1", IdentDetaljer(
+                    ),
+                    IdentDetaljer(
                         ident = AktorId.of("3333333333333"),
                         historisk = true,
                         gruppe = Gruppe.AKTORID
-                    )
-                ),
-                PersonMedIdenter(
-                    personNokkel = "1", IdentDetaljer(
+                    ),
+                    IdentDetaljer(
                         ident = Fnr.of("44444444444"),
                         historisk = false,
                         gruppe = Gruppe.FOLKEREGISTERIDENT
-                    )
-                ),
-                PersonMedIdenter(
-                    personNokkel = "1", IdentDetaljer(
+                    ),
+                    IdentDetaljer(
                         ident = Fnr.of("33333333333"),
                         historisk = true,
                         gruppe = Gruppe.FOLKEREGISTERIDENT
                     )
                 )
             )
+
 
             return Stream.of(
                 Arguments.of(
@@ -378,11 +374,11 @@ class BrukerIdenterServiceTest(
                 ),
                 Arguments.of(
                     ConsumerRecord("pdl.aktor-v2", 0, 1, aktor2.first.get(), aktor2.second),
-                    personIdenter2s
+                    personIdenter2
                 ),
                 Arguments.of(
                     ConsumerRecord("pdl.aktor-v2", 0, 2, aktor3.first.get(), aktor3.second),
-                    personIdenter3s
+                    personIdenter3
                 ),
             )
         }
