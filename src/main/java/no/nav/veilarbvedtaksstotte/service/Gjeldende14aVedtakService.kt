@@ -41,10 +41,6 @@ class Gjeldende14aVedtakService (
             siste14aVedtakForBruker: Siste14aVedtak,
             startDatoInnevarendeOppfolgingsperiode: ZonedDateTime
         ): Boolean {
-            if(siste14aVedtakForBruker == null) {
-                return false
-            }
-
             // 2025-02-18
             // Vi har oppdaget at vedtak fattet i Arena får "fattetDato" lik midnatt den dagen vedtaket ble fattet.
             // Derfor har vi valgt å innfør en "grace periode" på 4 døgn. Dvs. dersom vedtaket ble fattet etter
