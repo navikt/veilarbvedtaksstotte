@@ -41,7 +41,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
-import no.nav.veilarbvedtaksstotte.domain.Målform;
+import no.nav.veilarbvedtaksstotte.domain.Malform;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.Instant;
@@ -267,8 +267,8 @@ public class ClientTestConfig {
 
             @NotNull
             @Override
-            public Målform hentMålform(@NotNull Fnr fnr) {
-                return Målform.NB;
+            public Malform hentMalform(@NotNull Fnr fnr) {
+                return Malform.NB;
             }
 
             @Override

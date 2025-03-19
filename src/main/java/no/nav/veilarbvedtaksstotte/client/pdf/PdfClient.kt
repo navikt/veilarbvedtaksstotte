@@ -7,7 +7,7 @@ import no.nav.veilarbvedtaksstotte.client.norg2.EnhetPostadresse
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetPostboksadresse
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
-import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 
 interface PdfClient : HealthCheck {
@@ -24,7 +24,7 @@ interface PdfClient : HealthCheck {
         val kontaktEnhetNavn: String,
         val kontaktTelefonnummer: String,
         val dato: String,
-        val malform: Målform,
+        val malform: Malform,
         val begrunnelse: List<String>,
         val kilder: List<String>,
         val mottaker: Mottaker,
