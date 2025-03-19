@@ -45,7 +45,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
@@ -62,7 +62,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
     @Test
     fun `vedtak er historisk dersom oppfolgingsperiode er avsluttet`() {
         `when`(sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(null)
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
@@ -85,7 +85,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(null)
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(null)
 
         val gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(TestData.TEST_FNR)
 
@@ -102,7 +102,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
@@ -127,7 +127,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
@@ -151,7 +151,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
@@ -176,7 +176,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,

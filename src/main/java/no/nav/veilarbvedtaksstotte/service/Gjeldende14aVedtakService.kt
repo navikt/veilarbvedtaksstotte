@@ -22,7 +22,7 @@ class Gjeldende14aVedtakService (
     fun hentGjeldende14aVedtak(brukerIdent: EksternBrukerId): Gjeldende14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(brukerIdent)
         val innevarendeoppfolgingsperiode = sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(identer.aktorId) ?: return null
-        val siste14aVedtak = siste14aVedtakService.siste14aVedtak(brukerIdent) ?: return null
+        val siste14aVedtak = siste14aVedtakService.hentSiste14aVedtak(brukerIdent) ?: return null
 
         val erGjeldende: Boolean = sjekkOmVedtakErGjeldende(siste14aVedtak, innevarendeoppfolgingsperiode.startdato)
 

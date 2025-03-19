@@ -31,15 +31,37 @@ class Siste14aVedtakService(
 
     val log: Logger = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
 
-    fun siste14aVedtak(eksternBrukerId: EksternBrukerId): Siste14aVedtak? {
+    fun hentSiste14aVedtak(eksternBrukerId: EksternBrukerId): Siste14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(eksternBrukerId)
         return hentSiste14aVedtakMedGrunnlag(identer).siste14aVedtak
     }
 
-    private data class Siste14aVedtakMedGrunnlag(
-        val siste14aVedtak: Siste14aVedtak?,
-        val arenaVedtak: List<ArenaVedtak>
-    )
+    fun behandleEndringFraArena(arenaVedtak: ArenaVedtak) {
+        // Feilhåndtering her skjer indirekte via feilhåndtering i Kafka-konsument, slik at meldinger vil bli behandlet
+        // på nytt ved feil. Derfor gjøres idempotent oppdatering/lagring under i samme transaksjon som videre
+        // oppdateringer i `settVedtakTilHistoriskOgSendSiste14aVedtakPaKafka`, slik at `harOppdatertVedtakFraArena`
+        // er riktig selv ved ved retries i feilhåndteringen til Kafka-konsumenten.
+        transactor.executeWithoutResult {
+            // Idempotent oppdatering/lagring av vedtak fra Arena
+            val vedtakFraMeldingBleLagret = arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
+
+            // Oppdateringer som følger kunne vært gjort uavhengig av idempotent oppdatering/lagring over, og kunne
+            // blitt utført uavhengig f.eks. i en scheduled task. Ved å sjekke om `arenaVedtak` har ført til en
+            // oppdatering over, unngår man å behandle gamle meldinger ved ny last på topic.
+            if (vedtakFraMeldingBleLagret) {
+                publiserEndringer(arenaVedtak)
+            }
+        }
+    }
+
+    fun republiserKafkaSiste14aVedtak(eksernBrukerId: EksternBrukerId) {
+        val identer = hentIdenterMedDevSjekk(eksernBrukerId) ?: return // Prodlik q1 data er ikke tilgjengelig i dev
+
+        val (siste14aVedtak) = hentSiste14aVedtakMedGrunnlag(identer)
+        val fraArena = siste14aVedtak?.fraArena ?: false
+        kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
+        log.info("Siste 14a vedtak republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte")
+    }
 
     private fun hentSiste14aVedtakMedGrunnlag(
         identer: BrukerIdenter
@@ -88,24 +110,6 @@ class Siste14aVedtakService(
 
     private fun finnNyeste(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {
         return arenaVedtakListe.stream().max(Comparator.comparing(ArenaVedtak::fraDato)).orElse(null)
-    }
-
-    fun behandleEndringFraArena(arenaVedtak: ArenaVedtak) {
-        // Feilhåndtering her skjer indirekte via feilhåndtering i Kafka-konsument, slik at meldinger vil bli behandlet
-        // på nytt ved feil. Derfor gjøres idempotent oppdatering/lagring under i samme transaksjon som videre
-        // oppdateringer i `settVedtakTilHistoriskOgSendSiste14aVedtakPaKafka`, slik at `harOppdatertVedtakFraArena`
-        // er riktig selv ved ved retries i feilhåndteringen til Kafka-konsumenten.
-        transactor.executeWithoutResult {
-            // Idempotent oppdatering/lagring av vedtak fra Arena
-            val vedtakFraMeldingBleLagret = arenaVedtakService.behandleVedtakFraArena(arenaVedtak)
-
-            // Oppdateringer som følger kunne vært gjort uavhengig av idempotent oppdatering/lagring over, og kunne
-            // blitt utført uavhengig f.eks. i en scheduled task. Ved å sjekke om `arenaVedtak` har ført til en
-            // oppdatering over, unngår man å behandle gamle meldinger ved ny last på topic.
-            if (vedtakFraMeldingBleLagret) {
-                publiserEndringer(arenaVedtak)
-            }
-        }
     }
 
     private fun publiserEndringer(arenaVedtak: ArenaVedtak) {
@@ -194,15 +198,6 @@ class Siste14aVedtakService(
         }
     }
 
-    fun republiserKafkaSiste14aVedtak(eksernBrukerId: EksternBrukerId) {
-        val identer = hentIdenterMedDevSjekk(eksernBrukerId) ?: return // Prodlik q1 data er ikke tilgjengelig i dev
-
-        val (siste14aVedtak) = hentSiste14aVedtakMedGrunnlag(identer)
-        val fraArena = siste14aVedtak?.fraArena ?: false
-        kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
-        log.info("Siste 14a vedtak republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte")
-    }
-
     private fun hentIdenterMedDevSjekk(brukerId: EksternBrukerId): BrukerIdenter? {
         return try {
             aktorOppslagClient.hentIdenter(brukerId)
@@ -213,4 +208,10 @@ class Siste14aVedtakService(
             } else throw e
         }
     }
+
+    private data class Siste14aVedtakMedGrunnlag(
+        val siste14aVedtak: Siste14aVedtak?,
+        val arenaVedtak: List<ArenaVedtak>
+    )
 }
+
