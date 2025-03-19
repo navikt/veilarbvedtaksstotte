@@ -10,7 +10,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
-import no.nav.veilarbvedtaksstotte.service.Gjeldende14aVedtakService.Companion.sjekkOmVedtakErGjeldende
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -167,7 +166,7 @@ class Siste14aVedtakService(
             return false
         }
 
-        return sjekkOmVedtakErGjeldende(
+        return Gjeldende14aVedtakService.sjekkOmVedtakErGjeldende(
             siste14aVedtakMedGrunnlag.siste14aVedtak,
             innevaerendeOppfolgingsperiode.startdato
         )
@@ -185,7 +184,7 @@ class Siste14aVedtakService(
 
         // Vi må hente fra `siste14aVedtakMedGrunnlag.arenaVedtak` siden `siste14aVedtakMedGrunnlag.siste14aVedtak`
         // ikke inneholder `hendelseId` som vi trenger å sjekke på.
-        val nyesteArenaVedtak = finnNyeste(siste14aVedtakMedGrunnlag.arenaVedtak)
+        val nyesteArenaVedtak: ArenaVedtak? = finnNyeste(siste14aVedtakMedGrunnlag.arenaVedtak)
 
         return nyesteArenaVedtak?.hendelseId == vedtakSomSkalSjekkes.hendelseId
     }
