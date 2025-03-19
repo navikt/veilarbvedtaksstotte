@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service;
 
-import io.getunleash.DefaultUnleash;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime;
-import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +28,6 @@ public class VedtakHendelserService {
     private final VeilederService veilederService;
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
-
-    private final DefaultUnleash unleashService;
 
     public void utkastOpprettet(Vedtak vedtak) {
         Veileder veileder = veilederService.hentVeileder(vedtak.getVeilederIdent());
@@ -124,9 +120,7 @@ public class VedtakHendelserService {
                         toZonedDateTime(vedtak.getVedtakFattet()),
                         false));
 
-        if(unleashService.isEnabled(PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA)) {
-            kafkaProducerService.sendGjeldende14aVedtak(new AktorId(vedtak.getAktorId()), Gjeldende14aVedtakKafkaDTOKt.toGjeldende14aVedtakKafkaDTO(vedtak));
-        }
+        kafkaProducerService.sendGjeldende14aVedtak(new AktorId(vedtak.getAktorId()), Gjeldende14aVedtakKafkaDTOKt.toGjeldende14aVedtakKafkaDTO(vedtak));
     }
 
     private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {

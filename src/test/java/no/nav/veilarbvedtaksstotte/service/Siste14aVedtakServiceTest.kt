@@ -529,7 +529,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     fun assertSiste14aVedtak(identer: BrukerIdenter, forventet: Siste14aVedtak?) {
         assertEquals(
             forventet,
-            siste14aVedtakService.siste14aVedtak(identer.fnr),
+            siste14aVedtakService.hentSiste14aVedtak(identer.fnr),
             "Siste 14a vedtak"
         )
     }

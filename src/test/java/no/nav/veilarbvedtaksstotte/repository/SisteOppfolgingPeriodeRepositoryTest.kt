@@ -56,7 +56,7 @@ class SisteOppfolgingPeriodeRepositoryTest : DatabaseTest() {
         sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(oppfolgingsperiodeFraKafka)
 
         // when
-        val innevarendeOppfolgingsperiode = sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(aktorId)
+        val innevarendeOppfolgingsperiode = sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(aktorId)
 
         // then
         val forventetOppfolgingsperiode = SisteOppfolgingsperiode(
@@ -87,7 +87,7 @@ class SisteOppfolgingPeriodeRepositoryTest : DatabaseTest() {
         sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(oppfolgingsperiodeFraKafka)
 
         // when
-        val innevarendeOppfolgingsperiode = sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(aktorId)
+        val innevarendeOppfolgingsperiode = sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(aktorId)
 
         // then
         assertNull(innevarendeOppfolgingsperiode)

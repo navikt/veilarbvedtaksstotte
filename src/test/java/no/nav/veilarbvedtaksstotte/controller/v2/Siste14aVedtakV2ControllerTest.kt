@@ -43,7 +43,7 @@ class Siste14aVedtakV2ControllerTest {
     @BeforeEach
     fun beforeEach() {
         every {
-            siste14aVedtakService.siste14aVedtak(fnr)
+            siste14aVedtakService.hentSiste14aVedtak(fnr)
         } returns null
     }
 

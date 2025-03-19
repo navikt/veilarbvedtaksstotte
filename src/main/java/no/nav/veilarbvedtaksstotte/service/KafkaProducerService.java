@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage;
 import no.nav.common.types.identer.AktorId;
@@ -13,17 +14,23 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Service;
 
 import static no.nav.common.kafka.producer.util.ProducerUtils.serializeJsonRecord;
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA;
 
 @Slf4j
 @Service
 public class KafkaProducerService {
     private final KafkaProducerRecordStorage producerRecordStorage;
     private final KafkaProperties kafkaProperties;
+    private final DefaultUnleash unleashService;
 
-    public KafkaProducerService(KafkaProducerRecordStorage producerRecordStorage,
-                                KafkaProperties kafkaProperties) {
+    public KafkaProducerService(
+            KafkaProducerRecordStorage producerRecordStorage,
+            KafkaProperties kafkaProperties,
+            DefaultUnleash unleashService
+    ) {
         this.producerRecordStorage = producerRecordStorage;
         this.kafkaProperties = kafkaProperties;
+        this.unleashService = unleashService;
     }
 
     public void sendVedtakStatusEndring(KafkaVedtakStatusEndring vedtakStatusEndring) {
@@ -60,14 +67,16 @@ public class KafkaProducerService {
     }
 
     public void sendGjeldende14aVedtak(AktorId key, Gjeldende14aVedtakKafkaDTO value) {
-        ProducerRecord<byte[], byte[]> producerRecord = serializeJsonRecord(
-                new ProducerRecord<>(
-                        kafkaProperties.getGjeldende14aVedtakTopic(),
-                        key.get(),
-                        value
-                )
-        );
+        if (unleashService.isEnabled(PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA)) {
+            ProducerRecord<byte[], byte[]> producerRecord = serializeJsonRecord(
+                    new ProducerRecord<>(
+                            kafkaProperties.getGjeldende14aVedtakTopic(),
+                            key.get(),
+                            value
+                    )
+            );
 
-        producerRecordStorage.store(producerRecord);
+            producerRecordStorage.store(producerRecord);
+        }
     }
 }

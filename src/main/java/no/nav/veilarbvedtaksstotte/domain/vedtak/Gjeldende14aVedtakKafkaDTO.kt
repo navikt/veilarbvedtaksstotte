@@ -15,3 +15,11 @@ fun Vedtak.toGjeldende14aVedtakKafkaDTO(): Gjeldende14aVedtakKafkaDTO {
         hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(hovedmal)
     )
 }
+
+fun Siste14aVedtak.toGjeldende14aVedtakKafkaDTO(): Gjeldende14aVedtakKafkaDTO {
+    return Gjeldende14aVedtakKafkaDTO(
+        aktorId = aktorId,
+        innsatsgruppe = innsatsgruppe.mapTilInnsatsgruppeV2(),
+        hovedmal = hovedmal
+    )
+}

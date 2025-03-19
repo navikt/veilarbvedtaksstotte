@@ -49,7 +49,7 @@ class Siste14aVedtakV2Controller(
     fun hentSiste14aVedtak(@RequestBody siste14aVedtakRequest: Siste14aVedtakRequest): Siste14aVedtakDTO? {
         sjekkLesetilgang(siste14aVedtakRequest.fnr)
 
-        return siste14aVedtakService.siste14aVedtak(siste14aVedtakRequest.fnr)
+        return siste14aVedtakService.hentSiste14aVedtak(siste14aVedtakRequest.fnr)
             ?.let { Siste14aVedtakDTO.fraSiste14aVedtak(it) }
     }
 
