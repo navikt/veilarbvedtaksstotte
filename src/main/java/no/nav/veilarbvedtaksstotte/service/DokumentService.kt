@@ -17,7 +17,7 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.UTENLANDSKPOSTADRESSE
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
-import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType
@@ -208,7 +208,7 @@ class DokumentService(
 
     data class BrevdataOppslag(
         val enhetKontaktinformasjon: EnhetKontaktinformasjon,
-        val målform: Målform,
+        val malform: Malform,
         val veilederNavn: String,
         val enhet: Enhet,
         val kontaktEnhet: Enhet
@@ -254,7 +254,7 @@ class DokumentService(
                 kontaktEnhetNavn = kontaktEnhetNavn,
                 kontaktTelefonnummer = telefonnummer,
                 dato = dato,
-                malform = brevdataOppslag.målform,
+                malform = brevdataOppslag.malform,
                 mottaker = mottaker,
                 postadresse = postadresse,
                 begrunnelse = begrunnelseAvsnitt,

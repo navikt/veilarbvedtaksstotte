@@ -1,5 +1,5 @@
 package no.nav.veilarbvedtaksstotte.domain
 
-enum class Målform {
+enum class Malform {
     NN, NB
 }

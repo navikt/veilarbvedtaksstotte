@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
-import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.Malform
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -32,7 +32,7 @@ class PdfClientImplTest {
             kontaktEnhetNavn = "Nav kontor kontakt",
             kontaktTelefonnummer = "00000000",
             dato = "20. januar 2020",
-            malform = Målform.NB,
+            malform = Malform.NB,
             begrunnelse = listOf("Avsnitt 1", "Avsnitt 2"),
             kilder = listOf("Kilde 1", "Kilde 2"),
             mottaker = PdfClient.Mottaker(

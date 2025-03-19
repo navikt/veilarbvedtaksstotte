@@ -9,7 +9,7 @@ import no.nav.common.utils.AuthUtils.bearerToken
 import no.nav.common.utils.UrlUtils
 import no.nav.veilarbvedtaksstotte.client.person.dto.*
 import no.nav.veilarbvedtaksstotte.client.person.request.PersonRequest
-import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
@@ -64,7 +64,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         }
     }
 
-    override fun hentMålform(fnr: Fnr): Målform {
+    override fun hentMalform(fnr: Fnr): Malform {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-malform"))
             .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
@@ -79,7 +79,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
                 RestUtils.throwIfNotSuccessful(response)
                 return response
                     .deserializeJsonOrThrow<MalformRespons>()
-                    .tilMålform()
+                    .tilMalform()
             }
         } catch (e: Exception) {
             throw ResponseStatusException(
@@ -116,8 +116,8 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
     }
 
     data class MalformRespons(val malform: String?) {
-        fun tilMålform(): Målform {
-            return Målform.values().find { it.name == malform?.uppercase() } ?: Målform.NB
+        fun tilMalform(): Malform {
+            return Malform.values().find { it.name == malform?.uppercase() } ?: Malform.NB
         }
     }
 

@@ -40,12 +40,11 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder
-import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
@@ -79,7 +78,7 @@ class DokumentServiceTest {
     lateinit var oppslagArbeidssoekerregisteretClientImpl: OppslagArbeidssoekerregisteretClientImpl
     lateinit var arbeidssoekerRegisteretService: ArbeidssoekerRegisteretService
 
-    val målform = Målform.NB
+    val malform = Malform.NB
     val veilederNavn = "Navn Veileder"
     val enhetNavn = "Navn Enhet"
     val kontaktEnhetNavn = "Navn Kontaktenhet"
@@ -92,7 +91,7 @@ class DokumentServiceTest {
     val kontaktEnhet = Enhet().setEnhetNr(kontaktEnhetId.get()).setNavn(kontaktEnhetNavn)
     val brevdataOppslag = DokumentService.BrevdataOppslag(
         enhetKontaktinformasjon = enhetKontaktinformasjon,
-        målform = målform,
+        malform = malform,
         veilederNavn = veilederNavn,
         enhet = enhet,
         kontaktEnhet = kontaktEnhet
@@ -268,7 +267,7 @@ class DokumentServiceTest {
         givenWiremockOkJsonResponseForPost(
             "/api/v3/person/hent-malform",
             equalToJson("{\"fnr\":\"123\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"),
-            VeilarbpersonClientImpl.MalformRespons(målform.name).toJson()
+            VeilarbpersonClientImpl.MalformRespons(malform.name).toJson()
         )
 
         givenWiremockOkJsonResponse(

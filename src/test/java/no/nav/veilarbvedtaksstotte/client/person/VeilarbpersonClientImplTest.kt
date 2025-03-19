@@ -8,7 +8,7 @@ import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
-import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
@@ -187,8 +187,8 @@ class VeilarbpersonClientImplTest {
             jsonResponse
         )
 
-        val respons = veilarbpersonClient.hentMålform(fnr)
+        val respons = veilarbpersonClient.hentMalform(fnr)
 
-        assertEquals(Målform.NN, respons)
+        assertEquals(Malform.NN, respons)
     }
 }
