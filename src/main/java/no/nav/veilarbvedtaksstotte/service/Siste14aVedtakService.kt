@@ -111,45 +111,70 @@ class Siste14aVedtakService(
             // blitt utført uavhengig f.eks. i en scheduled task. Ved å sjekke om `arenaVedtak` har ført til en
             // oppdatering over, unngår man å behandle gamle meldinger ved ny last på topic.
             if (vedtakFraMeldingBleLagret) {
-                val identer = hentIdenterMedDevSjekk(arenaVedtak.fnr)
-                    ?: return@executeWithoutResult // Prodlik q1 data er ikke tilgjengelig i dev
-
-                val siste14aVedtakMedGrunnlag = hentSiste14aVedtakMedGrunnlag(identer)
-                val mottattArenaVedtakErNyesteVedtak =
-                    sjekkOmVedtakErDetNyeste(arenaVedtak, siste14aVedtakMedGrunnlag)
-
-                if (mottattArenaVedtakErNyesteVedtak) {
-                    settEksisterendeGjeldende14aVedtakTilHistorisk(identer)
-                    kafkaProducerService.sendSiste14aVedtak(siste14aVedtakMedGrunnlag.siste14aVedtak)
-
-                    val innevaerendeOppfolgingsperiode =
-                        sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(identer.aktorId)
-                    val mottattArenaVedtakErGjeldendeVedtak = if (
-                        siste14aVedtakMedGrunnlag.siste14aVedtak != null &&
-                        innevaerendeOppfolgingsperiode != null
-                    ) {
-                        sjekkOmVedtakErGjeldende(
-                            siste14aVedtakMedGrunnlag.siste14aVedtak,
-                            innevaerendeOppfolgingsperiode.startdato
-                        )
-                    } else {
-                        false
-                    }
-                    if (mottattArenaVedtakErGjeldendeVedtak) {
-                        kafkaProducerService.sendGjeldende14aVedtak(
-                            identer.aktorId,
-                            siste14aVedtakMedGrunnlag.siste14aVedtak?.toGjeldende14aVedtakKafkaDTO()
-                        )
-                    }
-                } else {
-                    log.info(
-                        "Publiserer ikke § 14 a-vedtak fra Arena videre på {}. " +
-                                "Årsak: det finnes vedtak (enten fra Arena eller ny løsning) for personen som er nyere.",
-                        kafkaProperties.siste14aVedtakTopic
-                    )
-                }
+                publiserEndringer(arenaVedtak)
             }
         }
+    }
+
+    private fun publiserEndringer(arenaVedtak: ArenaVedtak) {
+        val identer = hentIdenterMedDevSjekk(arenaVedtak.fnr)
+            ?: return // Prodlik q1 data er ikke tilgjengelig i dev
+
+        val siste14aVedtakMedGrunnlag = hentSiste14aVedtakMedGrunnlag(identer)
+
+        // `arenaVedtak` representerer en nylig mottatt melding om et § 14 a-vedtak fattet i Arena.
+        // Dersom vi er inne i denne funksjonen betyr det implisitt at `arenaVedtak` har blitt lagret og overskrevet
+        // et eventuelt eksisterende Arena-vedtak for den samme personen. Nå trenger vi å finne ut om det nylig lagrede
+        // Arena-vedtaket også er det siste § 14 a-vedtaket for personen (av alle vedtak fra ny løsning og Arena).
+        // Dersom det er det så må vi også publisere melding på siste § 14 a-vedtak topicet.
+        val erMottattArenaVedtakNyesteVedtak =
+            sjekkOmVedtakErDetNyeste(
+                vedtakSomSkalSjekkes = arenaVedtak,
+                siste14aVedtakMedGrunnlag = siste14aVedtakMedGrunnlag
+            )
+        val erMottattArenaVedtakGjeldende =
+            sjekkOmVedtakErGjeldende(identer = identer, siste14aVedtakMedGrunnlag = siste14aVedtakMedGrunnlag)
+
+        if (erMottattArenaVedtakNyesteVedtak) {
+            settEksisterendeGjeldende14aVedtakTilHistorisk(identer)
+            kafkaProducerService.sendSiste14aVedtak(siste14aVedtakMedGrunnlag.siste14aVedtak)
+            log.info("Videresendte § 14 a-vedtak fra Arena på {}.", kafkaProperties.siste14aVedtakTopic)
+        } else {
+            log.info(
+                "Videresender ikke § 14 a-vedtak fra Arena på {}. Årsak: det finnes vedtak for personen som er nyere.",
+                kafkaProperties.siste14aVedtakTopic
+            )
+        }
+
+        if (erMottattArenaVedtakGjeldende) {
+            kafkaProducerService.sendGjeldende14aVedtak(
+                identer.aktorId,
+                siste14aVedtakMedGrunnlag.siste14aVedtak?.toGjeldende14aVedtakKafkaDTO()
+            )
+            log.info("Videresendte § 14 a-vedtak fra Arena på {}.", kafkaProperties.gjeldende14aVedtakTopic)
+        } else {
+            log.info(
+                "Videresender ikke § 14 a-vedtak fra Arena på {}. Årsak: vedtaket er ikke gjeldende.",
+                kafkaProperties.gjeldende14aVedtakTopic
+            )
+        }
+    }
+
+    private fun sjekkOmVedtakErGjeldende(
+        identer: BrukerIdenter,
+        siste14aVedtakMedGrunnlag: Siste14aVedtakMedGrunnlag
+    ): Boolean {
+        val innevaerendeOppfolgingsperiode =
+            sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(identer.aktorId)
+
+        if (siste14aVedtakMedGrunnlag.siste14aVedtak == null || innevaerendeOppfolgingsperiode == null) {
+            return false
+        }
+
+        return sjekkOmVedtakErGjeldende(
+            siste14aVedtakMedGrunnlag.siste14aVedtak,
+            innevaerendeOppfolgingsperiode.startdato
+        )
     }
 
     private fun sjekkOmVedtakErDetNyeste(
@@ -164,26 +189,17 @@ class Siste14aVedtakService(
 
         val sisteFraArena = finnNyeste(siste14aVedtakMedGrunnlag.arenaVedtak)
 
-        // `arenaVedtak` representerer en nylig mottatt melding om et § 14 a-vedtak fattet i Arena.
-        // Dersom vi er inne i denne funksjonen betyr det implisitt at `arenaVedtak` har blitt lagret og overskrevet
-        // et eventuelt eksisterende Arena-vedtak for den samme personen. Nå trenger vi å finne ut om det nylig lagrede
-        // Arena-vedtaket også er det siste § 14 a-vedtaket for personen (av alle vedtak fra ny løsning og Arena).
-        // Dersom det er det så må vi også publisere melding på siste § 14 a-vedtak topicet.
         return sisteFraArena?.hendelseId == vedtakSomSkalSjekkes.hendelseId
     }
 
     private fun settEksisterendeGjeldende14aVedtakTilHistorisk(identer: BrukerIdenter) {
         val siste14aVedtakNyLosning: Vedtak? = vedtakRepository.hentGjeldendeVedtak(identer.aktorId.get())
         if (siste14aVedtakNyLosning !== null) {
-            setGjeldendeVedtakTilHistorisk(siste14aVedtakNyLosning.id)
+            log.info(
+                "Setter vedtak med vedtakId=${siste14aVedtakNyLosning.id} fra vedtaksstøtte til historisk pga. nyere vedtak fra Arena"
+            )
+            vedtakRepository.settGjeldendeVedtakTilHistorisk(siste14aVedtakNyLosning.id)
         }
-    }
-
-    private fun setGjeldendeVedtakTilHistorisk(vedtakId: Long) {
-        log.info(
-            "Setter vedtak med vedtakId=${vedtakId} fra vedtaksstøtte til historisk pga. nyere vedtak fra Arena"
-        )
-        vedtakRepository.settGjeldendeVedtakTilHistorisk(vedtakId)
     }
 
     fun republiserKafkaSiste14aVedtak(eksernBrukerId: EksternBrukerId) {
