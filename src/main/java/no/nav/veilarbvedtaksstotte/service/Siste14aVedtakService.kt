@@ -177,15 +177,17 @@ class Siste14aVedtakService(
         vedtakSomSkalSjekkes: ArenaVedtak,
         siste14aVedtakMedGrunnlag: Siste14aVedtakMedGrunnlag
     ): Boolean {
-        val nyesteVedtakErFraArena = siste14aVedtakMedGrunnlag.siste14aVedtak?.fraArena ?: false
+        val erNyesteVedtakFraArena = siste14aVedtakMedGrunnlag.siste14aVedtak?.fraArena ?: false
 
-        if (!nyesteVedtakErFraArena) {
+        if (!erNyesteVedtakFraArena) {
             return false
         }
 
-        val sisteFraArena = finnNyeste(siste14aVedtakMedGrunnlag.arenaVedtak)
+        // Vi må hente fra `siste14aVedtakMedGrunnlag.arenaVedtak` siden `siste14aVedtakMedGrunnlag.siste14aVedtak`
+        // ikke inneholder `hendelseId` som vi trenger å sjekke på.
+        val nyesteArenaVedtak = finnNyeste(siste14aVedtakMedGrunnlag.arenaVedtak)
 
-        return sisteFraArena?.hendelseId == vedtakSomSkalSjekkes.hendelseId
+        return nyesteArenaVedtak?.hendelseId == vedtakSomSkalSjekkes.hendelseId
     }
 
     private fun settEksisterendeGjeldende14aVedtakTilHistorisk(identer: BrukerIdenter) {
