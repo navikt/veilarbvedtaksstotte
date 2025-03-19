@@ -52,6 +52,8 @@ public class KafkaConsumerServiceTest {
 
     private final BrukerIdenterService brukerIdenterService = mock(BrukerIdenterService.class);
 
+    private final KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
+
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             siste14aVedtakService,
             vedtaksstotteRepository,
@@ -60,17 +62,18 @@ public class KafkaConsumerServiceTest {
             norg2Client,
             aktorOppslagClient,
             veilarbarenaClient,
-            brukerIdenterService
+            brukerIdenterService,
+            kafkaProducerService
     );
 
     @Test
     public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {
         LocalDateTime nowMinus10Days = LocalDateTime.now().minusDays(10);
         ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
-        when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(nowMinus10Days));
+        when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(nowMinus10Days).setAktorId(TEST_AKTOR_ID));
 
         kafkaConsumerService.behandleSisteOppfolgingsperiode(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaSisteOppfolgingsperiode(UUID.randomUUID(), TEST_AKTOR_ID, ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault()), oppfolgingAvsluttetDato))
+                new ConsumerRecord<>("", 0, 0, TEST_AKTOR_ID, new KafkaSisteOppfolgingsperiode(UUID.randomUUID(), TEST_AKTOR_ID, ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault()), oppfolgingAvsluttetDato))
         );
 
         verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(anyLong());

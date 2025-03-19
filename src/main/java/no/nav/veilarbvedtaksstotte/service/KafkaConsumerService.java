@@ -51,8 +51,9 @@ public class KafkaConsumerService {
 
     private final BrukerIdenterService brukerIdenterService;
 
-    private static final String MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY = "kafka_consumer_correlation_id";
     private final KafkaProducerService kafkaProducerService;
+
+    private static final String MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY = "kafka_consumer_correlation_id";
 
     @Autowired
     public KafkaConsumerService(
@@ -73,6 +74,7 @@ public class KafkaConsumerService {
         this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbarenaClient = veilarbarenaClient;
         this.brukerIdenterService = brukerIdenterService;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     public <K, V> void behandleKafkaMelding(ConsumerRecord<K, V> melding, KafkaMeldingBehandler<K, V> meldingBehandler) {
