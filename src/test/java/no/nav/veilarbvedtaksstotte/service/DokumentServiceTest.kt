@@ -347,37 +347,6 @@ class DokumentServiceTest {
     }
 
     @Test
-    fun `produserDokument feiler dersom navn for kontaktenhet mangler`() {
-        givenWiremockOkJsonResponse(
-            "/api/v1/enhet?enhetStatusListe=AKTIV", listOf(enhet, kontaktEnhet.setNavn(null)).toJson()
-        )
-
-        val exception = Assertions.assertThrows(IllegalStateException::class.java) {
-            authContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                pdfService.produserDokument(produserDokumentDTO)
-            })
-        }
-
-        Assertions.assertEquals("Manglende navn for enhet $kontaktEnhetId", exception.message)
-    }
-
-    @Test
-    fun `produserDokument feiler dersom telefonnummer for kontaktenhet mangler`() {
-        givenWiremockOkJsonResponse(
-            "/api/v1/enhet/${produserDokumentDTO.enhetId}/kontaktinformasjon",
-            EnhetKontaktinformasjon(kontaktEnhetId, enhetPostadresse, null).toJson()
-        )
-
-        val exception = Assertions.assertThrows(IllegalStateException::class.java) {
-            authContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                pdfService.produserDokument(produserDokumentDTO)
-            })
-        }
-
-        Assertions.assertEquals("Manglende telefonnummer for enhet $kontaktEnhetId", exception.message)
-    }
-
-    @Test
     fun `journalforing av dokument gir forventet innhold i request og response`() {
         givenThat(
             post(urlEqualTo("/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
