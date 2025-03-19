@@ -48,7 +48,7 @@ class Siste14aVedtakService(
             // blitt utført uavhengig f.eks. i en scheduled task. Ved å sjekke om `arenaVedtak` har ført til en
             // oppdatering over, unngår man å behandle gamle meldinger ved ny last på topic.
             if (vedtakFraMeldingBleLagret) {
-                publiserEndringer(arenaVedtak)
+                publiserNodvendigeEndringer(arenaVedtak)
             }
         }
     }
@@ -111,7 +111,7 @@ class Siste14aVedtakService(
         return arenaVedtakListe.stream().max(Comparator.comparing(ArenaVedtak::fraDato)).orElse(null)
     }
 
-    private fun publiserEndringer(arenaVedtak: ArenaVedtak) {
+    private fun publiserNodvendigeEndringer(arenaVedtak: ArenaVedtak) {
         val identer = hentIdenterMedDevSjekk(arenaVedtak.fnr)
             ?: return // Prodlik q1 data er ikke tilgjengelig i dev
 
