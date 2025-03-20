@@ -109,15 +109,7 @@ class DokumentServiceTest {
         veilederIdent = "123123",
         begrunnelse = "begrunnelse",
         opplysninger = listOf("Kilde1", "kilde2"),
-        utkast = false,
-        adresse = ProduserDokumentDTO.AdresseDTO(
-            adresselinje1 = "Adresselinje 1",
-            adresselinje2 = "Adresselinje 2",
-            adresselinje3 = "Adresselinje 3",
-            postnummer = "0000",
-            poststed = "Sted",
-            land = "Sverige"
-        )
+        utkast = false
     )
 
     val eksternJournalpostReferanse = UUID.randomUUID()
@@ -247,7 +239,6 @@ class DokumentServiceTest {
         )
 
         dokumentService = DokumentService(
-            regoppslagClient = regoppslagClient,
             veilarboppfolgingClient = veilarboppfolgingClient,
             veilarbpersonClient = veilarbpersonClient,
             dokarkivClient = dokarkivClient,

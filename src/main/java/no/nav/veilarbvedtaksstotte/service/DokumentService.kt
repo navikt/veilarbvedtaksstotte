@@ -11,9 +11,6 @@ import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
-import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
-import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO
-import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.UTENLANDSKPOSTADRESSE
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
 import no.nav.veilarbvedtaksstotte.domain.Malform
@@ -32,7 +29,6 @@ import kotlin.jvm.optionals.getOrElse
 
 @Service
 class DokumentService(
-    val regoppslagClient: RegoppslagClient,
     val veilarboppfolgingClient: VeilarboppfolgingClient,
     val veilarbpersonClient: VeilarbpersonClient,
     val dokarkivClient: DokarkivClient,
@@ -42,7 +38,6 @@ class DokumentService(
 ) {
 
     val log = LoggerFactory.getLogger(DokumentService::class.java)
-
     fun produserDokumentutkast(vedtak: Vedtak, fnr: Fnr): ByteArray {
         val produserDokumentDTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = true)
         return pdfService.produserDokument(produserDokumentDTO)
@@ -56,7 +51,7 @@ class DokumentService(
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
         val oppfolgingssak = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid)
 
-        val referanse = vedtak.getReferanse();
+        val referanse = vedtak.getReferanse()
 
         val oyeblikksbildeForVedtak = oyeblikksbildeService.hentOyeblikksbildeForVedtakJournalforing(vedtak.id)
 
@@ -178,30 +173,20 @@ class DokumentService(
     }
 
     private fun lagProduserDokumentDTO(vedtak: Vedtak, fnr: Fnr, utkast: Boolean): ProduserDokumentDTO {
-        val postadresse = regoppslagClient.hentPostadresse(
-            RegoppslagRequestDTO(
-                ident = fnr.get(), tema = "OPP"
-            )
-        )
         val malType = malTypeService.utledMalTypeFraVedtak(vedtak, fnr)
+        val personnavn = veilarbpersonClient.hentPersonNavn(fnr.toString())
+        val navn = personnavn.fornavn + " " + personnavn.etternavn
+
 
         return ProduserDokumentDTO(
             brukerFnr = fnr,
-            navn = postadresse.navn,
+            navn = navn,
             malType = malType,
             enhetId = EnhetId.of(vedtak.oppfolgingsenhetId),
             veilederIdent = vedtak.veilederIdent,
             begrunnelse = vedtak.begrunnelse,
             opplysninger = vedtak.opplysninger,
             utkast = utkast,
-            adresse = ProduserDokumentDTO.AdresseDTO(
-                adresselinje1 = postadresse.adresse.adresselinje1,
-                adresselinje2 = postadresse.adresse.adresselinje2,
-                adresselinje3 = postadresse.adresse.adresselinje3,
-                postnummer = postadresse.adresse.postnummer,
-                poststed = postadresse.adresse.poststed,
-                land = if (postadresse.adresse.type == UTENLANDSKPOSTADRESSE) postadresse.adresse.land else null
-            )
         )
     }
 
