@@ -64,6 +64,7 @@ public class BeslutteroversiktController {
             }
     )
     public BrukereMedAntall startBeslutterProsess(@RequestBody BeslutteroversiktSok sokData) {
+        //TODO skal vi auditloggge her?
         return beslutteroversiktService.sokEtterBruker(sokData);
     }
 

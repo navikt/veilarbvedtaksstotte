@@ -77,6 +77,7 @@ public class MeldingController {
     )
     public List<? extends MeldingDTO> hentDialogMeldinger(@RequestParam("vedtakId") long vedtakId) {
         utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+        //TODO skal det auditlogges her?
 
         if (vedtakService.erFattet(vedtakId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);

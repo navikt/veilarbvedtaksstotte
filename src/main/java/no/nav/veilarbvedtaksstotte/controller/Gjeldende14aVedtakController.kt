@@ -75,6 +75,7 @@ class Gjeldende14aVedtakController(
             fnr = gjeldende14aVedtakRequest.fnr,
             veilederTilgangssjekk = ::sjekkVeilederTilgangTilBruker
         )
+        //TODO skal vi auditlogge her?? (sjekk at man er veileder, ikke logge dersom eksternbruker eller maskin)
         return gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)?.toGjeldende14aVedtakDto()
     }
 

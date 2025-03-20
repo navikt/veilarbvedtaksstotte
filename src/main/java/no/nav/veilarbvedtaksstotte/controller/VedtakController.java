@@ -64,7 +64,7 @@ public class VedtakController {
     )
     public ResponseEntity<byte[]> hentVedtakPdf(@PathVariable("vedtakId") long vedtakId) {
         utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
-
+        //TODO skal det auditlogges her?
         byte[] vedtakPdf = vedtakService.hentVedtakPdf(vedtakId);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev.pdf")
@@ -90,7 +90,7 @@ public class VedtakController {
     )
     public ResponseEntity<byte[]> hentVedtakOyeblikksCVPdf(@PathVariable("vedtakId") long vedtakId, @PathVariable("oyeblikksbildeType") String oyeblikksbildeInputType) {
         utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
-
+        //TODO skal det audotlogges her?
         OyeblikksbildeType oyeblikksbildeType = OyeblikksbildeType.valueOf(oyeblikksbildeInputType);
         String dokumentId = oyeblikksbildeService.hentJournalfortDokumentId(vedtakId, oyeblikksbildeType);
 
@@ -131,7 +131,7 @@ public class VedtakController {
     )
     public OyeblikksbildeCvDto hentCVOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
         utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
-
+        //TODO skal det auditlogges her?
         return oyeblikksbildeService.hentCVOyeblikksbildeForVedtak(vedtakId);
     }
 
@@ -153,7 +153,7 @@ public class VedtakController {
     )
     public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
         utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
-
+        //TODO skal det auditlogges her?
         return oyeblikksbildeService.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
     }
 
@@ -175,7 +175,7 @@ public class VedtakController {
     )
     public OyeblikksbildeArbeidssokerRegistretDto hentArbeidssokerRegistretOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
         utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
-
+        //TODO skal det auditlogges her?
         return oyeblikksbildeService.hentArbeidssokerRegistretOyeblikksbildeForVedtak(vedtakId);
     }
 
@@ -196,7 +196,7 @@ public class VedtakController {
     )
     public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
         utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
-
+        //TODO skal det auditlogges her?
         return oyeblikksbildeService.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
     }
 
@@ -226,6 +226,7 @@ public class VedtakController {
     public ResponseEntity<byte[]> hentVedtakPdfFraArena(
             @RequestParam("dokumentInfoId") String dokumentInfoId,
             @RequestParam("journalpostId") String journalpostId) {
+        //TODO Skal det auditlogges her?
         byte[] vedtakPdf = arenaVedtakService.hentVedtakPdf(dokumentInfoId, journalpostId);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev.pdf")

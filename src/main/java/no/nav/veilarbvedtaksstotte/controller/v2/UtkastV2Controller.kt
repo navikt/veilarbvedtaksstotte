@@ -38,7 +38,7 @@ class UtkastV2Controller(
     )
     fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): VedtakUtkastDTO {
         utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(utkastRequest.fnr)
-
+        //TODO skal vi auditlogge her??
         return toVedtakUtkastDTO(vedtakService.hentUtkast(utkastRequest.fnr))
     }
 

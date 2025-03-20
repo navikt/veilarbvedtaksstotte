@@ -4,6 +4,8 @@ import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import jakarta.annotation.PostConstruct
 import lombok.extern.slf4j.Slf4j
+import no.nav.common.audit_log.log.AuditLogger
+import no.nav.common.audit_log.log.AuditLoggerImpl
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.kafka.util.KafkaEnvironmentVariables
@@ -71,6 +73,11 @@ class ApplicationConfig {
         )
 
         return KafkaAvroContext(schemaRegistryConfig)
+    }
+
+    @Bean
+    fun auditLogger(): AuditLogger {
+        return AuditLoggerImpl()
     }
 
     @PostConstruct
