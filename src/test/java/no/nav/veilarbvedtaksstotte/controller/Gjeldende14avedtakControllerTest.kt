@@ -40,6 +40,9 @@ class Gjeldende14avedtakControllerTest {
     @MockkBean
     lateinit var gjeldende14aVedtakService: Gjeldende14aVedtakService
 
+    @MockkBean
+    lateinit var auditlogService: AuditlogService
+
     @Autowired
     lateinit var objectMapper: ObjectMapper
 
@@ -55,6 +58,8 @@ class Gjeldende14avedtakControllerTest {
         every {
             gjeldende14aVedtakService.hentGjeldende14aVedtak(fnr)
         } returns null
+
+        every { auditlogService.auditlog(any(), any()) } answers { }
     }
 
     @Test

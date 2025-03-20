@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService;
+import no.nav.veilarbvedtaksstotte.controller.AuditlogService;
 import no.nav.veilarbvedtaksstotte.service.*;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -34,7 +35,8 @@ import org.springframework.context.annotation.Import;
         SakStatistikkService.class,
         ArbeidssoekerRegisteretService.class,
         PdfService.class,
-        Gjeldende14aVedtakService.class
+        Gjeldende14aVedtakService.class,
+        AuditlogService.class
 })
 public class ServiceTestConfig {
 }
