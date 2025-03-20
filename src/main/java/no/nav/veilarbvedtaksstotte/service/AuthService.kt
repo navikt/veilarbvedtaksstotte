@@ -158,6 +158,10 @@ class AuthService(
         return authContextHolder.erEksternBruker()
     }
 
+    fun erInternBruker(): Boolean {
+        return authContextHolder.erInternBruker()
+    }
+
     fun harSystemTilSystemTilgang(): Boolean {
         return authContextHolder.erSystemBruker() && harAADRollerForSystemTilSystemTilgang(null)
     }
