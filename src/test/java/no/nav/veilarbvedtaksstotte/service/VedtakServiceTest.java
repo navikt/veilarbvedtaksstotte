@@ -150,7 +150,6 @@ public class VedtakServiceTest extends DatabaseTest {
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(arbeidssoekerRegistretService);
         DokumentService dokumentService = new DokumentService(
-                regoppslagClient,
                 veilarboppfolgingClient,
                 veilarbpersonClient,
                 dokarkivClient,
