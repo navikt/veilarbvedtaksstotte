@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.common.types.identer.Fnr
+import no.nav.poao_tilgang.client.TilgangType
+import no.nav.veilarbvedtaksstotte.annotations.EksterntEndepunkt
 import no.nav.veilarbvedtaksstotte.controller.dto.Siste14aVedtakDTO
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
@@ -28,6 +30,7 @@ class Siste14aVedtakV2Controller(
     val siste14aVedtakService: Siste14aVedtakService
 ) {
 
+    @EksterntEndepunkt
     @PostMapping("/hent-siste-14a-vedtak")
     @Operation(
         summary = "Hent siste 14a vedtak",
@@ -44,13 +47,13 @@ class Siste14aVedtakV2Controller(
         ]
     )
     fun hentSiste14aVedtak(@RequestBody siste14aVedtakRequest: Siste14aVedtakRequest): Siste14aVedtakDTO? {
-        sjekkTilgang(siste14aVedtakRequest.fnr)
+        sjekkLesetilgang(siste14aVedtakRequest.fnr)
 
         return siste14aVedtakService.siste14aVedtak(siste14aVedtakRequest.fnr)
             ?.let { Siste14aVedtakDTO.fraSiste14aVedtak(it) }
     }
 
-    private fun sjekkTilgang(fnr: Fnr) {
+    private fun sjekkLesetilgang(fnr: Fnr) {
         if (authService.erSystemBruker()) {
             if (!authService.harSystemTilSystemTilgangMedEkstraRolle("siste-14a-vedtak")) {
                 throw ResponseStatusException(HttpStatus.FORBIDDEN)
@@ -58,7 +61,7 @@ class Siste14aVedtakV2Controller(
         } else if (authService.erEksternBruker()) {
             authService.sjekkEksternbrukerTilgangTilBruker(fnr)
         } else {
-            authService.sjekkVeilederTilgangTilBruker(fnr)
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.LESE, fnr = fnr)
         }
     }
 }

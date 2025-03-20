@@ -7,6 +7,9 @@ import no.nav.common.client.norg2.Enhet;
 import no.nav.common.client.utils.graphql.GraphqlErrorException;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.common.utils.IdUtils;
+import no.nav.person.pdl.aktor.v2.Aktor;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
@@ -14,9 +17,11 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,25 +45,50 @@ public class KafkaConsumerService {
 
     private final AktorOppslagClient aktorOppslagClient;
 
+    private final VeilarbarenaClient veilarbarenaClient;
+
+    private final SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository;
+
+    private final BrukerIdenterService brukerIdenterService;
+
+    private static final String MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY = "kafka_consumer_correlation_id";
+
     @Autowired
     public KafkaConsumerService(
             Siste14aVedtakService siste14aVedtakService,
             VedtaksstotteRepository vedtaksstotteRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
+            SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository,
             Norg2Client norg2Client,
-            AktorOppslagClient aktorOppslagClient
+            AktorOppslagClient aktorOppslagClient,
+            VeilarbarenaClient veilarbarenaClient,
+            BrukerIdenterService brukerIdenterService
     ) {
         this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
+        this.sisteOppfolgingPeriodeRepository = sisteOppfolgingPeriodeRepository;
         this.norg2Client = norg2Client;
         this.aktorOppslagClient = aktorOppslagClient;
+        this.veilarbarenaClient = veilarbarenaClient;
+        this.brukerIdenterService = brukerIdenterService;
+    }
+
+    public <K, V> void behandleKafkaMelding(ConsumerRecord<K, V> melding, KafkaMeldingBehandler<K, V> meldingBehandler) {
+        MDC.put(MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY, IdUtils.generateId());
+        try {
+            log.info("Behandler Kafka-melding. Topic: {}, offset: {}, partisjon: {}.", melding.topic(), melding.offset(), melding.partition());
+            meldingBehandler.behandleMelding(melding);
+        } finally {
+            MDC.remove(MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY);
+        }
     }
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
-        log.info("Behandler melding på topic {}.", kafkaOppfolgingsbrukerEndring.topic());
-
         Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
+
+        veilarbarenaClient.oppdaterOppfolgingsbruker(fnr, kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet());
+
         AktorId aktorId = hentAktorIdMedDevSjekk(fnr); //AktorId kan være null i dev
         String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
 
@@ -113,9 +143,14 @@ public class KafkaConsumerService {
             throw new IllegalStateException("Oppfølgingsperiode har sluttdato men ingen startdato.");
         }
 
+        if (startDato != null) {
+            sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(sisteOppfolgingsperiode);
+            log.info("Siste oppfølgingsperiode har blitt upsertet");
+        }
+
         if (sluttDato == null) {
             // Vi er bare interessert i oppfølgingsperiode dersom den er avsluttet, dvs. sluttDato != null
-            log.debug("Siste oppfølgingsperiode har ingen sluttdato - ignorerer melding.");
+            log.info("Siste oppfølgingsperiode har ingen sluttdato - ignorerer melding.");
             return;
         }
 
@@ -123,7 +158,7 @@ public class KafkaConsumerService {
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(aktorId);
 
         if (gjeldendeVedtak == null) {
-            log.debug("Brukeren har ingen gjeldende vedtak - ignorerer melding.");
+            log.info("Brukeren har ingen gjeldende vedtak - ignorerer melding.");
             return;
         }
 
@@ -139,6 +174,10 @@ public class KafkaConsumerService {
 
         log.info("Setter gjeldende vedtak {} til historisk", gjeldendeVedtak.getId());
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(gjeldendeVedtak.getId());
+    }
+
+    public void behandlePdlAktorV2Melding(ConsumerRecord<String, Aktor> aktorRecord) {
+        brukerIdenterService.behandlePdlAktorV2Melding(aktorRecord);
     }
 
     private AktorId hentAktorIdMedDevSjekk(Fnr fnr) {

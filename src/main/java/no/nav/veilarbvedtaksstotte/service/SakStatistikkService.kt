@@ -1,68 +1,275 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.common.types.identer.AktorId
+import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
+import no.nav.veilarbvedtaksstotte.client.person.dto.Gradering
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
+import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties
+import no.nav.veilarbvedtaksstotte.domain.statistikk.*
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
+import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
-import io.getunleash.DefaultUnleash
-import no.nav.veilarbvedtaksstotte.utils.SAK_STATISTIKK_PAA
-import java.util.UUID
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 
-private const val AVSENDER = "Oppfølgingsvedtak § 14 a"
 
 @Service
 class SakStatistikkService @Autowired constructor(
     private val sakStatistikkRepository: SakStatistikkRepository,
     private val veilarboppfolgingClient: VeilarboppfolgingClient,
-    private val unleashClient: DefaultUnleash
+    private val aktorOppslagClient: AktorOppslagClient,
+    private val bigQueryService: BigQueryService,
+    private val environmentProperties: EnvironmentProperties,
+    private val veilarbpersonClient: VeilarbpersonClient
 ) {
+    fun fattetVedtak(vedtak: Vedtak, fnr: Fnr) {
+        val statistikkRad = SakStatistikk(
+            ferdigbehandletTid = Instant.now().truncatedTo(ChronoUnit.SECONDS),
+            behandlingStatus = BehandlingStatus.FATTET,
+            behandlingMetode = if (vedtak.beslutterIdent != null) BehandlingMetode.TOTRINNS else BehandlingMetode.MANUELL,
+            ansvarligBeslutter = vedtak.beslutterIdent
+        )
 
-    fun hentStatistikkRader(oppfolgingsperiodeUuid: UUID): Boolean {
-        val statistikkListe =
-            sakStatistikkRepository.hentSakStatistikkListeInnenforOppfolgingsperiode(oppfolgingsperiodeUuid)
-        val antallUtkast =
-            statistikkListe.stream().filter { item: SakStatistikk -> item.behandlingMetode == "UTKAST" }.toList().size
-        return antallUtkast == 0
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
     }
 
-    fun leggTilStatistikkRadUtkast(
-        behandlingId: Long, aktorId: String, fnr: Fnr, veilederIdent: String, oppfolgingsenhetId: String
+    fun opprettetUtkast(
+        vedtak: Vedtak, fnr: Fnr
     ) {
-        //TODO: Hent mottattTid (som er start oppfølgingsperiode på første vedtak, vi må komme tilbake til hva det er ved seinere vedtak i samme periode.
-        //TODO: Avsender er en konstant, versjon må hentes fra Docker-image
-        val statistikkPaa = unleashClient.isEnabled(SAK_STATISTIKK_PAA)
+        val statistikkRad = SakStatistikk(
+            behandlingStatus = BehandlingStatus.UNDER_BEHANDLING,
+            behandlingMetode = BehandlingMetode.MANUELL,
+        )
 
-        if (statistikkPaa) {
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
-            val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
-            oppfolgingsperiode.ifPresent {
-                val mottattTid = if (hentStatistikkRader(oppfolgingsperiode.get().uuid)) {
-                    LocalDateTime.now()
-                } else {
-                    veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr).get().startDato.toLocalDateTime()
-                }
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+    }
 
+    fun slettetUtkast(
+        vedtak: Vedtak
+    ) {
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
 
-                val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
-                val sakStatistikk = SakStatistikk(
-                    aktorId = aktorId,
-                    oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
-                    behandlingId = behandlingId.toBigInteger(),
-                    sakId = sakId.toString(),
-                    mottattTid = mottattTid,
-                    endretTid = LocalDateTime.now(),
-                    tekniskTid = LocalDateTime.now(),
-                    opprettetAv = veilederIdent,
-                    ansvarligEnhet = oppfolgingsenhetId,
-                    avsender = AVSENDER,
-                    versjon = "Dockerimage_tag_1"
-                )
-                sakStatistikkRepository.insertSakStatistikkRad(sakStatistikk)
-            }
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+            innsatsgruppe = null,
+            hovedmal = null,
+            behandlingResultat = null,
+            behandlingStatus = BehandlingStatus.AVBRUTT,
+            behandlingMetode = BehandlingMetode.MANUELL,
+        )
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+    }
+
+    fun startetKvalitetssikring(vedtak: Vedtak) {
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+        val statistikkRad = SakStatistikk(
+            behandlingStatus = BehandlingStatus.SENDT_TIL_KVALITETSSIKRING,
+            behandlingMetode = BehandlingMetode.TOTRINNS,
+        )
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+    }
+
+    fun bliEllerTaOverSomKvalitetssikrer(vedtak: Vedtak, innloggetVeileder: String) {
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+        val statistikkRad = SakStatistikk(
+            behandlingStatus = BehandlingStatus.SENDT_TIL_KVALITETSSIKRING,
+            behandlingMetode = BehandlingMetode.TOTRINNS,
+            ansvarligBeslutter = innloggetVeileder,
+        )
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+    }
+
+    fun sendtTilbakeFraVeileder(vedtak: Vedtak) {
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+        val statistikkRad = SakStatistikk(
+            behandlingStatus = BehandlingStatus.SENDT_TIL_KVALITETSSIKRING,
+            behandlingMetode = BehandlingMetode.TOTRINNS,
+            ansvarligBeslutter = vedtak.beslutterIdent
+        )
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+    }
+
+    fun sendtTilbakeFraKvalitetssikrer(vedtak: Vedtak, innloggetVeileder: String) {
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+        val statistikkRad = SakStatistikk(
+            behandlingStatus = BehandlingStatus.UNDER_BEHANDLING,
+            behandlingMetode = BehandlingMetode.TOTRINNS,
+            ansvarligBeslutter = innloggetVeileder
+        )
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+    }
+
+    fun kvalitetssikrerGodkjenner(vedtak: Vedtak, innloggetVeileder: String) {
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+        val statistikkRad = SakStatistikk(
+            behandlingStatus = BehandlingStatus.KVALITETSSIKRING_GODKJENT,
+            behandlingMetode = BehandlingMetode.TOTRINNS,
+            ansvarligBeslutter = innloggetVeileder,
+        )
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(statistikkRad)
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val ferdigpopulertStatistikkRad = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+    }
+
+    fun avbrytKvalitetssikringsprosess(vedtak: Vedtak) {
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+            ansvarligBeslutter = null,
+            behandlingResultat = null,
+            hovedmal = null,
+            innsatsgruppe = null,
+            behandlingStatus = BehandlingStatus.UNDER_BEHANDLING,
+            behandlingMetode = BehandlingMetode.MANUELL,
+        )
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+    }
+
+    fun overtattUtkast(vedtak: Vedtak, innloggetVeilederIdent: String, erAlleredeBeslutter: Boolean) {
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+            ansvarligBeslutter = if (erAlleredeBeslutter) innloggetVeilederIdent else vedtak.beslutterIdent,
+            behandlingStatus = if (vedtak.beslutterProsessStatus != null) BehandlingStatus.SENDT_TIL_KVALITETSSIKRING else BehandlingStatus.UNDER_BEHANDLING,
+            behandlingMetode = if (vedtak.beslutterProsessStatus != null) BehandlingMetode.TOTRINNS else BehandlingMetode.MANUELL,
+            saksbehandler = innloggetVeilederIdent
+        )
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+
+    }
+
+    private fun lagreStatistikkRadIdbOgSendTilBQ(statistikkRad: SakStatistikk) {
+        try {
+            statistikkRad.validate()
+            val sekvensnummer = sakStatistikkRepository.insertSakStatistikkRad(statistikkRad)
+            bigQueryService.logEvent(statistikkRad.copy(sekvensnummer = sekvensnummer))
+        } catch (e: Exception) {
+            secureLog.error("Kunne ikke lagre sakStatistikkRad, feil: {} , sakStatistikkRad: {}", e, statistikkRad)
         }
+    }
+
+    private fun populerSakstatistikkMedStatiskeData(sakStatistikk: SakStatistikk): SakStatistikk {
+        return sakStatistikk.copy(
+            endretTid = Instant.now(),
+            sakYtelse = SAK_YTELSE,
+            fagsystemNavn = Fagsystem.OPPFOLGINGSVEDTAK_14A,
+            fagsystemVersjon = environmentProperties.naisAppImage
+        )
+    }
+
+    private fun populerSakstatistikkMedVedtakData(sakStatistikk: SakStatistikk, vedtak: Vedtak): SakStatistikk {
+        return sakStatistikk.copy(
+            aktorId = AktorId.of(vedtak.aktorId),
+            behandlingId = vedtak.id.toBigInteger(),
+            registrertTid = vedtak.utkastOpprettet?.toInstant(ZoneOffset.of("+01:00"))?.truncatedTo(ChronoUnit.SECONDS),
+            behandlingResultat = vedtak.innsatsgruppe?.toBehandlingResultat(),
+            innsatsgruppe = vedtak.innsatsgruppe?.toBehandlingResultat(),
+            hovedmal = vedtak.hovedmal?.let { HovedmalNy.valueOf(it.toString()) },
+            opprettetAv = sakStatistikkRepository.hentOpprettetAvFraVedtak(vedtak) ?: vedtak.veilederIdent,
+            saksbehandler = vedtak.veilederIdent,
+            ansvarligEnhet = vedtak.oppfolgingsenhetId?.let { EnhetId.of(it) },
+        )
+    }
+
+    private fun populerSakStatistikkMedOppfolgingsperiodeData(sakStatistikk: SakStatistikk, fnr: Fnr): SakStatistikk {
+        val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
+        val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
+
+        val tidligereVedtakIOppfolgingsperioden = sakStatistikkRepository.hentForrigeVedtakFraSammeOppfolgingsperiode(
+            oppfolgingsperiode.get().startDato,
+            sakStatistikk.aktorId!!,
+            fnr,
+            sakStatistikk.behandlingId!!
+        )
+        val relatertFagsystem =
+            if (tidligereVedtakIOppfolgingsperioden != null && tidligereVedtakIOppfolgingsperioden.fraArena) Fagsystem.ARENA else Fagsystem.OPPFOLGINGSVEDTAK_14A
+
+        return sakStatistikk.copy(
+            oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
+            mottattTid = if (tidligereVedtakIOppfolgingsperioden != null) sakStatistikk.registrertTid else oppfolgingsperiode.get().startDato.toInstant()
+                .truncatedTo(ChronoUnit.SECONDS),
+            sakId = sakId.toString(),
+
+            relatertBehandlingId = tidligereVedtakIOppfolgingsperioden?.id,
+            relatertFagsystem = tidligereVedtakIOppfolgingsperioden?.let { relatertFagsystem },
+            behandlingType = if (tidligereVedtakIOppfolgingsperioden != null) BehandlingType.REVURDERING else BehandlingType.FORSTEGANGSBEHANDLING
+        )
+    }
+
+    private fun sjekkOmPersonErKode6(fnr: Fnr, sakStatistikk: SakStatistikk): SakStatistikk {
+        val adressebeskyttelse = veilarbpersonClient.hentAdressebeskyttelse(fnr)
+        secureLog.error("Fått diskresjonskode fra veilarbperson (pdl): ${adressebeskyttelse.gradering}")
+        if (adressebeskyttelse.gradering === Gradering.STRENGT_FORTROLIG || adressebeskyttelse.gradering === Gradering.STRENGT_FORTROLIG_UTLAND) {
+            return sakStatistikk.copy(
+                opprettetAv = "-5",
+                saksbehandler = "-5",
+                ansvarligBeslutter = if (sakStatistikk.ansvarligBeslutter != null) "-5" else null,
+                ansvarligEnhet = EnhetId.of("-5")
+            )
+        }
+        return sakStatistikk
     }
 }
 

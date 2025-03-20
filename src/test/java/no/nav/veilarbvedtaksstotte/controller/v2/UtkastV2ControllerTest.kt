@@ -3,8 +3,10 @@ package no.nav.veilarbvedtaksstotte.controller.v2
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.common.types.identer.Fnr
+import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.service.AuthService
+import no.nav.veilarbvedtaksstotte.service.UtrullingService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,6 +25,9 @@ class UtkastV2ControllerTest {
     @MockkBean
     lateinit var vedtakService: VedtakService
 
+    @MockkBean
+    lateinit var utrullingService: UtrullingService
+
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -39,12 +44,16 @@ class UtkastV2ControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr)
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.SKRIVE, fnr = fnr)
         } answers { }
 
         every {
             vedtakService.hentUtkast(fnr)
         } returns Vedtak()
+
+        every {
+            utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr)
+        } answers {}
 
         val request = """
             {

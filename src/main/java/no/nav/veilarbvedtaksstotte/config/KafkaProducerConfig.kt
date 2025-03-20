@@ -45,7 +45,8 @@ class KafkaProducerConfig {
                 kafkaProperties.siste14aVedtakTopic,
                 kafkaProperties.vedtakStatusEndringTopic,
                 kafkaProperties.vedtakFattetDvhTopic,
-                kafkaProperties.vedtakSendtTopic
+                kafkaProperties.vedtakSendtTopic,
+                kafkaProperties.gjeldende14aVedtakTopic
             )
         )
 

@@ -28,15 +28,16 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostD
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
+import no.nav.veilarbvedtaksstotte.client.person.dto.*;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
+import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.domain.Målform;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
@@ -45,6 +46,7 @@ import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -58,6 +60,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -72,7 +75,6 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_JOURNALPOST_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_KILDER;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSSAK;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN;
 import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
@@ -127,10 +129,10 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final SafClient safClient = mock(SafClient.class);
     private static final MetricsService metricsService = mock(MetricsService.class);
     private static final PoaoTilgangClient poaoTilgangClient = mock(PoaoTilgangClient.class);
-    private static final SakStatistikkService sakStatistikkService = mock(SakStatistikkService.class);
     private static final PdfService pdfService = mock(PdfService.class);
     private static final VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
-    private static final DefaultUnleash  unleashClient = mock(DefaultUnleash.class);
+    private static final BigQueryService bigQueryService = mock(BigQueryService.class);
+    private static final EnvironmentProperties environmentProperties = mock(EnvironmentProperties.class);
 
     @BeforeAll
     public static void setupOnce() {
@@ -138,22 +140,24 @@ public class VedtakServiceTest extends DatabaseTest {
         kilderRepository = spy(new KilderRepository(jdbcTemplate));
         meldingRepository = spy(new MeldingRepository(jdbcTemplate));
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
+        sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
-        authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), utrullingService, poaoTilgangClient));
+        authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), poaoTilgangClient));
         SakStatistikkRepository sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
-        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, unleashClient);
+        SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, environmentProperties, veilarbpersonClient);
 
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(arbeidssoekerRegistretService);
         DokumentService dokumentService = new DokumentService(
                 regoppslagClient,
-                veilarbarenaClient,
+                veilarboppfolgingClient,
                 veilarbpersonClient,
                 dokarkivClient,
                 malTypeService,
                 oyeblikksbildeService,
-                pdfService);
+                pdfService
+        );
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,
@@ -169,7 +173,8 @@ public class VedtakServiceTest extends DatabaseTest {
                 veilarbarenaService,
                 metricsService,
                 leaderElectionClient,
-                sakStatistikkService);
+                sakStatistikkService
+        );
     }
 
     @BeforeEach
@@ -187,6 +192,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilederService.hentVeilederEllerNull(TEST_VEILEDER_IDENT)).thenReturn(Optional.of(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN)));
         when(regoppslagClient.hentPostadresse(any())).thenReturn(
                 new RegoppslagResponseDTO("", new Adresse(NORSKPOSTADRESSE, "", "", "", "", "", "", "")));
+        when(veilarbpersonClient.hentAdressebeskyttelse(TEST_FNR)).thenReturn(new Adressebeskyttelse(Gradering.UGRADERT));
         when(veilarbpersonClient.hentMålform(TEST_FNR)).thenReturn(Målform.NB);
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(new CvDto.CVMedInnhold(JsonUtils.fromJson(testCvData(), CvInnhold.class)));
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
@@ -194,7 +200,8 @@ public class VedtakServiceTest extends DatabaseTest {
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));
-        when(veilarbarenaClient.oppfolgingssak(TEST_FNR)).thenReturn(Optional.of(TEST_OPPFOLGINGSSAK));
+        when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.of(new OppfolgingPeriodeDTO(UUID.randomUUID(), ZonedDateTime.now(), null)));
+        when(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(new SakDTO(UUID.randomUUID(), 12345, "ARBEIDSOPPFOLGING", "OPP"));
         when(dokarkivClient.opprettJournalpost(any()))
                 .thenReturn(new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
@@ -551,6 +558,8 @@ public class VedtakServiceTest extends DatabaseTest {
             assertEquals(TEST_DOKUMENT_ID, sendtVedtak.getDokumentInfoId());
             assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
             assertOyeblikksbildeForFattetVedtak(sendtVedtak.getId());
+
+             List<SakStatistikk> sakStatistikk = sakStatistikkRepository.hentSakStatistikkListe(sendtVedtak.getAktorId());
         });
         verify(vedtakHendelserService).vedtakSendt(any());
     }

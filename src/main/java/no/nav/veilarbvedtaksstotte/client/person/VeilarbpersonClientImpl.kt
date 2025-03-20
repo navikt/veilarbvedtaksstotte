@@ -7,10 +7,7 @@ import no.nav.common.rest.client.RestUtils
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.AuthUtils.bearerToken
 import no.nav.common.utils.UrlUtils
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
+import no.nav.veilarbvedtaksstotte.client.person.dto.*
 import no.nav.veilarbvedtaksstotte.client.person.request.PersonRequest
 import no.nav.veilarbvedtaksstotte.domain.Målform
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
@@ -83,6 +80,31 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
                 return response
                     .deserializeJsonOrThrow<MalformRespons>()
                     .tilMålform()
+            }
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString(),
+                e
+            )
+        }
+    }
+
+    override fun hentAdressebeskyttelse(fnr: Fnr): Adressebeskyttelse {
+        val request = Request.Builder()
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-adressebeskyttelse"))
+            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+            .post(
+                PersonRequest(fnr, BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
+                    .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
+            )
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                RestUtils.throwIfNotSuccessful(response)
+                return response
+                    .deserializeJsonOrThrow<Adressebeskyttelse>()
             }
         } catch (e: Exception) {
             throw ResponseStatusException(

@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.mock
 
+import no.nav.poao_tilgang.api.dto.response.TilgangsattributterResponse
 import no.nav.poao_tilgang.client.AdGruppe
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.NorskIdent
@@ -28,6 +29,10 @@ class PoaoTilgangClientMock : PoaoTilgangClient {
     }
 
     override fun hentAdGrupper(navAnsattAzureId: UUID): ApiResult<List<AdGruppe>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun hentTilgangsAttributter(norskIdent: NorskIdent): ApiResult<TilgangsattributterResponse> {
         TODO("Not yet implemented")
     }
 

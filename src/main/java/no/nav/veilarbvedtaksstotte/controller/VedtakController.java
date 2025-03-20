@@ -7,23 +7,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeArbeidssokerRegistretDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeCvDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeRegistreringDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
+import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -42,12 +35,14 @@ public class VedtakController {
     private final VedtakService vedtakService;
     private final ArenaVedtakService arenaVedtakService;
     private final OyeblikksbildeService oyeblikksbildeService;
+    private final UtrullingService utrullingService;
 
     @Autowired
-    public VedtakController(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService) {
+    public VedtakController(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService, UtrullingService utrullingService) {
         this.vedtakService = vedtakService;
         this.arenaVedtakService = arenaVedtakService;
         this.oyeblikksbildeService = oyeblikksbildeService;
+        this.utrullingService = utrullingService;
     }
 
     @GetMapping(value = "{vedtakId}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -68,6 +63,8 @@ public class VedtakController {
             }
     )
     public ResponseEntity<byte[]> hentVedtakPdf(@PathVariable("vedtakId") long vedtakId) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         byte[] vedtakPdf = vedtakService.hentVedtakPdf(vedtakId);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev.pdf")
@@ -92,6 +89,8 @@ public class VedtakController {
             }
     )
     public ResponseEntity<byte[]> hentVedtakOyeblikksCVPdf(@PathVariable("vedtakId") long vedtakId, @PathVariable("oyeblikksbildeType") String oyeblikksbildeInputType) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         OyeblikksbildeType oyeblikksbildeType = OyeblikksbildeType.valueOf(oyeblikksbildeInputType);
         String dokumentId = oyeblikksbildeService.hentJournalfortDokumentId(vedtakId, oyeblikksbildeType);
 
@@ -108,6 +107,8 @@ public class VedtakController {
     @Deprecated(forRemoval = true)
     @GetMapping("/fattet")
     public List<Vedtak> hentFattedeVedtak(@RequestParam("fnr") Fnr fnr) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr);
+
         return vedtakService.hentFattedeVedtak(fnr);
     }
 
@@ -129,6 +130,8 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeCvDto hentCVOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         return oyeblikksbildeService.hentCVOyeblikksbildeForVedtak(vedtakId);
     }
 
@@ -149,6 +152,8 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         return oyeblikksbildeService.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
     }
 
@@ -169,6 +174,8 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeArbeidssokerRegistretDto hentArbeidssokerRegistretOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         return oyeblikksbildeService.hentArbeidssokerRegistretOyeblikksbildeForVedtak(vedtakId);
     }
 
@@ -188,12 +195,16 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         return oyeblikksbildeService.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
     }
 
     @Deprecated(forRemoval = true)
     @GetMapping("/arena")
     public List<ArkivertVedtak> hentVedtakFraArena(@RequestParam("fnr") Fnr fnr) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr);
+
         return arenaVedtakService.hentVedtakFraArena(fnr);
     }
 

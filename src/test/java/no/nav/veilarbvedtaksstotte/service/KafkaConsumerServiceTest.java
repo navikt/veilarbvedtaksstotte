@@ -3,11 +3,14 @@ package no.nav.veilarbvedtaksstotte.service;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.types.identer.AktorId;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
+import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
@@ -17,6 +20,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import static no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImplTest.veilarbarenaClient;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
@@ -40,14 +44,24 @@ public class KafkaConsumerServiceTest {
 
     private final Siste14aVedtakService siste14aVedtakService = mock(Siste14aVedtakService.class);
 
+    private final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClientImpl.class);
+
     private final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
+
+    private final SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository = mock(SisteOppfolgingPeriodeRepository.class);
+
+    private final BrukerIdenterService brukerIdenterService = mock(BrukerIdenterService.class);
 
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             siste14aVedtakService,
             vedtaksstotteRepository,
             beslutteroversiktRepository,
+            sisteOppfolgingPeriodeRepository,
             norg2Client,
-            aktorOppslagClient);
+            aktorOppslagClient,
+            veilarbarenaClient,
+            brukerIdenterService
+    );
 
     @Test
     public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {

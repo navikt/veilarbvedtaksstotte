@@ -1,12 +1,13 @@
 package no.nav.veilarbvedtaksstotte.controller.dto
 
+import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import java.time.ZonedDateTime
 
 data class Siste14aVedtakDTO(
     val innsatsgruppe: Innsatsgruppe,
-    val hovedmal: Siste14aVedtak.HovedmalMedOkeDeltakelse?,
+    val hovedmal: HovedmalMedOkeDeltakelse?,
     val fattetDato: ZonedDateTime,
     val fraArena: Boolean
 ) {

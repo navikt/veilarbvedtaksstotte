@@ -6,12 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import no.nav.veilarbvedtaksstotte.service.BeslutterService;
+import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/beslutter")
@@ -19,10 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class BeslutterController {
 
     private final BeslutterService beslutterService;
+    private final UtrullingService utrullingService;
 
     @Autowired
-    public BeslutterController(BeslutterService beslutterService) {
+    public BeslutterController(BeslutterService beslutterService, UtrullingService utrullingService) {
         this.beslutterService = beslutterService;
+        this.utrullingService = utrullingService;
     }
 
     @PostMapping("/start")
@@ -44,6 +43,8 @@ public class BeslutterController {
             }
     )
     public void startBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         beslutterService.startBeslutterProsess(vedtakId);
     }
 
@@ -66,6 +67,8 @@ public class BeslutterController {
             }
     )
     public void avbrytBeslutterProsess(@RequestParam("vedtakId") long vedtakId) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         beslutterService.avbrytBeslutterProsess(vedtakId);
     }
 
@@ -88,6 +91,8 @@ public class BeslutterController {
             }
     )
     public void bliBeslutter(@RequestParam("vedtakId") long vedtakId) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         beslutterService.bliBeslutter(vedtakId);
     }
 
@@ -110,6 +115,8 @@ public class BeslutterController {
             }
     )
     public void godkjennVedtak(@RequestParam("vedtakId") long vedtakId) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         beslutterService.setGodkjentAvBeslutter(vedtakId);
     }
 
@@ -137,6 +144,8 @@ public class BeslutterController {
             }
     )
     public void oppdaterBeslutterProsessStatus(@RequestParam("vedtakId") long vedtakId) {
+        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
+
         beslutterService.oppdaterBeslutterProsessStatus(vedtakId);
     }
 

@@ -7,7 +7,7 @@ import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse
+import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -28,9 +28,16 @@ class Siste14aVedtakService(
 
     val log = LoggerFactory.getLogger(Siste14aVedtakService::class.java)
 
-    fun siste14aVedtak(fnr: EksternBrukerId): Siste14aVedtak? {
-        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
+    fun siste14aVedtak(eksternBrukerId: EksternBrukerId): Siste14aVedtak? {
+        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(eksternBrukerId)
         return siste14aVedtakMedKilder(identer).siste14aVedtak
+    }
+
+    fun siste14aVedtakFraArena(fnr: EksternBrukerId): ArenaVedtak? {
+        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(fnr)
+        val arenaVedtakListe = arenaVedtakRepository.hentVedtakListe(identer.historiskeFnr.plus(identer.fnr))
+        val sisteArenaVedtak = finnSisteArenaVedtak(arenaVedtakListe)
+        return sisteArenaVedtak
     }
 
     private data class Siste14aVedtakMedGrunnlag(
