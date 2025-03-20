@@ -5,6 +5,11 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.common.audit_log.cef.AuthorizationDecision
+import no.nav.common.audit_log.cef.CefMessage
+import no.nav.common.audit_log.cef.CefMessageEvent
+import no.nav.common.audit_log.cef.CefMessageSeverity
+import no.nav.common.audit_log.log.AuditLogger
 import no.nav.common.types.identer.Fnr
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.annotations.EksterntEndepunkt
@@ -29,7 +34,8 @@ import org.springframework.web.server.ResponseStatusException
 )
 class Gjeldende14aVedtakController(
     val authService: AuthService,
-    val gjeldende14aVedtakService: Gjeldende14aVedtakService
+    val gjeldende14aVedtakService: Gjeldende14aVedtakService,
+    val auditLogger: AuditLogger
 ) {
 
     @EksterntEndepunkt
@@ -75,10 +81,23 @@ class Gjeldende14aVedtakController(
             fnr = gjeldende14aVedtakRequest.fnr,
             veilederTilgangssjekk = ::sjekkVeilederTilgangTilBruker
         )
-        //TODO skal vi auditlogge her?? (sjekk at man er veileder, ikke logge dersom eksternbruker eller maskin)
-        return gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)?.toGjeldende14aVedtakDto()
-    }
 
+        val gjeldende14aVedtakDto = gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)?.toGjeldende14aVedtakDto()
+        gjeldende14aVedtakDto?.let { auditLogger.log(
+            CefMessage.builder()
+                .timeEnded(System.currentTimeMillis())
+                .applicationName("veilarbvedtaksstotte")
+                .sourceUserId(authService.innloggetVeilederIdent)
+                .authorizationDecision(AuthorizationDecision.PERMIT)
+                .event(CefMessageEvent.ACCESS)
+                .severity(CefMessageSeverity.INFO)
+                .name("veilarbvedtaksstotte-audit-log")
+                .destinationUserId(gjeldende14aVedtakRequest.fnr.get())
+                .extension("msg", "Veileder har hentet person sitt gjeldende § 14 a-vedtak")
+                .build()
+        ) }
+        return gjeldende14aVedtakDto
+    }
 
     private fun sjekkLesetilgang(fnr: Fnr, veilederTilgangssjekk: (fnr: Fnr) -> Unit) {
         if (authService.erSystemBruker()) {
