@@ -93,7 +93,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
     }
 
     @Test
-    fun `vedtak er gjeldende dersom vedtak er fattet 4 dager før innevarende oppfolgingsperiode`() {
+    fun `arena vedtak er gjeldende dersom vedtak er fattet 4 dager før innevarende oppfolgingsperiode`() {
         `when`(sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
             SisteOppfolgingsperiode(
                 oppfolgingsperiodeId = UUID.randomUUID(),
@@ -107,7 +107,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = ZonedDateTime.now().minusDays(4),
-            fraArena = false
+            fraArena = true
         ))
 
 
@@ -142,7 +142,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
     }
 
     @Test
-    fun `vedtak er gjeldende dersom det ble fattet før man startet med oppfølgingsperioder (2017)`() {
+    fun `arena vedtak er gjeldende dersom det ble fattet før man startet med oppfølgingsperioder (2017)`() {
         `when`(sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
             SisteOppfolgingsperiode(
                 oppfolgingsperiodeId = UUID.randomUUID(),
@@ -156,7 +156,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = LANSERINGSDATO_VEILARBOPPFOLGING_OPPFOLGINGSPERIODE.minusDays(3),
-            fraArena = false
+            fraArena = true
         ))
 
 
