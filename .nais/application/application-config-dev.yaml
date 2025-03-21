@@ -137,9 +137,9 @@ spec:
           namespace: obo
         - application: mulighetsrommet-api
           namespace: team-mulighetsrommet
-        - application: pto-admin
-          namespace: pto
-          cluster: dev-fss
+        - application: poao-admin
+          namespace: poao
+          cluster: dev-gcp
         - application: azure-token-generator
           namespace: nais
         - application: amt-person-service
