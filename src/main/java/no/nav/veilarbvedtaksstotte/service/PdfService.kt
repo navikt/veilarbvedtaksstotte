@@ -28,6 +28,7 @@ class PdfService(
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
 
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
+        log.debug("BREVDATAOPPSLAG: {}", brevdataOppslag.toString())
         val brevdata = DokumentService.mapBrevdata(dto, brevdataOppslag)
 
         return pdfClient.genererPdf(brevdata)
@@ -88,7 +89,7 @@ class PdfService(
 
     private fun hentBrevdata(fnr: Fnr, enhetId: EnhetId, veilederIdent: String): DokumentService.BrevdataOppslag {
         val enhetKontaktinformasjon: EnhetKontaktinformasjon = enhetInfoService.utledEnhetKontaktinformasjon(enhetId)
-        val målform = veilarbpersonClient.hentMålform(fnr)
+        val malform = veilarbpersonClient.hentMalform(fnr)
         val veilederNavn = veilarbveilederClient.hentVeilederNavn(veilederIdent)
 
         val enhet: Enhet = enhetInfoService.hentEnhet(enhetId)
@@ -96,7 +97,7 @@ class PdfService(
 
         return DokumentService.BrevdataOppslag(
             enhetKontaktinformasjon = enhetKontaktinformasjon,
-            målform = målform,
+            malform = malform,
             veilederNavn = veilederNavn,
             enhet = enhet,
             kontaktEnhet = kontaktEnhet
