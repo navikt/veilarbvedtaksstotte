@@ -34,7 +34,7 @@ class Gjeldende14aVedtakService(
                     )
                 }
             } ?: return null
-        val siste14aVedtak = siste14aVedtakService.siste14aVedtak(brukerIdent).also {
+        val siste14aVedtak = siste14aVedtakService.hentSiste14aVedtak(brukerIdent).also {
             if (it == null) {
                 logger.info(
                     "Fant ingen gjeldende § 14 a-vedtak for personen. Årsak: personen har ingen § 14 a-vedtak."
