@@ -135,7 +135,9 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
         val gjeldende14aVedtakKafkaDTO = Gjeldende14aVedtakKafkaDTO(
             aktorId = aktorId,
             innsatsgruppe = InnsatsgruppeV2.GODE_MULIGHETER,
-            hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(BEHOLDE_ARBEID)
+            hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(BEHOLDE_ARBEID),
+            fattetDato = ZonedDateTime.parse("2021-04-07T11:12:32.000001234+02:00"),
+            vedtakId = "d9057c46-33e7-4c75-b58d-f80a9a00e71d"
         )
 
         // When
@@ -149,7 +151,9 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
             {
               "aktorId": "11111111111",
               "innsatsgruppe": "GODE_MULIGHETER",
-              "hovedmal": "BEHOLDE_ARBEID"
+              "hovedmal": "BEHOLDE_ARBEID",
+              "fattetDato": "2021-04-07T11:12:32.000001234+02:00",
+              "vedtakId": "d9057c46-33e7-4c75-b58d-f80a9a00e71d"
             }
         """.trimIndent()
 
