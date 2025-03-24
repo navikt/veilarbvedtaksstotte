@@ -153,8 +153,8 @@ spec:
           namespace: arbeidsgiver
           cluster: dev-fss
           permissions:
-            - roles:
-                - "gjeldende-14a-vedtak"
+            roles:
+              - "gjeldende-14a-vedtak"
     outbound:
       rules:
         - application: aia-backend
