@@ -149,6 +149,12 @@ spec:
               - "siste-14a-vedtak"
         - application: modiapersonoversikt-api
           namespace: personoversikt
+        - application: tiltaksgjennomforing-api
+          namespace: arbeidsgiver
+          cluster: dev-fss
+          permissions:
+            roles:
+              - "gjeldende-14a-vedtak"
     outbound:
       rules:
         - application: aia-backend
