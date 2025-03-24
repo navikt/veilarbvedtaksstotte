@@ -78,9 +78,9 @@ public class AdminController {
 
     private void sjekkTilgangTilAdmin() {
         boolean erInternBruker = authService.erInternBruker();
-        boolean erPtoAdmin = POAO_ADMIN.equals(authService.hentApplikasjonFraContex());
+        boolean erPoaoAdmin = POAO_ADMIN.equals(authService.hentApplikasjonFraContex());
 
-        if (erPtoAdmin && erInternBruker) {
+        if (erPoaoAdmin && erInternBruker) {
             return;
         }
         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
