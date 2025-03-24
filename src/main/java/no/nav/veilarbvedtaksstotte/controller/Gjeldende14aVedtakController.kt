@@ -36,7 +36,7 @@ class Gjeldende14aVedtakController(
     @PostMapping("/ekstern/hent-gjeldende-14a-vedtak")
     @Operation(
         summary = "Henter personens gjeldende § 14 a-vedtak",
-        description = "Henter det gjeldende § 14 a-vedtaket for den spesifiserte brukeren. Har ikke tilgangssjekk på fagsystemroller, så dette må gjøres av konsumentene.",
+        description = "Henter det gjeldende § 14 a-vedtaket for den spesifiserte personen, dersom hen har et gjeldende vedtak. Merk: Det gjøres kun tilgangskontroll på populasjonstilgang men ikke på fagsystemtilganger, så dette må gjøres av konsumentene.",
         responses = [
             ApiResponse(
                 responseCode = "200",
@@ -51,14 +51,17 @@ class Gjeldende14aVedtakController(
     fun hentGjeldende14aVedtakEksternt(@RequestBody gjeldende14aVedtakRequest: Gjeldende14aVedtakRequest): Gjeldende14aVedtakDto? {
         sjekkLesetilgang(
             fnr = gjeldende14aVedtakRequest.fnr,
-            veilederTilgangssjekk = ::sjekkVeilederUtenModiarolleTilgangTilBruker)
-        return gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)?.toGjeldende14aVedtakDto()
+            veilederTilgangssjekk = ::sjekkVeilederUtenModiarolleTilgangTilBruker
+        )
+        return gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)
+            ?.toGjeldende14aVedtakDto()
     }
 
+    @EksterntEndepunkt
     @PostMapping("/hent-gjeldende-14a-vedtak")
     @Operation(
-        summary = "Hent siste 14a vedtak",
-        description = "Henter det siste registrerte § 14 a-vedtaket for den spesifiserte brukeren.",
+        summary = "Henter personens gjeldende § 14 a-vedtak",
+        description = "Henter det gjeldende § 14 a-vedtaket for den spesifiserte personen, dersom hen har et gjeldende vedtak. Merk: til forskjell fra `/ekstern/hent-gjeldende-14a-vedtak` så gjøres det her tilgangskontroll på fagssystemroller knyttet til Modia arbeidsrettet oppfølging, i tillegg til populasjonstilgang.",
         responses = [
             ApiResponse(
                 responseCode = "200",
@@ -75,7 +78,8 @@ class Gjeldende14aVedtakController(
             fnr = gjeldende14aVedtakRequest.fnr,
             veilederTilgangssjekk = ::sjekkVeilederTilgangTilBruker
         )
-        return gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)?.toGjeldende14aVedtakDto()
+        return gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)
+            ?.toGjeldende14aVedtakDto()
     }
 
 
