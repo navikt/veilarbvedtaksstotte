@@ -175,7 +175,7 @@ class DokumentService(
     private fun lagProduserDokumentDTO(vedtak: Vedtak, fnr: Fnr, utkast: Boolean): ProduserDokumentDTO {
         val malType = malTypeService.utledMalTypeFraVedtak(vedtak, fnr)
         val personnavn = veilarbpersonClient.hentPersonNavn(fnr.toString())
-        val navn = personnavn.fornavn + " " + personnavn.etternavn
+        val navn = listOfNotNull(personnavn.fornavn, personnavn.mellomnavn, personnavn.etternavn).joinToString(" ")
 
 
         return ProduserDokumentDTO(
