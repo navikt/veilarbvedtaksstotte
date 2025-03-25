@@ -79,10 +79,10 @@ public class ArenaVedtakService {
             return false;
         }
 
+        arenaVedtakRepository.upsertVedtak(arenaVedtak);
         String vedtakLagretMelding = String.format("Lagret nytt vedtak fra Arena med hendelseId=%s.", arenaVedtak.getHendelseId());
         String eksisterendeVedtakMelding = eksisterendeVedtak != null ? String.format("Overskrev eksisterende lagret vedtak fra Arena for samme person med hendelseId=%s.", eksisterendeVedtak.getHendelseId()) : "";
         log.info("{} {}", vedtakLagretMelding, eksisterendeVedtakMelding);
-        arenaVedtakRepository.upsertVedtak(arenaVedtak);
 
         return true;
     }
