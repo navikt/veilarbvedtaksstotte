@@ -37,7 +37,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
 
     @Test
     fun `vedtak er gjeldende dersom vedtak er fattet i innevarende oppfolgingsperiode`() {
-        `when`(sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
+        `when`(sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
             SisteOppfolgingsperiode(
                 oppfolgingsperiodeId = UUID.randomUUID(),
                 aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
@@ -45,7 +45,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
@@ -61,8 +61,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
 
     @Test
     fun `vedtak er historisk dersom oppfolgingsperiode er avsluttet`() {
-        `when`(sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(null)
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(null)
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
@@ -77,7 +77,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
 
     @Test
     fun `hentGjeldende14aVedtak returnerer null dersom person ikke har vedtak`() {
-        `when`(sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
+        `when`(sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
             SisteOppfolgingsperiode(
                 oppfolgingsperiodeId = UUID.randomUUID(),
                 aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
@@ -85,7 +85,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(null)
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(null)
 
         val gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(TestData.TEST_FNR)
 
@@ -93,8 +93,9 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
     }
 
     @Test
+
     fun `arena vedtak er gjeldende dersom vedtak er fattet 4 dager før innevarende oppfolgingsperiode`() {
-        `when`(sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
+        `when`(sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
             SisteOppfolgingsperiode(
                 oppfolgingsperiodeId = UUID.randomUUID(),
                 aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
@@ -102,7 +103,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
@@ -119,7 +120,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
 
     @Test
     fun `vedtak er historisk dersom vedtak fattet mer enn 4 dager for innevarende oppfolgingsperiode`() {
-        `when`(sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
+        `when`(sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
             SisteOppfolgingsperiode(
                 oppfolgingsperiodeId = UUID.randomUUID(),
                 aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
@@ -127,7 +128,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
@@ -142,8 +143,9 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
     }
 
     @Test
+
     fun `arena vedtak er gjeldende dersom det ble fattet før man startet med oppfølgingsperioder (2017)`() {
-        `when`(sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
+        `when`(sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
             SisteOppfolgingsperiode(
                 oppfolgingsperiodeId = UUID.randomUUID(),
                 aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
@@ -151,7 +153,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
@@ -168,7 +170,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
 
     @Test
     fun `Ingen gjeldende vedtak dersom vedtak tilhører en annen oppfølgingsperiode`() {
-        `when`(sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
+        `when`(sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
             SisteOppfolgingsperiode(
                 oppfolgingsperiodeId = UUID.randomUUID(),
                 aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
@@ -176,7 +178,7 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 sluttdato = null
             )
         )
-        `when`(siste14aVedtakService.siste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(Siste14aVedtak(
             aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,

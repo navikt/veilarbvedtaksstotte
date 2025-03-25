@@ -25,8 +25,8 @@ class Gjeldende14aVedtakService(
 
     fun hentGjeldende14aVedtak(brukerIdent: EksternBrukerId): Gjeldende14aVedtak? {
         val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(brukerIdent)
-        val innevarendeoppfolgingsperiode =
-            sisteOppfolgingPeriodeRepository.hentInnevarendeOppfolgingsperiode(identer.aktorId).also {
+        val innevaerendeoppfolgingsperiode =
+            sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(identer.aktorId).also {
                 if (it == null) {
                     logger.info(
                         "Fant ingen gjeldende § 14 a-vedtak for personen. Årsak: personen har ingen " +
@@ -34,7 +34,7 @@ class Gjeldende14aVedtakService(
                     )
                 }
             } ?: return null
-        val siste14aVedtak = siste14aVedtakService.siste14aVedtak(brukerIdent).also {
+        val siste14aVedtak = siste14aVedtakService.hentSiste14aVedtak(brukerIdent).also {
             if (it == null) {
                 logger.info(
                     "Fant ingen gjeldende § 14 a-vedtak for personen. Årsak: personen har ingen § 14 a-vedtak."
@@ -42,7 +42,7 @@ class Gjeldende14aVedtakService(
             }
         } ?: return null
 
-        val erGjeldende: Boolean = sjekkOmVedtakErGjeldende(siste14aVedtak, innevarendeoppfolgingsperiode.startdato)
+        val erGjeldende: Boolean = sjekkOmVedtakErGjeldende(siste14aVedtak, innevaerendeoppfolgingsperiode.startdato)
 
         return if (erGjeldende) {
             siste14aVedtak.toGjeldende14aVedtak()
@@ -53,7 +53,7 @@ class Gjeldende14aVedtakService(
                         "gjeldende.",
                 if (siste14aVedtak.fraArena) "Arena" else "ny vedtaksløsning",
                 siste14aVedtak.fattetDato,
-                innevarendeoppfolgingsperiode.startdato
+                innevaerendeoppfolgingsperiode.startdato
             )
             null
         }

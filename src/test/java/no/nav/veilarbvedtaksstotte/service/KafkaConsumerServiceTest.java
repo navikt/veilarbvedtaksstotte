@@ -20,19 +20,8 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import static no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImplTest.veilarbarenaClient;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
+import static org.mockito.Mockito.*;
 
 public class KafkaConsumerServiceTest {
 
@@ -52,6 +41,8 @@ public class KafkaConsumerServiceTest {
 
     private final BrukerIdenterService brukerIdenterService = mock(BrukerIdenterService.class);
 
+    private final KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
+
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
             siste14aVedtakService,
             vedtaksstotteRepository,
@@ -60,17 +51,18 @@ public class KafkaConsumerServiceTest {
             norg2Client,
             aktorOppslagClient,
             veilarbarenaClient,
-            brukerIdenterService
+            brukerIdenterService,
+            kafkaProducerService
     );
 
     @Test
     public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {
         LocalDateTime nowMinus10Days = LocalDateTime.now().minusDays(10);
         ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
-        when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(nowMinus10Days));
+        when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(nowMinus10Days).setAktorId(TEST_AKTOR_ID));
 
         kafkaConsumerService.behandleSisteOppfolgingsperiode(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaSisteOppfolgingsperiode(UUID.randomUUID(), TEST_AKTOR_ID, ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault()), oppfolgingAvsluttetDato))
+                new ConsumerRecord<>("", 0, 0, TEST_AKTOR_ID, new KafkaSisteOppfolgingsperiode(UUID.randomUUID(), TEST_AKTOR_ID, ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault()), oppfolgingAvsluttetDato))
         );
 
         verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(anyLong());

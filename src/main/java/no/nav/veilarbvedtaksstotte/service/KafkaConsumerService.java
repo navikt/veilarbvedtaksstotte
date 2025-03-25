@@ -51,6 +51,8 @@ public class KafkaConsumerService {
 
     private final BrukerIdenterService brukerIdenterService;
 
+    private final KafkaProducerService kafkaProducerService;
+
     private static final String MDC_KAFKA_CONSUMER_SERVICE_CORRELATION_ID_KEY = "kafka_consumer_correlation_id";
 
     @Autowired
@@ -62,7 +64,8 @@ public class KafkaConsumerService {
             Norg2Client norg2Client,
             AktorOppslagClient aktorOppslagClient,
             VeilarbarenaClient veilarbarenaClient,
-            BrukerIdenterService brukerIdenterService
+            BrukerIdenterService brukerIdenterService,
+            KafkaProducerService kafkaProducerService
     ) {
         this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
@@ -72,6 +75,7 @@ public class KafkaConsumerService {
         this.aktorOppslagClient = aktorOppslagClient;
         this.veilarbarenaClient = veilarbarenaClient;
         this.brukerIdenterService = brukerIdenterService;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     public <K, V> void behandleKafkaMelding(ConsumerRecord<K, V> melding, KafkaMeldingBehandler<K, V> meldingBehandler) {
@@ -174,6 +178,8 @@ public class KafkaConsumerService {
 
         log.info("Setter gjeldende vedtak {} til historisk", gjeldendeVedtak.getId());
         vedtaksstotteRepository.settGjeldendeVedtakTilHistorisk(gjeldendeVedtak.getId());
+
+        kafkaProducerService.sendGjeldende14aVedtak(new AktorId(gjeldendeVedtak.getAktorId()), null);
     }
 
     public void behandlePdlAktorV2Melding(ConsumerRecord<String, Aktor> aktorRecord) {
