@@ -131,9 +131,9 @@ spec:
           namespace: obo
         - application: mulighetsrommet-api
           namespace: team-mulighetsrommet
-        - application: pto-admin
-          namespace: pto
-          cluster: prod-fss
+        - application: poao-admin
+          namespace: poao
+          cluster: prod-gcp
         - application: amt-person-service
           namespace: amt
           permissions:

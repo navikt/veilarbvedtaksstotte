@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
+import jakarta.ws.rs.ForbiddenException;
 import no.nav.common.job.JobRunner;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -21,7 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
-    public static final String PTO_ADMIN = "pto-admin";
+    public static final String POAO_ADMIN = "poao-admin";
 
     private final UtrullingService utrullingService;
 
@@ -75,10 +77,10 @@ public class AdminController {
     }
 
     private void sjekkTilgangTilAdmin() {
-        boolean erSystemBrukerFraAzure = authService.harSystemTilSystemTilgang();
-        boolean erPtoAdmin = PTO_ADMIN.equals(authService.hentApplikasjonFraContex());
+        boolean erInternBruker = authService.erInternBruker();
+        boolean erPoaoAdmin = POAO_ADMIN.equals(authService.hentApplikasjonFraContex());
 
-        if (erPtoAdmin && erSystemBrukerFraAzure) {
+        if (erPoaoAdmin && erInternBruker) {
             return;
         }
         throw new ResponseStatusException(HttpStatus.FORBIDDEN);

@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.1</version>
+        <version>3.4.4</version>
         <relativePath/>
     </parent>
 
@@ -22,7 +22,7 @@
         <common.version>3.2024.10.25_13.44-9db48a0dbe67</common.version>
         <kotlin.version>2.1.10</kotlin.version>
         <testcontainers.version>1.20.6</testcontainers.version>
-        <unleash.version>10.0.2</unleash.version>
+        <unleash.version>10.2.1</unleash.version>
 
         <!--   Used by SonarCloud     -->
         <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
@@ -124,7 +124,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.18.2</version>
+            <version>2.18.3</version>
         </dependency>
 
         <dependency>
@@ -264,7 +264,7 @@
         <dependency>
             <groupId>no.nav.poao-tilgang</groupId>
             <artifactId>client</artifactId>
-            <version>2025.03.12_12.27-7bf8f47b2458</version>
+            <version>2025.03.17_14.33-b4b03fa3203e</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
