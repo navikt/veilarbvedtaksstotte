@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static no.nav.veilarbvedtaksstotte.service.ArenaVedtakService.MODIA_REG_USER;
+import static no.nav.veilarbvedtaksstotte.service.ArenaVedtakService.MODIA_REG_USER_14A;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.now;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
@@ -131,13 +132,32 @@ public class ArenaVedtakServiceTest extends DatabaseTest {
 
     @Test
     public void behandleVedtakFraArena__lagrer_ikke_vedtak_som_stammer_fra_denne_losningen() {
-        Fnr fnr = Fnr.of(randomNumeric(10));
+        Fnr fnr = Fnr.of(randomNumeric(11));
         assertFalse(service.behandleVedtakFraArena(
                 new ArenaVedtak(fnr,
                         ArenaVedtak.ArenaInnsatsgruppe.BATT,
                         ArenaVedtak.ArenaHovedmal.BEHOLDEA,
                         LocalDate.now(),
                         MODIA_REG_USER,
+                        now(),
+                        12345,
+                        1
+                )
+        ));
+
+        ArenaVedtak arenaVedtak = arenaVedtakRepository.hentVedtak(fnr);
+        assertNull(arenaVedtak);
+    }
+
+    @Test
+    public void behandleVedtakFraArena__lagrer_ikke_vedtak_som_stammer_fra_denne_losningen_reg_user_modia14a() {
+        Fnr fnr = Fnr.of(randomNumeric(11));
+        assertFalse(service.behandleVedtakFraArena(
+                new ArenaVedtak(fnr,
+                        ArenaVedtak.ArenaInnsatsgruppe.BATT,
+                        ArenaVedtak.ArenaHovedmal.BEHOLDEA,
+                        LocalDate.now(),
+                        MODIA_REG_USER_14A,
                         now(),
                         12345,
                         1

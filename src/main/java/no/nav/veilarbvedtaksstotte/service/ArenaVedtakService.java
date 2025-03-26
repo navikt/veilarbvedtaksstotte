@@ -22,6 +22,7 @@ public class ArenaVedtakService {
 
     final static String JOURNALPOST_ARENA_VEDTAK_TITTEL = "Brev: Oppfølgingsvedtak (§14a)";
     final static String MODIA_REG_USER = "MODIA";
+    final static String MODIA_REG_USER_14A = "MODIA14A";
 
     private final ArenaVedtakRepository arenaVedtakRepository;
     private final SafClient safClient;
@@ -56,12 +57,12 @@ public class ArenaVedtakService {
      * @return true dersom behandling av Kafka-melding fører til lagring/oppdatering i databasen
      */
     public Boolean behandleVedtakFraArena(ArenaVedtak arenaVedtak) {
-        if (MODIA_REG_USER.equals(arenaVedtak.getRegUser())) {
+        if (MODIA_REG_USER.equals(arenaVedtak.getRegUser()) || MODIA_REG_USER_14A.equals(arenaVedtak.getRegUser())) {
             log.info("Behandler ikke melding om vedtak fra Arena med hendelsesId={} og fraDato={}. " +
                             "Årsak: vedtaket er fattet i ny vedtaksløsning i Modia arbeidsrettet oppfølging (dvs. regUser={}) og er allerede behandlet.",
                     arenaVedtak.getHendelseId(),
                     arenaVedtak.getFraDato(),
-                    MODIA_REG_USER
+                    arenaVedtak.getRegUser()
             );
             return false;
         }
