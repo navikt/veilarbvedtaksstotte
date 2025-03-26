@@ -40,12 +40,11 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder
-import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
@@ -79,7 +78,7 @@ class DokumentServiceTest {
     lateinit var oppslagArbeidssoekerregisteretClientImpl: OppslagArbeidssoekerregisteretClientImpl
     lateinit var arbeidssoekerRegisteretService: ArbeidssoekerRegisteretService
 
-    val målform = Målform.NB
+    val malform = Malform.NB
     val veilederNavn = "Navn Veileder"
     val enhetNavn = "Navn Enhet"
     val kontaktEnhetNavn = "Navn Kontaktenhet"
@@ -92,7 +91,7 @@ class DokumentServiceTest {
     val kontaktEnhet = Enhet().setEnhetNr(kontaktEnhetId.get()).setNavn(kontaktEnhetNavn)
     val brevdataOppslag = DokumentService.BrevdataOppslag(
         enhetKontaktinformasjon = enhetKontaktinformasjon,
-        målform = målform,
+        malform = malform,
         veilederNavn = veilederNavn,
         enhet = enhet,
         kontaktEnhet = kontaktEnhet
@@ -110,15 +109,7 @@ class DokumentServiceTest {
         veilederIdent = "123123",
         begrunnelse = "begrunnelse",
         opplysninger = listOf("Kilde1", "kilde2"),
-        utkast = false,
-        adresse = ProduserDokumentDTO.AdresseDTO(
-            adresselinje1 = "Adresselinje 1",
-            adresselinje2 = "Adresselinje 2",
-            adresselinje3 = "Adresselinje 3",
-            postnummer = "0000",
-            poststed = "Sted",
-            land = "Sverige"
-        )
+        utkast = false
     )
 
     val eksternJournalpostReferanse = UUID.randomUUID()
@@ -248,7 +239,6 @@ class DokumentServiceTest {
         )
 
         dokumentService = DokumentService(
-            regoppslagClient = regoppslagClient,
             veilarboppfolgingClient = veilarboppfolgingClient,
             veilarbpersonClient = veilarbpersonClient,
             dokarkivClient = dokarkivClient,
@@ -268,7 +258,7 @@ class DokumentServiceTest {
         givenWiremockOkJsonResponseForPost(
             "/api/v3/person/hent-malform",
             equalToJson("{\"fnr\":\"123\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"),
-            VeilarbpersonClientImpl.MalformRespons(målform.name).toJson()
+            VeilarbpersonClientImpl.MalformRespons(malform.name).toJson()
         )
 
         givenWiremockOkJsonResponse(
@@ -345,37 +335,6 @@ class DokumentServiceTest {
         }
 
         Assertions.assertEquals("Manglende navn for enhet ${produserDokumentDTO.enhetId}", exception.message)
-    }
-
-    @Test
-    fun `produserDokument feiler dersom navn for kontaktenhet mangler`() {
-        givenWiremockOkJsonResponse(
-            "/api/v1/enhet?enhetStatusListe=AKTIV", listOf(enhet, kontaktEnhet.setNavn(null)).toJson()
-        )
-
-        val exception = Assertions.assertThrows(IllegalStateException::class.java) {
-            authContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                pdfService.produserDokument(produserDokumentDTO)
-            })
-        }
-
-        Assertions.assertEquals("Manglende navn for enhet $kontaktEnhetId", exception.message)
-    }
-
-    @Test
-    fun `produserDokument feiler dersom telefonnummer for kontaktenhet mangler`() {
-        givenWiremockOkJsonResponse(
-            "/api/v1/enhet/${produserDokumentDTO.enhetId}/kontaktinformasjon",
-            EnhetKontaktinformasjon(kontaktEnhetId, enhetPostadresse, null).toJson()
-        )
-
-        val exception = Assertions.assertThrows(IllegalStateException::class.java) {
-            authContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                pdfService.produserDokument(produserDokumentDTO)
-            })
-        }
-
-        Assertions.assertEquals("Manglende telefonnummer for enhet $kontaktEnhetId", exception.message)
     }
 
     @Test

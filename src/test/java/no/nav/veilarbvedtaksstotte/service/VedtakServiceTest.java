@@ -39,7 +39,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
-import no.nav.veilarbvedtaksstotte.domain.Målform;
+import no.nav.veilarbvedtaksstotte.domain.Malform;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
@@ -150,7 +150,6 @@ public class VedtakServiceTest extends DatabaseTest {
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
         MalTypeService malTypeService = new MalTypeService(arbeidssoekerRegistretService);
         DokumentService dokumentService = new DokumentService(
-                regoppslagClient,
                 veilarboppfolgingClient,
                 veilarbpersonClient,
                 dokarkivClient,
@@ -193,7 +192,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(regoppslagClient.hentPostadresse(any())).thenReturn(
                 new RegoppslagResponseDTO("", new Adresse(NORSKPOSTADRESSE, "", "", "", "", "", "", "")));
         when(veilarbpersonClient.hentAdressebeskyttelse(TEST_FNR)).thenReturn(new Adressebeskyttelse(Gradering.UGRADERT));
-        when(veilarbpersonClient.hentMålform(TEST_FNR)).thenReturn(Målform.NB);
+        when(veilarbpersonClient.hentMalform(TEST_FNR)).thenReturn(Malform.NB);
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(new CvDto.CVMedInnhold(JsonUtils.fromJson(testCvData(), CvInnhold.class)));
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(aia_backend_client.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()))).thenReturn(JsonUtils.fromJson(testEgenvurderingData(), EgenvurderingResponseDTO.class));
