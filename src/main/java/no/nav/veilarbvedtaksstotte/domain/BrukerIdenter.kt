@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.domain
 
+import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Id
 
 /**
@@ -29,4 +30,10 @@ data class IdentDetaljer(
 data class PersonMedIdenter(
     val personNokkel: PersonNokkel,
     val identDetaljer: IdentDetaljer
+)
+
+data class PersonMedAktiveIdenter(
+    val personNokkel: PersonNokkel,
+    val aktorId: AktorId,
+    val naturligIdent: Id
 )

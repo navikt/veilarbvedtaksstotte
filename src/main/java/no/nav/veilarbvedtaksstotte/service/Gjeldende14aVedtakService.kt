@@ -1,15 +1,19 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
-import no.nav.common.client.aktoroppslag.BrukerIdenter
+import no.nav.common.job.leader_election.LeaderElectionClient
+import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EksternBrukerId
+import no.nav.veilarbvedtaksstotte.domain.oppfolgingsperiode.SisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.toGjeldende14aVedtak
+import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -18,15 +22,58 @@ import java.time.ZonedDateTime
 class Gjeldende14aVedtakService(
     @Autowired val siste14aVedtakService: Siste14aVedtakService,
     @Autowired val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
-    @Autowired val aktorOppslagClient: AktorOppslagClient
+    @Autowired val aktorOppslagClient: AktorOppslagClient,
+    @Autowired val brukerIdenterRepository: BrukerIdenterRepository,
+    @Autowired val kafkaProducerService: KafkaProducerService,
+    @Autowired val leaderElectionClient: LeaderElectionClient
 ) {
 
     val logger: Logger = LoggerFactory.getLogger(Gjeldende14aVedtakService::class.java)
 
-    fun hentGjeldende14aVedtak(brukerIdent: EksternBrukerId): Gjeldende14aVedtak? {
-        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(brukerIdent)
+    @Scheduled
+    fun utforDatalast() {
+        if(leaderElectionClient.isLeader) {
+            val antallPersonerUnderOppfolging: Int = sisteOppfolgingPeriodeRepository.hentAntallPersonUnderOppfolging()
+            var currentBatchOffset = 0
+            val batchStorrelse = 100
+
+            while (currentBatchOffset < antallPersonerUnderOppfolging) {
+                try {
+                    // Hent 100 personer under oppfølging
+                    val aktorIdSisteOppfolgingsperiodeMap: Map<AktorId, SisteOppfolgingsperiode> =
+                        sisteOppfolgingPeriodeRepository.hentPersonerUnderOppfolging(currentBatchOffset, batchStorrelse)
+                            .associateBy { it.aktorId }
+
+                    // For hver person under oppfølging
+                    aktorIdSisteOppfolgingsperiodeMap.forEach {
+                        // Hent gjeldende § 14 a-vedtak for personen, dersom hen har et
+                        val personNokkel = brukerIdenterRepository.hentTilknyttetPerson(it.key)
+                        val gjeldende14aVedtak: Gjeldende14aVedtak? =
+                            hentGjeldende14aVedtak(
+                                brukerIdent = it.key,
+                                aktorIdSupplier = { brukerIdenterRepository.hentAktiveIdenter(personNokkel).aktorId }
+                            )
+
+                        kafkaProducerService.sendGjeldende14aVedtak(it.key, gjeldende14aVedtak)
+                    }
+
+                    // Inkrementer currentBatchOffset
+                    currentBatchOffset += batchStorrelse
+                } catch (e: RuntimeException) {
+                    // Job failed
+                    break
+                }
+            }
+        }
+    }
+
+    fun hentGjeldende14aVedtak(
+        brukerIdent: EksternBrukerId,
+        aktorIdSupplier: ((brukerIdent: EksternBrukerId) -> AktorId)? = null
+    ): Gjeldende14aVedtak? {
+        val aktorId = aktorIdSupplier?.invoke(brukerIdent) ?: aktorOppslagClient.hentIdenter(brukerIdent).aktorId
         val innevaerendeoppfolgingsperiode =
-            sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(identer.aktorId).also {
+            sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(aktorId).also {
                 if (it == null) {
                     logger.info(
                         "Fant ingen gjeldende § 14 a-vedtak for personen. Årsak: personen har ingen " +

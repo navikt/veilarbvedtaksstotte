@@ -1,7 +1,10 @@
 package no.nav.veilarbvedtaksstotte.repository
 
+import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Id
+import no.nav.veilarbvedtaksstotte.domain.Gruppe
 import no.nav.veilarbvedtaksstotte.domain.IdentDetaljer
+import no.nav.veilarbvedtaksstotte.domain.PersonMedAktiveIdenter
 import no.nav.veilarbvedtaksstotte.domain.PersonNokkel
 import no.nav.veilarbvedtaksstotte.utils.DbUtils.toPostgresArray
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,6 +43,46 @@ class BrukerIdenterRepository(
             sql,
             { rs, _ -> rs.getString("person") },
             toPostgresArray(identer.map { it.get() })
+        )
+    }
+
+    fun hentTilknyttetPerson(ident: Id): PersonNokkel {
+        val sql = "SELECT person FROM bruker_identer WHERE ident = ?"
+        return jdbcTemplate.queryForObject(
+            sql,
+            { rs, _ -> rs.getString("person") },
+            ident.get()
+        ) as PersonNokkel
+    }
+
+    fun hentAktiveIdenter(personNokkel: PersonNokkel): PersonMedAktiveIdenter {
+        val hentIdentSql = """
+            SELECT ident FROM bruker_identer
+            WHERE gruppe = ?
+            AND NOT historisk
+            AND person = ?
+            """
+        val aktorId = AktorId(
+            jdbcTemplate.queryForObject(
+                hentIdentSql,
+                { rs, _ -> rs.getString("ident") },
+                Gruppe.AKTORID,
+                personNokkel
+            )
+        )
+        val folkeregisterIdent = Id(
+            jdbcTemplate.queryForObject(
+                hentIdentSql,
+                { rs, _ -> rs.getString("ident") },
+                Gruppe.FOLKEREGISTERIDENT,
+                personNokkel
+            )
+        )
+
+        return PersonMedAktiveIdenter(
+            personNokkel = personNokkel,
+            aktorId = aktorId,
+            naturligIdent = folkeregisterIdent
         )
     }
 

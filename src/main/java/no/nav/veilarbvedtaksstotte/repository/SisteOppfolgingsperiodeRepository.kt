@@ -7,6 +7,8 @@ import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
+import org.springframework.jdbc.core.queryForList
+import org.springframework.jdbc.core.queryForObject
 import org.springframework.stereotype.Repository
 import java.util.*
 
@@ -58,6 +60,27 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
         } catch (e: Exception) {
             secureLog.error("Kunne ikke lagre sisteOppfolgingPeriode, feil: {} , sisteOppfolgingPeriode: {}", e, sisteOppfolgingPeriode)
         }
+    }
+
+    fun hentAntallPersonUnderOppfolging(): Int {
+        val sql = """
+            SELECT COUNT(*) FROM $SISTE_OPPFOLGING_PERIODE_TABELL
+            WHERE $SLUTTDATO IS NULL
+        """
+
+        return jdbcTemplate.queryForObject(sql, Int::class.java) ?: 0
+    }
+
+    fun hentPersonerUnderOppfolging(offset: Int, antall: Int = 100): List<SisteOppfolgingsperiode> {
+        val sql = """
+           SELECT * FROM $SISTE_OPPFOLGING_PERIODE_TABELL
+           WHERE $SLUTTDATO IS NULL
+           ORDER BY $AKTORID
+           OFFSET ?
+           LIMIT ?
+        """
+
+        return jdbcTemplate.query(sql, sisteOppfolgingsperiodeRowMapper, offset, antall)
     }
 
     private val sisteOppfolgingsperiodeRowMapper: RowMapper<SisteOppfolgingsperiode> = RowMapper { rs, _ ->
