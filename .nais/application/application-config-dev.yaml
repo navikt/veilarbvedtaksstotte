@@ -146,7 +146,7 @@ spec:
           namespace: amt
           permissions:
             roles:
-              - "siste-14a-vedtak"
+              - "gjeldende-14a-vedtak"
         - application: modiapersonoversikt-api
           namespace: personoversikt
         - application: tiltaksgjennomforing-api

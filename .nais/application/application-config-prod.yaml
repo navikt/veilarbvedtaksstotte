@@ -138,7 +138,7 @@ spec:
           namespace: amt
           permissions:
             roles:
-              - "siste-14a-vedtak"
+              - "gjeldende-14a-vedtak"
         # Lenke til behandling i Behandlingskatalogen: https://behandlingskatalog.intern.nav.no/process/team/7ec4b786-ddf7-4c56-ab2f-3c3edeb0d33f/4ff22ca5-c66a-4127-9271-9de34800c8dd
         - application: modiapersonoversikt-api
           namespace: personoversikt
