@@ -147,6 +147,8 @@ spec:
           permissions:
             roles:
               - "gjeldende-14a-vedtak"
+              - "siste-14a-vedtak"
+
         - application: modiapersonoversikt-api
           namespace: personoversikt
         - application: tiltaksgjennomforing-api
