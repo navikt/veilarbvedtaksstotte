@@ -8,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtakKafkaDTO
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.KafkaTestUtils
@@ -62,9 +63,9 @@ class Siste14aVedtakKafkaProducerTest : AbstractVedtakIntegrationTest() {
 
         siste14aVedtakService.behandleEndringFraArena(arenaVedtak)
 
-        val konsumerteMeldinger: AtomicReference<MutableMap<AktorId, Siste14aVedtak>> = AtomicReference(mutableMapOf())
+        val konsumerteMeldinger: AtomicReference<MutableMap<AktorId, Siste14aVedtakKafkaDTO>> = AtomicReference(mutableMapOf())
 
-        val testConsumer = KafkaTestUtils.testConsumer<Siste14aVedtak>(
+        val testConsumer = KafkaTestUtils.testConsumer<Siste14aVedtakKafkaDTO>(
             kafkaContainer.bootstrapServers,
             kafkaProperties.siste14aVedtakTopic,
         ) { record ->

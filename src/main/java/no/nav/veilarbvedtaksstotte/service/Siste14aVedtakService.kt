@@ -82,6 +82,10 @@ class Siste14aVedtakService(
                     hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(nyesteVedtakFraNyLosning.hovedmal),
                     fattetDato = toZonedDateTime(nyesteVedtakFraNyLosning.vedtakFattet),
                     fraArena = false,
+                    vedtakId = Siste14aVedtak.VedtakIdVedtaksstotte(
+                        id = nyesteVedtakFraNyLosning.id,
+                        referanse = nyesteVedtakFraNyLosning.referanse
+                    )
                 ),
                 arenaVedtak = alleArenaVedtakForPersonen
             )
@@ -96,6 +100,9 @@ class Siste14aVedtakService(
                     hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(nyesteVedtakFraArena.hovedmal),
                     fattetDato = toZonedDateTime(nyesteVedtakFraArena.fraDato.atStartOfDay()),
                     fraArena = true,
+                    vedtakId = Siste14aVedtak.VedtakIdArena(
+                        id = nyesteVedtakFraArena.vedtakId,
+                    )
                 ),
                 arenaVedtak = alleArenaVedtakForPersonen
             )

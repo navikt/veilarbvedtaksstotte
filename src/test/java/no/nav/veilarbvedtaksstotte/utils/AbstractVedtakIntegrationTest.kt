@@ -19,6 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.jdbc.core.JdbcTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 import kotlin.random.Random
 
 abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
@@ -44,7 +45,8 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
         enhetId: String = "1234",
         veilederIdent: String = "VIDENT",
         beslutterIdent: String? = null,
-        gammelVedtakId: Long = 1234
+        gammelVedtakId: Long = 1234,
+        referanse: UUID = UUID.randomUUID()
     ): Vedtak {
         vedtakRepository.opprettUtkast(
             aktorId.get(), TestData.TEST_VEILEDER_IDENT, TestData.TEST_OPPFOLGINGSENHET_ID
@@ -59,9 +61,9 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
         jdbcTemplate.update(
             """
                 UPDATE VEDTAK 
-                SET VEDTAK_FATTET = ?, GJELDENDE = ?, OPPFOLGINGSENHET_ID = ?, VEILEDER_IDENT = ?, BESLUTTER_IDENT = ? 
+                SET VEDTAK_FATTET = ?, GJELDENDE = ?, OPPFOLGINGSENHET_ID = ?, VEILEDER_IDENT = ?, BESLUTTER_IDENT = ?, REFERANSE = ? 
                 WHERE ID = ?
-            """, vedtakFattetDato, gjeldende, enhetId, veilederIdent, beslutterIdent, vedtak.id
+            """, vedtakFattetDato, gjeldende, enhetId, veilederIdent, beslutterIdent, referanse, vedtak.id
         )
 
         return vedtakRepository.hentVedtak(vedtak.id)
