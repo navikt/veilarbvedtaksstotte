@@ -1,25 +1,16 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.client.aktoroppslag.BrukerIdenter
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.now
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.any
-import org.mockito.Mockito.eq
-import org.mockito.Mockito.never
-import org.mockito.Mockito.reset
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.time.LocalDate
@@ -308,15 +299,24 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             )
         )
 
-        val forventetSiste14aVedtak = Siste14aVedtak(
+        val forventetSiste14aVedtakKafkaDTO = Siste14aVedtakKafkaDTO(
             identer.aktorId,
             Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
             HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
             fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
             fraArena = true
         )
+        val forventetSiste14aVedtak = forventetSiste14aVedtakKafkaDTO.let {
+            Siste14aVedtak(
+                aktorId = it.aktorId,
+                innsatsgruppe = it.innsatsgruppe,
+                hovedmal = it.hovedmal,
+                fattetDato = it.fattetDato,
+                fraArena = it.fraArena
+            )
+        }
 
-        verify(kafkaProducerService).sendSiste14aVedtak(eq(forventetSiste14aVedtak))
+        verify(kafkaProducerService).sendSiste14aVedtak(eq(forventetSiste14aVedtakKafkaDTO))
 
         assertSiste14aVedtak(identer, forventetSiste14aVedtak)
     }
@@ -346,13 +346,22 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             )
         )
 
-        val forventetSiste14aVedtak = Siste14aVedtak(
+        val forventetSiste14aVedtakKafkaDTO = Siste14aVedtakKafkaDTO(
             identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
             fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
             fraArena = true
         )
+        val forventetSiste14aVedtak = forventetSiste14aVedtakKafkaDTO.let {
+            Siste14aVedtak(
+                aktorId = it.aktorId,
+                innsatsgruppe = it.innsatsgruppe,
+                hovedmal = it.hovedmal,
+                fattetDato = it.fattetDato,
+                fraArena = it.fraArena
+            )
+        }
 
-        verify(kafkaProducerService).sendSiste14aVedtak(eq(forventetSiste14aVedtak))
+        verify(kafkaProducerService).sendSiste14aVedtak(eq(forventetSiste14aVedtakKafkaDTO))
 
         assertSiste14aVedtak(identer, forventetSiste14aVedtak)
         assertFattedeVedtakFraNyLøsning(identer, 1)

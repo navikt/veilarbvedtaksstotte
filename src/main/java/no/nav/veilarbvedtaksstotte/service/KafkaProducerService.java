@@ -7,9 +7,8 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtakKafkaDTO;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtakKafkaDTO;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Service;
 
@@ -55,13 +54,13 @@ public class KafkaProducerService {
         producerRecordStorage.store(producerRecord);
     }
 
-    public void sendSiste14aVedtak(Siste14aVedtak siste14aVedtak) {
+    public void sendSiste14aVedtak(Siste14aVedtakKafkaDTO siste14aVedtakKafkaDTO) {
         ProducerRecord<byte[], byte[]> producerRecord =
                 serializeJsonRecord(
                         new ProducerRecord<>(
                                 kafkaProperties.getSiste14aVedtakTopic(),
-                                siste14aVedtak.getAktorId().get(),
-                                siste14aVedtak));
+                                siste14aVedtakKafkaDTO.getAktorId().get(),
+                                siste14aVedtakKafkaDTO));
 
         producerRecordStorage.store(producerRecord);
     }

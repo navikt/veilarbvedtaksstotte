@@ -9,6 +9,4 @@ data class Siste14aVedtak(
     val hovedmal: HovedmalMedOkeDeltakelse?,
     val fattetDato: ZonedDateTime,
     val fraArena: Boolean
-) {
-
-}
+)

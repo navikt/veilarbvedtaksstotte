@@ -15,7 +15,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse.SKAFFE
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.InnsatsgruppeV2
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtakKafkaDTO
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
@@ -46,7 +46,7 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
 
     @Test
     fun `lagrer forventet record verdi for oppdatering av siste vedtak`() {
-        val siste14aVedtak = Siste14aVedtak(
+        val siste14aVedtakKafkaDTO = Siste14aVedtakKafkaDTO(
             aktorId = AktorId(TEST_AKTOR_ID),
             innsatsgruppe = STANDARD_INNSATS,
             hovedmal = SKAFFE_ARBEID,
@@ -54,7 +54,7 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
             fraArena = false
         )
 
-        kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
+        kafkaProducerService.sendSiste14aVedtak(siste14aVedtakKafkaDTO)
 
         verify(producerRecordStorage).store(argumentCaptor.capture())
 

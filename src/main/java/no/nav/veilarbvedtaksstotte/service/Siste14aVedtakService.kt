@@ -58,7 +58,7 @@ class Siste14aVedtakService(
 
         val (siste14aVedtak) = hentSiste14aVedtakMedGrunnlag(identer)
         val fraArena = siste14aVedtak?.fraArena ?: false
-        kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
+        kafkaProducerService.sendSiste14aVedtak(siste14aVedtak?.toSiste14aVedtakKafkaDTO())
         log.info("Siste 14a vedtak republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte")
     }
 
@@ -132,7 +132,7 @@ class Siste14aVedtakService(
 
         if (erMottattArenaVedtakNyesteVedtak) {
             settEksisterendeGjeldende14aVedtakTilHistorisk(identer)
-            kafkaProducerService.sendSiste14aVedtak(siste14aVedtakMedGrunnlag.siste14aVedtak)
+            kafkaProducerService.sendSiste14aVedtak(siste14aVedtakMedGrunnlag.siste14aVedtak?.toSiste14aVedtakKafkaDTO())
             log.info("Videresendte § 14 a-vedtak fra Arena på {}.", kafkaProperties.siste14aVedtakTopic)
         } else {
             log.info(
