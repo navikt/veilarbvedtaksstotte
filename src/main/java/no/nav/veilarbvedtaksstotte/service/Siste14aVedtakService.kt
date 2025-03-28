@@ -151,7 +151,7 @@ class Siste14aVedtakService(
         if (erMottattArenaVedtakGjeldende) {
             kafkaProducerService.sendGjeldende14aVedtak(
                 identer.aktorId,
-                siste14aVedtakMedGrunnlag.siste14aVedtak?.toGjeldende14aVedtakKafkaDTO(arenaVedtak.vedtakId)
+                siste14aVedtakMedGrunnlag.siste14aVedtak?.toGjeldende14aVedtakKafkaDTO()
             )
             log.info("Videresendte § 14 a-vedtak fra Arena på {}.", kafkaProperties.gjeldende14aVedtakTopic)
         } else {
