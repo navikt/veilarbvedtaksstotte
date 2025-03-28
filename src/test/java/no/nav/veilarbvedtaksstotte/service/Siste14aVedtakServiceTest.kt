@@ -1,28 +1,20 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.client.aktoroppslag.BrukerIdenter
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaHovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.now
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.any
-import org.mockito.Mockito.eq
-import org.mockito.Mockito.never
-import org.mockito.Mockito.reset
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.time.LocalDate
+import java.util.*
 
 class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
 
@@ -47,16 +39,16 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
 
     @Test
     fun `siste 14a vedtak fra ny løsning dersom, ny løsning har vedtak, Arena har null`() {
-
         val identer = gittBrukerIdenter()
-
         val fattetDato = now()
+        val referanse = UUID.randomUUID()
 
-        lagreFattetVedtak(
+        val lagretVedtak = lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.SKAFFE_ARBEID,
-            vedtakFattetDato = fattetDato
+            vedtakFattetDato = fattetDato,
+            referanse = referanse
         )
 
         assertAntallVedtakFraArena(identer, 0)
@@ -67,7 +59,11 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
                 innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
                 hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
                 fattetDato = toZonedDateTime(fattetDato),
-                fraArena = false
+                fraArena = false,
+                vedtakId = Siste14aVedtak.VedtakIdVedtaksstotte(
+                    id = lagretVedtak.id,
+                    referanse = referanse
+                )
             )
         )
     }
@@ -76,6 +72,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     fun `siste 14a vedtak fra ny løsning dersom nyere vedtak fra ny løsning enn fra Arena`() {
         val identer = gittBrukerIdenter()
         val fattetDato = now().minusDays(3)
+        val referanse = UUID.randomUUID()
 
         lagreArenaVedtak(
             fnr = identer.fnr,
@@ -84,11 +81,12 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             hovedmal = ArenaHovedmal.SKAFFEA
         )
 
-        lagreFattetVedtak(
+        val lagretVedtak = lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            vedtakFattetDato = fattetDato
+            vedtakFattetDato = fattetDato,
+            referanse = referanse
         )
 
         assertAntallVedtakFraArena(identer, 1)
@@ -97,7 +95,11 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             forventet = Siste14aVedtak(
                 identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID,
                 fattetDato = toZonedDateTime(fattetDato),
-                fraArena = false
+                fraArena = false,
+                vedtakId = Siste14aVedtak.VedtakIdVedtaksstotte(
+                    id = lagretVedtak.id,
+                    referanse = referanse
+                )
             )
         )
     }
@@ -106,6 +108,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     fun `siste 14a vedtak fra ny løsning dersom, ny løsning har vedtak, Arena har eldre fra samme dag`() {
         val identer = gittBrukerIdenter()
         val fattetDato = now().minusDays(3).plusMinutes(1)
+        val referanse = UUID.randomUUID()
 
         lagreArenaVedtak(
             fnr = identer.fnr,
@@ -115,11 +118,12 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             operationTimestamp = now().minusDays(3)
         )
 
-        lagreFattetVedtak(
+        val lagretVedtak = lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            vedtakFattetDato = fattetDato
+            vedtakFattetDato = fattetDato,
+            referanse = referanse
         )
 
         assertAntallVedtakFraArena(identer, 1)
@@ -130,7 +134,11 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
                 innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
                 hovedmal = HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID,
                 fattetDato = toZonedDateTime(fattetDato),
-                fraArena = false
+                fraArena = false,
+                vedtakId = Siste14aVedtak.VedtakIdVedtaksstotte(
+                    id = lagretVedtak.id,
+                    referanse = referanse
+                )
             )
         )
     }
@@ -140,7 +148,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now().minusDays(1)
 
-        lagreArenaVedtak(
+        val lagretArenaVedtak = lagreArenaVedtak(
             fnr = identer.fnr,
             fraDato = fattetDato,
             innsatsgruppe = ArenaInnsatsgruppe.BATT,
@@ -156,7 +164,10 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
                 innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
                 hovedmal = HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
                 fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
-                fraArena = true
+                fraArena = true,
+                vedtakId = Siste14aVedtak.VedtakIdArena(
+                    id = 1
+                )
             )
         )
     }
@@ -166,14 +177,14 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now().minusDays(4)
 
-        lagreArenaVedtak(
+        val lagretArenaVedtak = lagreArenaVedtak(
             fnr = identer.fnr,
             fraDato = fattetDato,
             innsatsgruppe = ArenaInnsatsgruppe.VARIG,
             hovedmal = ArenaHovedmal.SKAFFEA
         )
 
-        lagreFattetVedtak(
+        val lagretVedtak = lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
@@ -187,7 +198,10 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             Siste14aVedtak(
                 identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
                 fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
-                fraArena = true
+                fraArena = true,
+                vedtakId = Siste14aVedtak.VedtakIdArena(
+                    id = 1
+                )
             )
         )
     }
@@ -197,7 +211,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now().minusDays(4)
 
-        lagreArenaVedtak(
+        val lagretArenaVedtak = lagreArenaVedtak(
             fnr = identer.fnr,
             fraDato = fattetDato,
             innsatsgruppe = ArenaInnsatsgruppe.VARIG,
@@ -205,7 +219,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             operationTimestamp = now().minusDays(4).plusMinutes(1)
         )
 
-        lagreFattetVedtak(
+        val lagretVedtak = lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
@@ -219,7 +233,10 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             Siste14aVedtak(
                 identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
                 fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
-                fraArena = true
+                fraArena = true,
+                vedtakId = Siste14aVedtak.VedtakIdArena(
+                    id = lagretArenaVedtak.vedtakId
+                )
             )
         )
     }
@@ -229,7 +246,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 3)
         val fattetDato = LocalDate.now().minusDays(4)
 
-        lagreArenaVedtak(
+        val lagretArenaVedtakPaAktivFnr = lagreArenaVedtak(
             fnr = identer.fnr,
             fraDato = fattetDato,
             innsatsgruppe = ArenaInnsatsgruppe.VARIG,
@@ -252,7 +269,10 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             Siste14aVedtak(
                 identer.aktorId, Innsatsgruppe.VARIG_TILPASSET_INNSATS, HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
                 fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
-                fraArena = true
+                fraArena = true,
+                vedtakId = Siste14aVedtak.VedtakIdArena(
+                    lagretArenaVedtakPaAktivFnr.vedtakId
+                )
             )
         )
     }
@@ -262,7 +282,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 4)
         val fattetDato = LocalDate.now().minusDays(4)
 
-        lagreArenaVedtak(
+        val lagretArenaVedtakPaHistoriskFnr = lagreArenaVedtak(
             fnr = identer.historiskeFnr[1],
             fraDato = fattetDato,
             innsatsgruppe = ArenaInnsatsgruppe.IKVAL,
@@ -287,7 +307,10 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             Siste14aVedtak(
                 identer.aktorId, Innsatsgruppe.STANDARD_INNSATS, HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID,
                 fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
-                fraArena = true
+                fraArena = true,
+                vedtakId = Siste14aVedtak.VedtakIdArena(
+                    lagretArenaVedtakPaHistoriskFnr.vedtakId
+                )
             )
         )
     }
@@ -308,15 +331,27 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             )
         )
 
-        val forventetSiste14aVedtak = Siste14aVedtak(
-            identer.aktorId,
-            Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
-            HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
+        val forventetSiste14aVedtakKafkaDTO = Siste14aVedtakKafkaDTO(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+            hovedmal = HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
             fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
             fraArena = true
         )
+        val forventetSiste14aVedtak =
+            Siste14aVedtak(
+                aktorId = identer.aktorId,
+                innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+                hovedmal = HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
+                fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+                fraArena = true,
+                vedtakId = Siste14aVedtak.VedtakIdArena(
+                    id = 1
+                )
+            )
 
-        verify(kafkaProducerService).sendSiste14aVedtak(eq(forventetSiste14aVedtak))
+
+        verify(kafkaProducerService).sendSiste14aVedtak(eq(forventetSiste14aVedtakKafkaDTO))
 
         assertSiste14aVedtak(identer, forventetSiste14aVedtak)
     }
@@ -326,7 +361,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now().minusDays(2)
 
-        lagreFattetVedtak(
+        val lagretVedtak = lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
@@ -346,13 +381,26 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             )
         )
 
-        val forventetSiste14aVedtak = Siste14aVedtak(
-            identer.aktorId, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS, HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
+        val forventetSiste14aVedtakKafkaDTO = Siste14aVedtakKafkaDTO(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+            hovedmal = HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
             fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
             fraArena = true
         )
+        val forventetSiste14aVedtak = Siste14aVedtak(
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+            hovedmal = HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
+            fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
+            fraArena = true,
+            vedtakId = Siste14aVedtak.VedtakIdArena(
+                id = 1
+            )
+        )
 
-        verify(kafkaProducerService).sendSiste14aVedtak(eq(forventetSiste14aVedtak))
+
+        verify(kafkaProducerService).sendSiste14aVedtak(eq(forventetSiste14aVedtakKafkaDTO))
 
         assertSiste14aVedtak(identer, forventetSiste14aVedtak)
         assertFattedeVedtakFraNyLøsning(identer, 1)
@@ -363,12 +411,14 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     fun `siste 14a vedtak oppdateres ikke dersom melding stammer fra ny løsning`() {
         val identer = gittBrukerIdenter()
         val fattetDato = now()
+        val referanse = UUID.randomUUID()
 
-        lagreFattetVedtak(
+        val lagretVedtak = lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
             hovedmal = Hovedmal.BEHOLDE_ARBEID,
-            vedtakFattetDato = fattetDato
+            vedtakFattetDato = fattetDato,
+            referanse = referanse
         )
 
         assertAntallVedtakFraArena(identer, 0)
@@ -384,11 +434,15 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         )
 
         val forventetSiste14aVedtak = Siste14aVedtak(
-            identer.aktorId,
-            Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
-            HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID,
+            aktorId = identer.aktorId,
+            innsatsgruppe = Innsatsgruppe.SPESIELT_TILPASSET_INNSATS,
+            hovedmal = HovedmalMedOkeDeltakelse.BEHOLDE_ARBEID,
             fattetDato = toZonedDateTime(fattetDato),
-            fraArena = false
+            fraArena = false,
+            vedtakId = Siste14aVedtak.VedtakIdVedtaksstotte(
+                id = lagretVedtak.id,
+                referanse = referanse
+            )
         )
 
         verify(kafkaProducerService, never()).sendSiste14aVedtak(any())
@@ -401,12 +455,14 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     fun `siste 14a vedtak oppdateres ikke dersom bruker har nyere vedtak fra ny løsning som beholdes som gjeldende`() {
         val identer = gittBrukerIdenter()
         val fattetDato = now().minusDays(2)
+        val referanse = UUID.randomUUID()
 
-        lagreFattetVedtak(
+        val lagretVedtak = lagreFattetVedtak(
             aktorId = identer.aktorId,
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = Hovedmal.SKAFFE_ARBEID,
-            vedtakFattetDato = fattetDato
+            vedtakFattetDato = fattetDato,
+            referanse = referanse
         )
 
         assertAntallVedtakFraArena(identer, 0)
@@ -427,7 +483,11 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = toZonedDateTime(fattetDato),
-            fraArena = false
+            fraArena = false,
+            vedtakId = Siste14aVedtak.VedtakIdVedtaksstotte(
+                id = lagretVedtak.id,
+                referanse = referanse
+            )
         )
 
         verify(kafkaProducerService, never()).sendSiste14aVedtak(any())
@@ -441,7 +501,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     fun `siste 14a vedtak oppdateres ikke dersom bruker har nyere vedtak fra Arena fra før`() {
         val identer = gittBrukerIdenter()
         val fattetDato = LocalDate.now()
-        lagreArenaVedtak(
+        val lagretArenaVedtak = lagreArenaVedtak(
             fnr = identer.fnr,
             fraDato = fattetDato,
             innsatsgruppe = ArenaInnsatsgruppe.BFORM,
@@ -469,7 +529,10 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
                 innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
                 hovedmal = HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
                 fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
-                fraArena = true
+                fraArena = true,
+                vedtakId = Siste14aVedtak.VedtakIdArena(
+                    id = lagretArenaVedtak.vedtakId
+                )
             )
         )
     }
@@ -479,7 +542,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
         val identer = gittBrukerIdenter(antallHistoriskeFnr = 1)
         val fattetDato = LocalDate.now()
 
-        lagreArenaVedtak(
+        val lagretArenaVedtak = lagreArenaVedtak(
             fnr = identer.fnr,
             fraDato = fattetDato,
             innsatsgruppe = ArenaInnsatsgruppe.BFORM,
@@ -505,7 +568,10 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
                 Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
                 HovedmalMedOkeDeltakelse.OKE_DELTAKELSE,
                 fattetDato = toZonedDateTime(fattetDato.atStartOfDay()),
-                fraArena = true
+                fraArena = true,
+                vedtakId = Siste14aVedtak.VedtakIdArena(
+                    id = lagretArenaVedtak.vedtakId
+                )
             )
         )
     }

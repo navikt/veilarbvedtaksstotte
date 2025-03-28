@@ -9,7 +9,7 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtakKafkaDTOKt;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtakKafkaDTO;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import org.springframework.stereotype.Service;
@@ -113,12 +113,14 @@ public class VedtakHendelserService {
         kafkaProducerService.sendVedtakSendt(lagKafkaVedtakSendt(vedtak));
 
         kafkaProducerService.sendSiste14aVedtak(
-                new Siste14aVedtak(
+                new Siste14aVedtakKafkaDTO(
                         AktorId.of(vedtak.getAktorId()),
                         vedtak.getInnsatsgruppe(),
                         HovedmalMedOkeDeltakelse.fraHovedmal(vedtak.getHovedmal()),
                         toZonedDateTime(vedtak.getVedtakFattet()),
-                        false));
+                        false
+                )
+        );
 
         kafkaProducerService.sendGjeldende14aVedtak(new AktorId(vedtak.getAktorId()), Gjeldende14aVedtakKafkaDTOKt.toGjeldende14aVedtakKafkaDTO(vedtak));
     }
