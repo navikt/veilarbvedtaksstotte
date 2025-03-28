@@ -29,7 +29,8 @@ import org.springframework.web.server.ResponseStatusException
 )
 class Gjeldende14aVedtakController(
     val authService: AuthService,
-    val gjeldende14aVedtakService: Gjeldende14aVedtakService
+    val gjeldende14aVedtakService: Gjeldende14aVedtakService,
+    val auditlogService: AuditlogService
 ) {
 
     @EksterntEndepunkt
@@ -78,10 +79,15 @@ class Gjeldende14aVedtakController(
             fnr = gjeldende14aVedtakRequest.fnr,
             veilederTilgangssjekk = ::sjekkVeilederTilgangTilBruker
         )
-        return gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)
-            ?.toGjeldende14aVedtakDto()
-    }
 
+        return gjeldende14aVedtakService
+                .hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)
+                ?.toGjeldende14aVedtakDto()
+                .also { auditlogService.auditlog(
+                    "Nav-ansatt hentet personens gjeldende § 14 a-vedtak",
+                    gjeldende14aVedtakRequest.fnr
+                ) }
+    }
 
     private fun sjekkLesetilgang(fnr: Fnr, veilederTilgangssjekk: (fnr: Fnr) -> Unit) {
         if (authService.erSystemBruker()) {

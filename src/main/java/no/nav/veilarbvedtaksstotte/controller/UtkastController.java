@@ -30,11 +30,13 @@ public class UtkastController {
 
     private final VedtakService vedtakService;
     private final UtrullingService utrullingService;
+    private final AuditlogService auditlogService;
 
     @Autowired
-    public UtkastController(VedtakService vedtakService, UtrullingService utrullingService) {
+    public UtkastController(VedtakService vedtakService, UtrullingService utrullingService, AuditlogService auditlogService) {
         this.vedtakService = vedtakService;
         this.utrullingService = utrullingService;
+        this.auditlogService = auditlogService;
     }
 
     @Deprecated(forRemoval = true)
@@ -155,8 +157,11 @@ public class UtkastController {
             @PathVariable("vedtakId") @Parameter(description = "ID-en til et utkast til § 14 a-vedtak") long vedtakId
     ) {
         utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
-
         byte[] utkastPdf = vedtakService.produserDokumentUtkast(vedtakId);
+        auditlogService.auditlog(
+                "Nav-ansatt hentet forhåndsvisning av et utkast til § 14 a-vedtak",
+                auditlogService.finnFodselsnummerFraVedtakId(vedtakId)
+        );
         return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev-utkast.pdf")
                 .body(utkastPdf);

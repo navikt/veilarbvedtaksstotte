@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.veilarbvedtaksstotte.controller.AuditlogService
 import no.nav.veilarbvedtaksstotte.controller.dto.VedtakUtkastDTO
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.UtkastRequest
 import no.nav.veilarbvedtaksstotte.mapper.toVedtakUtkastDTO
@@ -23,7 +24,8 @@ import org.springframework.web.bind.annotation.RestController
 )
 class UtkastV2Controller(
     val vedtakService: VedtakService,
-    private val utrullingService: UtrullingService
+    private val utrullingService: UtrullingService,
+    private val auditlogService: AuditlogService
 ) {
     @PostMapping("/hent-utkast")
     @Operation(
@@ -38,8 +40,8 @@ class UtkastV2Controller(
     )
     fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): VedtakUtkastDTO {
         utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(utkastRequest.fnr)
-
         return toVedtakUtkastDTO(vedtakService.hentUtkast(utkastRequest.fnr))
+            .also { auditlogService.auditlog("Nav-ansatt hentet utkast til § 14 a-vedtak for person", utkastRequest.fnr) }
     }
 
     @PostMapping("/utkast/hent-harUtkast")

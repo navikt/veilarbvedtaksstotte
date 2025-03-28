@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.common.types.identer.Fnr
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.annotations.EksterntEndepunkt
+import no.nav.veilarbvedtaksstotte.controller.AuditlogService
 import no.nav.veilarbvedtaksstotte.controller.dto.Siste14aVedtakDTO
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
@@ -27,7 +28,8 @@ import org.springframework.web.server.ResponseStatusException
 )
 class Siste14aVedtakV2Controller(
     val authService: AuthService,
-    val siste14aVedtakService: Siste14aVedtakService
+    val siste14aVedtakService: Siste14aVedtakService,
+    val auditlogService: AuditlogService
 ) {
 
     @EksterntEndepunkt
@@ -51,6 +53,7 @@ class Siste14aVedtakV2Controller(
 
         return siste14aVedtakService.hentSiste14aVedtak(siste14aVedtakRequest.fnr)
             ?.let { Siste14aVedtakDTO.fraSiste14aVedtak(it) }
+            .also { auditlogService.auditlog("Nav-ansatt hentet siste § 14 a-vedtak for person", siste14aVedtakRequest.fnr) }
     }
 
     private fun sjekkLesetilgang(fnr: Fnr) {

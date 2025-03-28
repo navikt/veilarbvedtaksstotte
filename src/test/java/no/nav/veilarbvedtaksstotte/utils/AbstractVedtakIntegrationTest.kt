@@ -1,10 +1,12 @@
 package no.nav.veilarbvedtaksstotte.utils
 
+import com.ninjasquad.springmockk.MockkBean
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.IntegrationTestBase
+import no.nav.veilarbvedtaksstotte.controller.AuditlogService
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
@@ -34,6 +36,9 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
 
     @MockBean
     lateinit var aktorOppslagClient: AktorOppslagClient
+
+    @MockkBean
+    lateinit var auditlogService: AuditlogService
 
     fun lagreFattetVedtak(
         aktorId: AktorId,

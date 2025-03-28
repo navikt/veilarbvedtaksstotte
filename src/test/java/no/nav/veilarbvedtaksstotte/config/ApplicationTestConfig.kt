@@ -7,6 +7,7 @@ import io.getunleash.DefaultUnleash
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import jakarta.annotation.PostConstruct
+import no.nav.common.audit_log.log.AuditLogger
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.job.leader_election.LeaderElectionClient
@@ -172,6 +173,11 @@ class ApplicationTestConfig {
     @PostConstruct
     fun initJsonUtils() {
         init()
+    }
+
+    @Bean
+    fun auditLogger(): AuditLogger {
+        return Mockito.mock(AuditLogger::class.java)
     }
 
     companion object {
