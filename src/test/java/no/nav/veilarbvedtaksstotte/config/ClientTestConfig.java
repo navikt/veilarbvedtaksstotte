@@ -261,6 +261,17 @@ public class ClientTestConfig {
             }
 
             @Override
+            public PersonNavn hentPersonNavnForJournalforing(String fnr) {
+                PersonNavn personNavn = new PersonNavn(
+                        "TEST",
+                        null,
+                        "TESTERSEN",
+                        "TEST TESTERSEN"
+                );
+                return personNavn;
+            }
+
+            @Override
             public CvDto hentCVOgJobbprofil(String fnr) {
                 return new CvDto.CvMedError(CvErrorStatus.IKKE_DELT);
             }

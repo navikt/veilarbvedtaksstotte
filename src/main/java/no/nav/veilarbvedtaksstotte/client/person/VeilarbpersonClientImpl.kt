@@ -21,8 +21,11 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import java.util.function.Supplier
 
-class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val userTokenSupplier: Supplier<String>,
-                              private val machineToMachineTokenSupplier: Supplier<String>) :
+class VeilarbpersonClientImpl(
+    private val veilarbpersonUrl: String,
+    private val userTokenSupplier: Supplier<String>,
+    private val machineToMachineTokenSupplier: Supplier<String>
+) :
     VeilarbpersonClient {
 
     private val client: OkHttpClient = RestClient.baseClient()
@@ -31,6 +34,30 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-navn"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+            .post(
+                PersonRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
+                    .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
+            )
+            .build()
+        RestClient.baseClient().newCall(request).execute().use { response ->
+            RestUtils.throwIfNotSuccessful(response)
+            return response.deserializeJsonOrThrow()
+        }
+    }
+
+    /*
+        2025-04-01, Sondre
+
+        Denne funksjonen er helt lik hentPersonNavn, med unntak av en ting: den bruker system-til-system token supplier
+        i stedet for user token supplier. Vi gjorde dette på enkleste mulig måte når vi trengte å fikse en feil der
+        en batch-jobb skulle hente personen sitt navn. Da har vi ikke bruker i kontekst og kan derfor ikke bruke user token supplier.
+
+        TODO: Dette kan gjøres "bedre" med å f.eks. kunne spesifisere hvilken type token supplier man ønsker ved call-site.
+     */
+    override fun hentPersonNavnForJournalforing(fnr: String): PersonNavn {
+        val request = Request.Builder()
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-navn"))
+            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
             .post(
                 PersonRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
                     .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
