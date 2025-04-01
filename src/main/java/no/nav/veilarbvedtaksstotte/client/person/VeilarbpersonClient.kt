@@ -9,6 +9,7 @@ import no.nav.veilarbvedtaksstotte.domain.Malform
 
 interface VeilarbpersonClient : HealthCheck {
     fun hentPersonNavn(fnr: String): PersonNavn
+    fun hentPersonNavnForJournalforing(fnr: String): PersonNavn
     fun hentCVOgJobbprofil(fnr: String): CvDto
     fun hentMalform(fnr: Fnr): Malform
     fun hentAdressebeskyttelse(fnr: Fnr): Adressebeskyttelse
