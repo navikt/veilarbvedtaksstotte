@@ -11,8 +11,20 @@ import org.joda.time.Instant
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
 
 internal class OyeblikksbildeServiceTest {
+
+    @Test
+    fun lagreOyeblikksbilderPaaNynorsk() {
+        val fnr = "12345678910"
+        val egenvurdering = "Svara dine om behov for rettleiing"
+        val arbeissøkerregisteret = "Det du fortalde oss da du vart registrert som arbeidssøkar"
+        oyeblikksbildeService.lagreOyeblikksbilde(fnr, 12344, listOf(egenvurdering, arbeissøkerregisteret))
+        Mockito.verify(oyeblikksbildeRepository, Mockito.times(1)).upsertArbeidssokerRegistretOyeblikksbilde (12344, null)
+        Mockito.verify(oyeblikksbildeRepository, Mockito.times(1)).upsertEgenvurderingOyeblikksbilde (12344, null)
+    }
+
     @Test
     fun mapToEgenvurderingDataJson() {
         val egenvurderingstekster: MutableMap<String, String> = HashMap()

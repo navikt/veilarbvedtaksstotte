@@ -115,15 +115,15 @@ public class OyeblikksbildeService {
             return;
         }
 
-        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.CV.getDesc()))) {
+        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.CV.getDesc()) || kilde.contains(VedtakOpplysningKilder.CV_NN.getDesc()))) {
             final CvDto cvOgJobbprofilData = veilarbpersonClient.hentCVOgJobbprofil(fnr);
             oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, cvOgJobbprofilData);
         }
-        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.REGISTRERING.getDesc()) || kilde.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc()))) {
+        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.REGISTRERING.getDesc()) || kilde.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc()) || kilde.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET_NN.getDesc()))) {
             OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr.of(fnr));
             oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfilering);
         }
-        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()))) {
+        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()) || kilde.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc()))) {
             final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr));
             EgenvurderingDto egenvurderingData = mapToEgenvurderingData(egenvurdering);
             oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingData);
