@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import io.getunleash.DefaultUnleash;
-import io.getunleash.UnleashContext;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.types.identer.AktorId;
@@ -23,8 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.VIS_VEDTAKSLOSNING_14A;
 
 @Service
 @Slf4j
@@ -177,7 +174,6 @@ public class UtrullingService {
     }
 
     public boolean erUnleashTogglePaForVeileder() {
-        UnleashContext unleashContext = UnleashContext.builder().userId(authService.getInnloggetVeilederIdent()).build();
-        return unleashClient.isEnabled(VIS_VEDTAKSLOSNING_14A, unleashContext);
+        return true; // Bypass featuretoggle frå Unleash etter lansering
     }
 }
