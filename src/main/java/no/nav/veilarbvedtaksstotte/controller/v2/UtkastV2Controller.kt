@@ -9,7 +9,6 @@ import no.nav.veilarbvedtaksstotte.controller.AuditlogService
 import no.nav.veilarbvedtaksstotte.controller.dto.VedtakUtkastDTO
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.UtkastRequest
 import no.nav.veilarbvedtaksstotte.mapper.toVedtakUtkastDTO
-import no.nav.veilarbvedtaksstotte.service.UtrullingService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController
 )
 class UtkastV2Controller(
     val vedtakService: VedtakService,
-    private val utrullingService: UtrullingService,
     private val auditlogService: AuditlogService
 ) {
     @PostMapping("/hent-utkast")
@@ -39,7 +37,6 @@ class UtkastV2Controller(
         ]
     )
     fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): VedtakUtkastDTO {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(utkastRequest.fnr)
         return toVedtakUtkastDTO(vedtakService.hentUtkast(utkastRequest.fnr))
             .also { auditlogService.auditlog("Nav-ansatt hentet utkast til § 14 a-vedtak for person", utkastRequest.fnr) }
     }
@@ -55,8 +52,7 @@ class UtkastV2Controller(
         ]
     )
     fun harUtkast(@RequestBody utkastRequest: UtkastRequest): Boolean {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(utkastRequest.fnr)
-
         return vedtakService.harUtkast(utkastRequest.fnr)
     }
+
 }
