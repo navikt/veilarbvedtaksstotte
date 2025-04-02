@@ -11,7 +11,6 @@ import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
-import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -35,15 +34,13 @@ public class VedtakController {
     private final VedtakService vedtakService;
     private final ArenaVedtakService arenaVedtakService;
     private final OyeblikksbildeService oyeblikksbildeService;
-    private final UtrullingService utrullingService;
     private final AuditlogService auditlogService;
 
     @Autowired
-    public VedtakController(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService, UtrullingService utrullingService, AuditlogService auditlogService) {
+    public VedtakController(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService, AuditlogService auditlogService) {
         this.vedtakService = vedtakService;
         this.arenaVedtakService = arenaVedtakService;
         this.oyeblikksbildeService = oyeblikksbildeService;
-        this.utrullingService = utrullingService;
         this.auditlogService = auditlogService;
     }
 
@@ -65,7 +62,6 @@ public class VedtakController {
             }
     )
     public ResponseEntity<byte[]> hentVedtakPdf(@PathVariable("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
         byte[] vedtakPdf = vedtakService.hentVedtakPdf(vedtakId);
         auditlogService.auditlog(
                 "Nav-ansatt hentet pdfversjon av fattet § 14 a-vedtak",
@@ -94,7 +90,6 @@ public class VedtakController {
             }
     )
     public ResponseEntity<byte[]> hentVedtakOyeblikksCVPdf(@PathVariable("vedtakId") long vedtakId, @PathVariable("oyeblikksbildeType") String oyeblikksbildeInputType) {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
         auditlogService.auditlog(
                 "Nav-ansatt hentet pdfversjon av kildende til et fattet § 14 a-vedtak",
                 auditlogService.finnFodselsnummerFraVedtakId(vedtakId)
@@ -115,7 +110,6 @@ public class VedtakController {
     @Deprecated(forRemoval = true)
     @GetMapping("/fattet")
     public List<Vedtak> hentFattedeVedtak(@RequestParam("fnr") Fnr fnr) {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr);
         auditlogService.auditlog(
                 "Nav-ansatt hentet alle fattede § 14 a-vedtak på person",
                 fnr
@@ -141,7 +135,6 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeCvDto hentCVOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
         auditlogService.auditlog(
                 "Nav-ansatt hentet kilden CV for et fattet § 14 a-vedtak",
                 auditlogService.finnFodselsnummerFraVedtakId(vedtakId)
@@ -166,7 +159,6 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
         auditlogService.auditlog(
                 "Nav-ansatt hentet kilden registreringsøyeblikksbilde for et fattet § 14 a-vedtak",
                 auditlogService.finnFodselsnummerFraVedtakId(vedtakId)
@@ -191,7 +183,6 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeArbeidssokerRegistretDto hentArbeidssokerRegistretOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
         auditlogService.auditlog(
                 "Nav-ansatt hentet kilden arbeidssøkerregistreringsøyeblikksbilde for et fattet § 14 a-vedtak",
                 auditlogService.finnFodselsnummerFraVedtakId(vedtakId)
@@ -215,7 +206,6 @@ public class VedtakController {
             }
     )
     public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbilde(@PathVariable("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
         auditlogService.auditlog(
                 "Nav-ansatt hentet kilden egenvurdering/behovsvurdering-øyeblikksbilde for et fattet § 14 a-vedtak",
                 auditlogService.finnFodselsnummerFraVedtakId(vedtakId)
@@ -226,8 +216,6 @@ public class VedtakController {
     @Deprecated(forRemoval = true)
     @GetMapping("/arena")
     public List<ArkivertVedtak> hentVedtakFraArena(@RequestParam("fnr") Fnr fnr) {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr);
-
         return arenaVedtakService.hentVedtakFraArena(fnr);
     }
 
