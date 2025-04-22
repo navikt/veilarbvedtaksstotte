@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.Fnr;
+import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
@@ -61,13 +62,15 @@ public class BeslutterServiceTest {
 
     private final AuthService authService = mock(AuthService.class);
 
+    private final SakStatistikkService sakStatistikkService = mock(SakStatistikkService.class);
+
     private final JdbcTemplate db = SingletonPostgresContainer.init().createJdbcTemplate();
 
     private TransactionTemplate transactor = new TransactionTemplate(new DataSourceTransactionManager(db.getDataSource()));
 
     private BeslutterService beslutterService = new BeslutterService(
             authService, vedtaksstotteRepository, vedtakStatusEndringService, beslutteroversiktRepository,
-            meldingRepository, veilederService, veilarbpersonClient, transactor, metricsService
+            meldingRepository, veilederService, veilarbpersonClient, transactor, metricsService, sakStatistikkService
     );
 
 
@@ -76,7 +79,7 @@ public class BeslutterServiceTest {
     @BeforeEach
     public void setup() {
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
-        doReturn(authKontekst).when(authService).sjekkTilgangTilBrukerOgEnhet(any(Fnr.class));
+        doReturn(authKontekst).when(authService).sjekkTilgangTilBrukerOgEnhet(eq(TilgangType.SKRIVE), any(Fnr.class));
         doReturn(TEST_FNR).when(authService).getFnrOrThrow(TEST_AKTOR_ID);
 
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
@@ -92,7 +95,7 @@ public class BeslutterServiceTest {
                 .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .setVeilederIdent(TEST_VEILEDER_IDENT);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
         beslutterService.startBeslutterProsess(SOME_ID);
@@ -107,7 +110,7 @@ public class BeslutterServiceTest {
                 .setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_BESLUTTER)
                 .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
         assertThrows(ResponseStatusException.class, () -> beslutterService.startBeslutterProsess(SOME_ID));
@@ -119,7 +122,7 @@ public class BeslutterServiceTest {
                 .setAktorId(TEST_AKTOR_ID)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
         assertThrows(ResponseStatusException.class, () -> beslutterService.startBeslutterProsess(SOME_ID));
@@ -133,7 +136,7 @@ public class BeslutterServiceTest {
                 .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .setVeilederIdent(TEST_VEILEDER_IDENT);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
         beslutterService.startBeslutterProsess(SOME_ID);
@@ -149,7 +152,7 @@ public class BeslutterServiceTest {
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
                 .setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
         beslutterService.avbrytBeslutterProsess(SOME_ID);
@@ -163,7 +166,7 @@ public class BeslutterServiceTest {
                 .setAktorId(TEST_AKTOR_ID)
                 .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
         assertThrows(ResponseStatusException.class, () -> beslutterService.avbrytBeslutterProsess(SOME_ID));
@@ -178,7 +181,7 @@ public class BeslutterServiceTest {
                 .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .setVeilederIdent(TEST_VEILEDER_IDENT);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
         beslutterService.avbrytBeslutterProsess(SOME_ID);
@@ -193,7 +196,7 @@ public class BeslutterServiceTest {
                 .setAktorId(TEST_AKTOR_ID)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -209,7 +212,7 @@ public class BeslutterServiceTest {
                 .setVeilederIdent(TEST_VEILEDER_IDENT)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -223,7 +226,7 @@ public class BeslutterServiceTest {
                 .setBeslutterIdent(TEST_VEILEDER_IDENT)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -236,7 +239,7 @@ public class BeslutterServiceTest {
                 .setAktorId(TEST_AKTOR_ID)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -253,7 +256,7 @@ public class BeslutterServiceTest {
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
                 .setBeslutterIdent("TIDLIGERE BESLUTTER IDENT");
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -270,7 +273,7 @@ public class BeslutterServiceTest {
                 .setBeslutterIdent(TEST_VEILEDER_IDENT)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -286,7 +289,7 @@ public class BeslutterServiceTest {
                 .setBeslutterIdent(TEST_BESLUTTER_IDENT)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -300,7 +303,7 @@ public class BeslutterServiceTest {
                 .setBeslutterIdent(TEST_VEILEDER_IDENT)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -318,7 +321,7 @@ public class BeslutterServiceTest {
                 .setVeilederIdent(TEST_VEILEDER_IDENT)
                 .setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -335,7 +338,7 @@ public class BeslutterServiceTest {
                 .setVeilederIdent(TEST_VEILEDER_IDENT)
                 .setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -351,7 +354,7 @@ public class BeslutterServiceTest {
                 .setBeslutterIdent(TEST_BESLUTTER_IDENT)
                 .setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_BESLUTTER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 
@@ -366,7 +369,7 @@ public class BeslutterServiceTest {
                 .setVeilederIdent(TEST_VEILEDER_IDENT)
                 .setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
 
-        when(authService.sjekkTilgangTilBrukerOgEnhet(TEST_FNR)).thenReturn(authKontekst);
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_IKKE_ANSVARLIG_VEILEDER_IDENT);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
 

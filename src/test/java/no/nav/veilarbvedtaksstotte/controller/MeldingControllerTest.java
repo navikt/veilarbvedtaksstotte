@@ -3,21 +3,18 @@ package no.nav.veilarbvedtaksstotte.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.nav.veilarbvedtaksstotte.controller.dto.OpprettDialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.service.MeldingService;
+import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -30,11 +27,14 @@ public class MeldingControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private MeldingService meldingService;
 
-    @MockBean
+    @MockitoBean
     private VedtakService vedtakService;
+
+    @MockitoBean
+    private UtrullingService utrullingService;
 
     @Test
     public void hentDialogMeldinger__skal_feile_hvis_vedtak_fattet() throws Exception {

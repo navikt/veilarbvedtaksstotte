@@ -46,6 +46,8 @@ public class MetricsService {
 
     private final AktorOppslagClient aktorOppslagClient;
 
+    private final SakStatistikkService sakStatistikkService;
+
 
     private static Event createMetricEvent(String tagName) {
         return new Event(APPLICATION_NAME + ".metrikker." + tagName);
@@ -55,11 +57,12 @@ public class MetricsService {
         return ldt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
-    public void rapporterMetrikkerForFattetVedtak(Vedtak vedtak) {
+    public void rapporterMetrikkerForFattetVedtak(Vedtak vedtak, Fnr fnr) {
         try {
             rapporterVedtakSendt(vedtak);
             rapporterTidFraRegistrering(vedtak);
             rapporterVedtakSendtSykmeldtUtenArbeidsgiver(vedtak);
+            sakStatistikkService.fattetVedtak(vedtak, fnr);
         } catch (Exception e) {
             log.warn("Klarte ikke rapportere metrikker for fattet vedtak", e);
         }
@@ -167,7 +170,8 @@ public class MetricsService {
 //        influxClient.report(event);
     }
 
-    public void rapporterUtkastSlettet() {
+    public void rapporterUtkastSlettet(Vedtak vedtak) {
+        sakStatistikkService.slettetUtkast(vedtak);
 //        influxClient.report(createMetricEvent("utkast-slettet"));
     }
 

@@ -39,10 +39,12 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder
-import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponse
@@ -61,6 +63,7 @@ class DokumentServiceTest {
 
     lateinit var authContextHolder: AuthContextHolder
     lateinit var veilarbarenaClient: VeilarbarenaClient
+    lateinit var veilarboppfolgingClient: VeilarboppfolgingClient
     lateinit var veilarbpersonClient: VeilarbpersonClient
     lateinit var veilarbveilederClient: VeilarbveilederClient
     lateinit var regoppslagClient: RegoppslagClient
@@ -75,7 +78,7 @@ class DokumentServiceTest {
     lateinit var oppslagArbeidssoekerregisteretClientImpl: OppslagArbeidssoekerregisteretClientImpl
     lateinit var arbeidssoekerRegisteretService: ArbeidssoekerRegisteretService
 
-    val målform = Målform.NB
+    val malform = Malform.NB
     val veilederNavn = "Navn Veileder"
     val enhetNavn = "Navn Enhet"
     val kontaktEnhetNavn = "Navn Kontaktenhet"
@@ -88,7 +91,7 @@ class DokumentServiceTest {
     val kontaktEnhet = Enhet().setEnhetNr(kontaktEnhetId.get()).setNavn(kontaktEnhetNavn)
     val brevdataOppslag = DokumentService.BrevdataOppslag(
         enhetKontaktinformasjon = enhetKontaktinformasjon,
-        målform = målform,
+        malform = malform,
         veilederNavn = veilederNavn,
         enhet = enhet,
         kontaktEnhet = kontaktEnhet
@@ -106,15 +109,7 @@ class DokumentServiceTest {
         veilederIdent = "123123",
         begrunnelse = "begrunnelse",
         opplysninger = listOf("Kilde1", "kilde2"),
-        utkast = false,
-        adresse = ProduserDokumentDTO.AdresseDTO(
-            adresselinje1 = "Adresselinje 1",
-            adresselinje2 = "Adresselinje 2",
-            adresselinje3 = "Adresselinje 3",
-            postnummer = "0000",
-            poststed = "Sted",
-            land = "Sverige"
-        )
+        utkast = false
     )
 
     val eksternJournalpostReferanse = UUID.randomUUID()
@@ -134,8 +129,8 @@ class DokumentServiceTest {
                     "idType": "FNR"
                   },
                   "sak": {
-                    "fagsakId": "OPPF_SAK",
-                    "fagsaksystem": "AO01",
+                    "fagsakId": "123456",
+                    "fagsaksystem": "ARBEIDSOPPFOLGING",
                     "sakstype": "FAGSAK"
                   },
                   "dokumenter": [
@@ -213,6 +208,7 @@ class DokumentServiceTest {
         regoppslagClient = RegoppslagClientImpl(wiremockUrl) { "SYSTEM_USER_TOKEN" }
         dokarkivClient = DokarkivClientImpl(wiremockUrl) { "" }
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
+        veilarboppfolgingClient = mock(VeilarboppfolgingClient::class.java)
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""}, {""})
         oppslagArbeidssoekerregisteretClientImpl = OppslagArbeidssoekerregisteretClientImpl(wiremockUrl, {""})
         arbeidssoekerRegisteretService = ArbeidssoekerRegisteretService(oppslagArbeidssoekerregisteretClientImpl)
@@ -243,8 +239,7 @@ class DokumentServiceTest {
         )
 
         dokumentService = DokumentService(
-            regoppslagClient = regoppslagClient,
-            veilarbarenaClient = veilarbarenaClient,
+            veilarboppfolgingClient = veilarboppfolgingClient,
             veilarbpersonClient = veilarbpersonClient,
             dokarkivClient = dokarkivClient,
             malTypeService = malTypeService,
@@ -263,7 +258,7 @@ class DokumentServiceTest {
         givenWiremockOkJsonResponseForPost(
             "/api/v3/person/hent-malform",
             equalToJson("{\"fnr\":\"123\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"),
-            VeilarbpersonClientImpl.MalformRespons(målform.name).toJson()
+            VeilarbpersonClientImpl.MalformRespons(malform.name).toJson()
         )
 
         givenWiremockOkJsonResponse(
@@ -343,37 +338,6 @@ class DokumentServiceTest {
     }
 
     @Test
-    fun `produserDokument feiler dersom navn for kontaktenhet mangler`() {
-        givenWiremockOkJsonResponse(
-            "/api/v1/enhet?enhetStatusListe=AKTIV", listOf(enhet, kontaktEnhet.setNavn(null)).toJson()
-        )
-
-        val exception = Assertions.assertThrows(IllegalStateException::class.java) {
-            authContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                pdfService.produserDokument(produserDokumentDTO)
-            })
-        }
-
-        Assertions.assertEquals("Manglende navn for enhet $kontaktEnhetId", exception.message)
-    }
-
-    @Test
-    fun `produserDokument feiler dersom telefonnummer for kontaktenhet mangler`() {
-        givenWiremockOkJsonResponse(
-            "/api/v1/enhet/${produserDokumentDTO.enhetId}/kontaktinformasjon",
-            EnhetKontaktinformasjon(kontaktEnhetId, enhetPostadresse, null).toJson()
-        )
-
-        val exception = Assertions.assertThrows(IllegalStateException::class.java) {
-            authContextHolder.withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "test"), UnsafeSupplier {
-                pdfService.produserDokument(produserDokumentDTO)
-            })
-        }
-
-        Assertions.assertEquals("Manglende telefonnummer for enhet $kontaktEnhetId", exception.message)
-    }
-
-    @Test
     fun `journalforing av dokument gir forventet innhold i request og response`() {
         givenThat(
             post(urlEqualTo("/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
@@ -408,7 +372,7 @@ class DokumentServiceTest {
                     tittel = "Tittel",
                     enhetId = EnhetId("ENHET_ID"),
                     fnr = Fnr("fnr"),
-                    oppfolgingssak = "OPPF_SAK",
+                    oppfolgingssak = SakDTO(UUID.randomUUID(), 123456, "ARBEIDSOPPFOLGING", "OPP"),
                     malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
                     dokument = forventetBrev,
                     oyeblikksbildeCVDokument = cvPdf,

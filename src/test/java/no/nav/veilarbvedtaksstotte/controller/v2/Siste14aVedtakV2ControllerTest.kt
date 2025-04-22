@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.common.types.identer.Fnr
+import no.nav.poao_tilgang.client.TilgangType
+import no.nav.veilarbvedtaksstotte.controller.AuditlogService
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
@@ -31,6 +33,9 @@ class Siste14aVedtakV2ControllerTest {
     @MockkBean
     lateinit var siste14aVedtakService: Siste14aVedtakService
 
+    @MockkBean
+    lateinit var auditlogService: AuditlogService
+
     @Autowired
     lateinit var objectMapper: ObjectMapper
 
@@ -42,8 +47,10 @@ class Siste14aVedtakV2ControllerTest {
     @BeforeEach
     fun beforeEach() {
         every {
-            siste14aVedtakService.siste14aVedtak(fnr)
+            siste14aVedtakService.hentSiste14aVedtak(fnr)
         } returns null
+
+        every { auditlogService.auditlog(any(), any()) } answers { }
     }
 
     @Test
@@ -96,7 +103,7 @@ class Siste14aVedtakV2ControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr)
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.LESE, fnr = fnr)
         } answers { }
 
         val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
@@ -119,7 +126,7 @@ class Siste14aVedtakV2ControllerTest {
         } returns false
 
         every {
-            authService.sjekkVeilederTilgangTilBruker(fnr)
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.LESE, fnr = fnr)
         } throws ResponseStatusException(HttpStatus.FORBIDDEN)
 
         val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")

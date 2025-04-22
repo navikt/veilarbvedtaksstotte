@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
@@ -52,15 +53,16 @@ public class OyeblikksbildeService {
         this.arbeidssoekerRegisteretService = arbeidssoekerRegisteretService;
     }
 
+    // Kun brukt i test
     public List<OyeblikksbildeDto> hentOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         return oyeblikksbildeRepository.hentOyeblikksbildeForVedtak(vedtakId);
     }
 
     public OyeblikksbildeCvDto hentCVOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
 
         Optional<OyeblikksbildeCvDto> oyeblikksbildeCvDto = oyeblikksbildeRepository.hentCVOyeblikksbildeForVedtak(vedtakId);
 
@@ -69,7 +71,7 @@ public class OyeblikksbildeService {
 
     public OyeblikksbildeArbeidssokerRegistretDto hentArbeidssokerRegistretOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         Optional<OyeblikksbildeArbeidssokerRegistretDto> oyeblikksbildeRegistreringDto = oyeblikksbildeRepository.hentArbeidssokerRegistretOyeblikksbildeForVedtak(vedtakId);
 
         return oyeblikksbildeRegistreringDto.orElseGet(() -> new OyeblikksbildeArbeidssokerRegistretDto(null, false));
@@ -77,7 +79,7 @@ public class OyeblikksbildeService {
 
     public OyeblikksbildeEgenvurderingDto hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         Optional<OyeblikksbildeEgenvurderingDto> oyeblikksbildeEgenvurderingDto = oyeblikksbildeRepository.hentEgenvurderingOyeblikksbildeForVedtak(vedtakId);
 
         return oyeblikksbildeEgenvurderingDto.orElseGet(() -> new OyeblikksbildeEgenvurderingDto(null, false));
@@ -85,7 +87,7 @@ public class OyeblikksbildeService {
 
     public OyeblikksbildeRegistreringDto hentRegistreringOyeblikksbildeForVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(vedtak.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         Optional<OyeblikksbildeRegistreringDto> oyeblikksbildeRegistreringDto = oyeblikksbildeRepository.hentRegistreringOyeblikksbildeForVedtak(vedtakId);
         return oyeblikksbildeRegistreringDto.orElseGet(() -> new OyeblikksbildeRegistreringDto(null, false));
     }
@@ -113,15 +115,15 @@ public class OyeblikksbildeService {
             return;
         }
 
-        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.CV.getDesc()))) {
+        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.CV.getDesc()) || kilde.contains(VedtakOpplysningKilder.CV_NN.getDesc()))) {
             final CvDto cvOgJobbprofilData = veilarbpersonClient.hentCVOgJobbprofil(fnr);
             oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, cvOgJobbprofilData);
         }
-        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.REGISTRERING.getDesc()) || kilde.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc()))) {
+        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.REGISTRERING.getDesc()) || kilde.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc()) || kilde.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET_NN.getDesc()))) {
             OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr.of(fnr));
             oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfilering);
         }
-        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()))) {
+        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()) || kilde.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc()))) {
             final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr));
             EgenvurderingDto egenvurderingData = mapToEgenvurderingData(egenvurdering);
             oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingData);

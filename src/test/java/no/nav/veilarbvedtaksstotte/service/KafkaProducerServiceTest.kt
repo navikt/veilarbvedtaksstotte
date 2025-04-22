@@ -1,41 +1,37 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
 import no.nav.common.types.identer.AktorId
-import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
+import no.nav.veilarbvedtaksstotte.IntegrationTestBase
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtakKafkaDTO
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal.BEHOLDE_ARBEID
+import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
+import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe.STANDARD_INNSATS
+import no.nav.veilarbvedtaksstotte.domain.vedtak.InnsatsgruppeV2
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse.SKAFFE_ARBEID
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN
+import no.nav.veilarbvedtaksstotte.utils.PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA
+import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
-@SpringBootTest(classes = [ApplicationTestConfig::class])
-@ActiveProfiles("local")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class KafkaProducerServiceTest {
-
+class KafkaProducerServiceTest : IntegrationTestBase() {
     @MockBean
     lateinit var producerRecordStorage: KafkaProducerRecordStorage
 
@@ -44,6 +40,9 @@ class KafkaProducerServiceTest {
 
     @Autowired
     lateinit var kafkaProducerService: KafkaProducerService
+
+    @Autowired
+    lateinit var unleashService: DefaultUnleash
 
     @Test
     fun `lagrer forventet record verdi for oppdatering av siste vedtak`() {
@@ -128,6 +127,38 @@ class KafkaProducerServiceTest {
         assertEqualJson(forventet, deserialize(argumentCaptor.value.value()))
     }
 
+    @Test
+    fun `lagrer forventet record verdi for gjeldende § 14 a-vedtak`() {
+        // Given
+        `when`(unleashService.isEnabled(PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA)).thenReturn(true)
+        val aktorId = AktorId("11111111111")
+        val gjeldende14aVedtakKafkaDTO = Gjeldende14aVedtakKafkaDTO(
+            aktorId = aktorId,
+            innsatsgruppe = InnsatsgruppeV2.GODE_MULIGHETER,
+            hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(BEHOLDE_ARBEID),
+            fattetDato = ZonedDateTime.parse("2021-04-07T11:12:32.000001234+02:00"),
+            vedtakId = "d9057c46-33e7-4c75-b58d-f80a9a00e71d"
+        )
+
+        // When
+        kafkaProducerService.sendGjeldende14aVedtak(aktorId, gjeldende14aVedtakKafkaDTO)
+
+        // Then
+        verify(producerRecordStorage).store(argumentCaptor.capture())
+
+        //language=JSON
+        val forventet = """
+            {
+              "aktorId": "11111111111",
+              "innsatsgruppe": "GODE_MULIGHETER",
+              "hovedmal": "BEHOLDE_ARBEID",
+              "fattetDato": "2021-04-07T11:12:32.000001234+02:00",
+              "vedtakId": "d9057c46-33e7-4c75-b58d-f80a9a00e71d"
+            }
+        """.trimIndent()
+
+        assertEqualJson(forventet, deserialize(argumentCaptor.value.value()))
+    }
 
     fun assertEqualJson(expexted: String, actual: String) {
         assertEquals(JsonUtils.objectMapper.readTree(expexted), JsonUtils.objectMapper.readTree(actual))

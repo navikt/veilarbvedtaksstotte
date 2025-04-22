@@ -6,7 +6,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak.HovedmalMedOkeDeltakelse
+import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.now
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
@@ -529,7 +529,7 @@ class Siste14aVedtakServiceTest : AbstractVedtakIntegrationTest() {
     fun assertSiste14aVedtak(identer: BrukerIdenter, forventet: Siste14aVedtak?) {
         assertEquals(
             forventet,
-            siste14aVedtakService.siste14aVedtak(identer.fnr),
+            siste14aVedtakService.hentSiste14aVedtak(identer.fnr),
             "Siste 14a vedtak"
         )
     }

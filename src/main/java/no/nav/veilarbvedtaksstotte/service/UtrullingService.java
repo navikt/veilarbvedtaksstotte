@@ -13,8 +13,10 @@ import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 @Service
 @Slf4j
@@ -34,7 +36,7 @@ public class UtrullingService {
             VeilarbarenaClient veilarbarenaClient,
             VeilarbveilederClient veilarbveilederClient,
             Norg2Client norg2Client
-    ) {
+            ) {
         this.utrullingRepository = utrullingRepository;
         this.veilarbarenaClient = veilarbarenaClient;
         this.veilarbveilederClient = veilarbveilederClient;
@@ -80,5 +82,4 @@ public class UtrullingService {
 
         return utrullingRepository.erMinstEnEnhetUtrullet(enhetIder);
     }
-
 }

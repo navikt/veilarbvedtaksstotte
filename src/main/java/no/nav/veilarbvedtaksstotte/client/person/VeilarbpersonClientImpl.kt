@@ -7,12 +7,9 @@ import no.nav.common.rest.client.RestUtils
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.AuthUtils.bearerToken
 import no.nav.common.utils.UrlUtils
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
+import no.nav.veilarbvedtaksstotte.client.person.dto.*
 import no.nav.veilarbvedtaksstotte.client.person.request.PersonRequest
-import no.nav.veilarbvedtaksstotte.domain.Målform
+import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
@@ -24,8 +21,11 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import java.util.function.Supplier
 
-class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val userTokenSupplier: Supplier<String>,
-                              private val machineToMachineTokenSupplier: Supplier<String>) :
+class VeilarbpersonClientImpl(
+    private val veilarbpersonUrl: String,
+    private val userTokenSupplier: Supplier<String>,
+    private val machineToMachineTokenSupplier: Supplier<String>
+) :
     VeilarbpersonClient {
 
     private val client: OkHttpClient = RestClient.baseClient()
@@ -34,6 +34,30 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-navn"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+            .post(
+                PersonRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
+                    .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
+            )
+            .build()
+        RestClient.baseClient().newCall(request).execute().use { response ->
+            RestUtils.throwIfNotSuccessful(response)
+            return response.deserializeJsonOrThrow()
+        }
+    }
+
+    /*
+        2025-04-01, Sondre
+
+        Denne funksjonen er helt lik hentPersonNavn, med unntak av en ting: den bruker system-til-system token supplier
+        i stedet for user token supplier. Vi gjorde dette på enkleste mulig måte når vi trengte å fikse en feil der
+        en batch-jobb skulle hente personen sitt navn. Da har vi ikke bruker i kontekst og kan derfor ikke bruke user token supplier.
+
+        TODO: Dette kan gjøres "bedre" med å f.eks. kunne spesifisere hvilken type token supplier man ønsker ved call-site.
+     */
+    override fun hentPersonNavnForJournalforing(fnr: String): PersonNavn {
+        val request = Request.Builder()
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-navn"))
+            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
             .post(
                 PersonRequest(Fnr.of(fnr), BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
                     .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
@@ -67,7 +91,7 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
         }
     }
 
-    override fun hentMålform(fnr: Fnr): Målform {
+    override fun hentMalform(fnr: Fnr): Malform {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-malform"))
             .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
@@ -82,7 +106,32 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
                 RestUtils.throwIfNotSuccessful(response)
                 return response
                     .deserializeJsonOrThrow<MalformRespons>()
-                    .tilMålform()
+                    .tilMalform()
+            }
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString(),
+                e
+            )
+        }
+    }
+
+    override fun hentAdressebeskyttelse(fnr: Fnr): Adressebeskyttelse {
+        val request = Request.Builder()
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-adressebeskyttelse"))
+            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+            .post(
+                PersonRequest(fnr, BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
+                    .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
+            )
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                RestUtils.throwIfNotSuccessful(response)
+                return response
+                    .deserializeJsonOrThrow<Adressebeskyttelse>()
             }
         } catch (e: Exception) {
             throw ResponseStatusException(
@@ -94,8 +143,8 @@ class VeilarbpersonClientImpl(private val veilarbpersonUrl: String, private val 
     }
 
     data class MalformRespons(val malform: String?) {
-        fun tilMålform(): Målform {
-            return Målform.values().find { it.name == malform?.uppercase() } ?: Målform.NB
+        fun tilMalform(): Malform {
+            return Malform.values().find { it.name == malform?.uppercase() } ?: Malform.NB
         }
     }
 

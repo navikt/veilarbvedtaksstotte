@@ -1,11 +1,13 @@
 package no.nav.veilarbvedtaksstotte.config
 
+import com.google.cloud.bigquery.BigQuery
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.getunleash.DefaultUnleash
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import jakarta.annotation.PostConstruct
+import no.nav.common.audit_log.log.AuditLogger
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.job.leader_election.LeaderElectionClient
@@ -13,13 +15,13 @@ import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.metrics.MetricsClient
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.poao_tilgang.client.PoaoTilgangClient
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
-import no.nav.veilarbvedtaksstotte.service.PdfService
-import no.nav.veilarbvedtaksstotte.service.SakStatistikkService
+import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
+import no.nav.veilarbvedtaksstotte.service.BrukerIdenterService
+import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
 import no.nav.veilarbvedtaksstotte.utils.PostgresContainer
 import no.nav.veilarbvedtaksstotte.utils.SingletonKafkaContainer
@@ -53,9 +55,9 @@ import javax.sql.DataSource
     KafkaProducerConfig::class,
     KafkaConsumerConfig::class,
     DokumentdistribusjonMeterBinder::class,
-    PdfService::class,
-    ArbeidssoekerRegisteretService::class,
-    SakStatistikkService::class
+    BrukerIdenterService::class,
+    BrukerIdenterRepository::class,
+    SisteOppfolgingPeriodeRepository::class
 )
 class ApplicationTestConfig {
     @Bean
@@ -163,9 +165,19 @@ class ApplicationTestConfig {
         )
     }
 
+    @Bean
+    fun bigQueryConfig(): BigQuery {
+        return Mockito.mock(BigQuery::class.java)
+    }
+
     @PostConstruct
     fun initJsonUtils() {
         init()
+    }
+
+    @Bean
+    fun auditLogger(): AuditLogger {
+        return Mockito.mock(AuditLogger::class.java)
     }
 
     companion object {

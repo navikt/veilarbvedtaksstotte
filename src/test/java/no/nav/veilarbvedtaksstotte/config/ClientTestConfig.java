@@ -30,10 +30,7 @@ import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
+import no.nav.veilarbvedtaksstotte.client.person.dto.*;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
@@ -44,7 +41,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
-import no.nav.veilarbvedtaksstotte.domain.Målform;
+import no.nav.veilarbvedtaksstotte.domain.Malform;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.Instant;
@@ -67,7 +64,6 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_JOURNALPOST_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSSAK;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 
 @Configuration
@@ -151,8 +147,8 @@ public class ClientTestConfig {
             }
 
             @Override
-            public Optional<String> oppfolgingssak(Fnr fnr) {
-                return Optional.of(TEST_OPPFOLGINGSSAK);
+            public Optional<VeilarbArenaOppfolging> oppdaterOppfolgingsbruker(Fnr fnr, String enhetNr) {
+                return Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL"));
             }
 
             @Override
@@ -227,7 +223,7 @@ public class ClientTestConfig {
 
             @Override
             public SakDTO hentOppfolgingsperiodeSak(UUID oppfolgingsperiodeId) {
-                return new SakDTO(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), 123456789012L);
+                return new SakDTO(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), 123456789012L, "ARBEIDSOPPFOLGING", "OPP");
             }
 
             @Override
@@ -247,8 +243,25 @@ public class ClientTestConfig {
     @Bean
     public VeilarbpersonClient personClient() {
         return new VeilarbpersonClient() {
+            @NotNull
+            @Override
+            public Adressebeskyttelse hentAdressebeskyttelse(@NotNull Fnr fnr) {
+                return new Adressebeskyttelse(Gradering.UGRADERT);
+            }
+
             @Override
             public PersonNavn hentPersonNavn(String fnr) {
+                PersonNavn personNavn = new PersonNavn(
+                        "TEST",
+                        null,
+                        "TESTERSEN",
+                        "TEST TESTERSEN"
+                );
+                return personNavn;
+            }
+
+            @Override
+            public PersonNavn hentPersonNavnForJournalforing(String fnr) {
                 PersonNavn personNavn = new PersonNavn(
                         "TEST",
                         null,
@@ -265,8 +278,8 @@ public class ClientTestConfig {
 
             @NotNull
             @Override
-            public Målform hentMålform(@NotNull Fnr fnr) {
-                return Målform.NB;
+            public Malform hentMalform(@NotNull Fnr fnr) {
+                return Malform.NB;
             }
 
             @Override

@@ -1,7 +1,9 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
+import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
@@ -24,6 +26,7 @@ import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erAnsvarligVe
 import static no.nav.veilarbvedtaksstotte.utils.AutentiseringUtils.erBeslutterForVedtak;
 import static no.nav.veilarbvedtaksstotte.utils.VedtakUtils.erBeslutterProsessStartet;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BeslutterService {
@@ -46,9 +49,11 @@ public class BeslutterService {
 
     private final MetricsService metricsService;
 
+    private final SakStatistikkService sakStatistikkService;
+
     public void startBeslutterProsess(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
 
         if (!InnsatsgruppeUtils.skalHaBeslutter(utkast.getInnsatsgruppe())) {
@@ -63,11 +68,12 @@ public class BeslutterService {
         vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), BeslutterProsessStatus.KLAR_TIL_BESLUTTER);
         vedtakStatusEndringService.beslutterProsessStartet(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_PROSESS_STARTET, utkast.getVeilederIdent());
+        sakStatistikkService.startetKvalitetssikring(utkast);
     }
 
     public void avbrytBeslutterProsess(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
 
         if (!erBeslutterProsessStartet(utkast.getBeslutterProsessStatus())) {
@@ -80,12 +86,13 @@ public class BeslutterService {
             vedtaksstotteRepository.setBeslutter(utkast.getId(), null);
             vedtakStatusEndringService.beslutterProsessAvbrutt(utkast);
             meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_PROSESS_AVBRUTT, utkast.getVeilederIdent());
+            sakStatistikkService.avbrytKvalitetssikringsprosess(utkast);
         });
     }
 
     public void bliBeslutter(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
 
@@ -111,14 +118,15 @@ public class BeslutterService {
             vedtakStatusEndringService.tattOverForBeslutter(utkast, innloggetVeilederIdent);
             meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.TATT_OVER_SOM_BESLUTTER, innloggetVeilederIdent);
         }
+
+        sakStatistikkService.bliEllerTaOverSomKvalitetssikrer(utkast, innloggetVeilederIdent);
     }
 
     public void setGodkjentAvBeslutter(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
-
         if (!erBeslutterForVedtak(innloggetVeilederIdent, utkast)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kun beslutter kan godkjenne vedtak");
         }
@@ -132,11 +140,12 @@ public class BeslutterService {
         vedtakStatusEndringService.godkjentAvBeslutter(utkast);
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.BESLUTTER_HAR_GODKJENT, innloggetVeilederIdent);
         metricsService.rapporterTidMellomUtkastOpprettetTilGodkjent(utkast);
+        sakStatistikkService.kvalitetssikrerGodkjenner(utkast, innloggetVeilederIdent);
     }
 
     public void oppdaterBeslutterProsessStatus(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(AktorId.of(utkast.getAktorId()));
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         BeslutterProsessStatus nyStatus;
@@ -154,15 +163,16 @@ public class BeslutterService {
         }
 
         vedtaksstotteRepository.setBeslutterProsessStatus(utkast.getId(), nyStatus);
-
         if (nyStatus == BeslutterProsessStatus.KLAR_TIL_BESLUTTER) {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_BESLUTTER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_BESLUTTER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilBeslutter(utkast);
+            sakStatistikkService.sendtTilbakeFraVeileder(utkast);
         } else {
             beslutteroversiktRepository.oppdaterStatus(utkast.getId(), BeslutteroversiktStatus.KLAR_TIL_VEILEDER);
             meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.SENDT_TIL_VEILEDER, innloggetVeilederIdent);
             vedtakStatusEndringService.klarTilVeileder(utkast);
+            sakStatistikkService.sendtTilbakeFraKvalitetssikrer(utkast, innloggetVeilederIdent);
         }
     }
 
