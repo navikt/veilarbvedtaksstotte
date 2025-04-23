@@ -28,6 +28,7 @@ import org.junit.jupiter.api.*
 import org.mockito.kotlin.*
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 
@@ -442,6 +443,32 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 "Saksbehandler skal være lik TEST_VEILEDER_IDENT_2"
             )
         }
+    }
+
+    @Test
+    fun `test registrertTid during summer time`() {
+        // Simulerer sommertid (01.04.2024, 12:00)
+        val summerTime = LocalDateTime.of(2024, 4, 1, 12, 0)
+        val zoneId = ZoneId.of("Europe/Oslo")
+
+        val registrertTid = summerTime.atZone(zoneId).toInstant().truncatedTo(ChronoUnit.SECONDS)
+
+        // Assert at offset er +02:00 (sommertid)
+        Assertions.assertEquals("+02:00", zoneId.rules.getOffset(summerTime).toString())
+        Assertions.assertEquals(registrertTid, summerTime.atZone(zoneId).toInstant().truncatedTo(ChronoUnit.SECONDS))
+    }
+
+    @Test
+    fun `test registrertTid during winter time`() {
+        // Simulerer vintertid (01.01.2014, 12:00)
+        val winterTime = LocalDateTime.of(2024, 1, 1, 12, 0)
+        val zoneId = ZoneId.of("Europe/Oslo")
+
+        val registrertTid = winterTime.atZone(zoneId).toInstant().truncatedTo(ChronoUnit.SECONDS)
+
+        // Assert at offset er +01:00 (vintertid)
+        Assertions.assertEquals("+01:00", zoneId.rules.getOffset(winterTime).toString())
+        Assertions.assertEquals(registrertTid, winterTime.atZone(zoneId).toInstant().truncatedTo(ChronoUnit.SECONDS))
     }
 
     private fun withContext(runnable: UnsafeRunnable) {

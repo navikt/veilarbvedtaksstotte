@@ -15,6 +15,7 @@ import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
@@ -223,7 +224,7 @@ class SakStatistikkService @Autowired constructor(
         return sakStatistikk.copy(
             aktorId = AktorId.of(vedtak.aktorId),
             behandlingId = vedtak.id.toBigInteger(),
-            registrertTid = vedtak.utkastOpprettet?.toInstant(ZoneOffset.of("+01:00"))?.truncatedTo(ChronoUnit.SECONDS),
+            registrertTid = vedtak.utkastOpprettet.atZone(ZoneId.of("Europe/Oslo")).toInstant().truncatedTo(ChronoUnit.SECONDS),
             behandlingResultat = vedtak.innsatsgruppe?.toBehandlingResultat(),
             innsatsgruppe = vedtak.innsatsgruppe?.toBehandlingResultat(),
             hovedmal = vedtak.hovedmal?.let { HovedmalNy.valueOf(it.toString()) },
