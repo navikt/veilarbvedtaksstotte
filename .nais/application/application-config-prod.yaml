@@ -127,6 +127,8 @@ spec:
               - "siste-14a-vedtak"
         - application: veilarbpersonflate
           namespace: poao
+        - application: inngar
+          namespace: dab
         - application: beslutteroversikt
           namespace: obo
         - application: mulighetsrommet-api
