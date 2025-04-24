@@ -44,7 +44,6 @@ public class KafkaConsumerServiceTest {
     private final KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
 
     private final KafkaConsumerService kafkaConsumerService = new KafkaConsumerService(
-            siste14aVedtakService,
             vedtaksstotteRepository,
             beslutteroversiktRepository,
             sisteOppfolgingPeriodeRepository,
