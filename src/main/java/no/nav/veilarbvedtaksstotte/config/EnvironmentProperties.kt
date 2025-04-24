@@ -36,5 +36,4 @@ data class EnvironmentProperties (
     val veilarbpersonUrl: String,
     val veilarbveilederScope: String,
     val veilarbveilederUrl: String
-
 )
