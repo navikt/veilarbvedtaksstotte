@@ -11,10 +11,8 @@ import no.nav.common.utils.IdUtils;
 import no.nav.person.pdl.aktor.v2.Aktor;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
-import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
@@ -28,14 +26,11 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
-import static java.lang.String.format;
 import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 
 @Service
 @Slf4j
 public class KafkaConsumerService {
-
-    private final Siste14aVedtakService siste14aVedtakService;
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
@@ -57,7 +52,6 @@ public class KafkaConsumerService {
 
     @Autowired
     public KafkaConsumerService(
-            Siste14aVedtakService siste14aVedtakService,
             VedtaksstotteRepository vedtaksstotteRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
             SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository,
@@ -67,7 +61,6 @@ public class KafkaConsumerService {
             BrukerIdenterService brukerIdenterService,
             KafkaProducerService kafkaProducerService
     ) {
-        this.siste14aVedtakService = siste14aVedtakService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.sisteOppfolgingPeriodeRepository = sisteOppfolgingPeriodeRepository;
@@ -119,17 +112,6 @@ public class KafkaConsumerService {
         Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
         vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
         beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
-    }
-
-    public void behandleArenaVedtak(ConsumerRecord<String, ArenaVedtakRecord> arenaVedtakRecord) {
-        ArenaVedtak arenaVedtak = ArenaVedtak.fraRecord(arenaVedtakRecord.value());
-        if (arenaVedtak != null) {
-            siste14aVedtakService.behandleEndringFraArena(arenaVedtak);
-        } else {
-            log.info(format("Behandler ikke melding fra Arena med kvalifiseringsgruppe = %s og hovedmål = %s",
-                    arenaVedtakRecord.value().getAfter().getKvalifiseringsgruppe(),
-                    arenaVedtakRecord.value().getAfter().getHovedmal()));
-        }
     }
 
     public void behandleSisteOppfolgingsperiode(ConsumerRecord<String, KafkaSisteOppfolgingsperiode> sisteOppfolgingsperiodeRecord) {
