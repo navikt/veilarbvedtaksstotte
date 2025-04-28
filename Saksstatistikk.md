@@ -1,6 +1,18 @@
 # Data til saksstatistikk
 
-En tabell som inneholder data til saksstatistikk er lagt til i databasen. Denne tabellen inneholder data som er nødvendig for å generere saksstatistikk. Dataene i tabellen blir oppdatert ved opprettelse av utkast og ved sending av vedtak.  
+En tabell som inneholder data til saksstatistikk er lagt til i databasen. Denne tabellen inneholder data som er nødvendig for å generere saksstatistikk. 
+Dataene i tabellen blir oppdatert ved følginde hendelser:
+- Opprettelse av vedtakutkast
+- Vedtakutkast sendt til kvalitetssikring
+- Vedtakutkast sendt tilbake til veileder av kvalitetssikrer
+- Vedtakutkast godkjent i kvalitetssikring
+- Ferdigbehandling av vedtakutkast
+- Sletting av av vedtakutkast
+- Tatt over som veileder/kvalitetssikrer
+
+Disse hendelsene vil oppdatere tabellen SAK_STATISTIKK i databasen. Dataene vil samtidig også bli tilgjengelig i BigQuery.
+<br>BigQuery dev: https://console.cloud.google.com/bigquery?ws=!1m4!1m3!3m2!1sobo-dev-1713!2s14a_vedtak_statistikk
+<br>BigQuery prod: https://console.cloud.google.com/bigquery?ws=!1m4!1m3!3m2!1sobo-prod-fc62!2s14a_vedtak_statistikk
 
 Felter og beskrivelse av disse:
 
