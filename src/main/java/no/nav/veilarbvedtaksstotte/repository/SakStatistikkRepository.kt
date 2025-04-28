@@ -116,7 +116,13 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         """.trimIndent()
         return jdbcTemplate.query(
             sql,
-            rowMapper,
+            { rs, _ ->
+                Siste14aSaksstatistikk(
+                    id = rs.getString("id").toBigInteger(),
+                    fattetDato = rs.getTimestamp("fattet_dato").toInstant(),
+                    fraArena = rs.getString("kilde") == "ARENA"
+                )
+            },
             fnr.get(),
             TimeUtils.toTimestampOrNull(startOppfolgingsperiodeDato.toInstant()),
             aktorId.get(),
@@ -130,8 +136,18 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         return try {
             jdbcTemplate.queryForObject(sql, String::class.java, vedtak.id)
         } catch (e: Exception) {
-            log.error("Kunne ikke hente opprettetAv for vedtakId: $vedtak.id", e)
+            log.info("Kunne ikke hente opprettetAv for vedtakId: ${vedtak.id}, bruker veileder som gjorde siste handling", e)
             vedtak.veilederIdent
+        }
+    }
+
+    fun hentForsteHendelsePaaVedtak(behandlingId: BigInteger): SakStatistikk? {
+        val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $BEHANDLING_ID = ? ORDER BY $SEKVENSNUMMER LIMIT 1"
+        return try {
+            jdbcTemplate.query(sql, sakStatistikkRowMapper, behandlingId).first()
+        } catch (e: Exception) {
+            log.info("Fantes ingen tidligere hendelse på vedtak: $behandlingId", e)
+            null
         }
     }
 
@@ -159,15 +175,6 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             return emptyList()
         }
     }
-
-    private val rowMapper: RowMapper<Siste14aSaksstatistikk> = RowMapper { rs, _ ->
-        Siste14aSaksstatistikk(
-            id = rs.getString("id").toBigInteger(),
-            fattetDato = rs.getTimestamp("fattet_dato").toInstant(),
-            fraArena = rs.getString("kilde") == "ARENA"
-        )
-    }
-
 
     private val sakStatistikkRowMapper: RowMapper<SakStatistikk> = RowMapper { rs, _ ->
         SakStatistikk(
