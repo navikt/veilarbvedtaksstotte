@@ -99,9 +99,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
 
         whenever(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(TestData.TEST_FNR)
         whenever(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(TestData.TEST_FNR)).thenReturn(
-            mockedOppfolgingsPeriode
+            mockedOppfolgingsPeriode(null)
         )
-        whenever(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(mockedOppfolgingsSak)
+        whenever(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(mockedOppfolgingsSak(null))
         whenever(environmentProperties.naisAppImage).thenReturn("naisAppImage")
         whenever(veilarbpersonClient.hentAdressebeskyttelse(any())).thenReturn(Adressebeskyttelse(Gradering.UGRADERT))
     }
@@ -446,6 +446,75 @@ class SakStatistikkServiceTest : DatabaseTest() {
     }
 
     @Test
+    fun se_til_forste_hendelse_paa_behandling_dersom_oppfolgingsdata() {
+        withContext {
+            gittUtkastKlarForUtsendelse()
+            fattVedtak()
+
+            gittUtkastKlarForUtsendelse()
+            var utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            vedtaksstotteRepository!!.oppdaterUtkastVeileder(utkast.id, TestData.TEST_VEILEDER_IDENT_2)
+            utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            utkast.setBeslutterProsessStatus(BeslutterProsessStatus.GODKJENT_AV_BESLUTTER)
+            vedtaksstotteRepository!!.oppdaterUtkast(utkast.id, utkast)
+
+            sakStatistikkService!!.opprettetUtkast(
+                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID), TestData.TEST_FNR
+            )
+            whenever(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(TestData.TEST_FNR)).thenReturn(
+                mockedOppfolgingsPeriode(UUID.randomUUID())
+            )
+
+            whenever(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(
+                mockedOppfolgingsSak(12321L)
+            )
+            sakStatistikkService!!.overtattUtkast(
+                vedtaksstotteRepository!!.hentVedtak(utkast.id), TestData.TEST_VEILEDER_IDENT_2, false
+            )
+
+            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            val lagretRad = statistikkListe.last()
+            val nestSiste = statistikkListe[statistikkListe.size - 2]
+
+            Assertions.assertNotEquals(
+                lagretRad.oppfolgingPeriodeUUID,
+                nestSiste.oppfolgingPeriodeUUID,
+                "oppfolgingsperiode skal ikke være lik siste og nest siste rad"
+            )
+
+            Assertions.assertNotEquals(
+                lagretRad.sakId,
+                nestSiste.sakId,
+                "sakId skal ikke være lik siste og nest siste rad"
+            )
+
+            Assertions.assertEquals(
+                lagretRad.behandlingType,
+                nestSiste.behandlingType,
+                "behandlingType skal være lik siste og nest siste rad"
+            )
+
+            Assertions.assertEquals(
+                lagretRad.mottattTid,
+                nestSiste.mottattTid,
+                "mottatTid skal være lik siste og nest siste rad"
+            )
+
+            Assertions.assertEquals(
+                lagretRad.relatertBehandlingId,
+                nestSiste.relatertBehandlingId,
+                "relatertBehandlingId skal være lik siste og nest siste rad"
+            )
+
+            Assertions.assertEquals(
+                lagretRad.relatertFagsystem,
+                nestSiste.relatertFagsystem,
+                "relatertFagsystem skal være lik siste og nest siste rad"
+            )
+        }
+    }
+
+    @Test
     fun `test registrertTid during summer time`() {
         // Simulerer sommertid (01.04.2024, 12:00)
         val summerTime = LocalDateTime.of(2024, 4, 1, 12, 0)
@@ -514,19 +583,18 @@ class SakStatistikkServiceTest : DatabaseTest() {
         }
     }
 
-    private val mockedOppfolgingsPeriode: Optional<OppfolgingPeriodeDTO>
-        get() {
-            val oppfolgingsPeriode = OppfolgingPeriodeDTO()
-            oppfolgingsPeriode.uuid = UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
-            oppfolgingsPeriode.startDato = ZonedDateTime.of(
-                2025, 1, 4, 9, 48, 58, 0, ZoneId.of("+1")
-            ).plus(762, ChronoUnit.MILLIS)
-            return Optional.of(oppfolgingsPeriode)
-        }
-    private val mockedOppfolgingsSak: SakDTO
-        get() {
-            return SakDTO(UUID.randomUUID(), 123456, "ARBEIDSOPPFOLGING", "OPP")
-        }
+    private fun mockedOppfolgingsPeriode(uuid: UUID?): Optional<OppfolgingPeriodeDTO> {
+        val oppfolgingsPeriode = OppfolgingPeriodeDTO()
+        oppfolgingsPeriode.uuid = uuid ?: UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
+        oppfolgingsPeriode.startDato = ZonedDateTime.of(
+            2025, 1, 4, 9, 48, 58, 0, ZoneId.of("Europe/Oslo")
+        ).plus(762, ChronoUnit.MILLIS)
+        return Optional.of(oppfolgingsPeriode)
+    }
+
+    private fun mockedOppfolgingsSak(sakId: Long?): SakDTO {
+        return SakDTO(UUID.randomUUID(), sakId ?: 123456, "ARBEIDSOPPFOLGING", "OPP")
+    }
 }
 
 

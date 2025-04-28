@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 
@@ -235,14 +234,27 @@ class SakStatistikkService @Autowired constructor(
     }
 
     private fun populerSakStatistikkMedOppfolgingsperiodeData(sakStatistikk: SakStatistikk, fnr: Fnr): SakStatistikk {
+        val forsteHendelsePaaVedtak = sakStatistikkRepository.hentForsteHendelsePaaVedtak(sakStatistikk.behandlingId!!)
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
         val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
+
+        if (forsteHendelsePaaVedtak != null) {
+            return sakStatistikk.copy(
+                oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
+                mottattTid = forsteHendelsePaaVedtak.mottattTid,
+                sakId = sakId.toString(),
+
+                relatertBehandlingId = forsteHendelsePaaVedtak.relatertBehandlingId,
+                relatertFagsystem = forsteHendelsePaaVedtak.relatertFagsystem,
+                behandlingType = forsteHendelsePaaVedtak.behandlingType
+            )
+        }
 
         val tidligereVedtakIOppfolgingsperioden = sakStatistikkRepository.hentForrigeVedtakFraSammeOppfolgingsperiode(
             oppfolgingsperiode.get().startDato,
             sakStatistikk.aktorId!!,
             fnr,
-            sakStatistikk.behandlingId!!
+            sakStatistikk.behandlingId
         )
         val relatertFagsystem =
             if (tidligereVedtakIOppfolgingsperioden != null && tidligereVedtakIOppfolgingsperioden.fraArena) Fagsystem.ARENA else Fagsystem.OPPFOLGINGSVEDTAK_14A
@@ -261,7 +273,6 @@ class SakStatistikkService @Autowired constructor(
 
     private fun sjekkOmPersonErKode6(fnr: Fnr, sakStatistikk: SakStatistikk): SakStatistikk {
         val adressebeskyttelse = veilarbpersonClient.hentAdressebeskyttelse(fnr)
-        secureLog.error("Fått diskresjonskode fra veilarbperson (pdl): ${adressebeskyttelse.gradering}")
         if (adressebeskyttelse.gradering === Gradering.STRENGT_FORTROLIG || adressebeskyttelse.gradering === Gradering.STRENGT_FORTROLIG_UTLAND) {
             return sakStatistikk.copy(
                 opprettetAv = "-5",
