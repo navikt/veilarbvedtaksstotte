@@ -16,6 +16,7 @@ import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Kilde;
@@ -251,10 +252,10 @@ public class VedtakService {
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
 
-        slettUtkast(utkast);
+        slettUtkast(utkast, BehandlingMetode.MANUELL);
     }
 
-    public void slettUtkast(Vedtak utkast) {
+    public void slettUtkast(Vedtak utkast, BehandlingMetode behandlingMetode) {
         long utkastId = utkast.getId();
 
         transactor.executeWithoutResult((status) -> {
@@ -267,7 +268,7 @@ public class VedtakService {
             vedtakStatusEndringService.utkastSlettet(utkast);
         });
 
-        metricsService.rapporterUtkastSlettet(utkast);
+        metricsService.rapporterUtkastSlettet(utkast, behandlingMetode);
     }
 
     public List<Vedtak> hentFattedeVedtak(Fnr fnr) {

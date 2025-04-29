@@ -46,6 +46,7 @@ import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
 import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
@@ -348,7 +349,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
         meldingRepository.opprettDialogMelding(utkast.getId(), null, "Test");
 
-        vedtakService.slettUtkast(utkast);
+        vedtakService.slettUtkast(utkast, BehandlingMetode.MANUELL);
 
         assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
     }

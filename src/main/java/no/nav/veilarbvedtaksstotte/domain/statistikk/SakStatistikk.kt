@@ -54,7 +54,8 @@ enum class BehandlingResultat {
     TRENGER_VEILEDNING,
     TRENGER_VEILEDNING_NEDSATT_ARBEIDSEVNE,
     JOBBE_DELVIS,
-    LITEN_MULIGHET_TIL_A_JOBBE
+    LITEN_MULIGHET_TIL_A_JOBBE,
+    AVBRUTT
 }
 
 fun Innsatsgruppe.toBehandlingResultat(): BehandlingResultat {
@@ -69,6 +70,7 @@ fun Innsatsgruppe.toBehandlingResultat(): BehandlingResultat {
 
 enum class BehandlingMetode {
     MANUELL,
+    AUTOMATISK,
     TOTRINNS
 }
 
