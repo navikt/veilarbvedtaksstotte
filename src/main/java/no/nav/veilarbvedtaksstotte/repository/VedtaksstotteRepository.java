@@ -234,6 +234,16 @@ public class VedtaksstotteRepository {
         db.update(sql, getName(VedtakStatus.SENDT), vedtakId);
     }
 
+    /**
+     * Sletter vedtak. OBS: Denne skal kun brukes dersom vi har hatt et personvernsbrudd og må slette vedtaket.
+     * @param vedtakId
+     * @return true hvis sletting var vellykket, false hvis vedtakId ikke eksisterer
+     */
+    public boolean slettVedtak(long vedtakId) {
+        String sql = format("DELETE FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, STATUS, VEDTAK_ID);
+        return db.update(sql, getName(VedtakStatus.SENDT), vedtakId) > 0;
+    }
+
     public List<AktorId> hentUnikeBrukereMedFattetVedtak() {
         String sql = format(
                 "SELECT DISTINCT %s FROM %s WHERE %s = ?",

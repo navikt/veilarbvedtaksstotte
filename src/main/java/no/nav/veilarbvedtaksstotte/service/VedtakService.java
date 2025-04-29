@@ -351,6 +351,19 @@ public class VedtakService {
         vedtakStatusEndringService.tattOverForVeileder(utkast, innloggetVeilederIdent);
     }
 
+    /**
+     * Sletter vedtak med id = vedtakId og sender hendelsesrad til saksstatistikken
+     * Innlogget veileder må ha rollen modia-admin
+     * OBS: Denne skal kun brukes dersom vi har hatt et personvernsbrudd og må slette vedtaket.
+     * @param vedtakId
+     */
+    public void slettVedtak(long vedtakId) {
+        authService.erInnloggetBrukerModiaAdmin();
+        Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
+        vedtaksstotteRepository.slettVedtak(vedtak.getId());
+        sakStatistikkService.slettetFattetVedtak(vedtak);
+    }
+
     private void flettInnOpplysinger(Vedtak vedtak) {
         List<String> opplysninger = kilderRepository.hentKilderForVedtak(vedtak.getId()).stream().map(Kilde::getTekst).collect(Collectors.toList());
 
