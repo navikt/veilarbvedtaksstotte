@@ -9,6 +9,7 @@ import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
+import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.poao_tilgang.client.Decision;
 import no.nav.poao_tilgang.client.PoaoTilgangClient;
@@ -39,6 +40,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.Malform;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
@@ -83,11 +85,7 @@ import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doReturn;
@@ -135,6 +133,8 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
     private static final BigQueryService bigQueryService = mock(BigQueryService.class);
     private static final EnvironmentProperties environmentProperties = mock(EnvironmentProperties.class);
+    private static final Gjeldende14aVedtakService gjeldende14aVedtakService = mock(Gjeldende14aVedtakService.class);
+    private static final KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
 
     @BeforeAll
     public static void setupOnce() {
@@ -174,7 +174,10 @@ public class VedtakServiceTest extends DatabaseTest {
                 veilarbarenaService,
                 metricsService,
                 leaderElectionClient,
-                sakStatistikkService
+                sakStatistikkService,
+                aktorOppslagClient,
+                gjeldende14aVedtakService,
+                kafkaProducerService
         );
     }
 
@@ -484,6 +487,26 @@ public class VedtakServiceTest extends DatabaseTest {
                     vedtakService.taOverUtkast(utkast.getId())
             ).isExactlyInstanceOf(ResponseStatusException.class);
         });
+    }
+
+    @Test
+    void slett_vedtak_ved_personvernsbrudd() {
+        gittUtkastKlarForUtsendelse();
+
+        when(dokarkivClient.opprettJournalpost(any()))
+                .thenReturn(new OpprettetJournalpostDTO(
+                        TEST_JOURNALPOST_ID,
+                        false,
+                        List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
+
+        fattVedtak();
+
+        assertJournalførtOgFerdigstilltVedtak();
+        assertNotNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID).getFirst().getBegrunnelse());
+
+        SlettVedtakRequest slettVedtakRequest = new SlettVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
+        vedtakService.slettVedtak(slettVedtakRequest, NavIdent.of("Z123456"));
+        assertNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID).getFirst().getBegrunnelse());
     }
 
     private void gittTilgang() {
