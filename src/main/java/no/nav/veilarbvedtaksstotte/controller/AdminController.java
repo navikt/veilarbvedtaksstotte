@@ -7,6 +7,7 @@ import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.service.KafkaRepubliseringService;
 import no.nav.veilarbvedtaksstotte.service.UtrullingService;
+import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,13 +32,18 @@ public class AdminController {
 
     private final KafkaRepubliseringService kafkaRepubliseringService;
 
+    private final VedtakService vedtakService;
+
     @Autowired
     public AdminController(UtrullingService utrullingService,
                            AuthService authService,
-                           KafkaRepubliseringService kafkaRepubliseringService) {
+                           KafkaRepubliseringService kafkaRepubliseringService,
+                           VedtakService vedtakService
+    ) {
         this.utrullingService = utrullingService;
         this.authService = authService;
         this.kafkaRepubliseringService = kafkaRepubliseringService;
+        this.vedtakService = vedtakService;
     }
 
     @GetMapping("/utrulling")
@@ -74,6 +80,16 @@ public class AdminController {
                 "republiser-vedtak-14a-fattet-dvh",
                 () -> kafkaRepubliseringService.republiserVedtak14aFattetDvh(100)
         );
+    }
+
+    /**
+     * OBS: Denne slettingen er irreversibel og vil slette vedtaket fra databasen. Skal kun brukes ved personvernsbrudd.
+     * @param vedtakId
+     */
+    @DeleteMapping("/vedtak/{vedtakId}")
+    public void fjernUtrulling(@PathVariable long vedtakId) {
+        sjekkTilgangTilAdmin();
+        vedtakService.slettVedtak(vedtakId);
     }
 
     private void sjekkTilgangTilAdmin() {

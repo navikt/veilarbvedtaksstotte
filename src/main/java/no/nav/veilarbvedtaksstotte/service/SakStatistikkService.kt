@@ -200,6 +200,24 @@ class SakStatistikkService @Autowired constructor(
 
     }
 
+    fun slettetFattetVedtak(vedtak: Vedtak) {
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+            behandlingResultat = BehandlingResultat.FEILREGISTRERT,
+            behandlingStatus = BehandlingStatus.AVLSUTTET,
+            behandlingMetode = BehandlingMetode.MANUELL,
+        )
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+    }
+
     private fun lagreStatistikkRadIdbOgSendTilBQ(statistikkRad: SakStatistikk) {
         try {
             statistikkRad.validate()

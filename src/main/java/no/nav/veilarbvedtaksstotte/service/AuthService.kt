@@ -153,6 +153,18 @@ class AuthService(
         return tilgangTilBrukere
     }
 
+    fun erInnloggetBrukerModiaAdmin() {
+        val veilederHarModiaAdmin = poaoTilgangClient.evaluatePolicy(
+            NavAnsattTilgangTilModiaAdminPolicyInput(
+                hentInnloggetVeilederUUID()
+            )
+        ).getOrThrow()
+
+        if (veilederHarModiaAdmin.isDeny) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
+    }
+
     private fun sjekkInternBruker() {
         authContextHolder
             .role
