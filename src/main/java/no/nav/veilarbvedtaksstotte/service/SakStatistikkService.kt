@@ -59,7 +59,8 @@ class SakStatistikkService @Autowired constructor(
     }
 
     fun slettetUtkast(
-        vedtak: Vedtak
+        vedtak: Vedtak,
+        behandlingMetode: BehandlingMetode
     ) {
         val aktorId = AktorId(vedtak.aktorId)
         val fnr = aktorOppslagClient.hentFnr(aktorId)
@@ -72,9 +73,9 @@ class SakStatistikkService @Autowired constructor(
         val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
             innsatsgruppe = null,
             hovedmal = null,
-            behandlingResultat = null,
-            behandlingStatus = BehandlingStatus.AVBRUTT,
-            behandlingMetode = BehandlingMetode.MANUELL,
+            behandlingResultat = BehandlingResultat.AVBRUTT,
+            behandlingStatus = BehandlingStatus.AVSLUTTET,
+            behandlingMetode = if (behandlingMetode.name == BehandlingMetode.MANUELL.name) BehandlingMetode.MANUELL else BehandlingMetode.AUTOMATISK,
         )
 
         lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))

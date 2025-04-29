@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.schedule;
 
-import io.getunleash.DefaultUnleash;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
@@ -10,6 +10,7 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
@@ -78,7 +79,7 @@ public class SlettUtkastSchedule {
                 maybeSistePeriode.ifPresent(sistePeriode -> {
                     if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(toLocalDateTime(sistePeriode.sluttDato))) {
                         SecureLog.getSecureLog().info("Sletter utkast automatisk. aktorId = {}", utkast.getAktorId());
-                        vedtakService.slettUtkast(utkast);
+                        vedtakService.slettUtkast(utkast, BehandlingMetode.AUTOMATISK);
                     } else {
                         log.info("Utkast med id {} ble ikke slettet.", utkast.getId());
                     }
