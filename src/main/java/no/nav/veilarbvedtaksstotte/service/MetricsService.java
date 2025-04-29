@@ -12,6 +12,7 @@ import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
@@ -170,8 +171,8 @@ public class MetricsService {
 //        influxClient.report(event);
     }
 
-    public void rapporterUtkastSlettet(Vedtak vedtak) {
-        sakStatistikkService.slettetUtkast(vedtak);
+    public void rapporterUtkastSlettet(Vedtak vedtak, BehandlingMetode behandlingMetode) {
+        sakStatistikkService.slettetUtkast(vedtak, behandlingMetode);
 //        influxClient.report(createMetricEvent("utkast-slettet"));
     }
 
