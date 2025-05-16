@@ -31,31 +31,33 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
 
     val namedParameterJdbcTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
-    val SAK_STATISTIKK_TABLE = "SAK_STATISTIKK"
-    val SEKVENSNUMMER = "SEKVENSNUMMER"
-    val AKTOR_ID = "AKTOR_ID"
-    val OPPFOLGING_PERIODE_UUID = "OPPFOLGING_PERIODE_UUID"
-    val BEHANDLING_ID = "BEHANDLING_ID"
-    val RELATERT_BEHANDLING_ID = "RELATERT_BEHANDLING_ID"
-    val RELATERT_FAGSYSTEM = "RELATERT_FAGSYSTEM"
-    val SAK_ID = "SAK_ID"
-    val MOTTATT_TID = "MOTTATT_TID"
-    val REGISTRERT_TID = "REGISTRERT_TID"
-    val FERDIGBEHANDLET_TID = "FERDIGBEHANDLET_TID"
-    val ENDRET_TID = "ENDRET_TID"
-    val SAK_YTELSE = "SAK_YTELSE"
-    val BEHANDLING_TYPE = "BEHANDLING_TYPE"
-    val BEHANDLING_STATUS = "BEHANDLING_STATUS"
-    val BEHANDLING_RESULTAT = "BEHANDLING_RESULTAT"
-    val BEHANDLING_METODE = "BEHANDLING_METODE"
-    val INNSATSGRUPPE = "INNSATSGRUPPE"
-    val HOVEDMAL = "HOVEDMAL"
-    val OPPRETTET_AV = "OPPRETTET_AV"
-    val SAKSBEHANDLER = "SAKSBEHANDLER"
-    val ANSVARLIG_BESLUTTER = "ANSVARLIG_BESLUTTER"
-    val ANSVARLIG_ENHET = "ANSVARLIG_ENHET"
-    val FAGSYSTEM_NAVN = "FAGSYSTEM_NAVN"
-    val FAGSYSTEM_VERSJON = "FAGSYSTEM_VERSJON"
+    companion object {
+        const val SAK_STATISTIKK_TABLE = "SAK_STATISTIKK"
+        const val SEKVENSNUMMER = "SEKVENSNUMMER"
+        const val AKTOR_ID = "AKTOR_ID"
+        const val OPPFOLGING_PERIODE_UUID = "OPPFOLGING_PERIODE_UUID"
+        const val BEHANDLING_ID = "BEHANDLING_ID"
+        const val RELATERT_BEHANDLING_ID = "RELATERT_BEHANDLING_ID"
+        const val RELATERT_FAGSYSTEM = "RELATERT_FAGSYSTEM"
+        const val SAK_ID = "SAK_ID"
+        const val MOTTATT_TID = "MOTTATT_TID"
+        const val REGISTRERT_TID = "REGISTRERT_TID"
+        const val FERDIGBEHANDLET_TID = "FERDIGBEHANDLET_TID"
+        const val ENDRET_TID = "ENDRET_TID"
+        const val SAK_YTELSE = "SAK_YTELSE"
+        const val BEHANDLING_TYPE = "BEHANDLING_TYPE"
+        const val BEHANDLING_STATUS = "BEHANDLING_STATUS"
+        const val BEHANDLING_RESULTAT = "BEHANDLING_RESULTAT"
+        const val BEHANDLING_METODE = "BEHANDLING_METODE"
+        const val INNSATSGRUPPE = "INNSATSGRUPPE"
+        const val HOVEDMAL = "HOVEDMAL"
+        const val OPPRETTET_AV = "OPPRETTET_AV"
+        const val SAKSBEHANDLER = "SAKSBEHANDLER"
+        const val ANSVARLIG_BESLUTTER = "ANSVARLIG_BESLUTTER"
+        const val ANSVARLIG_ENHET = "ANSVARLIG_ENHET"
+        const val FAGSYSTEM_NAVN = "FAGSYSTEM_NAVN"
+        const val FAGSYSTEM_VERSJON = "FAGSYSTEM_VERSJON"
+    }
 
     fun insertSakStatistikkRad(sakStatistikkRad: SakStatistikk): Long? {
         val sql =
@@ -172,6 +174,17 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
             return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
         } catch (e: Exception) {
             log.error("Kunne ikke hente sakStatistikkListe", e)
+            return emptyList()
+        }
+    }
+
+    fun hentSakStatistikkListe(sqlStatement: String, parameters: Map<String, Any>): List<SakStatistikk> {
+        try {
+            val parameters = MapSqlParameterSource(parameters)
+            log.info("Prøver å hente sakStatistikkListe for å resende rader")
+            return namedParameterJdbcTemplate.query(sqlStatement, parameters, sakStatistikkRowMapper)
+        } catch (e: Exception) {
+            log.error("Kunne ikke hente sakStatistikkListe til resending", e)
             return emptyList()
         }
     }
