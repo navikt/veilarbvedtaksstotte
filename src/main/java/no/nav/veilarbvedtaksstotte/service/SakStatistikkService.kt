@@ -235,19 +235,19 @@ class SakStatistikkService @Autowired constructor(
     }
 
     private fun populerSakStatistikkMedOppfolgingsperiodeData(sakStatistikk: SakStatistikk, fnr: Fnr): SakStatistikk {
-        val forsteHendelsePaaVedtak = sakStatistikkRepository.hentForsteHendelsePaaVedtak(sakStatistikk.behandlingId!!)
+        val sisteHendelsePaaVedtak = sakStatistikkRepository.hentSisteHendelsePaaVedtak(sakStatistikk.behandlingId!!)
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
         val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
 
-        if (forsteHendelsePaaVedtak != null) {
+        if (sisteHendelsePaaVedtak != null) {
             return sakStatistikk.copy(
                 oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
-                mottattTid = forsteHendelsePaaVedtak.mottattTid,
+                mottattTid = sisteHendelsePaaVedtak.mottattTid,
                 sakId = sakId.toString(),
 
-                relatertBehandlingId = forsteHendelsePaaVedtak.relatertBehandlingId,
-                relatertFagsystem = forsteHendelsePaaVedtak.relatertFagsystem,
-                behandlingType = forsteHendelsePaaVedtak.behandlingType
+                relatertBehandlingId = sisteHendelsePaaVedtak.relatertBehandlingId,
+                relatertFagsystem = sisteHendelsePaaVedtak.relatertFagsystem,
+                behandlingType = sisteHendelsePaaVedtak.behandlingType
             )
         }
 
