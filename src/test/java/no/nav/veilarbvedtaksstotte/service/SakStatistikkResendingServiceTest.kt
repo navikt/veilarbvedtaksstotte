@@ -41,12 +41,12 @@ class SakStatistikkResendingServiceTest : DatabaseTest() {
             sakStatistikkResendingService = SakStatistikkResendingService(sakStatistikkRepository!!, bigQueryService!!)
         }
 
-        @BeforeEach
-        fun setup() {
-            DbTestUtils.cleanupDb(jdbcTemplate)
-            whenever(bigQuery.insertAll(any())).thenReturn(mock(InsertAllResponse::class.java))
-        }
+    }
 
+    @BeforeEach
+    fun setup() {
+        DbTestUtils.cleanupDb(jdbcTemplate)
+        whenever(bigQuery.insertAll(any())).thenReturn(mock(InsertAllResponse::class.java))
     }
 
     @Test
@@ -92,7 +92,8 @@ class SakStatistikkResendingServiceTest : DatabaseTest() {
             opprettetAv = "Z123456",
             saksbehandler = "Z123456",
             ansvarligBeslutter = "Z123456",
-            ansvarligEnhet = EnhetId.of("0220"))
+            ansvarligEnhet = EnhetId.of("0220")
+        )
     }
 }
 
