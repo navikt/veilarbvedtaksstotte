@@ -104,6 +104,53 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         }
     }
 
+    fun insertSakStatistikkRadBatch(sakStatistikkRader: List<SakStatistikk>): List<SakStatistikk> {
+        if (sakStatistikkRader.isEmpty()) return emptyList()
+
+        val params = sakStatistikkRader.flatMap { statistikkrad ->
+            listOf(
+                statistikkrad.behandlingId,
+                statistikkrad.aktorId?.get(),
+                statistikkrad.relatertBehandlingId,
+                statistikkrad.relatertFagsystem?.name,
+                statistikkrad.sakId,
+                TimeUtils.toTimestampOrNull(statistikkrad.mottattTid),
+                TimeUtils.toTimestampOrNull(statistikkrad.registrertTid),
+                TimeUtils.toTimestampOrNull(statistikkrad.ferdigbehandletTid),
+                TimeUtils.toTimestampOrNull(statistikkrad.endretTid),
+                statistikkrad.sakYtelse,
+                statistikkrad.behandlingType?.name,
+                statistikkrad.behandlingStatus?.name,
+                statistikkrad.behandlingResultat?.name,
+                statistikkrad.behandlingMetode?.name,
+                statistikkrad.opprettetAv,
+                statistikkrad.saksbehandler,
+                statistikkrad.ansvarligBeslutter,
+                statistikkrad.ansvarligEnhet?.get(),
+                statistikkrad.fagsystemNavn.name,
+                statistikkrad.fagsystemVersjon,
+                statistikkrad.oppfolgingPeriodeUUID,
+                statistikkrad.innsatsgruppe?.name,
+                statistikkrad.hovedmal?.name,
+            )
+        }
+
+        // Pass på at rekkefølgen på kolonnene i SQL-spørringen er den samme som rekkefølgen på parameterne
+        val sql = """
+                    INSERT INTO $SAK_STATISTIKK_TABLE ($BEHANDLING_ID, $AKTOR_ID, $RELATERT_BEHANDLING_ID, $RELATERT_FAGSYSTEM, 
+                    $SAK_ID, $MOTTATT_TID, $REGISTRERT_TID, $FERDIGBEHANDLET_TID,
+                    $ENDRET_TID, $SAK_YTELSE, $BEHANDLING_TYPE, $BEHANDLING_STATUS,
+                    $BEHANDLING_RESULTAT, $BEHANDLING_METODE, $OPPRETTET_AV, $SAKSBEHANDLER, $ANSVARLIG_BESLUTTER,
+                    $ANSVARLIG_ENHET, $FAGSYSTEM_NAVN, $FAGSYSTEM_VERSJON, $OPPFOLGING_PERIODE_UUID, $INNSATSGRUPPE, $HOVEDMAL)
+                    VALUES 
+                """ +
+                // Genererer en liste med ? for hver rad i sakStatistikkRader
+                sakStatistikkRader.joinToString(", ") { "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" } +
+                "RETURNING *"
+
+        return jdbcTemplate.query(sql, sakStatistikkRowMapper, *params.toTypedArray())
+    }
+
     fun hentForrigeVedtakFraSammeOppfolgingsperiode(startOppfolgingsperiodeDato: ZonedDateTime, aktorId: AktorId, fnr: Fnr, gjeldendeVedtakId: BigInteger): Siste14aSaksstatistikk? {
         val sql = """
             SELECT vedtak_id as id, fra_dato as fattet_dato, 'ARENA' AS kilde
