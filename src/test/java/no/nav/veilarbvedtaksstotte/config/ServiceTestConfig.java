@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Import;
         KafkaVedtakStatusEndringConsumer.class,
         BigQueryService.class,
         SakStatistikkService.class,
+        SakStatistikkResendingService.class,
         ArbeidssoekerRegisteretService.class,
         PdfService.class,
         Gjeldende14aVedtakService.class,
