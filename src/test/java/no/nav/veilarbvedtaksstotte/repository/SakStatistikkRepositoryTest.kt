@@ -4,9 +4,11 @@ import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
-import org.junit.jupiter.api.Test
+import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -18,9 +20,15 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
 
         @BeforeAll
         @JvmStatic
-        fun setup() {
+        fun setupOnce() {
             sakStatistikkRepository = SakStatistikkRepository(jdbcTemplate)
         }
+
+    }
+
+    @BeforeEach
+    fun setup() {
+        DbTestUtils.cleanupDb(jdbcTemplate)
     }
 
     @Test
@@ -54,7 +62,7 @@ class SakStatistikkRepositoryTest : DatabaseTest() {
         sakStatistikkRepository.insertSakStatistikkRad(statistikkRad)
         val lagretStatistikkRadAlt = sakStatistikkRepository.hentSakStatistikkListeAlt(3001.toBigInteger())
         val lagretStatistikkRad = sakStatistikkRepository.hentSakStatistikkListe("2004140973848")
-        assertEquals(lagretStatistikkRadAlt[0].behandlingId, lagretStatistikkRad[1].behandlingId)
+        assertEquals(lagretStatistikkRadAlt[0].behandlingId, lagretStatistikkRad[0].behandlingId)
     }
 
     @Test
