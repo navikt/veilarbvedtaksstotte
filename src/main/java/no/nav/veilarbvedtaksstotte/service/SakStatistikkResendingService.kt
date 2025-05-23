@@ -4,6 +4,7 @@ import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository.Companion.SAK_STATISTIKK_TABLE
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 @Service
@@ -11,6 +12,8 @@ class SakStatistikkResendingService(
     private val sakStatistikkRepository: SakStatistikkRepository,
     private val bigQueryService: BigQueryService
 ) {
+    // 23. mai kl 15:50:00
+    @Scheduled(cron = "0 50 15 23 5 ?")
     fun resendStatistikk() {
         // steg 0: lage cron-jobb som trigger funksjon på ønsket tidspunkt (kun EN gang)
         // ✓ steg 1: Hent ut alle rader som vi skal endre, eks. alle rader med behandlig_status='AVBRUTT'
