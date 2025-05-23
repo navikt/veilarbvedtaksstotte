@@ -59,7 +59,8 @@ class SakStatistikkService @Autowired constructor(
     }
 
     fun slettetUtkast(
-        vedtak: Vedtak
+        vedtak: Vedtak,
+        behandlingMetode: BehandlingMetode
     ) {
         val aktorId = AktorId(vedtak.aktorId)
         val fnr = aktorOppslagClient.hentFnr(aktorId)
@@ -72,9 +73,9 @@ class SakStatistikkService @Autowired constructor(
         val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
             innsatsgruppe = null,
             hovedmal = null,
-            behandlingResultat = null,
-            behandlingStatus = BehandlingStatus.AVBRUTT,
-            behandlingMetode = BehandlingMetode.MANUELL,
+            behandlingResultat = BehandlingResultat.AVBRUTT,
+            behandlingStatus = BehandlingStatus.AVSLUTTET,
+            behandlingMetode = if (behandlingMetode.name == BehandlingMetode.MANUELL.name) BehandlingMetode.MANUELL else BehandlingMetode.AUTOMATISK,
         )
 
         lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
@@ -234,19 +235,19 @@ class SakStatistikkService @Autowired constructor(
     }
 
     private fun populerSakStatistikkMedOppfolgingsperiodeData(sakStatistikk: SakStatistikk, fnr: Fnr): SakStatistikk {
-        val forsteHendelsePaaVedtak = sakStatistikkRepository.hentForsteHendelsePaaVedtak(sakStatistikk.behandlingId!!)
+        val sisteHendelsePaaVedtak = sakStatistikkRepository.hentSisteHendelsePaaVedtak(sakStatistikk.behandlingId!!)
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
         val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
 
-        if (forsteHendelsePaaVedtak != null) {
+        if (sisteHendelsePaaVedtak != null) {
             return sakStatistikk.copy(
                 oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
-                mottattTid = forsteHendelsePaaVedtak.mottattTid,
+                mottattTid = sisteHendelsePaaVedtak.mottattTid,
                 sakId = sakId.toString(),
 
-                relatertBehandlingId = forsteHendelsePaaVedtak.relatertBehandlingId,
-                relatertFagsystem = forsteHendelsePaaVedtak.relatertFagsystem,
-                behandlingType = forsteHendelsePaaVedtak.behandlingType
+                relatertBehandlingId = sisteHendelsePaaVedtak.relatertBehandlingId,
+                relatertFagsystem = sisteHendelsePaaVedtak.relatertFagsystem,
+                behandlingType = sisteHendelsePaaVedtak.behandlingType
             )
         }
 

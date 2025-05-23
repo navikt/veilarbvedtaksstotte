@@ -18,6 +18,7 @@ import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.repository.*
@@ -222,16 +223,16 @@ class SakStatistikkServiceTest : DatabaseTest() {
             gittUtkastKlarForUtsendelse()
 
             val utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
-            vedtakService!!.slettUtkast(utkastet)
-            sakStatistikkService!!.slettetUtkast(utkastet)
+            vedtakService!!.slettUtkast(utkastet, BehandlingMetode.AUTOMATISK)
+            sakStatistikkService!!.slettetUtkast(utkastet, BehandlingMetode.AUTOMATISK)
             val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
 
             val lagretRad = statistikkListe.last()
             Assertions.assertEquals(
-                BehandlingStatus.AVBRUTT, lagretRad.behandlingStatus, "Behandling status skal være AVBRUTT"
+                BehandlingStatus.AVSLUTTET, lagretRad.behandlingStatus, "Behandling status skal være AVSLUTTET"
             )
-            Assertions.assertNull(
-                lagretRad.behandlingResultat, "Behandling resultat skal være null"
+            Assertions.assertEquals(
+                lagretRad.behandlingResultat, BehandlingResultat.AVBRUTT, "Behandling resultat skal være null"
             )
             Assertions.assertNotNull(
                 lagretRad.mottattTid, "Mottatt tid skal være utfylt"

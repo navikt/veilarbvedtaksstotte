@@ -141,8 +141,8 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         }
     }
 
-    fun hentForsteHendelsePaaVedtak(behandlingId: BigInteger): SakStatistikk? {
-        val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $BEHANDLING_ID = ? ORDER BY $SEKVENSNUMMER LIMIT 1"
+    fun hentSisteHendelsePaaVedtak(behandlingId: BigInteger): SakStatistikk? {
+        val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $BEHANDLING_ID = ? ORDER BY $SEKVENSNUMMER DESC LIMIT 1"
         return try {
             jdbcTemplate.query(sql, sakStatistikkRowMapper, behandlingId).first()
         } catch (e: Exception) {

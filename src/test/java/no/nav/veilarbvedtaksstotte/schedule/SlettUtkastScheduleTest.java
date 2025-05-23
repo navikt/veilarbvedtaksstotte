@@ -75,7 +75,7 @@ public class SlettUtkastScheduleTest extends DatabaseTest {
 
         slettUtkastSchedule.slettGamleUtkast();
 
-        verify(vedtakService, times(1)).slettUtkast(argThat(utkast -> utkast.getAktorId().equals(aktorId.get())));
+        verify(vedtakService, times(1)).slettUtkast(argThat(utkast -> utkast.getAktorId().equals(aktorId.get())), any());
     }
 
     @Test
@@ -94,7 +94,7 @@ public class SlettUtkastScheduleTest extends DatabaseTest {
 
         slettUtkastSchedule.slettGamleUtkast();
 
-        verify(vedtakService, never()).slettUtkast(any());
+        verify(vedtakService, never()).slettUtkast(any(), any());
     }
 
     private void insertUtkast(AktorId aktorId, LocalDateTime utkastSistOppdatert) {
