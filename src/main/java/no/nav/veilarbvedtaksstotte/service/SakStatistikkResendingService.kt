@@ -1,8 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import no.nav.common.utils.EnvironmentUtils.isDevelopment
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
+import no.nav.common.job.leader_election.LeaderElectionClient
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingType
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository.Companion.SAK_STATISTIKK_TABLE
 import org.slf4j.Logger
@@ -13,37 +12,34 @@ import org.springframework.stereotype.Service
 @Service
 class SakStatistikkResendingService(
     private val sakStatistikkRepository: SakStatistikkRepository,
-    private val bigQueryService: BigQueryService
+    private val bigQueryService: BigQueryService,
+    private val leaderElectionClient: LeaderElectionClient
 ) {
-    // 27. mai kl 13:25:00
-    @Scheduled(cron = "0 30 13 27 5 ?")
+    @Scheduled(cron = "0 53 15 28 5 ?")
     fun resendStatistikk() {
-        if (isDevelopment().get()) {
-            return
+        if (leaderElectionClient.isLeader) {
+            val log: Logger = LoggerFactory.getLogger(SakStatistikkResendingService::class.java)
+            log.info("Starter resending av sakstatistikk")
+
+            // Steg 1 endre parametere for å hente de radene som skal endres
+            val parameters = mapOf<String, Any>("BEHANDLING_TYPE" to BehandlingType.REVURDERING.name)
+
+            val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE mottatt_tid > registrert_tid AND behandling_type=:BEHANDLING_TYPE"
+
+            val sakStatistikkRader = sakStatistikkRepository.hentSakStatistikkListe(sql, parameters)
+
+            // Lager de nye radene, pass på å slette/ikke sette sekvensnummer, det settes automatisk ved innsetting i databasen
+            val endredeRader = sakStatistikkRader.map { it ->
+                it.copy(
+                    sekvensnummer = null,
+                    mottattTid = it.registrertTid
+                )
+            }
+
+            val lagredeDatabaseRader = sakStatistikkRepository.insertSakStatistikkRadBatch(endredeRader)
+
+            bigQueryService.logEvent(lagredeDatabaseRader)
+            log.info("Resending av sakstatistikk fullført, ${endredeRader.size} rader oppdatert og sendt til BigQuery")
         }
-
-        val log: Logger = LoggerFactory.getLogger(SakStatistikkResendingService::class.java)
-        log.info("Starter resending av sakstatistikk med behandling_status='AVBRUTT'")
-
-        val parameters = mapOf<String, Any>("BEHANDLING_STATUS" to BehandlingStatus.AVBRUTT.name)
-
-        val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE behandling_status = :BEHANDLING_STATUS"
-
-        val sakStatistikkRader = sakStatistikkRepository.hentSakStatistikkListe(sql, parameters)
-
-        // Lager de nye radene, pass på å slette/ikke sette sekvensnummer, det settes automatisk ved innsetting i databasen
-        val endredeRader = sakStatistikkRader.map { it ->
-            it.copy(
-                sekvensnummer = null,
-                behandlingStatus = BehandlingStatus.AVSLUTTET,
-                behandlingResultat = BehandlingResultat.AVBRUTT
-            )
-        }
-
-        val lagredeDatabaseRader = sakStatistikkRepository.insertSakStatistikkRadBatch(endredeRader)
-
-        bigQueryService.logEvent(lagredeDatabaseRader)
-        log.info("Resending av sakstatistikk med behandling_status='AVBRUTT' ferdig")
     }
-
 }

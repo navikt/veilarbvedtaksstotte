@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.service
 
 import com.google.cloud.bigquery.BigQuery
 import com.google.cloud.bigquery.InsertAllResponse
+import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
@@ -32,13 +33,18 @@ class SakStatistikkResendingServiceTest : DatabaseTest() {
         private var sakStatistikkRepository: SakStatistikkRepository? = null
         private var sakStatistikkResendingService: SakStatistikkResendingService? = null
         private var bigQuery: BigQuery = mock(BigQuery::class.java)
+        private var leaderElectionClient: LeaderElectionClient = mock(LeaderElectionClient::class.java)
 
         @JvmStatic
         @BeforeAll
         fun setupOnce() {
             bigQueryService = BigQueryService("test-dataset", "test-table", bigQuery)
             sakStatistikkRepository = SakStatistikkRepository(jdbcTemplate)
-            sakStatistikkResendingService = SakStatistikkResendingService(sakStatistikkRepository!!, bigQueryService!!)
+            sakStatistikkResendingService = SakStatistikkResendingService(
+                sakStatistikkRepository!!,
+                bigQueryService!!,
+                leaderElectionClient
+            )
         }
 
     }
@@ -47,15 +53,20 @@ class SakStatistikkResendingServiceTest : DatabaseTest() {
     fun setup() {
         DbTestUtils.cleanupDb(jdbcTemplate)
         whenever(bigQuery.insertAll(any())).thenReturn(mock(InsertAllResponse::class.java))
+        whenever(leaderElectionClient.isLeader).thenReturn(true)
     }
 
     @Test
-    fun `test resending, behandling_status AVBRUTT gir nye rader med behandling_status AVSLUTTET`() {
+    fun `test resending, mottatt_tid være lik registrert_tid når REVURDERING`() {
         // Arrange
         val behandlingId1 = 3001.toBigInteger()
         val behandlingId2 = 3002.toBigInteger()
-        val statistikkrad1 = lagStatistikkRad(behandlingId1)
-        val statistikkrad2 = lagStatistikkRad(behandlingId2)
+        val mottattTid1 = Instant.now().plus(2, ChronoUnit.DAYS)
+        val registrertTid1 = Instant.now().minus(1, ChronoUnit.DAYS)
+        val mottattTid2 = Instant.now().plus(1, ChronoUnit.DAYS)
+        val registrertTid2 = Instant.now()
+        val statistikkrad1 = lagStatistikkRad(behandlingId1, mottattTid1,registrertTid1)
+        val statistikkrad2 = lagStatistikkRad(behandlingId2, mottattTid2, registrertTid2)
         sakStatistikkRepository!!.insertSakStatistikkRadBatch(listOf(statistikkrad1, statistikkrad2))
 
         // Act
@@ -64,13 +75,13 @@ class SakStatistikkResendingServiceTest : DatabaseTest() {
         // Assert
         val lagretStatistikkRadAlt1 = sakStatistikkRepository!!.hentSakStatistikkListeAlt(behandlingId1)
         val lagretStatistikkRadAlt2 = sakStatistikkRepository!!.hentSakStatistikkListeAlt(behandlingId2)
-        assert(lagretStatistikkRadAlt1[0].behandlingStatus?.name == "AVBRUTT")
-        assert(lagretStatistikkRadAlt1[1].behandlingStatus?.name == "AVSLUTTET")
-        assert(lagretStatistikkRadAlt2[0].behandlingStatus?.name == "AVBRUTT")
-        assert(lagretStatistikkRadAlt2[1].behandlingStatus?.name == "AVSLUTTET")
+        assert(lagretStatistikkRadAlt1[0].mottattTid == mottattTid1)
+        assert(lagretStatistikkRadAlt1[1].mottattTid == registrertTid1)
+        assert(lagretStatistikkRadAlt2[0].mottattTid == mottattTid2)
+        assert(lagretStatistikkRadAlt2[1].mottattTid == registrertTid2)
     }
 
-    private fun lagStatistikkRad(behandlingId: BigInteger): SakStatistikk {
+    private fun lagStatistikkRad(behandlingId: BigInteger, mottattTid: Instant, registrertTid: Instant): SakStatistikk {
         return SakStatistikk(
             aktorId = AktorId.of("2004140973848"),
             oppfolgingPeriodeUUID = UUID.fromString("1a930d0d-6931-403e-852c-b85e39673aaf"),
@@ -78,12 +89,12 @@ class SakStatistikkResendingServiceTest : DatabaseTest() {
             relatertBehandlingId = 3000.toBigInteger(),
             relatertFagsystem = null,
             sakId = "Arbeidsoppfølging",
-            mottattTid = Instant.now().minus(2, ChronoUnit.DAYS),
-            registrertTid = Instant.now().minus(1, ChronoUnit.DAYS),
+            mottattTid = mottattTid,
+            registrertTid = registrertTid,
             ferdigbehandletTid = Instant.now(),
             endretTid = Instant.now(),
             sakYtelse = SAK_YTELSE,
-            behandlingType = BehandlingType.FORSTEGANGSBEHANDLING,
+            behandlingType = BehandlingType.REVURDERING,
             behandlingStatus = BehandlingStatus.AVBRUTT,
             behandlingResultat = BehandlingResultat.GODE_MULIGHETER,
             behandlingMetode = BehandlingMetode.MANUELL,
