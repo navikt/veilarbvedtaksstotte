@@ -15,7 +15,7 @@ class SakStatistikkResendingService(
     private val bigQueryService: BigQueryService,
     private val leaderElectionClient: LeaderElectionClient
 ) {
-    @Scheduled(cron = "0 53 15 28 5 ?")
+    @Scheduled(cron = "0 12 16 28 5 ?")
     fun resendStatistikk() {
         if (leaderElectionClient.isLeader) {
             val log: Logger = LoggerFactory.getLogger(SakStatistikkResendingService::class.java)
