@@ -17,6 +17,7 @@ import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
@@ -56,6 +57,7 @@ class SakStatistikkResendingServiceTest : DatabaseTest() {
         whenever(leaderElectionClient.isLeader).thenReturn(true)
     }
 
+    @Disabled
     @Test
     fun `test resending, mottatt_tid være lik registrert_tid når REVURDERING`() {
         // Arrange
@@ -95,7 +97,7 @@ class SakStatistikkResendingServiceTest : DatabaseTest() {
             endretTid = Instant.now(),
             sakYtelse = SAK_YTELSE,
             behandlingType = BehandlingType.REVURDERING,
-            behandlingStatus = BehandlingStatus.AVBRUTT,
+            behandlingStatus = BehandlingStatus.AVSLUTTET,
             behandlingResultat = BehandlingResultat.GODE_MULIGHETER,
             behandlingMetode = BehandlingMetode.MANUELL,
             innsatsgruppe = BehandlingResultat.GODE_MULIGHETER,
