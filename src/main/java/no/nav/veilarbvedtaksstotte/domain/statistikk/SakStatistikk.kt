@@ -46,7 +46,6 @@ enum class BehandlingStatus {
     SENDT_TIL_KVALITETSSIKRING,
     KVALITETSSIKRING_GODKJENT,
     FATTET,
-    AVBRUTT,
     AVSLUTTET
 }
 
