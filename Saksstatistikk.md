@@ -12,7 +12,7 @@ Det blir lagt til rader i tabellen ved følgende hendelser:
 
 ### BigQuery
 På BigQuery har vi en tabell som er 1-til-1 med tabellen SAK_STATISTIKK i databasen.
-Team Sak og Team Oppfølging, som foreløpig er våre konsumenter, har hvert sitt basert på denne tabellen.
+Team Sak og Team Oppfølging, som foreløpig er våre konsumenter, har hvert sitt view basert på denne tabellen.
 Det er verdt å merke hva spørringen for disse viewene er da ingen av viewene har all data.
 Viewene finner man inne i BigQuery (i Google-konsollen) i prosjektene `obo-dev` og `obo-prod` i datasettene `14a_vedtak_statistikk`.
 
