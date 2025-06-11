@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Import;
         Siste14aVedtakV2Controller.class,
         UtkastV2Controller.class,
         VedtakV2Controller.class,
-        Gjeldende14aVedtakController.class
+        Gjeldende14aVedtakController.class,
+        TestvedtakController.class
 })
 public class ControllerTestConfig {}

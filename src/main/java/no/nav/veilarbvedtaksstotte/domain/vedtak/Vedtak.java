@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.domain.vedtak;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
@@ -132,5 +133,64 @@ public class Vedtak {
 
     public UUID getReferanse() {
         return this.referanse;
+    }
+
+    public Vedtak settId(Long id) { //Kotlin ser ikke lombok settere, men "vanlig" set-metoder går på bekostning av lombok sine. Lager derfor egen setter-metoder på norsk
+        this.id = id;
+        return this;
+    }
+
+    public Vedtak settAktorId(String aktorId) {
+        this.aktorId = aktorId;
+        return this;
+    }
+
+    public Vedtak settHovedmal(Hovedmal hovedmal) {
+        this.hovedmal = hovedmal;
+        return this;
+    }
+
+    public Vedtak settInnsatsgruppe(Innsatsgruppe innsatsgruppe) {
+        this.innsatsgruppe = innsatsgruppe;
+        return this;
+    }
+
+    public Vedtak settOppfolgingsenhetId(String oppfolgingsenhetId) {
+        this.oppfolgingsenhetId = oppfolgingsenhetId;
+        return this;
+    }
+
+    public Vedtak settUtkastOpprettet(LocalDateTime utkastOpprettet) {
+        this.utkastOpprettet = utkastOpprettet;
+        return this;
+    }
+
+    public Vedtak settVedtakFattet(LocalDateTime vedtakFattet) {
+        this.vedtakFattet = vedtakFattet;
+        return this;
+    }
+
+    public Vedtak settUtkastSistOppdatert(LocalDateTime utkastSistOppdatert) {
+        this.utkastSistOppdatert = utkastSistOppdatert;
+        return this;
+    }
+
+    public Vedtak settVeilederIdent(String veilederIdent) {
+        this.veilederIdent = veilederIdent;
+        return this;
+    }
+
+    public Vedtak settGjeldende(boolean gjeldende) {
+        this.gjeldende = gjeldende;
+        return this;
+    }
+
+    public Vedtak settReferanse(UUID referanse) {
+        this.referanse = referanse;
+        return this;
+    }
+    public Vedtak settBegrunnelse(String begrunnelse) {
+        this.begrunnelse = begrunnelse;
+        return this;
     }
 }

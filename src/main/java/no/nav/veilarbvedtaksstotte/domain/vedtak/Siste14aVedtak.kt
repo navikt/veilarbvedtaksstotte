@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.domain.vedtak
 
 import no.nav.common.types.identer.AktorId
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import java.time.ZonedDateTime
 
 data class Siste14aVedtak(
@@ -11,4 +12,14 @@ data class Siste14aVedtak(
     val fraArena: Boolean
 ) {
 
+}
+
+fun Vedtak.toSiste14aVedtak(): Siste14aVedtak {
+    return Siste14aVedtak(
+        aktorId = AktorId(aktorId),
+        innsatsgruppe = innsatsgruppe,
+        hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(hovedmal),
+        fattetDato = toZonedDateTime(vedtakFattet),
+        fraArena =  false
+    )
 }

@@ -39,6 +39,8 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.ArenaRegistreringResultat;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.RegistrerIkkeArbeidssokerDto;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
@@ -228,6 +230,11 @@ public class ClientTestConfig {
             }
 
             @Override
+            public RegistrerIkkeArbeidssokerDto startOppfolgingsperiode(Fnr fnr) {
+                return new RegistrerIkkeArbeidssokerDto("ok", ArenaRegistreringResultat.OK_REGISTRERT_I_ARENA);
+            }
+
+            @Override
             public Optional<OppfolgingPeriodeDTO> hentGjeldendeOppfolgingsperiode(Fnr fnr) {
                 OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
                 periode.setStartDato(ZonedDateTime.now().minusDays(10));
@@ -238,6 +245,9 @@ public class ClientTestConfig {
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();
             }
+
+
+
         };
     }
 
