@@ -19,6 +19,7 @@ import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
+import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_APP_NAME
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.apache.commons.lang3.RandomStringUtils
@@ -254,7 +255,8 @@ class DistribusjonServiceTest : DatabaseTest() {
         vedtakRepository.opprettUtkast(
             aktorId.get(),
             veilederIdent,
-            oppfolgingsenhet
+            oppfolgingsenhet,
+            TEST_APP_NAME
         )
         val vedtak = vedtakRepository.hentUtkast(aktorId.get())
         vedtakRepository.lagreJournalforingVedtak(vedtak.id, journalpostId, dokumentId)

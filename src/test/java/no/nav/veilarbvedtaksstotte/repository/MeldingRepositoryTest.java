@@ -11,10 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DIALOG_MELDING;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,7 +34,7 @@ public class MeldingRepositoryTest extends DatabaseTest {
 
     @Test
     public void opprettDialogMelding_skal_opprette_dialog_melding() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
         meldingRepository.opprettDialogMelding(vedtakId, TEST_VEILEDER_IDENT, TEST_DIALOG_MELDING);
@@ -54,7 +51,7 @@ public class MeldingRepositoryTest extends DatabaseTest {
 
     @Test
     public void opprettSystemMelding_skal_opprette_system_melding() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
         meldingRepository.opprettSystemMelding(vedtakId, SystemMeldingType.UTKAST_OPPRETTET, TEST_VEILEDER_IDENT);
@@ -71,7 +68,7 @@ public class MeldingRepositoryTest extends DatabaseTest {
 
     @Test
     public void slettMeldinger_skal_slette_alle_meldinger() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
         meldingRepository.opprettDialogMelding(vedtakId, TEST_VEILEDER_IDENT, TEST_DIALOG_MELDING);

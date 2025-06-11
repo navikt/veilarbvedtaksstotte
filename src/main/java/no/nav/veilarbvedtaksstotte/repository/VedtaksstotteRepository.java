@@ -34,26 +34,27 @@ import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 public class VedtaksstotteRepository {
 
     public static final String VEDTAK_TABLE = "VEDTAK";
-    private static final String VEDTAK_ID = "ID";
+    public static final String VEDTAK_ID = "ID";
     private static final String SENDER = "SENDER";
-    private static final String AKTOR_ID = "AKTOR_ID";
-    private static final String HOVEDMAL = "HOVEDMAL";
-    private static final String INNSATSGRUPPE = "INNSATSGRUPPE";
-    private static final String VEILEDER_IDENT = "VEILEDER_IDENT";
-    private static final String OPPFOLGINGSENHET_ID = "OPPFOLGINGSENHET_ID";
-    private static final String UTKAST_SIST_OPPDATERT = "UTKAST_SIST_OPPDATERT";
-    private static final String VEDTAK_FATTET = "VEDTAK_FATTET";
+    public static final String AKTOR_ID = "AKTOR_ID";
+    public static final String HOVEDMAL = "HOVEDMAL";
+    public static final String INNSATSGRUPPE = "INNSATSGRUPPE";
+    public static final String VEILEDER_IDENT = "VEILEDER_IDENT";
+    public static final String OPPFOLGINGSENHET_ID = "OPPFOLGINGSENHET_ID";
+    public static final String UTKAST_SIST_OPPDATERT = "UTKAST_SIST_OPPDATERT";
+    public static final String VEDTAK_FATTET = "VEDTAK_FATTET";
     private static final String BESLUTTER_IDENT = "BESLUTTER_IDENT";
-    private static final String UTKAST_OPPRETTET = "UTKAST_OPPRETTET";
-    private static final String BEGRUNNELSE = "BEGRUNNELSE";
-    private static final String STATUS = "STATUS";
+    public static final String UTKAST_OPPRETTET = "UTKAST_OPPRETTET";
+    public static final String BEGRUNNELSE = "BEGRUNNELSE";
+    public static final String STATUS = "STATUS";
     private static final String DOKUMENT_ID = "DOKUMENT_ID";
     private static final String JOURNALPOST_ID = "JOURNALPOST_ID";
     private static final String DOKUMENT_BESTILLING_ID = "DOKUMENT_BESTILLING_ID";
-    private static final String GJELDENDE = "GJELDENDE";
+    public static final String GJELDENDE = "GJELDENDE";
     private static final String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
     private static final String REFERANSE = "REFERANSE";
     private static final String FEILRETTING_BEGRUNNELSE = "FEILRETTING_BEGRUNNELSE";
+    public static final String OPPRETTET_AV_SYSTEM = "OPPRETTET_AV_SYSTEM";
 
     private final JdbcTemplate db;
     private final TransactionTemplate transactor;
@@ -163,13 +164,13 @@ public class VedtaksstotteRepository {
         db.update(sql, enhetId, vedtakId, getName(VedtakStatus.UTKAST));
     }
 
-    public void opprettUtkast(String aktorId, String veilederIdent, String oppfolgingsenhetId) {
+    public void opprettUtkast(String aktorId, String veilederIdent, String oppfolgingsenhetId, String navConsumerId) {
         String sql = format(
-                "INSERT INTO %s(%s, %s, %s, %s, %s) values(?, ?, ?, ?, CURRENT_TIMESTAMP)",
-                VEDTAK_TABLE, AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, UTKAST_SIST_OPPDATERT
+                "INSERT INTO %s(%s, %s, %s, %s, %s, %s) values(?, ?, ?, ?, CURRENT_TIMESTAMP, ?)",
+                VEDTAK_TABLE, AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, UTKAST_SIST_OPPDATERT, OPPRETTET_AV_SYSTEM
         );
 
-        db.update(sql, aktorId, veilederIdent, oppfolgingsenhetId, getName(VedtakStatus.UTKAST));
+        db.update(sql, aktorId, veilederIdent, oppfolgingsenhetId, getName(VedtakStatus.UTKAST), navConsumerId);
     }
 
     public void oppdaterSender(long vedtakId, boolean sender) {

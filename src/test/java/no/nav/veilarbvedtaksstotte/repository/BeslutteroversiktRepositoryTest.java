@@ -8,14 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_NAVN;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -35,7 +28,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
     @BeforeEach
     public void cleanup() {
         DbTestUtils.cleanupDb(jdbcTemplate);
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
     }
 
     @Test

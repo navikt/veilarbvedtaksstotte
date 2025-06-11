@@ -12,6 +12,7 @@ import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Uuid
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.DistribusjonService
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
+import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_APP_NAME
 import org.apache.commons.lang3.RandomStringUtils.randomAlphabetic
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -158,7 +159,8 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
         vedtakRepository.opprettUtkast(
             aktorId.get(),
             veilederIdent,
-            oppfolgingsenhet
+            oppfolgingsenhet,
+            TEST_APP_NAME
         )
         val vedtak = vedtakRepository.hentUtkast(aktorId.get())
         vedtakRepository.lagreJournalforingVedtak(vedtak.id, journalpostId, dokumentId)

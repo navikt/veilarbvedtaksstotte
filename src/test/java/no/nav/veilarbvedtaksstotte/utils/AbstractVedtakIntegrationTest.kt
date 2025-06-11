@@ -56,7 +56,7 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
         gammelVedtakId: Long = 1234
     ): Vedtak {
         vedtakRepository.opprettUtkast(
-            aktorId.get(), TestData.TEST_VEILEDER_IDENT, TestData.TEST_OPPFOLGINGSENHET_ID
+            aktorId.get(), TestData.TEST_VEILEDER_IDENT, TestData.TEST_OPPFOLGINGSENHET_ID, TestData.TEST_APP_NAME
         )
         val vedtak = vedtakRepository.hentUtkast(aktorId.get())
         vedtak.innsatsgruppe = innsatsgruppe
