@@ -37,7 +37,7 @@ class TestvedtakControllerTest {
     lateinit var objectMapper: ObjectMapper
 
     @Test
-    fun `Skal kunne opprette et § 14 a-vedtak på testperson`() {
+    fun `Skal kunne opprette et § 14 a-vedtak pa testperson`() {
         val fnr = Fnr.of("12345678901")
         every {
             authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")
