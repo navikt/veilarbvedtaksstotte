@@ -91,6 +91,7 @@ class PdfService(
         val malform = veilarbpersonClient.hentMalform(fnr)
         val veilederNavn = veilarbveilederClient.hentVeilederNavn(veilederIdent)
         val fødselsdatoOgÅr = veilarbpersonClient.hentFødselsdato(fnr)
+        log.info("Hurra, fødselsdato og år er hentet: $fødselsdatoOgÅr")
 
         val enhet: Enhet = enhetInfoService.hentEnhet(enhetId)
         val kontaktEnhet: Enhet = enhetInfoService.hentEnhet(enhetKontaktinformasjon.enhetNr)
