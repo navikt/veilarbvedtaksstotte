@@ -13,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
+import no.nav.veilarbvedtaksstotte.client.person.dto.FoedselsdatoOgAar
 import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
@@ -195,19 +196,22 @@ class DokumentService(
         val malform: Malform,
         val veilederNavn: String,
         val enhet: Enhet,
-        val kontaktEnhet: Enhet
+        val kontaktEnhet: Enhet,
+        val foedselsdatoOgAar: FoedselsdatoOgAar
     )
 
 
     companion object {
 
         fun mapBrevdata(dto: ProduserDokumentDTO, brevdataOppslag: BrevdataOppslag): PdfClient.Brevdata {
+            val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
+            val harUngdomsgaranti = erIAlderForUngdomsgaranti(brevdataOppslag.foedselsdatoOgAar)
 
             val mottaker = PdfClient.Mottaker(
                 navn = dto.navn,
-                fodselsnummer = dto.brukerFnr
+                fodselsnummer = dto.brukerFnr,
+                ungdomsgaranti = harUngdomsgaranti
             )
-            val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
 
             val enhetNavn = brevdataOppslag.enhet.navn ?: throw IllegalStateException(
                 "Manglende navn for enhet ${brevdataOppslag.enhet.enhetNr}"
@@ -225,8 +229,22 @@ class DokumentService(
                 mottaker = mottaker,
                 begrunnelse = begrunnelseAvsnitt,
                 kilder = dto.opplysninger,
-                utkast = dto.utkast
+                utkast = dto.utkast,
             )
+        }
+
+        fun erIAlderForUngdomsgaranti(fødselsinfo: FoedselsdatoOgAar): Boolean {
+            val dagensDato = LocalDate.now()
+
+            // todo  håndter null fødselsdato her ved å bruke fødselsår
+            if (fødselsinfo.foedselsdato == null) {
+                return false
+            }
+
+            val er16EllerOver = !fødselsinfo.foedselsdato.isAfter(dagensDato.minusYears(16))
+            val erUnder31 = fødselsinfo.foedselsdato.isAfter(dagensDato.minusYears(31))
+            return er16EllerOver && erUnder31
+
         }
     }
 

@@ -36,7 +36,8 @@ class PdfClientImplTest {
             kilder = listOf("Kilde 1", "Kilde 2"),
             mottaker = PdfClient.Mottaker(
                 navn = "Mottaker Navn",
-                fodselsnummer = Fnr.ofValidFnr("12345678910")
+                fodselsnummer = Fnr.ofValidFnr("12345678910"),
+                ungdomsgaranti = true
             ),
             utkast = false
         )
@@ -55,7 +56,8 @@ class PdfClientImplTest {
                       "kilder": ["Kilde 1", "Kilde 2"],
                       "mottaker": {
                         "navn": "Mottaker Navn",
-                        "fodselsnummer": "12345678910"
+                        "fodselsnummer": "12345678910",
+                        "ungdomsgaranti": true
                       },
                       "utkast": false
                     }

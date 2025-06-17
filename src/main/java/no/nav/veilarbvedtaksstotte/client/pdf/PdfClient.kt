@@ -29,6 +29,7 @@ interface PdfClient : HealthCheck {
 
     data class Mottaker(
         val navn: String,
-        val fodselsnummer: Fnr
+        val fodselsnummer: Fnr,
+        val ungdomsgaranti: Boolean,
     )
 }

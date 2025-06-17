@@ -48,6 +48,7 @@ import org.joda.time.Instant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -285,6 +286,11 @@ public class ClientTestConfig {
             @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();
+            }
+
+            @Override
+            public FoedselsdatoOgAar hentFødselsdato(@NotNull Fnr fnr)  {
+                return new FoedselsdatoOgAar(LocalDate.of(1990, 1, 1), 1990);
             }
         };
     }
