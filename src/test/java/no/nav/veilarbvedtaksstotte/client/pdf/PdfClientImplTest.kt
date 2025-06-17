@@ -37,9 +37,9 @@ class PdfClientImplTest {
             mottaker = PdfClient.Mottaker(
                 navn = "Mottaker Navn",
                 fodselsnummer = Fnr.ofValidFnr("12345678910"),
-                ungdomsgaranti = true
             ),
-            utkast = false
+            utkast = false,
+            ungdomsgaranti = true
         )
 
         val documentResponse = "document"
@@ -56,10 +56,10 @@ class PdfClientImplTest {
                       "kilder": ["Kilde 1", "Kilde 2"],
                       "mottaker": {
                         "navn": "Mottaker Navn",
-                        "fodselsnummer": "12345678910",
-                        "ungdomsgaranti": true
+                        "fodselsnummer": "12345678910"
                       },
-                      "utkast": false
+                      "utkast": false,
+                      "ungdomsgaranti": true
                     }
                 """
 

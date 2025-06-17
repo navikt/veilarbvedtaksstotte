@@ -210,7 +210,6 @@ class DokumentService(
             val mottaker = PdfClient.Mottaker(
                 navn = dto.navn,
                 fodselsnummer = dto.brukerFnr,
-                ungdomsgaranti = harUngdomsgaranti
             )
 
             val enhetNavn = brevdataOppslag.enhet.navn ?: throw IllegalStateException(
@@ -230,6 +229,7 @@ class DokumentService(
                 begrunnelse = begrunnelseAvsnitt,
                 kilder = dto.opplysninger,
                 utkast = dto.utkast,
+                ungdomsgaranti = harUngdomsgaranti
             )
         }
 

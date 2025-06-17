@@ -24,12 +24,12 @@ interface PdfClient : HealthCheck {
         val begrunnelse: List<String>,
         val kilder: List<String>,
         val mottaker: Mottaker,
-        val utkast: Boolean
+        val utkast: Boolean,
+        val ungdomsgaranti: Boolean
     )
 
     data class Mottaker(
         val navn: String,
         val fodselsnummer: Fnr,
-        val ungdomsgaranti: Boolean,
     )
 }
