@@ -233,12 +233,15 @@ class DokumentService(
             )
         }
 
+        // Undomsgarantien gjelder for personer fra og med de fyller 16 inntil dagen de fyller 31 år.
         fun erIAlderForUngdomsgaranti(fodselsinfo: FodselsdatoOgAr): Boolean {
             val dagensDato = LocalDate.now()
 
-            // todo  håndter null fødselsdato her ved å bruke fødselsår
+            // Hvis fødselsdato er null, betyr det at vi kun har fødselsår. Per 17.6.25 gjelder dette kun 14 stk i pdl.
+            // Tar derfor med hele året de fyller 16 eller 31 for å ta med alle uavhengig av når på året de er født.
             if (fodselsinfo.foedselsdato == null) {
-                return false
+                val blirDenneAldereIAr = dagensDato.year - fodselsinfo.foedselsaar
+                return blirDenneAldereIAr in 16..31
             }
 
             val er16EllerOver = !fodselsinfo.foedselsdato.isAfter(dagensDato.minusYears(16))
