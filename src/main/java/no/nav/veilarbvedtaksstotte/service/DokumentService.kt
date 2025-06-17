@@ -11,9 +11,9 @@ import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
+import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
-import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
 import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
@@ -108,14 +108,16 @@ class DokumentService(
             )
         )
 
-        if (oyeblikksbildeArbeidssokerRegistretDokument != null){
+        if (oyeblikksbildeArbeidssokerRegistretDokument != null) {
             dokumenterList.add(
                 OpprettJournalpostDTO.Dokument(
                     tittel = OyeblikksbildePdfTemplate.ARBEIDSSOKERREGISTRET.fileName,
                     brevkode = BrevKode.of(OyeblikksbildeType.ARBEIDSSOKERREGISTRET).name,
                     dokumentvarianter = listOf(
                         OpprettJournalpostDTO.DokumentVariant(
-                            "PDFA", fysiskDokument = oyeblikksbildeArbeidssokerRegistretDokument, variantformat = "ARKIV"
+                            "PDFA",
+                            fysiskDokument = oyeblikksbildeArbeidssokerRegistretDokument,
+                            variantformat = "ARKIV"
                         )
                     )
                 )
@@ -205,7 +207,12 @@ class DokumentService(
 
         fun mapBrevdata(dto: ProduserDokumentDTO, brevdataOppslag: BrevdataOppslag): PdfClient.Brevdata {
             val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
-            val harUngdomsgaranti = erIAlderForUngdomsgaranti(brevdataOppslag.fodselsdatoOgAr)
+            val erIAlderForUngdomsgaranti = erIAlderForUngdomsgaranti(brevdataOppslag.fodselsdatoOgAr)
+            val harUngdomsgaranti = erIAlderForUngdomsgaranti &&
+                    (dto.malType == MalType.SITUASJONSBESTEMT_INNSATS_BEHOLDE_ARBEID ||
+                            dto.malType == MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID ||
+                            dto.malType == MalType.SPESIELT_TILPASSET_INNSATS_BEHOLDE_ARBEID ||
+                            dto.malType == MalType.SPESIELT_TILPASSET_INNSATS_SKAFFE_ARBEID)
 
             val mottaker = PdfClient.Mottaker(
                 navn = dto.navn,
