@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
+import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
 import no.nav.veilarbvedtaksstotte.domain.Malform
@@ -107,14 +108,16 @@ class DokumentService(
             )
         )
 
-        if (oyeblikksbildeArbeidssokerRegistretDokument != null){
+        if (oyeblikksbildeArbeidssokerRegistretDokument != null) {
             dokumenterList.add(
                 OpprettJournalpostDTO.Dokument(
                     tittel = OyeblikksbildePdfTemplate.ARBEIDSSOKERREGISTRET.fileName,
                     brevkode = BrevKode.of(OyeblikksbildeType.ARBEIDSSOKERREGISTRET).name,
                     dokumentvarianter = listOf(
                         OpprettJournalpostDTO.DokumentVariant(
-                            "PDFA", fysiskDokument = oyeblikksbildeArbeidssokerRegistretDokument, variantformat = "ARKIV"
+                            "PDFA",
+                            fysiskDokument = oyeblikksbildeArbeidssokerRegistretDokument,
+                            variantformat = "ARKIV"
                         )
                     )
                 )
@@ -195,19 +198,26 @@ class DokumentService(
         val malform: Malform,
         val veilederNavn: String,
         val enhet: Enhet,
-        val kontaktEnhet: Enhet
+        val kontaktEnhet: Enhet,
+        val fodselsdatoOgAr: FodselsdatoOgAr
     )
 
 
     companion object {
 
         fun mapBrevdata(dto: ProduserDokumentDTO, brevdataOppslag: BrevdataOppslag): PdfClient.Brevdata {
+            val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
+            val erIAlderForUngdomsgaranti = erIAlderForUngdomsgaranti(brevdataOppslag.fodselsdatoOgAr)
+            val harUngdomsgaranti = erIAlderForUngdomsgaranti &&
+                    (dto.malType == MalType.SITUASJONSBESTEMT_INNSATS_BEHOLDE_ARBEID ||
+                            dto.malType == MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID ||
+                            dto.malType == MalType.SPESIELT_TILPASSET_INNSATS_BEHOLDE_ARBEID ||
+                            dto.malType == MalType.SPESIELT_TILPASSET_INNSATS_SKAFFE_ARBEID)
 
             val mottaker = PdfClient.Mottaker(
                 navn = dto.navn,
-                fodselsnummer = dto.brukerFnr
+                fodselsnummer = dto.brukerFnr,
             )
-            val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
 
             val enhetNavn = brevdataOppslag.enhet.navn ?: throw IllegalStateException(
                 "Manglende navn for enhet ${brevdataOppslag.enhet.enhetNr}"
@@ -225,8 +235,25 @@ class DokumentService(
                 mottaker = mottaker,
                 begrunnelse = begrunnelseAvsnitt,
                 kilder = dto.opplysninger,
-                utkast = dto.utkast
+                utkast = dto.utkast,
+                ungdomsgaranti = harUngdomsgaranti
             )
+        }
+
+        // Undomsgarantien gjelder for personer fra og med de fyller 16 inntil dagen de fyller 30 år.
+        fun erIAlderForUngdomsgaranti(fodselsinfo: FodselsdatoOgAr): Boolean {
+            val dagensDato = LocalDate.now()
+
+            // Hvis fødselsdato er null, betyr det at vi kun har fødselsår. Per 17.6.25 gjelder dette kun 14 stk i pdl.
+            // Tar derfor med hele året de fyller 16 eller 30 for å ta med alle uavhengig av når på året de er født.
+            if (fodselsinfo.foedselsdato == null) {
+                val blirDenneAldereIAr = dagensDato.year - fodselsinfo.foedselsaar
+                return blirDenneAldereIAr in 16..30
+            }
+
+            val er16EllerOver = !fodselsinfo.foedselsdato.isAfter(dagensDato.minusYears(16))
+            val erUnder30 = fodselsinfo.foedselsdato.isAfter(dagensDato.minusYears(30))
+            return er16EllerOver && erUnder30
         }
     }
 

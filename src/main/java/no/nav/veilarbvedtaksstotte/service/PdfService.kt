@@ -90,6 +90,7 @@ class PdfService(
         val enhetKontaktinformasjon: EnhetKontaktinformasjon = enhetInfoService.utledEnhetKontaktinformasjon(enhetId)
         val malform = veilarbpersonClient.hentMalform(fnr)
         val veilederNavn = veilarbveilederClient.hentVeilederNavn(veilederIdent)
+        val fodselsdatoOgAr = veilarbpersonClient.hentFodselsdato(fnr)
 
         val enhet: Enhet = enhetInfoService.hentEnhet(enhetId)
         val kontaktEnhet: Enhet = enhetInfoService.hentEnhet(enhetKontaktinformasjon.enhetNr)
@@ -99,7 +100,8 @@ class PdfService(
             malform = malform,
             veilederNavn = veilederNavn,
             enhet = enhet,
-            kontaktEnhet = kontaktEnhet
+            kontaktEnhet = kontaktEnhet,
+            fodselsdatoOgAr = fodselsdatoOgAr
         )
     }
 }

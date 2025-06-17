@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import java.time.LocalDate
 
 @WireMockTest
 class VeilarbpersonClientImplTest {
@@ -59,6 +60,27 @@ class VeilarbpersonClientImplTest {
                 forkortetNavn = "Sammensatt Navn"
             ), hentPersonNavn
         )
+    }
+
+    @Test
+    fun skal_hente_fodselsdato() {
+        WireMock.givenThat(
+            WireMock.post("/api/v3/person/hent-foedselsdato")
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\"$TEST_FNR\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"))
+                .willReturn(
+                    WireMock.aResponse().withStatus(200).withHeader("Authorization", "Bearer TOKEN").withBody(
+                        """
+                               {
+                                "foedselsdato": "1990-01-01",
+                                "foedselsaar": 1990
+                               }
+                            """
+                    )
+                )
+        )
+        val fodselsdatoOgAr = veilarbpersonClient.hentFodselsdato(Fnr.of(TEST_FNR.get()))
+        assertEquals(LocalDate.of(1990, 1, 1), fodselsdatoOgAr.foedselsdato)
+        assertEquals(1990, fodselsdatoOgAr.foedselsaar)
     }
 
     @Test
