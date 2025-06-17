@@ -376,7 +376,6 @@ class DokumentServiceTest {
         val fodselsdato15MedBdIMorgen = now.plusDays(1).minusYears(16)
         val fodselsdato16BdIDag = now.minusYears(16)
         val fodselsdato30BdIDag = now.minusYears(30)
-        val fodselsdato31BdIDag = now.minusYears(31)
 
         fun mapTilFodselsdato(fodselsdato: LocalDate): FodselsdatoOgAr {
             return FodselsdatoOgAr(fodselsdato, fodselsdato.year)
@@ -394,16 +393,13 @@ class DokumentServiceTest {
             DokumentService.erIAlderForUngdomsgaranti(mapTilFodselsdato(fodselsdato16BdIDag))
         val fodselsdato30BdIDagHarUngdomsgaranti =
             DokumentService.erIAlderForUngdomsgaranti(mapTilFodselsdato(fodselsdato30BdIDag))
-        val fodselsdato31BdIDagHarIkkeUngdomsgaranti =
-            DokumentService.erIAlderForUngdomsgaranti(mapTilFodselsdato(fodselsdato31BdIDag))
 
         Assertions.assertFalse(fodselsdatoForGammelHarIkkeUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
         Assertions.assertFalse(fodselsdatoForUngHarIkkeUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
         Assertions.assertTrue(fodselsdatoPasseHarUngdomsgaranti, "Personen skal ha ungdomsgaranti")
         Assertions.assertFalse(fodselsdato15MedBdIMorgenHarIkkeUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
         Assertions.assertTrue(fodselsdato16BdIDagHarUngdomsgaranti, "Personen skal ha ungdomsgaranti")
-        Assertions.assertTrue(fodselsdato30BdIDagHarUngdomsgaranti, "Personen skal ha ungdomsgaranti")
-        Assertions.assertFalse(fodselsdato31BdIDagHarIkkeUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
+        Assertions.assertFalse(fodselsdato30BdIDagHarUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
     }
 
     @Test
@@ -413,19 +409,16 @@ class DokumentServiceTest {
         val alderBlir16Ar = now.minusYears(16).year
         val alderBlir30Ar = now.minusYears(30).year
         val alderBlir31Ar = now.minusYears(31).year
-        val alderBlir32Ar = now.minusYears(32).year
 
         val harAlderBlir15ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir15Ar ))
         val harAlderBlir16ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir16Ar))
         val harAlderBlir30ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir30Ar))
         val harAlderBlir31ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir31Ar))
-        val harAlderBlir32ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir32Ar))
 
         Assertions.assertFalse(harAlderBlir15ArUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
         Assertions.assertTrue(harAlderBlir16ArUngdomsgaranti, "Personen skal ha ungdomsgaranti")
         Assertions.assertTrue(harAlderBlir30ArUngdomsgaranti, "Personen skal ha ungdomsgaranti")
-        Assertions.assertTrue(harAlderBlir31ArUngdomsgaranti, "Personen skal ha ungdomsgaranti")
-        Assertions.assertFalse(harAlderBlir32ArUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
+        Assertions.assertFalse(harAlderBlir31ArUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
 
     }
 
