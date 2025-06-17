@@ -198,7 +198,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(new CvDto.CVMedInnhold(JsonUtils.fromJson(testCvData(), CvInnhold.class)));
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(veilarbpersonClient.hentPersonNavnForJournalforing(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
-        when(veilarbpersonClient.hentFødselsdato(TEST_FNR)).thenReturn(new FoedselsdatoOgAar(LocalDate.of(1990, 3, 12), 1990));
+        when(veilarbpersonClient.hentFodselsdato(TEST_FNR)).thenReturn(new FodselsdatoOgAr(LocalDate.of(1990, 3, 12), 1990));
         when(aia_backend_client.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()))).thenReturn(JsonUtils.fromJson(testEgenvurderingData(), EgenvurderingResponseDTO.class));
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);

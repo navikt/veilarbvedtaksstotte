@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.client.person.dto
 
 import java.time.LocalDate
 
-data class FoedselsdatoOgAar(
+data class FodselsdatoOgAr(
     val foedselsdato: LocalDate? = null,
     val foedselsaar: Int
 )

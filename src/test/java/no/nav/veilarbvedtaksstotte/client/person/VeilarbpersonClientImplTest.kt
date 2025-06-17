@@ -63,7 +63,7 @@ class VeilarbpersonClientImplTest {
     }
 
     @Test
-    fun skal_hente_foedselsdato() {
+    fun skal_hente_fodselsdato() {
         WireMock.givenThat(
             WireMock.post("/api/v3/person/hent-foedselsdato")
                 .withRequestBody(WireMock.equalToJson("{\"fnr\":\"$TEST_FNR\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"))
@@ -78,9 +78,9 @@ class VeilarbpersonClientImplTest {
                     )
                 )
         )
-        val foedselsdatoOgAar = veilarbpersonClient.hentFødselsdato(Fnr.of(TEST_FNR.get()))
-        assertEquals(LocalDate.of(1990, 1, 1), foedselsdatoOgAar.foedselsdato)
-        assertEquals(1990, foedselsdatoOgAar.foedselsaar)
+        val fodselsdatoOgAr = veilarbpersonClient.hentFodselsdato(Fnr.of(TEST_FNR.get()))
+        assertEquals(LocalDate.of(1990, 1, 1), fodselsdatoOgAr.foedselsdato)
+        assertEquals(1990, fodselsdatoOgAr.foedselsaar)
     }
 
     @Test

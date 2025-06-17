@@ -13,7 +13,7 @@ import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
-import no.nav.veilarbvedtaksstotte.client.person.dto.FoedselsdatoOgAar
+import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
 import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
@@ -197,7 +197,7 @@ class DokumentService(
         val veilederNavn: String,
         val enhet: Enhet,
         val kontaktEnhet: Enhet,
-        val foedselsdatoOgAar: FoedselsdatoOgAar
+        val fodselsdatoOgAr: FodselsdatoOgAr
     )
 
 
@@ -205,7 +205,7 @@ class DokumentService(
 
         fun mapBrevdata(dto: ProduserDokumentDTO, brevdataOppslag: BrevdataOppslag): PdfClient.Brevdata {
             val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
-            val harUngdomsgaranti = erIAlderForUngdomsgaranti(brevdataOppslag.foedselsdatoOgAar)
+            val harUngdomsgaranti = erIAlderForUngdomsgaranti(brevdataOppslag.fodselsdatoOgAr)
 
             val mottaker = PdfClient.Mottaker(
                 navn = dto.navn,
@@ -233,18 +233,17 @@ class DokumentService(
             )
         }
 
-        fun erIAlderForUngdomsgaranti(fødselsinfo: FoedselsdatoOgAar): Boolean {
+        fun erIAlderForUngdomsgaranti(fodselsinfo: FodselsdatoOgAr): Boolean {
             val dagensDato = LocalDate.now()
 
             // todo  håndter null fødselsdato her ved å bruke fødselsår
-            if (fødselsinfo.foedselsdato == null) {
+            if (fodselsinfo.foedselsdato == null) {
                 return false
             }
 
-            val er16EllerOver = !fødselsinfo.foedselsdato.isAfter(dagensDato.minusYears(16))
-            val erUnder31 = fødselsinfo.foedselsdato.isAfter(dagensDato.minusYears(31))
+            val er16EllerOver = !fodselsinfo.foedselsdato.isAfter(dagensDato.minusYears(16))
+            val erUnder31 = fodselsinfo.foedselsdato.isAfter(dagensDato.minusYears(31))
             return er16EllerOver && erUnder31
-
         }
     }
 

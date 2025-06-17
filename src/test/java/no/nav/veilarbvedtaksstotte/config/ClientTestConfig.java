@@ -289,8 +289,8 @@ public class ClientTestConfig {
             }
 
             @Override
-            public FoedselsdatoOgAar hentFødselsdato(@NotNull Fnr fnr)  {
-                return new FoedselsdatoOgAar(LocalDate.of(1990, 1, 1), 1990);
+            public FodselsdatoOgAr hentFodselsdato(@NotNull Fnr fnr)  {
+                return new FodselsdatoOgAr(LocalDate.of(1990, 1, 1), 1990);
             }
         };
     }

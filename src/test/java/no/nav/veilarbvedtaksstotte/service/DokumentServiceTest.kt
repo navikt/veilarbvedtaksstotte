@@ -44,7 +44,7 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder
-import no.nav.veilarbvedtaksstotte.client.person.dto.FoedselsdatoOgAar
+import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
 import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -90,14 +90,14 @@ class DokumentServiceTest {
     val enhetKontaktinformasjon = EnhetKontaktinformasjon(kontaktEnhetId, enhetPostadresse, telefonnummer)
     val enhet = Enhet().setEnhetNr(enhetId.get()).setNavn(enhetNavn)
     val kontaktEnhet = Enhet().setEnhetNr(kontaktEnhetId.get()).setNavn(kontaktEnhetNavn)
-    val foedselsdatoOgAar = FoedselsdatoOgAar(foedselsdato = LocalDate.of(1990,1, 1 ), foedselsaar = 1990)
+    val fodselsdatoOgAr = FodselsdatoOgAr(foedselsdato = LocalDate.of(1990,1, 1 ), foedselsaar = 1990)
     val brevdataOppslag = DokumentService.BrevdataOppslag(
         enhetKontaktinformasjon = enhetKontaktinformasjon,
         malform = malform,
         veilederNavn = veilederNavn,
         enhet = enhet,
         kontaktEnhet = kontaktEnhet,
-        foedselsdatoOgAar = foedselsdatoOgAar
+        fodselsdatoOgAr = fodselsdatoOgAr
     )
     val forventetBrev = "brev".toByteArray()
     val behovsvurderingPdf = "behovsvurdering".toByteArray()
@@ -278,7 +278,7 @@ class DokumentServiceTest {
         givenWiremockOkJsonResponseForPost(
             "/api/v3/person/hent-foedselsdato",
             equalToJson("{\"fnr\":\"123\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"),
-            FoedselsdatoOgAar(foedselsdato = LocalDate.of(1990, 1, 1), foedselsaar = 1990).toJson()
+            FodselsdatoOgAr(foedselsdato = LocalDate.of(1990, 1, 1), foedselsaar = 1990).toJson()
         )
 
         givenWiremockOkJsonResponse(
@@ -372,6 +372,11 @@ class DokumentServiceTest {
         val respons = journalførMedForventetRequest()
 
         Assertions.assertEquals(forventetJournalpostRespons, respons)
+    }
+
+    @Test
+    fun `erIAlderForUngdomsgaranti`() {
+
     }
 
     private fun journalførMedForventetRequest(): OpprettetJournalpostDTO {

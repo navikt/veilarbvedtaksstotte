@@ -142,7 +142,7 @@ class VeilarbpersonClientImpl(
         }
     }
 
-    override fun hentFødselsdato(fnr: Fnr): FoedselsdatoOgAar {
+    override fun hentFodselsdato(fnr: Fnr): FodselsdatoOgAr {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-foedselsdato"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
@@ -155,7 +155,7 @@ class VeilarbpersonClientImpl(
         try {
             client.newCall(request).execute().use { response ->
                 RestUtils.throwIfNotSuccessful(response)
-                return response.deserializeJsonOrThrow<FoedselsdatoOgAar>()
+                return response.deserializeJsonOrThrow<FodselsdatoOgAr>()
             }
         } catch (e: Exception) {
             throw ResponseStatusException(
