@@ -145,7 +145,7 @@ class VeilarbpersonClientImpl(
     override fun hentFodselsdato(fnr: Fnr): FodselsdatoOgAr {
         val request = Request.Builder()
             .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-foedselsdato"))
-            .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
+            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
             .post(
                 PersonRequest(fnr, BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
                     .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
