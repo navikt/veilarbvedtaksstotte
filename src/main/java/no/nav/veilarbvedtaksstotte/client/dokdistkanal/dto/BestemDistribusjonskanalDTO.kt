@@ -4,5 +4,5 @@ data class BestemDistribusjonskanalDTO (
     val brukerId: String,
     val mottakerId: String = brukerId,
     val tema: String = "OPP",
-    val erArkiveret: Boolean = true,
+    val erArkivert: Boolean = true,
 )
