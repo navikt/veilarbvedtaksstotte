@@ -3,26 +3,27 @@ package no.nav.veilarbvedtaksstotte.service;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.common.types.identer.NavIdent;
 import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.slettVedtak.SlettVedtakFeiletException;
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Kilde;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.*;
+import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,6 +33,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -66,6 +68,9 @@ public class VedtakService {
 
     private final LeaderElectionClient leaderElection;
     private final SakStatistikkService sakStatistikkService;
+    private final AktorOppslagClient aktorOppslagClient;
+    private final Gjeldende14aVedtakService gjeldende14aVedtakService;
+    private final KafkaProducerService kafkaProducerService;
 
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
@@ -273,7 +278,7 @@ public class VedtakService {
 
     public List<Vedtak> hentFattedeVedtak(Fnr fnr) {
         String aktorId = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr).getAktorId();
-        List<Vedtak> vedtak = vedtaksstotteRepository.hentFattedeVedtak(aktorId);
+        List<Vedtak> vedtak = vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(aktorId);
 
         vedtak.forEach(this::flettInnVedtakInformasjon);
 
@@ -350,6 +355,26 @@ public class VedtakService {
         });
 
         vedtakStatusEndringService.tattOverForVeileder(utkast, innloggetVeilederIdent);
+    }
+
+    public void slettVedtak(SlettVedtakRequest slettVedtakRequest, NavIdent utfortAv) {
+        try {
+            AktorId aktorId = aktorOppslagClient.hentAktorId(slettVedtakRequest.getFnr());
+            Optional<Vedtak> vedtak = vedtaksstotteRepository.hentVedtakByJournalpostIdOgAktorId(slettVedtakRequest.getJournalpostId(), aktorId);
+            if (vedtak.isEmpty()) {
+                return;
+            }
+            vedtaksstotteRepository.slettVedtakVedPersonvernbrudd(vedtak.get().getId(), utfortAv, slettVedtakRequest);
+            sakStatistikkService.slettetFattetVedtak(vedtak.get());
+            Gjeldende14aVedtak gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(aktorId);
+            if (gjeldende14aVedtak == null) {
+                kafkaProducerService.sendGjeldende14aVedtak(aktorId, null);
+            }
+        } catch (RuntimeException e) {
+            SecureLog.getSecureLog().error("Klarte ikke å fullføre alle stegene for å slette vedtak for person: {}", slettVedtakRequest.getFnr(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Klarte ikke å slette vedtak");
+        }
+
     }
 
     private void flettInnOpplysinger(Vedtak vedtak) {

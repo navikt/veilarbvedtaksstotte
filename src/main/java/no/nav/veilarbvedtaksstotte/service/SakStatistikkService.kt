@@ -201,6 +201,24 @@ class SakStatistikkService @Autowired constructor(
 
     }
 
+    fun slettetFattetVedtak(vedtak: Vedtak) {
+        val aktorId = AktorId(vedtak.aktorId)
+        val fnr = aktorOppslagClient.hentFnr(aktorId)
+
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+            behandlingResultat = BehandlingResultat.FEILREGISTRERT,
+            behandlingStatus = BehandlingStatus.AVSLUTTET,
+            behandlingMetode = BehandlingMetode.MANUELL,
+        )
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
+    }
+
     private fun lagreStatistikkRadIdbOgSendTilBQ(statistikkRad: SakStatistikk) {
         try {
             statistikkRad.validate()
@@ -237,13 +255,13 @@ class SakStatistikkService @Autowired constructor(
     private fun populerSakStatistikkMedOppfolgingsperiodeData(sakStatistikk: SakStatistikk, fnr: Fnr): SakStatistikk {
         val sisteHendelsePaaVedtak = sakStatistikkRepository.hentSisteHendelsePaaVedtak(sakStatistikk.behandlingId!!)
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
-        val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId
+        val sakId = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode?.get()?.uuid)?.sakId
 
         if (sisteHendelsePaaVedtak != null) {
             return sakStatistikk.copy(
-                oppfolgingPeriodeUUID = oppfolgingsperiode.get().uuid,
+                oppfolgingPeriodeUUID = if (oppfolgingsperiode.isPresent) oppfolgingsperiode.get().uuid else sisteHendelsePaaVedtak.oppfolgingPeriodeUUID,
                 mottattTid = sisteHendelsePaaVedtak.mottattTid,
-                sakId = sakId.toString(),
+                sakId = if (oppfolgingsperiode.isPresent) sakId.toString() else sisteHendelsePaaVedtak.sakId.toString(),
 
                 relatertBehandlingId = sisteHendelsePaaVedtak.relatertBehandlingId,
                 relatertFagsystem = sisteHendelsePaaVedtak.relatertFagsystem,

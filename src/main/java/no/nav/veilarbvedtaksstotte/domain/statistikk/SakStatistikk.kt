@@ -55,7 +55,8 @@ enum class BehandlingResultat {
     TRENGER_VEILEDNING_NEDSATT_ARBEIDSEVNE,
     JOBBE_DELVIS,
     LITEN_MULIGHET_TIL_A_JOBBE,
-    AVBRUTT
+    AVBRUTT,
+    FEILREGISTRERT
 }
 
 fun Innsatsgruppe.toBehandlingResultat(): BehandlingResultat {
