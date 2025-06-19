@@ -31,6 +31,7 @@ public class Vedtak {
     String journalpostId;
     String dokumentInfoId;
     String dokumentbestillingId;
+    Boolean kanDistribueres;
     BeslutterProsessStatus beslutterProsessStatus;
     UUID referanse;
 
@@ -117,6 +118,10 @@ public class Vedtak {
         return this.dokumentbestillingId;
     }
 
+    public Boolean getKanDistribueres() {
+        return this.kanDistribueres;
+    }
+
     public BeslutterProsessStatus getBeslutterProsessStatus() {
         return this.beslutterProsessStatus;
     }
@@ -125,7 +130,7 @@ public class Vedtak {
         return this.sender;
     }
 
-    public UUID getReferanse(){
+    public UUID getReferanse() {
         return this.referanse;
     }
 }

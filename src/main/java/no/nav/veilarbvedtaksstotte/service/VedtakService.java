@@ -63,6 +63,7 @@ public class VedtakService {
     private final VeilederService veilederService;
     private final VedtakHendelserService vedtakStatusEndringService;
     private final DokumentService dokumentService;
+    private final DistribusjonService distribusjonService;
     private final VeilarbarenaService veilarbarenaService;
     private final MetricsService metricsService;
 
@@ -177,7 +178,7 @@ public class VedtakService {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT, "Bruker har ikke utkast");
         }
 
-        flettInnVedtakInformasjon(utkast);
+        flettInnUtkastInformasjon(utkast, fnr);
 
         return utkast;
     }
@@ -292,6 +293,11 @@ public class VedtakService {
         flettInnEnhetNavn(vedtak);
     }
 
+    private void flettInnUtkastInformasjon(Vedtak vedtak, Fnr fnr) {
+        flettInnVedtakInformasjon(vedtak);
+        flettInnKanDistribueres(vedtak, fnr);
+    }
+
     public byte[] produserDokumentUtkast(long vedtakId) {
         Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
 
@@ -381,6 +387,10 @@ public class VedtakService {
         List<String> opplysninger = kilderRepository.hentKilderForVedtak(vedtak.getId()).stream().map(Kilde::getTekst).collect(Collectors.toList());
 
         vedtak.setOpplysninger(opplysninger);
+    }
+
+    private void flettInnKanDistribueres(Vedtak vedtak, Fnr fnr) {
+        vedtak.setKanDistribueres(distribusjonService.sjekkOmVedtakKanDistribueres(fnr));
     }
 
     private void flettInnVeilederNavn(Vedtak vedtak) {
