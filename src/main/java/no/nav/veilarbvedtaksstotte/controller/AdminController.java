@@ -1,20 +1,16 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
 import no.nav.common.job.JobRunner;
-import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
-import no.nav.veilarbvedtaksstotte.repository.domain.UtrulletEnhet;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.service.KafkaRepubliseringService;
-import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 
 import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 
@@ -23,8 +19,6 @@ import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 public class AdminController {
     public static final String POAO_ADMIN = "poao-admin";
 
-    private final UtrullingService utrullingService;
-
     private final AuthService authService;
 
     private final KafkaRepubliseringService kafkaRepubliseringService;
@@ -32,33 +26,13 @@ public class AdminController {
     private final VedtakService vedtakService;
 
     @Autowired
-    public AdminController(UtrullingService utrullingService,
-                           AuthService authService,
+    public AdminController(AuthService authService,
                            KafkaRepubliseringService kafkaRepubliseringService,
                            VedtakService vedtakService
     ) {
-        this.utrullingService = utrullingService;
         this.authService = authService;
         this.kafkaRepubliseringService = kafkaRepubliseringService;
         this.vedtakService = vedtakService;
-    }
-
-    @GetMapping("/utrulling")
-    public List<UtrulletEnhet> hentAlleUtrullinger() {
-        sjekkTilgangTilAdmin();
-        return utrullingService.hentAlleUtrullinger();
-    }
-
-    @PostMapping("/utrulling/{enhetId}")
-    public void leggTilUtrulling(@PathVariable EnhetId enhetId) {
-        sjekkTilgangTilAdmin();
-        utrullingService.leggTilUtrulling(enhetId);
-    }
-
-    @DeleteMapping("/utrulling/{enhetId}")
-    public void fjernUtrulling(@PathVariable EnhetId enhetId) {
-        sjekkTilgangTilAdmin();
-        utrullingService.fjernUtrulling(enhetId);
     }
 
     @PostMapping("/republiser/siste-14a-vedtak")

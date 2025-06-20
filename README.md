@@ -8,7 +8,6 @@ Funksjonalitet:
 - Fatte 14a vedtak med journalføring og distribusjon av brev
 - API for kvalitetssikringsprosess, oversikt og søk
 - API for meldinger relatert til et utkast
-- Integrert funksjonalitet og API for utrulling av løsningen
 - API for konsumering av data fra 14a vedtak (innsatsgruppe og hovedmål)
 
 Swagger: /veilarbvedtaksstotte/internal/swagger-ui/index.html
