@@ -10,6 +10,8 @@ data class EnvironmentProperties (
     val dokarkivScope: String,
     val dokarkivUrl: String,
     val dokdistfordelingUrl: String,
+    val dokdistkanalScope: String,
+    val dokdistkanalUrl: String,
     val naisAadClientId: String,
     val naisAadDiscoveryUrl: String,
     val naisAadIssuer: String,

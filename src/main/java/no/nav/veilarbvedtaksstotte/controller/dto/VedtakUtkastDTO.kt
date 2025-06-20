@@ -33,4 +33,6 @@ data class VedtakUtkastDTO(
     val opplysninger: List<String?>? = null,
     @Schema(description = "Nåværende steg i beslutterprosessen for vedtaket")
     val beslutterProsessStatus: BeslutterProsessStatus? = null,
+    @Schema(description = "Indikerer om vedtaket kan distribueres til bruker")
+    val kanDistribueres: Boolean? = null,
 )

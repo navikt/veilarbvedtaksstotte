@@ -58,6 +58,11 @@ class DokdistribusjonClientImpl(
                 "Status 409 CONFLICT i respons fra distribuerjournalpost: Vedtaket er allerede distribuert. " +
                         "Forsøker å hente bestillingsId fra respons."
             )
+        } else if (response.code == HttpStatus.GONE.value()) {
+            log.warn(
+                "Status 410 GONE i respons fra distribuerjournalpost: " +
+                        "Journalpost kan ikke distribueres. Bruker har ukjent postadresse eller kan være død."
+            )
         } else {
             RestUtils.throwIfNotSuccessful(response)
         }

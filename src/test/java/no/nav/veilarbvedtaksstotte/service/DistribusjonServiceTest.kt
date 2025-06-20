@@ -13,6 +13,8 @@ import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostResponsDTO
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClient
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClientImpl
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -41,6 +43,7 @@ class DistribusjonServiceTest : DatabaseTest() {
         lateinit var wiremockUrl: String
         lateinit var vedtakRepository: VedtaksstotteRepository
         lateinit var dokdistribusjonClient: DokdistribusjonClient
+        lateinit var dokdistkanalClient: DokdistkanalClient
         lateinit var distribusjonService: DistribusjonService
 
         @BeforeAll
@@ -49,8 +52,9 @@ class DistribusjonServiceTest : DatabaseTest() {
             wiremockUrl = "http://localhost:" + wireMockRuntimeInfo.httpPort
             vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
             dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl) { "" }
+            dokdistkanalClient = DokdistkanalClientImpl(wiremockUrl) { "" }
             distribusjonService = DistribusjonService(
-                vedtakRepository, dokdistribusjonClient
+                vedtakRepository, dokdistribusjonClient, dokdistkanalClient
             )
         }
     }

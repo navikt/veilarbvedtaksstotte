@@ -1,7 +1,9 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostDTO
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClient
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -11,7 +13,8 @@ import org.springframework.stereotype.Service
 @Service
 class DistribusjonService(
     val vedtaksstotteRepository: VedtaksstotteRepository,
-    val dokdistribusjonClient: DokdistribusjonClient
+    val dokdistribusjonClient: DokdistribusjonClient,
+    val dokdistkanalClient: DokdistkanalClient
 ) {
 
     val log = LoggerFactory.getLogger(DistribusjonService::class.java)
@@ -72,5 +75,19 @@ class DistribusjonService(
             log.error("Distribusjon av journalpost med journalpostId=$jounralpostId feilet", e);
             throw e;
         }
+    }
+
+    fun sjekkOmVedtakKanDistribueres(fnr: Fnr, vedtakId: Long): Boolean {
+        try {
+            val respons = dokdistkanalClient.bestemDistribusjonskanal(fnr)
+            if (respons.brukerKanIkkeVarsles) {
+                log.warn("bestemDistribusjonskanal returnerer {}, {} for vedtak med ID: {}", respons.regel, respons.regelBegrunnelse, vedtakId)
+                return false
+            }
+        } catch (e: RuntimeException) {
+            log.error("Kall til bestemDistribusjonskanal feilet", e)
+            return false
+        }
+        return true;
     }
 }

@@ -18,5 +18,6 @@ fun toVedtakUtkastDTO(vedtak: Vedtak): VedtakUtkastDTO {
         beslutterNavn = vedtak.beslutterNavn,
         opplysninger = vedtak.opplysninger,
         beslutterProsessStatus = vedtak.beslutterProsessStatus,
+        kanDistribueres = vedtak.kanDistribueres,
     )
 }

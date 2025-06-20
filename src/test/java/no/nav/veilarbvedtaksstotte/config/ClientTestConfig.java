@@ -24,6 +24,8 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostD
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostResponsDTO;
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClient;
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.dto.BestemDistribusjonskanalResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetOrganisering;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
@@ -411,6 +413,21 @@ public class ClientTestConfig {
             @Override
             public DistribuerJournalpostResponsDTO distribuerJournalpost(DistribuerJournalpostDTO dto) {
                 return new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID);
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
+            }
+        };
+    }
+
+    @Bean
+    public DokdistkanalClient dokdistkanalClient() {
+        return new DokdistkanalClient() {
+            @Override
+            public @NotNull BestemDistribusjonskanalResponseDTO bestemDistribusjonskanal(@NotNull Fnr brukerFnr) {
+                return new BestemDistribusjonskanalResponseDTO(BestemDistribusjonskanalResponseDTO.Distribusjonskanal.PRINT, "Bra", "Hei");
             }
 
             @Override
