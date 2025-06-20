@@ -19,7 +19,6 @@ import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
-import no.nav.veilarbvedtaksstotte.domain.slettVedtak.SlettVedtakFeiletException;
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.*;
@@ -390,7 +389,7 @@ public class VedtakService {
     }
 
     private void flettInnKanDistribueres(Vedtak vedtak, Fnr fnr) {
-        vedtak.setKanDistribueres(distribusjonService.sjekkOmVedtakKanDistribueres(fnr));
+        vedtak.setKanDistribueres(distribusjonService.sjekkOmVedtakKanDistribueres(fnr, vedtak.getId()));
     }
 
     private void flettInnVeilederNavn(Vedtak vedtak) {

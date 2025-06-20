@@ -77,21 +77,17 @@ class DistribusjonService(
         }
     }
 
-    fun sjekkOmVedtakKanDistribueres(fnr: Fnr): Boolean {
+    fun sjekkOmVedtakKanDistribueres(fnr: Fnr, vedtakId: Long): Boolean {
         try {
             val respons = dokdistkanalClient.bestemDistribusjonskanal(fnr)
-            log.info(respons.toString())
-//            if () {
-//                log.warn("")
-//                return false
-//            }
+            if (respons.brukerKanIkkeVarsles) {
+                log.warn("bestemDistribusjonskanal returnerer {}, {} for vedtak med ID: {}", respons.regel, respons.regelBegrunnelse, vedtakId)
+                return false
+            }
         } catch (e: RuntimeException) {
             log.error("Kall til bestemDistribusjonskanal feilet", e)
             return false
         }
-
-        // TODO: alle de som mangler adresse får denne responsen fra bestemDistribusjonskanal:
-        // "bestemDistribusjonskanal: Sender melding fra teamdokumenthandtering:dokdistfordeling (Tema=OPP) til PRINT: Bruker skal varsles, men finner hverken mobiltelefonnummer eller e-postadresse"
         return true;
     }
 }
