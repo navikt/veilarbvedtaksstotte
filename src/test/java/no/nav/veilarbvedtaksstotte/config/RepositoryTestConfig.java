@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Import;
         MeldingRepository.class,
         OyeblikksbildeRepository.class,
         VedtaksstotteRepository.class,
-        UtrullingRepository.class,
         ArenaVedtakRepository.class,
         SakStatistikkRepository.class,
         SisteOppfolgingPeriodeRepository.class

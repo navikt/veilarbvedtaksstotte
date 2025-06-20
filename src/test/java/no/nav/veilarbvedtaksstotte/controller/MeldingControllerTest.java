@@ -3,7 +3,6 @@ package no.nav.veilarbvedtaksstotte.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.nav.veilarbvedtaksstotte.controller.dto.OpprettDialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.service.MeldingService;
-import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +31,6 @@ public class MeldingControllerTest {
 
     @MockitoBean
     private VedtakService vedtakService;
-
-    @MockitoBean
-    private UtrullingService utrullingService;
 
     @Test
     public void hentDialogMeldinger__skal_feile_hvis_vedtak_fattet() throws Exception {
