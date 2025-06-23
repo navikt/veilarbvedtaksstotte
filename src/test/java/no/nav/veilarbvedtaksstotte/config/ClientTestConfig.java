@@ -427,7 +427,7 @@ public class ClientTestConfig {
         return new DokdistkanalClient() {
             @Override
             public @NotNull BestemDistribusjonskanalResponseDTO bestemDistribusjonskanal(@NotNull Fnr brukerFnr) {
-                return new BestemDistribusjonskanalResponseDTO(BestemDistribusjonskanalResponseDTO.Distribusjonskanal.PRINT, "Bra", "Hei");
+                return new BestemDistribusjonskanalResponseDTO(BestemDistribusjonskanalResponseDTO.Distribusjonskanal.PRINT.toString(), "BRUKER_SDP_MANGLER_VARSELINFO", "Bruker skal varsles, men finner hverken mobiltelefonnummer eller e-postadresse");
             }
 
             @Override
