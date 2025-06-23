@@ -26,6 +26,8 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
@@ -122,6 +124,8 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
+    private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
+    private static final DokdistkanalClient dokdistkanalClient = mock(DokdistkanalClient.class);
     private static final VeilarbveilederClient veilarbveilederClient = mock(VeilarbveilederClient.class);
     private static final UtrullingService utrullingService = mock(UtrullingService.class);
     private static final EnhetInfoService enhetInfoService = mock(EnhetInfoService.class);
@@ -159,6 +163,10 @@ public class VedtakServiceTest extends DatabaseTest {
                 oyeblikksbildeService,
                 pdfService
         );
+        DistribusjonService distribusjonService = new DistribusjonService(
+                vedtaksstotteRepository,
+                dokdistribusjonClient,
+                dokdistkanalClient);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,
@@ -171,6 +179,7 @@ public class VedtakServiceTest extends DatabaseTest {
                 veilederService,
                 vedtakHendelserService,
                 dokumentService,
+                distribusjonService,
                 veilarbarenaService,
                 metricsService,
                 leaderElectionClient,

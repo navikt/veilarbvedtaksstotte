@@ -4,6 +4,7 @@ import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostResponsDTO
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClient
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Feilet
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Mangler
@@ -32,6 +33,7 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
 
         lateinit var leaderElection: LeaderElectionClient
         lateinit var dokdistribusjonClient: DokdistribusjonClient
+        lateinit var dokdistkanalClient: DokdistkanalClient
         lateinit var distribusjonService: DistribusjonService
         lateinit var vedtakRepository: VedtaksstotteRepository
         lateinit var distribuerJournalforteVedtakSchedule: DistribuerJournalforteVedtakSchedule
@@ -42,7 +44,8 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
             leaderElection = mock(LeaderElectionClient::class.java)
             dokdistribusjonClient = mock(DokdistribusjonClient::class.java)
             vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
-            distribusjonService = DistribusjonService(vedtakRepository, dokdistribusjonClient)
+            dokdistkanalClient = mock(DokdistkanalClient::class.java)
+            distribusjonService = DistribusjonService(vedtakRepository, dokdistribusjonClient, dokdistkanalClient)
             distribuerJournalforteVedtakSchedule = DistribuerJournalforteVedtakSchedule(
                 leaderElection = leaderElection,
                 distribusjonService = distribusjonService,
