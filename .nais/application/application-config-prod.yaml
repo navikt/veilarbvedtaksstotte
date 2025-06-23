@@ -64,6 +64,10 @@ spec:
       value: https://dokarkiv.prod-fss-pub.nais.io
     - name: DOKDISTFORDELING_URL # bruker saf-scope
       value: https://dokdistfordeling.prod-fss-pub.nais.io
+    - name: DOKDISTKANAL_TOKEN_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.dokdistkanal/.default
+    - name: DOKDISTKANAL_URL
+      value: https://dokdistkanal.prod-fss-pub.nais.io
     - name: NORG2_URL
       value: http://norg2.org/norg2
     - name: PDL_TOKEN_SCOPE
@@ -174,12 +178,13 @@ spec:
         - application: norg2
           namespace: org
       external:
-        - host: team-obo-unleash-api.nav.cloud.nais.io
-        - host: pdl-api.prod-fss-pub.nais.io
-        - host: veilarbarena.prod-fss-pub.nais.io
-        - host: saf.prod-fss-pub.nais.io
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: dokdistfordeling.prod-fss-pub.nais.io
+        - host: dokdistkanal.prod-fss-pub.nais.io
+        - host: pdl-api.prod-fss-pub.nais.io
         - host: regoppslag.prod-fss-pub.nais.io
+        - host: saf.prod-fss-pub.nais.io
+        - host: team-obo-unleash-api.nav.cloud.nais.io
+        - host: veilarbarena.prod-fss-pub.nais.io
   envFrom:
     - secret: veilarbvedtaksstotte-unleash-api-token
