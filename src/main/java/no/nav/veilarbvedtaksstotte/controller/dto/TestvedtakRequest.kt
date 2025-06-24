@@ -13,14 +13,11 @@ data class TestvedtakRequest(
     val oppfolgingsEnhet: String,
 )
 
-fun TestvedtakRequest.toVedtak(aktorId: AktorId): Vedtak {
-    val vedtak = Vedtak()
-        .setAktorId(aktorId.get())
-        .setHovedmal(this.hovedmal)
-        .setInnsatsgruppe(this.innsatsgruppe.mapTilInnsatsgruppe())
-        .setOppfolgingsenhetId(this.oppfolgingsEnhet)
-        .setUtkastOpprettet(this.vedtakFattet ?: LocalDateTime.now())
-        .setVedtakFattet(this.vedtakFattet ?: LocalDateTime.now())
-        .setUtkastSistOppdatert(this.vedtakFattet ?: LocalDateTime.now())
-    return vedtak
-}
+fun TestvedtakRequest.toVedtak(aktorId: AktorId): Vedtak = Vedtak()
+        .settAktorId(aktorId.get())
+        .settHovedmal(this.hovedmal)
+        .settInnsatsgruppe(this.innsatsgruppe.mapTilInnsatsgruppe())
+        .settOppfolgingsenhetId(this.oppfolgingsEnhet)
+        .settUtkastOpprettet(this.vedtakFattet ?: LocalDateTime.now())
+        .settVedtakFattet(this.vedtakFattet ?: LocalDateTime.now())
+        .settUtkastSistOppdatert(this.vedtakFattet ?: LocalDateTime.now())

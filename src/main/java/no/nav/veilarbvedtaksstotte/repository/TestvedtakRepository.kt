@@ -76,16 +76,15 @@ class TestvedtakRepository(
 
     @SneakyThrows
     private fun vedtakMapper(rs: ResultSet, row: Int): Vedtak {
-        val vedtak =  Vedtak()
-            vedtak.id = rs.getLong(VEDTAK_ID)
-            vedtak.hovedmal = Hovedmal.valueOf(rs.getString(HOVEDMAL))
-            vedtak.innsatsgruppe = Innsatsgruppe.valueOf(rs.getString(INNSATSGRUPPE))
-            vedtak.utkastSistOppdatert = rs.getTimestamp(UTKAST_SIST_OPPDATERT).toLocalDateTime()
-            vedtak.vedtakFattet = rs.getTimestamp(VEDTAK_FATTET).toLocalDateTime()
-            vedtak.oppfolgingsenhetId = rs.getString(OPPFOLGINGSENHET_ID)
-            vedtak.veilederIdent = rs.getString(VEILEDER_IDENT)
-            vedtak.aktorId = rs.getString(AKTOR_ID)
-            vedtak.isGjeldende = rs.getBoolean(GJELDENDE)
-        return vedtak
+        return Vedtak()
+            .settId(rs.getLong(VEDTAK_ID))
+            .settHovedmal(Hovedmal.valueOf(rs.getString(HOVEDMAL)))
+            .settInnsatsgruppe(Innsatsgruppe.valueOf(rs.getString(INNSATSGRUPPE)))
+            .settUtkastSistOppdatert(rs.getTimestamp(UTKAST_SIST_OPPDATERT).toLocalDateTime())
+            .settVedtakFattet(rs.getTimestamp(VEDTAK_FATTET).toLocalDateTime())
+            .settOppfolgingsenhetId(rs.getString(OPPFOLGINGSENHET_ID))
+            .settVeilederIdent(rs.getString(VEILEDER_IDENT))
+            .settAktorId(rs.getString(AKTOR_ID))
+            .settGjeldende(rs.getBoolean(GJELDENDE))
     }
 }
