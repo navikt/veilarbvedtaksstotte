@@ -38,7 +38,8 @@ class PdfService(
                 malform = brevdataOppslag.malform,
                 veilederNavn = "",
                 enhet = brevdataOppslag.enhet,
-                kontaktEnhet = brevdataOppslag.kontaktEnhet
+                kontaktEnhet = brevdataOppslag.kontaktEnhet,
+                fodselsdatoOgAr = brevdataOppslag.fodselsdatoOgAr
             )
         } else {
             brevdataOppslag
