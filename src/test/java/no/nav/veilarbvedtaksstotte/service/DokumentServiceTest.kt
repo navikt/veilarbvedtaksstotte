@@ -1,14 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.containing
-import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
-import com.github.tomakehurst.wiremock.client.WireMock.givenThat
-import com.github.tomakehurst.wiremock.client.WireMock.post
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.nimbusds.jose.util.Base64
+import io.getunleash.DefaultUnleash
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
@@ -27,11 +23,7 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
-import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
-import no.nav.veilarbvedtaksstotte.client.norg2.EnhetOrganiserer
-import no.nav.veilarbvedtaksstotte.client.norg2.EnhetPostboksadresse
-import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client
-import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl
+import no.nav.veilarbvedtaksstotte.client.norg2.*
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
 import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
@@ -77,6 +69,7 @@ class DokumentServiceTest {
     lateinit var pdfService: PdfService
     lateinit var oppslagArbeidssoekerregisteretClientImpl: OppslagArbeidssoekerregisteretClientImpl
     lateinit var arbeidssoekerRegisteretService: ArbeidssoekerRegisteretService
+
 
     val malform = Malform.NB
     val veilederNavn = "Navn Veileder"
@@ -222,6 +215,7 @@ class DokumentServiceTest {
         val oyeblikksbildeRepository = mock(OyeblikksbildeRepository::class.java)
         val vedtaksstotteRepository = mock(VedtaksstotteRepository::class.java)
         val aiaBackendClient = mock(AiaBackendClient::class.java)
+        val unleashService: DefaultUnleash = mock(DefaultUnleash::class.java)
         oyeblikksbildeService = OyeblikksbildeService(
             authService,
             oyeblikksbildeRepository,
@@ -235,7 +229,8 @@ class DokumentServiceTest {
             pdfClient = pdfClient,
             enhetInfoService = enhetInfoService,
             veilarbveilederClient = veilarbveilederClient,
-            veilarbpersonClient = veilarbpersonClient
+            veilarbpersonClient = veilarbpersonClient,
+            unleashService = unleashService
         )
 
         dokumentService = DokumentService(
