@@ -29,6 +29,7 @@ import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
 import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
+import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
@@ -82,12 +83,14 @@ class DokumentServiceTest {
     val enhetKontaktinformasjon = EnhetKontaktinformasjon(kontaktEnhetId, enhetPostadresse, telefonnummer)
     val enhet = Enhet().setEnhetNr(enhetId.get()).setNavn(enhetNavn)
     val kontaktEnhet = Enhet().setEnhetNr(kontaktEnhetId.get()).setNavn(kontaktEnhetNavn)
+    val fodselsdatoOgAr = FodselsdatoOgAr(foedselsdato = LocalDate.of(1990, 1, 1), foedselsaar = 1990)
     val brevdataOppslag = DokumentService.BrevdataOppslag(
         enhetKontaktinformasjon = enhetKontaktinformasjon,
         malform = malform,
         veilederNavn = veilederNavn,
         enhet = enhet,
-        kontaktEnhet = kontaktEnhet
+        kontaktEnhet = kontaktEnhet,
+        fodselsdatoOgAr = fodselsdatoOgAr
     )
     val forventetBrev = "brev".toByteArray()
     val behovsvurderingPdf = "behovsvurdering".toByteArray()
@@ -202,10 +205,11 @@ class DokumentServiceTest {
         dokarkivClient = DokarkivClientImpl(wiremockUrl) { "" }
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
         veilarboppfolgingClient = mock(VeilarboppfolgingClient::class.java)
-        veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, {""}, {""})
-        oppslagArbeidssoekerregisteretClientImpl = OppslagArbeidssoekerregisteretClientImpl(wiremockUrl, {""})
+        veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, { "" }, { "" })
+        oppslagArbeidssoekerregisteretClientImpl = OppslagArbeidssoekerregisteretClientImpl(wiremockUrl, { "" })
         arbeidssoekerRegisteretService = ArbeidssoekerRegisteretService(oppslagArbeidssoekerregisteretClientImpl)
-        veilarbveilederClient = VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), {""}, {""})
+        veilarbveilederClient =
+            VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), { "" }, { "" })
         pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)
         enhetInfoService = EnhetInfoService(norg2Client)
@@ -265,6 +269,12 @@ class DokumentServiceTest {
             "/api/veileder/hent-navn",
             containing(produserDokumentDTO.veilederIdent),
             veilederNavn
+        )
+
+        givenWiremockOkJsonResponseForPost(
+            "/api/v3/person/hent-foedselsdato",
+            equalToJson("{\"fnr\":\"123\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"),
+            FodselsdatoOgAr(foedselsdato = LocalDate.of(1990, 1, 1), foedselsaar = 1990).toJson()
         )
 
         givenWiremockOkJsonResponse(
@@ -359,6 +369,63 @@ class DokumentServiceTest {
 
         Assertions.assertEquals(forventetJournalpostRespons, respons)
     }
+
+    @Test
+    fun `sjekk om person har ungdomsgaranti når vi har fødselsdato`() {
+        val now = LocalDate.now()
+
+        val fodselsdatoForGammel = now.minusYears(40)
+        val fodselsdatoForUng = now.minusYears(5)
+        val fodselsdatoPasse = now.minusYears(25)
+        val fodselsdato15MedBdIMorgen = now.plusDays(1).minusYears(16)
+        val fodselsdato16BdIDag = now.minusYears(16)
+        val fodselsdato30BdIDag = now.minusYears(30)
+
+        fun mapTilFodselsdato(fodselsdato: LocalDate): FodselsdatoOgAr {
+            return FodselsdatoOgAr(fodselsdato, fodselsdato.year)
+        }
+
+        val fodselsdatoForGammelHarIkkeUngdomsgaranti =
+            DokumentService.erIAlderForUngdomsgaranti(mapTilFodselsdato(fodselsdatoForGammel))
+        val fodselsdatoForUngHarIkkeUngdomsgaranti =
+            DokumentService.erIAlderForUngdomsgaranti(mapTilFodselsdato(fodselsdatoForUng))
+        val fodselsdatoPasseHarUngdomsgaranti =
+            DokumentService.erIAlderForUngdomsgaranti(mapTilFodselsdato(fodselsdatoPasse))
+        val fodselsdato15MedBdIMorgenHarIkkeUngdomsgaranti =
+            DokumentService.erIAlderForUngdomsgaranti(mapTilFodselsdato(fodselsdato15MedBdIMorgen))
+        val fodselsdato16BdIDagHarUngdomsgaranti =
+            DokumentService.erIAlderForUngdomsgaranti(mapTilFodselsdato(fodselsdato16BdIDag))
+        val fodselsdato30BdIDagHarUngdomsgaranti =
+            DokumentService.erIAlderForUngdomsgaranti(mapTilFodselsdato(fodselsdato30BdIDag))
+
+        Assertions.assertFalse(fodselsdatoForGammelHarIkkeUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
+        Assertions.assertFalse(fodselsdatoForUngHarIkkeUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
+        Assertions.assertTrue(fodselsdatoPasseHarUngdomsgaranti, "Personen skal ha ungdomsgaranti")
+        Assertions.assertFalse(fodselsdato15MedBdIMorgenHarIkkeUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
+        Assertions.assertTrue(fodselsdato16BdIDagHarUngdomsgaranti, "Personen skal ha ungdomsgaranti")
+        Assertions.assertFalse(fodselsdato30BdIDagHarUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
+    }
+
+    @Test
+    fun `sjekk om person har ungdomsgaranti når fødselsdato er null`() {
+        val now = LocalDate.now()
+        val alderBlir15Ar = now.minusYears(15).year
+        val alderBlir16Ar = now.minusYears(16).year
+        val alderBlir30Ar = now.minusYears(30).year
+        val alderBlir31Ar = now.minusYears(31).year
+
+        val harAlderBlir15ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir15Ar ))
+        val harAlderBlir16ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir16Ar))
+        val harAlderBlir30ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir30Ar))
+        val harAlderBlir31ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir31Ar))
+
+        Assertions.assertFalse(harAlderBlir15ArUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
+        Assertions.assertTrue(harAlderBlir16ArUngdomsgaranti, "Personen skal ha ungdomsgaranti")
+        Assertions.assertTrue(harAlderBlir30ArUngdomsgaranti, "Personen skal ha ungdomsgaranti")
+        Assertions.assertFalse(harAlderBlir31ArUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
+
+    }
+
 
     private fun journalførMedForventetRequest(): OpprettetJournalpostDTO {
         return AuthContextHolderThreadLocal.instance()

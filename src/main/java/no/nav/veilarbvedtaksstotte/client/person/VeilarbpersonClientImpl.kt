@@ -142,6 +142,31 @@ class VeilarbpersonClientImpl(
         }
     }
 
+    override fun hentFodselsdato(fnr: Fnr): FodselsdatoOgAr {
+        val request = Request.Builder()
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-foedselsdato"))
+            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+            .post(
+                PersonRequest(fnr, BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
+                    .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
+            )
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                RestUtils.throwIfNotSuccessful(response)
+                return response.deserializeJsonOrThrow<FodselsdatoOgAr>()
+            }
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString(),
+                e
+            )
+        }
+
+    }
+
     data class MalformRespons(val malform: String?) {
         fun tilMalform(): Malform {
             return Malform.values().find { it.name == malform?.uppercase() } ?: Malform.NB

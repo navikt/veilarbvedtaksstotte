@@ -1,27 +1,29 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.common.types.identer.NavIdent;
 import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Kilde;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.*;
+import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,6 +33,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -39,6 +42,7 @@ import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL;
 
 @Slf4j
 @Service
@@ -60,11 +64,16 @@ public class VedtakService {
     private final VeilederService veilederService;
     private final VedtakHendelserService vedtakStatusEndringService;
     private final DokumentService dokumentService;
+    private final DistribusjonService distribusjonService;
     private final VeilarbarenaService veilarbarenaService;
     private final MetricsService metricsService;
 
     private final LeaderElectionClient leaderElection;
     private final SakStatistikkService sakStatistikkService;
+    private final AktorOppslagClient aktorOppslagClient;
+    private final Gjeldende14aVedtakService gjeldende14aVedtakService;
+    private final KafkaProducerService kafkaProducerService;
+    private final DefaultUnleash unleashService;
 
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
@@ -168,10 +177,10 @@ public class VedtakService {
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 
         if (utkast == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bruker har ikke utkast");
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "Bruker har ikke utkast");
         }
 
-        flettInnVedtakInformasjon(utkast);
+        flettInnUtkastInformasjon(utkast, fnr);
 
         return utkast;
     }
@@ -251,10 +260,10 @@ public class VedtakService {
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(utkast);
 
-        slettUtkast(utkast);
+        slettUtkast(utkast, BehandlingMetode.MANUELL);
     }
 
-    public void slettUtkast(Vedtak utkast) {
+    public void slettUtkast(Vedtak utkast, BehandlingMetode behandlingMetode) {
         long utkastId = utkast.getId();
 
         transactor.executeWithoutResult((status) -> {
@@ -267,12 +276,12 @@ public class VedtakService {
             vedtakStatusEndringService.utkastSlettet(utkast);
         });
 
-        metricsService.rapporterUtkastSlettet(utkast);
+        metricsService.rapporterUtkastSlettet(utkast, behandlingMetode);
     }
 
     public List<Vedtak> hentFattedeVedtak(Fnr fnr) {
         String aktorId = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr).getAktorId();
-        List<Vedtak> vedtak = vedtaksstotteRepository.hentFattedeVedtak(aktorId);
+        List<Vedtak> vedtak = vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(aktorId);
 
         vedtak.forEach(this::flettInnVedtakInformasjon);
 
@@ -284,6 +293,11 @@ public class VedtakService {
         flettInnVeilederNavn(vedtak);
         flettInnBeslutterNavn(vedtak);
         flettInnEnhetNavn(vedtak);
+    }
+
+    private void flettInnUtkastInformasjon(Vedtak vedtak, Fnr fnr) {
+        flettInnVedtakInformasjon(vedtak);
+        flettInnKanDistribueres(vedtak, fnr);
     }
 
     public byte[] produserDokumentUtkast(long vedtakId) {
@@ -351,10 +365,43 @@ public class VedtakService {
         vedtakStatusEndringService.tattOverForVeileder(utkast, innloggetVeilederIdent);
     }
 
+    public void slettVedtak(SlettVedtakRequest slettVedtakRequest, NavIdent utfortAv) {
+        try {
+            AktorId aktorId = aktorOppslagClient.hentAktorId(slettVedtakRequest.getFnr());
+            Optional<Vedtak> vedtak = vedtaksstotteRepository.hentVedtakByJournalpostIdOgAktorId(slettVedtakRequest.getJournalpostId(), aktorId);
+            if (vedtak.isEmpty()) {
+                return;
+            }
+            vedtaksstotteRepository.slettVedtakVedPersonvernbrudd(vedtak.get().getId(), utfortAv, slettVedtakRequest);
+            sakStatistikkService.slettetFattetVedtak(vedtak.get());
+            Gjeldende14aVedtak gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(aktorId);
+            if (gjeldende14aVedtak == null) {
+                kafkaProducerService.sendGjeldende14aVedtak(aktorId, null);
+            }
+        } catch (RuntimeException e) {
+            SecureLog.getSecureLog().error("Klarte ikke å fullføre alle stegene for å slette vedtak for person: {}", slettVedtakRequest.getFnr(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Klarte ikke å slette vedtak");
+        }
+
+    }
+
     private void flettInnOpplysinger(Vedtak vedtak) {
         List<String> opplysninger = kilderRepository.hentKilderForVedtak(vedtak.getId()).stream().map(Kilde::getTekst).collect(Collectors.toList());
 
         vedtak.setOpplysninger(opplysninger);
+    }
+
+    private void flettInnKanDistribueres(Vedtak vedtak, Fnr fnr) {
+        if (!unleashService.isEnabled(MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL)) {
+            // 2025-06-24 Sondre: Vi hadde behov for å legge på feature-toggle i ettertid (etter at funksjonaliteten vart lansert i frontend).
+            // Pga. caching i frontend landa vi på at det var enklast å feature-toggle i backend for å sikre at
+            // det treff alle brukarar samstundes. Enklaste måten å midlartidig skjule alerten i frontenden på er difor å sette
+            // `kanDistribueres` til `true`, sidan frontenden har typa dette feltet opp som non-nullable boolean.
+            vedtak.setKanDistribueres(true);
+            return;
+        }
+
+        vedtak.setKanDistribueres(distribusjonService.sjekkOmVedtakKanDistribueres(fnr, vedtak.getId()));
     }
 
     private void flettInnVeilederNavn(Vedtak vedtak) {
