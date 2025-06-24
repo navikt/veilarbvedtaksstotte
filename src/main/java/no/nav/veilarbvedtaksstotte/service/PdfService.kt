@@ -31,8 +31,14 @@ class PdfService(
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
 
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
+        if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV)) {
+            log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er aktivert.")
+        } else {
+            log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er deaktivert.")
+        }
         val brevdataOppslagUtenNavn = if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV)) {
             // Hvis funksjonen er skrudd på, skal veilederNavn være null
+
             DokumentService.BrevdataOppslag(
                 enhetKontaktinformasjon = brevdataOppslag.enhetKontaktinformasjon,
                 malform = brevdataOppslag.malform,
