@@ -1,9 +1,11 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import io.getunleash.DefaultUnleash
+import io.getunleash.UnleashContext
 import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
+import no.nav.common.utils.AuthUtils
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
@@ -24,14 +26,15 @@ class PdfService(
     val veilarbveilederClient: VeilarbveilederClient,
     val enhetInfoService: EnhetInfoService,
     val veilarbpersonClient: VeilarbpersonClient,
-    val unleashService: DefaultUnleash
+    val unleashService: DefaultUnleash,
+    private val authService: AuthService
 ) {
     val log = LoggerFactory.getLogger(PdfService::class.java)
 
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
 
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
-        if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV)) {
+        if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, UnleashContext.builder().userId(authService.innloggetVeilederIdent).build())) {
             log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er aktivert.")
         } else {
             log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er deaktivert.")

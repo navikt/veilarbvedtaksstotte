@@ -234,7 +234,8 @@ class DokumentServiceTest {
             enhetInfoService = enhetInfoService,
             veilarbveilederClient = veilarbveilederClient,
             veilarbpersonClient = veilarbpersonClient,
-            unleashService = unleashService
+            unleashService = unleashService,
+            authService = authService
         )
 
         dokumentService = DokumentService(
