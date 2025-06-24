@@ -392,7 +392,7 @@ public class VedtakService {
     }
 
     private void flettInnKanDistribueres(Vedtak vedtak, Fnr fnr) {
-        if (unleashService.isEnabled(MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL)) {
+        if (!unleashService.isEnabled(MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL)) {
             // 2025-06-24 Sondre: Vi hadde behov for å legge på feature-toggle i ettertid (etter at funksjonaliteten vart lansert i frontend).
             // Pga. caching i frontend landa vi på at det var enklast å feature-toggle i backend for å sikre at
             // det treff alle brukarar samstundes. Enklaste måten å midlartidig skjule alerten i frontenden på er difor å sette
