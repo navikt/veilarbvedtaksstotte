@@ -6,6 +6,7 @@ import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.AuthUtils
+import no.nav.common.utils.EnvironmentUtils.isProduction
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
@@ -37,9 +38,13 @@ class PdfService(
         val unleashContext = UnleashContext.builder()
             .userId(authService.innloggetVeilederIdent)
             .appName("veilarbvedtaksstotte")
+            .environment(if (isProduction().orElse(false)) "production" else "development")
             .build()
-        val veilederIdent = authService.innloggetVeilederIdent
-        log.info("Current veileder ident for toggle check: {}", veilederIdent)
+
+        log.info("Unleash context: userId={}, environment={}",
+            authService.innloggetVeilederIdent,
+            if (isProduction().orElse(false)) "production" else "development")
+
         if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, unleashContext)) {
             log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er aktivert.")
         } else {
