@@ -34,12 +34,18 @@ class PdfService(
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
 
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
-        if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, UnleashContext.builder().userId(authService.innloggetVeilederIdent).build())) {
+        val unleashContext = UnleashContext.builder()
+            .userId(authService.innloggetVeilederIdent)
+            .appName("veilarbvedtaksstotte")
+            .build()
+        val veilederIdent = authService.innloggetVeilederIdent
+        log.info("Current veileder ident for toggle check: {}", veilederIdent)
+        if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, unleashContext)) {
             log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er aktivert.")
         } else {
             log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er deaktivert.")
         }
-        val brevdataOppslagUtenNavn = if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV)) {
+        val brevdataOppslagUtenNavn = if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, unleashContext)) {
             // Hvis funksjonen er skrudd på, skal veilederNavn være null
 
             DokumentService.BrevdataOppslag(
