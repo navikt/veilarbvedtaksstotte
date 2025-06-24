@@ -186,7 +186,8 @@ public class VedtakServiceTest extends DatabaseTest {
                 sakStatistikkService,
                 aktorOppslagClient,
                 gjeldende14aVedtakService,
-                kafkaProducerService
+                kafkaProducerService,
+                unleashService
         );
     }
 
