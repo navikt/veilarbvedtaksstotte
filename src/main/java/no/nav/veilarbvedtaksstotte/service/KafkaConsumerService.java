@@ -83,11 +83,11 @@ public class KafkaConsumerService {
 
     public void flyttingAvOppfolgingsbrukerTilNyEnhet(ConsumerRecord<String, KafkaOppfolgingsbrukerEndringV2> kafkaOppfolgingsbrukerEndring) {
         Fnr fnr = kafkaOppfolgingsbrukerEndring.value().getFodselsnummer();
+        String oppfolgingsEnhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
 
-        veilarbarenaClient.oppdaterOppfolgingsbruker(fnr, kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet());
+        veilarbarenaClient.oppdaterOppfolgingsbruker(fnr, oppfolgingsEnhetId);
 
         AktorId aktorId = hentAktorIdMedDevSjekk(fnr); //AktorId kan være null i dev
-        String oppfolgingsenhetId = kafkaOppfolgingsbrukerEndring.value().getOppfolgingsenhet();
 
         if (aktorId == null) {
             log.warn("Fant ingen AktørID for bruker. Ignorerer melding. Se SecureLogs for detaljer.");
@@ -102,16 +102,16 @@ public class KafkaConsumerService {
             return;
         }
 
-        if (utkast.getOppfolgingsenhetId().equals(oppfolgingsenhetId)) {
+        if (utkast.getOppfolgingsenhetId().equals(oppfolgingsEnhetId)) {
             log.info("Oppfølgingsenhet for bruker er uendret, ignorerer melding.");
             return;
         }
 
         log.info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Se SecureLogs for detaljer.");
-        SecureLog.getSecureLog().info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Bruker (AktørID): {}, forrige oppfølgingsenhet: {}, ny oppfølgingsenhet: {}.", aktorId, utkast.getOppfolgingsenhetId(), oppfolgingsenhetId);
-        Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
-        vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
-        beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());
+        SecureLog.getSecureLog().info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Bruker (AktørID): {}, forrige oppfølgingsenhet: {}, ny oppfølgingsenhet: {}.", aktorId, utkast.getOppfolgingsenhetId(), oppfolgingsEnhetId);
+        Enhet enhet = norg2Client.hentEnhet(oppfolgingsEnhetId);
+        vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsEnhetId);
+        beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsEnhetId, enhet.getNavn());
     }
 
     public void behandleSisteOppfolgingsperiode(ConsumerRecord<String, KafkaSisteOppfolgingsperiode> sisteOppfolgingsperiodeRecord) {
