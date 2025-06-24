@@ -49,6 +49,11 @@ spec:
       - description: Datasett for statistikk for 14a vedtak
         name: 14a_vedtak_statistikk
         permission: READWRITE
+  observability:
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
   secureLogs:
     enabled: true
   kafka:
@@ -64,6 +69,10 @@ spec:
       value: https://dokarkiv-q2.dev-fss-pub.nais.io
     - name: DOKDISTFORDELING_URL # bruker saf-scope
       value: https://dokdistfordeling.dev-fss-pub.nais.io
+    - name: DOKDISTKANAL_TOKEN_SCOPE
+      value: api://dev-fss.teamdokumenthandtering.dokdistkanal/.default
+    - name: DOKDISTKANAL_URL
+      value: https://dokdistkanal-q2.dev-fss-pub.nais.io
     - name: NORG2_URL
       value: https://norg2.intern.dev.nav.no/norg2
     - name: PDL_TOKEN_SCOPE
@@ -171,6 +180,7 @@ spec:
         - application: veilarbveileder
       external:
         - host: dokarkiv-q2.dev-fss-pub.nais.io
+        - host: dokdistkanal-q2.dev-fss-pub.nais.io
         - host: pdl-api.dev-fss-pub.nais.io
         - host: regoppslag.dev-fss-pub.nais.io
         - host: saf-q2.dev-fss-pub.nais.io

@@ -2,13 +2,17 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.NavIdent;
+import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
+import no.nav.veilarbvedtaksstotte.domain.slettVedtak.SlettVedtakFeiletException;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
+import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -49,6 +53,7 @@ public class VedtaksstotteRepository {
     private static final String GJELDENDE = "GJELDENDE";
     private static final String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
     private static final String REFERANSE = "REFERANSE";
+    private static final String FEILRETTING_BEGRUNNELSE = "FEILRETTING_BEGRUNNELSE";
 
     private final JdbcTemplate db;
     private final TransactionTemplate transactor;
@@ -67,6 +72,11 @@ public class VedtaksstotteRepository {
     public List<Vedtak> hentFattedeVedtak(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
         return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.SENDT));
+    }
+
+    public List<Vedtak> hentFattedeVedtakInkludertSlettede(String aktorId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s != ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
+        return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.UTKAST));
     }
 
     public List<Vedtak> hentUtkastEldreEnn(LocalDateTime dateTime) {
@@ -232,6 +242,33 @@ public class VedtaksstotteRepository {
                 VEDTAK_TABLE, STATUS, VEDTAK_FATTET, GJELDENDE, VEDTAK_ID
         );
         db.update(sql, getName(VedtakStatus.SENDT), vedtakId);
+    }
+
+    /**
+     * Sletter vedtak. OBS: Denne skal kun brukes dersom vi har hatt et personvernsbrudd og må 'slette' vedtaket.
+     * Vi sletter aldri et vedtak i sin helhet, må alltid beholde metadata
+     * @param vedtakId id til vedtaket som skal slettes
+     * @param utfortAv identen til den som utfører slettingen
+     * @param slettVedtakRequest request som inneholder informasjon om slettingen
+     */
+    public void slettVedtakVedPersonvernbrudd(long vedtakId, NavIdent utfortAv, SlettVedtakRequest slettVedtakRequest) throws SlettVedtakFeiletException {
+        try {
+            String begrunnelse = format("Vedtaket ble slettet %s av %s fordi %s bestilte sletting i %s på bakgrunn av at vedtaket ble fattet på feil person", LocalDateTime.now(), utfortAv.get(), slettVedtakRequest.getAnsvarligVeileder(), slettVedtakRequest.getSlettVedtakBestillingId());
+            String sql = format(
+                    "UPDATE %s SET %s = CURRENT_TIMESTAMP, %s = ?,  %s = ?, %s = ?, %s = false WHERE %s = ?",
+                    VEDTAK_TABLE, UTKAST_SIST_OPPDATERT, FEILRETTING_BEGRUNNELSE, BEGRUNNELSE, STATUS, GJELDENDE, VEDTAK_ID
+            );
+            db.update(sql, begrunnelse, null, getName(VedtakStatus.SLETTET), vedtakId);
+        } catch (Exception e) {
+            SecureLog.getSecureLog().error("Klarte ikke å slette vedtak med id: {}", vedtakId, e);
+            throw new SlettVedtakFeiletException("Klarte ikke å slette vedtak med id: " + vedtakId);
+        }
+
+    }
+
+    public Optional<Vedtak> hentVedtakByJournalpostIdOgAktorId(String journalpostId, AktorId aktorId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, JOURNALPOST_ID, AKTOR_ID);
+        return Optional.ofNullable(queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, journalpostId, aktorId.get())));
     }
 
     public List<AktorId> hentUnikeBrukereMedFattetVedtak() {

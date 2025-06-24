@@ -4,3 +4,5 @@ const val KAFKA_KONSUMERING_GCP_SKRUDD_AV = "veilarbvedtaksstotte.kafka-konsumer
 const val LES_FRA_PDL_AKTOR_V2_TOPIC_SKRUDD_PAA = "veilarbvedtaksstotte.pdl_aktor_v2_paa"
 const val PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA = "veilarbvedtaksstotte.obo_gjeldende_14a_vedtak_produsering_paa"
 const val SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV = "veilarbvedtaksstotte.skjule_veileders_navn_14a_vedtaksbrev"
+const val MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL = "veilarbvedtaksstotte.merke_vedtak_som_mangler_distribusjonskanal";
+
