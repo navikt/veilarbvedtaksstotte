@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL;
 
 @Slf4j
 @Service
@@ -71,6 +73,7 @@ public class VedtakService {
     private final AktorOppslagClient aktorOppslagClient;
     private final Gjeldende14aVedtakService gjeldende14aVedtakService;
     private final KafkaProducerService kafkaProducerService;
+    private final DefaultUnleash unleashService;
 
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
@@ -389,6 +392,15 @@ public class VedtakService {
     }
 
     private void flettInnKanDistribueres(Vedtak vedtak, Fnr fnr) {
+        if (!unleashService.isEnabled(MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL)) {
+            // 2025-06-24 Sondre: Vi hadde behov for å legge på feature-toggle i ettertid (etter at funksjonaliteten vart lansert i frontend).
+            // Pga. caching i frontend landa vi på at det var enklast å feature-toggle i backend for å sikre at
+            // det treff alle brukarar samstundes. Enklaste måten å midlartidig skjule alerten i frontenden på er difor å sette
+            // `kanDistribueres` til `true`, sidan frontenden har typa dette feltet opp som non-nullable boolean.
+            vedtak.setKanDistribueres(true);
+            return;
+        }
+
         vedtak.setKanDistribueres(distribusjonService.sjekkOmVedtakKanDistribueres(fnr, vedtak.getId()));
     }
 

@@ -80,6 +80,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 sakStatistikkService,
                 mock(),
                 mock(),
+                mock(),
                 mock()
             )
 
