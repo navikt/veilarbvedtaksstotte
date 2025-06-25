@@ -8,7 +8,6 @@ import no.nav.veilarbvedtaksstotte.controller.AdminController.POAO_ADMIN
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.KafkaRepubliseringService
-import no.nav.veilarbvedtaksstotte.service.UtrullingService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -23,9 +22,6 @@ class AdminControllerTest {
 
     @MockkBean
     lateinit var authService: AuthService
-
-    @MockkBean
-    lateinit var utrullingService: UtrullingService
 
     @MockkBean
     lateinit var kafkaRepubliseringService : KafkaRepubliseringService

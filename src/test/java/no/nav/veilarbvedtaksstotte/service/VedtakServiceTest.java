@@ -127,7 +127,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
     private static final DokdistkanalClient dokdistkanalClient = mock(DokdistkanalClient.class);
     private static final VeilarbveilederClient veilarbveilederClient = mock(VeilarbveilederClient.class);
-    private static final UtrullingService utrullingService = mock(UtrullingService.class);
     private static final EnhetInfoService enhetInfoService = mock(EnhetInfoService.class);
 
     private static final SafClient safClient = mock(SafClient.class);
@@ -520,7 +519,6 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     private void gittTilgang() {
-        when(utrullingService.erUtrullet(any())).thenReturn(true);
         when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
     }
 
