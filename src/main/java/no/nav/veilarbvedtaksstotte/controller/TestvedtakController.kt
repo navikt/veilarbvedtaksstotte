@@ -46,9 +46,7 @@ class TestvedtakController(
         ]
     )
     fun fattTestVedtak(@RequestBody testvedtakRequest: TestvedtakRequest) {
-        //Bør vi opprette oppfølgingsperiode her?
-        //kan jo sjekke om de er det, og dersom ikke kan vi opprette periode
-        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("14a-vedtak-test")) {
+        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
@@ -76,7 +74,7 @@ class TestvedtakController(
         ]
     )
     fun hentTestVedtak(@RequestBody fnr: Fnr): Vedtak? {
-        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("14a-vedtak-test")) {
+        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
@@ -101,8 +99,7 @@ class TestvedtakController(
         ]
     )
     fun slettTestVedtak(@RequestBody fnr: Fnr) {
-        //dersom vi oppretter oppfølgingsperiode hos oss – bør vi ogsåta de ut av oppfølging da?
-        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("14a-vedtak-test")) {
+        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
