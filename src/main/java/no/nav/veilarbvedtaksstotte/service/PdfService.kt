@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
+import io.getunleash.UnleashContext
 import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
@@ -15,20 +17,47 @@ import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
+import no.nav.veilarbvedtaksstotte.utils.SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV
 
 @Service
 class PdfService(
     val pdfClient: PdfClient,
     val veilarbveilederClient: VeilarbveilederClient,
     val enhetInfoService: EnhetInfoService,
-    val veilarbpersonClient: VeilarbpersonClient
+    val veilarbpersonClient: VeilarbpersonClient,
+    val unleashService: DefaultUnleash,
+    private val authService: AuthService
 ) {
     val log = LoggerFactory.getLogger(PdfService::class.java)
 
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
 
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
-        val brevdata = DokumentService.mapBrevdata(dto, brevdataOppslag)
+        val unleashContext = UnleashContext.builder()
+            .userId(authService.innloggetVeilederIdent)
+            .build()
+
+        if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, unleashContext)) {
+            log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er aktivert.")
+        }
+
+        val brevdataOppslagUtenNavn =
+            if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, unleashContext)) {
+                // Hvis funksjonen er skrudd på, skal veilederNavn være null
+
+                DokumentService.BrevdataOppslag(
+                    enhetKontaktinformasjon = brevdataOppslag.enhetKontaktinformasjon,
+                    malform = brevdataOppslag.malform,
+                    veilederNavn = "",
+                    enhet = brevdataOppslag.enhet,
+                    kontaktEnhet = brevdataOppslag.kontaktEnhet,
+                    fodselsdatoOgAr = brevdataOppslag.fodselsdatoOgAr
+                )
+            } else {
+                brevdataOppslag
+            }
+
+        val brevdata = DokumentService.mapBrevdata(dto, brevdataOppslagUtenNavn)
 
         return pdfClient.genererPdf(brevdata)
     }
@@ -38,7 +67,7 @@ class PdfService(
             if (data == null) return Optional.empty()
 
             val egenvurderingResponseDTO =
-                JsonUtils.objectMapper.readValue(data, EgenvurderingDto::class.java);
+                JsonUtils.objectMapper.readValue(data, EgenvurderingDto::class.java)
 
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeEgenVurderingPdf(
@@ -46,8 +75,8 @@ class PdfService(
                 )
             )
         } catch (e: Exception) {
-            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            throw e;
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e)
+            throw e
         }
     }
 
@@ -56,7 +85,7 @@ class PdfService(
             if (data == null) return Optional.empty()
 
             val registreringsdataResponseDto =
-                JsonUtils.objectMapper.readValue(data, OpplysningerOmArbeidssoekerMedProfilering::class.java);
+                JsonUtils.objectMapper.readValue(data, OpplysningerOmArbeidssoekerMedProfilering::class.java)
 
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeArbeidssokerRegistretPdf(
@@ -64,8 +93,8 @@ class PdfService(
                 )
             )
         } catch (e: Exception) {
-            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            throw e;
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e)
+            throw e
         }
     }
 
@@ -74,15 +103,15 @@ class PdfService(
             if (data == null) return Optional.empty()
 
             val cvDto =
-                JsonUtils.objectMapper.readValue(data, CvInnhold::class.java);
+                JsonUtils.objectMapper.readValue(data, CvInnhold::class.java)
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeCvPdf(
                     cvDto
                 )
             )
         } catch (e: Exception) {
-            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            throw e;
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e)
+            throw e
         }
     }
 
