@@ -227,8 +227,8 @@ public class VedtakServiceTest extends DatabaseTest {
         when(enhetInfoService.utledEnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID)))
                 .thenReturn(new EnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID), new EnhetStedsadresse("", "", "", "", "", ""), ""));
         when(pdfService.produserDokument(any())).thenReturn(new byte[]{});
-        when(pdfService.produserCVPdf(any(), any(), any())).thenReturn(Optional.of(new byte[]{}));
-        when(pdfService.produserBehovsvurderingPdf(any())).thenReturn(Optional.of(new byte[]{}));
+        when(pdfService.produserCVPdf(any(), any())).thenReturn(Optional.of(new byte[]{}));
+        when(pdfService.produserBehovsvurderingPdf(any(), any())).thenReturn(Optional.of(new byte[]{}));
         when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
         when(safClient.hentJournalpost(any())).thenReturn(getMockedJournalpostGraphqlResponse());
     }

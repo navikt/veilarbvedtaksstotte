@@ -30,7 +30,7 @@ import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetOrganisering;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
+import no.nav.veilarbvedtaksstotte.client.pdf.*;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.*;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
@@ -44,12 +44,10 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.domain.Malform;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.Instant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Collections;
@@ -168,25 +166,25 @@ public class ClientTestConfig {
 
             @NotNull
             @Override
-            public byte[] genererOyeblikksbildeArbeidssokerRegistretPdf(@NotNull OpplysningerOmArbeidssoekerMedProfilering registreringOyeblikksbildeData) {
+            public byte[] genererOyeblikksbildeArbeidssokerRegistretPdf(@NotNull OpplysningerOmArbeidssoekerMedProfileringMedMottakerDto registreringOyeblikksbildeData) {
                 return new byte[0];
             }
 
             @NotNull
             @Override
-            public byte[] genererOyeblikksbildeEgenVurderingPdf(@NotNull EgenvurderingDto egenvurderingOyeblikksbildeData) {
+            public byte[] genererOyeblikksbildeEgenVurderingPdf(@NotNull EgenvurderingMedMottakerDto egenvurderingOyeblikksbildeData) {
                 return new byte[0];
             }
 
             @NotNull
             @Override
-            public byte[] genererOyeblikksbildeCvPdf(@NotNull CvInnholdMedMottaker cvOyeblikksbildeData) {
+            public byte[] genererOyeblikksbildeCvPdf(@NotNull CvInnholdMedMottakerDto cvOyeblikksbildeData) {
                 return new byte[0];
             }
 
             @NotNull
             @Override
-            public byte[] genererPdf(@NotNull Brevdata brevdata) {
+            public byte[] genererPdf(@NotNull BrevdataDto brevdata) {
                 return new byte[0];
             }
 
