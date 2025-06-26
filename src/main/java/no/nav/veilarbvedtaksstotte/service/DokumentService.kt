@@ -64,7 +64,7 @@ class DokumentService(
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.ARBEIDSSOKERREGISTRET }
 
         val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json)
-        val cvPDF = pdfService.produserCVPdf(cvData?.json)
+        val cvPDF = pdfService.produserCVPdf(cvData?.json, produserDokumentDTO.navn, fnr)
         val arbeidssokerRegistretPdf = pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData?.json)
 
 

@@ -180,7 +180,7 @@ public class ClientTestConfig {
 
             @NotNull
             @Override
-            public byte[] genererOyeblikksbildeCvPdf(@NotNull CvInnhold cvOyeblikksbildeData) {
+            public byte[] genererOyeblikksbildeCvPdf(@NotNull CvInnholdMedMottaker cvOyeblikksbildeData) {
                 return new byte[0];
             }
 

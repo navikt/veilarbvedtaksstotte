@@ -6,7 +6,6 @@ import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
 import okhttp3.OkHttpClient
@@ -42,7 +41,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
     }
 
     override fun genererOyeblikksbildeCvPdf(
-        cvOyeblikksbildeData: CvInnhold,
+        cvOyeblikksbildeData: PdfClient.CvInnholdMedMottaker,
     ): ByteArray {
         val request = Request.Builder()
             .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.CV_OG_JOBBPROFIL.templateName))

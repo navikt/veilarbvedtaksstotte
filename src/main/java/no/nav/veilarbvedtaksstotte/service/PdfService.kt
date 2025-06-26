@@ -69,15 +69,17 @@ class PdfService(
         }
     }
 
-    fun produserCVPdf(data: String?): Optional<ByteArray> {
+    fun produserCVPdf(data: String?, navn: String, fnr: Fnr): Optional<ByteArray> {
         try {
             if (data == null) return Optional.empty()
 
             val cvDto =
                 JsonUtils.objectMapper.readValue(data, CvInnhold::class.java);
+            val mottaker = PdfClient.Mottaker(navn, fnr)
+            val cvInnholdMedMottaker = PdfClient.CvInnholdMedMottaker.from(cvDto, mottaker)
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeCvPdf(
-                    cvDto
+                    cvInnholdMedMottaker
                 )
             )
         } catch (e: Exception) {
