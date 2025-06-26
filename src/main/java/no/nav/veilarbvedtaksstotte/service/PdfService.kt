@@ -6,7 +6,7 @@ import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
+import no.nav.veilarbvedtaksstotte.client.pdf.*
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
@@ -33,16 +33,18 @@ class PdfService(
         return pdfClient.genererPdf(brevdata)
     }
 
-    fun produserBehovsvurderingPdf(data: String?): Optional<ByteArray> {
+    fun produserBehovsvurderingPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
         try {
             if (data == null) return Optional.empty()
 
             val egenvurderingResponseDTO =
                 JsonUtils.objectMapper.readValue(data, EgenvurderingDto::class.java);
 
+            val egenvurderingMedMottaker = EgenvurderingMedMottakerDto.from(egenvurderingResponseDTO, mottaker)
+
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeEgenVurderingPdf(
-                    egenvurderingResponseDTO
+                    egenvurderingMedMottaker
                 )
             )
         } catch (e: Exception) {
@@ -51,16 +53,19 @@ class PdfService(
         }
     }
 
-    fun produserArbeidssokerRegistretPdf(data: String?): Optional<ByteArray> {
+    fun produserArbeidssokerRegistretPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
         try {
             if (data == null) return Optional.empty()
 
             val registreringsdataResponseDto =
-                JsonUtils.objectMapper.readValue(data, OpplysningerOmArbeidssoekerMedProfilering::class.java);
+                JsonUtils.objectMapper.readValue(data, OpplysningerOmArbeidssoekerMedProfilering::class.java)
+
+            val registreringsdataMedMottaker =
+                OpplysningerOmArbeidssoekerMedProfileringMedMottakerDto.from(registreringsdataResponseDto, mottaker)
 
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeArbeidssokerRegistretPdf(
-                    registreringsdataResponseDto
+                    registreringsdataMedMottaker
                 )
             )
         } catch (e: Exception) {
@@ -69,15 +74,16 @@ class PdfService(
         }
     }
 
-    fun produserCVPdf(data: String?): Optional<ByteArray> {
+    fun produserCVPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
         try {
             if (data == null) return Optional.empty()
 
             val cvDto =
                 JsonUtils.objectMapper.readValue(data, CvInnhold::class.java);
+            val cvInnholdMedMottaker = CvInnholdMedMottakerDto.from(cvDto, mottaker)
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeCvPdf(
-                    cvDto
+                    cvInnholdMedMottaker
                 )
             )
         } catch (e: Exception) {

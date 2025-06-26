@@ -26,7 +26,7 @@ class PdfClientImplTest {
     @Test
     fun request_til_brev_client_har_forventet_innhold() {
 
-        val brevdata = PdfClient.Brevdata(
+        val brevdata = BrevdataDto(
             malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
             veilederNavn = "Veileder Navn",
             navKontor = "Nav kontor",
@@ -34,7 +34,7 @@ class PdfClientImplTest {
             malform = Malform.NB,
             begrunnelse = listOf("Avsnitt 1", "Avsnitt 2"),
             kilder = listOf("Kilde 1", "Kilde 2"),
-            mottaker = PdfClient.Mottaker(
+            mottaker = Mottaker(
                 navn = "Mottaker Navn",
                 fodselsnummer = Fnr.ofValidFnr("12345678910"),
             ),
