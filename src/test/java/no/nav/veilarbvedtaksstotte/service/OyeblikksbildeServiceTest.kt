@@ -28,7 +28,7 @@ internal class OyeblikksbildeServiceTest {
     @Test
     fun mapToEgenvurderingDataJson() {
         val egenvurderingstekster: MutableMap<String, String> = HashMap()
-        egenvurderingstekster["SITUASJONSBESTEMT_INNSATS"] = "Jeg vil få hjelp fra NAV"
+        egenvurderingstekster["SITUASJONSBESTEMT_INNSATS"] = "Jeg vil få hjelp fra Nav"
         val egenvurderingDato = Instant().toString()
         val egenvurdering = EgenvurderingResponseDTO(
             egenvurderingDato,
@@ -38,7 +38,7 @@ internal class OyeblikksbildeServiceTest {
         )
         val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingData(egenvurdering).toJson()
         val forventetEgenvurderingJson =
-            "{\"sistOppdatert\":\"$egenvurderingDato\",\"svar\":[{\"spm\":\"Ønsker du veiledning?\",\"svar\":\"Jeg vil få hjelp fra NAV\",\"oppfolging\":\"SITUASJONSBESTEMT_INNSATS\",\"dialogId\":\"dialog-123\"}]}"
+            "{\"sistOppdatert\":\"$egenvurderingDato\",\"svar\":[{\"spm\":\"Ønsker du veiledning?\",\"svar\":\"Jeg vil få hjelp fra Nav\",\"oppfolging\":\"SITUASJONSBESTEMT_INNSATS\",\"dialogId\":\"dialog-123\"}]}"
         Assertions.assertEquals(forventetEgenvurderingJson, egenvurderingJson)
     }
 
@@ -51,7 +51,7 @@ internal class OyeblikksbildeServiceTest {
     @Test
     fun mapToEgenvurderingDataJson_ikke_alle_verdier_satt() {
         val egenvurderingstekster: MutableMap<String, String> = HashMap()
-        egenvurderingstekster["SITUASJONSBESTEMT_INNSATS"] = "Jeg vil få hjelp fra NAV"
+        egenvurderingstekster["SITUASJONSBESTEMT_INNSATS"] = "Jeg vil få hjelp fra Nav"
         val egenvurdering = EgenvurderingResponseDTO(
             null,
             null,
@@ -60,7 +60,7 @@ internal class OyeblikksbildeServiceTest {
         )
         val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingData(egenvurdering).toJson()
         val forventetEgenvurderingJson =
-            "{\"sistOppdatert\":null,\"svar\":[{\"spm\":\"Ønsker du veiledning?\",\"svar\":\"Jeg vil få hjelp fra NAV\",\"oppfolging\":\"SITUASJONSBESTEMT_INNSATS\",\"dialogId\":null}]}"
+            "{\"sistOppdatert\":null,\"svar\":[{\"spm\":\"Ønsker du veiledning?\",\"svar\":\"Jeg vil få hjelp fra Nav\",\"oppfolging\":\"SITUASJONSBESTEMT_INNSATS\",\"dialogId\":null}]}"
         Assertions.assertEquals(forventetEgenvurderingJson, egenvurderingJson)
     }
 
