@@ -167,6 +167,12 @@ spec:
           permissions:
             roles:
               - "gjeldende-14a-vedtak"
+        - application: ismeroppfolging
+          namespace: teamsykefravr
+          cluster: dev-gcp
+          permissions:
+            roles:
+              - "gjeldende-14a-vedtak"
     outbound:
       rules:
         - application: aia-backend
