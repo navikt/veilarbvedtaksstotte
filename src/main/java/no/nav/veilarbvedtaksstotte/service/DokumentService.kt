@@ -48,7 +48,7 @@ class DokumentService(
     fun produserOgJournalforDokumenterForVedtak(vedtak: Vedtak, fnr: Fnr): OpprettetJournalpostDTO {
         val produserDokumentDTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = false)
         val dokument = pdfService.produserDokument(produserDokumentDTO)
-        val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
+        val tittel = "Vurdering av ditt behov for oppfølging fra Nav"
         val mottaker = Mottaker(produserDokumentDTO.navn, fnr)
 
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
