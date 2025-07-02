@@ -48,24 +48,28 @@ data class CvInnholdMedMottakerDto(
     val jobbprofil: FOJobbprofilDtoV2?
 ) {
     companion object {
-        fun from(cv: CvInnhold, mottaker: Mottaker) = CvInnholdMedMottakerDto(
-            mottaker = Mottaker(mottaker.navn, mottaker.fodselsnummer),
-            sistEndret = cv.sistEndret,
-            synligForArbeidsgiver = cv.synligForArbeidsgiver,
-            sistEndretAvNav = cv.sistEndretAvNav,
-            sammendrag = cv.sammendrag,
-            arbeidserfaring = cv.arbeidserfaring,
-            utdanning = cv.utdanning,
-            fagdokumentasjoner = cv.fagdokumentasjoner,
-            godkjenninger = cv.godkjenninger,
-            annenErfaring = cv.annenErfaring,
-            forerkort = cv.forerkort,
-            kurs = cv.kurs,
-            sertifikater = cv.sertifikater,
-            andreGodkjenninger = cv.andreGodkjenninger,
-            sprak = cv.sprak,
-            jobbprofil = cv.jobbprofil
-        )
+        fun from(cv: CvInnhold, mottaker: Mottaker): CvInnholdMedMottakerDto {
+            val rensetCv = cv.sanitize()
+
+            return CvInnholdMedMottakerDto(
+                mottaker = Mottaker(mottaker.navn, mottaker.fodselsnummer),
+                sistEndret = rensetCv.sistEndret,
+                synligForArbeidsgiver = rensetCv.synligForArbeidsgiver,
+                sistEndretAvNav = rensetCv.sistEndretAvNav,
+                sammendrag = rensetCv.sammendrag,
+                arbeidserfaring = rensetCv.arbeidserfaring,
+                utdanning = rensetCv.utdanning,
+                fagdokumentasjoner = rensetCv.fagdokumentasjoner,
+                godkjenninger = rensetCv.godkjenninger,
+                annenErfaring = rensetCv.annenErfaring,
+                forerkort = rensetCv.forerkort,
+                kurs = rensetCv.kurs,
+                sertifikater = rensetCv.sertifikater,
+                andreGodkjenninger = rensetCv.andreGodkjenninger,
+                sprak = rensetCv.sprak,
+                jobbprofil = rensetCv.jobbprofil
+            )
+        }
     }
 }
 

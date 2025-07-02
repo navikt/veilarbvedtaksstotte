@@ -422,7 +422,6 @@ class DokumentServiceTest {
 
     }
 
-
     private fun journalførMedForventetRequest(): OpprettetJournalpostDTO {
         return AuthContextHolderThreadLocal.instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {

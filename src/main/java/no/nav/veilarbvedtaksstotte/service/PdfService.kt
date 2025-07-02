@@ -26,9 +26,9 @@ class PdfService(
     val log = LoggerFactory.getLogger(PdfService::class.java)
 
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
-
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
-        val brevdata = DokumentService.mapBrevdata(dto, brevdataOppslag)
+        val vasketDto = vaskVedtakDto(dto)
+        val brevdata = DokumentService.mapBrevdata(vasketDto, brevdataOppslag)
 
         return pdfClient.genererPdf(brevdata)
     }
@@ -78,9 +78,9 @@ class PdfService(
         try {
             if (data == null) return Optional.empty()
 
-            val cvDto =
-                JsonUtils.objectMapper.readValue(data, CvInnhold::class.java);
+            val cvDto = JsonUtils.objectMapper.readValue(data, CvInnhold::class.java)
             val cvInnholdMedMottaker = CvInnholdMedMottakerDto.from(cvDto, mottaker)
+
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeCvPdf(
                     cvInnholdMedMottaker
@@ -110,4 +110,9 @@ class PdfService(
             fodselsdatoOgAr = fodselsdatoOgAr
         )
     }
+
+    fun vaskVedtakDto(dto: ProduserDokumentDTO): ProduserDokumentDTO {
+        return dto.copy(begrunnelse = dto.begrunnelse?.let { vaskStringForUgyldigeTegn(it) } ?: "")
+    }
+
 }
