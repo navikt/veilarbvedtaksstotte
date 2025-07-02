@@ -26,7 +26,6 @@ class PdfService(
     val log = LoggerFactory.getLogger(PdfService::class.java)
 
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
-
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
         val vasketDto = vaskVedtakDto(dto)
         val brevdata = DokumentService.mapBrevdata(vasketDto, brevdataOppslag)
@@ -80,9 +79,8 @@ class PdfService(
             if (data == null) return Optional.empty()
 
             val cvDto = JsonUtils.objectMapper.readValue(data, CvInnhold::class.java)
-            val vasketCvDto = vaskCvDto(cvDto)
+            val cvInnholdMedMottaker = CvInnholdMedMottakerDto.from(cvDto, mottaker)
 
-            val cvInnholdMedMottaker = CvInnholdMedMottakerDto.from(vasketCvDto, mottaker)
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeCvPdf(
                     cvInnholdMedMottaker
@@ -113,18 +111,8 @@ class PdfService(
         )
     }
 
-    fun vaskCvDto(cv: CvInnhold): CvInnhold {
-        val sanitertSammendrag = vaskStringForUgyldigeTegn(cv.sammendrag)
-        return cv.copy(sammendrag = sanitertSammendrag)
-    }
-
     fun vaskVedtakDto(dto: ProduserDokumentDTO): ProduserDokumentDTO {
-        return dto.copy(begrunnelse = vaskStringForUgyldigeTegn(dto.begrunnelse) ?: "")
-    }
-
-    fun vaskStringForUgyldigeTegn(input: String?): String? {
-        val sanitertInput = input?.replace(Regex("""[\p{Cc}\p{Cf}&&[^\r\n\t]]"""), "")
-        return sanitertInput
+        return dto.copy(begrunnelse = dto.begrunnelse?.let { vaskStringForUgyldigeTegn(it) } ?: "")
     }
 
 }

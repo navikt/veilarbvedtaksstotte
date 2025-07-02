@@ -80,5 +80,18 @@ class PdfClientImplTest {
 
         assertEquals(documentResponse, response.decodeToString())
     }
+
+    @Test
+    fun `ugyldige tegn skal bli fjernet fra tekstinput til pdfgen`() {
+        val ugyldigInput0002 = "Hello\u0002World\nLine2\u0000"
+        val forventet0002 = "HelloWorld\nLine2"
+        val vasket0002 = vaskStringForUgyldigeTegn(ugyldigInput0002)
+        assertEquals(forventet0002, vasket0002)
+
+        val ugyldigFEFF = "Hello\uFEFFWorld Line2\uFEFF test\uFEFF"
+        val forventetVasketFEFF = "HelloWorld Line2 test"
+        val vasketFEFF = vaskStringForUgyldigeTegn(ugyldigFEFF)
+        assertEquals(forventetVasketFEFF, vasketFEFF)
+    }
 }
 

@@ -422,22 +422,6 @@ class DokumentServiceTest {
 
     }
 
-    @Test
-    fun `fjern ugyldige tegn fra tekstinput til pdf-gen`() {
-        val unsafeInput = "Hello\u0002World\nLine2\u0000"
-
-        val cleaned = pdfService.vaskStringForUgyldigeTegn(unsafeInput)
-        println("unsafeInput: $unsafeInput")
-        println("cleaned: $cleaned")
-
-        val usafeInputFEFF = "Hello\uFEFFWorld Line2\uFEFF test\uFEFF"
-        val cleanedFEFF = pdfService.vaskStringForUgyldigeTegn(usafeInputFEFF)
-        println("usafeInputFEFF: $usafeInputFEFF")
-        println("cleanedFEFF: $cleanedFEFF")
-
-    }
-
-
     private fun journalførMedForventetRequest(): OpprettetJournalpostDTO {
         return AuthContextHolderThreadLocal.instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
