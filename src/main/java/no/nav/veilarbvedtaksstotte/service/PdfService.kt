@@ -8,7 +8,6 @@ import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
 import no.nav.veilarbvedtaksstotte.client.pdf.*
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
@@ -115,8 +114,8 @@ class PdfService(
     }
 
     fun vaskCvDto(cv: CvInnhold): CvInnhold {
-        val vasketSammendrag = vaskStringForUgyldigeTegn(cv.sammendrag)
-        return cv.copy(sammendrag = vasketSammendrag)
+        val sanitertSammendrag = vaskStringForUgyldigeTegn(cv.sammendrag)
+        return cv.copy(sammendrag = sanitertSammendrag)
     }
 
     fun vaskVedtakDto(dto: ProduserDokumentDTO): ProduserDokumentDTO {
@@ -124,8 +123,8 @@ class PdfService(
     }
 
     fun vaskStringForUgyldigeTegn(input: String?): String? {
-        val cleaned = input?.replace(Regex("[\\p{Cc}&&[^\r\n\t]]"), "")
-        return cleaned
+        val sanitertInput = input?.replace(Regex("""[\p{Cc}\p{Cf}&&[^\r\n\t]]"""), "")
+        return sanitertInput
     }
 
 }

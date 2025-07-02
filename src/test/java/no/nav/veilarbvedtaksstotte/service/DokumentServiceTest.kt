@@ -423,15 +423,15 @@ class DokumentServiceTest {
     }
 
     @Test
-    fun `fjern ugyldige characterer fra text input til pdf-gen`() {
+    fun `fjern ugyldige tegn fra tekstinput til pdf-gen`() {
         val unsafeInput = "Hello\u0002World\nLine2\u0000"
 
-        val cleaned = unsafeInput.replace(Regex("[\\p{Cc}&&[^\r\n\t]]"), "")
+        val cleaned = pdfService.vaskStringForUgyldigeTegn(unsafeInput)
         println("unsafeInput: $unsafeInput")
         println("cleaned: $cleaned")
 
         val usafeInputFEFF = "Hello\uFEFFWorld Line2\uFEFF test\uFEFF"
-        val cleanedFEFF = usafeInputFEFF.replace(Regex("[\\p{Cc}&&[^\r\n\t]]"), "")
+        val cleanedFEFF = pdfService.vaskStringForUgyldigeTegn(usafeInputFEFF)
         println("usafeInputFEFF: $usafeInputFEFF")
         println("cleanedFEFF: $cleanedFEFF")
 
