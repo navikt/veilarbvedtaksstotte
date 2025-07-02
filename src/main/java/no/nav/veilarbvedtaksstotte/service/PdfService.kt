@@ -8,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
 import no.nav.veilarbvedtaksstotte.client.pdf.*
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
@@ -28,7 +29,8 @@ class PdfService(
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
 
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
-        val brevdata = DokumentService.mapBrevdata(dto, brevdataOppslag)
+        val vasketDto = vaskVedtakDto(dto)
+        val brevdata = DokumentService.mapBrevdata(vasketDto, brevdataOppslag)
 
         return pdfClient.genererPdf(brevdata)
     }
@@ -78,9 +80,10 @@ class PdfService(
         try {
             if (data == null) return Optional.empty()
 
-            val cvDto =
-                JsonUtils.objectMapper.readValue(data, CvInnhold::class.java);
-            val cvInnholdMedMottaker = CvInnholdMedMottakerDto.from(cvDto, mottaker)
+            val cvDto = JsonUtils.objectMapper.readValue(data, CvInnhold::class.java)
+            val vasketCvDto = vaskCvDto(cvDto)
+
+            val cvInnholdMedMottaker = CvInnholdMedMottakerDto.from(vasketCvDto, mottaker)
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeCvPdf(
                     cvInnholdMedMottaker
@@ -110,4 +113,19 @@ class PdfService(
             fodselsdatoOgAr = fodselsdatoOgAr
         )
     }
+
+    fun vaskCvDto(cv: CvInnhold): CvInnhold {
+        val vasketSammendrag = vaskStringForUgyldigeTegn(cv.sammendrag)
+        return cv.copy(sammendrag = vasketSammendrag)
+    }
+
+    fun vaskVedtakDto(dto: ProduserDokumentDTO): ProduserDokumentDTO {
+        return dto.copy(begrunnelse = vaskStringForUgyldigeTegn(dto.begrunnelse) ?: "")
+    }
+
+    fun vaskStringForUgyldigeTegn(input: String?): String? {
+        val cleaned = input?.replace(Regex("[\\p{Cc}&&[^\r\n\t]]"), "")
+        return cleaned
+    }
+
 }

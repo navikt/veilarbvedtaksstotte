@@ -422,6 +422,21 @@ class DokumentServiceTest {
 
     }
 
+    @Test
+    fun `fjern ugyldige characterer fra text input til pdf-gen`() {
+        val unsafeInput = "Hello\u0002World\nLine2\u0000"
+
+        val cleaned = unsafeInput.replace(Regex("[\\p{Cc}&&[^\r\n\t]]"), "")
+        println("unsafeInput: $unsafeInput")
+        println("cleaned: $cleaned")
+
+        val usafeInputFEFF = "Hello\uFEFFWorld Line2\uFEFF test\uFEFF"
+        val cleanedFEFF = usafeInputFEFF.replace(Regex("[\\p{Cc}&&[^\r\n\t]]"), "")
+        println("usafeInputFEFF: $usafeInputFEFF")
+        println("cleanedFEFF: $cleanedFEFF")
+
+    }
+
 
     private fun journalførMedForventetRequest(): OpprettetJournalpostDTO {
         return AuthContextHolderThreadLocal.instance()
