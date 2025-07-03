@@ -4,6 +4,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.nimbusds.jose.util.Base64
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.DistributionSummary
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
@@ -46,6 +48,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import org.springframework.http.HttpStatus
 import java.time.LocalDate
 import java.util.*
@@ -225,12 +228,16 @@ class DokumentServiceTest {
             aiaBackendClient,
             arbeidssoekerRegisteretService
         )
+        val mockCounter = mock<DistributionSummary>()
+        whenever(mockCounter.record(org.mockito.kotlin.any())).then {}
 
         pdfService = PdfService(
             pdfClient = pdfClient,
             enhetInfoService = enhetInfoService,
             veilarbveilederClient = veilarbveilederClient,
-            veilarbpersonClient = veilarbpersonClient
+            veilarbpersonClient = veilarbpersonClient,
+            antallTegnFjernetVedVask = mockCounter
+
         )
 
         dokumentService = DokumentService(

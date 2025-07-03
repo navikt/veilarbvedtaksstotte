@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.micrometer.core.instrument.DistributionSummary
 import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
@@ -12,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
+import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
@@ -21,7 +23,8 @@ class PdfService(
     val pdfClient: PdfClient,
     val veilarbveilederClient: VeilarbveilederClient,
     val enhetInfoService: EnhetInfoService,
-    val veilarbpersonClient: VeilarbpersonClient
+    val veilarbpersonClient: VeilarbpersonClient,
+    val antallTegnFjernetVedVask: DistributionSummary
 ) {
     val log = LoggerFactory.getLogger(PdfService::class.java)
 
@@ -79,7 +82,7 @@ class PdfService(
             if (data == null) return Optional.empty()
 
             val cvDto = JsonUtils.objectMapper.readValue(data, CvInnhold::class.java)
-            val cvInnholdMedMottaker = CvInnholdMedMottakerDto.from(cvDto, mottaker)
+            val cvInnholdMedMottaker = CvInnholdMedMottakerDto.from(cvDto, mottaker) { vaskStringForUgyldigeTegnOgTell(it) }
 
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeCvPdf(
@@ -112,7 +115,20 @@ class PdfService(
     }
 
     fun vaskVedtakDto(dto: ProduserDokumentDTO): ProduserDokumentDTO {
-        return dto.copy(begrunnelse = dto.begrunnelse?.let { vaskStringForUgyldigeTegn(it) } ?: "")
+        return dto.copy(begrunnelse = dto.begrunnelse?.let { vaskStringForUgyldigeTegnOgTell(it) } ?: "")
+    }
+
+    fun vaskStringForUgyldigeTegnOgTell(input: String): String {
+        val regex = Regex("""[\p{Cc}\p{Cf}&&[^\r\n\t]]""")
+        val fjernetTegn = regex.findAll(input).map { it.value }.joinToString(", ")
+
+        val output = regex.replace(input, "")
+        val antallTegnFjernet = input.length - output.length
+        if (antallTegnFjernet > 0) {
+            secureLog.info("Vasket inputstring for pdf og fjernet følgende: $fjernetTegn")
+            antallTegnFjernetVedVask.record(antallTegnFjernet.toDouble())
+        }
+        return output
     }
 
 }

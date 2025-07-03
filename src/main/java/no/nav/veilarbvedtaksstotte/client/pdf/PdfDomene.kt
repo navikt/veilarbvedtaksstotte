@@ -48,8 +48,8 @@ data class CvInnholdMedMottakerDto(
     val jobbprofil: FOJobbprofilDtoV2?
 ) {
     companion object {
-        fun from(cv: CvInnhold, mottaker: Mottaker): CvInnholdMedMottakerDto {
-            val rensetCv = cv.sanitize()
+        fun from(cv: CvInnhold, mottaker: Mottaker, sanitizer: (String) -> String): CvInnholdMedMottakerDto {
+            val rensetCv = cv.sanitize(sanitizer)
 
             return CvInnholdMedMottakerDto(
                 mottaker = Mottaker(mottaker.navn, mottaker.fodselsnummer),
