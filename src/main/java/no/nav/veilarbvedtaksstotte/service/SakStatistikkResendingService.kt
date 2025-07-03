@@ -1,7 +1,11 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.job.leader_election.LeaderElectionClient
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
+import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository.Companion.SAK_STATISTIKK_TABLE
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -25,18 +29,26 @@ class SakStatistikkResendingService(
             val log: Logger = LoggerFactory.getLogger(SakStatistikkResendingService::class.java)
             log.info("Starter resending av sakstatistikk")
 
+            val behandlingId = 1.toBigInteger()
+            val aktorId = "2004140973848"
             // Steg 1: Endre parametere for å hente de radene som skal endres
-            val parameters = mapOf<String, Any>()
+            val parameters = mapOf<String, Any>(
+                "BEHANDLING_ID" to behandlingId,
+                "AKTOR_ID" to aktorId
+            )
 
             // Steg 2: Lag en SQL-spørring for å hente de radene som skal endres og resendes
-            val sql = ""
+            val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE aktor_id=:AKTOR_ID AND behandling_type=:BEHANDLING_TYPE ORDER BY endret_tid DESC limit 1"
 
             val sakStatistikkRader = sakStatistikkRepository.hentSakStatistikkListe(sql, parameters)
 
             // Steg 3: Endrer de nye radene til korrekt verdi, pass på å slette/ikke sette sekvensnummer, det settes automatisk ved innsetting i databasen
             val endredeRader = sakStatistikkRader.map {
                 it.copy(
-                    sekvensnummer = null
+                    sekvensnummer = null,
+                    behandlingResultat = BehandlingResultat.FEILREGISTRERT,
+                    behandlingStatus = BehandlingStatus.AVSLUTTET,
+                    behandlingMetode = BehandlingMetode.MANUELL,
                 )
             }
 
