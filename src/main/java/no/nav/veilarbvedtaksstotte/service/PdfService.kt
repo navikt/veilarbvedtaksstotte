@@ -120,12 +120,16 @@ class PdfService(
 
     fun vaskStringForUgyldigeTegnOgTell(input: String): String {
         val regex = Regex("""[\p{Cc}\p{Cf}&&[^\r\n\t]]""")
-        val fjernetTegn = regex.findAll(input).map { it.value }.joinToString(", ")
-
         val output = regex.replace(input, "")
+
+        val fjernetTegnILesbarTekst = regex.findAll(input).map { it.value[0].code }
+            .joinToString(", ") { "\\u" + it.toString(16).padStart(4, '0') }
+
+        // en unicode representerer en UTF-16 code unit, og vil derfor telle som ett tegn (lengde 1) i Kotlin-strenger
         val antallTegnFjernet = input.length - output.length
+
         if (antallTegnFjernet > 0) {
-            secureLog.info("Vasket inputstring for pdf og fjernet følgende: $fjernetTegn")
+            secureLog.info("Vasket inputstring for pdf og fjernet følgende: $fjernetTegnILesbarTekst (fjernet $antallTegnFjernet tegn)")
             antallTegnFjernetVedVask.record(antallTegnFjernet.toDouble())
         }
         return output
