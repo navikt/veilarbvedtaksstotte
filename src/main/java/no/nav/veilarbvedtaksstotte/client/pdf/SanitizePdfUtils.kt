@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.pdf
 
 import no.nav.veilarbvedtaksstotte.client.person.dto.*
+import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 
 fun CvInnhold.sanitize(): CvInnhold {
     return this.copy(
@@ -55,5 +56,17 @@ fun SertifikatDtoV2.sanitize(): SertifikatDtoV2 = copy(
 )
 
 fun vaskStringForUgyldigeTegn(input: String): String {
-    return input.replace(Regex("""[\p{Cc}\p{Cf}&&[^\r\n\t]]"""), "")
+    val regex = Regex("""[\p{Cc}\p{Cf}&&[^\r\n\t]]""")
+    val output = regex.replace(input, "")
+
+    val fjernetTegnILesbarTekst = regex.findAll(input).map { it.value[0].code }
+        .joinToString(", ") { "\\u" + it.toString(16).padStart(4, '0') }
+
+    // en unicode representerer en UTF-16 code unit, og vil derfor telle som ett tegn (lengde 1) i Kotlin-strenger
+    val antallTegnFjernet = input.length - output.length
+
+    if (antallTegnFjernet > 0) {
+        secureLog.info("Vasket inputstring for pdf og fjernet følgende: $fjernetTegnILesbarTekst (fjernet $antallTegnFjernet tegn)")
+    }
+    return output
 }
