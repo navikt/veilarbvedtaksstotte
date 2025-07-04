@@ -9,7 +9,8 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostD
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
+import no.nav.veilarbvedtaksstotte.client.pdf.BrevdataDto
+import no.nav.veilarbvedtaksstotte.client.pdf.Mottaker
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
@@ -47,7 +48,8 @@ class DokumentService(
     fun produserOgJournalforDokumenterForVedtak(vedtak: Vedtak, fnr: Fnr): OpprettetJournalpostDTO {
         val produserDokumentDTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = false)
         val dokument = pdfService.produserDokument(produserDokumentDTO)
-        val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
+        val tittel = "Vurdering av ditt behov for oppfølging fra Nav"
+        val mottaker = Mottaker(produserDokumentDTO.navn, fnr)
 
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
         val oppfolgingssak = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid)
@@ -63,9 +65,9 @@ class DokumentService(
         val arbeidssokerRegistretData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.ARBEIDSSOKERREGISTRET }
 
-        val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json)
-        val cvPDF = pdfService.produserCVPdf(cvData?.json)
-        val arbeidssokerRegistretPdf = pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData?.json)
+        val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json, mottaker )
+        val cvPDF = pdfService.produserCVPdf(cvData?.json, mottaker)
+        val arbeidssokerRegistretPdf = pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData?.json, mottaker)
 
 
         return journalforDokument(
@@ -205,7 +207,7 @@ class DokumentService(
 
     companion object {
 
-        fun mapBrevdata(dto: ProduserDokumentDTO, brevdataOppslag: BrevdataOppslag): PdfClient.Brevdata {
+        fun mapBrevdata(dto: ProduserDokumentDTO, brevdataOppslag: BrevdataOppslag): BrevdataDto {
             val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
             val erIAlderForUngdomsgaranti = erIAlderForUngdomsgaranti(brevdataOppslag.fodselsdatoOgAr)
             val harUngdomsgaranti = erIAlderForUngdomsgaranti &&
@@ -214,7 +216,7 @@ class DokumentService(
                             dto.malType == MalType.SPESIELT_TILPASSET_INNSATS_BEHOLDE_ARBEID ||
                             dto.malType == MalType.SPESIELT_TILPASSET_INNSATS_SKAFFE_ARBEID)
 
-            val mottaker = PdfClient.Mottaker(
+            val mottaker = Mottaker(
                 navn = dto.navn,
                 fodselsnummer = dto.brukerFnr,
             )
@@ -226,7 +228,7 @@ class DokumentService(
             val begrunnelseAvsnitt =
                 dto.begrunnelse?.let { splitNewline(it) }?.filterNot { it.isEmpty() } ?: emptyList()
 
-            return PdfClient.Brevdata(
+            return BrevdataDto(
                 malType = dto.malType,
                 veilederNavn = brevdataOppslag.veilederNavn,
                 navKontor = enhetNavn,

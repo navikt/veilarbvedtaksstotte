@@ -21,7 +21,7 @@ public class TestData {
     public static final String TEST_OPPFOLGINGSSAK = "SAK_1234";
     public static final String TEST_NAVKONTOR = "1234";
     public static final String TEST_OPPDATERT_NAVKONTOR = "4321";
-    public static final String TEST_OPPFOLGINGSENHET_NAVN = "NAV Testheim";
+    public static final String TEST_OPPFOLGINGSENHET_NAVN = "Nav Testheim";
     public static final String TEST_DIALOG_MELDING = "Dette er en melding";
 
     public static final List<String> TEST_KILDER = Arrays.asList("Svarene dine fra da du registrerte deg", "CV-en/jobbønskene dine på nav.no", "Svarene dine om behov for veiledning");

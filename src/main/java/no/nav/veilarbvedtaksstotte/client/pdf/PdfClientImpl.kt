@@ -5,9 +5,6 @@ import no.nav.common.health.HealthCheckUtils
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.utils.UrlUtils.joinPaths
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTemplate
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -18,7 +15,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
 
     val client: OkHttpClient = RestClient.baseClient()
 
-    override fun genererPdf(brevdata: PdfClient.Brevdata): ByteArray {
+    override fun genererPdf(brevdata: BrevdataDto): ByteArray {
 
         val request = Request.Builder()
             .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/vedtak14a"))
@@ -42,7 +39,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
     }
 
     override fun genererOyeblikksbildeCvPdf(
-        cvOyeblikksbildeData: CvInnhold,
+        cvOyeblikksbildeData: CvInnholdMedMottakerDto,
     ): ByteArray {
         val request = Request.Builder()
             .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.CV_OG_JOBBPROFIL.templateName))
@@ -65,7 +62,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
         }
     }
 
-    override fun genererOyeblikksbildeEgenVurderingPdf(egenvurderingOyeblikksbildeData: EgenvurderingDto): ByteArray {
+    override fun genererOyeblikksbildeEgenVurderingPdf(egenvurderingOyeblikksbildeData: EgenvurderingMedMottakerDto): ByteArray {
         val request = Request.Builder()
             .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.EGENVURDERING.templateName))
             .post(RestUtils.toJsonRequestBody(egenvurderingOyeblikksbildeData))
@@ -87,7 +84,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
         }
     }
 
-    override fun genererOyeblikksbildeArbeidssokerRegistretPdf(registreringOyeblikksbildeData: OpplysningerOmArbeidssoekerMedProfilering): ByteArray {
+    override fun genererOyeblikksbildeArbeidssokerRegistretPdf(registreringOyeblikksbildeData: OpplysningerOmArbeidssoekerMedProfileringMedMottakerDto): ByteArray {
         val request = Request.Builder()
             .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.ARBEIDSSOKERREGISTRET.templateName))
             .post(RestUtils.toJsonRequestBody(registreringOyeblikksbildeData))

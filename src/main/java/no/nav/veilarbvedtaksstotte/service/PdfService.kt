@@ -8,7 +8,7 @@ import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
+import no.nav.veilarbvedtaksstotte.client.pdf.*
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
@@ -31,19 +31,17 @@ class PdfService(
     val log = LoggerFactory.getLogger(PdfService::class.java)
 
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
-
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
+        val vasketDto = vaskVedtakDto(dto)
+
         val unleashContext = UnleashContext.builder()
             .userId(authService.innloggetVeilederIdent)
             .build()
 
-        if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, unleashContext)) {
-            log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er aktivert.")
-        }
-
         val brevdataOppslagUtenNavn =
             if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, unleashContext)) {
                 // Hvis funksjonen er skrudd på, skal veilederNavn være null
+                log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er aktivert.")
 
                 DokumentService.BrevdataOppslag(
                     enhetKontaktinformasjon = brevdataOppslag.enhetKontaktinformasjon,
@@ -57,21 +55,23 @@ class PdfService(
                 brevdataOppslag
             }
 
-        val brevdata = DokumentService.mapBrevdata(dto, brevdataOppslagUtenNavn)
+        val brevdata = DokumentService.mapBrevdata(vasketDto, brevdataOppslagUtenNavn)
 
         return pdfClient.genererPdf(brevdata)
     }
 
-    fun produserBehovsvurderingPdf(data: String?): Optional<ByteArray> {
+    fun produserBehovsvurderingPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
         try {
             if (data == null) return Optional.empty()
 
             val egenvurderingResponseDTO =
                 JsonUtils.objectMapper.readValue(data, EgenvurderingDto::class.java)
 
+            val egenvurderingMedMottaker = EgenvurderingMedMottakerDto.from(egenvurderingResponseDTO, mottaker)
+
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeEgenVurderingPdf(
-                    egenvurderingResponseDTO
+                    egenvurderingMedMottaker
                 )
             )
         } catch (e: Exception) {
@@ -80,16 +80,19 @@ class PdfService(
         }
     }
 
-    fun produserArbeidssokerRegistretPdf(data: String?): Optional<ByteArray> {
+    fun produserArbeidssokerRegistretPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
         try {
             if (data == null) return Optional.empty()
 
             val registreringsdataResponseDto =
                 JsonUtils.objectMapper.readValue(data, OpplysningerOmArbeidssoekerMedProfilering::class.java)
 
+            val registreringsdataMedMottaker =
+                OpplysningerOmArbeidssoekerMedProfileringMedMottakerDto.from(registreringsdataResponseDto, mottaker)
+
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeArbeidssokerRegistretPdf(
-                    registreringsdataResponseDto
+                    registreringsdataMedMottaker
                 )
             )
         } catch (e: Exception) {
@@ -98,15 +101,16 @@ class PdfService(
         }
     }
 
-    fun produserCVPdf(data: String?): Optional<ByteArray> {
+    fun produserCVPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
         try {
             if (data == null) return Optional.empty()
 
-            val cvDto =
-                JsonUtils.objectMapper.readValue(data, CvInnhold::class.java)
+            val cvDto = JsonUtils.objectMapper.readValue(data, CvInnhold::class.java)
+            val cvInnholdMedMottaker = CvInnholdMedMottakerDto.from(cvDto, mottaker)
+
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeCvPdf(
-                    cvDto
+                    cvInnholdMedMottaker
                 )
             )
         } catch (e: Exception) {
@@ -133,4 +137,9 @@ class PdfService(
             fodselsdatoOgAr = fodselsdatoOgAr
         )
     }
+
+    fun vaskVedtakDto(dto: ProduserDokumentDTO): ProduserDokumentDTO {
+        return dto.copy(begrunnelse = dto.begrunnelse?.let { vaskStringForUgyldigeTegn(it) } ?: "")
+    }
+
 }
