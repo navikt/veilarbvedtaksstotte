@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
+import io.getunleash.UnleashContext
 import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
@@ -15,20 +17,45 @@ import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
+import no.nav.veilarbvedtaksstotte.utils.SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV
 
 @Service
 class PdfService(
     val pdfClient: PdfClient,
     val veilarbveilederClient: VeilarbveilederClient,
     val enhetInfoService: EnhetInfoService,
-    val veilarbpersonClient: VeilarbpersonClient
+    val veilarbpersonClient: VeilarbpersonClient,
+    val unleashService: DefaultUnleash,
+    private val authService: AuthService
 ) {
     val log = LoggerFactory.getLogger(PdfService::class.java)
 
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
         val vasketDto = vaskVedtakDto(dto)
-        val brevdata = DokumentService.mapBrevdata(vasketDto, brevdataOppslag)
+
+        val unleashContext = UnleashContext.builder()
+            .userId(authService.innloggetVeilederIdent)
+            .build()
+
+        val brevdataOppslagUtenNavn =
+            if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, unleashContext)) {
+                // Hvis funksjonen er skrudd på, skal veilederNavn være null
+                log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er aktivert.")
+
+                DokumentService.BrevdataOppslag(
+                    enhetKontaktinformasjon = brevdataOppslag.enhetKontaktinformasjon,
+                    malform = brevdataOppslag.malform,
+                    veilederNavn = "",
+                    enhet = brevdataOppslag.enhet,
+                    kontaktEnhet = brevdataOppslag.kontaktEnhet,
+                    fodselsdatoOgAr = brevdataOppslag.fodselsdatoOgAr
+                )
+            } else {
+                brevdataOppslag
+            }
+
+        val brevdata = DokumentService.mapBrevdata(vasketDto, brevdataOppslagUtenNavn)
 
         return pdfClient.genererPdf(brevdata)
     }
@@ -38,7 +65,7 @@ class PdfService(
             if (data == null) return Optional.empty()
 
             val egenvurderingResponseDTO =
-                JsonUtils.objectMapper.readValue(data, EgenvurderingDto::class.java);
+                JsonUtils.objectMapper.readValue(data, EgenvurderingDto::class.java)
 
             val egenvurderingMedMottaker = EgenvurderingMedMottakerDto.from(egenvurderingResponseDTO, mottaker)
 
@@ -48,8 +75,8 @@ class PdfService(
                 )
             )
         } catch (e: Exception) {
-            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            throw e;
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e)
+            throw e
         }
     }
 
@@ -69,8 +96,8 @@ class PdfService(
                 )
             )
         } catch (e: Exception) {
-            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            throw e;
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e)
+            throw e
         }
     }
 
@@ -87,8 +114,8 @@ class PdfService(
                 )
             )
         } catch (e: Exception) {
-            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            throw e;
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e)
+            throw e
         }
     }
 

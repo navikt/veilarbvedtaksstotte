@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.nimbusds.jose.util.Base64
+import io.getunleash.DefaultUnleash
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
@@ -69,6 +70,7 @@ class DokumentServiceTest {
     lateinit var pdfService: PdfService
     lateinit var oppslagArbeidssoekerregisteretClientImpl: OppslagArbeidssoekerregisteretClientImpl
     lateinit var arbeidssoekerRegisteretService: ArbeidssoekerRegisteretService
+
 
     val malform = Malform.NB
     val veilederNavn = "Navn Veileder"
@@ -217,6 +219,7 @@ class DokumentServiceTest {
         val oyeblikksbildeRepository = mock(OyeblikksbildeRepository::class.java)
         val vedtaksstotteRepository = mock(VedtaksstotteRepository::class.java)
         val aiaBackendClient = mock(AiaBackendClient::class.java)
+        val unleashService: DefaultUnleash = mock(DefaultUnleash::class.java)
         oyeblikksbildeService = OyeblikksbildeService(
             authService,
             oyeblikksbildeRepository,
@@ -230,7 +233,9 @@ class DokumentServiceTest {
             pdfClient = pdfClient,
             enhetInfoService = enhetInfoService,
             veilarbveilederClient = veilarbveilederClient,
-            veilarbpersonClient = veilarbpersonClient
+            veilarbpersonClient = veilarbpersonClient,
+            unleashService = unleashService,
+            authService = authService
         )
 
         dokumentService = DokumentService(
