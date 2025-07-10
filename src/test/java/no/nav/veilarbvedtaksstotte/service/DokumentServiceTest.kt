@@ -235,7 +235,6 @@ class DokumentServiceTest {
             veilarbveilederClient = veilarbveilederClient,
             veilarbpersonClient = veilarbpersonClient,
             unleashService = unleashService,
-            authService = authService
         )
 
         dokumentService = DokumentService(
@@ -415,10 +414,14 @@ class DokumentServiceTest {
         val alderBlir30Ar = now.minusYears(30).year
         val alderBlir31Ar = now.minusYears(31).year
 
-        val harAlderBlir15ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir15Ar ))
-        val harAlderBlir16ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir16Ar))
-        val harAlderBlir30ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir30Ar))
-        val harAlderBlir31ArUngdomsgaranti = DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir31Ar))
+        val harAlderBlir15ArUngdomsgaranti =
+            DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir15Ar))
+        val harAlderBlir16ArUngdomsgaranti =
+            DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir16Ar))
+        val harAlderBlir30ArUngdomsgaranti =
+            DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir30Ar))
+        val harAlderBlir31ArUngdomsgaranti =
+            DokumentService.erIAlderForUngdomsgaranti(FodselsdatoOgAr(null, alderBlir31Ar))
 
         Assertions.assertFalse(harAlderBlir15ArUngdomsgaranti, "Personen skal ikke ha ungdomsgaranti")
         Assertions.assertTrue(harAlderBlir16ArUngdomsgaranti, "Personen skal ha ungdomsgaranti")
