@@ -14,10 +14,10 @@ import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
+import no.nav.veilarbvedtaksstotte.utils.SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
-import no.nav.veilarbvedtaksstotte.utils.SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV
 
 @Service
 class PdfService(
@@ -26,7 +26,6 @@ class PdfService(
     val enhetInfoService: EnhetInfoService,
     val veilarbpersonClient: VeilarbpersonClient,
     val unleashService: DefaultUnleash,
-    private val authService: AuthService
 ) {
     val log = LoggerFactory.getLogger(PdfService::class.java)
 
@@ -35,7 +34,7 @@ class PdfService(
         val vasketDto = vaskVedtakDto(dto)
 
         val unleashContext = UnleashContext.builder()
-            .userId(authService.innloggetVeilederIdent)
+            .userId(dto.veilederIdent)
             .build()
 
         val brevdataOppslagUtenNavn =
@@ -43,21 +42,14 @@ class PdfService(
                 // Hvis funksjonen er skrudd på, skal veilederNavn være null
                 log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er aktivert.")
 
-                DokumentService.BrevdataOppslag(
-                    enhetKontaktinformasjon = brevdataOppslag.enhetKontaktinformasjon,
-                    malform = brevdataOppslag.malform,
-                    veilederNavn = "",
-                    enhet = brevdataOppslag.enhet,
-                    kontaktEnhet = brevdataOppslag.kontaktEnhet,
-                    fodselsdatoOgAr = brevdataOppslag.fodselsdatoOgAr
-                )
+                brevdataOppslag.copy(veilederNavn = "")
             } else {
                 brevdataOppslag
             }
 
-        val brevdata = DokumentService.mapBrevdata(vasketDto, brevdataOppslagUtenNavn)
+        val brevdataDto = DokumentService.mapBrevdata(vasketDto, brevdataOppslagUtenNavn)
 
-        return pdfClient.genererPdf(brevdata)
+        return pdfClient.genererPdf(brevdataDto)
     }
 
     fun produserBehovsvurderingPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
