@@ -9,7 +9,6 @@ data class EnvironmentProperties (
     val dbUrl: String,
     val dokarkivScope: String,
     val dokarkivUrl: String,
-    val dokdistfordelingScope: String,
     val dokdistfordelingUrl: String,
     val dokdistkanalScope: String,
     val dokdistkanalUrl: String,
