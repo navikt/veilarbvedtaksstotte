@@ -176,10 +176,9 @@ class ClientConfig {
     fun dokDistribusjonClient(
         properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
     ): DokdistribusjonClient {
-        // dokdistfordeling bruker saf token scope
         return DokdistribusjonClientImpl(properties.dokdistfordelingUrl) {
             machineTokenClient.createMachineToMachineToken(
-                properties.safScope
+                properties.dokdistfordelingScope
             )
         }
     }
