@@ -62,7 +62,9 @@ spec:
       value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
     - name: DOKARKIV_URL
       value: https://dokarkiv.prod-fss-pub.nais.io
-    - name: DOKDISTFORDELING_URL # bruker saf-scope
+    - name: DOKDISTFORDELING_TOKEN_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.dokdistfordeling/.default
+    - name: DOKDISTFORDELING_URL
       value: https://dokdistfordeling.prod-fss-pub.nais.io
     - name: DOKDISTKANAL_TOKEN_SCOPE
       value: api://prod-fss.teamdokumenthandtering.dokdistkanal/.default
