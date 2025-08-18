@@ -2,10 +2,7 @@ package no.nav.veilarbvedtaksstotte.client.person
 
 import no.nav.common.health.HealthCheck
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.person.dto.Adressebeskyttelse
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
-import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
+import no.nav.veilarbvedtaksstotte.client.person.dto.*
 import no.nav.veilarbvedtaksstotte.domain.Malform
 
 interface VeilarbpersonClient : HealthCheck {
@@ -15,4 +12,5 @@ interface VeilarbpersonClient : HealthCheck {
     fun hentMalform(fnr: Fnr): Malform
     fun hentAdressebeskyttelse(fnr: Fnr): Adressebeskyttelse
     fun hentFodselsdato(fnr: Fnr): FodselsdatoOgAr
+    fun hentVerge(fnr: Fnr): VergeData
 }

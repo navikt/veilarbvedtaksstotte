@@ -13,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.client.pdf.BrevdataDto
 import no.nav.veilarbvedtaksstotte.client.pdf.Mottaker
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
+import no.nav.veilarbvedtaksstotte.client.person.dto.VergeData
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
 import no.nav.veilarbvedtaksstotte.domain.Malform
@@ -201,7 +202,8 @@ class DokumentService(
         val veilederNavn: String,
         val enhet: Enhet,
         val kontaktEnhet: Enhet,
-        val fodselsdatoOgAr: FodselsdatoOgAr
+        val fodselsdatoOgAr: FodselsdatoOgAr,
+        val verge: VergeData
     )
 
 
@@ -228,6 +230,16 @@ class DokumentService(
             val begrunnelseAvsnitt =
                 dto.begrunnelse?.let { splitNewline(it) }?.filterNot { it.isEmpty() } ?: emptyList()
 
+            // todo: i hvilke tilfeller skal navn vises på brevet?
+            val vergenavn = if (brevdataOppslag.verge.vergemaalEllerFremtidsfullmakt.isEmpty()) {
+                null
+            } else {
+                val sortertPåNyeste = brevdataOppslag.verge.vergemaalEllerFremtidsfullmakt.sortedByDescending { it.folkeregistermetadata?.gyldighetstidspunkt }
+                val vergenavn = sortertPåNyeste.first().vergeEllerFullmektig?.navn
+                val vergenavnString = vergenavn?.fornavn + (vergenavn?.mellomnavn?.let { " $it" } ?: "") + " " + vergenavn?.etternavn
+                vergenavnString.ifBlank { null }
+            }
+
             return BrevdataDto(
                 malType = dto.malType,
                 veilederNavn = brevdataOppslag.veilederNavn,
@@ -238,7 +250,8 @@ class DokumentService(
                 begrunnelse = begrunnelseAvsnitt,
                 kilder = dto.opplysninger,
                 utkast = dto.utkast,
-                ungdomsgaranti = harUngdomsgaranti
+                ungdomsgaranti = harUngdomsgaranti,
+                vergenavn = vergenavn
             )
         }
 

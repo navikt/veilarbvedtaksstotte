@@ -39,7 +39,8 @@ class PdfClientImplTest {
                 fodselsnummer = Fnr.ofValidFnr("12345678910"),
             ),
             utkast = false,
-            ungdomsgaranti = true
+            ungdomsgaranti = true,
+            vergenavn = "Vergefornavn Etternavn"
         )
 
         val documentResponse = "document"
@@ -59,7 +60,8 @@ class PdfClientImplTest {
                         "fodselsnummer": "12345678910"
                       },
                       "utkast": false,
-                      "ungdomsgaranti": true
+                      "ungdomsgaranti": true, 
+                      "vergenavn": "Vergefornavn Etternavn"
                     }
                 """
 

@@ -21,7 +21,8 @@ data class BrevdataDto(
     val kilder: List<String>,
     val mottaker: Mottaker,
     val utkast: Boolean,
-    val ungdomsgaranti: Boolean
+    val ungdomsgaranti: Boolean,
+    val vergenavn: String? = null,
 )
 
 data class Mottaker(

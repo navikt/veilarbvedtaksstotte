@@ -66,6 +66,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -87,6 +88,7 @@ import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.emptyArray;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
@@ -211,6 +213,23 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(veilarbpersonClient.hentPersonNavnForJournalforing(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(veilarbpersonClient.hentFodselsdato(TEST_FNR)).thenReturn(new FodselsdatoOgAr(LocalDate.of(1990, 3, 12), 1990));
+        when(veilarbpersonClient.hentVerge(TEST_FNR)).thenReturn(new VergeData(
+                List.of(
+                        new VergeData.VergemaalEllerFremtidsfullmakt(
+                                Vergetype.MIDLERTIDIG_FOR_VOKSEN,
+                                "VergemallEmbete",
+                                new VergeData.VergeEllerFullmektig(
+                                        new VergeData.VergeNavn("vergeFornavn1", null, "vergeEtternavn1"),
+                                        "vergeMotpartsPersonident1"
+                                ),
+                                new VergeData.Folkeregistermetadata(
+                                        LocalDateTime.of(2020, 1, 1, 12, 0),
+                                        LocalDateTime.of(2020, 1, 1, 12, 0),
+                                        LocalDateTime.of(2020, 1, 1, 12, 0)
+                                )
+                        )
+                )
+        ));
         when(aia_backend_client.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()))).thenReturn(JsonUtils.fromJson(testEgenvurderingData(), EgenvurderingResponseDTO.class));
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);

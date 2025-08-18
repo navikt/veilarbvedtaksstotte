@@ -292,6 +292,14 @@ public class ClientTestConfig {
             public FodselsdatoOgAr hentFodselsdato(@NotNull Fnr fnr)  {
                 return new FodselsdatoOgAr(LocalDate.of(1990, 1, 1), 1990);
             }
+
+            @Override
+            public VergeData hentVerge(@NotNull Fnr fnr) {
+                return new VergeData(
+                        java.util.Collections.emptyList()
+                );
+            }
+
         };
     }
 

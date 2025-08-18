@@ -164,6 +164,30 @@ class VeilarbpersonClientImpl(
                 e
             )
         }
+    }
+
+    override fun hentVerge(fnr: Fnr): VergeData {
+        val request = Request.Builder()
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "api/v3/person/hent-vergeOgFullmakt"))
+            .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+            .post(
+                PersonRequest(fnr, BehandlingsNummer.VEDTAKSTOTTE.value).toJson()
+                    .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
+            )
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                RestUtils.throwIfNotSuccessful(response)
+                return response.deserializeJsonOrThrow<VergeData>()
+            }
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot " + request.url.toString() + e,
+                e
+            )
+        }
 
     }
 

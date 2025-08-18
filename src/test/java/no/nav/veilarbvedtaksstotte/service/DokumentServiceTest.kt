@@ -30,6 +30,8 @@ import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
+import no.nav.veilarbvedtaksstotte.client.person.dto.VergeData
+import no.nav.veilarbvedtaksstotte.client.person.dto.Vergetype
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
@@ -49,6 +51,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.springframework.http.HttpStatus
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 @WireMockTest
@@ -84,13 +87,27 @@ class DokumentServiceTest {
     val enhet = Enhet().setEnhetNr(enhetId.get()).setNavn(enhetNavn)
     val kontaktEnhet = Enhet().setEnhetNr(kontaktEnhetId.get()).setNavn(kontaktEnhetNavn)
     val fodselsdatoOgAr = FodselsdatoOgAr(foedselsdato = LocalDate.of(1990, 1, 1), foedselsaar = 1990)
+    val verge = VergeData(vergemaalEllerFremtidsfullmakt = listOf(VergeData.VergemaalEllerFremtidsfullmakt(
+        Vergetype.VOKSEN,
+        "embetet",
+        VergeData.VergeEllerFullmektig(
+            VergeData.VergeNavn("Fornavn", "Mellomnavn", "Etternavn"),
+           "12345678910"
+        ),
+        VergeData.Folkeregistermetadata(
+            LocalDateTime.now(),
+            LocalDateTime.of(2020, 1, 1, 0, 0),
+            null
+        )
+    )))
     val brevdataOppslag = DokumentService.BrevdataOppslag(
         enhetKontaktinformasjon = enhetKontaktinformasjon,
         malform = malform,
         veilederNavn = veilederNavn,
         enhet = enhet,
         kontaktEnhet = kontaktEnhet,
-        fodselsdatoOgAr = fodselsdatoOgAr
+        fodselsdatoOgAr = fodselsdatoOgAr,
+        verge = verge
     )
     val forventetBrev = "brev".toByteArray()
     val behovsvurderingPdf = "behovsvurdering".toByteArray()
@@ -275,6 +292,28 @@ class DokumentServiceTest {
             "/api/v3/person/hent-foedselsdato",
             equalToJson("{\"fnr\":\"123\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"),
             FodselsdatoOgAr(foedselsdato = LocalDate.of(1990, 1, 1), foedselsaar = 1990).toJson()
+        )
+
+        givenWiremockOkJsonResponseForPost(
+            "/api/v3/person/hent-vergeOgFullmakt",
+            equalToJson("{\"fnr\":\"123\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"),
+            VergeData(
+                vergemaalEllerFremtidsfullmakt = listOf(
+                    VergeData.VergemaalEllerFremtidsfullmakt(
+                        Vergetype.VOKSEN,
+                        "embetet",
+                        VergeData.VergeEllerFullmektig(
+                            VergeData.VergeNavn("Fornavn", "Mellomnavn", "Etternavn"),
+                            "12345678910"
+                        ),
+                        VergeData.Folkeregistermetadata(
+                            LocalDateTime.now(),
+                            LocalDateTime.of(2020, 1, 1, 0, 0),
+                            null
+                        )
+                    )
+                )
+            ).toJson()
         )
 
         givenWiremockOkJsonResponse(

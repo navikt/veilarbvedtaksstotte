@@ -4,10 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus
-import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
+import no.nav.veilarbvedtaksstotte.client.person.dto.*
 import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
@@ -29,7 +26,8 @@ class VeilarbpersonClientImplTest {
         @BeforeAll
         @JvmStatic
         fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
-            veilarbpersonClient = VeilarbpersonClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort, {""},{""})
+            veilarbpersonClient =
+                VeilarbpersonClientImpl("http://localhost:" + wireMockRuntimeInfo.httpPort, { "" }, { "" })
         }
     }
 
@@ -81,6 +79,44 @@ class VeilarbpersonClientImplTest {
         val fodselsdatoOgAr = veilarbpersonClient.hentFodselsdato(Fnr.of(TEST_FNR.get()))
         assertEquals(LocalDate.of(1990, 1, 1), fodselsdatoOgAr.foedselsdato)
         assertEquals(1990, fodselsdatoOgAr.foedselsaar)
+    }
+
+    @Test
+    fun skal_hente_verge() {
+        WireMock.givenThat(
+            WireMock.post("/api/v3/person/hent-vergeOgFullmakt")
+                .withRequestBody(WireMock.equalToJson("{\"fnr\":\"$TEST_FNR\", \"behandlingsnummer\": \"" + BehandlingsNummer.VEDTAKSTOTTE.value + "\"}"))
+                .willReturn(
+                    WireMock.aResponse().withStatus(200).withHeader("Authorization", "Bearer TOKEN").withBody(
+                        """
+                                {
+                                  "vergemaalEllerFremtidsfullmakt": [
+                                    {
+                                      "type": "VOKSEN",
+                                      "embete": "Fylkesmannen i Agder",
+                                      "vergeEllerFullmektig": {
+                                        "navn": {
+                                          "fornavn": "fornavn",
+                                          "mellomnavn": "mellomnavn",
+                                          "etternavn": "etternavn"
+                                        },
+                                        "motpartsPersonident": "1234567890"
+                                      },
+                                      "folkeregistermetadata": {
+                                        "ajourholdstidspunkt": "2025-03-02T13:00:42",
+                                        "gyldighetstidspunkt": "2021-03-02T13:00:42",
+                                        "opphoerstidspunkt": "2024-02-02T13:00:42"
+                                      }
+                                    }
+                                  ]
+                                }
+                            """
+                    )
+                )
+        )
+        val verge = veilarbpersonClient.hentVerge(Fnr.of(TEST_FNR.get()))
+        assertEquals(Vergetype.VOKSEN, verge.vergemaalEllerFremtidsfullmakt.first().type)
+        //assertEquals(1990, fodselsdatoOgAr.foedselsaar)
     }
 
     @Test
