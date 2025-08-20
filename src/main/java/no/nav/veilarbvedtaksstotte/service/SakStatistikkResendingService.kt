@@ -5,6 +5,7 @@ import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository.Companion.SAK_STATISTIKK_TABLE
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 @Service
@@ -20,7 +21,7 @@ class SakStatistikkResendingService(
      * Steg 4: Sett et tidspunkt for når dette skal kjøre og fjern utkommentering av @Scheduled
      */
 
-    //@Scheduled(cron = "0 12 16 28 5 ?")
+    @Scheduled(cron = "0 55 15 20 8 ?")
     fun resendStatistikk() {
         if (leaderElectionClient.isLeader) {
             val log: Logger = LoggerFactory.getLogger(SakStatistikkResendingService::class.java)
