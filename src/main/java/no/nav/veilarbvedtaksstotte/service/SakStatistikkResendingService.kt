@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.service
 
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
+import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository.Companion.SAK_STATISTIKK_TABLE
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -29,7 +30,8 @@ class SakStatistikkResendingService(
             val parameters = mapOf<String, Any>()
 
             // Steg 2: Lag en SQL-spørring for å hente de radene som skal endres og resendes
-            val sql = ""
+            // Vi vet at radene som skal sendes på nytt har disse sekvensnummere
+            val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE sekvensnummer >= 149002 AND sekvensnummer <= 149015"
 
             val sakStatistikkRader = sakStatistikkRepository.hentSakStatistikkListe(sql, parameters)
 
