@@ -21,7 +21,7 @@ class SakStatistikkResendingService(
      * Steg 4: Sett et tidspunkt for når dette skal kjøre og fjern utkommentering av @Scheduled
      */
 
-    @Scheduled(cron = "0 55 15 20 8 ?")
+    @Scheduled(cron = "0 05 16 20 8 ?")
     fun resendStatistikk() {
         if (leaderElectionClient.isLeader) {
             val log: Logger = LoggerFactory.getLogger(SakStatistikkResendingService::class.java)
