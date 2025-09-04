@@ -54,7 +54,8 @@ public class MalTypeService {
                 return hovedmal == Hovedmal.SKAFFE_ARBEID ? MalType.SPESIELT_TILPASSET_INNSATS_SKAFFE_ARBEID
                         : MalType.SPESIELT_TILPASSET_INNSATS_BEHOLDE_ARBEID;
             case GRADERT_VARIG_TILPASSET_INNSATS:
-                return MalType.GRADERT_VARIG_TILPASSET_INNSATS;
+                return hovedmal == Hovedmal.SKAFFE_ARBEID ? MalType.GRADERT_VARIG_TILPASSET_INNSATS_SKAFFE_ARBEID
+                        : MalType.GRADERT_VARIG_TILPASSET_INNSATS_BEHOLDE_ARBEID;
             case VARIG_TILPASSET_INNSATS:
                 return MalType.VARIG_TILPASSET_INNSATS;
         }

@@ -13,7 +13,7 @@ import static no.nav.veilarbvedtaksstotte.repository.KilderRepository.KILDE_TABL
 import static no.nav.veilarbvedtaksstotte.repository.MeldingRepository.DIALOG_MELDING_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.MeldingRepository.SYSTEM_MELDING_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository.OYEBLIKKSBILDE_TABLE;
-import static no.nav.veilarbvedtaksstotte.repository.UtrullingRepository.UTRULLING_TABLE;
+import static no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository.SAK_STATISTIKK_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.VEDTAK_TABLE;
 
 @Slf4j
@@ -21,14 +21,14 @@ public class DbTestUtils {
 
     // Rekkefølgen er viktig pga foreign key constraints
     private final static List<String> ALL_TABLES = Arrays.asList(
-            UTRULLING_TABLE,
             KILDE_TABLE,
             OYEBLIKKSBILDE_TABLE,
             DIALOG_MELDING_TABLE,
             SYSTEM_MELDING_TABLE,
             BESLUTTEROVERSIKT_BRUKER_TABLE,
             VEDTAK_TABLE,
-            "ARENA_VEDTAK"
+            "ARENA_VEDTAK",
+            SAK_STATISTIKK_TABLE
     );
 
     public static void testMigrate (DataSource dataSource) {

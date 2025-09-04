@@ -47,7 +47,7 @@ class EnhetInfoServiceTest {
         givenWiremockOkJsonResponse("/api/v1/enhet?enhetStatusListe=AKTIV", json)
         val enhet = enhetInfoService.hentEnhet(enhetId)
         assertEquals(enhetId.get(), enhet.enhetNr)
-        assertEquals("NAV Enhet 2", enhet.navn)
+        assertEquals("Nav Enhet 2", enhet.navn)
     }
 
     @Test

@@ -1,17 +1,20 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
+import io.getunleash.UnleashContext
 import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
+import no.nav.veilarbvedtaksstotte.client.pdf.*
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
+import no.nav.veilarbvedtaksstotte.utils.SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
@@ -21,68 +24,90 @@ class PdfService(
     val pdfClient: PdfClient,
     val veilarbveilederClient: VeilarbveilederClient,
     val enhetInfoService: EnhetInfoService,
-    val veilarbpersonClient: VeilarbpersonClient
+    val veilarbpersonClient: VeilarbpersonClient,
+    val unleashService: DefaultUnleash,
 ) {
     val log = LoggerFactory.getLogger(PdfService::class.java)
 
     fun produserDokument(dto: ProduserDokumentDTO): ByteArray {
-
         val brevdataOppslag = hentBrevdata(dto.brukerFnr, dto.enhetId, dto.veilederIdent)
-        val brevdata = DokumentService.mapBrevdata(dto, brevdataOppslag)
+        val vasketDto = vaskVedtakDto(dto)
 
-        return pdfClient.genererPdf(brevdata)
+        val unleashContext = UnleashContext.builder()
+            .userId(dto.veilederIdent)
+            .build()
+
+        val brevdataOppslagUtenNavn =
+            if (unleashService.isEnabled(SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV, unleashContext)) {
+                // Hvis funksjonen er skrudd på, skal veilederNavn være null
+                log.info("Funksjon for å skjule veileders navn i 14A vedtaksbrev er aktivert.")
+
+                brevdataOppslag.copy(veilederNavn = "")
+            } else {
+                brevdataOppslag
+            }
+
+        val brevdataDto = DokumentService.mapBrevdata(vasketDto, brevdataOppslagUtenNavn)
+
+        return pdfClient.genererPdf(brevdataDto)
     }
 
-    fun produserBehovsvurderingPdf(data: String?): Optional<ByteArray> {
+    fun produserBehovsvurderingPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
         try {
             if (data == null) return Optional.empty()
 
             val egenvurderingResponseDTO =
-                JsonUtils.objectMapper.readValue(data, EgenvurderingDto::class.java);
+                JsonUtils.objectMapper.readValue(data, EgenvurderingDto::class.java)
+
+            val egenvurderingMedMottaker = EgenvurderingMedMottakerDto.from(egenvurderingResponseDTO, mottaker)
 
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeEgenVurderingPdf(
-                    egenvurderingResponseDTO
+                    egenvurderingMedMottaker
                 )
             )
         } catch (e: Exception) {
-            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            throw e;
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e)
+            throw e
         }
     }
 
-    fun produserArbeidssokerRegistretPdf(data: String?): Optional<ByteArray> {
+    fun produserArbeidssokerRegistretPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
         try {
             if (data == null) return Optional.empty()
 
             val registreringsdataResponseDto =
-                JsonUtils.objectMapper.readValue(data, OpplysningerOmArbeidssoekerMedProfilering::class.java);
+                JsonUtils.objectMapper.readValue(data, OpplysningerOmArbeidssoekerMedProfilering::class.java)
+
+            val registreringsdataMedMottaker =
+                OpplysningerOmArbeidssoekerMedProfileringMedMottakerDto.from(registreringsdataResponseDto, mottaker)
 
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeArbeidssokerRegistretPdf(
-                    registreringsdataResponseDto
+                    registreringsdataMedMottaker
                 )
             )
         } catch (e: Exception) {
-            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            throw e;
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e)
+            throw e
         }
     }
 
-    fun produserCVPdf(data: String?): Optional<ByteArray> {
+    fun produserCVPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
         try {
             if (data == null) return Optional.empty()
 
-            val cvDto =
-                JsonUtils.objectMapper.readValue(data, CvInnhold::class.java);
+            val cvDto = JsonUtils.objectMapper.readValue(data, CvInnhold::class.java)
+            val cvInnholdMedMottaker = CvInnholdMedMottakerDto.from(cvDto, mottaker)
+
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeCvPdf(
-                    cvDto
+                    cvInnholdMedMottaker
                 )
             )
         } catch (e: Exception) {
-            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e);
-            throw e;
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e)
+            throw e
         }
     }
 
@@ -90,6 +115,7 @@ class PdfService(
         val enhetKontaktinformasjon: EnhetKontaktinformasjon = enhetInfoService.utledEnhetKontaktinformasjon(enhetId)
         val malform = veilarbpersonClient.hentMalform(fnr)
         val veilederNavn = veilarbveilederClient.hentVeilederNavn(veilederIdent)
+        val fodselsdatoOgAr = veilarbpersonClient.hentFodselsdato(fnr)
 
         val enhet: Enhet = enhetInfoService.hentEnhet(enhetId)
         val kontaktEnhet: Enhet = enhetInfoService.hentEnhet(enhetKontaktinformasjon.enhetNr)
@@ -99,7 +125,13 @@ class PdfService(
             malform = malform,
             veilederNavn = veilederNavn,
             enhet = enhet,
-            kontaktEnhet = kontaktEnhet
+            kontaktEnhet = kontaktEnhet,
+            fodselsdatoOgAr = fodselsdatoOgAr
         )
     }
+
+    fun vaskVedtakDto(dto: ProduserDokumentDTO): ProduserDokumentDTO {
+        return dto.copy(begrunnelse = dto.begrunnelse?.let { vaskStringForUgyldigeTegn(it) } ?: "")
+    }
+
 }

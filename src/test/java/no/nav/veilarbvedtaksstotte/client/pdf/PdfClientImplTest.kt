@@ -26,7 +26,7 @@ class PdfClientImplTest {
     @Test
     fun request_til_brev_client_har_forventet_innhold() {
 
-        val brevdata = PdfClient.Brevdata(
+        val brevdata = BrevdataDto(
             malType = MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID,
             veilederNavn = "Veileder Navn",
             navKontor = "Nav kontor",
@@ -34,11 +34,12 @@ class PdfClientImplTest {
             malform = Malform.NB,
             begrunnelse = listOf("Avsnitt 1", "Avsnitt 2"),
             kilder = listOf("Kilde 1", "Kilde 2"),
-            mottaker = PdfClient.Mottaker(
+            mottaker = Mottaker(
                 navn = "Mottaker Navn",
-                fodselsnummer = Fnr.ofValidFnr("12345678910")
+                fodselsnummer = Fnr.ofValidFnr("12345678910"),
             ),
-            utkast = false
+            utkast = false,
+            ungdomsgaranti = true
         )
 
         val documentResponse = "document"
@@ -57,7 +58,8 @@ class PdfClientImplTest {
                         "navn": "Mottaker Navn",
                         "fodselsnummer": "12345678910"
                       },
-                      "utkast": false
+                      "utkast": false,
+                      "ungdomsgaranti": true
                     }
                 """
 
@@ -77,6 +79,19 @@ class PdfClientImplTest {
         val response = pdfClient.genererPdf(brevdata)
 
         assertEquals(documentResponse, response.decodeToString())
+    }
+
+    @Test
+    fun `ugyldige tegn skal bli fjernet fra tekstinput til pdfgen`() {
+        val ugyldigInput0002 = "Hello\u0002World\nLine2\u0000"
+        val forventet0002 = "HelloWorld\nLine2"
+        val vasket0002 = vaskStringForUgyldigeTegn(ugyldigInput0002)
+        assertEquals(forventet0002, vasket0002)
+
+        val ugyldigFEFF = "Hello\uFEFFWorld Line2\uFEFF test\uFEFF"
+        val forventetVasketFEFF = "HelloWorld Line2 test"
+        val vasketFEFF = vaskStringForUgyldigeTegn(ugyldigFEFF)
+        assertEquals(forventetVasketFEFF, vasketFEFF)
     }
 }
 

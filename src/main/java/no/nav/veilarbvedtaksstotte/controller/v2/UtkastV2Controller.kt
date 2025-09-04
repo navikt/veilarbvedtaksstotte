@@ -31,8 +31,8 @@ class UtkastV2Controller(
         description = "Henter utkast til § 14 a-vedtak for en spesifisert bruker.",
         responses = [
             ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = VedtakUtkastDTO::class))]),
+            ApiResponse(responseCode = "204", content = [Content(schema = Schema(hidden = true))]),
             ApiResponse(responseCode = "403", content = [Content(schema = Schema(hidden = true))]),
-            ApiResponse(responseCode = "404", content = [Content(schema = Schema(hidden = true))]),
             ApiResponse(responseCode = "500", content = [Content(schema = Schema(hidden = true))])
         ]
     )

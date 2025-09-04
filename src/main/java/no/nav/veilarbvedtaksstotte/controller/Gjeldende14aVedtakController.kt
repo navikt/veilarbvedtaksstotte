@@ -37,7 +37,7 @@ class Gjeldende14aVedtakController(
     @PostMapping("/ekstern/hent-gjeldende-14a-vedtak")
     @Operation(
         summary = "Henter personens gjeldende § 14 a-vedtak",
-        description = "Henter det gjeldende § 14 a-vedtaket for den spesifiserte personen, dersom hen har et gjeldende vedtak. Merk: Det gjøres kun tilgangskontroll på populasjonstilgang men ikke på fagsystemtilganger, så dette må gjøres av konsumentene.",
+        description = "Henter det gjeldende § 14 a-vedtaket for den spesifiserte personen, dersom hen har et gjeldende vedtak. Returnerer null om personen ikke har et vedtak. Merk: Det gjøres kun tilgangskontroll på populasjonstilgang men ikke på fagsystemtilganger, så dette må gjøres av konsumentene.",
         responses = [
             ApiResponse(
                 responseCode = "200",

@@ -44,6 +44,11 @@ spec:
       - description: Datasett for statistikk for 14a vedtak
         name: 14a_vedtak_statistikk
         permission: READWRITE
+  observability:
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
   secureLogs:
     enabled: true
   kafka:
@@ -57,8 +62,14 @@ spec:
       value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
     - name: DOKARKIV_URL
       value: https://dokarkiv.prod-fss-pub.nais.io
-    - name: DOKDISTFORDELING_URL # bruker saf-scope
+    - name: DOKDISTFORDELING_TOKEN_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.dokdistfordeling/.default
+    - name: DOKDISTFORDELING_URL
       value: https://dokdistfordeling.prod-fss-pub.nais.io
+    - name: DOKDISTKANAL_TOKEN_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.dokdistkanal/.default
+    - name: DOKDISTKANAL_URL
+      value: https://dokdistkanal.prod-fss-pub.nais.io
     - name: NORG2_URL
       value: http://norg2.org/norg2
     - name: PDL_TOKEN_SCOPE
@@ -127,6 +138,8 @@ spec:
               - "siste-14a-vedtak"
         - application: veilarbpersonflate
           namespace: poao
+        - application: inngar
+          namespace: dab
         - application: beslutteroversikt
           namespace: obo
         - application: mulighetsrommet-api
@@ -167,12 +180,13 @@ spec:
         - application: norg2
           namespace: org
       external:
-        - host: team-obo-unleash-api.nav.cloud.nais.io
-        - host: pdl-api.prod-fss-pub.nais.io
-        - host: veilarbarena.prod-fss-pub.nais.io
-        - host: saf.prod-fss-pub.nais.io
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: dokdistfordeling.prod-fss-pub.nais.io
+        - host: dokdistkanal.prod-fss-pub.nais.io
+        - host: pdl-api.prod-fss-pub.nais.io
         - host: regoppslag.prod-fss-pub.nais.io
+        - host: saf.prod-fss-pub.nais.io
+        - host: team-obo-unleash-api.nav.cloud.nais.io
+        - host: veilarbarena.prod-fss-pub.nais.io
   envFrom:
     - secret: veilarbvedtaksstotte-unleash-api-token

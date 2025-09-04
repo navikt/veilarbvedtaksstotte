@@ -9,6 +9,7 @@ import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.test.auth.AuthTestUtils;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EnhetId;
+import no.nav.common.types.identer.NavIdent;
 import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.poao_tilgang.client.Decision;
 import no.nav.poao_tilgang.client.PoaoTilgangClient;
@@ -25,6 +26,8 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
+import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
@@ -39,6 +42,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.Malform;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
@@ -46,6 +50,7 @@ import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
 import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
@@ -60,6 +65,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -81,11 +87,7 @@ import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doReturn;
@@ -122,8 +124,9 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
     private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
+    private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
+    private static final DokdistkanalClient dokdistkanalClient = mock(DokdistkanalClient.class);
     private static final VeilarbveilederClient veilarbveilederClient = mock(VeilarbveilederClient.class);
-    private static final UtrullingService utrullingService = mock(UtrullingService.class);
     private static final EnhetInfoService enhetInfoService = mock(EnhetInfoService.class);
 
     private static final SafClient safClient = mock(SafClient.class);
@@ -133,6 +136,8 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final VeilarboppfolgingClient veilarboppfolgingClient = mock(VeilarboppfolgingClient.class);
     private static final BigQueryService bigQueryService = mock(BigQueryService.class);
     private static final EnvironmentProperties environmentProperties = mock(EnvironmentProperties.class);
+    private static final Gjeldende14aVedtakService gjeldende14aVedtakService = mock(Gjeldende14aVedtakService.class);
+    private static final KafkaProducerService kafkaProducerService = mock(KafkaProducerService.class);
 
     @BeforeAll
     public static void setupOnce() {
@@ -157,6 +162,10 @@ public class VedtakServiceTest extends DatabaseTest {
                 oyeblikksbildeService,
                 pdfService
         );
+        DistribusjonService distribusjonService = new DistribusjonService(
+                vedtaksstotteRepository,
+                dokdistribusjonClient,
+                dokdistkanalClient);
         vedtakService = new VedtakService(
                 transactor,
                 vedtaksstotteRepository,
@@ -169,10 +178,15 @@ public class VedtakServiceTest extends DatabaseTest {
                 veilederService,
                 vedtakHendelserService,
                 dokumentService,
+                distribusjonService,
                 veilarbarenaService,
                 metricsService,
                 leaderElectionClient,
-                sakStatistikkService
+                sakStatistikkService,
+                aktorOppslagClient,
+                gjeldende14aVedtakService,
+                kafkaProducerService,
+                unleashService
         );
     }
 
@@ -196,6 +210,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentCVOgJobbprofil(TEST_FNR.get())).thenReturn(new CvDto.CVMedInnhold(JsonUtils.fromJson(testCvData(), CvInnhold.class)));
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(veilarbpersonClient.hentPersonNavnForJournalforing(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
+        when(veilarbpersonClient.hentFodselsdato(TEST_FNR)).thenReturn(new FodselsdatoOgAr(LocalDate.of(1990, 3, 12), 1990));
         when(aia_backend_client.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()))).thenReturn(JsonUtils.fromJson(testEgenvurderingData(), EgenvurderingResponseDTO.class));
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
@@ -212,8 +227,8 @@ public class VedtakServiceTest extends DatabaseTest {
         when(enhetInfoService.utledEnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID)))
                 .thenReturn(new EnhetKontaktinformasjon(EnhetId.of(TEST_OPPFOLGINGSENHET_ID), new EnhetStedsadresse("", "", "", "", "", ""), ""));
         when(pdfService.produserDokument(any())).thenReturn(new byte[]{});
-        when(pdfService.produserCVPdf(any())).thenReturn(Optional.of(new byte[]{}));
-        when(pdfService.produserBehovsvurderingPdf(any())).thenReturn(Optional.of(new byte[]{}));
+        when(pdfService.produserCVPdf(any(), any())).thenReturn(Optional.of(new byte[]{}));
+        when(pdfService.produserBehovsvurderingPdf(any(), any())).thenReturn(Optional.of(new byte[]{}));
         when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
         when(safClient.hentJournalpost(any())).thenReturn(getMockedJournalpostGraphqlResponse());
     }
@@ -348,7 +363,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
         meldingRepository.opprettDialogMelding(utkast.getId(), null, "Test");
 
-        vedtakService.slettUtkast(utkast);
+        vedtakService.slettUtkast(utkast, BehandlingMetode.MANUELL);
 
         assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
     }
@@ -483,8 +498,27 @@ public class VedtakServiceTest extends DatabaseTest {
         });
     }
 
+    @Test
+    void slett_vedtak_ved_personvernsbrudd() {
+        gittUtkastKlarForUtsendelse();
+
+        when(dokarkivClient.opprettJournalpost(any()))
+                .thenReturn(new OpprettetJournalpostDTO(
+                        TEST_JOURNALPOST_ID,
+                        false,
+                        List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
+
+        fattVedtak();
+
+        assertJournalførtOgFerdigstilltVedtak();
+        assertNotNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID).getFirst().getBegrunnelse());
+
+        SlettVedtakRequest slettVedtakRequest = new SlettVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
+        vedtakService.slettVedtak(slettVedtakRequest, NavIdent.of("Z123456"));
+        assertNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID).getFirst().getBegrunnelse());
+    }
+
     private void gittTilgang() {
-        when(utrullingService.erUtrullet(any())).thenReturn(true);
         when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
     }
 
