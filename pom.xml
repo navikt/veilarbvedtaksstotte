@@ -21,7 +21,7 @@
         <java.version>21</java.version>
         <common.version>3.2024.10.25_13.44-9db48a0dbe67</common.version>
         <kotlin.version>2.1.20</kotlin.version>
-        <testcontainers.version>1.20.6</testcontainers.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
         <unleash.version>10.2.1</unleash.version>
 
         <!--   Used by SonarCloud     -->
