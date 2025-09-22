@@ -4,9 +4,9 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.common.types.identer.Fnr
 import no.nav.poao_tilgang.client.TilgangType
+import no.nav.veilarbvedtaksstotte.controller.AuditlogService
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.service.AuthService
-import no.nav.veilarbvedtaksstotte.service.UtrullingService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,7 +26,7 @@ class UtkastV2ControllerTest {
     lateinit var vedtakService: VedtakService
 
     @MockkBean
-    lateinit var utrullingService: UtrullingService
+    lateinit var auditlogService: AuditlogService
 
     @Autowired
     lateinit var mockMvc: MockMvc
@@ -51,9 +51,7 @@ class UtkastV2ControllerTest {
             vedtakService.hentUtkast(fnr)
         } returns Vedtak()
 
-        every {
-            utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(fnr)
-        } answers {}
+        every { auditlogService.auditlog(any(), any()) } answers { }
 
         val request = """
             {
@@ -87,4 +85,5 @@ class UtkastV2ControllerTest {
             .andExpect(status().isOk)
             .andExpect(content().json(expectedResponse))
     }
+
 }

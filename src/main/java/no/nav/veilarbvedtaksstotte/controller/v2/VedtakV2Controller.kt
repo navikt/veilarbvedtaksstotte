@@ -6,11 +6,11 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.veilarbvedtaksstotte.controller.AuditlogService
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.VedtakRequest
 import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService
-import no.nav.veilarbvedtaksstotte.service.UtrullingService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 class VedtakV2Controller(
     val vedtakService: VedtakService,
     val arenaVedtakService: ArenaVedtakService,
-    private val utrullingService: UtrullingService,
+    private val auditlogService: AuditlogService
 ) {
     @PostMapping("/hent-fattet")
     @Operation(
@@ -44,9 +44,8 @@ class VedtakV2Controller(
         ]
     )
     fun hentFattedeVedtak(@RequestBody vedtakRequest: VedtakRequest): List<Vedtak> {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakRequest.fnr)
-
         return vedtakService.hentFattedeVedtak(vedtakRequest.fnr)
+            .also { auditlogService.auditlog("Nav-ansatt hentet fattede § 14 a-vedtak for person", vedtakRequest.fnr) }
     }
 
     @PostMapping("/hent-arena")
@@ -69,8 +68,6 @@ class VedtakV2Controller(
         ]
     )
     fun hentVedtakFraArena(@RequestBody vedtakRequest: VedtakRequest): List<ArkivertVedtak> {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakRequest.fnr);
-
         return arenaVedtakService.hentVedtakFraArena(vedtakRequest.fnr)
     }
 }

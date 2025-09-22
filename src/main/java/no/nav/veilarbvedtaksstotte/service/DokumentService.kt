@@ -9,8 +9,10 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostD
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
+import no.nav.veilarbvedtaksstotte.client.pdf.BrevdataDto
+import no.nav.veilarbvedtaksstotte.client.pdf.Mottaker
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
+import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
 import no.nav.veilarbvedtaksstotte.domain.Malform
@@ -46,7 +48,8 @@ class DokumentService(
     fun produserOgJournalforDokumenterForVedtak(vedtak: Vedtak, fnr: Fnr): OpprettetJournalpostDTO {
         val produserDokumentDTO = lagProduserDokumentDTO(vedtak = vedtak, fnr = fnr, utkast = false)
         val dokument = pdfService.produserDokument(produserDokumentDTO)
-        val tittel = "Vurdering av ditt behov for oppfølging fra NAV"
+        val tittel = "Vurdering av ditt behov for oppfølging fra Nav"
+        val mottaker = Mottaker(produserDokumentDTO.navn, fnr)
 
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
         val oppfolgingssak = veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid)
@@ -62,9 +65,9 @@ class DokumentService(
         val arbeidssokerRegistretData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.ARBEIDSSOKERREGISTRET }
 
-        val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json)
-        val cvPDF = pdfService.produserCVPdf(cvData?.json)
-        val arbeidssokerRegistretPdf = pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData?.json)
+        val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json, mottaker )
+        val cvPDF = pdfService.produserCVPdf(cvData?.json, mottaker)
+        val arbeidssokerRegistretPdf = pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData?.json, mottaker)
 
 
         return journalforDokument(
@@ -107,14 +110,16 @@ class DokumentService(
             )
         )
 
-        if (oyeblikksbildeArbeidssokerRegistretDokument != null){
+        if (oyeblikksbildeArbeidssokerRegistretDokument != null) {
             dokumenterList.add(
                 OpprettJournalpostDTO.Dokument(
                     tittel = OyeblikksbildePdfTemplate.ARBEIDSSOKERREGISTRET.fileName,
                     brevkode = BrevKode.of(OyeblikksbildeType.ARBEIDSSOKERREGISTRET).name,
                     dokumentvarianter = listOf(
                         OpprettJournalpostDTO.DokumentVariant(
-                            "PDFA", fysiskDokument = oyeblikksbildeArbeidssokerRegistretDokument, variantformat = "ARKIV"
+                            "PDFA",
+                            fysiskDokument = oyeblikksbildeArbeidssokerRegistretDokument,
+                            variantformat = "ARKIV"
                         )
                     )
                 )
@@ -174,7 +179,7 @@ class DokumentService(
 
     private fun lagProduserDokumentDTO(vedtak: Vedtak, fnr: Fnr, utkast: Boolean): ProduserDokumentDTO {
         val malType = malTypeService.utledMalTypeFraVedtak(vedtak, fnr)
-        val personnavn = veilarbpersonClient.hentPersonNavn(fnr.toString())
+        val personnavn = veilarbpersonClient.hentPersonNavnForJournalforing(fnr.toString())
         val navn = listOfNotNull(personnavn.fornavn, personnavn.mellomnavn, personnavn.etternavn).joinToString(" ")
 
 
@@ -195,19 +200,26 @@ class DokumentService(
         val malform: Malform,
         val veilederNavn: String,
         val enhet: Enhet,
-        val kontaktEnhet: Enhet
+        val kontaktEnhet: Enhet,
+        val fodselsdatoOgAr: FodselsdatoOgAr
     )
 
 
     companion object {
 
-        fun mapBrevdata(dto: ProduserDokumentDTO, brevdataOppslag: BrevdataOppslag): PdfClient.Brevdata {
-
-            val mottaker = PdfClient.Mottaker(
-                navn = dto.navn,
-                fodselsnummer = dto.brukerFnr
-            )
+        fun mapBrevdata(dto: ProduserDokumentDTO, brevdataOppslag: BrevdataOppslag): BrevdataDto {
             val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
+            val erIAlderForUngdomsgaranti = erIAlderForUngdomsgaranti(brevdataOppslag.fodselsdatoOgAr)
+            val harUngdomsgaranti = erIAlderForUngdomsgaranti &&
+                    (dto.malType == MalType.SITUASJONSBESTEMT_INNSATS_BEHOLDE_ARBEID ||
+                            dto.malType == MalType.SITUASJONSBESTEMT_INNSATS_SKAFFE_ARBEID ||
+                            dto.malType == MalType.SPESIELT_TILPASSET_INNSATS_BEHOLDE_ARBEID ||
+                            dto.malType == MalType.SPESIELT_TILPASSET_INNSATS_SKAFFE_ARBEID)
+
+            val mottaker = Mottaker(
+                navn = dto.navn,
+                fodselsnummer = dto.brukerFnr,
+            )
 
             val enhetNavn = brevdataOppslag.enhet.navn ?: throw IllegalStateException(
                 "Manglende navn for enhet ${brevdataOppslag.enhet.enhetNr}"
@@ -216,7 +228,7 @@ class DokumentService(
             val begrunnelseAvsnitt =
                 dto.begrunnelse?.let { splitNewline(it) }?.filterNot { it.isEmpty() } ?: emptyList()
 
-            return PdfClient.Brevdata(
+            return BrevdataDto(
                 malType = dto.malType,
                 veilederNavn = brevdataOppslag.veilederNavn,
                 navKontor = enhetNavn,
@@ -225,8 +237,25 @@ class DokumentService(
                 mottaker = mottaker,
                 begrunnelse = begrunnelseAvsnitt,
                 kilder = dto.opplysninger,
-                utkast = dto.utkast
+                utkast = dto.utkast,
+                ungdomsgaranti = harUngdomsgaranti
             )
+        }
+
+        // Undomsgarantien gjelder for personer fra og med de fyller 16 inntil dagen de fyller 30 år.
+        fun erIAlderForUngdomsgaranti(fodselsinfo: FodselsdatoOgAr): Boolean {
+            val dagensDato = LocalDate.now()
+
+            // Hvis fødselsdato er null, betyr det at vi kun har fødselsår. Per 17.6.25 gjelder dette kun 14 stk i pdl.
+            // Tar derfor med hele året de fyller 16 eller 30 for å ta med alle uavhengig av når på året de er født.
+            if (fodselsinfo.foedselsdato == null) {
+                val blirDenneAldereIAr = dagensDato.year - fodselsinfo.foedselsaar
+                return blirDenneAldereIAr in 16..30
+            }
+
+            val er16EllerOver = !fodselsinfo.foedselsdato.isAfter(dagensDato.minusYears(16))
+            val erUnder30 = fodselsinfo.foedselsdato.isAfter(dagensDato.minusYears(30))
+            return er16EllerOver && erUnder30
         }
     }
 

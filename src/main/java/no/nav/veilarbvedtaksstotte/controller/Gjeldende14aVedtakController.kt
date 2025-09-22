@@ -29,14 +29,15 @@ import org.springframework.web.server.ResponseStatusException
 )
 class Gjeldende14aVedtakController(
     val authService: AuthService,
-    val gjeldende14aVedtakService: Gjeldende14aVedtakService
+    val gjeldende14aVedtakService: Gjeldende14aVedtakService,
+    val auditlogService: AuditlogService
 ) {
 
     @EksterntEndepunkt
     @PostMapping("/ekstern/hent-gjeldende-14a-vedtak")
     @Operation(
         summary = "Henter personens gjeldende § 14 a-vedtak",
-        description = "Henter det gjeldende § 14 a-vedtaket for den spesifiserte personen, dersom hen har et gjeldende vedtak. Merk: Det gjøres kun tilgangskontroll på populasjonstilgang men ikke på fagsystemtilganger, så dette må gjøres av konsumentene.",
+        description = "Henter det gjeldende § 14 a-vedtaket for den spesifiserte personen, dersom hen har et gjeldende vedtak. Returnerer null om personen ikke har et vedtak. Merk: Det gjøres kun tilgangskontroll på populasjonstilgang men ikke på fagsystemtilganger, så dette må gjøres av konsumentene.",
         responses = [
             ApiResponse(
                 responseCode = "200",
@@ -78,10 +79,15 @@ class Gjeldende14aVedtakController(
             fnr = gjeldende14aVedtakRequest.fnr,
             veilederTilgangssjekk = ::sjekkVeilederTilgangTilBruker
         )
-        return gjeldende14aVedtakService.hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)
-            ?.toGjeldende14aVedtakDto()
-    }
 
+        return gjeldende14aVedtakService
+                .hentGjeldende14aVedtak(gjeldende14aVedtakRequest.fnr)
+                ?.toGjeldende14aVedtakDto()
+                .also { auditlogService.auditlog(
+                    "Nav-ansatt hentet personens gjeldende § 14 a-vedtak",
+                    gjeldende14aVedtakRequest.fnr
+                ) }
+    }
 
     private fun sjekkLesetilgang(fnr: Fnr, veilederTilgangssjekk: (fnr: Fnr) -> Unit) {
         if (authService.erSystemBruker()) {

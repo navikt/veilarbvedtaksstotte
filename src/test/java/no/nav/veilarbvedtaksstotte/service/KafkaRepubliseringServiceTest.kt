@@ -8,6 +8,15 @@ import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.ARENA_VEDTAK_TABLE
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.FNR
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.FRA_DATO
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.HENDELSE_ID
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.HOVEDMAL
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.INNSATSGRUPPE
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.OPERATION_TIMESTAMP
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.REG_USER
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.VEDTAK_ID
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
@@ -115,17 +124,41 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
     }
 
     private fun lagreVedtakFraArena(fnr: Fnr) {
-        arenaVedtakRepository.upsertVedtak(
-            ArenaVedtak(
-                fnr = fnr,
-                innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.IKVAL,
-                hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
-                fraDato = LocalDate.now(),
-                regUser = "REG_USER",
-                operationTimestamp = LocalDateTime.now(),
-                hendelseId = nextLong(),
-                vedtakId = nextLong()
-            )
+        val vedtak = ArenaVedtak(
+            fnr = fnr,
+            innsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.IKVAL,
+            hovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA,
+            fraDato = LocalDate.now(),
+            regUser = "REG_USER",
+            operationTimestamp = LocalDateTime.now(),
+            hendelseId = nextLong(),
+            vedtakId = nextLong()
+        )
+
+        val sql =
+            """
+                INSERT INTO $ARENA_VEDTAK_TABLE ($FNR, $INNSATSGRUPPE, $HOVEDMAL, $FRA_DATO, $REG_USER, $OPERATION_TIMESTAMP, $HENDELSE_ID, $VEDTAK_ID)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT ($FNR) DO UPDATE
+                SET $INNSATSGRUPPE        = EXCLUDED.$INNSATSGRUPPE,
+                    $HOVEDMAL             = EXCLUDED.$HOVEDMAL,
+                    $FRA_DATO             = EXCLUDED.$FRA_DATO,
+                    $REG_USER             = EXCLUDED.$REG_USER,
+                    $OPERATION_TIMESTAMP  = EXCLUDED.$OPERATION_TIMESTAMP,
+                    $HENDELSE_ID          = EXCLUDED.$HENDELSE_ID,
+                    $VEDTAK_ID            = EXCLUDED.$VEDTAK_ID
+            """
+
+        jdbcTemplate.update(
+            sql,
+            vedtak.fnr.get(),
+            vedtak.innsatsgruppe.name,
+            vedtak.hovedmal?.name,
+            vedtak.fraDato,
+            vedtak.regUser,
+            vedtak.operationTimestamp,
+            vedtak.hendelseId,
+            vedtak.vedtakId
         )
     }
 }

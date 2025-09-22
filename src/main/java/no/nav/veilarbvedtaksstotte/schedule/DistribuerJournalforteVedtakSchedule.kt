@@ -24,7 +24,7 @@ class DistribuerJournalforteVedtakSchedule(
         if (leaderElection.isLeader) {
             JobRunner.run("distribuer_journalforte_vedtak") {
 
-                val vedtakForDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentVedtakForDistribusjon(10)
+                val vedtakForDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentVedtakForDistribusjon(100)
 
                 if (vedtakForDistribusjon.isEmpty()) {
                     log.info("Ingen nye vedtak å distribuere")

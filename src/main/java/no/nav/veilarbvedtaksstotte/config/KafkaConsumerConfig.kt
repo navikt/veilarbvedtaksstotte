@@ -15,7 +15,6 @@ import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
 import no.nav.common.utils.EnvironmentUtils
 import no.nav.person.pdl.aktor.v2.Aktor
-import no.nav.veilarbvedtaksstotte.domain.kafka.ArenaVedtakRecord
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
@@ -202,23 +201,6 @@ class KafkaConsumerConfig {
                             )
                         })
 
-            val arenaVedtakClientConfigBuilder = KafkaConsumerClientBuilder.TopicConfig<String, ArenaVedtakRecord>()
-                .withLogging()
-                .withMetrics(meterRegistry)
-                // Warning: Denne topicen bruker dato og tid som key, med presisjon på sekund. Det betyr at
-                // meldinger for forskjellige brukere innenfor samme sekund kan blokkere for hverandre dersom
-                // en melding feiler.
-                .withStoreOnFailure(consumerRepository)
-                .withConsumerConfig(
-                    kafkaProperties.arenaVedtakTopic,
-                    Deserializers.stringDeserializer(),
-                    Deserializers.jsonDeserializer(ArenaVedtakRecord::class.java),
-                    Consumer {
-                        kafkaConsumerService.behandleKafkaMelding(
-                            it,
-                            kafkaConsumerService::behandleArenaVedtak
-                        )
-                    })
             val oppfolgingsbrukerEndringClientConfigBuilder =
                 KafkaConsumerClientBuilder.TopicConfig<String, KafkaOppfolgingsbrukerEndringV2>()
                     .withLogging()
@@ -256,7 +238,6 @@ class KafkaConsumerConfig {
 
             return listOf(
                 vedtakStatusEndringClientConfigBuilder,
-                arenaVedtakClientConfigBuilder,
                 oppfolgingsbrukerEndringClientConfigBuilder,
                 sisteOppfolgingsperiodeClientConfigBuilder
             )

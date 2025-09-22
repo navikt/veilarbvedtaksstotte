@@ -5,10 +5,10 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.veilarbvedtaksstotte.controller.AuditlogService
 import no.nav.veilarbvedtaksstotte.controller.dto.VedtakUtkastDTO
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.UtkastRequest
 import no.nav.veilarbvedtaksstotte.mapper.toVedtakUtkastDTO
-import no.nav.veilarbvedtaksstotte.service.UtrullingService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 )
 class UtkastV2Controller(
     val vedtakService: VedtakService,
-    private val utrullingService: UtrullingService
+    private val auditlogService: AuditlogService
 ) {
     @PostMapping("/hent-utkast")
     @Operation(
@@ -31,15 +31,14 @@ class UtkastV2Controller(
         description = "Henter utkast til § 14 a-vedtak for en spesifisert bruker.",
         responses = [
             ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = VedtakUtkastDTO::class))]),
+            ApiResponse(responseCode = "204", content = [Content(schema = Schema(hidden = true))]),
             ApiResponse(responseCode = "403", content = [Content(schema = Schema(hidden = true))]),
-            ApiResponse(responseCode = "404", content = [Content(schema = Schema(hidden = true))]),
             ApiResponse(responseCode = "500", content = [Content(schema = Schema(hidden = true))])
         ]
     )
     fun hentUtkast(@RequestBody utkastRequest: UtkastRequest): VedtakUtkastDTO {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(utkastRequest.fnr)
-
         return toVedtakUtkastDTO(vedtakService.hentUtkast(utkastRequest.fnr))
+            .also { auditlogService.auditlog("Nav-ansatt hentet utkast til § 14 a-vedtak for person", utkastRequest.fnr) }
     }
 
     @PostMapping("/utkast/hent-harUtkast")
@@ -53,8 +52,7 @@ class UtkastV2Controller(
         ]
     )
     fun harUtkast(@RequestBody utkastRequest: UtkastRequest): Boolean {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(utkastRequest.fnr)
-
         return vedtakService.harUtkast(utkastRequest.fnr)
     }
+
 }

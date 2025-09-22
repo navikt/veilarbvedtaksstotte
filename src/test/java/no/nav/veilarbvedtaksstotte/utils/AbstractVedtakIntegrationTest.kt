@@ -10,6 +10,15 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.ARENA_VEDTAK_TABLE
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.FNR
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.FRA_DATO
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.HENDELSE_ID
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.HOVEDMAL
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.INNSATSGRUPPE
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.OPERATION_TIMESTAMP
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.REG_USER
+import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.VEDTAK_ID
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import org.apache.commons.lang3.RandomStringUtils
 import org.mockito.ArgumentMatchers
@@ -117,7 +126,32 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
             hendelseId = hendelseId,
             vedtakId = 1
         )
-        arenaVedtakRepository.upsertVedtak(arenaVedtak)
+
+        val sql =
+            """
+                INSERT INTO $ARENA_VEDTAK_TABLE ($FNR, $INNSATSGRUPPE, $HOVEDMAL, $FRA_DATO, $REG_USER, $OPERATION_TIMESTAMP, $HENDELSE_ID, $VEDTAK_ID)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT ($FNR) DO UPDATE
+                SET $INNSATSGRUPPE        = EXCLUDED.$INNSATSGRUPPE,
+                    $HOVEDMAL             = EXCLUDED.$HOVEDMAL,
+                    $FRA_DATO             = EXCLUDED.$FRA_DATO,
+                    $REG_USER             = EXCLUDED.$REG_USER,
+                    $OPERATION_TIMESTAMP  = EXCLUDED.$OPERATION_TIMESTAMP,
+                    $HENDELSE_ID          = EXCLUDED.$HENDELSE_ID,
+                    $VEDTAK_ID            = EXCLUDED.$VEDTAK_ID
+            """
+
+        DatabaseTest.Companion.jdbcTemplate.update(
+            sql,
+            arenaVedtak.fnr.get(),
+            arenaVedtak.innsatsgruppe.name,
+            arenaVedtak.hovedmal?.name,
+            arenaVedtak.fraDato,
+            arenaVedtak.regUser,
+            arenaVedtak.operationTimestamp,
+            arenaVedtak.hendelseId,
+            arenaVedtak.vedtakId
+        )
 
         return arenaVedtak
     }
@@ -125,7 +159,8 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
     fun gittBrukerIdenter(
         antallHistoriskeFnr: Int = 1, antallHistoriskeAktorId: Int = 1
     ): BrukerIdenter {
-        val brukerIdenter = BrukerIdenter(Fnr(RandomStringUtils.randomNumeric(11)),
+        val brukerIdenter = BrukerIdenter(
+            Fnr(RandomStringUtils.randomNumeric(11)),
             AktorId(RandomStringUtils.randomNumeric(13)),
             (1..antallHistoriskeFnr).map { Fnr(RandomStringUtils.randomNumeric(11)) },
             (1..antallHistoriskeAktorId).map { AktorId(RandomStringUtils.randomNumeric(11)) })

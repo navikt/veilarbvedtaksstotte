@@ -24,11 +24,13 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostD
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournalpostResponsDTO;
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClient;
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.dto.BestemDistribusjonskanalResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetOrganisering;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
+import no.nav.veilarbvedtaksstotte.client.pdf.*;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.*;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
@@ -42,12 +44,11 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.domain.Malform;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.Instant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -165,25 +166,25 @@ public class ClientTestConfig {
 
             @NotNull
             @Override
-            public byte[] genererOyeblikksbildeArbeidssokerRegistretPdf(@NotNull OpplysningerOmArbeidssoekerMedProfilering registreringOyeblikksbildeData) {
+            public byte[] genererOyeblikksbildeArbeidssokerRegistretPdf(@NotNull OpplysningerOmArbeidssoekerMedProfileringMedMottakerDto registreringOyeblikksbildeData) {
                 return new byte[0];
             }
 
             @NotNull
             @Override
-            public byte[] genererOyeblikksbildeEgenVurderingPdf(@NotNull EgenvurderingDto egenvurderingOyeblikksbildeData) {
+            public byte[] genererOyeblikksbildeEgenVurderingPdf(@NotNull EgenvurderingMedMottakerDto egenvurderingOyeblikksbildeData) {
                 return new byte[0];
             }
 
             @NotNull
             @Override
-            public byte[] genererOyeblikksbildeCvPdf(@NotNull CvInnhold cvOyeblikksbildeData) {
+            public byte[] genererOyeblikksbildeCvPdf(@NotNull CvInnholdMedMottakerDto cvOyeblikksbildeData) {
                 return new byte[0];
             }
 
             @NotNull
             @Override
-            public byte[] genererPdf(@NotNull Brevdata brevdata) {
+            public byte[] genererPdf(@NotNull BrevdataDto brevdata) {
                 return new byte[0];
             }
 
@@ -261,6 +262,17 @@ public class ClientTestConfig {
             }
 
             @Override
+            public PersonNavn hentPersonNavnForJournalforing(String fnr) {
+                PersonNavn personNavn = new PersonNavn(
+                        "TEST",
+                        null,
+                        "TESTERSEN",
+                        "TEST TESTERSEN"
+                );
+                return personNavn;
+            }
+
+            @Override
             public CvDto hentCVOgJobbprofil(String fnr) {
                 return new CvDto.CvMedError(CvErrorStatus.IKKE_DELT);
             }
@@ -274,6 +286,11 @@ public class ClientTestConfig {
             @Override
             public HealthCheckResult checkHealth() {
                 return HealthCheckResult.healthy();
+            }
+
+            @Override
+            public FodselsdatoOgAr hentFodselsdato(@NotNull Fnr fnr)  {
+                return new FodselsdatoOgAr(LocalDate.of(1990, 1, 1), 1990);
             }
         };
     }
@@ -394,6 +411,21 @@ public class ClientTestConfig {
             @Override
             public DistribuerJournalpostResponsDTO distribuerJournalpost(DistribuerJournalpostDTO dto) {
                 return new DistribuerJournalpostResponsDTO(TEST_DOKUMENT_BESTILLING_ID);
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
+            }
+        };
+    }
+
+    @Bean
+    public DokdistkanalClient dokdistkanalClient() {
+        return new DokdistkanalClient() {
+            @Override
+            public @NotNull BestemDistribusjonskanalResponseDTO bestemDistribusjonskanal(@NotNull Fnr brukerFnr) {
+                return new BestemDistribusjonskanalResponseDTO(BestemDistribusjonskanalResponseDTO.Distribusjonskanal.PRINT.toString(), "BRUKER_SDP_MANGLER_VARSELINFO", "Bruker skal varsles, men finner hverken mobiltelefonnummer eller e-postadresse");
             }
 
             @Override

@@ -117,7 +117,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
         String nyEnhetId = "8888";
-        String nyEnhetNavn = "NAV Ny enhet";
+        String nyEnhetNavn = "Nav Ny enhet";
 
         BeslutteroversiktBruker nyBruker = lagBruker(vedtakId);
 

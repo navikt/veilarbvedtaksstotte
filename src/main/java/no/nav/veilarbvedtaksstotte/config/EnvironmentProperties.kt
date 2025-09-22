@@ -9,7 +9,10 @@ data class EnvironmentProperties (
     val dbUrl: String,
     val dokarkivScope: String,
     val dokarkivUrl: String,
+    val dokdistfordelingScope: String,
     val dokdistfordelingUrl: String,
+    val dokdistkanalScope: String,
+    val dokdistkanalUrl: String,
     val naisAadClientId: String,
     val naisAadDiscoveryUrl: String,
     val naisAadIssuer: String,
@@ -36,5 +39,4 @@ data class EnvironmentProperties (
     val veilarbpersonUrl: String,
     val veilarbveilederScope: String,
     val veilarbveilederUrl: String
-
 )

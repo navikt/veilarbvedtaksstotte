@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.tomakehurst.wiremock.http.Response.response
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.every
@@ -13,9 +14,14 @@ import no.nav.veilarbvedtaksstotte.controller.v2.dto.Gjeldende14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.Gjeldende14aVedtakService
+import no.nav.veilarbvedtaksstotte.utils.toJson
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.internal.http.hasBody
+import okhttp3.internal.http.promisesBody
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.isNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.Import
@@ -24,6 +30,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.web.server.ResponseStatusException
 import java.time.ZoneId
@@ -40,6 +47,9 @@ class Gjeldende14avedtakControllerTest {
     @MockkBean
     lateinit var gjeldende14aVedtakService: Gjeldende14aVedtakService
 
+    @MockkBean
+    lateinit var auditlogService: AuditlogService
+
     @Autowired
     lateinit var objectMapper: ObjectMapper
 
@@ -55,6 +65,8 @@ class Gjeldende14avedtakControllerTest {
         every {
             gjeldende14aVedtakService.hentGjeldende14aVedtak(fnr)
         } returns null
+
+        every { auditlogService.auditlog(any(), any()) } answers { }
     }
 
     @Test
@@ -222,6 +234,39 @@ class Gjeldende14avedtakControllerTest {
                 )
         ).andExpect(status().`is`(200))
             .andExpect(content().json(expectedContent))
+    }
+
+    @Test
+    fun `returnerer null hvis tilgang, men ingen vedtak`() {
+        // Given
+        every {
+            authService.erSystemBruker()
+        } returns false
+
+        every {
+            authService.erEksternBruker()
+        } returns false
+
+        every {
+            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.LESE, fnr = fnr)
+        } answers { null.toJson() }
+
+        val result = mockMvc.perform(
+            post("/api/hent-gjeldende-14a-vedtak")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(
+                    """
+                    {
+                        "fnr": "$fnr"
+                    }
+                    """.trimMargin()
+                )
+        ).andExpect(status().`is`(200))
+            .andExpect(header().doesNotExist("content-type"))
+            .andReturn().response
+
+        assertEquals(0, result.contentLength)
+        assertEquals("", result.contentAsString)
     }
 
     @Test

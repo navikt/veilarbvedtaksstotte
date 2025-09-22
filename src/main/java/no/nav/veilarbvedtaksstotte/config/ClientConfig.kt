@@ -27,6 +27,8 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClient
 import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.DokdistribusjonClientImpl
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClient
+import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClientImpl
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
@@ -142,6 +144,15 @@ class ClientConfig {
     }
 
     @Bean
+    fun dokdistkanalClient(
+        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+    ): DokdistkanalClient {
+        return DokdistkanalClientImpl(
+            properties.dokdistkanalUrl,
+        ) { machineTokenClient.createMachineToMachineToken(properties.dokdistkanalScope) }
+    }
+
+    @Bean
     fun regoppslagClient(
         properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
     ): RegoppslagClient {
@@ -165,10 +176,9 @@ class ClientConfig {
     fun dokDistribusjonClient(
         properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
     ): DokdistribusjonClient {
-        // dokdistfordeling bruker saf token scope
         return DokdistribusjonClientImpl(properties.dokdistfordelingUrl) {
             machineTokenClient.createMachineToMachineToken(
-                properties.safScope
+                properties.dokdistfordelingScope
             )
         }
     }

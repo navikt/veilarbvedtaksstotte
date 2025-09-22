@@ -11,17 +11,11 @@ import no.nav.veilarbvedtaksstotte.controller.dto.MeldingDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.OpprettDialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.SystemMeldingDTO;
 import no.nav.veilarbvedtaksstotte.service.MeldingService;
-import no.nav.veilarbvedtaksstotte.service.UtrullingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -41,13 +35,11 @@ public class MeldingController {
     private final VedtakService vedtakService;
 
     private final MeldingService meldingService;
-    private final UtrullingService utrullingService;
 
     @Autowired
-    public MeldingController(VedtakService vedtakService, MeldingService meldingService, UtrullingService utrullingService) {
+    public MeldingController(VedtakService vedtakService, MeldingService meldingService) {
         this.vedtakService = vedtakService;
         this.meldingService = meldingService;
-        this.utrullingService = utrullingService;
     }
 
     @GetMapping
@@ -76,8 +68,6 @@ public class MeldingController {
             }
     )
     public List<? extends MeldingDTO> hentDialogMeldinger(@RequestParam("vedtakId") long vedtakId) {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
-
         if (vedtakService.erFattet(vedtakId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -92,13 +82,10 @@ public class MeldingController {
                     "bli synlig i meldingskanalen mellom ansvarlig veileder og kvalitetssikrer."
     )
     public void opprettDialogMelding(@RequestParam("vedtakId") long vedtakId, @RequestBody OpprettDialogMeldingDTO opprettDialogMeldingDTO) {
-        utrullingService.sjekkOmVeilederSkalHaTilgangTilNyLosning(vedtakId);
-
         if (vedtakService.erFattet(vedtakId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         meldingService.opprettBrukerDialogMelding(vedtakId, opprettDialogMeldingDTO.getMelding());
     }
-
 }
