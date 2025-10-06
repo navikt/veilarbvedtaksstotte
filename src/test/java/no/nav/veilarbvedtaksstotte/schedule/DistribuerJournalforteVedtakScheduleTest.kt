@@ -12,8 +12,8 @@ import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Uuid
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.DistribusjonService
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
-import org.apache.commons.lang3.RandomStringUtils.randomAlphabetic
-import org.apache.commons.lang3.RandomStringUtils.randomNumeric
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomAlphabetic
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

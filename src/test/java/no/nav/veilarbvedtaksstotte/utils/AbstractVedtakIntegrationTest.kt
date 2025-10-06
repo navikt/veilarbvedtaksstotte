@@ -20,7 +20,7 @@ import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.OP
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.REG_USER
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.VEDTAK_ID
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
-import org.apache.commons.lang3.RandomStringUtils
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
@@ -160,10 +160,10 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
         antallHistoriskeFnr: Int = 1, antallHistoriskeAktorId: Int = 1
     ): BrukerIdenter {
         val brukerIdenter = BrukerIdenter(
-            Fnr(RandomStringUtils.randomNumeric(11)),
-            AktorId(RandomStringUtils.randomNumeric(13)),
-            (1..antallHistoriskeFnr).map { Fnr(RandomStringUtils.randomNumeric(11)) },
-            (1..antallHistoriskeAktorId).map { AktorId(RandomStringUtils.randomNumeric(11)) })
+            Fnr(randomNumeric(11)),
+            AktorId(randomNumeric(13)),
+            (1..antallHistoriskeFnr).map { Fnr(randomNumeric(11)) },
+            (1..antallHistoriskeAktorId).map { AktorId(randomNumeric(11)) })
 
         `when`(aktorOppslagClient.hentIdenter(ArgumentMatchers.argThat { arg ->
             brukerIdenter.historiskeFnr.plus(brukerIdenter.historiskeAktorId).plus(brukerIdenter.fnr)

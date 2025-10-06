@@ -20,8 +20,9 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomAlphabetic
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import no.nav.veilarbvedtaksstotte.utils.toJson
-import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -244,12 +245,12 @@ class DistribusjonServiceTest : DatabaseTest() {
     }
 
     private fun gittFattetVedtakDer(
-        aktorId: AktorId = AktorId(RandomStringUtils.randomNumeric(10)),
+        aktorId: AktorId = AktorId(randomNumeric(10)),
         vedtakFattetDato: LocalDateTime = LocalDateTime.now(),
-        veilederIdent: String = RandomStringUtils.randomAlphabetic(1) + RandomStringUtils.randomNumeric(6),
-        oppfolgingsenhet: String = RandomStringUtils.randomNumeric(4),
-        journalpostId: String = RandomStringUtils.randomNumeric(10),
-        dokumentId: String = RandomStringUtils.randomNumeric(9)
+        veilederIdent: String = randomAlphabetic(1) + randomNumeric(6),
+        oppfolgingsenhet: String = randomNumeric(4),
+        journalpostId: String = randomNumeric(10),
+        dokumentId: String = randomNumeric(9)
     ): Long {
         vedtakRepository.opprettUtkast(
             aktorId.get(),
