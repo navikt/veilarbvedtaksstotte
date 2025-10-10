@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Import;
         VedtaksstotteRepository.class,
         ArenaVedtakRepository.class,
         SakStatistikkRepository.class,
-        SisteOppfolgingPeriodeRepository.class
+        SisteOppfolgingPeriodeRepository.class,
+        RetryVedtakdistribusjonRepository.class
 })
 public class RepositoryTestConfig {}

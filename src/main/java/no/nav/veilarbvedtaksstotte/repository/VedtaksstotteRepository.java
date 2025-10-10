@@ -201,6 +201,17 @@ public class VedtaksstotteRepository {
         return db.queryForList(sql, Long.class, antall);
     }
 
+    public List<Long> hentFeilendeVedtakForDistribusjon(int antall) {
+        var sql = "SELECT ID FROM VEDTAK" +
+                " LEFT JOIN RETRY_VEDTAKDISTRIBUSJON ON VEDTAK.JOURNALPOST_ID = RETRY_VEDTAKDISTRIBUSJON.JOURNALPOST_ID" +
+                " WHERE DOKUMENT_BESTILLING_ID IS NULL" +
+                " AND VEDTAK_FATTET IS NOT NULL" +
+                " AND VEDTAK.JOURNALPOST_ID IS NOT NULL" +
+                " AND (RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK > 12)" +
+                " ORDER BY VEDTAK_FATTET ASC LIMIT ?";
+        return db.queryForList(sql, Long.class, antall);
+    }
+
     public List<Long> hentVedtakForJournalforing(int antall) {
         var sql = """
                 SELECT ID FROM VEDTAK

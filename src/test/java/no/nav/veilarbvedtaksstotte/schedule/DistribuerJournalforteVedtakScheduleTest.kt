@@ -9,9 +9,11 @@ import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Feilet
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Mangler
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId.Uuid
+import no.nav.veilarbvedtaksstotte.repository.RetryVedtakdistribusjonRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.DistribusjonService
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
+import no.nav.veilarbvedtaksstotte.utils.DbTestUtils.cleanupDb
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomAlphabetic
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -36,6 +38,7 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
         lateinit var dokdistkanalClient: DokdistkanalClient
         lateinit var distribusjonService: DistribusjonService
         lateinit var vedtakRepository: VedtaksstotteRepository
+        lateinit var retryVedtakdistribusjonRepository: RetryVedtakdistribusjonRepository
         lateinit var distribuerJournalforteVedtakSchedule: DistribuerJournalforteVedtakSchedule
 
         @BeforeAll
@@ -44,13 +47,20 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
             leaderElection = mock(LeaderElectionClient::class.java)
             dokdistribusjonClient = mock(DokdistribusjonClient::class.java)
             vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
+            retryVedtakdistribusjonRepository = RetryVedtakdistribusjonRepository(jdbcTemplate)
             dokdistkanalClient = mock(DokdistkanalClient::class.java)
-            distribusjonService = DistribusjonService(vedtakRepository, dokdistribusjonClient, dokdistkanalClient)
+            distribusjonService = DistribusjonService(
+                vedtakRepository,
+                retryVedtakdistribusjonRepository,
+                dokdistribusjonClient,
+                dokdistkanalClient
+            )
             distribuerJournalforteVedtakSchedule = DistribuerJournalforteVedtakSchedule(
                 leaderElection = leaderElection,
                 distribusjonService = distribusjonService,
                 vedtaksstotteRepository = vedtakRepository,
             )
+            cleanupDb(jdbcTemplate)
         }
     }
 
@@ -60,11 +70,11 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
         `when`(dokdistribusjonClient.distribuerJournalpost(any()))
             .then { DistribuerJournalpostResponsDTO(randomAlphabetic(10)) }
 
-        val batchStørrelse = 10
+        val batchStorrelse = 10
 
         gittFlereVedtakSomIkkeSkalDistribueres()
 
-        val distribueresFørst = (1..batchStørrelse).toList().map {
+        val distribueresForst = (1..batchStorrelse).toList().map {
             gittVedtakDer(
                 vedtakFattetDato = now().minusMonths(1).plusDays(it.toLong()),
                 dokumentBestillingId = null,
@@ -80,17 +90,17 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
             )
         }
 
-        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak()
-        distribueresFørst.forEach { assertDistribuert(it) }
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak(batchStorrelse)
+        distribueresForst.forEach { assertDistribuert(it) }
 
-        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak()
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak(batchStorrelse)
         distribueresAndre.forEach { assertDistribuert(it) }
 
-        verify(dokdistribusjonClient, times(distribueresFørst.size + distribueresAndre.size))
+        verify(dokdistribusjonClient, times(distribueresForst.size + distribueresAndre.size))
             .distribuerJournalpost(any())
 
         reset(dokdistribusjonClient)
-        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak()
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak(batchStorrelse)
         verify(dokdistribusjonClient, never()).distribuerJournalpost(any())
     }
 
@@ -143,7 +153,7 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
     }
 
     fun assertDistribuert(vedtakId: Long) {
-        assertNotNull("Vedtak skal være disteribuert", vedtakRepository.hentVedtak(vedtakId).dokumentbestillingId)
+        assertNotNull("Vedtak skal være distribuert", vedtakRepository.hentVedtak(vedtakId).dokumentbestillingId)
     }
 
     private fun gittVedtakDer(

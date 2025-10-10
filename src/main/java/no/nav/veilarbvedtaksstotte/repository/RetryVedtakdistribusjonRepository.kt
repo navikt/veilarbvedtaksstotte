@@ -5,7 +5,9 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class RetryVedtakdistribusjonRepository(val jdbcTemplate: JdbcTemplate) {
-    val RETRY_VEDTAKDISTRIBUSJON_TABELL = "RETRY_VEDTAKDISTRIBUSJON"
+    companion object {
+        const val RETRY_VEDTAKDISTRIBUSJON_TABELL = "RETRY_VEDTAKDISTRIBUSJON"
+    }
 
     fun insertJournalpostIdEllerOkMedEn(journalpostId: String) {
         val sql = """

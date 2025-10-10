@@ -17,6 +17,7 @@ import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClient
 import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClientImpl
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.repository.RetryVedtakdistribusjonRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
@@ -43,6 +44,7 @@ class DistribusjonServiceTest : DatabaseTest() {
     companion object {
         lateinit var wiremockUrl: String
         lateinit var vedtakRepository: VedtaksstotteRepository
+        lateinit var retryVedtakdistribusjonRepository: RetryVedtakdistribusjonRepository
         lateinit var dokdistribusjonClient: DokdistribusjonClient
         lateinit var dokdistkanalClient: DokdistkanalClient
         lateinit var distribusjonService: DistribusjonService
@@ -52,10 +54,11 @@ class DistribusjonServiceTest : DatabaseTest() {
         fun setup(wireMockRuntimeInfo: WireMockRuntimeInfo) {
             wiremockUrl = "http://localhost:" + wireMockRuntimeInfo.httpPort
             vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
+            retryVedtakdistribusjonRepository = RetryVedtakdistribusjonRepository(jdbcTemplate)
             dokdistribusjonClient = DokdistribusjonClientImpl(wiremockUrl) { "" }
             dokdistkanalClient = DokdistkanalClientImpl(wiremockUrl) { "" }
             distribusjonService = DistribusjonService(
-                vedtakRepository, dokdistribusjonClient, dokdistkanalClient
+                vedtakRepository, retryVedtakdistribusjonRepository, dokdistribusjonClient, dokdistkanalClient
             )
         }
     }
@@ -234,6 +237,72 @@ class DistribusjonServiceTest : DatabaseTest() {
         countDownLatch.await()
 
         verify(exactly(1), postRequestedFor(urlEqualTo("/rest/v1/distribuerjournalpost")))
+    }
+
+    @Test
+    fun `vedtak med journalpostId i retry-tabell skal kunne distribueres`() {
+        val vedtakId = gittFattetVedtakDer()
+        val journalpostId = vedtakRepository.hentVedtak(vedtakId).journalpostId
+        retryVedtakdistribusjonRepository.insertJournalpostIdEllerOkMedEn(journalpostId)
+
+        gittOkResponseFraDistribuerjournalpost()
+        distribusjonService.distribuerVedtak(vedtakId)
+
+        val vedtak = vedtakRepository.hentVedtak(vedtakId)
+        assertNotNull(vedtak.dokumentbestillingId)
+        jdbcTemplate.queryForObject("SELECT COUNT(*) FROM RETRY_VEDTAKDISTRIBUSJON WHERE JOURNALPOST_ID = ?", Int::class.java, vedtak.journalpostId).let {
+            assertEquals(0, it)
+        }
+    }
+
+    @Test
+    fun `vedtak uten journalpostId i retry-tabell skal kunne distribueres`() {
+        val vedtakId = gittFattetVedtakDer()
+        val journalpostId = vedtakRepository.hentVedtak(vedtakId).journalpostId
+        // Sjekk at journalpostId ikke finnes i retry-tabellen
+        jdbcTemplate.queryForObject("SELECT COUNT(*) FROM RETRY_VEDTAKDISTRIBUSJON WHERE JOURNALPOST_ID = ?", Int::class.java, journalpostId).let {
+            assertEquals(0, it)
+        }
+
+        gittOkResponseFraDistribuerjournalpost()
+        distribusjonService.distribuerVedtak(vedtakId)
+
+        val vedtak = vedtakRepository.hentVedtak(vedtakId)
+        assertNotNull(vedtak.dokumentbestillingId)
+        jdbcTemplate.queryForObject("SELECT COUNT(*) FROM RETRY_VEDTAKDISTRIBUSJON WHERE JOURNALPOST_ID = ?", Int::class.java, vedtak.journalpostId).let {
+            assertEquals(0, it)
+        }
+    }
+
+    @Test
+    fun `journalpostId skal lagres, så øke retries, i retry-tabell ved feilet distribusjon`() {
+        val vedtakId = gittFattetVedtakDer()
+        val vedtak = vedtakRepository.hentVedtak(vedtakId)
+        val journalpostId = vedtak.journalpostId
+
+        gittResponseFraDistribuerjournalpost(respons = null, status = 500)
+
+        assertThrowsWithMessage<RuntimeException>(
+            "Uventet status 500 ved kall mot mot $wiremockUrl/rest/v1/distribuerjournalpost"
+        ) {
+            distribusjonService.distribuerVedtak(vedtakId)
+        }
+
+        // Sjekk at journalpostId er lagret i retry-tabellen med 1 forsøk
+        jdbcTemplate.queryForObject("SELECT DISTRIBUSJONSFORSOK FROM RETRY_VEDTAKDISTRIBUSJON WHERE JOURNALPOST_ID = ?", Int::class.java, journalpostId).let {
+            assertEquals(1, it)
+        }
+
+        assertThrowsWithMessage<RuntimeException>(
+            "Uventet status 500 ved kall mot mot $wiremockUrl/rest/v1/distribuerjournalpost"
+        ) {
+            distribusjonService.distribuerVedtak(vedtakId)
+        }
+
+        // Sjekk at journalpostId er lagret i retry-tabellen med 2 forsøk
+        jdbcTemplate.queryForObject("SELECT DISTRIBUSJONSFORSOK FROM RETRY_VEDTAKDISTRIBUSJON WHERE JOURNALPOST_ID = ?", Int::class.java, journalpostId).let {
+            assertEquals(2, it)
+        }
     }
 
     private val executorService: ExecutorService = Executors.newFixedThreadPool(3)

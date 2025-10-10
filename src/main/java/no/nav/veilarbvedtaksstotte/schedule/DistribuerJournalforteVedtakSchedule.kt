@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.schedule
 
-import io.getunleash.DefaultUnleash
 import no.nav.common.job.JobRunner
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -20,11 +19,11 @@ class DistribuerJournalforteVedtakSchedule(
     val log = LoggerFactory.getLogger(DistribuerJournalforteVedtakSchedule::class.java)
 
     @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
-    fun distribuerJournalforteVedtak() {
+    fun distribuerJournalforteVedtak(batchSize: Int = 100) {
         if (leaderElection.isLeader) {
             JobRunner.run("distribuer_journalforte_vedtak") {
 
-                val vedtakForDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentVedtakForDistribusjon(100)
+                val vedtakForDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentVedtakForDistribusjon(batchSize)
 
                 if (vedtakForDistribusjon.isEmpty()) {
                     log.info("Ingen nye vedtak å distribuere")
