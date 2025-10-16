@@ -207,7 +207,7 @@ public class VedtaksstotteRepository {
                 " WHERE DOKUMENT_BESTILLING_ID IS NULL" +
                 " AND VEDTAK_FATTET IS NOT NULL" +
                 " AND VEDTAK.JOURNALPOST_ID IS NOT NULL" +
-                " AND (RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK > 12)" +
+                " AND (RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK >= 12)" +
                 " ORDER BY VEDTAK_FATTET ASC LIMIT ?";
         return db.queryForList(sql, Long.class, antall);
     }

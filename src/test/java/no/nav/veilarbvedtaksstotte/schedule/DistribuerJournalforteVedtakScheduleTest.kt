@@ -18,6 +18,7 @@ import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomAlphabetic
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
@@ -60,8 +61,12 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
                 distribusjonService = distribusjonService,
                 vedtaksstotteRepository = vedtakRepository,
             )
-            cleanupDb(jdbcTemplate)
         }
+    }
+
+    @BeforeEach
+    fun beforeEach() {
+        cleanupDb(jdbcTemplate)
     }
 
     @Test
@@ -101,6 +106,33 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
 
         reset(dokdistribusjonClient)
         distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak(batchStorrelse)
+        verify(dokdistribusjonClient, never()).distribuerJournalpost(any())
+    }
+
+    @Test
+    fun `henter feilende vedtak som skal forsøkes distribuert på nytt`() {
+        `when`(leaderElection.isLeader).thenReturn(true)
+        `when`(dokdistribusjonClient.distribuerJournalpost(any()))
+            .then { DistribuerJournalpostResponsDTO(randomAlphabetic(10)) }
+
+        val feilendeVedtak = (1..5).toList().map {
+            gittFeilendeVedtakDer(
+                vedtakFattetDato = now().minusMonths(1).plusDays(it.toLong()),
+                dokumentBestillingId = null,
+                journalpostId = randomNumeric(10),
+                distribusjonsforsok = 9 + it // 10, 11, 12, 13, 14
+            )
+        }
+
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteFeilendeVedtak(10)
+        feilendeVedtak.forEach { assertDistribuert(it) }
+
+        // Kun de tre vedtakene med 12 eller flere feilede forsøk skal forsøkes på nytt
+        verify(dokdistribusjonClient, times(3))
+            .distribuerJournalpost(any())
+
+        reset(dokdistribusjonClient)
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteFeilendeVedtak(10)
         verify(dokdistribusjonClient, never()).distribuerJournalpost(any())
     }
 
@@ -177,6 +209,39 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
             vedtakFattetDato,
             dokumentBestillingId?.id,
             vedtak.id
+        )
+
+        return vedtak.id
+    }
+
+    private fun gittFeilendeVedtakDer(
+        vedtakFattetDato: LocalDateTime?,
+        dokumentBestillingId: DistribusjonBestillingId?,
+        aktorId: AktorId = AktorId(randomNumeric(10)),
+        veilederIdent: String = randomAlphabetic(1) + randomNumeric(6),
+        oppfolgingsenhet: String = randomNumeric(4),
+        journalpostId: String = randomNumeric(10),
+        dokumentId: String = randomNumeric(9),
+        distribusjonsforsok: Int = 12
+    ): Long {
+        vedtakRepository.opprettUtkast(
+            aktorId.get(),
+            veilederIdent,
+            oppfolgingsenhet
+        )
+        val vedtak = vedtakRepository.hentUtkast(aktorId.get())
+        vedtakRepository.lagreJournalforingVedtak(vedtak.id, journalpostId, dokumentId)
+        jdbcTemplate.update(
+            "UPDATE VEDTAK SET VEDTAK_FATTET = ?, DOKUMENT_BESTILLING_ID = ? WHERE ID = ?",
+            vedtakFattetDato,
+            dokumentBestillingId?.id,
+            vedtak.id
+        )
+        retryVedtakdistribusjonRepository.insertJournalpostIdEllerOkMedEn(journalpostId)
+        jdbcTemplate.update(
+            "UPDATE RETRY_VEDTAKDISTRIBUSJON SET DISTRIBUSJONSFORSOK = ? WHERE JOURNALPOST_ID = ?",
+            distribusjonsforsok,
+            journalpostId
         )
 
         return vedtak.id

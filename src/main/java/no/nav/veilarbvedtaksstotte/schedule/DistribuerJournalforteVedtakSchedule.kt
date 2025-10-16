@@ -29,12 +29,40 @@ class DistribuerJournalforteVedtakSchedule(
                     log.info("Ingen nye vedtak å distribuere")
                 } else {
                     log.info(
-                        "Distribuerer ${vedtakForDistribusjon.size} vedtak med id: ${
+                        "Distribuerer ${vedtakForDistribusjon.size} vedtak med følgende IDer: ${
                             vedtakForDistribusjon.joinToString(", ", "{", "}")
                         }"
                     )
 
                     vedtakForDistribusjon.forEach {
+                        try {
+                            distribusjonService.distribuerVedtak(it)
+                        } catch (e: RuntimeException) {
+                            log.error("Distribusjon av vedtak med id $it feilet", e)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Scheduled(cron = "0 0 12 * * ?") // Hver dag kl. 12
+    fun distribuerJournalforteFeilendeVedtak(batchSize: Int = 100) {
+        if (leaderElection.isLeader) {
+            JobRunner.run("distribuer_journalforte_feilende_vedtak") {
+
+                val FeilendeVedtakTilDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentFeilendeVedtakForDistribusjon(batchSize)
+
+                if (FeilendeVedtakTilDistribusjon.isEmpty()) {
+                    log.info("Ingen feilende vedtak å distribuere")
+                } else {
+                    log.info(
+                        "Distribuerer ${FeilendeVedtakTilDistribusjon.size} vedtak som tidligere har feilet, med følgende IDer: ${
+                            FeilendeVedtakTilDistribusjon.joinToString(", ", "{", "}")
+                        }"
+                    )
+
+                    FeilendeVedtakTilDistribusjon.forEach {
                         try {
                             distribusjonService.distribuerVedtak(it)
                         } catch (e: RuntimeException) {
