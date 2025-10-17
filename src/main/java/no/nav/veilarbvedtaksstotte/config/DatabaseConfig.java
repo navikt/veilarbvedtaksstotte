@@ -23,17 +23,18 @@ public class DatabaseConfig {
 
     @Bean
     public DataSource dataSource() {
-        return createDataSource(environmentProperties.getDbUrl());
+        HikariConfig config = createDataSourceConfig(environmentProperties.getDbUrl(), 15);
+        return new HikariDataSource(config);
     }
 
-    public static DataSource createDataSource(String dbUrl) {
-        try {
-            HikariConfig config = createDataSourceConfig(dbUrl, 15);
-            return new HikariDataSource(config);
-        } catch (Exception e) {
-            log.info("Can't connect to db, error: " + e, e);
-            throw new IllegalStateException("Failed to create DataSource for url=" + dbUrl, e);
-        }
+    @Bean (initMethod = "migrate")
+    public Flyway flyway(DataSource dataSource) {
+        return Flyway.configure()
+                .validateMigrationNaming(true)
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .baselineOnMigrate(true)
+                .load();
     }
 
     public static HikariConfig createDataSourceConfig(String dbUrl, int maximumPoolSize) {
@@ -44,30 +45,4 @@ public class DatabaseConfig {
         config.setMinimumIdle(1);
         return config;
     }
-
-
-    @PostConstruct
-    @SneakyThrows
-    public void migrate() {
-        DataSource dataSource = dataSource();
-
-        if (dataSource == null) {
-            log.error("Skipping Flyway migration: DataSource is null (check app.env.dbUrl)");
-            return;
-        }
-        try {
-            log.info("Starting Flyway migration");
-            Flyway.configure()
-                    .validateMigrationNaming(true)
-                    .dataSource(dataSource)
-                    .locations("classpath:db/migration")
-                    .baselineOnMigrate(true)
-                    .load()
-                    .migrate();
-        } catch (Exception e) {
-            log.error("Flyway migration failed", e);
-            throw new IllegalStateException("Flyway migration failed", e);
-        }
-    }
-
 }
