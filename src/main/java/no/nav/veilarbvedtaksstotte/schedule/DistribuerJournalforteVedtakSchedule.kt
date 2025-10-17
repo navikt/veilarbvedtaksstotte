@@ -18,8 +18,12 @@ class DistribuerJournalforteVedtakSchedule(
 
     val log = LoggerFactory.getLogger(DistribuerJournalforteVedtakSchedule::class.java)
 
+    companion object {
+        @JvmStatic var batchSize: Int = 100
+    }
+
     @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
-    fun distribuerJournalforteVedtak(batchSize: Int = 100) {
+    fun distribuerJournalforteVedtak() {
         if (leaderElection.isLeader) {
             JobRunner.run("distribuer_journalforte_vedtak") {
 
@@ -47,7 +51,7 @@ class DistribuerJournalforteVedtakSchedule(
     }
 
     @Scheduled(cron = "0 0 12 * * ?") // Hver dag kl. 12
-    fun distribuerJournalforteFeilendeVedtak(batchSize: Int = 100) {
+    fun distribuerJournalforteFeilendeVedtak() {
         if (leaderElection.isLeader) {
             JobRunner.run("distribuer_journalforte_feilende_vedtak") {
 

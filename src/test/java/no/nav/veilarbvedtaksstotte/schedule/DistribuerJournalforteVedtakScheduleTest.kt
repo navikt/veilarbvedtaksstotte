@@ -95,17 +95,20 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
             )
         }
 
-        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak(batchStorrelse)
+
+        DistribuerJournalforteVedtakSchedule.batchSize = batchStorrelse
+
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak()
         distribueresForst.forEach { assertDistribuert(it) }
 
-        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak(batchStorrelse)
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak()
         distribueresAndre.forEach { assertDistribuert(it) }
 
         verify(dokdistribusjonClient, times(distribueresForst.size + distribueresAndre.size))
             .distribuerJournalpost(any())
 
         reset(dokdistribusjonClient)
-        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak(batchStorrelse)
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak()
         verify(dokdistribusjonClient, never()).distribuerJournalpost(any())
     }
 
@@ -124,16 +127,14 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
             )
         }
 
-        distribuerJournalforteVedtakSchedule.distribuerJournalforteFeilendeVedtak(10)
+        DistribuerJournalforteVedtakSchedule.batchSize = 10
+
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteFeilendeVedtak()
         feilendeVedtak.forEach { assertDistribuert(it) }
 
         // Kun de tre vedtakene med 12 eller flere feilede forsøk skal forsøkes på nytt
         verify(dokdistribusjonClient, times(3))
             .distribuerJournalpost(any())
-
-        reset(dokdistribusjonClient)
-        distribuerJournalforteVedtakSchedule.distribuerJournalforteFeilendeVedtak(10)
-        verify(dokdistribusjonClient, never()).distribuerJournalpost(any())
     }
 
     fun gittFlereVedtakSomIkkeSkalDistribueres() {
