@@ -32,7 +32,7 @@ public class DatabaseConfig {
             return new HikariDataSource(config);
         } catch (Exception e) {
             log.info("Can't connect to db, error: " + e, e);
-            return null;
+            throw new IllegalStateException("Failed to create DataSource for url=" + dbUrl, e);
         }
     }
 
@@ -49,19 +49,24 @@ public class DatabaseConfig {
     @PostConstruct
     @SneakyThrows
     public void migrate() {
-        DataSource dataSource = createDataSource(environmentProperties.getDbUrl());
+        DataSource dataSource = dataSource();
 
-        if (dataSource != null) {
-            log.info("Starting database migration...");
+        if (dataSource == null) {
+            log.error("Skipping Flyway migration: DataSource is null (check app.env.dbUrl)");
+            return;
+        }
+        try {
+            log.info("Starting Flyway migration");
             Flyway.configure()
                     .validateMigrationNaming(true)
                     .dataSource(dataSource)
-                    .locations("db/migration")
+                    .locations("classpath:db/migration")
                     .baselineOnMigrate(true)
                     .load()
                     .migrate();
-
-            dataSource.getConnection().close();
+        } catch (Exception e) {
+            log.error("Flyway migration failed", e);
+            throw new IllegalStateException("Flyway migration failed", e);
         }
     }
 
