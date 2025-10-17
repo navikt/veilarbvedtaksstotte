@@ -51,18 +51,18 @@ class DistribuerJournalforteVedtakSchedule(
         if (leaderElection.isLeader) {
             JobRunner.run("distribuer_journalforte_feilende_vedtak") {
 
-                val FeilendeVedtakTilDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentFeilendeVedtakForDistribusjon(batchSize)
+                val feilendeVedtakTilDistribusjon: MutableList<Long> = vedtaksstotteRepository.hentFeilendeVedtakForDistribusjon(batchSize)
 
-                if (FeilendeVedtakTilDistribusjon.isEmpty()) {
+                if (feilendeVedtakTilDistribusjon.isEmpty()) {
                     log.info("Ingen feilende vedtak å distribuere")
                 } else {
                     log.info(
-                        "Distribuerer ${FeilendeVedtakTilDistribusjon.size} vedtak som tidligere har feilet, med følgende IDer: ${
-                            FeilendeVedtakTilDistribusjon.joinToString(", ", "{", "}")
+                        "Distribuerer ${feilendeVedtakTilDistribusjon.size} vedtak som tidligere har feilet, med følgende IDer: ${
+                            feilendeVedtakTilDistribusjon.joinToString(", ", "{", "}")
                         }"
                     )
 
-                    FeilendeVedtakTilDistribusjon.forEach {
+                    feilendeVedtakTilDistribusjon.forEach {
                         try {
                             distribusjonService.distribuerVedtak(it)
                         } catch (e: RuntimeException) {
