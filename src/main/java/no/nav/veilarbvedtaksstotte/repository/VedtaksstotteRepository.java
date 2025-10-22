@@ -54,6 +54,7 @@ public class VedtaksstotteRepository {
     private static final String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
     private static final String REFERANSE = "REFERANSE";
     private static final String FEILRETTING_BEGRUNNELSE = "FEILRETTING_BEGRUNNELSE";
+    private static final Integer INITIAL_DISTRIBUSJONSFORSOK_LIMIT = 12; // Prøver først 12 ganger, det tar ca. 2 timer, deretter går det over til døgnlige forsøk
 
     private final JdbcTemplate db;
     private final TransactionTemplate transactor;
@@ -196,9 +197,10 @@ public class VedtaksstotteRepository {
                 " WHERE DOKUMENT_BESTILLING_ID IS NULL" +
                 " AND VEDTAK_FATTET IS NOT NULL" +
                 " AND VEDTAK.JOURNALPOST_ID IS NOT NULL" +
-                " AND (RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK < 12 OR RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK IS NULL)" + // Trenger null-sjekken for å få med vedtak som aldri har hatt et mislykket forsøk
+                " AND (RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK < ?" +
+                " OR RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK IS NULL)" + // Trenger null-sjekken for å få med vedtak som aldri har hatt et mislykket forsøk
                 " ORDER BY VEDTAK_FATTET ASC LIMIT ?";
-        return db.queryForList(sql, Long.class, antall);
+        return db.queryForList(sql, Long.class, INITIAL_DISTRIBUSJONSFORSOK_LIMIT, antall);
     }
 
     public List<Long> hentFeilendeVedtakForDistribusjon(int antall) {
@@ -207,9 +209,9 @@ public class VedtaksstotteRepository {
                 " WHERE DOKUMENT_BESTILLING_ID IS NULL" +
                 " AND VEDTAK_FATTET IS NOT NULL" +
                 " AND VEDTAK.JOURNALPOST_ID IS NOT NULL" +
-                " AND (RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK >= 12)" +
+                " AND RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK >= ?" +
                 " ORDER BY VEDTAK_FATTET ASC LIMIT ?";
-        return db.queryForList(sql, Long.class, antall);
+        return db.queryForList(sql, Long.class, INITIAL_DISTRIBUSJONSFORSOK_LIMIT, antall);
     }
 
     public List<Long> hentVedtakForJournalforing(int antall) {

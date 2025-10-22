@@ -50,7 +50,7 @@ class DistribuerJournalforteVedtakSchedule(
         }
     }
 
-    @Scheduled(cron = "0 0 12 * * ?") // Hver dag kl. 12
+    @Scheduled(cron = "0 0 9 * * ?") // Hver dag kl. 09:00
     fun distribuerJournalforteFeilendeVedtak() {
         if (leaderElection.isLeader) {
             JobRunner.run("distribuer_journalforte_feilende_vedtak") {

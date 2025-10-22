@@ -32,7 +32,7 @@ class DistribusjonService(
             vedtaksstotteRepository.lagreDokumentbestillingsId(vedtakId, distribusjonBestillingId)
             retryVedtakdistribusjonRepository.deleteJournalpostId(vedtak.journalpostId)
         } catch (e: Exception) {
-                retryVedtakdistribusjonRepository.insertJournalpostIdEllerOkMedEn(vedtak.journalpostId)
+                retryVedtakdistribusjonRepository.insertJournalpostIdEllerInkrementerAntallRetriesMedEn(vedtak.journalpostId)
             try {
                 vedtaksstotteRepository.oppdaterSender(vedtakId, false)
             } catch (e2: Exception) {

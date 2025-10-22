@@ -238,7 +238,7 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
             dokumentBestillingId?.id,
             vedtak.id
         )
-        retryVedtakdistribusjonRepository.insertJournalpostIdEllerOkMedEn(journalpostId)
+        retryVedtakdistribusjonRepository.insertJournalpostIdEllerInkrementerAntallRetriesMedEn(journalpostId)
         jdbcTemplate.update(
             "UPDATE RETRY_VEDTAKDISTRIBUSJON SET DISTRIBUSJONSFORSOK = ? WHERE JOURNALPOST_ID = ?",
             distribusjonsforsok,

@@ -9,12 +9,13 @@ class RetryVedtakdistribusjonRepository(val jdbcTemplate: JdbcTemplate) {
         const val RETRY_VEDTAKDISTRIBUSJON_TABELL = "RETRY_VEDTAKDISTRIBUSJON"
     }
 
-    fun insertJournalpostIdEllerOkMedEn(journalpostId: String) {
+    fun insertJournalpostIdEllerInkrementerAntallRetriesMedEn(journalpostId: String) {
         val sql = """
             INSERT INTO $RETRY_VEDTAKDISTRIBUSJON_TABELL (journalpost_id)
             VALUES (?)
             ON CONFLICT (journalpost_id) DO UPDATE 
-            SET DISTRIBUSJONSFORSOK = RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK + 1
+            SET DISTRIBUSJONSFORSOK = RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK + 1, 
+                SIST_FORSOKT = CURRENT_TIMESTAMP
         """.trimIndent()
         jdbcTemplate.update(sql, journalpostId)
     }

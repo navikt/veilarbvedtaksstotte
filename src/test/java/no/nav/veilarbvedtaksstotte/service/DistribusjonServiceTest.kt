@@ -240,10 +240,10 @@ class DistribusjonServiceTest : DatabaseTest() {
     }
 
     @Test
-    fun `vedtak med journalpostId i retry-tabell skal kunne distribueres`() {
+    fun `vedtak som har feilet og har en tilhørende rad i retry-tabellen skal kunne distribueres`() {
         val vedtakId = gittFattetVedtakDer()
         val journalpostId = vedtakRepository.hentVedtak(vedtakId).journalpostId
-        retryVedtakdistribusjonRepository.insertJournalpostIdEllerOkMedEn(journalpostId)
+        retryVedtakdistribusjonRepository.insertJournalpostIdEllerInkrementerAntallRetriesMedEn(journalpostId)
 
         gittOkResponseFraDistribuerjournalpost()
         distribusjonService.distribuerVedtak(vedtakId)
@@ -256,7 +256,7 @@ class DistribusjonServiceTest : DatabaseTest() {
     }
 
     @Test
-    fun `vedtak uten journalpostId i retry-tabell skal kunne distribueres`() {
+    fun `vedtak som ikke tidligere har feilet og ikke har en tilhørende rad i retry-tabellen skal kunne distribueres`() {
         val vedtakId = gittFattetVedtakDer()
         val journalpostId = vedtakRepository.hentVedtak(vedtakId).journalpostId
         // Sjekk at journalpostId ikke finnes i retry-tabellen
