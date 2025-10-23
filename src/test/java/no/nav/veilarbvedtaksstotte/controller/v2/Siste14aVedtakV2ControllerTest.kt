@@ -9,7 +9,7 @@ import no.nav.veilarbvedtaksstotte.controller.AuditlogService
 import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
-import org.apache.commons.lang3.RandomStringUtils
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -42,7 +42,7 @@ class Siste14aVedtakV2ControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
-    val fnr = Fnr(RandomStringUtils.randomNumeric(11))
+    val fnr = Fnr(randomNumeric(11))
 
     @BeforeEach
     fun beforeEach() {

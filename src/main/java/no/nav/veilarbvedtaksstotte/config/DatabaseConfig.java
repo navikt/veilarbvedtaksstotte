@@ -23,17 +23,18 @@ public class DatabaseConfig {
 
     @Bean
     public DataSource dataSource() {
-        return createDataSource(environmentProperties.getDbUrl());
+        HikariConfig config = createDataSourceConfig(environmentProperties.getDbUrl(), 15);
+        return new HikariDataSource(config);
     }
 
-    public static DataSource createDataSource(String dbUrl) {
-        try {
-            HikariConfig config = createDataSourceConfig(dbUrl, 15);
-            return new HikariDataSource(config);
-        } catch (Exception e) {
-            log.info("Can't connect to db, error: " + e, e);
-            return null;
-        }
+    @Bean (initMethod = "migrate")
+    public Flyway flyway(DataSource dataSource) {
+        return Flyway.configure()
+                .validateMigrationNaming(true)
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .baselineOnMigrate(true)
+                .load();
     }
 
     public static HikariConfig createDataSourceConfig(String dbUrl, int maximumPoolSize) {
@@ -44,25 +45,4 @@ public class DatabaseConfig {
         config.setMinimumIdle(1);
         return config;
     }
-
-
-    @PostConstruct
-    @SneakyThrows
-    public void migrate() {
-        DataSource dataSource = createDataSource(environmentProperties.getDbUrl());
-
-        if (dataSource != null) {
-            log.info("Starting database migration...");
-            Flyway.configure()
-                    .validateMigrationNaming(true)
-                    .dataSource(dataSource)
-                    .locations("db/migration")
-                    .baselineOnMigrate(true)
-                    .load()
-                    .migrate();
-
-            dataSource.getConnection().close();
-        }
-    }
-
 }
