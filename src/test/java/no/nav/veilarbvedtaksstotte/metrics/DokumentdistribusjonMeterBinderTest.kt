@@ -6,7 +6,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils.cleanupDb
-import org.apache.commons.lang3.RandomStringUtils.randomNumeric
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

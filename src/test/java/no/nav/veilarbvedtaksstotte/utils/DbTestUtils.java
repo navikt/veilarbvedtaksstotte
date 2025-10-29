@@ -13,6 +13,7 @@ import static no.nav.veilarbvedtaksstotte.repository.KilderRepository.KILDE_TABL
 import static no.nav.veilarbvedtaksstotte.repository.MeldingRepository.DIALOG_MELDING_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.MeldingRepository.SYSTEM_MELDING_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository.OYEBLIKKSBILDE_TABLE;
+import static no.nav.veilarbvedtaksstotte.repository.RetryVedtakdistribusjonRepository.RETRY_VEDTAKDISTRIBUSJON_TABELL;
 import static no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository.SAK_STATISTIKK_TABLE;
 import static no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.VEDTAK_TABLE;
 
@@ -28,7 +29,8 @@ public class DbTestUtils {
             BESLUTTEROVERSIKT_BRUKER_TABLE,
             VEDTAK_TABLE,
             "ARENA_VEDTAK",
-            SAK_STATISTIKK_TABLE
+            SAK_STATISTIKK_TABLE,
+            RETRY_VEDTAKDISTRIBUSJON_TABELL
     );
 
     public static void testMigrate (DataSource dataSource) {

@@ -10,7 +10,7 @@ import javax.sql.DataSource;
 
 public class PostgresContainer {
 
-    public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:14.1-alpine");
+    public static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:15-alpine");
 
     public PostgresContainer() {
         postgreDBContainer.setWaitStrategy(Wait.defaultWaitStrategy());

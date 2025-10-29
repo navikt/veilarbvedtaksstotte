@@ -152,7 +152,6 @@ spec:
           permissions:
             roles:
               - "gjeldende-14a-vedtak"
-              - "siste-14a-vedtak"
         # Lenke til behandling i Behandlingskatalogen: https://behandlingskatalog.intern.nav.no/process/team/7ec4b786-ddf7-4c56-ab2f-3c3edeb0d33f/4ff22ca5-c66a-4127-9271-9de34800c8dd
         - application: modiapersonoversikt-api
           namespace: personoversikt
@@ -160,6 +159,13 @@ spec:
         - application: tiltaksgjennomforing-api
           namespace: arbeidsgiver
           cluster: dev-fss
+          permissions:
+            roles:
+              - "gjeldende-14a-vedtak"
+        # Lenke til behandling i Behandlingskatalogen: https://behandlingskatalog.intern.nav.no/process/team/02e803bf-0114-4ad2-8871-685b5c3035ba/60868e2d-b151-47a3-a1a6-1d896fc3a88d
+        - application: ismeroppfolging
+          namespace: teamsykefravr
+          cluster: prod-gcp
           permissions:
             roles:
               - "gjeldende-14a-vedtak"

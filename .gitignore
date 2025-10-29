@@ -3,6 +3,9 @@
 !.idea/runConfigurations/
 *.iml
 
+# vscode
+.vscode/
+
 # Genererte filer
 target/
 

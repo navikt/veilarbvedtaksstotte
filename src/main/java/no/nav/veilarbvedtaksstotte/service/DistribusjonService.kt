@@ -6,6 +6,7 @@ import no.nav.veilarbvedtaksstotte.client.dokdistfordeling.dto.DistribuerJournal
 import no.nav.veilarbvedtaksstotte.client.dokdistkanal.DokdistkanalClient
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.repository.RetryVedtakdistribusjonRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service
 @Service
 class DistribusjonService(
     val vedtaksstotteRepository: VedtaksstotteRepository,
+    val retryVedtakdistribusjonRepository: RetryVedtakdistribusjonRepository,
     val dokdistribusjonClient: DokdistribusjonClient,
     val dokdistkanalClient: DokdistkanalClient
 ) {
@@ -22,13 +24,15 @@ class DistribusjonService(
     fun distribuerVedtak(vedtakId: Long) {
         // Oppdaterer vedtak til "sender" tilstand for å redusere risiko for dupliserte utsendelser av dokument.
         vedtaksstotteRepository.oppdaterSender(vedtakId, true)
+        val vedtak = vedtaksstotteRepository.hentVedtak(vedtakId)
         try {
-            val vedtak = vedtaksstotteRepository.hentVedtak(vedtakId)
             validerVedtakForDistribusjon(vedtak)
             val distribusjonBestillingId: DistribusjonBestillingId =
                 distribuerJournalpost(vedtak.journalpostId)
             vedtaksstotteRepository.lagreDokumentbestillingsId(vedtakId, distribusjonBestillingId)
+            retryVedtakdistribusjonRepository.deleteJournalpostId(vedtak.journalpostId)
         } catch (e: Exception) {
+                retryVedtakdistribusjonRepository.insertJournalpostIdEllerInkrementerAntallRetriesMedEn(vedtak.journalpostId)
             try {
                 vedtaksstotteRepository.oppdaterSender(vedtakId, false)
             } catch (e2: Exception) {

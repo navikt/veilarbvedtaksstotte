@@ -13,8 +13,8 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TestData
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
-import org.apache.commons.lang3.RandomStringUtils
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -46,7 +46,7 @@ class DvhRapporteringServiceTest : AbstractVedtakIntegrationTest() {
     fun `lagrer forventet record verdi for sending av vedtak til dvh basert på statusendring vedtak sendt`() {
 
         val vedtak = lagreFattetVedtak(
-            aktorId = AktorId(RandomStringUtils.randomNumeric(10)),
+            aktorId = AktorId(randomNumeric(10)),
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
             hovedmal = Hovedmal.SKAFFE_ARBEID,
             vedtakFattetDato = LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234),

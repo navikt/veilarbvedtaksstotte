@@ -35,11 +35,6 @@ spec:
     sqlInstances:
       - type: POSTGRES_15
         tier: db-f1-micro
-        flags:
-          - name: cloudsql.enable_pgaudit
-            value: "on"
-          - name: pgaudit.log
-            value: "all"
         databases:
           - name: veilarbvedtaksstotte
             envVarPrefix: DB
@@ -160,7 +155,6 @@ spec:
           permissions:
             roles:
               - "gjeldende-14a-vedtak"
-              - "siste-14a-vedtak"
         - application: modiapersonoversikt-api
           namespace: personoversikt
         - application: tiltaksgjennomforing-api

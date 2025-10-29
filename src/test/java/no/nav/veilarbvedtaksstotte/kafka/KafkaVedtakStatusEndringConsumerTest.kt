@@ -8,8 +8,8 @@ import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import no.nav.veilarbvedtaksstotte.utils.toJson
-import org.apache.commons.lang3.RandomStringUtils
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,7 +31,7 @@ class KafkaVedtakStatusEndringConsumerTest : AbstractVedtakIntegrationTest() {
     fun `konsumerer melding om statusendring`() {
 
         val vedtak = lagreFattetVedtak(
-            aktorId = AktorId.of(RandomStringUtils.randomNumeric(10)),
+            aktorId = AktorId.of(randomNumeric(10)),
             vedtakFattetDato = LocalDateTime.now()
         )
 

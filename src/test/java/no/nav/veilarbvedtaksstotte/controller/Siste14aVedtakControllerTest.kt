@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.controller
 
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.service.AuthService
-import org.apache.commons.lang3.RandomStringUtils
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,7 +16,7 @@ class Siste14aVedtakControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
-    val fnr = Fnr(RandomStringUtils.randomNumeric(11))
+    val fnr = Fnr(randomNumeric(11))
 
     @Test
     fun `request mot siste-14a-vedtak skal gi HTTP 410 Gone`() {

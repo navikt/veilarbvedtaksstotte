@@ -106,6 +106,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private static KilderRepository kilderRepository;
     private static MeldingRepository meldingRepository;
     private static SakStatistikkRepository sakStatistikkRepository;
+    private static RetryVedtakdistribusjonRepository retryVedtakdistribusjonRepository;
     private static VedtakService vedtakService;
     private static OyeblikksbildeService oyeblikksbildeService;
     private static AuthService authService;
@@ -146,10 +147,10 @@ public class VedtakServiceTest extends DatabaseTest {
         meldingRepository = spy(new MeldingRepository(jdbcTemplate));
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
         sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
+        retryVedtakdistribusjonRepository = new RetryVedtakdistribusjonRepository(jdbcTemplate);
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), poaoTilgangClient));
-        SakStatistikkRepository sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
         SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, environmentProperties, veilarbpersonClient);
 
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerRegistretService);
@@ -164,6 +165,7 @@ public class VedtakServiceTest extends DatabaseTest {
         );
         DistribusjonService distribusjonService = new DistribusjonService(
                 vedtaksstotteRepository,
+                retryVedtakdistribusjonRepository,
                 dokdistribusjonClient,
                 dokdistkanalClient);
         vedtakService = new VedtakService(
@@ -262,7 +264,7 @@ public class VedtakServiceTest extends DatabaseTest {
             assertOppdatertUtkast(oppdaterDto);
 
             vedtakService.fattVedtak(utkast.getId());
-            assertJournalførtOgFerdigstilltVedtak();
+            assertJournalfortOgFerdigstiltVedtak();
         });
     }
 
@@ -272,7 +274,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
         fattVedtak();
 
-        assertJournalførtOgFerdigstilltVedtak();
+        assertJournalfortOgFerdigstiltVedtak();
     }
 
     @Test
@@ -397,7 +399,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
         fattVedtak();
 
-        assertJournalførtOgFerdigstilltVedtak();
+        assertJournalfortOgFerdigstiltVedtak();
     }
 
     @Test
@@ -510,7 +512,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
         fattVedtak();
 
-        assertJournalførtOgFerdigstilltVedtak();
+        assertJournalfortOgFerdigstiltVedtak();
         assertNotNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID).getFirst().getBegrunnelse());
 
         SlettVedtakRequest slettVedtakRequest = new SlettVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
@@ -583,7 +585,7 @@ public class VedtakServiceTest extends DatabaseTest {
         assertThat(oppdatertUtkast.getOpplysninger(), containsInAnyOrder(dto.getOpplysninger().toArray(new String[0])));
     }
 
-    private void assertJournalførtOgFerdigstilltVedtak() {
+    private void assertJournalfortOgFerdigstiltVedtak() {
         withContext(() -> {
             gittTilgang();
             Vedtak sendtVedtak = hentVedtak();
