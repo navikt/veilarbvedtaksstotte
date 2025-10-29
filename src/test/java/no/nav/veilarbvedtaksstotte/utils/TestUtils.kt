@@ -62,6 +62,21 @@ object TestUtils {
         }
     }
 
+    @JvmStatic
+    fun randomAlphabetic(length: Int): String =
+        (1..length)
+            .map { ('A'..'Z') + ('a'..'z') }
+            .flatten()
+            .shuffled()
+            .take(length)
+            .joinToString("")
+
+    @JvmStatic
+    fun randomNumeric(length: Int): String =
+        (1..length)
+            .map { ('0'..'9').random() }
+            .joinToString("")
+
     inline fun <reified T : Throwable> assertThrowsWithMessage(messsage: String, runnable: Runnable) {
         val exception = Assert.assertThrows(
             T::class.java

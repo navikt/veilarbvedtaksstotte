@@ -20,7 +20,7 @@ import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.VE
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
-import org.apache.commons.lang3.RandomStringUtils.randomNumeric
+import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

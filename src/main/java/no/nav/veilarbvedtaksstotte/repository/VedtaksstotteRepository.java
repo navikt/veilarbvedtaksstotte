@@ -54,6 +54,7 @@ public class VedtaksstotteRepository {
     private static final String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
     private static final String REFERANSE = "REFERANSE";
     private static final String FEILRETTING_BEGRUNNELSE = "FEILRETTING_BEGRUNNELSE";
+    private static final Integer INITIAL_DISTRIBUSJONSFORSOK_LIMIT = 12; // Prøver først 12 ganger, det tar ca. 2 timer, deretter går det over til døgnlige forsøk
 
     private final JdbcTemplate db;
     private final TransactionTemplate transactor;
@@ -94,9 +95,9 @@ public class VedtaksstotteRepository {
         return utkast;
     }
 
-    public boolean slettUtkast(long vedtakId) {
+    public void slettUtkast(long vedtakId) {
         String sql = format("DELETE FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, STATUS, VEDTAK_ID);
-        return db.update(sql, getName(VedtakStatus.UTKAST), vedtakId) > 0;
+        db.update(sql, getName(VedtakStatus.UTKAST), vedtakId);
     }
 
     public Vedtak hentVedtak(long vedtakId) {
@@ -192,16 +193,30 @@ public class VedtaksstotteRepository {
 
     public List<Long> hentVedtakForDistribusjon(int antall) {
         var sql = "SELECT ID FROM VEDTAK" +
+                " LEFT JOIN RETRY_VEDTAKDISTRIBUSJON ON VEDTAK.JOURNALPOST_ID = RETRY_VEDTAKDISTRIBUSJON.JOURNALPOST_ID" +
                 " WHERE DOKUMENT_BESTILLING_ID IS NULL" +
                 " AND VEDTAK_FATTET IS NOT NULL" +
-                " AND JOURNALPOST_ID IS NOT NULL" +
+                " AND VEDTAK.JOURNALPOST_ID IS NOT NULL" +
+                " AND (RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK < ?" +
+                " OR RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK IS NULL)" + // Trenger null-sjekken for å få med vedtak som aldri har hatt et mislykket forsøk
                 " ORDER BY VEDTAK_FATTET ASC LIMIT ?";
-        return db.queryForList(sql, Long.class, antall);
+        return db.queryForList(sql, Long.class, INITIAL_DISTRIBUSJONSFORSOK_LIMIT, antall);
+    }
+
+    public List<Long> hentFeilendeVedtakForDistribusjon(int antall) {
+        var sql = "SELECT ID FROM VEDTAK" +
+                " LEFT JOIN RETRY_VEDTAKDISTRIBUSJON ON VEDTAK.JOURNALPOST_ID = RETRY_VEDTAKDISTRIBUSJON.JOURNALPOST_ID" +
+                " WHERE DOKUMENT_BESTILLING_ID IS NULL" +
+                " AND VEDTAK_FATTET IS NOT NULL" +
+                " AND VEDTAK.JOURNALPOST_ID IS NOT NULL" +
+                " AND RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK >= ?" +
+                " ORDER BY VEDTAK_FATTET ASC LIMIT ?";
+        return db.queryForList(sql, Long.class, INITIAL_DISTRIBUSJONSFORSOK_LIMIT, antall);
     }
 
     public List<Long> hentVedtakForJournalforing(int antall) {
         var sql = """
-                SELECT ID FROM VEDTAK              
+                SELECT ID FROM VEDTAK
                 WHERE VEDTAK_FATTET IS NOT NULL
                 AND DOKUMENT_BESTILLING_ID IS NULL
                 AND JOURNALPOST_ID IS NULL

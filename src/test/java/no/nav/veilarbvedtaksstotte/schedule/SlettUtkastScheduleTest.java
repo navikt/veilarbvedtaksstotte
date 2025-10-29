@@ -19,7 +19,7 @@ import java.util.List;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.UTKAST;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
-import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
+import static no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
