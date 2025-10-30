@@ -21,15 +21,23 @@ import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*
-import no.nav.veilarbvedtaksstotte.repository.*
+import no.nav.veilarbvedtaksstotte.repository.KilderRepository
+import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData
-import org.junit.jupiter.api.*
-import org.mockito.kotlin.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 
@@ -78,7 +86,8 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 mock(),
                 mock(),
                 sakStatistikkService,
-                mock(),
+                aktorOppslagClient,
+                veilarboppfolgingClient,
                 mock(),
                 mock(),
                 mock()
@@ -113,9 +122,12 @@ class SakStatistikkServiceTest : DatabaseTest() {
     }
 
     @Test
-    fun legg_til_statisitkkrad_fattet_vedtak() {
+    fun legg_til_statistikkrad_fattet_vedtak() {
 
         withContext {
+            whenever(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(TestData.TEST_FNR)).thenReturn(
+                mockedOppfolgingsPeriode(UUID.randomUUID())
+            )
             gittUtkastKlarForUtsendelse()
             fattVedtak()
             val vedtaket = hentVedtak()
