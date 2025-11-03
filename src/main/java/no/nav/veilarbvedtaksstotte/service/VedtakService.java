@@ -428,6 +428,7 @@ public class VedtakService {
         Optional<OppfolgingPeriodeDTO> oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr);
 
         if (oppfolgingsperiode.isEmpty()) {
+            SecureLog.getSecureLog().warn("Prøver å fatte 14a-vedtak, men fnr={} har ingen oppfølgingsperiode", fnr.get());
             throw new IllegalStateException("Bruker er ikke under oppfølging og kan ikke få vedtak");
         }
     }
