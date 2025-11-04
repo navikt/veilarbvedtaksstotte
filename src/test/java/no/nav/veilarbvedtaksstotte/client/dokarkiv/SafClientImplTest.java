@@ -26,7 +26,7 @@ public class SafClientImplTest {
         String journalposterJson = TestUtils.readTestResourceFile("testdata/saf-client-journalposter.json");
 
         String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        SafClient safClient = new SafClientImpl(apiUrl, () -> "");
+        SafClient safClient = new SafClientImpl(apiUrl, () -> "", () -> "");
 
         givenThat(post(urlEqualTo("/graphql"))
                 .willReturn(aResponse()
@@ -47,7 +47,7 @@ public class SafClientImplTest {
     @Test
     public void hentJournalposter__skalKasteExceptionPaErrorStatus(WireMockRuntimeInfo wireMockRuntimeInfo) {
         String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        SafClient safClient = new SafClientImpl(apiUrl, () -> "");
+        SafClient safClient = new SafClientImpl(apiUrl, () -> "", () -> "");
 
         givenThat(post(urlEqualTo("/graphql")).willReturn(aResponse().withStatus(500)));
 
@@ -61,7 +61,7 @@ public class SafClientImplTest {
         String journalpostJson = TestUtils.readTestResourceFile("testdata/saf-client-journalpost.json");
 
         String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        SafClient safClient = new SafClientImpl(apiUrl, () -> "");
+        SafClient safClient = new SafClientImpl(apiUrl, () -> "", () -> "");
 
         givenThat(post(urlEqualTo("/graphql"))
                 .willReturn(aResponse()
