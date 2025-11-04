@@ -139,9 +139,21 @@ class ClientConfig {
 
     @Bean
     fun safClient(
-        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties,
+        machineTokenClient: AzureAdMachineToMachineTokenClient,
+        onBehalfOfTokenClient: AzureAdOnBehalfOfTokenClient,
+        authContextHolder: AuthContextHolder
     ): SafClient {
-        return SafClientImpl(properties.safUrl) { machineTokenClient.createMachineToMachineToken(properties.safScope) }
+        return SafClientImpl(
+            properties.safUrl,
+            { machineTokenClient.createMachineToMachineToken(properties.safScope) },
+            {
+                onBehalfOfTokenClient.exchangeOnBehalfOfToken(
+                    properties.safScope,
+                    authContextHolder.requireIdTokenString()
+                )
+            }
+        )
     }
 
     @Bean
@@ -244,7 +256,8 @@ class ClientConfig {
         properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient
     ): PoaoTilgangClient {
         return PoaoTilgangCachedClient(
-            PoaoTilgangHttpClient(properties.poaoTilgangUrl,
+            PoaoTilgangHttpClient(
+                properties.poaoTilgangUrl,
                 { tokenClient.createMachineToMachineToken(properties.poaoTilgangScope) })
         )
     }
