@@ -45,22 +45,39 @@ spec:
             severity: warning
 
         # Forretningsspesifikke alerts
-        - alert: Fattet vedtak er ikke Journalført
+        - alert: Fattet vedtak er ikke journalført
           expr: max(antall_fattet_vedtak_uten_journalforing{app="veilarbvedtaksstotte"}) > 0
           for: 5m
           annotations:
-            summary: "Det finnes fattet vedtak som ikke er journalført."
+            summary: "Det finnes fattede vedtak som ikke er journalført."
             action: "veilarbvedtaksstotte: Undersøk om jobben som journalfører vedtak har stoppet."
           labels:
             namespace: obo
             severity: critical
 
-        - alert: Journalførte dokument er ikke distribuert
+        - alert: Journalførte dokumenter er ikke distribuert
           expr: max(antall_journalforte_vedtak_uten_dokumentbestilling{app="veilarbvedtaksstotte"}) > 0
           for: 5m
           annotations:
-            summary: "Det finnes journalført dokument som ikke er distribuert."
-            action: "veilarbvedtaksstotte har journalført dokument som ikke er distribuert. Undersøk om jobben som distribuerer journalpost har stoppet."
+            summary: "Det finnes journalførte dokumenter som ikke er distribuert."
+            action: "veilarbvedtaksstotte har journalførte dokumenter som ikke er distribuert. Undersøk om jobben som distribuerer journalpost har stoppet."
+          labels:
+            namespace: obo
+            severity: critical
+
+        - alert: Antall journalførte dokumenter som ikke er distribuert har økt med >20% siste 24t
+          expr: |
+            (
+              (max(antall_journalforte_vedtak_uten_dokumentbestilling{app="veilarbvedtaksstotte"})
+                - max(antall_journalforte_vedtak_uten_dokumentbestilling{app="veilarbvedtaksstotte"} offset 24h)
+              )
+              /
+              clamp_min(max(antall_journalforte_vedtak_uten_dokumentbestilling{app="veilarbvedtaksstotte"} offset 24h), 1)
+            ) > 0.2
+          for: 5m
+          annotations:
+            summary: "Det har dukket opp >20% flere journalførte dokumenter som ikke er distribuert, sammenlignet med for 24 timer siden."
+            action: "veilarbvedtaksstotte har journalførte dokumenter som ikke er distribuert. Undersøk om jobben som distribuerer journalpost har stoppet."
           labels:
             namespace: obo
             severity: critical
@@ -70,28 +87,7 @@ spec:
           for: 5m
           annotations:
             summary: "Distribusjon av journalpost har feilet."
-            action: "veilarbvedtaksstotte har journalført dokument der distribusjon har feilet. Distribusjon vil ikke bli forsøkt på nytt og må rettes manuelt."
+            action: "veilarbvedtaksstotte har journalførte dokumenter der distribusjonen har feilet. Distribusjon vil ikke bli forsøkt på nytt og må rettes manuelt. Vedtakets dokument_bestilling_id er satt til FEILET"
           labels:
             namespace: obo
             severity: critical
-
-        - alert: Køen for distribusjon av journalpost er over 50% full
-          expr: max(antall_vedtak_med_feilende_dokumentbestilling{app="veilarbvedtaksstotte"}) > 100
-          for: 5m
-          annotations:
-            summary: "Over halvparten av plassene for batch-sending av vedtak blir fylt av journalposter der sending feiler."
-            action: "Veilarbvedtaksstotte sender 100 journalposter til distribuering om gangen, eldste først. Nå fylles over halvparten av disse plassene med journalposter der distribuering feiler. For å unngå at disse postene blokkerer all utsending må de fikses manuelt."
-          labels:
-            namespace: obo
-            severity: critical
-
-        - alert: Køen for distribusjon av journalposter er helt full
-          expr: max(antall_vedtak_med_feilende_dokumentbestilling{app="veilarbvedtaksstotte"}) > 200
-          for: 5m
-          annotations:
-            summary: "Vedtak blir ikke distribuert fordi det er for mange journalposter der sending feiler"
-            action: "Veilarbvedtaksstotte sender 100 journalposter til distribuering om gangen, eldste først. Nå fylles alle disse plassene med journalposter der distribuering feiler. Feilen må rettes så fort som mulig, enten ved å fikse problemene med distribusjon, eller ved å øke batch-størrelsen. Dersom du er alene på jobb er det nå du ringer en venn."
-          labels:
-            namespace: obo
-            severity: critical
-            
