@@ -45,6 +45,9 @@ spec:
         name: 14a_vedtak_statistikk
         permission: READWRITE
   observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
     logging:
       destinations:
         - id: elastic
