@@ -45,22 +45,39 @@ spec:
             severity: warning
 
         # Forretningsspesifikke alerts
-        - alert: Fattet vedtak er ikke Journalført
+        - alert: Fattet vedtak er ikke journalført
           expr: max(antall_fattet_vedtak_uten_journalforing{app="veilarbvedtaksstotte"}) > 0
           for: 5m
           annotations:
-            summary: "Det finnes fattet vedtak som ikke er journalført."
+            summary: "Det finnes fattede vedtak som ikke er journalført."
             action: "veilarbvedtaksstotte: Undersøk om jobben som journalfører vedtak har stoppet."
           labels:
             namespace: obo
             severity: critical
 
-        - alert: Journalførte dokument er ikke distribuert
+        - alert: Journalførte dokumenter er ikke distribuert
           expr: max(antall_journalforte_vedtak_uten_dokumentbestilling{app="veilarbvedtaksstotte"}) > 0
           for: 5m
           annotations:
-            summary: "Det finnes journalført dokument som ikke er distribuert."
-            action: "veilarbvedtaksstotte har journalført dokument som ikke er distribuert. Undersøk om jobben som distribuerer journalpost har stoppet."
+            summary: "Det finnes journalførte dokumenter som ikke er distribuert."
+            action: "veilarbvedtaksstotte har journalførte dokumenter som ikke er distribuert. Undersøk om jobben som distribuerer journalpost har stoppet."
+          labels:
+            namespace: obo
+            severity: critical
+
+        - alert: Antall journalførte dokumenter som ikke er distribuert har økt med >20% siste 24t
+          expr: |
+            (
+              (max(antall_journalforte_vedtak_uten_dokumentbestilling{app="veilarbvedtaksstotte"})
+                - max(antall_journalforte_vedtak_uten_dokumentbestilling{app="veilarbvedtaksstotte"} offset 24h)
+              )
+              /
+              clamp_min(max(antall_journalforte_vedtak_uten_dokumentbestilling{app="veilarbvedtaksstotte"} offset 24h), 1)
+            ) > 0.2
+          for: 5m
+          annotations:
+            summary: "Det har dukket opp >20% flere journalførte dokumenter som ikke er distribuert, sammenlignet med for 24 timer siden."
+            action: "veilarbvedtaksstotte har journalførte dokumenter som ikke er distribuert. Undersøk om jobben som distribuerer journalpost har stoppet."
           labels:
             namespace: obo
             severity: critical
