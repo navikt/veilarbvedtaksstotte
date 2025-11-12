@@ -1,0 +1,2 @@
+ALTER TABLE KILDE
+    ADD COLUMN kilde_id UUID;
