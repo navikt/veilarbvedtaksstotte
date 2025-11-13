@@ -40,17 +40,24 @@ public class SafClientImpl implements SafClient {
 
     private final Supplier<String> machineToMachineTokenSupplier;
 
-    public SafClientImpl(String safUrl, Supplier<String> machineToMachineTokenSupplier) {
+    private final Supplier<String> onBehalfOfTokenSupplier;
+
+    public SafClientImpl(
+            String safUrl,
+            Supplier<String> machineToMachineTokenSupplier,
+            Supplier<String> onBehalfOfTokenSupplier
+    ) {
         this.safUrl = safUrl;
         this.client = RestClient.baseClient();
         this.machineToMachineTokenSupplier = machineToMachineTokenSupplier;
+        this.onBehalfOfTokenSupplier = onBehalfOfTokenSupplier;
     }
 
     @SneakyThrows
     public byte[] hentVedtakPdf(String journalpostId, String dokumentInfoId) {
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "/rest/hentdokument/", journalpostId, dokumentInfoId, "ARKIV"))
-                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(machineToMachineTokenSupplier.get()))
+                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(onBehalfOfTokenSupplier.get()))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
@@ -67,7 +74,7 @@ public class SafClientImpl implements SafClient {
 
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "graphql"))
-                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(machineToMachineTokenSupplier.get()))
+                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(onBehalfOfTokenSupplier.get()))
                 .post(RestUtils.toJsonRequestBody(graphqlRequest))
                 .build();
 
