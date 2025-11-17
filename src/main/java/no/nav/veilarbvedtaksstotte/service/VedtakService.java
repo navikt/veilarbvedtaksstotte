@@ -13,6 +13,8 @@ import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
@@ -38,7 +40,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
@@ -55,7 +56,6 @@ public class VedtakService {
     private final BeslutteroversiktRepository beslutteroversiktRepository;
     private final KilderRepository kilderRepository;
     private final MeldingRepository meldingRepository;
-
     private final SafClient safClient;
 
     private final AuthService authService;
@@ -71,6 +71,7 @@ public class VedtakService {
     private final LeaderElectionClient leaderElection;
     private final SakStatistikkService sakStatistikkService;
     private final AktorOppslagClient aktorOppslagClient;
+    private final VeilarboppfolgingClient veilarboppfolgingClient;
     private final Gjeldende14aVedtakService gjeldende14aVedtakService;
     private final KafkaProducerService kafkaProducerService;
     private final DefaultUnleash unleashService;
@@ -78,6 +79,7 @@ public class VedtakService {
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(vedtak);
 
@@ -85,23 +87,24 @@ public class VedtakService {
             throw new IllegalStateException("Bruker kan ikke ha status ISERV når vedtak fattes");
         }
 
-        flettInnVedtakInformasjon(vedtak);
-
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(vedtak.getAktorId());
+
+        sjekkBrukerUnderOppfolging(Fnr.of(authKontekst.getFnr()));
+        flettInnVedtakInformasjon(vedtak);
         validerVedtakForFerdigstilling(vedtak, gjeldendeVedtak);
 
         ferdigstillVedtak(vedtak, gjeldendeVedtak);
     }
 
     private void ferdigstillVedtak(Vedtak vedtak, Vedtak gjeldendevedtak) {
-        log.info(format("Ferdigstiller vedtak med id=%s ", vedtak.getId()));
+        log.info("Ferdigstiller vedtak med id={} ", vedtak.getId());
 
         long vedtakId = vedtak.getId();
 
         UUID referanse = vedtaksstotteRepository.opprettOgHentReferanse(vedtak.getId());
         vedtak.setReferanse(referanse);
 
-        log.info(format("Journalfører vedtak med id=%s og referanse=%s", vedtak.getId(), referanse));
+        log.info("Journalfører vedtak med id={} og referanse={}", vedtak.getId(), referanse);
 
         Fnr brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
 
@@ -128,7 +131,7 @@ public class VedtakService {
             List<Long> vedtakIds = vedtaksstotteRepository.hentVedtakForJournalforing(10);
 
             vedtakIds.forEach(vedtakId -> {
-                log.info(String.format("SCHEDULED JOB: Journalfører vedtak med id: %s", vedtakId));
+                log.info("SCHEDULED JOB: Journalfører vedtak med id: {}", vedtakId);
                 Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
                 flettInnOpplysinger(vedtak);
                 journalforeVedtak(vedtak);
@@ -151,17 +154,17 @@ public class VedtakService {
             }
             boolean journalpostferdigstilt = journalpost.getJournalpostferdigstilt();
 
-            log.info(format("Journalføring utført: journalpostId=%s, dokumentInfoId=%s, ferdigstilt=%s", journalpostId, dokumentInfoId, journalpostferdigstilt));
+            log.info("Journalføring utført: journalpostId={}, dokumentInfoId={}, ferdigstilt={}", journalpostId, dokumentInfoId, journalpostferdigstilt);
 
             vedtaksstotteRepository.lagreJournalforingVedtak(vedtak.getId(), journalpostId, dokumentInfoId);
 
             if (!journalpostferdigstilt) {
-                log.error(String.format("Journalpost ble ikke ferdigstilt. Må rettes manuelt. Vedtak id: %s", vedtak.getId()));
+                log.error("Journalpost ble ikke ferdigstilt. Må rettes manuelt. Vedtak id: {}", vedtak.getId());
             }
 
             oppdatereDokumentIdforJournalfortOyeblikksbilde(vedtak.getId(), journalpostId);
         } catch (Exception e) {
-            log.error(String.format("Kan ikke journalføre vedtak med id %s nå, feil: %s", vedtak.getId(), e.getMessage()), e);
+            log.error("Kan ikke journalføre vedtak med id {} nå, feil: {}", vedtak.getId(), e.getMessage(), e);
         }
     }
 
@@ -232,10 +235,10 @@ public class VedtakService {
 
             if (journalpost.getData().getJournalpost().dokumenter != null) {
                 Arrays.stream(journalpost.getData().getJournalpost().dokumenter).filter(journalfortDokument -> OyeblikksbildeType.contains(journalfortDokument.brevkode)).forEach(journalfortDokument -> oyeblikksbildeService.lagreJournalfortDokumentId(vedtakId, journalfortDokument.dokumentInfoId, OyeblikksbildeType.from(BrevKode.valueOf(journalfortDokument.brevkode))));
-                log.info(format("Oppdatert dokumentId for oyeblikksbilde for vedtakId: %s", vedtakId));
+                log.info("Oppdatert dokumentId for oyeblikksbilde for vedtakId: {}", vedtakId);
             }
         } catch (Exception e) {
-            log.error("Feil med oppdatering av dokumentId for oyeblikksbilde " + e, e);
+            log.error("Feil med oppdatering av dokumentId for oyeblikksbilde {}", e, e);
         }
     }
 
@@ -421,7 +424,18 @@ public class VedtakService {
         vedtak.setOppfolgingsenhetNavn(enhetNavn);
     }
 
+    void sjekkBrukerUnderOppfolging(Fnr fnr) {
+        Optional<OppfolgingPeriodeDTO> oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr);
+
+        if (oppfolgingsperiode.isEmpty()) {
+            SecureLog.getSecureLog().warn("Prøver å fatte 14a-vedtak, men fnr={} har ingen oppfølgingsperiode", fnr.get());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Bruker er ikke under oppfølging og kan ikke få vedtak");
+        }
+    }
+
+
     static void validerVedtakForFerdigstilling(Vedtak vedtak, Vedtak gjeldendeVedtak) {
+
 
         if (vedtak.getVedtakStatus() != VedtakStatus.UTKAST) {
             throw new IllegalStateException("Vedtak har feil status, forventet status UTKAST");

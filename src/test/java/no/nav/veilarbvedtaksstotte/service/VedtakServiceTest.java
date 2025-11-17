@@ -51,7 +51,6 @@ import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -106,7 +105,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static KilderRepository kilderRepository;
     private static MeldingRepository meldingRepository;
     private static SakStatistikkRepository sakStatistikkRepository;
-    private static RetryVedtakdistribusjonRepository retryVedtakdistribusjonRepository;
     private static VedtakService vedtakService;
     private static OyeblikksbildeService oyeblikksbildeService;
     private static AuthService authService;
@@ -147,7 +145,7 @@ public class VedtakServiceTest extends DatabaseTest {
         meldingRepository = spy(new MeldingRepository(jdbcTemplate));
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
         sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
-        retryVedtakdistribusjonRepository = new RetryVedtakdistribusjonRepository(jdbcTemplate);
+        RetryVedtakdistribusjonRepository retryVedtakdistribusjonRepository = new RetryVedtakdistribusjonRepository(jdbcTemplate);
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), poaoTilgangClient));
@@ -186,6 +184,7 @@ public class VedtakServiceTest extends DatabaseTest {
                 leaderElectionClient,
                 sakStatistikkService,
                 aktorOppslagClient,
+                veilarboppfolgingClient,
                 gjeldende14aVedtakService,
                 kafkaProducerService,
                 unleashService
@@ -473,11 +472,9 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @Test
     public void taOverUtkast__feiler_dersom_ikke_utkast() {
-        withContext(() -> {
-            assertThatThrownBy(() ->
-                    vedtakService.taOverUtkast(123)
-            ).hasMessage("404 NOT_FOUND \"Fant ikke utkast\"");
-        });
+        withContext(() -> assertThatThrownBy(() ->
+                vedtakService.taOverUtkast(123)
+        ).hasMessage("404 NOT_FOUND \"Fant ikke utkast\""));
     }
 
     @Test
@@ -520,6 +517,19 @@ public class VedtakServiceTest extends DatabaseTest {
         assertNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID).getFirst().getBegrunnelse());
     }
 
+    @Test
+    void ikke_vedtak_naar_personen_ikke_er_under_oppfolging() {
+        withContext(() -> {
+            gittTilgang();
+            gittUtkastKlarForUtsendelse();
+            when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> vedtakService.fattVedtak(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId())
+            ).isExactlyInstanceOf(ResponseStatusException.class)
+                    .hasMessageContaining("Bruker er ikke under oppfølging og kan ikke få vedtak");
+        });
+    }
+
     private void gittTilgang() {
         when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
     }
@@ -559,14 +569,14 @@ public class VedtakServiceTest extends DatabaseTest {
         assertEquals(TEST_OPPFOLGINGSENHET_ID, opprettetUtkast.getOppfolgingsenhetId());
         assertEquals(TEST_OPPFOLGINGSENHET_NAVN, opprettetUtkast.getOppfolgingsenhetNavn());
         assertFalse(opprettetUtkast.isGjeldende());
-        assertEquals(opprettetUtkast.getOpplysninger().size(), 0);
+        assertEquals(0, opprettetUtkast.getOpplysninger().size());
         assertFalse(opprettetUtkast.isSender());
     }
 
     private Vedtak hentVedtak() {
         List<Vedtak> vedtakList = vedtakService.hentFattedeVedtak(TEST_FNR);
-        assertEquals(vedtakList.size(), 1);
-        return vedtakList.get(0);
+        assertEquals(1, vedtakList.size());
+        return vedtakList.getFirst();
     }
 
     private void fattVedtak() {
@@ -595,7 +605,7 @@ public class VedtakServiceTest extends DatabaseTest {
             assertEquals(TEST_JOURNALPOST_ID, sendtVedtak.getJournalpostId());
             assertOyeblikksbildeForFattetVedtak(sendtVedtak.getId());
 
-             List<SakStatistikk> sakStatistikk = sakStatistikkRepository.hentSakStatistikkListe(sendtVedtak.getAktorId());
+            sakStatistikkRepository.hentSakStatistikkListe(sendtVedtak.getAktorId());
         });
         verify(vedtakHendelserService).vedtakSendt(any());
     }
