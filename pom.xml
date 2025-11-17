@@ -216,7 +216,7 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
-            <version>6.3.1</version>
+            <version>7.0.0</version>
         </dependency>
 
         <!-- Common Dependencies -->
