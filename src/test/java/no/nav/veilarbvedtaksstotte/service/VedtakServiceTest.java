@@ -525,7 +525,7 @@ public class VedtakServiceTest extends DatabaseTest {
             when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> vedtakService.fattVedtak(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId())
-            ).isExactlyInstanceOf(IllegalStateException.class)
+            ).isExactlyInstanceOf(ResponseStatusException.class)
                     .hasMessageContaining("Bruker er ikke under oppfølging og kan ikke få vedtak");
         });
     }
