@@ -18,9 +18,9 @@ import static no.nav.veilarbvedtaksstotte.utils.DbUtils.toPostgresArray;
 @Repository
 public class KilderRepository {
 
-    public final static String KILDE_TABLE                  = "KILDE";
-    private final static String VEDTAK_ID                   = "VEDTAK_ID";
-    private final static String TEKST                       = "TEKST";
+    public final static String KILDE_TABLE = "KILDE";
+    private final static String VEDTAK_ID = "VEDTAK_ID";
+    private final static String TEKST = "TEKST";
 
     private final JdbcTemplate db;
 
@@ -61,9 +61,10 @@ public class KilderRepository {
 
     @SneakyThrows
     private static Kilde mapKilder(ResultSet rs, int row) {
-        return new Kilde()
-                .setVedtakId(rs.getLong(VEDTAK_ID))
-                .setTekst(rs.getString(TEKST));
+        return new Kilde(
+                rs.getLong(VEDTAK_ID),
+                rs.getString(TEKST)
+        );
     }
 
 }
