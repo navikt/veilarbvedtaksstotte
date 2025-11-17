@@ -4,6 +4,7 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
+import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeEntity
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.toJson
@@ -11,16 +12,21 @@ import org.joda.time.Instant
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.mockito.kotlin.any
+import java.util.*
+import kotlin.collections.HashMap
 
 internal class OyeblikksbildeServiceTest {
 
     @Test
     fun lagreOyeblikksbilderPaaNynorsk() {
         val fnr = "12345678910"
-        val egenvurdering = "Svara dine om behov for rettleiing"
-        val arbeissøkerregisteret = "Det du fortalde oss da du vart registrert som arbeidssøkar"
-        oyeblikksbildeService.lagreOyeblikksbilde(fnr, 12344, listOf(egenvurdering, arbeissøkerregisteret))
+        val egenvurderingTekst = "Svara dine om behov for rettleiing"
+        val arbeissøkerregisteretTekst = "Det du fortalde oss da du vart registrert som arbeidssøkar"
+        val kilder = listOf(
+            KildeEntity(egenvurderingTekst, UUID.randomUUID()),
+            KildeEntity(arbeissøkerregisteretTekst, UUID.randomUUID())
+        )
+        oyeblikksbildeService.lagreOyeblikksbilde(fnr, 12344, kilder)
         Mockito.verify(oyeblikksbildeRepository, Mockito.times(1)).upsertArbeidssokerRegistretOyeblikksbilde (12344, null)
         Mockito.verify(oyeblikksbildeRepository, Mockito.times(1)).upsertEgenvurderingOyeblikksbilde (12344, null)
     }

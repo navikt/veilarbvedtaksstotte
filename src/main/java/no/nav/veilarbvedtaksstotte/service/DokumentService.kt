@@ -65,9 +65,10 @@ class DokumentService(
         val arbeidssokerRegistretData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.ARBEIDSSOKERREGISTRET }
 
-        val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json, mottaker )
+        val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json, mottaker)
         val cvPDF = pdfService.produserCVPdf(cvData?.json, mottaker)
-        val arbeidssokerRegistretPdf = pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData?.json, mottaker)
+        val arbeidssokerRegistretPdf =
+            pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData?.json, mottaker)
 
 
         return journalforDokument(
@@ -190,7 +191,7 @@ class DokumentService(
             enhetId = EnhetId.of(vedtak.oppfolgingsenhetId),
             veilederIdent = vedtak.veilederIdent,
             begrunnelse = vedtak.begrunnelse,
-            opplysninger = vedtak.opplysninger,
+            opplysninger = vedtak.opplysninger?.map { it.tekst } ?: emptyList(),
             utkast = utkast,
         )
     }

@@ -27,7 +27,7 @@ public class Vedtak {
     String beslutterIdent;
     String beslutterNavn;
     boolean gjeldende;
-    List<String> opplysninger;
+    List<KildeEntity> opplysninger;
     String journalpostId;
     String dokumentInfoId;
     String dokumentbestillingId;
@@ -102,7 +102,7 @@ public class Vedtak {
         return this.gjeldende;
     }
 
-    public List<String> getOpplysninger() {
+    public List<KildeEntity> getOpplysninger() {
         return this.opplysninger;
     }
 

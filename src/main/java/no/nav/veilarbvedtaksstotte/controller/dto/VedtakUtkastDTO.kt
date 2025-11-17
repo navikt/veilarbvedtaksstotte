@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
+import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeEntity
 import java.time.LocalDateTime
 
 data class VedtakUtkastDTO(
@@ -30,7 +31,7 @@ data class VedtakUtkastDTO(
     @Schema(description = "Navnet på beslutteren som er ansvarlig for vedtaket")
     val beslutterNavn: String? = null,
     @Schema(description = "Opplysninger (kilder) som er vektlagt i vedtaket")
-    val opplysninger: List<String?>? = null,
+    val opplysninger: List<KildeEntity?>? = null,
     @Schema(description = "Nåværende steg i beslutterprosessen for vedtaket")
     val beslutterProsessStatus: BeslutterProsessStatus? = null,
     @Schema(description = "Indikerer om vedtaket kan distribueres til bruker")

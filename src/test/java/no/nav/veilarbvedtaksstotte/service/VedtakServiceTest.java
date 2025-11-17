@@ -51,10 +51,7 @@ import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
@@ -83,9 +80,8 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_N
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN;
 import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
@@ -257,7 +253,12 @@ public class VedtakServiceTest extends DatabaseTest {
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
                     .setBegrunnelse("En begrunnelse")
                     .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
-                    .setOpplysninger(Arrays.asList(VedtakOpplysningKilder.REGISTRERING.getDesc(), VedtakOpplysningKilder.EGENVURDERING.getDesc(), VedtakOpplysningKilder.CV.getDesc(), VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc()));
+                    .setOpplysninger(List.of(
+                            VedtakOpplysningKilder.REGISTRERING.getDesc(),
+                            VedtakOpplysningKilder.EGENVURDERING.getDesc(),
+                            VedtakOpplysningKilder.CV.getDesc(),
+                            VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc()
+                    ));
 
             vedtakService.oppdaterUtkast(utkast.getId(), oppdaterDto);
             assertOppdatertUtkast(oppdaterDto);
@@ -592,7 +593,9 @@ public class VedtakServiceTest extends DatabaseTest {
         assertEquals(dto.getHovedmal(), oppdatertUtkast.getHovedmal());
         assertEquals(dto.getBegrunnelse(), oppdatertUtkast.getBegrunnelse());
         assertEquals(dto.getInnsatsgruppe(), oppdatertUtkast.getInnsatsgruppe());
-        assertThat(oppdatertUtkast.getOpplysninger(), containsInAnyOrder(dto.getOpplysninger().toArray(new String[0])));
+        List<String> oppdaterteKilderActual = oppdatertUtkast.getOpplysninger().stream().map(KildeEntity::getTekst).toList();
+        List<String> oppdaterteKilderExpected = dto.getOpplysninger();
+        assertThat(oppdaterteKilderActual).containsExactlyInAnyOrderElementsOf(oppdaterteKilderExpected);
     }
 
     private void assertJournalfortOgFerdigstiltVedtak() {

@@ -1,10 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.service.VedtakService.validerVedtakForFerdigstilling
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
@@ -20,7 +16,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
         validerVedtakForFerdigstilling(vedtak, null)
     }
 
@@ -40,7 +39,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
 
         assertThrowsWithMessage<IllegalStateException>("Vedtak mangler innsatsgruppe") {
             validerVedtakForFerdigstilling(vedtak, null)
@@ -67,7 +69,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.innsatsgruppe = Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
 
         assertThrowsWithMessage<IllegalStateException>("Vedtak kan ikke bli sendt uten beslutter") {
             validerVedtakForFerdigstilling(vedtak, null)
@@ -81,7 +86,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.innsatsgruppe = Innsatsgruppe.VARIG_TILPASSET_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
 
         assertThrowsWithMessage<IllegalStateException>("Vedtak kan ikke bli sendt uten beslutter") {
             validerVedtakForFerdigstilling(vedtak, null)
@@ -107,7 +115,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
 
         assertThrowsWithMessage<IllegalStateException>("Vedtak mangler hovedmål") {
             validerVedtakForFerdigstilling(vedtak, null)
@@ -122,7 +133,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
         vedtak.beslutterProsessStatus = BeslutterProsessStatus.GODKJENT_AV_BESLUTTER
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
         vedtak.beslutterIdent = TestData.TEST_BESLUTTER_IDENT
 
         assertThrowsWithMessage<IllegalStateException>("Vedtak med varig tilpasset innsats skal ikke ha hovedmål") {
@@ -136,7 +150,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
 
         assertThrowsWithMessage<IllegalStateException>("Vedtak mangler begrunnelse") {
             validerVedtakForFerdigstilling(vedtak, null)
@@ -149,7 +166,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
 
         validerVedtakForFerdigstilling(vedtak, null)
     }
@@ -160,7 +180,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
         val gjeldendeVedtak = Vedtak()
         gjeldendeVedtak.innsatsgruppe = Innsatsgruppe.VARIG_TILPASSET_INNSATS
 
@@ -176,7 +199,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
         vedtak.journalpostId = "123"
 
         assertThrowsWithMessage<IllegalStateException>("Vedtak er allerede journalført") {
@@ -191,7 +217,10 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = Arrays.asList("opplysning 1", "opplysning 2")
+        vedtak.opplysninger = listOf(
+            KildeEntity("opplysning 1", UUID.randomUUID()),
+            KildeEntity("opplysning 2", UUID.randomUUID())
+        )
         vedtak.dokumentInfoId = "123"
 
         assertThrowsWithMessage<IllegalStateException>("Vedtak er allerede journalført") {
