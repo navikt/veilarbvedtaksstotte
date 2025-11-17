@@ -7,7 +7,6 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtakKafkaDTO;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak;
 import org.apache.kafka.clients.producer.ProducerRecord;
