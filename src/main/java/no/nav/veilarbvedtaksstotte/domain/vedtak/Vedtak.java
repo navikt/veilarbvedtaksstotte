@@ -27,7 +27,7 @@ public class Vedtak {
     String beslutterIdent;
     String beslutterNavn;
     boolean gjeldende;
-    List<KildeEntity> opplysninger;
+    List<KildeEntity> kilder;
     String journalpostId;
     String dokumentInfoId;
     String dokumentbestillingId;
@@ -102,8 +102,8 @@ public class Vedtak {
         return this.gjeldende;
     }
 
-    public List<KildeEntity> getOpplysninger() {
-        return this.opplysninger;
+    public List<KildeEntity> getKilder() {
+        return this.kilder;
     }
 
     public String getJournalpostId() {

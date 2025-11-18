@@ -191,7 +191,7 @@ class DokumentService(
             enhetId = EnhetId.of(vedtak.oppfolgingsenhetId),
             veilederIdent = vedtak.veilederIdent,
             begrunnelse = vedtak.begrunnelse,
-            opplysninger = vedtak.opplysninger?.map { it.tekst } ?: emptyList(),
+            kilder = vedtak.kilder?.map { it.tekst } ?: emptyList(),
             utkast = utkast,
         )
     }
@@ -237,7 +237,7 @@ class DokumentService(
                 malform = brevdataOppslag.malform,
                 mottaker = mottaker,
                 begrunnelse = begrunnelseAvsnitt,
-                kilder = dto.opplysninger,
+                kilder = dto.kilder,
                 utkast = dto.utkast,
                 ungdomsgaranti = harUngdomsgaranti
             )

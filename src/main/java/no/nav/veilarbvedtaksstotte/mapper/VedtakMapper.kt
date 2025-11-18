@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.mapper
 
 import no.nav.veilarbvedtaksstotte.controller.dto.VedtakUtkastDTO
+import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeEntity
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 
 fun toVedtakUtkastDTO(vedtak: Vedtak): VedtakUtkastDTO {
@@ -16,7 +17,8 @@ fun toVedtakUtkastDTO(vedtak: Vedtak): VedtakUtkastDTO {
         oppfolgingsenhetNavn = vedtak.oppfolgingsenhetNavn,
         beslutterIdent = vedtak.beslutterIdent,
         beslutterNavn = vedtak.beslutterNavn,
-        opplysninger = vedtak.opplysninger,
+        opplysninger = vedtak.kilder?.map(KildeEntity::tekst),
+        kilder = vedtak.kilder,
         beslutterProsessStatus = vedtak.beslutterProsessStatus,
         kanDistribueres = vedtak.kanDistribueres,
     )

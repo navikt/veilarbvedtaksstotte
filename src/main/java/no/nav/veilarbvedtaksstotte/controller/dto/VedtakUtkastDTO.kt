@@ -31,7 +31,17 @@ data class VedtakUtkastDTO(
     @Schema(description = "Navnet på beslutteren som er ansvarlig for vedtaket")
     val beslutterNavn: String? = null,
     @Schema(description = "Opplysninger (kilder) som er vektlagt i vedtaket")
-    val opplysninger: List<KildeEntity?>? = null,
+    val opplysninger: List<String?>? = null,
+    @Schema(description = "Kilder som er vektlagt i vedtaket")
+    /**
+     * TODO 2025-11-18
+     *
+     * [opplysninger] og [kilder] er det samme; forskjellen er at [kilder] er på nytt format (inkluderer [KildeEntity.kildeId]).
+     * [opplysninger] skal fjernes når frontend er tilpasset til å bruke [kilder].
+     *
+     * Grunnen til renaming ("opplysninger" => "kilder") er for å være konsekvent med det begrepet som brukes oftest, nemlig "kilder".
+     */
+    val kilder: List<KildeEntity?>? = null,
     @Schema(description = "Nåværende steg i beslutterprosessen for vedtaket")
     val beslutterProsessStatus: BeslutterProsessStatus? = null,
     @Schema(description = "Indikerer om vedtaket kan distribueres til bruker")

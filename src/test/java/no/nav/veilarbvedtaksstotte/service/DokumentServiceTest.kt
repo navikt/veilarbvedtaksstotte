@@ -104,7 +104,7 @@ class DokumentServiceTest {
         enhetId = enhetId,
         veilederIdent = "123123",
         begrunnelse = "begrunnelse",
-        opplysninger = listOf("Kilde1", "kilde2"),
+        kilder = listOf("Kilde1", "kilde2"),
         utkast = false
     )
 

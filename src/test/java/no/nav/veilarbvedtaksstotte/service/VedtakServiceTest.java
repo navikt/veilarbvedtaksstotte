@@ -570,7 +570,7 @@ public class VedtakServiceTest extends DatabaseTest {
         assertEquals(TEST_OPPFOLGINGSENHET_ID, opprettetUtkast.getOppfolgingsenhetId());
         assertEquals(TEST_OPPFOLGINGSENHET_NAVN, opprettetUtkast.getOppfolgingsenhetNavn());
         assertFalse(opprettetUtkast.isGjeldende());
-        assertEquals(0, opprettetUtkast.getOpplysninger().size());
+        assertEquals(0, opprettetUtkast.getKilder().size());
         assertFalse(opprettetUtkast.isSender());
     }
 
@@ -593,7 +593,7 @@ public class VedtakServiceTest extends DatabaseTest {
         assertEquals(dto.getHovedmal(), oppdatertUtkast.getHovedmal());
         assertEquals(dto.getBegrunnelse(), oppdatertUtkast.getBegrunnelse());
         assertEquals(dto.getInnsatsgruppe(), oppdatertUtkast.getInnsatsgruppe());
-        List<String> oppdaterteKilderActual = oppdatertUtkast.getOpplysninger().stream().map(KildeEntity::getTekst).toList();
+        List<String> oppdaterteKilderActual = oppdatertUtkast.getKilder().stream().map(KildeEntity::getTekst).toList();
         List<String> oppdaterteKilderExpected = dto.getOpplysninger();
         assertThat(oppdaterteKilderActual).containsExactlyInAnyOrderElementsOf(oppdaterteKilderExpected);
     }

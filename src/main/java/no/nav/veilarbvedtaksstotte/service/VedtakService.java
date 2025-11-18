@@ -111,7 +111,7 @@ public class VedtakService {
 
         Fnr brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
 
-        oyeblikksbildeService.lagreOyeblikksbilde(brukerFnr.get(), vedtak.getId(), vedtak.getOpplysninger());
+        oyeblikksbildeService.lagreOyeblikksbilde(brukerFnr.get(), vedtak.getId(), vedtak.getKilder());
 
         journalforeVedtak(vedtak);
 
@@ -136,7 +136,7 @@ public class VedtakService {
             vedtakIds.forEach(vedtakId -> {
                 log.info("SCHEDULED JOB: Journalfører vedtak med id: {}", vedtakId);
                 Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-                flettInnOpplysinger(vedtak);
+                flettInnKilder(vedtak);
                 journalforeVedtak(vedtak);
             });
         }
@@ -294,7 +294,7 @@ public class VedtakService {
     }
 
     private void flettInnVedtakInformasjon(Vedtak vedtak) {
-        flettInnOpplysinger(vedtak);
+        flettInnKilder(vedtak);
         flettInnVeilederNavn(vedtak);
         flettInnBeslutterNavn(vedtak);
         flettInnEnhetNavn(vedtak);
@@ -310,7 +310,7 @@ public class VedtakService {
 
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
-        flettInnOpplysinger(utkast);
+        flettInnKilder(utkast);
 
         return dokumentService.produserDokumentutkast(utkast, Fnr.of(authKontekst.getFnr()));
     }
@@ -390,13 +390,13 @@ public class VedtakService {
 
     }
 
-    private void flettInnOpplysinger(Vedtak vedtak) {
-        List<KildeEntity> opplysninger = kilderRepository.hentKilderForVedtak(vedtak.getId())
+    private void flettInnKilder(Vedtak vedtak) {
+        List<KildeEntity> kilder = kilderRepository.hentKilderForVedtak(vedtak.getId())
                 .stream()
                 .map(KildeForVedtak::getKilde)
                 .collect(Collectors.toList());
 
-        vedtak.setOpplysninger(opplysninger);
+        vedtak.setKilder(kilder);
     }
 
     private void flettInnKanDistribueres(Vedtak vedtak, Fnr fnr) {
@@ -462,8 +462,8 @@ public class VedtakService {
             }
         }
 
-        if (vedtak.getOpplysninger() == null || vedtak.getOpplysninger().isEmpty()) {
-            throw new IllegalStateException("Vedtak mangler opplysninger");
+        if (vedtak.getKilder() == null || vedtak.getKilder().isEmpty()) {
+            throw new IllegalStateException("Vedtak mangler kilder");
         }
 
         if (vedtak.getHovedmal() == null && innsatsgruppe != Innsatsgruppe.VARIG_TILPASSET_INNSATS) {

@@ -16,7 +16,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )
@@ -39,7 +39,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )
@@ -69,7 +69,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.innsatsgruppe = Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )
@@ -86,7 +86,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.innsatsgruppe = Innsatsgruppe.VARIG_TILPASSET_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )
@@ -104,7 +104,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
 
-        assertThrowsWithMessage<IllegalStateException>("Vedtak mangler opplysninger") {
+        assertThrowsWithMessage<IllegalStateException>("Vedtak mangler kilder") {
             validerVedtakForFerdigstilling(vedtak, null)
         }
     }
@@ -115,7 +115,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )
@@ -133,7 +133,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
         vedtak.beslutterProsessStatus = BeslutterProsessStatus.GODKJENT_AV_BESLUTTER
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )
@@ -150,7 +150,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )
@@ -166,7 +166,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )
@@ -180,7 +180,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )
@@ -199,7 +199,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )
@@ -217,7 +217,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
         vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
-        vedtak.opplysninger = listOf(
+        vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
         )

@@ -73,6 +73,7 @@ class UtkastV2ControllerTest {
               "beslutterIdent": null,
               "beslutterNavn": null,
               "opplysninger": null,
+              "kilder": null,
               "beslutterProsessStatus": null,
             }
             """.trimIndent()
