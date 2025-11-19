@@ -25,8 +25,8 @@ import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.*;
-import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
+import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
 import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL;
 
 @Slf4j
@@ -382,7 +383,7 @@ public class VedtakService {
                 kafkaProducerService.sendGjeldende14aVedtak(aktorId, null);
             }
         } catch (RuntimeException e) {
-            SecureLog.getSecureLog().error("Klarte ikke å fullføre alle stegene for å slette vedtak for person: {}", slettVedtakRequest.getFnr(), e);
+            secureLog.error("Klarte ikke å fullføre alle stegene for å slette vedtak for person: {}", slettVedtakRequest.getFnr(), e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Klarte ikke å slette vedtak");
         }
 
@@ -428,7 +429,7 @@ public class VedtakService {
         Optional<OppfolgingPeriodeDTO> oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr);
 
         if (oppfolgingsperiode.isEmpty()) {
-            SecureLog.getSecureLog().warn("Prøver å fatte 14a-vedtak, men fnr={} har ingen oppfølgingsperiode", fnr.get());
+            secureLog.warn("Prøver å fatte 14a-vedtak, men fnr={} har ingen oppfølgingsperiode", fnr.get());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Bruker er ikke under oppfølging og kan ikke få vedtak");
         }
     }
@@ -441,6 +442,25 @@ public class VedtakService {
             throw new IllegalStateException("Vedtak har feil status, forventet status UTKAST");
         }
 
+        Innsatsgruppe innsatsgruppe = getInnsatsgruppe(vedtak);
+
+        boolean harIkkeBegrunnelse = vedtak.getBegrunnelse() == null || vedtak.getBegrunnelse().trim().isEmpty();
+        boolean erStandard = innsatsgruppe == Innsatsgruppe.STANDARD_INNSATS;
+        boolean erGjeldendeVedtakVarig = gjeldendeVedtak != null && (gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS || gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
+
+        if (harIkkeBegrunnelse && erStandard && erGjeldendeVedtakVarig) {
+            throw new IllegalStateException("Vedtak mangler begrunnelse siden gjeldende vedtak er varig");
+        } else if (harIkkeBegrunnelse && !erStandard) {
+            throw new IllegalStateException("Vedtak mangler begrunnelse");
+        }
+
+        if (vedtak.getJournalpostId() != null || vedtak.getDokumentInfoId() != null) {
+            throw new IllegalStateException("Vedtak er allerede journalført");
+        }
+    }
+
+    @NotNull
+    private static Innsatsgruppe getInnsatsgruppe(Vedtak vedtak) {
         Innsatsgruppe innsatsgruppe = vedtak.getInnsatsgruppe();
 
         if (innsatsgruppe == null) {
@@ -466,20 +486,7 @@ public class VedtakService {
         } else if (vedtak.getHovedmal() != null && innsatsgruppe == Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
             throw new IllegalStateException("Vedtak med varig tilpasset innsats skal ikke ha hovedmål");
         }
-
-        boolean harIkkeBegrunnelse = vedtak.getBegrunnelse() == null || vedtak.getBegrunnelse().trim().isEmpty();
-        boolean erStandard = innsatsgruppe == Innsatsgruppe.STANDARD_INNSATS;
-        boolean erGjeldendeVedtakVarig = gjeldendeVedtak != null && (gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS || gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
-
-        if (harIkkeBegrunnelse && erStandard && erGjeldendeVedtakVarig) {
-            throw new IllegalStateException("Vedtak mangler begrunnelse siden gjeldende vedtak er varig");
-        } else if (harIkkeBegrunnelse && !erStandard) {
-            throw new IllegalStateException("Vedtak mangler begrunnelse");
-        }
-
-        if (vedtak.getJournalpostId() != null || vedtak.getDokumentInfoId() != null) {
-            throw new IllegalStateException("Vedtak er allerede journalført");
-        }
+        return innsatsgruppe;
     }
 
 }

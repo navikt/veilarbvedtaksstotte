@@ -12,7 +12,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
-import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -29,6 +28,7 @@ import java.util.UUID;
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.DbUtils.queryForObjectOrNull;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
+import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
 
 @Repository
 public class VedtaksstotteRepository {
@@ -275,7 +275,7 @@ public class VedtaksstotteRepository {
             );
             db.update(sql, begrunnelse, null, getName(VedtakStatus.SLETTET), vedtakId);
         } catch (Exception e) {
-            SecureLog.getSecureLog().error("Klarte ikke å slette vedtak med id: {}", vedtakId, e);
+            secureLog.error("Klarte ikke å slette vedtak med id: {}", vedtakId, e);
             throw new SlettVedtakFeiletException("Klarte ikke å slette vedtak med id: " + vedtakId);
         }
 
