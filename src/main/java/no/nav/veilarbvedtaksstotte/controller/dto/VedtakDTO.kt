@@ -17,6 +17,14 @@ data class VedtakDTO(
     val oppfolgingsenhetNavn: String,
     val beslutterIdent: String?,
     val beslutterNavn: String?,
+    /**
+     * TODO 2025-11-19
+     *
+     * [opplysninger] og [kilder] er det samme; forskjellen er at [kilder] er på nytt format (inkluderer [KildeEntity.kildeId]).
+     * [opplysninger] skal fjernes når frontend er tilpasset til å bruke [kilder].
+     *
+     * Grunnen til renaming ("opplysninger" => "kilder") er for å være konsekvent med det begrepet som brukes oftest, nemlig "kilder".
+     */
     val opplysninger: List<String>,
     val kilder: List<KildeEntity>,
     val vedtakStatus: VedtakStatus,
