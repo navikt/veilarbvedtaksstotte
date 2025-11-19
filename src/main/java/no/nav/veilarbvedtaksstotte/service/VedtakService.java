@@ -99,7 +99,8 @@ public class VedtakService {
 
     private void ferdigstillVedtak(Vedtak vedtak, Vedtak gjeldendevedtak) {
         log.info("Ferdigstiller vedtak med id={} ", vedtak.getId());
-
+// for test av team logs
+        secureLog.info("Ferdigstiller vedtak med id={} ", vedtak.getId());
         long vedtakId = vedtak.getId();
 
         UUID referanse = vedtaksstotteRepository.opprettOgHentReferanse(vedtak.getId());
