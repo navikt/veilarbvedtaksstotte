@@ -100,7 +100,14 @@ class SakStatistikkServiceTest : DatabaseTest() {
     fun setup() {
         DbTestUtils.cleanupDb(jdbcTemplate)
         doReturn(TestData.TEST_VEILEDER_IDENT).`when`(authService)?.innloggetVeilederIdent
-        whenever(kilderRepository.hentKilderForVedtak(any())).thenReturn(listOf(Kilde()))
+        whenever(kilderRepository.hentKilderForVedtak(any())).thenReturn(
+            listOf(
+                KildeForVedtak(
+                    vedtakId = 1L,
+                    KildeEntity(tekst = "Kilden", kildeId = UUID.randomUUID())
+                )
+            )
+        )
         whenever(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TestData.TEST_FNR)).thenReturn(
             AuthKontekst(TestData.TEST_FNR.get(), TestData.TEST_AKTOR_ID, TestData.TEST_OPPFOLGINGSENHET_ID)
         )

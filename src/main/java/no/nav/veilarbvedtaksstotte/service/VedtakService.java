@@ -24,7 +24,10 @@ import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
-import no.nav.veilarbvedtaksstotte.repository.*;
+import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
+import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
+import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.http.HttpStatus;
@@ -108,7 +111,7 @@ public class VedtakService {
 
         Fnr brukerFnr = authService.getFnrOrThrow(vedtak.getAktorId());
 
-        oyeblikksbildeService.lagreOyeblikksbilde(brukerFnr.get(), vedtak.getId(), vedtak.getOpplysninger());
+        oyeblikksbildeService.lagreOyeblikksbilde(brukerFnr.get(), vedtak.getId(), vedtak.getKilder());
 
         journalforeVedtak(vedtak);
 
@@ -133,7 +136,7 @@ public class VedtakService {
             vedtakIds.forEach(vedtakId -> {
                 log.info("SCHEDULED JOB: Journalfører vedtak med id: {}", vedtakId);
                 Vedtak vedtak = vedtaksstotteRepository.hentVedtak(vedtakId);
-                flettInnOpplysinger(vedtak);
+                flettInnKilder(vedtak);
                 journalforeVedtak(vedtak);
             });
         }
@@ -209,22 +212,32 @@ public class VedtakService {
         meldingRepository.opprettSystemMelding(utkast.getId(), SystemMeldingType.UTKAST_OPPRETTET, innloggetVeilederIdent);
     }
 
-    public void oppdaterUtkast(long vedtakId, OppdaterUtkastDTO vedtakDTO) {
-        Vedtak utkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
-        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
-        authService.sjekkErAnsvarligVeilederFor(utkast);
+    public void oppdaterUtkast(long vedtakId, OppdaterUtkastDTO oppdaterUtkastDTO) {
+        Vedtak eksisterendeUtkast = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(eksisterendeUtkast.getAktorId()));
+        authService.sjekkErAnsvarligVeilederFor(eksisterendeUtkast);
 
-        oppdaterUtkastFraDto(utkast, vedtakDTO);
+        eksisterendeUtkast.setInnsatsgruppe(oppdaterUtkastDTO.getInnsatsgruppe());
+        eksisterendeUtkast.setBegrunnelse(oppdaterUtkastDTO.getBegrunnelse());
 
-        List<String> utkastKilder = kilderRepository.hentKilderForVedtak(utkast.getId()).stream().map(Kilde::getTekst).collect(Collectors.toList());
+        if (oppdaterUtkastDTO.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
+            eksisterendeUtkast.setHovedmal(null);
+        } else {
+            eksisterendeUtkast.setHovedmal(oppdaterUtkastDTO.getHovedmal());
+        }
 
         transactor.executeWithoutResult((status) -> {
-            vedtaksstotteRepository.oppdaterUtkast(utkast.getId(), utkast);
+            vedtaksstotteRepository.oppdaterUtkast(eksisterendeUtkast.getId(), eksisterendeUtkast);
 
             // Liten optimalisering for å slippe å slette og lage nye kilder når f.eks kun begrunnelse er endret
-            if (!VedtakUtils.erKilderLike(utkastKilder, vedtakDTO.getOpplysninger())) {
-                kilderRepository.slettKilder(utkast.getId());
-                kilderRepository.lagKilder(vedtakDTO.getOpplysninger(), utkast.getId());
+            List<String> eksisterendeUtkastKilder = kilderRepository.hentKilderForVedtak(eksisterendeUtkast.getId())
+                    .stream()
+                    .map(kildeForVedtak -> kildeForVedtak.getKilde().getTekst())
+                    .toList();
+
+            if (!VedtakUtils.erKilderLike(eksisterendeUtkastKilder, oppdaterUtkastDTO.getOpplysninger())) {
+                kilderRepository.slettKilder(eksisterendeUtkast.getId());
+                kilderRepository.lagKilder(oppdaterUtkastDTO.getOpplysninger(), eksisterendeUtkast.getId());
             }
         });
     }
@@ -239,17 +252,6 @@ public class VedtakService {
             }
         } catch (Exception e) {
             log.error("Feil med oppdatering av dokumentId for oyeblikksbilde {}", e, e);
-        }
-    }
-
-    private void oppdaterUtkastFraDto(Vedtak utkast, OppdaterUtkastDTO dto) {
-        utkast.setInnsatsgruppe(dto.getInnsatsgruppe());
-        utkast.setBegrunnelse(dto.getBegrunnelse());
-        utkast.setOpplysninger(dto.getOpplysninger());
-        if (dto.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
-            utkast.setHovedmal(null);
-        } else {
-            utkast.setHovedmal(dto.getHovedmal());
         }
     }
 
@@ -292,7 +294,7 @@ public class VedtakService {
     }
 
     private void flettInnVedtakInformasjon(Vedtak vedtak) {
-        flettInnOpplysinger(vedtak);
+        flettInnKilder(vedtak);
         flettInnVeilederNavn(vedtak);
         flettInnBeslutterNavn(vedtak);
         flettInnEnhetNavn(vedtak);
@@ -308,7 +310,7 @@ public class VedtakService {
 
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(utkast.getAktorId()));
 
-        flettInnOpplysinger(utkast);
+        flettInnKilder(utkast);
 
         return dokumentService.produserDokumentutkast(utkast, Fnr.of(authKontekst.getFnr()));
     }
@@ -388,10 +390,13 @@ public class VedtakService {
 
     }
 
-    private void flettInnOpplysinger(Vedtak vedtak) {
-        List<String> opplysninger = kilderRepository.hentKilderForVedtak(vedtak.getId()).stream().map(Kilde::getTekst).collect(Collectors.toList());
+    private void flettInnKilder(Vedtak vedtak) {
+        List<KildeEntity> kilder = kilderRepository.hentKilderForVedtak(vedtak.getId())
+                .stream()
+                .map(KildeForVedtak::getKilde)
+                .collect(Collectors.toList());
 
-        vedtak.setOpplysninger(opplysninger);
+        vedtak.setKilder(kilder);
     }
 
     private void flettInnKanDistribueres(Vedtak vedtak, Fnr fnr) {
@@ -457,8 +462,8 @@ public class VedtakService {
             }
         }
 
-        if (vedtak.getOpplysninger() == null || vedtak.getOpplysninger().isEmpty()) {
-            throw new IllegalStateException("Vedtak mangler opplysninger");
+        if (vedtak.getKilder() == null || vedtak.getKilder().isEmpty()) {
+            throw new IllegalStateException("Vedtak mangler kilder");
         }
 
         if (vedtak.getHovedmal() == null && innsatsgruppe != Innsatsgruppe.VARIG_TILPASSET_INNSATS) {

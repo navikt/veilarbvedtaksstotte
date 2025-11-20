@@ -13,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeEntity;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
@@ -108,22 +109,27 @@ public class OyeblikksbildeService {
         oyeblikksbildeRepository.slettOyeblikksbilder(vedtakId);
     }
 
-    void lagreOyeblikksbilde(String fnr, long vedtakId, List<String> kilder) {
-
+    void lagreOyeblikksbilde(String fnr, long vedtakId, List<KildeEntity> kilder) {
         if (kilder == null || kilder.isEmpty()) {
-            SecureLog.getSecureLog().warn(String.format("Ingen kilder valgt for vedtak med id: %s", vedtakId));
+            SecureLog.getSecureLog().warn("Ingen kilder valgt for vedtak med id: {}", vedtakId);
             return;
         }
 
-        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.CV.getDesc()) || kilde.contains(VedtakOpplysningKilder.CV_NN.getDesc()))) {
+        List<String> kildeTekster = kilder.stream().map(KildeEntity::getTekst).toList();
+
+        if (kilder.stream().anyMatch(kilde -> kildeTekster.contains(VedtakOpplysningKilder.CV.getDesc()) || kildeTekster.contains(VedtakOpplysningKilder.CV_NN.getDesc()))) {
             final CvDto cvOgJobbprofilData = veilarbpersonClient.hentCVOgJobbprofil(fnr);
             oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, cvOgJobbprofilData);
         }
-        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.REGISTRERING.getDesc()) || kilde.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc()) || kilde.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET_NN.getDesc()))) {
+        if (kilder.stream().anyMatch(kilde ->
+                kildeTekster.contains(VedtakOpplysningKilder.REGISTRERING.getDesc())
+                        || kildeTekster.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc())
+                        || kildeTekster.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET_NN.getDesc()))
+        ) {
             OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr.of(fnr));
             oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfilering);
         }
-        if (kilder.stream().anyMatch(kilde -> kilde.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()) || kilde.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc()))) {
+        if (kilder.stream().anyMatch(kilde -> kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()) || kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc()))) {
             final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr));
             EgenvurderingDto egenvurderingData = mapToEgenvurderingData(egenvurdering);
             oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingData);
