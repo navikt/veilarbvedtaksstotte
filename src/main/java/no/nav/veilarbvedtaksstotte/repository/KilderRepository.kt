@@ -44,8 +44,8 @@ class KilderRepository @Autowired constructor(private val db: JdbcTemplate) {
     }
 
     private fun insertKilde(tekst: String?, vedtakId: Long) {
-        val sql = "INSERT INTO $KILDE_TABLE($VEDTAK_ID, $TEKST) values(?,?)"
-        db.update(sql, vedtakId, tekst)
+        val sql = "INSERT INTO $KILDE_TABLE($VEDTAK_ID, $TEKST, $KILDE_ID) values(?,?,?)"
+        db.update(sql, vedtakId, tekst, UUID.randomUUID())
     }
 
     companion object {
