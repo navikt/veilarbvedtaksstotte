@@ -17,7 +17,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
-import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
+import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
 
 @Service
 @Slf4j
@@ -91,7 +91,7 @@ public class KafkaConsumerService {
 
         if (aktorId == null) {
             log.warn("Fant ingen AktørID for bruker. Ignorerer melding. Se SecureLogs for detaljer.");
-            SecureLog.getSecureLog().warn("Fant ingen AktørID for bruker. Ignorerer melding. Bruker (fnr): {}", fnr);
+            secureLog.warn("Fant ingen AktørID for bruker. Ignorerer melding. Bruker (fnr): {}", fnr);
             return;
         }
 
@@ -108,7 +108,7 @@ public class KafkaConsumerService {
         }
 
         log.info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Se SecureLogs for detaljer.");
-        SecureLog.getSecureLog().info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Bruker (AktørID): {}, forrige oppfølgingsenhet: {}, ny oppfølgingsenhet: {}.", aktorId, utkast.getOppfolgingsenhetId(), oppfolgingsenhetId);
+        secureLog.info("Oppfølgingsenhet for bruker er endret, flytter utkast til ny enhet. Bruker (AktørID): {}, forrige oppfølgingsenhet: {}, ny oppfølgingsenhet: {}.", aktorId, utkast.getOppfolgingsenhetId(), oppfolgingsenhetId);
         Enhet enhet = norg2Client.hentEnhet(oppfolgingsenhetId);
         vedtaksstotteRepository.oppdaterUtkastEnhet(utkast.getId(), oppfolgingsenhetId);
         beslutteroversiktRepository.oppdaterBrukerEnhet(utkast.getId(), oppfolgingsenhetId, enhet.getNavn());

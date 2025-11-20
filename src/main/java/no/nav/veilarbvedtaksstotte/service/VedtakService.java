@@ -25,7 +25,6 @@ import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.repository.*;
-import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -44,6 +43,7 @@ import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.G
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL;
+import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
 
 @Slf4j
 @Service
@@ -382,7 +382,7 @@ public class VedtakService {
                 kafkaProducerService.sendGjeldende14aVedtak(aktorId, null);
             }
         } catch (RuntimeException e) {
-            SecureLog.getSecureLog().error("Klarte ikke å fullføre alle stegene for å slette vedtak for person: {}", slettVedtakRequest.getFnr(), e);
+            secureLog.error("Klarte ikke å fullføre alle stegene for å slette vedtak for person: {}", slettVedtakRequest.getFnr(), e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Klarte ikke å slette vedtak");
         }
 
@@ -428,7 +428,7 @@ public class VedtakService {
         Optional<OppfolgingPeriodeDTO> oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr);
 
         if (oppfolgingsperiode.isEmpty()) {
-            SecureLog.getSecureLog().warn("Prøver å fatte 14a-vedtak, men fnr={} har ingen oppfølgingsperiode", fnr.get());
+            secureLog.warn("Prøver å fatte 14a-vedtak, men fnr={} har ingen oppfølgingsperiode", fnr.get());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Bruker er ikke under oppfølging og kan ikke få vedtak");
         }
     }
