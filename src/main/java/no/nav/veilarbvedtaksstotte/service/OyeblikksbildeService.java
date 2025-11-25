@@ -17,13 +17,14 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeEntity;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
-import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
 
 
 @Service
@@ -111,7 +112,7 @@ public class OyeblikksbildeService {
 
     void lagreOyeblikksbilde(String fnr, long vedtakId, List<KildeEntity> kilder) {
         if (kilder == null || kilder.isEmpty()) {
-            SecureLog.getSecureLog().warn("Ingen kilder valgt for vedtak med id: {}", vedtakId);
+            secureLog.warn("Ingen kilder valgt for vedtak med id: {}", vedtakId);
             return;
         }
 

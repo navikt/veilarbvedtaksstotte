@@ -52,8 +52,6 @@ spec:
       destinations:
         - id: elastic
         - id: loki
-  secureLogs:
-    enabled: true
   kafka:
     pool: nav-prod
   env:
@@ -188,6 +186,8 @@ spec:
           namespace: poao
         - application: norg2
           namespace: org
+        - application: logging
+          namespace: nais-system
       external:
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: dokdistfordeling.prod-fss-pub.nais.io

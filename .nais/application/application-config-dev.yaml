@@ -52,8 +52,6 @@ spec:
       destinations:
         - id: elastic
         - id: loki
-  secureLogs:
-    enabled: true
   kafka:
     pool: nav-dev
   env:
@@ -183,6 +181,8 @@ spec:
           namespace: poao
         - application: veilarbperson
         - application: veilarbveileder
+        - application: logging
+          namespace: nais-system
       external:
         - host: dokarkiv-q2.dev-fss-pub.nais.io
         - host: dokdistkanal-q2.dev-fss-pub.nais.io

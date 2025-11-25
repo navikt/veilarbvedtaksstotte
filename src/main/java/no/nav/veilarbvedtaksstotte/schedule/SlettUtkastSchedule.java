@@ -15,7 +15,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import no.nav.veilarbvedtaksstotte.utils.OppfolgingUtils;
-import no.nav.veilarbvedtaksstotte.utils.SecureLog;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
 import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDateTime;
 
 @Slf4j
@@ -62,7 +62,7 @@ public class SlettUtkastSchedule {
         // Hvis bruker har et gjeldende vedtak så er de fortsatt under oppfølging og vi trenger ikke å slette utkastet
         List<Vedtak> gamleUtkastUtenforOppfolging = gamleUtkast.stream()
                 .filter(u -> vedtaksstotteRepository.hentGjeldendeVedtak(u.getAktorId()) == null)
-                .collect(Collectors.toList());
+                .toList();
 
         log.info("Utkast for bruker som kanskje er utenfor oppfølging: {}", gamleUtkastUtenforOppfolging.size());
 
@@ -78,7 +78,7 @@ public class SlettUtkastSchedule {
 
                 maybeSistePeriode.ifPresent(sistePeriode -> {
                     if (sistePeriode.sluttDato != null && slettVedtakEtter.isAfter(toLocalDateTime(sistePeriode.sluttDato))) {
-                        SecureLog.getSecureLog().info("Sletter utkast automatisk. aktorId = {}", utkast.getAktorId());
+                        secureLog.info("Sletter utkast automatisk. aktorId = {}", utkast.getAktorId());
                         vedtakService.slettUtkast(utkast, BehandlingMetode.AUTOMATISK);
                     } else {
                         log.info("Utkast med id {} ble ikke slettet.", utkast.getId());
