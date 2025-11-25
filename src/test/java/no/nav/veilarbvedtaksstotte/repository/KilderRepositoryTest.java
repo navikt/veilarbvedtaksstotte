@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Kilde;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeForVedtak;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
@@ -54,10 +54,10 @@ public class KilderRepositoryTest extends DatabaseTest {
 
         List<String> kilder = Arrays.asList("kilde1", "kilde2");
         kilderRepository.lagKilder(kilder, vedtakId);
-        List<Kilde> kilderHentet = kilderRepository.hentKilderForVedtak(vedtakId);
+        List<KildeForVedtak> kilderHentet = kilderRepository.hentKilderForVedtak(vedtakId);
 
         kilder.forEach(kilde -> {
-            assertTrue(kilderHentet.stream().anyMatch(k -> kilde.equals(k.getTekst()) && k.getVedtakId() == vedtakId));
+            assertTrue(kilderHentet.stream().anyMatch(k -> kilde.equals(k.getKilde().getTekst()) && k.getVedtakId() == vedtakId));
         });
     }
 
@@ -74,7 +74,7 @@ public class KilderRepositoryTest extends DatabaseTest {
         kilderRepository.lagKilder(kilder, vedtak1.getId());
         kilderRepository.lagKilder(kilder, vedtak2.getId());
 
-        List<Kilde> kilderHentet = kilderRepository.hentKilderForAlleVedtak(List.of(vedtak1, vedtak2));
+        List<KildeForVedtak> kilderHentet = kilderRepository.hentKilderForAlleVedtak(List.of(vedtak1, vedtak2));
 
         assertEquals(4, kilderHentet.size());
     }
