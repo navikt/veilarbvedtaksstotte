@@ -294,7 +294,7 @@
         <dependency>
             <groupId>no.nav.poao-tilgang</groupId>
             <artifactId>client</artifactId>
-            <version>2025.03.17_14.33-b4b03fa3203e</version>
+            <version>2025.11.03_14.33-9c5783f38a9a</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
