@@ -11,11 +11,13 @@ import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.openapitools.model.AggregertPeriode
+import org.openapitools.model.IdentitetsnummerQueryRequest
 import org.springframework.http.HttpHeaders
 import java.util.function.Supplier
 
 interface ArbeidssoekerregisteretApiOppslagV2Client {
-    fun hentEgenvurdering(norskIdent: NorskIdent)
+    fun hentEgenvurdering(norskIdent: NorskIdent): AggregertPeriode
 }
 
 class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
@@ -54,11 +56,14 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
 
     private val client: OkHttpClient = RestClient.baseClient()
 
-    override fun hentEgenvurdering(norskIdent: NorskIdent) {
+    override fun hentEgenvurdering(norskIdent: NorskIdent): AggregertPeriode {
         val request = Request.Builder()
             .url(joinPaths(arbRegOppslagUrl, "/api/v3/snapshot"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
-            .post(IdentitetsnummerQueryRequest.toIdentitetsnummerQueryRequest(norskIdent).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
+            .post(
+                IdentitetsnummerQueryRequest.toIdentitetsnummerQueryRequest(norskIdent).toJson()
+                    .toRequestBody(RestUtils.MEDIA_TYPE_JSON)
+            )
             .build()
 
         client.newCall(request).execute().use { response ->
@@ -73,16 +78,3 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
          */
     }
 }
-
-
-data class IdentitetsnummerQueryRequest(
-    val type: String = "IDENTITETSNUMMER",
-    val identitetsnummer: String
-) {
-    companion object {
-        fun toIdentitetsnummerQueryRequest(norskIdent: NorskIdent): IdentitetsnummerQueryRequest {
-            return IdentitetsnummerQueryRequest(identitetsnummer = norskIdent.get())
-        }
-    }
-}
-
