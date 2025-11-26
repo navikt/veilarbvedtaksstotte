@@ -6,8 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class EnvironmentProperties (
     val aiaBackendScope: String,
     val aiaBackendUrl: String,
-    val arbeidssokerregisteretOppslagScope: String,
-    val arbeidssokerregisteretOppslagUrl: String,
+    val arbeidssokerregisteretOppslagApiV2Scope: String,
+    val arbeidssokerregisteretOppslagApiV2Url: String,
     val dbUrl: String,
     val dokarkivScope: String,
     val dokarkivUrl: String,

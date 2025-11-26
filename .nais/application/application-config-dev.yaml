@@ -59,9 +59,9 @@ spec:
       value: api://dev-gcp.paw.aia-backend/.default
     - name: AIA_BACKEND_URL
       value: https://www.intern.dev.nav.no/aia-backend
-    - name: ARBEIDSSOKERREGISTERET_OPPSLAG_API_TOKEN_SCOPE
+    - name: ARBEIDSSOKERREGISTERET_OPPSLAG_API_V2_TOKEN_SCOPE
       value: api://dev-gcp.paw.paw-arbeidssoekerregisteret-api-oppslag-v2/.default
-    - name: ARBEIDSSOKERREGISTERET_OPPSLAG_API_URL
+    - name: ARBEIDSSOKERREGISTERET_OPPSLAG_API_V2_URL
       value: http://paw-arbeidssoekerregisteret-api-oppslag-v2.paw
     - name: DOKARKIV_TOKEN_SCOPE
       value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
@@ -177,6 +177,8 @@ spec:
     outbound:
       rules:
         - application: aia-backend
+          namespace: paw
+        - application: paw-arbeidssoekerregisteret-api-oppslag-v2
           namespace: paw
         - application: poao-tilgang
           namespace: poao
