@@ -9,6 +9,7 @@ import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
@@ -20,7 +21,7 @@ class DummyController(
     val authService: AuthService
 ) {
     @PostMapping("/egenvurdering")
-    fun hentEgenvurdering(norskIdent: NorskIdent): ResponseEntity<Unit> {
+    fun hentEgenvurdering(@RequestBody norskIdent: NorskIdent): ResponseEntity<Unit> {
         if (EnvironmentUtils.isProduction().orElse(false)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Dette endepunktet er ikke tilgjengelig i produksjonsmiljøet")
         }
