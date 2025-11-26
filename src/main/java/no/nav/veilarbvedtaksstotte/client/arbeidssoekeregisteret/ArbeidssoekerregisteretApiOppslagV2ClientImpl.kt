@@ -1,7 +1,5 @@
 package no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret
 
-import no.nav.common.health.HealthCheck
-import no.nav.common.health.HealthCheckResult
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.types.identer.NorskIdent
@@ -24,36 +22,6 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
     private val arbRegOppslagUrl: String,
     private val userTokenSupplier: Supplier<String>
 ) : ArbeidssoekerregisteretApiOppslagV2Client {
-    /*
-   Her er eksempelet fra Swagger, https://oppslag-v2-arbeidssoekerregisteret.intern.dev.nav.no/api/docs/v3
-   Hvordan ignorerer vi resten av jsonen?
-   {
-   ...
-       "egenvurdering": {
-       "type": "EGENVURDERING_V1",
-       "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-       "profileringId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-       "sendtInnAv": {
-         "tidspunkt": "2025-11-24T14:43:12.474Z",
-         "utfoertAv": {
-           "type": "SLUTTBRUKER",
-           "id": "string",
-           "sikkerhetsnivaa": "string"
-         },
-         "kilde": "string",
-         "aarsak": "string",
-         "tidspunktFraKilde": {
-           "tidspunkt": "2025-11-24T14:43:12.474Z",
-           "avviksType": "UKJENT_VERDI"
-         }
-       },
-       "profilertTil": "UKJENT_VERDI",
-       "egenvurdering": "UKJENT_VERDI"
-       },
-   ...
-   }
-    */
-
     private val client: OkHttpClient = RestClient.baseClient()
 
     override fun hentEgenvurdering(norskIdent: NorskIdent): AggregertPeriode {
