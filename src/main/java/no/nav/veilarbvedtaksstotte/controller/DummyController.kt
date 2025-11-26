@@ -7,6 +7,8 @@ import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerregisteretApiOppslagV2Client
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.openapitools.model.AggregertPeriode
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -20,6 +22,8 @@ class DummyController(
     val arbeidssoekerregisteretApiOppslagV2Client: ArbeidssoekerregisteretApiOppslagV2Client,
     val authService: AuthService
 ) {
+    val log: Logger = LoggerFactory.getLogger(DummyController::class.java)
+
     @PostMapping("/egenvurdering")
     fun hentEgenvurdering(@RequestBody norskIdent: NorskIdent): AggregertPeriode {
         if (EnvironmentUtils.isProduction().orElse(false)) {
@@ -33,6 +37,7 @@ class DummyController(
         try {
             return arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(norskIdent)
         } catch (e: Exception) {
+            log.warn("Feil ved henting av egenvurdering for bruker", e)
             throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
