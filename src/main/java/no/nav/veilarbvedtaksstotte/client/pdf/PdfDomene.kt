@@ -1,9 +1,9 @@
 package no.nav.veilarbvedtaksstotte.client.pdf
 
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerResponse
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ProfileringResponse
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerResponse
+import no.nav.veilarbvedtaksstotte.client.person.ProfileringResponse
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.person.dto.*
 import no.nav.veilarbvedtaksstotte.domain.Malform

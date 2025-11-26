@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;

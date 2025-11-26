@@ -7,12 +7,17 @@ import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeArbeidssokerRegistretDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeCvDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeRegistreringDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeEntity;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
@@ -36,7 +41,6 @@ public class OyeblikksbildeService {
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final VeilarbpersonClient veilarbpersonClient;
     private final AiaBackendClient aiaBackendClient;
-    private final ArbeidssoekerRegisteretService arbeidssoekerRegisteretService;
 
     @Autowired
     public OyeblikksbildeService(
@@ -44,15 +48,13 @@ public class OyeblikksbildeService {
             OyeblikksbildeRepository oyeblikksbildeRepository,
             VedtaksstotteRepository vedtaksstotteRepository,
             VeilarbpersonClient veilarbpersonClient,
-            AiaBackendClient aiaBackendClient,
-            ArbeidssoekerRegisteretService arbeidssoekerRegisteretService
+            AiaBackendClient aiaBackendClient
     ) {
         this.oyeblikksbildeRepository = oyeblikksbildeRepository;
         this.authService = authService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.veilarbpersonClient = veilarbpersonClient;
         this.aiaBackendClient = aiaBackendClient;
-        this.arbeidssoekerRegisteretService = arbeidssoekerRegisteretService;
     }
 
     // Kun brukt i test
@@ -127,7 +129,7 @@ public class OyeblikksbildeService {
                         || kildeTekster.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc())
                         || kildeTekster.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET_NN.getDesc()))
         ) {
-            OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr.of(fnr));
+            OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = veilarbpersonClient.hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr.of(fnr));
             oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfilering);
         }
         if (kilder.stream().anyMatch(kilde -> kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()) || kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc()))) {

@@ -18,7 +18,6 @@ import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClientImpl
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -161,15 +160,6 @@ class ClientConfig {
                 properties.regoppslagScope
             )
         }
-    }
-
-    @Bean
-    fun oppslagArbeidssoekerregisteretClient(
-        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
-    ): OppslagArbeidssoekerregisteretClientImpl {
-        return OppslagArbeidssoekerregisteretClientImpl(
-            properties.veilarbpersonUrl
-        ) { machineTokenClient.createMachineToMachineToken(properties.veilarbpersonScope) }
     }
 
     @Bean

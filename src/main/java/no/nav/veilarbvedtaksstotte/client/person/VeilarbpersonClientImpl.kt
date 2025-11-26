@@ -16,6 +16,7 @@ import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.jetbrains.annotations.NotNull
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
@@ -29,6 +30,7 @@ class VeilarbpersonClientImpl(
     VeilarbpersonClient {
 
     private val client: OkHttpClient = RestClient.baseClient()
+    val consumerId = "veilarbvedtaksstotte"
 
     override fun hentPersonNavn(fnr: String): PersonNavn {
         val request = Request.Builder()
@@ -167,6 +169,32 @@ class VeilarbpersonClientImpl(
 
     }
 
+    override fun hentSisteOpplysningerOmArbeidssoekerMedProfilering(@NotNull fnr: Fnr): OpplysningerOmArbeidssoekerMedProfilering? {
+        val request: Request = Request.Builder()
+            .url(UrlUtils.joinPaths(veilarbpersonUrl, "/api/v3/person/hent-siste-opplysninger-om-arbeidssoeker-med-profilering"))
+            .header(HttpHeaders.AUTHORIZATION, "Bearer ${machineToMachineTokenSupplier.get()}")
+            .header("Nav-Consumer-Id", consumerId)
+            .post(RestUtils.toJsonRequestBody(PersonRequest(fnr, BehandlingsNummer.VEDTAKSTOTTE.value)))
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                RestUtils.throwIfNotSuccessful(response)
+
+                if (response.code == 404 || response.code == 204) {
+                    return null
+                }
+
+                return response.deserializeJsonOrThrow()
+            }
+        } catch (e: Exception){
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Feil ved kall mot arbeidssøkerregistret "
+            )
+        }
+    }
+
     data class MalformRespons(val malform: String?) {
         fun tilMalform(): Malform {
             return Malform.values().find { it.name == malform?.uppercase() } ?: Malform.NB
@@ -176,5 +204,4 @@ class VeilarbpersonClientImpl(
     override fun checkHealth(): HealthCheckResult {
         return HealthCheckUtils.pingUrl(UrlUtils.joinPaths(veilarbpersonUrl, "/internal/isAlive"), client)
     }
-
 }

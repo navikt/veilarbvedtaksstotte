@@ -11,8 +11,7 @@ import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClient;
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
@@ -292,20 +291,9 @@ public class ClientTestConfig {
             public FodselsdatoOgAr hentFodselsdato(@NotNull Fnr fnr)  {
                 return new FodselsdatoOgAr(LocalDate.of(1990, 1, 1), 1990);
             }
-        };
-    }
-
-    @Bean
-    public OppslagArbeidssoekerregisteretClient oppslagArbeidssoekerregisteretClient() {
-        return new OppslagArbeidssoekerregisteretClient() {
 
             @Override
-            public HealthCheckResult checkHealth() {
-                return null;
-            }
-
-            @Override
-            public OpplysningerOmArbeidssoekerMedProfilering hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr fnr) {
+            public OpplysningerOmArbeidssoekerMedProfilering hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr fnr){
                 return null;
             }
         };
