@@ -175,7 +175,6 @@ public class VedtakServiceTest extends DatabaseTest {
                 vedtakHendelserService,
                 dokumentService,
                 distribusjonService,
-                veilarbarenaService,
                 metricsService,
                 leaderElectionClient,
                 sakStatistikkService,

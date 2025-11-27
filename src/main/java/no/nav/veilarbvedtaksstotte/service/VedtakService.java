@@ -68,7 +68,6 @@ public class VedtakService {
     private final VedtakHendelserService vedtakStatusEndringService;
     private final DokumentService dokumentService;
     private final DistribusjonService distribusjonService;
-    private final VeilarbarenaService veilarbarenaService;
     private final MetricsService metricsService;
 
     private final LeaderElectionClient leaderElection;
@@ -85,10 +84,6 @@ public class VedtakService {
 
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(vedtak);
-
-        if (veilarbarenaService.erBrukerInaktivIArena(Fnr.of(authKontekst.getFnr()))) {
-            throw new IllegalStateException("Bruker kan ikke ha status ISERV når vedtak fattes");
-        }
 
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(vedtak.getAktorId());
 

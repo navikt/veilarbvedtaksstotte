@@ -21,17 +21,4 @@ public class VeilarbarenaService {
                 .map(VeilarbArenaOppfolging::getNavKontor)
                 .map(EnhetId::of);
     }
-
-    public Optional<String> hentFormidlingsgruppekode(Fnr fnr) {
-        return veilarbarenaClient.hentOppfolgingsbruker(fnr)
-                .map(VeilarbArenaOppfolging::getFormidlingsgruppekode);
-    }
-
-    public boolean erBrukerInaktivIArena(Fnr fnr) {
-        return hentFormidlingsgruppekode(fnr)
-                .map("ISERV"::equals)
-                .orElse(false);
-    }
-
-
 }
