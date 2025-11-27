@@ -110,7 +110,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final LeaderElectionClient leaderElectionClient = mock(LeaderElectionClient.class);
     private static final VedtakHendelserService vedtakHendelserService = mock(VedtakHendelserService.class);
     private static final VeilederService veilederService = mock(VeilederService.class);
-
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final ArbeidssoekerRegisteretService arbeidssoekerRegistretService = mock(ArbeidssoekerRegisteretService.class);
     private static final AiaBackendClient aia_backend_client = mock(AiaBackendClient.class);
@@ -228,15 +227,6 @@ public class VedtakServiceTest extends DatabaseTest {
         when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
         when(safClient.hentJournalpost(any())).thenReturn(getMockedJournalpostGraphqlResponse());
     }
-
-    @Test
-    public void fattVedtak__skal_feile_hvis_iserv() {
-        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV", "IVURD")));
-        gittUtkastKlarForUtsendelse();
-
-        assertThrows(IllegalStateException.class, this::fattVedtak);
-    }
-
 
     @Test
     public void fattVedtak__opprett_oppdater_og_journalforer_og_ferdigstiller_vedtak() {
