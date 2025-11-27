@@ -4,9 +4,9 @@ import no.nav.common.types.identer.Fnr
 import no.nav.common.types.identer.NorskIdent
 import no.nav.common.utils.EnvironmentUtils
 import no.nav.poao_tilgang.client.TilgangType
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerregisteretApiOppslagV2Client
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AggregertPeriode
 import no.nav.veilarbvedtaksstotte.service.AuthService
-import org.openapitools.model.AggregertPeriode
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -27,9 +27,12 @@ class DummyController(
     @PostMapping("/egenvurdering")
     fun hentEgenvurdering(@RequestBody norskIdent: NorskIdent): AggregertPeriode {
         if (EnvironmentUtils.isProduction().orElse(false)) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Dette endepunktet er ikke tilgjengelig i produksjonsmiljøet")
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Dette endepunktet er ikke tilgjengelig i produksjonsmiljøet"
+            )
         }
-        if(!authService.erInternBruker()) {
+        if (!authService.erInternBruker()) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Kun interne brukere har tilgang til dette endepunktet")
         }
         authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.LESE, Fnr.of(norskIdent.get()))
