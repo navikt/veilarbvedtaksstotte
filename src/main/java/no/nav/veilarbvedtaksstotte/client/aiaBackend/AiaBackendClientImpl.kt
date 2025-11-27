@@ -24,7 +24,7 @@ class AiaBackendClientImpl(private val aiaBackendUrl: String, private val userTo
 
     override fun hentEgenvurdering(egenvurderingForPersonRequest: EgenvurderingForPersonRequest): EgenvurderingResponseDTO? {
         val request = Request.Builder()
-            .url(joinPaths(aiaBackendUrl, "/veileder/behov-for-veiledning"))
+            .url(joinPaths(aiaBackendUrl, "/veileder/ebhov-for-veiledning"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .post(egenvurderingForPersonRequest.toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()

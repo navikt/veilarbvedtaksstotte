@@ -6,6 +6,8 @@ import no.nav.common.types.identer.NorskIdent
 import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AggregertPeriode
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.IdentitetsnummerQueryRequest.Companion.toIdentitetsnummerQueryRequest
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.ProfilertTil
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
@@ -45,4 +47,24 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
            Hvis man har hatt en arbeidssøkerperiode som er avsluttet innenfor en oppfølgingsperiode, så kan vel fortsatt veileder bruke egenvurderingen derfra som en kilde til et (nytt) vedtak?
          */
     }
+}
+
+fun mapToEgenvurderingDto(aggregertPeriode: AggregertPeriode?): EgenvurderingDto? {
+    val maybeEgenvurdering = aggregertPeriode?.egenvurdering
+
+    val svar = when (maybeEgenvurdering?.egenvurdering) {
+        ProfilertTil.ANTATT_GODE_MULIGHETER -> "Jeg ønsker å klare meg selv"
+        ProfilertTil.ANTATT_BEHOV_FOR_VEILEDNING -> "Jeg ønsker oppfølging fra NAV"
+        else -> return null
+    }
+
+    return EgenvurderingDto(
+        sistOppdatert = maybeEgenvurdering.sendtInnAv.tidspunkt.toString(),
+        svar = listOf(
+            EgenvurderingDto.Svar(
+                spm = "Hva slags veiledning ønsker du?",
+                svar = svar
+            )
+        )
+    )
 }
