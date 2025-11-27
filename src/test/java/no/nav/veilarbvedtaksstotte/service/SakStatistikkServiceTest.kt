@@ -84,7 +84,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 mock(),
                 mock(),
                 mock(),
-                mock(),
                 sakStatistikkService,
                 aktorOppslagClient,
                 veilarboppfolgingClient,

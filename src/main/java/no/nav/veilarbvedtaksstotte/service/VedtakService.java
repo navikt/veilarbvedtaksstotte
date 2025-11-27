@@ -54,22 +54,18 @@ import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.MERKE_VEDTAK_SOM_
 public class VedtakService {
 
     private final TransactionTemplate transactor;
-
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final BeslutteroversiktRepository beslutteroversiktRepository;
     private final KilderRepository kilderRepository;
     private final MeldingRepository meldingRepository;
     private final SafClient safClient;
-
     private final AuthService authService;
-
     private final OyeblikksbildeService oyeblikksbildeService;
     private final VeilederService veilederService;
     private final VedtakHendelserService vedtakStatusEndringService;
     private final DokumentService dokumentService;
     private final DistribusjonService distribusjonService;
     private final MetricsService metricsService;
-
     private final LeaderElectionClient leaderElection;
     private final SakStatistikkService sakStatistikkService;
     private final AktorOppslagClient aktorOppslagClient;
