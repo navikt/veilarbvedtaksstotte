@@ -1,12 +1,16 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.common.types.identer.NorskIdent;
 import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AggregertPeriode;
 import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
@@ -31,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.BRUK_NY_KILDE_FOR_EGENVURDERING;
 
 
 @Service
@@ -42,6 +47,8 @@ public class OyeblikksbildeService {
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final VeilarbpersonClient veilarbpersonClient;
     private final AiaBackendClient aiaBackendClient;
+    private final ArbeidssoekerregisteretApiOppslagV2Client arbeidssoekerregisteretApiOppslagV2Client;
+    private final DefaultUnleash defaultUnleash;
 
     @Autowired
     public OyeblikksbildeService(
@@ -49,13 +56,17 @@ public class OyeblikksbildeService {
             OyeblikksbildeRepository oyeblikksbildeRepository,
             VedtaksstotteRepository vedtaksstotteRepository,
             VeilarbpersonClient veilarbpersonClient,
-            AiaBackendClient aiaBackendClient
+            AiaBackendClient aiaBackendClient,
+            ArbeidssoekerregisteretApiOppslagV2Client arbeidssoekerregisteretApiOppslagV2Client,
+            DefaultUnleash defaultUnleash
     ) {
         this.oyeblikksbildeRepository = oyeblikksbildeRepository;
         this.authService = authService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.veilarbpersonClient = veilarbpersonClient;
         this.aiaBackendClient = aiaBackendClient;
+        this.defaultUnleash = defaultUnleash;
+        this.arbeidssoekerregisteretApiOppslagV2Client = arbeidssoekerregisteretApiOppslagV2Client;
     }
 
     // Kun brukt i test
@@ -134,13 +145,22 @@ public class OyeblikksbildeService {
             oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfilering);
         }
         if (kilder.stream().anyMatch(kilde -> kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()) || kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc()))) {
-            final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr));
-            EgenvurderingDto egenvurderingData = mapToEgenvurderingData(egenvurdering);
-            oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingData);
+
+            EgenvurderingDto egenvurderingDto = defaultUnleash.isEnabled(BRUK_NY_KILDE_FOR_EGENVURDERING)
+                    // Dersom toggle på bruk paw-arbeidssoekerregisteret-api-oppslag-v2
+                    ? Optional.ofNullable(arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(NorskIdent.of(fnr)))
+                        .map(ArbeidssoekerregisteretApiOppslagV2ClientImpl::mapToEgenvurderingDto)
+                        .orElse(null)
+                    // Dersom toggle av bruk aia-backend
+                    : Optional.ofNullable(aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr)))
+                        .map(OyeblikksbildeService::mapToEgenvurderingData)
+                        .orElse(null);
+
+            oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingDto);
         }
     }
 
-    public EgenvurderingDto mapToEgenvurderingData(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test
+    public static EgenvurderingDto mapToEgenvurderingData(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test
         List<EgenvurderingDto.Svar> svar = new ArrayList<>();
         if (egenvurderingResponseDTO != null) {
             String svartekst = egenvurderingResponseDTO.getTekster().getSvar().get(egenvurderingResponseDTO.getOppfolging());

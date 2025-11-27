@@ -25,7 +25,7 @@ class DummyController(
     val log: Logger = LoggerFactory.getLogger(DummyController::class.java)
 
     @PostMapping("/egenvurdering")
-    fun hentEgenvurdering(@RequestBody norskIdent: NorskIdent): AggregertPeriode {
+    fun hentEgenvurdering(@RequestBody norskIdent: NorskIdent): AggregertPeriode? {
         if (EnvironmentUtils.isProduction().orElse(false)) {
             throw ResponseStatusException(
                 HttpStatus.FORBIDDEN,

@@ -17,7 +17,7 @@ import org.springframework.http.HttpHeaders
 import java.util.function.Supplier
 
 interface ArbeidssoekerregisteretApiOppslagV2Client {
-    fun hentEgenvurdering(norskIdent: NorskIdent): AggregertPeriode
+    fun hentEgenvurdering(norskIdent: NorskIdent): AggregertPeriode?
 }
 
 class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
@@ -26,7 +26,7 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
 ) : ArbeidssoekerregisteretApiOppslagV2Client {
     private val client: OkHttpClient = RestClient.baseClient()
 
-    override fun hentEgenvurdering(norskIdent: NorskIdent): AggregertPeriode {
+    override fun hentEgenvurdering(norskIdent: NorskIdent): AggregertPeriode? {
         val request = Request.Builder()
             .url(joinPaths(arbRegOppslagUrl, "/api/v3/snapshot"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
@@ -47,24 +47,27 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
            Hvis man har hatt en arbeidssøkerperiode som er avsluttet innenfor en oppfølgingsperiode, så kan vel fortsatt veileder bruke egenvurderingen derfra som en kilde til et (nytt) vedtak?
          */
     }
-}
 
-fun mapToEgenvurderingDto(aggregertPeriode: AggregertPeriode?): EgenvurderingDto? {
-    val maybeEgenvurdering = aggregertPeriode?.egenvurdering
+    companion object {
+        @JvmStatic
+        fun mapToEgenvurderingDto(aggregertPeriode: AggregertPeriode?): EgenvurderingDto? {
+            val maybeEgenvurdering = aggregertPeriode?.egenvurdering
 
-    val svar = when (maybeEgenvurdering?.egenvurdering) {
-        ProfilertTil.ANTATT_GODE_MULIGHETER -> "Jeg ønsker å klare meg selv"
-        ProfilertTil.ANTATT_BEHOV_FOR_VEILEDNING -> "Jeg ønsker oppfølging fra NAV"
-        else -> return null
-    }
+            val svar = when (maybeEgenvurdering?.egenvurdering) {
+                ProfilertTil.ANTATT_GODE_MULIGHETER -> "Jeg ønsker å klare meg selv"
+                ProfilertTil.ANTATT_BEHOV_FOR_VEILEDNING -> "Jeg ønsker oppfølging fra NAV"
+                else -> return null
+            }
 
-    return EgenvurderingDto(
-        sistOppdatert = maybeEgenvurdering.sendtInnAv.tidspunkt.toString(),
-        svar = listOf(
-            EgenvurderingDto.Svar(
-                spm = "Hva slags veiledning ønsker du?",
-                svar = svar
+            return EgenvurderingDto(
+                sistOppdatert = maybeEgenvurdering.sendtInnAv.tidspunkt.toString(),
+                svar = listOf(
+                    EgenvurderingDto.Svar(
+                        spm = "Hva slags veiledning ønsker du?",
+                        svar = svar
+                    )
+                )
             )
-        )
-    )
+        }
+    }
 }

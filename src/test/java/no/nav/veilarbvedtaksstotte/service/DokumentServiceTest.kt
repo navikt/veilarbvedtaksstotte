@@ -19,6 +19,8 @@ import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -221,13 +223,16 @@ class DokumentServiceTest {
         val oyeblikksbildeRepository = mock(OyeblikksbildeRepository::class.java)
         val vedtaksstotteRepository = mock(VedtaksstotteRepository::class.java)
         val aiaBackendClient = mock(AiaBackendClient::class.java)
+        val arbeidssoekerregisteretApiOppslagV2Client = mock(ArbeidssoekerregisteretApiOppslagV2Client::class.java)
         val unleashService: DefaultUnleash = mock(DefaultUnleash::class.java)
         oyeblikksbildeService = OyeblikksbildeService(
             authService,
             oyeblikksbildeRepository,
             vedtaksstotteRepository,
             veilarbpersonClient,
-            aiaBackendClient
+            aiaBackendClient,
+            arbeidssoekerregisteretApiOppslagV2Client,
+            unleashService
         )
 
         pdfService = PdfService(
