@@ -75,6 +75,10 @@ spec:
       value: api://dev-fss.teamdokumenthandtering.dokdistkanal/.default
     - name: DOKDISTKANAL_URL
       value: https://dokdistkanal-q2.dev-fss-pub.nais.io
+    - name: EGENVURDERING_DIALOG_TJENESTE_TOKEN_SCOPE
+      value: api://dev-gcp.paw.egenvurdering-dialog-tjeneste/.default
+    - name: EGENVURDERING_DIALOG_TJENESTE_URL
+      value: http://egenvurdering-dialog-tjeneste.paw
     - name: NORG2_URL
       value: https://norg2.intern.dev.nav.no/norg2
     - name: PDL_TOKEN_SCOPE
@@ -177,6 +181,8 @@ spec:
     outbound:
       rules:
         - application: aia-backend
+          namespace: paw
+        - application: egenvurdering-dialog-tjeneste
           namespace: paw
         - application: paw-arbeidssoekerregisteret-api-oppslag-v2
           namespace: paw

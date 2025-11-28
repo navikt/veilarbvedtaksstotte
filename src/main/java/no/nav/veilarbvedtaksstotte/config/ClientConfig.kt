@@ -20,6 +20,8 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClientImpl
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -94,6 +96,16 @@ class ClientConfig {
                 )
             )
         }
+    }
+
+    @Bean
+    fun EgenvurderingDialogTjenesteClient(
+        properties: EnvironmentProperties,
+        machineTokenClient: AzureAdMachineToMachineTokenClient
+    ): EgenvurderingDialogTjenesteClient {
+        return EgenvurderingDialogTjenesteClientImpl(
+            properties.egenvurderingDialogTjenesteUrl,
+        ) { machineTokenClient.createMachineToMachineToken(properties.egenvurderingDialogTjenesteScope) }
     }
 
     @Bean
