@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.time.LocalDateTime
 
 /**
  *
@@ -24,7 +25,7 @@ data class ProblemDetails(
 
     @get:JsonProperty("instance", required = true) val instance: String,
 
-    @get:JsonProperty("timestamp", required = true) val timestamp: java.time.OffsetDateTime,
+    @get:JsonProperty("timestamp", required = true) val timestamp: LocalDateTime,
 
     @get:JsonProperty("detail") val detail: String? = null
 )

@@ -1,6 +1,11 @@
 package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 
-import com.fasterxml.jackson.annotation.*
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonValue
+import java.time.LocalDateTime
 
 /**
  *
@@ -51,7 +56,7 @@ interface Hendelse {
     val type: Type
 
 
-    val tidspunkt: java.time.OffsetDateTime
+    val tidspunkt: LocalDateTime
 
 
     val utfoertAv: Bruker

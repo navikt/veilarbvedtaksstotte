@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.time.LocalDateTime
 
 /**
  *
@@ -9,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 data class TidspunktFraKilde(
 
-    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: java.time.OffsetDateTime,
+    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: LocalDateTime,
 
     @get:JsonProperty("avviksType", required = true) val avviksType: AvviksType = AvviksType.UKJENT_VERDI
 )

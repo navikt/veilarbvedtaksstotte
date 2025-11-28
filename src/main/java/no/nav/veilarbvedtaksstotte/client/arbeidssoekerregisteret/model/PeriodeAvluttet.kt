@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
+import java.time.LocalDateTime
 
 /**
  * Inneholder data om en startet periode
@@ -17,7 +18,7 @@ data class PeriodeAvluttet(
 
     @get:JsonProperty("type", required = true) val type: Type,
 
-    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: java.time.OffsetDateTime,
+    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: LocalDateTime,
 
     @get:JsonProperty("utfoertAv", required = true) val utfoertAv: Bruker,
 

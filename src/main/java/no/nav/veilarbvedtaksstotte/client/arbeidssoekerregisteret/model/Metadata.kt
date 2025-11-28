@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.time.LocalDateTime
 
 /**
  * Inneholder metadata om en endring i arbeidssøkerregisteret
@@ -12,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 data class Metadata(
 
-    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: java.time.OffsetDateTime,
+    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: LocalDateTime,
 
     @get:JsonProperty("utfoertAv", required = true) val utfoertAv: Bruker,
 

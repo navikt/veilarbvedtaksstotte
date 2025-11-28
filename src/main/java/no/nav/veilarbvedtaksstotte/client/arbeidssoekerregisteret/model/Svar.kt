@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.time.LocalDateTime
 
 /**
  *
@@ -14,9 +15,9 @@ data class Svar(
 
     @get:JsonProperty("sendtInnAv", required = true) val sendtInnAv: Metadata,
 
-    @get:JsonProperty("gjelderFra", required = true) val gjelderFra: java.time.OffsetDateTime,
+    @get:JsonProperty("gjelderFra", required = true) val gjelderFra: LocalDateTime,
 
-    @get:JsonProperty("gjelderTil", required = true) val gjelderTil: java.time.OffsetDateTime,
+    @get:JsonProperty("gjelderTil", required = true) val gjelderTil: LocalDateTime,
 
     @get:JsonProperty("harJobbetIDennePerioden", required = true) val harJobbetIDennePerioden: Boolean,
 
