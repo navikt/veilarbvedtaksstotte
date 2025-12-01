@@ -5,6 +5,7 @@ import no.nav.common.types.identer.NorskIdent
 import no.nav.common.utils.EnvironmentUtils
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AggregertPeriode
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.slf4j.Logger
@@ -15,11 +16,13 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/dummy")
 class DummyController(
     val arbeidssoekerregisteretApiOppslagV2Client: ArbeidssoekerregisteretApiOppslagV2Client,
+    val egenvurderingDialogTjenesteClient: EgenvurderingDialogTjenesteClient,
     val authService: AuthService
 ) {
     val log: Logger = LoggerFactory.getLogger(DummyController::class.java)
@@ -41,6 +44,26 @@ class DummyController(
             return arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(norskIdent)
         } catch (e: Exception) {
             log.warn("Feil ved henting av egenvurdering for bruker", e)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @PostMapping("/dialogid")
+    fun hentDialogId(@RequestBody arbeidssokerperiodeId: UUID): Long? {
+        if (EnvironmentUtils.isProduction().orElse(false)) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Dette endepunktet er ikke tilgjengelig i produksjonsmiljøet"
+            )
+        }
+        if (!authService.erSystemBruker()) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Kun systembrukere har tilgang til dette endepunktet")
+        }
+
+        try {
+            return egenvurderingDialogTjenesteClient.hentDialogId(arbeidssokerperiodeId)?.dialogId
+        } catch (e: Exception) {
+            log.warn("Feil ved henting av dialogId for bruker", e)
             throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }

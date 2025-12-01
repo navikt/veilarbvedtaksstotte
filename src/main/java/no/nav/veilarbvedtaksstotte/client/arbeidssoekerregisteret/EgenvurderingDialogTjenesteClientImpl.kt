@@ -12,7 +12,7 @@ import java.util.UUID
 import java.util.function.Supplier
 
 interface EgenvurderingDialogTjenesteClient {
-    fun hentDialogId(arbeidssokerperiodeId: UUID): UUID?
+    fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse?
 }
 
 class EgenvurderingDialogTjenesteClientImpl (
@@ -21,11 +21,11 @@ class EgenvurderingDialogTjenesteClientImpl (
 ) : EgenvurderingDialogTjenesteClient {
     private val client: OkHttpClient = RestClient.baseClient()
 
-    override fun hentDialogId(arbeidssokerperiodeId: UUID): UUID? {
+    override fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse? {
         val request = Request.Builder()
             .url("$url/api/v1/egenvurdering/dialog")
             .header(HttpHeaders.AUTHORIZATION, "Bearer ${machineToMachineTokenClient.get()}")
-            .post(arbeidssokerperiodeId.toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
+            .post(EgenvurderingDialogRequest(arbeidssokerperiodeId).toJson().toRequestBody(RestUtils.MEDIA_TYPE_JSON))
             .build()
 
         client.newCall(request).execute().use { response ->
@@ -35,3 +35,7 @@ class EgenvurderingDialogTjenesteClientImpl (
         }
     }
 }
+
+data class EgenvurderingDialogRequest(val periodeId: UUID)
+
+data class EgenvurderingDialogResponse(val dialogId: Long)
