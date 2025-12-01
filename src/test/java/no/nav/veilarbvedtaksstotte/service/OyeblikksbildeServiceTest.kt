@@ -4,6 +4,7 @@ import io.getunleash.DefaultUnleash
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeEntity
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
@@ -85,6 +86,7 @@ internal class OyeblikksbildeServiceTest {
         private val aiaBackendClient = Mockito.mock(AiaBackendClient::class.java)
         private val arbeidssoekerregisteretApiOppslagV2Client =
             Mockito.mock(ArbeidssoekerregisteretApiOppslagV2Client::class.java)
+        private val egenvurderingDialogTjenesteClient = Mockito.mock(EgenvurderingDialogTjenesteClient::class.java)
         private val defaultUnleash = Mockito.mock(DefaultUnleash::class.java)
         private val oyeblikksbildeService = OyeblikksbildeService(
             authService,
@@ -93,6 +95,7 @@ internal class OyeblikksbildeServiceTest {
             veilarbpersonClient,
             aiaBackendClient,
             arbeidssoekerregisteretApiOppslagV2Client,
+            egenvurderingDialogTjenesteClient,
             defaultUnleash
         )
     }

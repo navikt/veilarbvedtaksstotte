@@ -7,13 +7,14 @@ import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AggregertPeriode
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.IdentitetsnummerQueryRequest.Companion.toIdentitetsnummerQueryRequest
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.ProfilertTil
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import java.util.function.Supplier
 
 interface ArbeidssoekerregisteretApiOppslagV2Client {
@@ -37,6 +38,9 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
             .build()
 
         client.newCall(request).execute().use { response ->
+            if (response.code == HttpStatus.NOT_FOUND.value()) {
+                return null
+            }
             RestUtils.throwIfNotSuccessful(response)
 
             return response.deserializeJsonOrThrow()
@@ -50,23 +54,20 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
 
     companion object {
         @JvmStatic
-        fun mapToEgenvurderingDto(aggregertPeriode: AggregertPeriode?): EgenvurderingDto? {
-            val maybeEgenvurdering = aggregertPeriode?.egenvurdering
+        fun mapToEgenvurderingV2Dto(aggregertPeriode: AggregertPeriode, dialogId: Long?): EgenvurderingV2Dto? {
+            val egenvurdering = aggregertPeriode.egenvurdering?: return null
 
-            val svar = when (maybeEgenvurdering?.egenvurdering) {
+            val svar = when (egenvurdering.egenvurdering) {
                 ProfilertTil.ANTATT_GODE_MULIGHETER -> "Jeg ønsker å klare meg selv"
                 ProfilertTil.ANTATT_BEHOV_FOR_VEILEDNING -> "Jeg ønsker oppfølging fra NAV"
                 else -> return null
             }
 
-            return EgenvurderingDto(
-                sistOppdatert = maybeEgenvurdering.sendtInnAv.tidspunkt.toString(),
-                svar = listOf(
-                    EgenvurderingDto.Svar(
-                        spm = "Hva slags veiledning ønsker du?",
-                        svar = svar
-                    )
-                )
+            return EgenvurderingV2Dto(
+                egenvurderingId = egenvurdering.id,
+                sendtInnTidspunkt = egenvurdering.sendtInnAv.tidspunkt,
+                dialogId = dialogId,
+                svar = svar
             )
         }
     }

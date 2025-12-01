@@ -21,6 +21,7 @@ import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -224,6 +225,7 @@ class DokumentServiceTest {
         val vedtaksstotteRepository = mock(VedtaksstotteRepository::class.java)
         val aiaBackendClient = mock(AiaBackendClient::class.java)
         val arbeidssoekerregisteretApiOppslagV2Client = mock(ArbeidssoekerregisteretApiOppslagV2Client::class.java)
+        val egenvurderingDialogTjenesteClient = mock(EgenvurderingDialogTjenesteClient::class.java)
         val unleashService: DefaultUnleash = mock(DefaultUnleash::class.java)
         oyeblikksbildeService = OyeblikksbildeService(
             authService,
@@ -232,6 +234,7 @@ class DokumentServiceTest {
             veilarbpersonClient,
             aiaBackendClient,
             arbeidssoekerregisteretApiOppslagV2Client,
+            egenvurderingDialogTjenesteClient,
             unleashService
         )
 

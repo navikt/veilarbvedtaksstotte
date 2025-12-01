@@ -13,6 +13,8 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogResponse;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AggregertPeriode;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Annet;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AvviksType;
@@ -329,6 +331,18 @@ public class ClientTestConfig {
     }
 
     @Bean
+    public EgenvurderingDialogTjenesteClient egenvurderingDialogTjenesteClient() {
+        return new EgenvurderingDialogTjenesteClient() {
+            @Override
+            public EgenvurderingDialogResponse hentDialogId(@NotNull UUID arbeidssokerperiodeId) {
+                return new EgenvurderingDialogResponse(
+                        123456L
+                );
+            }
+        };
+    }
+
+    @Bean
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {
             @Override
@@ -405,12 +419,12 @@ public class ClientTestConfig {
             }
 
             @Override
-            public FodselsdatoOgAr hentFodselsdato(@NotNull Fnr fnr)  {
+            public FodselsdatoOgAr hentFodselsdato(@NotNull Fnr fnr) {
                 return new FodselsdatoOgAr(LocalDate.of(1990, 1, 1), 1990);
             }
 
             @Override
-            public OpplysningerOmArbeidssoekerMedProfilering hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr fnr){
+            public OpplysningerOmArbeidssoekerMedProfilering hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr fnr) {
                 return null;
             }
         };
@@ -458,7 +472,6 @@ public class ClientTestConfig {
             public Veileder hentVeileder(String veilederIdent) {
                 return new Veileder(TEST_VEILEDER_IDENT, "VEILEDER VEILEDERSEN");
             }
-
 
 
             @Override

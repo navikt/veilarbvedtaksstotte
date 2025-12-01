@@ -11,12 +11,14 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDT
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AggregertPeriode;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogResponse;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient;
 import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeArbeidssokerRegistretDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeCvDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
@@ -48,6 +50,7 @@ public class OyeblikksbildeService {
     private final VeilarbpersonClient veilarbpersonClient;
     private final AiaBackendClient aiaBackendClient;
     private final ArbeidssoekerregisteretApiOppslagV2Client arbeidssoekerregisteretApiOppslagV2Client;
+    private final EgenvurderingDialogTjenesteClient egenvurderingDialogTjenesteClient;
     private final DefaultUnleash defaultUnleash;
 
     @Autowired
@@ -58,6 +61,7 @@ public class OyeblikksbildeService {
             VeilarbpersonClient veilarbpersonClient,
             AiaBackendClient aiaBackendClient,
             ArbeidssoekerregisteretApiOppslagV2Client arbeidssoekerregisteretApiOppslagV2Client,
+            EgenvurderingDialogTjenesteClient egenvurderingDialogTjenesteClient,
             DefaultUnleash defaultUnleash
     ) {
         this.oyeblikksbildeRepository = oyeblikksbildeRepository;
@@ -67,6 +71,7 @@ public class OyeblikksbildeService {
         this.aiaBackendClient = aiaBackendClient;
         this.defaultUnleash = defaultUnleash;
         this.arbeidssoekerregisteretApiOppslagV2Client = arbeidssoekerregisteretApiOppslagV2Client;
+        this.egenvurderingDialogTjenesteClient = egenvurderingDialogTjenesteClient;
     }
 
     // Kun brukt i test
@@ -146,17 +151,23 @@ public class OyeblikksbildeService {
         }
         if (kilder.stream().anyMatch(kilde -> kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()) || kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc()))) {
 
-            EgenvurderingDto egenvurderingDto = defaultUnleash.isEnabled(BRUK_NY_KILDE_FOR_EGENVURDERING)
-                    // Dersom toggle på bruk paw-arbeidssoekerregisteret-api-oppslag-v2
-                    ? Optional.ofNullable(arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(NorskIdent.of(fnr)))
-                        .map(ArbeidssoekerregisteretApiOppslagV2ClientImpl::mapToEgenvurderingDto)
-                        .orElse(null)
-                    // Dersom toggle av bruk aia-backend
-                    : Optional.ofNullable(aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr)))
+            if (defaultUnleash.isEnabled(BRUK_NY_KILDE_FOR_EGENVURDERING)) {
+                // Dersom toggle på bruk paw-arbeidssoekerregisteret-api-oppslag-v2
+                EgenvurderingV2Dto egenvurderingV2Dto = Optional.ofNullable(arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(NorskIdent.of(fnr)))
+                        .map(aggregertPeriode -> {
+                            Optional<Long> dialogId = Optional.ofNullable(egenvurderingDialogTjenesteClient.hentDialogId(aggregertPeriode.getId())).map(EgenvurderingDialogResponse::getDialogId);
+                            return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(aggregertPeriode, dialogId.orElse(null));
+                        })
+                        .orElse(null);
+                oyeblikksbildeRepository.upsertEgenvurderingV2Oyeblikksbilde(vedtakId, egenvurderingV2Dto);
+            } else {
+                // Dersom toggle av bruk aia-backend
+                EgenvurderingDto egenvurderingDto = Optional.ofNullable(aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr)))
                         .map(OyeblikksbildeService::mapToEgenvurderingData)
                         .orElse(null);
+                oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingDto);
+            }
 
-            oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingDto);
         }
     }
 

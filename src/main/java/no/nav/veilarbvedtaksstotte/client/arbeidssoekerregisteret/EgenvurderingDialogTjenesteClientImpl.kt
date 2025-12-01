@@ -8,6 +8,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import java.util.UUID
 import java.util.function.Supplier
 
@@ -29,6 +30,9 @@ class EgenvurderingDialogTjenesteClientImpl (
             .build()
 
         client.newCall(request).execute().use { response ->
+            if(response.code == HttpStatus.NOT_FOUND.value()) {
+                return null
+            }
             RestUtils.throwIfNotSuccessful(response)
 
             return response.deserializeJsonOrThrow()
