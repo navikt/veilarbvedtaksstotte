@@ -8,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.person.dto.*
 import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto
 import java.time.ZonedDateTime
 
 
@@ -83,6 +84,18 @@ data class EgenvurderingMedMottakerDto(
             mottaker = mottaker,
             sistOppdatert = egenvurdering.sistOppdatert,
             svar = egenvurdering.svar
+        )
+
+        fun from(egenvurderingV2: EgenvurderingV2Dto, mottaker: Mottaker) = EgenvurderingMedMottakerDto(
+            mottaker = mottaker,
+            sistOppdatert = egenvurderingV2.sendtInnTidspunkt.toString(),
+            svar = listOf(
+                EgenvurderingDto.Svar(
+                    spm = egenvurderingV2.sporsmal,
+                    svar = egenvurderingV2.svar,
+                    dialogId = egenvurderingV2.dialogId?.toString()
+                )
+            )
         )
     }
 }

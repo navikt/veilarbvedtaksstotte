@@ -13,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV
 import org.slf4j.LoggerFactory
@@ -60,6 +61,26 @@ class PdfService(
                 JsonUtils.objectMapper.readValue(data, EgenvurderingDto::class.java)
 
             val egenvurderingMedMottaker = EgenvurderingMedMottakerDto.from(egenvurderingResponseDTO, mottaker)
+
+            return Optional.ofNullable(
+                pdfClient.genererOyeblikksbildeEgenVurderingPdf(
+                    egenvurderingMedMottaker
+                )
+            )
+        } catch (e: Exception) {
+            log.error("Kan ikke parse oyeblikksbilde data eller generere pdf", e)
+            throw e
+        }
+    }
+
+    fun produserEgenvurderingV2Pdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
+        try {
+            if (data == null) return Optional.empty()
+
+            val egenvurderingV2Dto =
+                JsonUtils.objectMapper.readValue(data, EgenvurderingV2Dto::class.java)
+
+            val egenvurderingMedMottaker = EgenvurderingMedMottakerDto.from(egenvurderingV2Dto, mottaker)
 
             return Optional.ofNullable(
                 pdfClient.genererOyeblikksbildeEgenVurderingPdf(

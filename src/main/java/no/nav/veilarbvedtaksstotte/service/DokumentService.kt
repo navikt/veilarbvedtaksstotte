@@ -60,12 +60,15 @@ class DokumentService(
 
         val behovsVurderingData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING }
+        val egenvurderingV2Data =
+            oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.EGENVURDERING_V2 }
         val cvData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.CV_OG_JOBBPROFIL }
         val arbeidssokerRegistretData =
             oyeblikksbildeForVedtak.firstOrNull { it.oyeblikksbildeType == OyeblikksbildeType.ARBEIDSSOKERREGISTRET }
 
         val behovsVurderingPdf = pdfService.produserBehovsvurderingPdf(behovsVurderingData?.json, mottaker)
+        val egenvurderingV2Pdf = pdfService.produserEgenvurderingV2Pdf(egenvurderingV2Data?.json, mottaker)
         val cvPDF = pdfService.produserCVPdf(cvData?.json, mottaker)
         val arbeidssokerRegistretPdf =
             pdfService.produserArbeidssokerRegistretPdf(arbeidssokerRegistretData?.json, mottaker)
@@ -79,6 +82,7 @@ class DokumentService(
             malType = produserDokumentDTO.malType,
             dokument = dokument,
             oyeblikksbildeBehovsvurderingDokument = behovsVurderingPdf.getOrElse { null },
+            oyeblikksbildeEgenvurderingV2Dokument = egenvurderingV2Pdf.getOrElse { null },
             oyeblikksbildeCVDokument = cvPDF.getOrElse { null },
             oyeblikksbildeArbeidssokerRegistretDokument = arbeidssokerRegistretPdf.getOrElse { null },
             referanse = referanse
@@ -94,6 +98,7 @@ class DokumentService(
         malType: MalType,
         dokument: ByteArray,
         oyeblikksbildeBehovsvurderingDokument: ByteArray?,
+        oyeblikksbildeEgenvurderingV2Dokument: ByteArray?,
         oyeblikksbildeCVDokument: ByteArray?,
         oyeblikksbildeArbeidssokerRegistretDokument: ByteArray?,
         referanse: UUID
@@ -149,6 +154,20 @@ class DokumentService(
                     dokumentvarianter = listOf(
                         OpprettJournalpostDTO.DokumentVariant(
                             "PDFA", fysiskDokument = oyeblikksbildeBehovsvurderingDokument, variantformat = "ARKIV"
+                        )
+                    )
+                )
+            )
+        }
+
+        if (oyeblikksbildeEgenvurderingV2Dokument != null) {
+            dokumenterList.add(
+                OpprettJournalpostDTO.Dokument(
+                    tittel = OyeblikksbildePdfTemplate.EGENVURDERINGV2.fileName,
+                    brevkode = BrevKode.of(OyeblikksbildeType.EGENVURDERING_V2).name,
+                    dokumentvarianter = listOf(
+                        OpprettJournalpostDTO.DokumentVariant(
+                            "PDFA", fysiskDokument = oyeblikksbildeEgenvurderingV2Dokument, variantformat = "ARKIV"
                         )
                     )
                 )

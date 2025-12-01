@@ -25,6 +25,7 @@ class DummyController(
     val egenvurderingDialogTjenesteClient: EgenvurderingDialogTjenesteClient,
     val authService: AuthService
 ) {
+    // TODO: Slett denne fila
     val log: Logger = LoggerFactory.getLogger(DummyController::class.java)
 
     @PostMapping("/egenvurdering")

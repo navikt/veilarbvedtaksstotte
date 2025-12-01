@@ -20,7 +20,6 @@ import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
@@ -101,6 +100,7 @@ class DokumentServiceTest {
     )
     val forventetBrev = "brev".toByteArray()
     val behovsvurderingPdf = "behovsvurdering".toByteArray()
+    val egenvurderingV2Pdf = "egenvurderingV2".toByteArray()
     val arbeidssoekerRegisteretPdf = "arbeidssokerRegistret".toByteArray()
     val cvPdf = "CV".toByteArray()
 
@@ -177,6 +177,17 @@ class DokumentServiceTest {
                         {
                           "filtype": "PDFA",
                           "fysiskDokument": "${Base64.encode(behovsvurderingPdf)}",
+                          "variantformat": "ARKIV"
+                        }
+                      ]
+                    },
+                    {
+                      "tittel": "Svarene dine om behov for veiledning",
+                      "brevkode": "EGENVURDERING_V2",
+                      "dokumentvarianter": [
+                        {
+                          "filtype": "PDFA",
+                          "fysiskDokument": "${Base64.encode(egenvurderingV2Pdf)}",
                           "variantformat": "ARKIV"
                         }
                       ]
@@ -359,7 +370,7 @@ class DokumentServiceTest {
                 .willReturn(aResponse().withStatus(201).withBody(forventetJournalpostResponsJson))
         )
 
-        val respons = journalførMedForventetRequest()
+        val respons = journalforMedForventetRequest()
 
         Assertions.assertEquals(forventetJournalpostRespons, respons)
     }
@@ -374,7 +385,7 @@ class DokumentServiceTest {
                 )
         )
 
-        val respons = journalførMedForventetRequest()
+        val respons = journalforMedForventetRequest()
 
         Assertions.assertEquals(forventetJournalpostRespons, respons)
     }
@@ -439,7 +450,7 @@ class DokumentServiceTest {
 
     }
 
-    private fun journalførMedForventetRequest(): OpprettetJournalpostDTO {
+    private fun journalforMedForventetRequest(): OpprettetJournalpostDTO {
         return AuthContextHolderThreadLocal.instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                 dokumentService.journalforDokument(
@@ -451,6 +462,7 @@ class DokumentServiceTest {
                     dokument = forventetBrev,
                     oyeblikksbildeCVDokument = cvPdf,
                     oyeblikksbildeBehovsvurderingDokument = behovsvurderingPdf,
+                    oyeblikksbildeEgenvurderingV2Dokument = egenvurderingV2Pdf,
                     oyeblikksbildeArbeidssokerRegistretDokument = arbeidssoekerRegisteretPdf,
                     referanse = eksternJournalpostReferanse
                 )
