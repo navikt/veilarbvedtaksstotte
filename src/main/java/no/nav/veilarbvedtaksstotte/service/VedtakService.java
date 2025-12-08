@@ -423,7 +423,7 @@ public class VedtakService {
         Optional<Boolean> erUnderOppfolging = veilarboppfolgingClient.erUnderOppfolging(fnr);
 
         if (erUnderOppfolging.isEmpty() || erUnderOppfolging.get().equals(false)) {
-            secureLog.warn("Prøver å fatte 14a-vedtak, men fnr={} har ingen oppfølgingsperiode", fnr.get());
+            secureLog.warn("Prøver å fatte 14a-vedtak, men fnr={} er ikke under oppfølging", fnr.get());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Bruker er ikke under oppfølging og kan ikke få vedtak");
         }
     }
