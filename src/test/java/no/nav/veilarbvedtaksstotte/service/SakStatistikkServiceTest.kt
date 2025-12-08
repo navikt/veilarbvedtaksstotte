@@ -123,6 +123,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
             mockedOppfolgingsPeriode(null)
         )
         whenever(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(mockedOppfolgingsSak(null))
+        whenever(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(true))
         whenever(environmentProperties.naisAppImage).thenReturn("naisAppImage")
         whenever(veilarbpersonClient.hentAdressebeskyttelse(any())).thenReturn(Adressebeskyttelse(Gradering.UGRADERT))
     }

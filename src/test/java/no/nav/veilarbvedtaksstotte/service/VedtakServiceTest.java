@@ -212,6 +212,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));
         when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.of(new OppfolgingPeriodeDTO(UUID.randomUUID(), ZonedDateTime.now(), null)));
         when(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(new SakDTO(UUID.randomUUID(), 12345, "ARBEIDSOPPFOLGING", "OPP"));
+        when(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(true));
         when(dokarkivClient.opprettJournalpost(any()))
                 .thenReturn(new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
@@ -512,7 +513,7 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             gittTilgang();
             gittUtkastKlarForUtsendelse();
-            when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.empty());
+            when(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(false));
 
             assertThatThrownBy(() -> vedtakService.fattVedtak(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId())
             ).isExactlyInstanceOf(ResponseStatusException.class)
