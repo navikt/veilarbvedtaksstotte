@@ -14,7 +14,6 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
@@ -421,9 +420,9 @@ public class VedtakService {
     }
 
     void sjekkBrukerUnderOppfolging(Fnr fnr) {
-        Optional<OppfolgingPeriodeDTO> oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr);
+        Optional<Boolean> erUnderOppfolging = veilarboppfolgingClient.erUnderOppfolging(fnr);
 
-        if (oppfolgingsperiode.isEmpty()) {
+        if (erUnderOppfolging.isEmpty() || erUnderOppfolging.get().equals(false)) {
             secureLog.warn("Prøver å fatte 14a-vedtak, men fnr={} har ingen oppfølgingsperiode", fnr.get());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Bruker er ikke under oppfølging og kan ikke få vedtak");
         }

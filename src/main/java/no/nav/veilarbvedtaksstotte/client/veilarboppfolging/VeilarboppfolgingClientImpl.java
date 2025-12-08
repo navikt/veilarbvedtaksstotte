@@ -40,6 +40,19 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
         this.client = RestClient.baseClient();
         this.machineToMachineTokenSupplier = machineToMachineTokenSupplier;
     }
+    @SneakyThrows
+    public Optional<Boolean> erUnderOppfolging(Fnr fnr) {
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarboppfolgingUrl, "/api/v3/oppfolging/hent-oppfolging"))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+                .post(toJsonRequestBody(new OppfolgingRequest(fnr)))
+                .build();
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestUtils.throwIfNotSuccessful(response);
+            return RestUtils.getBodyStr(response)
+                    .map((bodyStr) -> JsonUtils.fromJson(bodyStr, boolean.class));
+        }
+    }
 
     @Cacheable(CacheConfig.GJELDENDE_OPPFOLGINGPERIODE_CACHE_NAME)
     @SneakyThrows

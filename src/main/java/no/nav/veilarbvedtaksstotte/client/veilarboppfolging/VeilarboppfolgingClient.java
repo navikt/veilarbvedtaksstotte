@@ -11,6 +11,7 @@ import java.util.UUID;
 
 public interface VeilarboppfolgingClient extends HealthCheck {
 
+    Optional<Boolean> erUnderOppfolging(Fnr fnr);
     Optional<OppfolgingPeriodeDTO> hentGjeldendeOppfolgingsperiode(Fnr fnr);
 
     List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr);

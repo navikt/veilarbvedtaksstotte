@@ -216,6 +216,11 @@ public class ClientTestConfig {
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {
             @Override
+            public Optional<Boolean> erUnderOppfolging(Fnr fnr) {
+                return Optional.of(true);
+            }
+
+            @Override
             public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr) {
                 OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
                 periode.setStartDato(ZonedDateTime.now().minusDays(10));
