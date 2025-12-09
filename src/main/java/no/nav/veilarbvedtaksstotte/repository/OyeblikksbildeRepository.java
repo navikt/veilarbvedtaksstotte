@@ -11,6 +11,8 @@ import no.nav.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -75,8 +77,24 @@ public class OyeblikksbildeRepository {
 
     public Optional<OyeblikksbildeEgenvurderingDto> hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
         try {
-            String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
-            return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapEgenvurderingOyeblikksbilde, vedtakId, OyeblikksbildeType.EGENVURDERING.name()));
+            NamedParameterJdbcTemplate namedDb = new NamedParameterJdbcTemplate(db);
+
+            // I teorien skal det aldri finnes mer enn én egenvurdering per vedtak, denne prioriterer V2 hvis det allikevel skulle skje
+            String sql =
+                    "SELECT * FROM " + OYEBLIKKSBILDE_TABLE + " " +
+                            "WHERE " + VEDTAK_ID + " = :vedtakId " +
+                            "AND " + OYEBLIKKSBILDE_TYPE + " IN (:typeV1::OYEBLIKKSBILDE_TYPE, :typeV2::OYEBLIKKSBILDE_TYPE) " +
+                            "ORDER BY CASE " + OYEBLIKKSBILDE_TYPE + " WHEN 'EGENVURDERING_V2' THEN 0 ELSE 1 END " +
+                            "LIMIT 1";
+
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("vedtakId", vedtakId)
+                    .addValue("typeV1", OyeblikksbildeType.EGENVURDERING.name())
+                    .addValue("typeV2", OyeblikksbildeType.EGENVURDERING_V2.name());
+
+            OyeblikksbildeEgenvurderingDto result = namedDb.queryForObject(
+                    sql, params, OyeblikksbildeRepository::mapEgenvurderingOyeblikksbilde);
+            return Optional.ofNullable(result);
         } catch (Exception e) {
             log.warn("Kan ikke hente oyeblikksbilde " + e, e);
             return Optional.empty();
