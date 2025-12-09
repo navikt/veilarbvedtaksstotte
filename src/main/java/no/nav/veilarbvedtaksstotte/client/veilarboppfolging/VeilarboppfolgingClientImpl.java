@@ -43,7 +43,7 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
     @SneakyThrows
     public Optional<Boolean> erUnderOppfolging(Fnr fnr) {
         Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/api/v3/oppfolging/hent-oppfolging"))
+                .url(joinPaths(veilarboppfolgingUrl, "/api/v3/hent-oppfolging"))
                 .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
                 .post(toJsonRequestBody(new OppfolgingRequest(fnr)))
                 .build();
