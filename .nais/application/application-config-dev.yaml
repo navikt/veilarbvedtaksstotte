@@ -184,6 +184,8 @@ spec:
           namespace: paw
         - application: egenvurdering-dialog-tjeneste
           namespace: paw
+        - application: logging
+          namespace: nais-system
         - application: paw-arbeidssoekerregisteret-api-oppslag-v2
           namespace: paw
         - application: poao-tilgang
