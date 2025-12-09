@@ -225,9 +225,17 @@ public class OyeblikksbildeRepository {
 
     @SneakyThrows
     private static OyeblikksbildeEgenvurderingDto mapEgenvurderingOyeblikksbilde(ResultSet rs, int row) {
-        EgenvurderingDto egenvurderingDto = JsonUtils.fromJson(rs.getString(JSON), EgenvurderingDto.class);
+        String json = rs.getString(JSON);
+        EgenvurderingData data;
+        try {
+            //Prøv V2 først
+            data = JsonUtils.fromJson(json, EgenvurderingV2Dto.class);
+        } catch (Exception v2Ex) {
+            data = JsonUtils.fromJson(json, EgenvurderingDto.class);
+        }
+
         return new OyeblikksbildeEgenvurderingDto()
-                .setData(egenvurderingDto)
+                .setData(data)
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }
 

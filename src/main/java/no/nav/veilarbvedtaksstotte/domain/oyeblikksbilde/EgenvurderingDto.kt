@@ -6,7 +6,7 @@ import java.util.UUID
 data class EgenvurderingDto(
     val sistOppdatert: String? = null,
     val svar: List<Svar>? = null,
-) {
+) : EgenvurderingData {
     data class Svar(
         val spm: String,
         val svar: String? = null,
@@ -21,4 +21,4 @@ data class EgenvurderingV2Dto(
     val dialogId: Long?,
     val sporsmal: String = "Hva slags veiledning ønsker du?",
     val svar: String,
-)
+) : EgenvurderingData
