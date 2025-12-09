@@ -8,6 +8,7 @@ import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.OppfolgingRequest;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
@@ -41,7 +42,7 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
         this.machineToMachineTokenSupplier = machineToMachineTokenSupplier;
     }
     @SneakyThrows
-    public Optional<Boolean> erUnderOppfolging(Fnr fnr) {
+    public Optional<OppfolgingStatusDTO> erUnderOppfolging(Fnr fnr) {
         Request request = new Request.Builder()
                 .url(joinPaths(veilarboppfolgingUrl, "/api/v3/hent-oppfolging"))
                 .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
@@ -50,7 +51,7 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
             return RestUtils.getBodyStr(response)
-                    .map((bodyStr) -> JsonUtils.fromJson(bodyStr, boolean.class));
+                    .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingStatusDTO.class));
         }
     }
 

@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.veilarboppfolging;
 import no.nav.common.health.HealthCheck;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.UUID;
 
 public interface VeilarboppfolgingClient extends HealthCheck {
 
-    Optional<Boolean> erUnderOppfolging(Fnr fnr);
+    Optional<OppfolgingStatusDTO> erUnderOppfolging(Fnr fnr);
     Optional<OppfolgingPeriodeDTO> hentGjeldendeOppfolgingsperiode(Fnr fnr);
 
     List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr);

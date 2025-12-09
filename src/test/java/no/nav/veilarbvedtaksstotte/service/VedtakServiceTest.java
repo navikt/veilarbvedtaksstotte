@@ -37,6 +37,7 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
@@ -212,7 +213,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));
         when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.of(new OppfolgingPeriodeDTO(UUID.randomUUID(), ZonedDateTime.now(), null)));
         when(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(new SakDTO(UUID.randomUUID(), 12345, "ARBEIDSOPPFOLGING", "OPP"));
-        when(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(true));
+        when(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(new OppfolgingStatusDTO(true)));
         when(dokarkivClient.opprettJournalpost(any()))
                 .thenReturn(new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
@@ -510,11 +511,13 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @Test
     void ikke_vedtak_naar_personen_ikke_er_under_oppfolging() {
+
         withContext(() -> {
             gittTilgang();
+            when(environmentProperties.getNaisAppImage()).thenReturn("local-test");
             gittUtkastKlarForUtsendelse();
-            when(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(false));
 
+            when(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(new OppfolgingStatusDTO(false)));
             assertThatThrownBy(() -> vedtakService.fattVedtak(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId())
             ).isExactlyInstanceOf(ResponseStatusException.class)
                     .hasMessageContaining("Bruker er ikke under oppfølging og kan ikke få vedtak");

@@ -14,6 +14,7 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
@@ -420,9 +421,9 @@ public class VedtakService {
     }
 
     void sjekkBrukerUnderOppfolging(Fnr fnr) {
-        Optional<Boolean> erUnderOppfolging = veilarboppfolgingClient.erUnderOppfolging(fnr);
+        Optional<OppfolgingStatusDTO> erUnderOppfolging = veilarboppfolgingClient.erUnderOppfolging(fnr);
 
-        if (erUnderOppfolging.isEmpty() || erUnderOppfolging.get().equals(false)) {
+        if (erUnderOppfolging.isEmpty() || !erUnderOppfolging.get().isErUnderOppfolging()) {
             secureLog.warn("Prøver å fatte 14a-vedtak, men fnr={} er ikke under oppfølging", fnr.get());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Bruker er ikke under oppfølging og kan ikke få vedtak");
         }
