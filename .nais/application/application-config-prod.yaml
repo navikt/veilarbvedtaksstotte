@@ -186,6 +186,8 @@ spec:
           namespace: paw
         - application: logging
           namespace: nais-system
+        - application: norg2
+          namespace: org
         - application: paw-arbeidssoekerregisteret-api-oppslag-v2
           namespace: paw
         - application: poao-tilgang
