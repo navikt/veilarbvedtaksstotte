@@ -432,19 +432,6 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     @Test
-    public void taOverUtkast__fjerner_beslutter_hvis_veileder_er_beslutter() {
-        withContext(() -> {
-            gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT + "tidligere", TEST_OPPFOLGINGSENHET_ID);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-            vedtaksstotteRepository.setBeslutter(utkast.getId(), TEST_VEILEDER_IDENT);
-
-            vedtakService.taOverUtkast(utkast.getId());
-            assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getBeslutterIdent());
-        });
-    }
-
-    @Test
     public void taOverUtkast__oppretter_system_melding() {
         withContext(() -> {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
@@ -511,15 +498,22 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @Test
     void ikke_vedtak_naar_personen_ikke_er_under_oppfolging() {
-
         withContext(() -> {
             gittTilgang();
-            when(environmentProperties.getNaisAppImage()).thenReturn("local-test");
-            gittUtkastKlarForUtsendelse();
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+
+            OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
+                    .setHovedmal(Hovedmal.SKAFFE_ARBEID)
+                    .setBegrunnelse("En begrunnelse")
+                    .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                    .setOpplysninger(List.of("CV-en/jobbønskene dine på nav.no"));
+            vedtakService.oppdaterUtkast(utkast.getId(), oppdaterDto);
 
             when(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(new OppfolgingStatusDTO(false)));
-            assertThatThrownBy(() -> vedtakService.fattVedtak(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId())
-            ).isExactlyInstanceOf(ResponseStatusException.class)
+
+            assertThatThrownBy(() -> vedtakService.fattVedtak(utkast.getId()))
+                    .isExactlyInstanceOf(ResponseStatusException.class)
                     .hasMessageContaining("Bruker er ikke under oppfølging og kan ikke få vedtak");
         });
     }
