@@ -11,7 +11,6 @@ import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDT
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogResponse;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient;
 import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
@@ -155,8 +154,8 @@ public class OyeblikksbildeService {
                 // Dersom toggle på bruk paw-arbeidssoekerregisteret-api-oppslag-v2
                 EgenvurderingV2Dto egenvurderingV2Dto = Optional.ofNullable(arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(NorskIdent.of(fnr)))
                         .map(aggregertPeriode -> {
-                            Optional<Long> dialogId = Optional.ofNullable(egenvurderingDialogTjenesteClient.hentDialogId(aggregertPeriode.getId())).map(EgenvurderingDialogResponse::getDialogId);
-                            return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(aggregertPeriode, dialogId.orElse(null));
+                            Long dialogId = egenvurderingDialogTjenesteClient.hentDialogId(aggregertPeriode.getId()).getDialogId();
+                            return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(aggregertPeriode, dialogId);
                         })
                         .orElse(null);
                 oyeblikksbildeRepository.upsertEgenvurderingV2Oyeblikksbilde(vedtakId, egenvurderingV2Dto);

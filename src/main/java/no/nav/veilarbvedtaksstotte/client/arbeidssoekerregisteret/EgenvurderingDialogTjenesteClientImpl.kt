@@ -7,13 +7,13 @@ import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.jetbrains.annotations.NotNull
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import java.util.UUID
+import java.util.*
 import java.util.function.Supplier
 
 interface EgenvurderingDialogTjenesteClient {
-    fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse?
+    fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse
 }
 
 class EgenvurderingDialogTjenesteClientImpl (
@@ -22,7 +22,7 @@ class EgenvurderingDialogTjenesteClientImpl (
 ) : EgenvurderingDialogTjenesteClient {
     private val client: OkHttpClient = RestClient.baseClient()
 
-    override fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse? {
+    override fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse {
         val request = Request.Builder()
             .url("$url/api/v1/egenvurdering/dialog")
             .header(HttpHeaders.AUTHORIZATION, "Bearer ${machineToMachineTokenClient.get()}")
@@ -30,9 +30,6 @@ class EgenvurderingDialogTjenesteClientImpl (
             .build()
 
         client.newCall(request).execute().use { response ->
-            if(response.code == HttpStatus.NOT_FOUND.value()) {
-                return null
-            }
             RestUtils.throwIfNotSuccessful(response)
 
             return response.deserializeJsonOrThrow()
@@ -42,4 +39,4 @@ class EgenvurderingDialogTjenesteClientImpl (
 
 data class EgenvurderingDialogRequest(val periodeId: UUID)
 
-data class EgenvurderingDialogResponse(val dialogId: Long)
+data class EgenvurderingDialogResponse(@NotNull val dialogId: Long)
