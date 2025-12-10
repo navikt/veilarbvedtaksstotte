@@ -6,10 +6,10 @@ import no.nav.common.client.aktoroppslag.AktorOppslagClient;
 import no.nav.common.metrics.Event;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode;
@@ -41,7 +41,7 @@ public class MetricsService {
 
     private final VeilarbarenaClient veilarbarenaClient;
 
-    private final ArbeidssoekerRegisteretService arbeidssoekerRegisteretService;
+    private final VeilarbpersonClient veilarbpersonClient;
 
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
@@ -111,7 +111,7 @@ public class MetricsService {
         try {
             Fnr fnr = aktorOppslagClient.hentFnr(aktorId);
             List<Vedtak> vedtakTilBruker = vedtaksstotteRepository.hentFattedeVedtak(aktorId.get());
-            OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(fnr);
+            OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = veilarbpersonClient.hentSisteOpplysningerOmArbeidssoekerMedProfilering(fnr);
             Optional<ZonedDateTime> startDato = oppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
                     .map(OppfolgingPeriodeDTO::getStartDato);
 

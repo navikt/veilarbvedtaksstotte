@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret
+package no.nav.veilarbvedtaksstotte.client.person
 
 import java.time.ZonedDateTime
 import java.util.*

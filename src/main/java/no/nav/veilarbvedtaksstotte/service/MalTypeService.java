@@ -1,11 +1,11 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.types.identer.Fnr;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ProfileringResponse;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ProfilertTil;
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType;
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
+import no.nav.veilarbvedtaksstotte.client.person.ProfileringResponse;
+import no.nav.veilarbvedtaksstotte.client.person.ProfilertTil;
+import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
@@ -15,11 +15,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class MalTypeService {
 
-    private final ArbeidssoekerRegisteretService arbeidssoekerRegisteretService;
+    private final VeilarbpersonClient veilarbpersonClient;
 
     @Autowired
-    public MalTypeService(ArbeidssoekerRegisteretService arbeidssoekerRegisteretService) {
-        this.arbeidssoekerRegisteretService = arbeidssoekerRegisteretService;
+    public MalTypeService(VeilarbpersonClient veilarbpersonClient) {
+        this.veilarbpersonClient = veilarbpersonClient;
     }
 
     public MalType utledMalTypeFraVedtak(Vedtak vedtak, Fnr fnr) {
@@ -27,7 +27,7 @@ public class MalTypeService {
         Hovedmal hovedmal = vedtak.getHovedmal();
 
         if (Innsatsgruppe.STANDARD_INNSATS.equals(innsatsgruppe) && Hovedmal.SKAFFE_ARBEID.equals(hovedmal)) {
-            OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoeker = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(fnr);
+            OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoeker = veilarbpersonClient.hentSisteOpplysningerOmArbeidssoekerMedProfilering(fnr);
 
             if (opplysningerOmArbeidssoeker != null && opplysningerOmArbeidssoeker.getProfilering() != null) {
                 ProfileringResponse profilering = opplysningerOmArbeidssoeker.getProfilering();

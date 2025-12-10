@@ -10,8 +10,8 @@ object JsonUtils {
 
     @JvmStatic
     val objectMapper: ObjectMapper =
-        no.nav.common.json.JsonUtils.getMapper().registerModule(KotlinModule.Builder().build())
-
+        no.nav.common.json.JsonUtils.getMapper()
+            .registerModule(KotlinModule.Builder().build())
 
     @JvmStatic
     fun init() {

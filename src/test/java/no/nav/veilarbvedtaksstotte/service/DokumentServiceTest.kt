@@ -1,6 +1,11 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.containing
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
+import com.github.tomakehurst.wiremock.client.WireMock.givenThat
+import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.nimbusds.jose.util.Base64
@@ -14,8 +19,8 @@ import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.fn.UnsafeSupplier
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClientImpl
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient
@@ -23,7 +28,11 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClientImpl
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
-import no.nav.veilarbvedtaksstotte.client.norg2.*
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetOrganiserer
+import no.nav.veilarbvedtaksstotte.client.norg2.EnhetPostboksadresse
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client
+import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
 import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
@@ -68,9 +77,6 @@ class DokumentServiceTest {
     lateinit var oyeblikksbildeService: OyeblikksbildeService
     lateinit var dokumentService: DokumentService
     lateinit var pdfService: PdfService
-    lateinit var oppslagArbeidssoekerregisteretClientImpl: OppslagArbeidssoekerregisteretClientImpl
-    lateinit var arbeidssoekerRegisteretService: ArbeidssoekerRegisteretService
-
 
     val malform = Malform.NB
     val veilederNavn = "Navn Veileder"
@@ -94,6 +100,7 @@ class DokumentServiceTest {
     )
     val forventetBrev = "brev".toByteArray()
     val behovsvurderingPdf = "behovsvurdering".toByteArray()
+    val egenvurderingV2Pdf = "egenvurderingV2".toByteArray()
     val arbeidssoekerRegisteretPdf = "arbeidssokerRegistret".toByteArray()
     val cvPdf = "CV".toByteArray()
 
@@ -173,6 +180,17 @@ class DokumentServiceTest {
                           "variantformat": "ARKIV"
                         }
                       ]
+                    },
+                    {
+                      "tittel": "Svarene dine om behov for veiledning",
+                      "brevkode": "EGENVURDERING_V2",
+                      "dokumentvarianter": [
+                        {
+                          "filtype": "PDFA",
+                          "fysiskDokument": "${Base64.encode(egenvurderingV2Pdf)}",
+                          "variantformat": "ARKIV"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -206,19 +224,19 @@ class DokumentServiceTest {
         veilarbarenaClient = VeilarbarenaClientImpl(wiremockUrl) { "" }
         veilarboppfolgingClient = mock(VeilarboppfolgingClient::class.java)
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, { "" }, { "" })
-        oppslagArbeidssoekerregisteretClientImpl = OppslagArbeidssoekerregisteretClientImpl(wiremockUrl, { "" })
-        arbeidssoekerRegisteretService = ArbeidssoekerRegisteretService(oppslagArbeidssoekerregisteretClientImpl)
         veilarbveilederClient =
             VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), { "" }, { "" })
         pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)
         enhetInfoService = EnhetInfoService(norg2Client)
-        malTypeService = MalTypeService(arbeidssoekerRegisteretService)
+        malTypeService = MalTypeService(veilarbpersonClient)
 
         val authService = mock(AuthService::class.java)
         val oyeblikksbildeRepository = mock(OyeblikksbildeRepository::class.java)
         val vedtaksstotteRepository = mock(VedtaksstotteRepository::class.java)
         val aiaBackendClient = mock(AiaBackendClient::class.java)
+        val arbeidssoekerregisteretApiOppslagV2Client = mock(ArbeidssoekerregisteretApiOppslagV2Client::class.java)
+        val egenvurderingDialogTjenesteClient = mock(EgenvurderingDialogTjenesteClient::class.java)
         val unleashService: DefaultUnleash = mock(DefaultUnleash::class.java)
         oyeblikksbildeService = OyeblikksbildeService(
             authService,
@@ -226,7 +244,9 @@ class DokumentServiceTest {
             vedtaksstotteRepository,
             veilarbpersonClient,
             aiaBackendClient,
-            arbeidssoekerRegisteretService
+            arbeidssoekerregisteretApiOppslagV2Client,
+            egenvurderingDialogTjenesteClient,
+            unleashService
         )
 
         pdfService = PdfService(
@@ -350,7 +370,7 @@ class DokumentServiceTest {
                 .willReturn(aResponse().withStatus(201).withBody(forventetJournalpostResponsJson))
         )
 
-        val respons = journalførMedForventetRequest()
+        val respons = journalforMedForventetRequest()
 
         Assertions.assertEquals(forventetJournalpostRespons, respons)
     }
@@ -365,7 +385,7 @@ class DokumentServiceTest {
                 )
         )
 
-        val respons = journalførMedForventetRequest()
+        val respons = journalforMedForventetRequest()
 
         Assertions.assertEquals(forventetJournalpostRespons, respons)
     }
@@ -430,7 +450,7 @@ class DokumentServiceTest {
 
     }
 
-    private fun journalførMedForventetRequest(): OpprettetJournalpostDTO {
+    private fun journalforMedForventetRequest(): OpprettetJournalpostDTO {
         return AuthContextHolderThreadLocal.instance()
             .withContext(AuthTestUtils.createAuthContext(UserRole.INTERN, "SUBJECT"), UnsafeSupplier {
                 dokumentService.journalforDokument(
@@ -442,6 +462,7 @@ class DokumentServiceTest {
                     dokument = forventetBrev,
                     oyeblikksbildeCVDokument = cvPdf,
                     oyeblikksbildeBehovsvurderingDokument = behovsvurderingPdf,
+                    oyeblikksbildeEgenvurderingV2Dokument = egenvurderingV2Pdf,
                     oyeblikksbildeArbeidssokerRegistretDokument = arbeidssoekerRegisteretPdf,
                     referanse = eksternJournalpostReferanse
                 )

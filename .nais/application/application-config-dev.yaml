@@ -59,6 +59,10 @@ spec:
       value: api://dev-gcp.paw.aia-backend/.default
     - name: AIA_BACKEND_URL
       value: https://www.intern.dev.nav.no/aia-backend
+    - name: ARBEIDSSOKERREGISTERET_OPPSLAG_API_V2_TOKEN_SCOPE
+      value: api://dev-gcp.paw.paw-arbeidssoekerregisteret-api-oppslag-v2/.default
+    - name: ARBEIDSSOKERREGISTERET_OPPSLAG_API_V2_URL
+      value: http://paw-arbeidssoekerregisteret-api-oppslag-v2.paw
     - name: DOKARKIV_TOKEN_SCOPE
       value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
     - name: DOKARKIV_URL
@@ -71,6 +75,10 @@ spec:
       value: api://dev-fss.teamdokumenthandtering.dokdistkanal/.default
     - name: DOKDISTKANAL_URL
       value: https://dokdistkanal-q2.dev-fss-pub.nais.io
+    - name: EGENVURDERING_DIALOG_TJENESTE_TOKEN_SCOPE
+      value: api://dev-gcp.paw.egenvurdering-dialog-tjeneste/.default
+    - name: EGENVURDERING_DIALOG_TJENESTE_URL
+      value: http://egenvurdering-dialog-tjeneste.paw
     - name: NORG2_URL
       value: https://norg2.intern.dev.nav.no/norg2
     - name: PDL_TOKEN_SCOPE
@@ -174,6 +182,12 @@ spec:
       rules:
         - application: aia-backend
           namespace: paw
+        - application: egenvurdering-dialog-tjeneste
+          namespace: paw
+        - application: logging
+          namespace: nais-system
+        - application: paw-arbeidssoekerregisteret-api-oppslag-v2
+          namespace: paw
         - application: poao-tilgang
           namespace: poao
         - application: pto-pdfgen
@@ -181,8 +195,6 @@ spec:
           namespace: poao
         - application: veilarbperson
         - application: veilarbveileder
-        - application: logging
-          namespace: nais-system
       external:
         - host: dokarkiv-q2.dev-fss-pub.nais.io
         - host: dokdistkanal-q2.dev-fss-pub.nais.io

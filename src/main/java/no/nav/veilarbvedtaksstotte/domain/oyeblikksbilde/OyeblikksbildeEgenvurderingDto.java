@@ -10,6 +10,24 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OyeblikksbildeEgenvurderingDto {
-    public EgenvurderingDto data;
+    public EgenvurderingData data;
     public boolean journalfort;
+
+    public OyeblikksbildeEgenvurderingDto setData(EgenvurderingData data) {
+        this.data = data;
+        return this;
+    }
+
+    public OyeblikksbildeEgenvurderingDto setJournalfort(boolean journalfort) {
+        this.journalfort = journalfort;
+        return this;
+    }
+
+    public EgenvurderingData getData() {
+        return data;
+    }
+
+    public boolean isJournalfort() {
+        return journalfort;
+    }
 }
