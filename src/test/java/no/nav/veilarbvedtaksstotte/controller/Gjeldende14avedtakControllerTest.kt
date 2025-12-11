@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.tomakehurst.wiremock.http.Response.response
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.every
@@ -15,13 +14,9 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.Gjeldende14aVedtakService
 import no.nav.veilarbvedtaksstotte.utils.toJson
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.internal.http.hasBody
-import okhttp3.internal.http.promisesBody
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.isNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.Import
@@ -29,9 +24,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.web.server.ResponseStatusException
 import java.time.ZoneId
 import java.time.ZonedDateTime

@@ -3,14 +3,7 @@ package no.nav.veilarbvedtaksstotte.repository
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingType
-import no.nav.veilarbvedtaksstotte.domain.statistikk.Fagsystem
-import no.nav.veilarbvedtaksstotte.domain.statistikk.HovedmalNy
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
-import no.nav.veilarbvedtaksstotte.domain.statistikk.Siste14aSaksstatistikk
+import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.slf4j.Logger

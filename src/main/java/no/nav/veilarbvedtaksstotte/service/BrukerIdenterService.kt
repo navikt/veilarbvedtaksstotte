@@ -11,14 +11,11 @@ import no.nav.veilarbvedtaksstotte.domain.Gruppe
 import no.nav.veilarbvedtaksstotte.domain.IdentDetaljer
 import no.nav.veilarbvedtaksstotte.domain.PersonNokkel
 import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
-import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
 
 @Service
 @Slf4j

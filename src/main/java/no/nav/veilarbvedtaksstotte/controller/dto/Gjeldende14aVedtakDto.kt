@@ -1,6 +1,9 @@
 package no.nav.veilarbvedtaksstotte.controller.dto
 
-import no.nav.veilarbvedtaksstotte.domain.vedtak.*
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
+import no.nav.veilarbvedtaksstotte.domain.vedtak.InnsatsgruppeV2
+import no.nav.veilarbvedtaksstotte.domain.vedtak.mapTilInnsatsgruppeV2
 import java.time.ZonedDateTime
 
 data class Gjeldende14aVedtakDto(

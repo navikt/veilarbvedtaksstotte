@@ -19,9 +19,9 @@ import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
+import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import no.nav.veilarbvedtaksstotte.service.BrukerIdenterService
-import no.nav.veilarbvedtaksstotte.repository.BrukerIdenterRepository
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils.init
 import no.nav.veilarbvedtaksstotte.utils.PostgresContainer
 import no.nav.veilarbvedtaksstotte.utils.SingletonKafkaContainer

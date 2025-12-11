@@ -4,11 +4,7 @@ import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDate
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toLocalDateTime
 import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.*
 
 class TimeUtilsTest {
 

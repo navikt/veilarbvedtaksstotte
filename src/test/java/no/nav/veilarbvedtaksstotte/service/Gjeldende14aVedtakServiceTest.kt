@@ -11,10 +11,10 @@ import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
 import no.nav.veilarbvedtaksstotte.service.Gjeldende14aVedtakService.Companion.LANSERINGSDATO_VEILARBOPPFOLGING_OPPFOLGINGSPERIODE
 import no.nav.veilarbvedtaksstotte.utils.AbstractVedtakIntegrationTest
 import no.nav.veilarbvedtaksstotte.utils.TestData
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import java.time.ZonedDateTime
