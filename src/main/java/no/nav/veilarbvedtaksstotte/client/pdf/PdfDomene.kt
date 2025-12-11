@@ -86,16 +86,24 @@ data class EgenvurderingMedMottakerDto(
             svar = egenvurdering.svar
         )
 
-        fun from(egenvurderingV2: EgenvurderingV2Dto, mottaker: Mottaker) = EgenvurderingMedMottakerDto(
+        fun from(egenvurderingV2: EgenvurderingV2Dto?, mottaker: Mottaker) = EgenvurderingMedMottakerDto(
             mottaker = mottaker,
-            sistOppdatert = egenvurderingV2.sendtInnTidspunkt.toString(),
-            svar = listOf(
-                EgenvurderingDto.Svar(
-                    spm = egenvurderingV2.sporsmal,
-                    svar = egenvurderingV2.svar,
-                    dialogId = egenvurderingV2.dialogId?.toString()
+            sistOppdatert = if (egenvurderingV2 == null) {
+                null
+            } else {
+                egenvurderingV2.sendtInnTidspunkt.toString()
+            },
+            svar = if (egenvurderingV2 == null) {
+                null
+            } else {
+                listOf(
+                    EgenvurderingDto.Svar(
+                        spm = egenvurderingV2.sporsmal,
+                        svar = egenvurderingV2.svar,
+                        dialogId = egenvurderingV2.dialogId?.toString()
+                    )
                 )
-            )
+            }
         )
     }
 }
