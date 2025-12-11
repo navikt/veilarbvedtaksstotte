@@ -2,9 +2,7 @@ package no.nav.veilarbvedtaksstotte.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.springframework.context.annotation.Bean;

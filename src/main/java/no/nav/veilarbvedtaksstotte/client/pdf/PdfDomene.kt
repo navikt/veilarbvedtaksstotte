@@ -1,10 +1,10 @@
 package no.nav.veilarbvedtaksstotte.client.pdf
 
 import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerResponse
 import no.nav.veilarbvedtaksstotte.client.person.ProfileringResponse
-import no.nav.veilarbvedtaksstotte.client.dokument.MalType
 import no.nav.veilarbvedtaksstotte.client.person.dto.*
 import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto

@@ -10,8 +10,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
 import java.sql.ResultSet
 import java.util.*
-import kotlin.Int
-import kotlin.Long
 
 @Repository
 class KilderRepository @Autowired constructor(private val db: JdbcTemplate) {

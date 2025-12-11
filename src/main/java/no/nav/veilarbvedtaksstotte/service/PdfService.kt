@@ -5,10 +5,10 @@ import io.getunleash.UnleashContext
 import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
 import no.nav.veilarbvedtaksstotte.client.pdf.*
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient

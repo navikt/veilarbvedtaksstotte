@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller
 
 import no.nav.common.metrics.Event
-import no.nav.common.metrics.MetricsClient
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping

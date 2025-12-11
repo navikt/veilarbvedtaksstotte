@@ -16,14 +16,7 @@ import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedP
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeArbeidssokerRegistretDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeCvDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeRegistreringDto;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeEntity;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;

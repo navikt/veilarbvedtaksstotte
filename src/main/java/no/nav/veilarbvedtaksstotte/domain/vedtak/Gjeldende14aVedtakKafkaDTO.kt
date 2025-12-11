@@ -1,7 +1,5 @@
 package no.nav.veilarbvedtaksstotte.domain.vedtak
 
-import ch.qos.logback.core.util.TimeUtil
-import com.nimbusds.jwt.util.DateUtils
 import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import java.time.ZonedDateTime

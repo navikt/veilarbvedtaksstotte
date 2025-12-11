@@ -1,10 +1,6 @@
 package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonValue
+import com.fasterxml.jackson.annotation.*
 import java.time.LocalDateTime
 
 /**

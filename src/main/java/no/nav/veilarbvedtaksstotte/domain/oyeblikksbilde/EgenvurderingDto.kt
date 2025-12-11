@@ -1,7 +1,7 @@
 package no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde
 
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 data class EgenvurderingDto(
     val sistOppdatert: String? = null,

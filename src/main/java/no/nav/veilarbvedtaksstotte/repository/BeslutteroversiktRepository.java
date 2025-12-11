@@ -2,11 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import lombok.Value;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;

@@ -1,13 +1,7 @@
 package no.nav.veilarbvedtaksstotte.mock
 
 import no.nav.poao_tilgang.api.dto.response.TilgangsattributterResponse
-import no.nav.poao_tilgang.client.AdGruppe
-import no.nav.poao_tilgang.client.Decision
-import no.nav.poao_tilgang.client.NorskIdent
-import no.nav.poao_tilgang.client.PoaoTilgangClient
-import no.nav.poao_tilgang.client.PolicyInput
-import no.nav.poao_tilgang.client.PolicyRequest
-import no.nav.poao_tilgang.client.PolicyResult
+import no.nav.poao_tilgang.client.*
 import no.nav.poao_tilgang.client.api.ApiResult
 import java.util.*
 

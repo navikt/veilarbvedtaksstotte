@@ -11,13 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DIALOG_MELDING;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MeldingRepositoryTest extends DatabaseTest {
 

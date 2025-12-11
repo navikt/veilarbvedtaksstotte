@@ -7,7 +7,9 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.veilarbvedtaksstotte.annotations.EksterntEndepunkt
-import no.nav.veilarbvedtaksstotte.controller.v2.dto.*
+import no.nav.veilarbvedtaksstotte.controller.v2.dto.HovedmalKodeverkV2DTO
+import no.nav.veilarbvedtaksstotte.controller.v2.dto.InnsatsgruppeKodeverkV2DTO
+import no.nav.veilarbvedtaksstotte.controller.v2.dto.KodeverkV2DTO
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalDetaljertV2
 import no.nav.veilarbvedtaksstotte.domain.vedtak.InnsatsgruppeDetaljertV2
 import org.springframework.http.MediaType

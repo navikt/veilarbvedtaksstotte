@@ -1,12 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.exactly
-import com.github.tomakehurst.wiremock.client.WireMock.givenThat
-import com.github.tomakehurst.wiremock.client.WireMock.post
-import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
-import com.github.tomakehurst.wiremock.client.WireMock.verify
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.common.types.identer.AktorId
@@ -24,10 +18,7 @@ import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomAlphabetic
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import no.nav.veilarbvedtaksstotte.utils.toJson
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus

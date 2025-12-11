@@ -16,11 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.givenThat;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static org.junit.jupiter.api.Assertions.assertEquals;

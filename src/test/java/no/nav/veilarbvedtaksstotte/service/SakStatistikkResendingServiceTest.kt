@@ -5,13 +5,7 @@ import com.google.cloud.bigquery.InsertAllResponse
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingType
-import no.nav.veilarbvedtaksstotte.domain.statistikk.HovedmalNy
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SAK_YTELSE
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
+import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
@@ -25,7 +19,7 @@ import org.mockito.kotlin.whenever
 import java.math.BigInteger
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import java.util.*
 
 class SakStatistikkResendingServiceTest : DatabaseTest() {
 

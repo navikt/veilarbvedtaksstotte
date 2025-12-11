@@ -3,12 +3,8 @@ package no.nav.veilarbvedtaksstotte.client.arena
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
-import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
-import no.nav.veilarbvedtaksstotte.utils.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
