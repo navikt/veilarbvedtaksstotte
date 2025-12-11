@@ -88,7 +88,11 @@ data class EgenvurderingMedMottakerDto(
 
         fun from(egenvurderingV2: EgenvurderingV2Dto?, mottaker: Mottaker) = EgenvurderingMedMottakerDto(
             mottaker = mottaker,
-            sistOppdatert = egenvurderingV2?.sendtInnTidspunkt.toString(),
+            sistOppdatert = if (egenvurderingV2 == null) {
+                null
+            } else {
+                egenvurderingV2.sendtInnTidspunkt.toString()
+            },
             svar = if (egenvurderingV2 == null) {
                 null
             } else {
