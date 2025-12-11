@@ -1,19 +1,26 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import io.getunleash.DefaultUnleash
 import io.getunleash.UnleashContext
 import no.nav.common.client.norg2.Enhet
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
-import no.nav.veilarbvedtaksstotte.client.pdf.*
+import no.nav.veilarbvedtaksstotte.client.pdf.CvInnholdMedMottakerDto
+import no.nav.veilarbvedtaksstotte.client.pdf.EgenvurderingMedMottakerDto
+import no.nav.veilarbvedtaksstotte.client.pdf.Mottaker
+import no.nav.veilarbvedtaksstotte.client.pdf.OpplysningerOmArbeidssoekerMedProfileringMedMottakerDto
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
+import no.nav.veilarbvedtaksstotte.client.pdf.vaskStringForUgyldigeTegn
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.IngenDataDto
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV
 import org.slf4j.LoggerFactory
@@ -78,7 +85,13 @@ class PdfService(
             if (data == null) return Optional.empty()
 
             val egenvurderingV2Dto =
-                JsonUtils.objectMapper.readValue(data, EgenvurderingV2Dto::class.java)
+                try {
+                    JsonUtils.objectMapper.readValue(data, EgenvurderingV2Dto::class.java)
+                } catch (_: MismatchedInputException) {
+                    // Hvis data ikke kan parses til EgenvurderingV2Dto, prøv å parse til IngenDataDto. Hvis det går fint så returner vi null.
+                    JsonUtils.objectMapper.readValue(data, IngenDataDto::class.java)
+                    null
+                }
 
             val egenvurderingMedMottaker = EgenvurderingMedMottakerDto.from(egenvurderingV2Dto, mottaker)
 

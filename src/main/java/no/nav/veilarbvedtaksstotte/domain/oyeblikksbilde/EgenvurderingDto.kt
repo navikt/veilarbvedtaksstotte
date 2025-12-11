@@ -22,3 +22,7 @@ data class EgenvurderingV2Dto(
     val sporsmal: String = "Hva slags veiledning ønsker du?",
     val svar: String,
 ) : EgenvurderingData
+
+data class IngenDataDto(
+    val ingenData: String
+) : EgenvurderingData
