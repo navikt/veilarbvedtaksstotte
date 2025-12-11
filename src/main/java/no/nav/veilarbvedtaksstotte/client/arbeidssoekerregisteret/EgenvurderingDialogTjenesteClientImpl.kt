@@ -8,6 +8,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.jetbrains.annotations.NotNull
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import java.util.*
 import java.util.function.Supplier
@@ -21,6 +22,7 @@ class EgenvurderingDialogTjenesteClientImpl (
     private val machineToMachineTokenClient: Supplier<String>
 ) : EgenvurderingDialogTjenesteClient {
     private val client: OkHttpClient = RestClient.baseClient()
+    private val log = LoggerFactory.getLogger(EgenvurderingDialogTjenesteClientImpl::class.java)
 
     override fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse {
         val request = Request.Builder()
@@ -30,7 +32,13 @@ class EgenvurderingDialogTjenesteClientImpl (
             .build()
 
         client.newCall(request).execute().use { response ->
-            RestUtils.throwIfNotSuccessful(response)
+            if (!response.isSuccessful) {
+                val message =
+                    "Uventet status ${response.code} ved kall mot mot ${response.request.url}"
+                log.warn(message)
+                log.warn("Klarte ikke hente dialogId for arbeidssokerperiodeId=$arbeidssokerperiodeId")
+                throw RuntimeException(message)
+            }
 
             return response.deserializeJsonOrThrow()
         }
