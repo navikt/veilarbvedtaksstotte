@@ -154,8 +154,12 @@ public class OyeblikksbildeService {
                 // Dersom toggle på bruk paw-arbeidssoekerregisteret-api-oppslag-v2
                 EgenvurderingV2Dto egenvurderingV2Dto = Optional.ofNullable(arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(NorskIdent.of(fnr)))
                         .map(aggregertPeriode -> {
-                            Long dialogId = egenvurderingDialogTjenesteClient.hentDialogId(aggregertPeriode.getId()).getDialogId();
-                            return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(aggregertPeriode, dialogId);
+                            if (aggregertPeriode.getEgenvurdering() != null) {
+                                Long dialogId = egenvurderingDialogTjenesteClient.hentDialogId(aggregertPeriode.getId()).getDialogId();
+                                return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(aggregertPeriode, dialogId);
+                            } else  {
+                                return null;
+                            }
                         })
                         .orElse(null);
                 oyeblikksbildeRepository.upsertEgenvurderingV2Oyeblikksbilde(vedtakId, egenvurderingV2Dto);
