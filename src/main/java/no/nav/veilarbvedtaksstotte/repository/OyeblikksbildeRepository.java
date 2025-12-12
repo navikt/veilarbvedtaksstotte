@@ -246,10 +246,15 @@ public class OyeblikksbildeRepository {
         String json = rs.getString(JSON);
         EgenvurderingData data;
         try {
-            //Prøv V2 først
-            data = JsonUtils.fromJson(json, EgenvurderingV2Dto.class);
-        } catch (Exception v2Ex) {
-            data = JsonUtils.fromJson(json, EgenvurderingDto.class);
+            JsonUtils.fromJson(json, IngenDataDto.class);
+            data = null;
+        } catch (Exception e1) {
+            try {
+                //Prøv V2 først
+                data = JsonUtils.fromJson(json, EgenvurderingV2Dto.class);
+            } catch (Exception e2) {
+                data = JsonUtils.fromJson(json, EgenvurderingDto.class);
+            }
         }
 
         return new OyeblikksbildeEgenvurderingDto()
