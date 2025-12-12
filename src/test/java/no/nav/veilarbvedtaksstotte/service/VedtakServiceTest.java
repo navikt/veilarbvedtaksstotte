@@ -43,6 +43,7 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
@@ -131,7 +132,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final LeaderElectionClient leaderElectionClient = mock(LeaderElectionClient.class);
     private static final VedtakHendelserService vedtakHendelserService = mock(VedtakHendelserService.class);
     private static final VeilederService veilederService = mock(VeilederService.class);
-
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
     private static final AiaBackendClient aia_backend_client = mock(AiaBackendClient.class);
     private static final ArbeidssoekerregisteretApiOppslagV2Client arbeidssoekerregisteretApiOppslagV2Client = mock(ArbeidssoekerregisteretApiOppslagV2Client.class);
@@ -197,7 +197,6 @@ public class VedtakServiceTest extends DatabaseTest {
                 vedtakHendelserService,
                 dokumentService,
                 distribusjonService,
-                veilarbarenaService,
                 metricsService,
                 leaderElectionClient,
                 sakStatistikkService,
@@ -236,6 +235,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));
         when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.of(new OppfolgingPeriodeDTO(UUID.randomUUID(), ZonedDateTime.now(), null)));
         when(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(new SakDTO(UUID.randomUUID(), 12345, "ARBEIDSOPPFOLGING", "OPP"));
+        when(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(new OppfolgingStatusDTO(true)));
         when(dokarkivClient.opprettJournalpost(any()))
                 .thenReturn(new OpprettetJournalpostDTO(
                         TEST_JOURNALPOST_ID,
@@ -251,15 +251,6 @@ public class VedtakServiceTest extends DatabaseTest {
         when(poaoTilgangClient.evaluatePolicy(any())).thenReturn(new ApiResult<>(null, Decision.Permit.INSTANCE));
         when(safClient.hentJournalpost(any())).thenReturn(getMockedJournalpostGraphqlResponse());
     }
-
-    @Test
-    public void fattVedtak__skal_feile_hvis_iserv() {
-        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ISERV", "IVURD")));
-        gittUtkastKlarForUtsendelse();
-
-        assertThrows(IllegalStateException.class, this::fattVedtak);
-    }
-
 
     @Test
     public void fattVedtak__opprett_oppdater_og_journalforer_og_ferdigstiller_vedtak() {
@@ -463,19 +454,6 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     @Test
-    public void taOverUtkast__fjerner_beslutter_hvis_veileder_er_beslutter() {
-        withContext(() -> {
-            gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT + "tidligere", TEST_OPPFOLGINGSENHET_ID);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
-            vedtaksstotteRepository.setBeslutter(utkast.getId(), TEST_VEILEDER_IDENT);
-
-            vedtakService.taOverUtkast(utkast.getId());
-            assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getBeslutterIdent());
-        });
-    }
-
-    @Test
     public void taOverUtkast__oppretter_system_melding() {
         withContext(() -> {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
@@ -544,11 +522,20 @@ public class VedtakServiceTest extends DatabaseTest {
     void ikke_vedtak_naar_personen_ikke_er_under_oppfolging() {
         withContext(() -> {
             gittTilgang();
-            gittUtkastKlarForUtsendelse();
-            when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.empty());
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
-            assertThatThrownBy(() -> vedtakService.fattVedtak(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId())
-            ).isExactlyInstanceOf(ResponseStatusException.class)
+            OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
+                    .setHovedmal(Hovedmal.SKAFFE_ARBEID)
+                    .setBegrunnelse("En begrunnelse")
+                    .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
+                    .setOpplysninger(List.of("CV-en/jobbønskene dine på nav.no"));
+            vedtakService.oppdaterUtkast(utkast.getId(), oppdaterDto);
+
+            when(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(new OppfolgingStatusDTO(false)));
+
+            assertThatThrownBy(() -> vedtakService.fattVedtak(utkast.getId()))
+                    .isExactlyInstanceOf(ResponseStatusException.class)
                     .hasMessageContaining("Bruker er ikke under oppfølging og kan ikke få vedtak");
         });
     }

@@ -14,7 +14,7 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
@@ -54,23 +54,18 @@ import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.MERKE_VEDTAK_SOM_
 public class VedtakService {
 
     private final TransactionTemplate transactor;
-
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final BeslutteroversiktRepository beslutteroversiktRepository;
     private final KilderRepository kilderRepository;
     private final MeldingRepository meldingRepository;
     private final SafClient safClient;
-
     private final AuthService authService;
-
     private final OyeblikksbildeService oyeblikksbildeService;
     private final VeilederService veilederService;
     private final VedtakHendelserService vedtakStatusEndringService;
     private final DokumentService dokumentService;
     private final DistribusjonService distribusjonService;
-    private final VeilarbarenaService veilarbarenaService;
     private final MetricsService metricsService;
-
     private final LeaderElectionClient leaderElection;
     private final SakStatistikkService sakStatistikkService;
     private final AktorOppslagClient aktorOppslagClient;
@@ -85,10 +80,6 @@ public class VedtakService {
 
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(vedtak);
-
-        if (veilarbarenaService.erBrukerInaktivIArena(Fnr.of(authKontekst.getFnr()))) {
-            throw new IllegalStateException("Bruker kan ikke ha status ISERV når vedtak fattes");
-        }
 
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(vedtak.getAktorId());
 
@@ -430,10 +421,10 @@ public class VedtakService {
     }
 
     void sjekkBrukerUnderOppfolging(Fnr fnr) {
-        Optional<OppfolgingPeriodeDTO> oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr);
+        Optional<OppfolgingStatusDTO> erUnderOppfolging = veilarboppfolgingClient.erUnderOppfolging(fnr);
 
-        if (oppfolgingsperiode.isEmpty()) {
-            secureLog.warn("Prøver å fatte 14a-vedtak, men fnr={} har ingen oppfølgingsperiode", fnr.get());
+        if (erUnderOppfolging.isEmpty() || !erUnderOppfolging.get().isErUnderOppfolging()) {
+            secureLog.warn("Prøver å fatte 14a-vedtak, men fnr={} er ikke under oppfølging", fnr.get());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Bruker er ikke under oppfølging og kan ikke få vedtak");
         }
     }

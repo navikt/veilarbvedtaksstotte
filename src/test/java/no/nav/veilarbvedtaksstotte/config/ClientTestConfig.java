@@ -67,6 +67,7 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
@@ -345,6 +346,13 @@ public class ClientTestConfig {
     @Bean
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {
+            @Override
+            public Optional<OppfolgingStatusDTO> erUnderOppfolging(Fnr fnr) {
+                OppfolgingStatusDTO status = new OppfolgingStatusDTO();
+                status.setErUnderOppfolging(true);
+                return Optional.of(status);
+            }
+
             @Override
             public List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr) {
                 OppfolgingPeriodeDTO periode = new OppfolgingPeriodeDTO();
