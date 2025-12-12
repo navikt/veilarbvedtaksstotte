@@ -259,7 +259,8 @@ public class OyeblikksbildeRepository {
 
         return new OyeblikksbildeEgenvurderingDto()
                 .setData(data)
-                .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
+                .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty())
+                .setType(OyeblikksbildeType.valueOf(rs.getString(OYEBLIKKSBILDE_TYPE)));
     }
 
     private static String getNoDataMessageForCV(CvErrorStatus cvErrorStatus) {
