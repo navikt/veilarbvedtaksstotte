@@ -8,11 +8,30 @@ import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.EksternBrukerId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.common.types.identer.NorskIdent;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OppslagArbeidssoekerregisteretClient;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogResponse;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AggregertPeriode;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Annet;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AvviksType;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Beskrivelse;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.BeskrivelseMedDetaljer;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Bruker;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.BrukerType;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Helse;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.JaNeiVetIkke;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Jobbsituasjon;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Metadata;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.OpplysningerOmArbeidssoeker;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.PeriodeStartet;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Profilering;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.ProfilertTil;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.TidspunktFraKilde;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Utdanning;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
@@ -30,9 +49,19 @@ import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetOrganisering;
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetStedsadresse;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
-import no.nav.veilarbvedtaksstotte.client.pdf.*;
+import no.nav.veilarbvedtaksstotte.client.pdf.BrevdataDto;
+import no.nav.veilarbvedtaksstotte.client.pdf.CvInnholdMedMottakerDto;
+import no.nav.veilarbvedtaksstotte.client.pdf.EgenvurderingMedMottakerDto;
+import no.nav.veilarbvedtaksstotte.client.pdf.OpplysningerOmArbeidssoekerMedProfileringMedMottakerDto;
+import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
-import no.nav.veilarbvedtaksstotte.client.person.dto.*;
+import no.nav.veilarbvedtaksstotte.client.person.dto.Adressebeskyttelse;
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
+import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
+import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr;
+import no.nav.veilarbvedtaksstotte.client.person.dto.Gradering;
+import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagRequestDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
@@ -49,7 +78,9 @@ import org.jetbrains.annotations.NotNull;
 import org.joda.time.Instant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -214,6 +245,105 @@ public class ClientTestConfig {
     }
 
     @Bean
+    public ArbeidssoekerregisteretApiOppslagV2Client arbeidssoekerregisteretApiOppslagV2Client() {
+        return new ArbeidssoekerregisteretApiOppslagV2Client() {
+            @Override
+            public AggregertPeriode hentEgenvurdering(@NotNull NorskIdent norskIdent) {
+                return new AggregertPeriode(
+                        UUID.fromString("f6197da3-5aed-4c65-b19b-cd43164a567b"),
+                        "01990112345",
+                        new PeriodeStartet(
+                                PeriodeStartet.Type.PERIODE_STARTET_V1,
+                                LocalDateTime.parse("2025-11-26T14:57:39.724Z"),
+                                new Bruker(
+                                        BrukerType.VEILEDER,
+                                        "Z999999",
+                                        "azure:undefined"
+                                ),
+                                "europe-north1-docker.pkg.dev/nais-management-233d/paw/paw-arbeidssokerregisteret-api-inngang:25.11.26.397-1",
+                                "Er over 18 år, er bosatt i Norge i henhold Folkeregisterloven",
+                                null
+                        ),
+                        null,
+                        new OpplysningerOmArbeidssoeker(
+                                OpplysningerOmArbeidssoeker.Type.OPPLYSNINGER_V4,
+                                UUID.fromString("4a60081a-755c-4dd1-8094-d0db7a25d925"),
+                                new Metadata(
+                                        LocalDateTime.parse("2025-11-26T14:57:39.649Z"),
+                                        new Bruker(
+                                                BrukerType.VEILEDER,
+                                                "Z999999",
+                                                "azure:undefined"
+                                        ),
+                                        "europe-north1-docker.pkg.dev/nais-management-233d/paw/paw-arbeidssokerregisteret-api-inngang:25.11.26.397-1",
+                                        "opplysning om arbeidssøker sendt inn",
+                                        null
+                                ),
+                                new Utdanning(
+                                        "4",
+                                        JaNeiVetIkke.JA,
+                                        JaNeiVetIkke.JA
+                                ),
+                                new Helse(
+                                        JaNeiVetIkke.NEI
+                                ),
+                                new Jobbsituasjon(
+                                        List.of(
+                                                new BeskrivelseMedDetaljer(
+                                                        Beskrivelse.HAR_SAGT_OPP,
+                                                        Map.ofEntries(
+                                                                Map.entry("stilling", "Annen stilling"),
+                                                                Map.entry("stilling_styrk08", "00")
+                                                        )
+                                                )
+                                        )
+                                ),
+                                new Annet(
+                                        JaNeiVetIkke.NEI
+                                )
+                        ),
+                        new Profilering(
+                                Profilering.Type.PROFILERING_V1,
+                                UUID.fromString("49dd4bd8-cef3-4ecc-a7f5-56dab0e8c128"),
+                                UUID.fromString("4a60081a-755c-4dd1-8094-d0db7a25d925"),
+                                new Metadata(
+                                        LocalDateTime.parse("2025-11-26T14:57:40.49Z"),
+                                        new Bruker(
+                                                BrukerType.SYSTEM,
+                                                "europe-north1-docker.pkg.dev/nais-management-233d/paw/paw-arbeidssokerregisteret-profilering:25.11.17.253-1",
+                                                null
+                                        ),
+                                        "europe-north1-docker.pkg.dev/nais-management-233d/paw/paw-arbeidssokerregisteret-profilering:25.11.17.253-1",
+                                        "opplysninger-mottatt",
+                                        new TidspunktFraKilde(
+                                                LocalDateTime.parse("2025-11-26T14:57:39.649Z"),
+                                                AvviksType.FORSINKELSE
+                                        )
+                                ),
+                                ProfilertTil.OPPGITT_HINDRINGER,
+                                false,
+                                48
+                        ),
+                        null,
+                        null
+                );
+            }
+        };
+    }
+
+    @Bean
+    public EgenvurderingDialogTjenesteClient egenvurderingDialogTjenesteClient() {
+        return new EgenvurderingDialogTjenesteClient() {
+            @Override
+            public EgenvurderingDialogResponse hentDialogId(@NotNull UUID arbeidssokerperiodeId) {
+                return new EgenvurderingDialogResponse(
+                        123456L
+                );
+            }
+        };
+    }
+
+    @Bean
     public VeilarboppfolgingClient oppfolgingClient() {
         return new VeilarboppfolgingClient() {
             @Override
@@ -297,19 +427,8 @@ public class ClientTestConfig {
             }
 
             @Override
-            public FodselsdatoOgAr hentFodselsdato(@NotNull Fnr fnr)  {
+            public FodselsdatoOgAr hentFodselsdato(@NotNull Fnr fnr) {
                 return new FodselsdatoOgAr(LocalDate.of(1990, 1, 1), 1990);
-            }
-        };
-    }
-
-    @Bean
-    public OppslagArbeidssoekerregisteretClient oppslagArbeidssoekerregisteretClient() {
-        return new OppslagArbeidssoekerregisteretClient() {
-
-            @Override
-            public HealthCheckResult checkHealth() {
-                return null;
             }
 
             @Override
@@ -361,7 +480,6 @@ public class ClientTestConfig {
             public Veileder hentVeileder(String veilederIdent) {
                 return new Veileder(TEST_VEILEDER_IDENT, "VEILEDER VEILEDERSEN");
             }
-
 
 
             @Override

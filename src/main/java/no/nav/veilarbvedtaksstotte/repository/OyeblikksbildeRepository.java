@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvErrorStatus;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold;
@@ -11,6 +11,8 @@ import no.nav.veilarbvedtaksstotte.utils.DbUtils;
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -75,8 +77,24 @@ public class OyeblikksbildeRepository {
 
     public Optional<OyeblikksbildeEgenvurderingDto> hentEgenvurderingOyeblikksbildeForVedtak(long vedtakId) {
         try {
-            String sql = format("SELECT * FROM %s WHERE %s = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE", OYEBLIKKSBILDE_TABLE, VEDTAK_ID);
-            return Optional.ofNullable(db.queryForObject(sql, OyeblikksbildeRepository::mapEgenvurderingOyeblikksbilde, vedtakId, OyeblikksbildeType.EGENVURDERING.name()));
+            NamedParameterJdbcTemplate namedDb = new NamedParameterJdbcTemplate(db);
+
+            // I teorien skal det aldri finnes mer enn én egenvurdering per vedtak, denne prioriterer V2 hvis det allikevel skulle skje
+            String sql =
+                    "SELECT * FROM " + OYEBLIKKSBILDE_TABLE + " " +
+                            "WHERE " + VEDTAK_ID + " = :vedtakId " +
+                            "AND " + OYEBLIKKSBILDE_TYPE + " IN (:typeV1::OYEBLIKKSBILDE_TYPE, :typeV2::OYEBLIKKSBILDE_TYPE) " +
+                            "ORDER BY CASE " + OYEBLIKKSBILDE_TYPE + " WHEN 'EGENVURDERING_V2' THEN 0 ELSE 1 END " +
+                            "LIMIT 1";
+
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("vedtakId", vedtakId)
+                    .addValue("typeV1", OyeblikksbildeType.EGENVURDERING.name())
+                    .addValue("typeV2", OyeblikksbildeType.EGENVURDERING_V2.name());
+
+            OyeblikksbildeEgenvurderingDto result = namedDb.queryForObject(
+                    sql, params, OyeblikksbildeRepository::mapEgenvurderingOyeblikksbilde);
+            return Optional.ofNullable(result);
         } catch (Exception e) {
             log.warn("Kan ikke hente oyeblikksbilde " + e, e);
             return Optional.empty();
@@ -137,7 +155,6 @@ public class OyeblikksbildeRepository {
         }
     }
 
-
     @SneakyThrows
     public void upsertEgenvurderingOyeblikksbilde(long vedtakId, EgenvurderingDto egenvurderingDto) {
         String jsonEgenvurderingDto = JsonUtils.getObjectMapper().writeValueAsString(egenvurderingDto);
@@ -161,6 +178,28 @@ public class OyeblikksbildeRepository {
         }
     }
 
+    @SneakyThrows
+    public void upsertEgenvurderingV2Oyeblikksbilde(long vedtakId, EgenvurderingV2Dto egenvurderingV2Dto) {
+        String jsonEgenvurderingV2Dto = JsonUtils.getObjectMapper().writeValueAsString(egenvurderingV2Dto);
+        if (egenvurderingV2Dto == null || jsonEgenvurderingV2Dto == null || jsonEgenvurderingV2Dto.isEmpty()) {
+            jsonEgenvurderingV2Dto = """
+                    {"ingenData": "Personen har ikke registrert svar om behov for veiledning."}
+                    """;
+        }
+        Optional<OyeblikksbildeDto> oyeblikksbilde = hentOyeblikksbilde(vedtakId, OyeblikksbildeType.EGENVURDERING_V2);
+
+        if (oyeblikksbilde.isPresent()) {
+            db.update(
+                    "UPDATE OYEBLIKKSBILDE SET JSON = ?::json WHERE VEDTAK_ID = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE",
+                    jsonEgenvurderingV2Dto, vedtakId, OyeblikksbildeType.EGENVURDERING_V2.name()
+            );
+        } else {
+            db.update(
+                    "INSERT INTO OYEBLIKKSBILDE (VEDTAK_ID, OYEBLIKKSBILDE_TYPE, JSON) VALUES (?,?::OYEBLIKKSBILDE_TYPE,?::json)",
+                    vedtakId, OyeblikksbildeType.EGENVURDERING_V2.name(), jsonEgenvurderingV2Dto
+            );
+        }
+    }
 
     private Optional<OyeblikksbildeDto> hentOyeblikksbilde(long vedtakId, OyeblikksbildeType type) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?::OYEBLIKKSBILDE_TYPE LIMIT 1", OYEBLIKKSBILDE_TABLE, VEDTAK_ID, OYEBLIKKSBILDE_TYPE);
@@ -204,9 +243,17 @@ public class OyeblikksbildeRepository {
 
     @SneakyThrows
     private static OyeblikksbildeEgenvurderingDto mapEgenvurderingOyeblikksbilde(ResultSet rs, int row) {
-        EgenvurderingDto egenvurderingDto = JsonUtils.fromJson(rs.getString(JSON), EgenvurderingDto.class);
+        String json = rs.getString(JSON);
+        EgenvurderingData data;
+        try {
+            //Prøv V2 først
+            data = JsonUtils.fromJson(json, EgenvurderingV2Dto.class);
+        } catch (Exception v2Ex) {
+            data = JsonUtils.fromJson(json, EgenvurderingDto.class);
+        }
+
         return new OyeblikksbildeEgenvurderingDto()
-                .setData(egenvurderingDto)
+                .setData(data)
                 .setJournalfort(rs.getString(DOKUMENT_ID) != null && !rs.getString(DOKUMENT_ID).isEmpty());
     }
 

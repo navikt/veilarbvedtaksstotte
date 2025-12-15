@@ -1,18 +1,29 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
+import no.nav.common.types.identer.NorskIdent;
 import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService;
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.OpplysningerOmArbeidssoekerMedProfilering;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient;
+import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
-import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeArbeidssokerRegistretDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeCvDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeEgenvurderingDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeRegistreringDto;
+import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeEntity;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository;
@@ -25,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.BRUK_NY_KILDE_FOR_EGENVURDERING;
 
 
 @Service
@@ -36,7 +48,9 @@ public class OyeblikksbildeService {
     private final VedtaksstotteRepository vedtaksstotteRepository;
     private final VeilarbpersonClient veilarbpersonClient;
     private final AiaBackendClient aiaBackendClient;
-    private final ArbeidssoekerRegisteretService arbeidssoekerRegisteretService;
+    private final ArbeidssoekerregisteretApiOppslagV2Client arbeidssoekerregisteretApiOppslagV2Client;
+    private final EgenvurderingDialogTjenesteClient egenvurderingDialogTjenesteClient;
+    private final DefaultUnleash defaultUnleash;
 
     @Autowired
     public OyeblikksbildeService(
@@ -45,14 +59,18 @@ public class OyeblikksbildeService {
             VedtaksstotteRepository vedtaksstotteRepository,
             VeilarbpersonClient veilarbpersonClient,
             AiaBackendClient aiaBackendClient,
-            ArbeidssoekerRegisteretService arbeidssoekerRegisteretService
+            ArbeidssoekerregisteretApiOppslagV2Client arbeidssoekerregisteretApiOppslagV2Client,
+            EgenvurderingDialogTjenesteClient egenvurderingDialogTjenesteClient,
+            DefaultUnleash defaultUnleash
     ) {
         this.oyeblikksbildeRepository = oyeblikksbildeRepository;
         this.authService = authService;
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.veilarbpersonClient = veilarbpersonClient;
         this.aiaBackendClient = aiaBackendClient;
-        this.arbeidssoekerRegisteretService = arbeidssoekerRegisteretService;
+        this.defaultUnleash = defaultUnleash;
+        this.arbeidssoekerregisteretApiOppslagV2Client = arbeidssoekerregisteretApiOppslagV2Client;
+        this.egenvurderingDialogTjenesteClient = egenvurderingDialogTjenesteClient;
     }
 
     // Kun brukt i test
@@ -127,17 +145,36 @@ public class OyeblikksbildeService {
                         || kildeTekster.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc())
                         || kildeTekster.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET_NN.getDesc()))
         ) {
-            OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = arbeidssoekerRegisteretService.hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr.of(fnr));
+            OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = veilarbpersonClient.hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr.of(fnr));
             oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfilering);
         }
         if (kilder.stream().anyMatch(kilde -> kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()) || kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc()))) {
-            final EgenvurderingResponseDTO egenvurdering = aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr));
-            EgenvurderingDto egenvurderingData = mapToEgenvurderingData(egenvurdering);
-            oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingData);
+
+            if (defaultUnleash.isEnabled(BRUK_NY_KILDE_FOR_EGENVURDERING)) {
+                // Dersom toggle på bruk paw-arbeidssoekerregisteret-api-oppslag-v2
+                EgenvurderingV2Dto egenvurderingV2Dto = Optional.ofNullable(arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(NorskIdent.of(fnr)))
+                        .map(aggregertPeriode -> {
+                            if (aggregertPeriode.getEgenvurdering() != null) {
+                                Long dialogId = egenvurderingDialogTjenesteClient.hentDialogId(aggregertPeriode.getId()).getDialogId();
+                                return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(aggregertPeriode, dialogId);
+                            } else  {
+                                return null;
+                            }
+                        })
+                        .orElse(null);
+                oyeblikksbildeRepository.upsertEgenvurderingV2Oyeblikksbilde(vedtakId, egenvurderingV2Dto);
+            } else {
+                // Dersom toggle av bruk aia-backend
+                EgenvurderingDto egenvurderingDto = Optional.ofNullable(aiaBackendClient.hentEgenvurdering(new EgenvurderingForPersonRequest(fnr)))
+                        .map(OyeblikksbildeService::mapToEgenvurderingData)
+                        .orElse(null);
+                oyeblikksbildeRepository.upsertEgenvurderingOyeblikksbilde(vedtakId, egenvurderingDto);
+            }
+
         }
     }
 
-    public EgenvurderingDto mapToEgenvurderingData(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test
+    public static EgenvurderingDto mapToEgenvurderingData(EgenvurderingResponseDTO egenvurderingResponseDTO) {//public for test
         List<EgenvurderingDto.Svar> svar = new ArrayList<>();
         if (egenvurderingResponseDTO != null) {
             String svartekst = egenvurderingResponseDTO.getTekster().getSvar().get(egenvurderingResponseDTO.getOppfolging());

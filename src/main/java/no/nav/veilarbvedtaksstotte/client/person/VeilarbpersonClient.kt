@@ -4,9 +4,10 @@ import no.nav.common.health.HealthCheck
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.person.dto.Adressebeskyttelse
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto
-import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
 import no.nav.veilarbvedtaksstotte.client.person.dto.FodselsdatoOgAr
+import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn
 import no.nav.veilarbvedtaksstotte.domain.Malform
+import org.jetbrains.annotations.NotNull
 
 interface VeilarbpersonClient : HealthCheck {
     fun hentPersonNavn(fnr: String): PersonNavn
@@ -15,4 +16,5 @@ interface VeilarbpersonClient : HealthCheck {
     fun hentMalform(fnr: Fnr): Malform
     fun hentAdressebeskyttelse(fnr: Fnr): Adressebeskyttelse
     fun hentFodselsdato(fnr: Fnr): FodselsdatoOgAr
+    fun hentSisteOpplysningerOmArbeidssoekerMedProfilering(@NotNull fnr: Fnr): OpplysningerOmArbeidssoekerMedProfilering?
 }

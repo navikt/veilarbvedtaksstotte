@@ -1,8 +1,10 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
 import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO
-import no.nav.veilarbvedtaksstotte.client.arbeidssoekeregisteret.ArbeidssoekerRegisteretService
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.domain.vedtak.KildeEntity
 import no.nav.veilarbvedtaksstotte.repository.OyeblikksbildeRepository
@@ -13,7 +15,6 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.util.*
-import kotlin.collections.HashMap
 
 internal class OyeblikksbildeServiceTest {
 
@@ -27,8 +28,9 @@ internal class OyeblikksbildeServiceTest {
             KildeEntity(arbeissøkerregisteretTekst, UUID.randomUUID())
         )
         oyeblikksbildeService.lagreOyeblikksbilde(fnr, 12344, kilder)
-        Mockito.verify(oyeblikksbildeRepository, Mockito.times(1)).upsertArbeidssokerRegistretOyeblikksbilde (12344, null)
-        Mockito.verify(oyeblikksbildeRepository, Mockito.times(1)).upsertEgenvurderingOyeblikksbilde (12344, null)
+        Mockito.verify(oyeblikksbildeRepository, Mockito.times(1))
+            .upsertArbeidssokerRegistretOyeblikksbilde(12344, null)
+        Mockito.verify(oyeblikksbildeRepository, Mockito.times(1)).upsertEgenvurderingOyeblikksbilde(12344, null)
     }
 
     @Test
@@ -42,7 +44,7 @@ internal class OyeblikksbildeServiceTest {
             "SITUASJONSBESTEMT_INNSATS",
             EgenvurderingResponseDTO.Tekster("Ønsker du veiledning?", egenvurderingstekster)
         )
-        val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingData(egenvurdering).toJson()
+        val egenvurderingJson = OyeblikksbildeService.mapToEgenvurderingData(egenvurdering).toJson()
         val forventetEgenvurderingJson =
             "{\"sistOppdatert\":\"$egenvurderingDato\",\"svar\":[{\"spm\":\"Ønsker du veiledning?\",\"svar\":\"Jeg vil få hjelp fra Nav\",\"oppfolging\":\"SITUASJONSBESTEMT_INNSATS\",\"dialogId\":\"dialog-123\"}]}"
         Assertions.assertEquals(forventetEgenvurderingJson, egenvurderingJson)
@@ -50,7 +52,7 @@ internal class OyeblikksbildeServiceTest {
 
     @Test
     fun mapToEgenvurderingDataJson_med_null_argument() {
-        val oyeblikksbildeEgenvurderingDto = oyeblikksbildeService.mapToEgenvurderingData(null)
+        val oyeblikksbildeEgenvurderingDto = OyeblikksbildeService.mapToEgenvurderingData(null)
         Assertions.assertNull(oyeblikksbildeEgenvurderingDto)
     }
 
@@ -64,7 +66,7 @@ internal class OyeblikksbildeServiceTest {
             "SITUASJONSBESTEMT_INNSATS",
             EgenvurderingResponseDTO.Tekster("Ønsker du veiledning?", egenvurderingstekster)
         )
-        val egenvurderingJson = oyeblikksbildeService.mapToEgenvurderingData(egenvurdering).toJson()
+        val egenvurderingJson = OyeblikksbildeService.mapToEgenvurderingData(egenvurdering).toJson()
         val forventetEgenvurderingJson =
             "{\"sistOppdatert\":null,\"svar\":[{\"spm\":\"Ønsker du veiledning?\",\"svar\":\"Jeg vil få hjelp fra Nav\",\"oppfolging\":\"SITUASJONSBESTEMT_INNSATS\",\"dialogId\":null}]}"
         Assertions.assertEquals(forventetEgenvurderingJson, egenvurderingJson)
@@ -80,16 +82,21 @@ internal class OyeblikksbildeServiceTest {
             VedtaksstotteRepository::class.java
         )
         private val veilarbpersonClient = Mockito.mock(VeilarbpersonClient::class.java)
-        private val arbeidssoekerRegisteretService = Mockito.mock(ArbeidssoekerRegisteretService::class.java)
 
         private val aiaBackendClient = Mockito.mock(AiaBackendClient::class.java)
+        private val arbeidssoekerregisteretApiOppslagV2Client =
+            Mockito.mock(ArbeidssoekerregisteretApiOppslagV2Client::class.java)
+        private val egenvurderingDialogTjenesteClient = Mockito.mock(EgenvurderingDialogTjenesteClient::class.java)
+        private val defaultUnleash = Mockito.mock(DefaultUnleash::class.java)
         private val oyeblikksbildeService = OyeblikksbildeService(
             authService,
             oyeblikksbildeRepository,
             vedtaksstotteRepository,
             veilarbpersonClient,
             aiaBackendClient,
-            arbeidssoekerRegisteretService
+            arbeidssoekerregisteretApiOppslagV2Client,
+            egenvurderingDialogTjenesteClient,
+            defaultUnleash
         )
     }
 }
