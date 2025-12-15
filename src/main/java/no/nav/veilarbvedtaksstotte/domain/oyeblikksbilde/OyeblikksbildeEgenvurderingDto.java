@@ -12,6 +12,7 @@ import lombok.experimental.Accessors;
 public class OyeblikksbildeEgenvurderingDto {
     public EgenvurderingData data;
     public boolean journalfort;
+    private OyeblikksbildeType type;
 
     public OyeblikksbildeEgenvurderingDto setData(EgenvurderingData data) {
         this.data = data;
@@ -21,6 +22,15 @@ public class OyeblikksbildeEgenvurderingDto {
     public OyeblikksbildeEgenvurderingDto setJournalfort(boolean journalfort) {
         this.journalfort = journalfort;
         return this;
+    }
+
+    public OyeblikksbildeEgenvurderingDto setType(OyeblikksbildeType type) {
+        this.type = type;
+        return this;
+    }
+
+    public OyeblikksbildeType getType() {
+        return type;
     }
 
     public EgenvurderingData getData() {
