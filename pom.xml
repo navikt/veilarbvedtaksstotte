@@ -21,7 +21,7 @@
         <java.version>21</java.version>
         <common.version>3.2024.10.25_13.44-9db48a0dbe67</common.version>
         <kotlin.version>2.2.21</kotlin.version>
-        <testcontainers.version>1.21.3</testcontainers.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
         <unleash.version>11.1.1</unleash.version>
 
         <!--   Used by SonarCloud     -->
@@ -124,13 +124,13 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.20.0</version>
+            <version>2.20.1</version>
         </dependency>
 
         <dependency>
             <groupId>com.github.navikt</groupId>
             <artifactId>pto-schema</artifactId>
-            <version>1.2025.01.13_12.58-3e81bd940198</version>
+            <version>1.2025.09.29_11.36-6e568fa24c23</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
@@ -206,7 +206,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>11.9.1</version>
+            <version>11.19.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -221,7 +221,7 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
-            <version>6.3.1</version>
+            <version>7.4.0</version>
         </dependency>
 
         <!-- Common Dependencies -->
