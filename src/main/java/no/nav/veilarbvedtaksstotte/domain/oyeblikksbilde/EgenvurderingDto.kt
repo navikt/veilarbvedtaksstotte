@@ -26,3 +26,8 @@ data class EgenvurderingV2Dto(
 data class IngenDataDto(
     val ingenData: String
 ) : EgenvurderingData
+
+enum class EgenvurderingType {
+    EGENVURDERING,      /** Korresponderer til [OyeblikksbildeType.EGENVURDERING] */
+    EGENVURDERING_V2    /** Korresponderer til [OyeblikksbildeType.EGENVURDERING_V2] */
+}
