@@ -94,7 +94,7 @@ public class UtkastController {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema())),
                     @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
-                    @ApiResponse(responseCode = "500", content = @Content(schema = @Schema()))
+                    @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))
             }
     )
     public void fattVedtak(
