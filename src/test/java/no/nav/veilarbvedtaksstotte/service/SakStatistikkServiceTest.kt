@@ -12,6 +12,7 @@ import no.nav.veilarbvedtaksstotte.client.person.dto.Adressebeskyttelse
 import no.nav.veilarbvedtaksstotte.client.person.dto.Gradering
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO
@@ -84,7 +85,6 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 mock(),
                 mock(),
                 mock(),
-                mock(),
                 sakStatistikkService,
                 aktorOppslagClient,
                 veilarboppfolgingClient,
@@ -124,6 +124,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
             mockedOppfolgingsPeriode(null)
         )
         whenever(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(mockedOppfolgingsSak(null))
+        whenever(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(OppfolgingStatusDTO(true)))
         whenever(environmentProperties.naisAppImage).thenReturn("naisAppImage")
         whenever(veilarbpersonClient.hentAdressebeskyttelse(any())).thenReturn(Adressebeskyttelse(Gradering.UGRADERT))
     }
