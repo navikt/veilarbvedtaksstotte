@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
+import java.time.LocalDateTime
 
 /**
  *
@@ -28,7 +29,9 @@ data class OpplysningerOmArbeidssoeker(
 
     @get:JsonProperty("jobbsituasjon") val jobbsituasjon: Jobbsituasjon? = null,
 
-    @get:JsonProperty("annet") val annet: Annet? = null
+    @get:JsonProperty("annet") val annet: Annet? = null,
+
+    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: LocalDateTime
 ) {
 
     /**

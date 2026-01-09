@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
+import java.time.LocalDateTime
 
 /**
  * Brukers egenvurdering av sin situasjon
@@ -25,7 +26,9 @@ data class Egenvurdering(
 
     @get:JsonProperty("profilertTil", required = true) val profilertTil: ProfilertTil = ProfilertTil.UKJENT_VERDI,
 
-    @get:JsonProperty("egenvurdering", required = true) val egenvurdering: ProfilertTil = ProfilertTil.UKJENT_VERDI
+    @get:JsonProperty("egenvurdering", required = true) val egenvurdering: ProfilertTil = ProfilertTil.UKJENT_VERDI,
+
+    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: LocalDateTime
 ) {
 
     /**

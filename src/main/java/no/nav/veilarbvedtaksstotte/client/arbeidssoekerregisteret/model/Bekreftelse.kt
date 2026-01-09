@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
+import java.time.LocalDateTime
 
 /**
  * Bekreftelse melding
@@ -25,7 +26,9 @@ data class Bekreftelse(
 
     @get:JsonProperty("status", required = true) val status: BekreftelsStatus,
 
-    @get:JsonProperty("svar", required = true) val svar: Svar
+    @get:JsonProperty("svar", required = true) val svar: Svar,
+
+    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: LocalDateTime
 ) {
 
     /**

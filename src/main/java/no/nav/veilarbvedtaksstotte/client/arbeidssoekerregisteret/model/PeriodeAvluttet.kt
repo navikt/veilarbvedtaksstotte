@@ -18,15 +18,9 @@ data class PeriodeAvluttet(
 
     @get:JsonProperty("type", required = true) val type: Type,
 
-    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: LocalDateTime,
+    @get:JsonProperty("sendtInnAv", required = true) val sendtInnAv: Metadata,
 
-    @get:JsonProperty("utfoertAv", required = true) val utfoertAv: Bruker,
-
-    @get:JsonProperty("kilde", required = true) val kilde: String,
-
-    @get:JsonProperty("aarsak", required = true) val aarsak: String,
-
-    @get:JsonProperty("tidspunktFraKilde") val tidspunktFraKilde: TidspunktFraKilde? = null
+    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: LocalDateTime
 ) {
 
     /**
