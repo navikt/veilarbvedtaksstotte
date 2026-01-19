@@ -29,7 +29,7 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
 
     override fun hentEgenvurdering(norskIdent: NorskIdent): AggregertPeriode? {
         val request = Request.Builder()
-            .url(joinPaths(arbRegOppslagUrl, "/api/v4/snapshot"))
+            .url(joinPaths(arbRegOppslagUrl, "/api/v3/snapshot"))
             .header(HttpHeaders.AUTHORIZATION, userTokenSupplier.get())
             .post(
                 toIdentitetsnummerQueryRequest(norskIdent).toJson()
