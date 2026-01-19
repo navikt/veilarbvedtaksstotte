@@ -254,15 +254,18 @@ public class ClientTestConfig {
                         "01990112345",
                         new PeriodeStartet(
                                 PeriodeStartet.Type.PERIODE_STARTET_V1,
-                                LocalDateTime.parse("2025-11-26T14:57:39.724Z"),
-                                new Bruker(
-                                        BrukerType.VEILEDER,
-                                        "Z999999",
-                                        "azure:undefined"
+                                new Metadata(
+                                        LocalDateTime.parse("2025-11-26T14:57:39.724Z"),
+                                        new Bruker(
+                                                BrukerType.VEILEDER,
+                                                "Z999999",
+                                                "azure:undefined"
+                                        ),
+                                        "europe-north1-docker.pkg.dev/nais-management-233d/paw/paw-arbeidssokerregisteret-api-inngang:25.11.26.397-1",
+                                        "Er over 18 år, er bosatt i Norge i henhold Folkeregisterloven",
+                                        null
                                 ),
-                                "europe-north1-docker.pkg.dev/nais-management-233d/paw/paw-arbeidssokerregisteret-api-inngang:25.11.26.397-1",
-                                "Er over 18 år, er bosatt i Norge i henhold Folkeregisterloven",
-                                null
+                                LocalDateTime.parse("2025-11-26T14:57:39.724Z")
                         ),
                         null,
                         new OpplysningerOmArbeidssoeker(
@@ -300,7 +303,8 @@ public class ClientTestConfig {
                                 ),
                                 new Annet(
                                         JaNeiVetIkke.NEI
-                                )
+                                ),
+                                LocalDateTime.parse("2025-11-26T14:57:39.649Z")
                         ),
                         new Profilering(
                                 Profilering.Type.PROFILERING_V1,
@@ -322,7 +326,8 @@ public class ClientTestConfig {
                                 ),
                                 ProfilertTil.OPPGITT_HINDRINGER,
                                 false,
-                                48
+                                48,
+                                LocalDateTime.parse("2025-11-26T14:57:40.49Z")
                         ),
                         null,
                         null

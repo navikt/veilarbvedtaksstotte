@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
+import java.time.LocalDateTime
 
 /**
  * Profilering av arbeidssøker Inneholder informasjon som brukes til ruting av arbeidssøker til riktig veiledningstjeneste. Profileringen er koblet til et bestemt sett opplysninger om arbeidssøker og en bestemt periode. I tilfeller hvor 'opplysningerOmAbreidssøker' oppdateres til å gjelde periode vil det dukke opp en ny profilering knyttet til den samme 'opplysningerOmArbeidssokerId' (periodeId vil være endret).
@@ -31,7 +32,9 @@ data class Profilering(
         required = true
     ) val jobbetSammenhengendeSeksAvTolvSisteMnd: Boolean,
 
-    @get:JsonProperty("alder") val alder: Int? = null
+    @get:JsonProperty("alder") val alder: Int? = null,
+
+    @get:JsonProperty("tidspunkt", required = true) val tidspunkt: LocalDateTime
 ) {
 
     /**
