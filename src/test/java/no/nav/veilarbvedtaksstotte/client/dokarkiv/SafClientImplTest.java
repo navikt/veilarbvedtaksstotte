@@ -4,9 +4,13 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
+import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.utils.TestData;
 import no.nav.veilarbvedtaksstotte.utils.TestUtils;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 
@@ -17,16 +21,19 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @WireMockTest
 public class SafClientImplTest {
+    AuthService authService = mock(AuthService.class);
 
     @Test
     public void hentJournalposter__skalReturnereJournalposter(WireMockRuntimeInfo wireMockRuntimeInfo) {
         String journalposterJson = TestUtils.readTestResourceFile("testdata/saf-client-journalposter.json");
 
         String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        SafClient safClient = new SafClientImpl(apiUrl, () -> "", () -> "");
+        SafClient safClient = new SafClientImpl(apiUrl, () -> "", () -> "", authService);
 
         givenThat(post(urlEqualTo("/graphql"))
                 .willReturn(aResponse()
@@ -47,7 +54,7 @@ public class SafClientImplTest {
     @Test
     public void hentJournalposter__skalKasteExceptionPaErrorStatus(WireMockRuntimeInfo wireMockRuntimeInfo) {
         String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        SafClient safClient = new SafClientImpl(apiUrl, () -> "", () -> "");
+        SafClient safClient = new SafClientImpl(apiUrl, () -> "", () -> "", authService);
 
         givenThat(post(urlEqualTo("/graphql")).willReturn(aResponse().withStatus(500)));
 
@@ -61,7 +68,7 @@ public class SafClientImplTest {
         String journalpostJson = TestUtils.readTestResourceFile("testdata/saf-client-journalpost.json");
 
         String apiUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        SafClient safClient = new SafClientImpl(apiUrl, () -> "", () -> "");
+        SafClient safClient = new SafClientImpl(apiUrl, () -> "", () -> "", authService);
 
         givenThat(post(urlEqualTo("/graphql"))
                 .willReturn(aResponse()

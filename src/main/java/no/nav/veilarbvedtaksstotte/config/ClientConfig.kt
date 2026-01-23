@@ -45,6 +45,7 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
+import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -142,7 +143,8 @@ class ClientConfig {
         properties: EnvironmentProperties,
         machineTokenClient: AzureAdMachineToMachineTokenClient,
         onBehalfOfTokenClient: AzureAdOnBehalfOfTokenClient,
-        authContextHolder: AuthContextHolder
+        authContextHolder: AuthContextHolder,
+        authService: AuthService
     ): SafClient {
         return SafClientImpl(
             properties.safUrl,
@@ -152,7 +154,8 @@ class ClientConfig {
                     properties.safScope,
                     authContextHolder.requireIdTokenString()
                 )
-            }
+            },
+            authService
         )
     }
 
