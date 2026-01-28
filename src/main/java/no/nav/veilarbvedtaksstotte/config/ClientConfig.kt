@@ -45,6 +45,7 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
+import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -139,9 +140,23 @@ class ClientConfig {
 
     @Bean
     fun safClient(
-        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties,
+        machineTokenClient: AzureAdMachineToMachineTokenClient,
+        onBehalfOfTokenClient: AzureAdOnBehalfOfTokenClient,
+        authContextHolder: AuthContextHolder,
+        authService: AuthService
     ): SafClient {
-        return SafClientImpl(properties.safUrl) { machineTokenClient.createMachineToMachineToken(properties.safScope) }
+        return SafClientImpl(
+            properties.safUrl,
+            { machineTokenClient.createMachineToMachineToken(properties.safScope) },
+            {
+                onBehalfOfTokenClient.exchangeOnBehalfOfToken(
+                    properties.safScope,
+                    authContextHolder.requireIdTokenString()
+                )
+            },
+            authService
+        )
     }
 
     @Bean
@@ -244,7 +259,8 @@ class ClientConfig {
         properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient
     ): PoaoTilgangClient {
         return PoaoTilgangCachedClient(
-            PoaoTilgangHttpClient(properties.poaoTilgangUrl,
+            PoaoTilgangHttpClient(
+                properties.poaoTilgangUrl,
                 { tokenClient.createMachineToMachineToken(properties.poaoTilgangScope) })
         )
     }

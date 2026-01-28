@@ -18,6 +18,7 @@ import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.BrukerId;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.BrukerIdType;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.DokumentOversiktBrukerVariables;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.QueryVariables;
+import no.nav.veilarbvedtaksstotte.service.AuthService;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -40,17 +41,28 @@ public class SafClientImpl implements SafClient {
 
     private final Supplier<String> machineToMachineTokenSupplier;
 
-    public SafClientImpl(String safUrl, Supplier<String> machineToMachineTokenSupplier) {
+    private final Supplier<String> onBehalfOfTokenSupplier;
+
+    private final AuthService authService;
+
+    public SafClientImpl(
+            String safUrl,
+            Supplier<String> machineToMachineTokenSupplier,
+            Supplier<String> onBehalfOfTokenSupplier,
+            AuthService authService
+    ) {
         this.safUrl = safUrl;
         this.client = RestClient.baseClient();
         this.machineToMachineTokenSupplier = machineToMachineTokenSupplier;
+        this.onBehalfOfTokenSupplier = onBehalfOfTokenSupplier;
+        this.authService = authService;
     }
 
     @SneakyThrows
     public byte[] hentVedtakPdf(String journalpostId, String dokumentInfoId) {
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "/rest/hentdokument/", journalpostId, dokumentInfoId, "ARKIV"))
-                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(machineToMachineTokenSupplier.get()))
+                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(onBehalfOfTokenSupplier.get()))
                 .build();
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
@@ -67,7 +79,7 @@ public class SafClientImpl implements SafClient {
 
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "graphql"))
-                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(machineToMachineTokenSupplier.get()))
+                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(onBehalfOfTokenSupplier.get()))
                 .post(RestUtils.toJsonRequestBody(graphqlRequest))
                 .build();
 
@@ -80,11 +92,15 @@ public class SafClientImpl implements SafClient {
 
     @SneakyThrows
     public JournalpostGraphqlResponse hentJournalpost(String journalpostId) {
+        Supplier<String> specificTokenSupplier = authService.erInternBruker()
+                ? onBehalfOfTokenSupplier
+                : machineToMachineTokenSupplier;
+
         GraphqlRequest<QueryVariables> graphqlRequest = new GraphqlRequest<>(createJournalpostGqlStr(), new QueryVariables(journalpostId));
 
         Request request = new Request.Builder()
                 .url(joinPaths(safUrl, "graphql"))
-                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(machineToMachineTokenSupplier.get()))
+                .header(HttpHeaders.AUTHORIZATION, AuthUtils.bearerToken(specificTokenSupplier.get()))
                 .post(RestUtils.toJsonRequestBody(graphqlRequest))
                 .build();
 
