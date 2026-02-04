@@ -204,7 +204,7 @@ spec:
         - host: pdl-api.prod-fss-pub.nais.io
         - host: regoppslag.prod-fss-pub.nais.io
         - host: saf.prod-fss-pub.nais.io
-        - host: team-obo-unleash-api.nav.cloud.nais.io
+        - host: obo-unleash-api.nav.cloud.nais.io
         - host: veilarbarena.prod-fss-pub.nais.io
   envFrom:
     - secret: veilarbvedtaksstotte-unleash-api-token
