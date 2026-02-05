@@ -156,29 +156,6 @@ public class OyeblikksbildeRepository {
     }
 
     @SneakyThrows
-    public void upsertEgenvurderingOyeblikksbilde(long vedtakId, EgenvurderingDto egenvurderingDto) {
-        String jsonEgenvurderingDto = JsonUtils.getObjectMapper().writeValueAsString(egenvurderingDto);
-        if (egenvurderingDto == null || jsonEgenvurderingDto == null || jsonEgenvurderingDto.isEmpty()) {
-            jsonEgenvurderingDto = """
-                    {"ingenData": "Personen har ikke registrert svar om behov for veiledning."}
-                    """;
-        }
-        Optional<OyeblikksbildeDto> oyeblikksbilde = hentOyeblikksbilde(vedtakId, OyeblikksbildeType.EGENVURDERING);
-
-        if (oyeblikksbilde.isPresent()) {
-            db.update(
-                    "UPDATE OYEBLIKKSBILDE SET JSON = ?::json WHERE VEDTAK_ID = ? AND OYEBLIKKSBILDE_TYPE = ?::OYEBLIKKSBILDE_TYPE",
-                    jsonEgenvurderingDto, vedtakId, OyeblikksbildeType.EGENVURDERING.name()
-            );
-        } else {
-            db.update(
-                    "INSERT INTO OYEBLIKKSBILDE (VEDTAK_ID, OYEBLIKKSBILDE_TYPE, JSON) VALUES (?,?::OYEBLIKKSBILDE_TYPE,?::json)",
-                    vedtakId, OyeblikksbildeType.EGENVURDERING.name(), jsonEgenvurderingDto
-            );
-        }
-    }
-
-    @SneakyThrows
     public void upsertEgenvurderingV2Oyeblikksbilde(long vedtakId, EgenvurderingV2Dto egenvurderingV2Dto) {
         String jsonEgenvurderingV2Dto = JsonUtils.getObjectMapper().writeValueAsString(egenvurderingV2Dto);
         if (egenvurderingV2Dto == null || jsonEgenvurderingV2Dto == null || jsonEgenvurderingV2Dto.isEmpty()) {

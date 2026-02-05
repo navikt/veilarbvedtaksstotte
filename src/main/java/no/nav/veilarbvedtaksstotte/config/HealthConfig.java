@@ -34,7 +34,6 @@ public class HealthConfig {
 
     @Bean
     public SelfTestChecks selfTestChecks(VeilarbarenaClient arenaClient,
-//                                         AiaBackendClient aiaBackendClient,
                                          VeilarboppfolgingClient oppfolgingClient,
                                          VeilarbpersonClient veilarbpersonClient,
                                          PdfClient pdfClient,
@@ -51,7 +50,6 @@ public class HealthConfig {
                 new SelfTestCheck("ArenaClient", false, arenaClient),
                 new SelfTestCheck("pto-pdfgen", false, pdfClient),
                 new SelfTestCheck("Norg2", true, norg2Client),
-//                new SelfTestCheck("EgenvurderingClient", false, aiaBackendClient),
                 new SelfTestCheck("OppfolgingClient", false, oppfolgingClient),
                 new SelfTestCheck("PersonClient", false, veilarbpersonClient),
                 new SelfTestCheck("SafClient", false, safClient),

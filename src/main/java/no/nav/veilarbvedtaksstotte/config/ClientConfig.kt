@@ -16,8 +16,6 @@ import no.nav.common.utils.EnvironmentUtils
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient
@@ -64,21 +62,6 @@ class ClientConfig {
     @Bean
     fun pdfClient(properties: EnvironmentProperties): PdfClient {
         return PdfClientImpl(properties.ptoPdfgenUrl)
-    }
-
-    @Bean
-    fun egenvurderingClient(
-        properties: EnvironmentProperties,
-        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
-        authContextHolder: AuthContextHolder
-    ): AiaBackendClient {
-        return AiaBackendClientImpl(properties.aiaBackendUrl) {
-            AuthUtils.bearerToken(
-                aadOboTokenClient.exchangeOnBehalfOfToken(
-                    properties.aiaBackendScope, authContextHolder.requireIdTokenString()
-                )
-            )
-        }
     }
 
     @Bean
