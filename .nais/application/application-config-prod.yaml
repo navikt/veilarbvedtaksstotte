@@ -55,10 +55,6 @@ spec:
   kafka:
     pool: nav-prod
   env:
-    - name: AIA_BACKEND_TOKEN_SCOPE
-      value: api://prod-gcp.paw.aia-backend/.default
-    - name: AIA_BACKEND_URL
-      value: http://aia-backend.paw/aia-backend
     - name: ARBEIDSSOKERREGISTERET_OPPSLAG_API_V2_TOKEN_SCOPE
       value: api://prod-gcp.paw.paw-arbeidssoekerregisteret-api-oppslag-v2/.default
     - name: ARBEIDSSOKERREGISTERET_OPPSLAG_API_V2_URL
@@ -180,8 +176,6 @@ spec:
               - "gjeldende-14a-vedtak"
     outbound:
       rules:
-        - application: aia-backend
-          namespace: paw
         - application: egenvurdering-dialog-tjeneste
           namespace: paw
         - application: logging

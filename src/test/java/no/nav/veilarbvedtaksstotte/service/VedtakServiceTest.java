@@ -14,9 +14,6 @@ import no.nav.common.utils.fn.UnsafeRunnable;
 import no.nav.poao_tilgang.client.Decision;
 import no.nav.poao_tilgang.client.PoaoTilgangClient;
 import no.nav.poao_tilgang.client.api.ApiResult;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
@@ -103,7 +100,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
@@ -133,7 +129,6 @@ public class VedtakServiceTest extends DatabaseTest {
     private static final VedtakHendelserService vedtakHendelserService = mock(VedtakHendelserService.class);
     private static final VeilederService veilederService = mock(VeilederService.class);
     private static final VeilarbpersonClient veilarbpersonClient = mock(VeilarbpersonClient.class);
-    private static final AiaBackendClient aia_backend_client = mock(AiaBackendClient.class);
     private static final ArbeidssoekerregisteretApiOppslagV2Client arbeidssoekerregisteretApiOppslagV2Client = mock(ArbeidssoekerregisteretApiOppslagV2Client.class);
     private static final EgenvurderingDialogTjenesteClient egenvurderingDialogTjenesteClient = mock(EgenvurderingDialogTjenesteClient.class);
 
@@ -169,7 +164,7 @@ public class VedtakServiceTest extends DatabaseTest {
         authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), poaoTilgangClient));
         SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, environmentProperties, veilarbpersonClient);
 
-        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, aia_backend_client, arbeidssoekerregisteretApiOppslagV2Client, egenvurderingDialogTjenesteClient, unleashService);
+        oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, arbeidssoekerregisteretApiOppslagV2Client, egenvurderingDialogTjenesteClient);
         MalTypeService malTypeService = new MalTypeService(veilarbpersonClient);
         DokumentService dokumentService = new DokumentService(
                 veilarboppfolgingClient,
@@ -229,7 +224,6 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(veilarbpersonClient.hentPersonNavnForJournalforing(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(veilarbpersonClient.hentFodselsdato(TEST_FNR)).thenReturn(new FodselsdatoOgAr(LocalDate.of(1990, 3, 12), 1990));
-        when(aia_backend_client.hentEgenvurdering(new EgenvurderingForPersonRequest(TEST_FNR.get()))).thenReturn(JsonUtils.fromJson(testEgenvurderingData(), EgenvurderingResponseDTO.class));
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
         when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));

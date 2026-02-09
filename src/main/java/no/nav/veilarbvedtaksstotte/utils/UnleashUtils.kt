@@ -5,4 +5,3 @@ const val LES_FRA_PDL_AKTOR_V2_TOPIC_SKRUDD_PAA = "veilarbvedtaksstotte.pdl_akto
 const val PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA = "veilarbvedtaksstotte.obo_gjeldende_14a_vedtak_produsering_paa"
 const val SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV = "veilarbvedtaksstotte.skjule_veileders_navn_14a_vedtaksbrev"
 const val MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL = "veilarbvedtaksstotte.merke_vedtak_som_mangler_distribusjonskanal";
-const val BRUK_NY_KILDE_FOR_EGENVURDERING = "veilarbvedtaksstotte.bruk_ny_kilde_for_egenvurdering";
