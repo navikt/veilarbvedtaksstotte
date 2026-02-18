@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
+import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
 
@@ -24,11 +26,29 @@ class KlageRepository(private val db: JdbcTemplate) {
             BRUKER_KLAGE_DATO = EXCLUDED.${BRUKER_KLAGE_DATO},
             BRUKER_KLAGE_BEGRUNNELSE = EXCLUDED.${BRUKER_KLAGE_BEGRUNNELSE},
             RAD_SIST_ENDRET = current_timestamp 
-
         """.trimIndent()
         db.update(sql, vedtakid, veilederIdent, norskIdent, klageDato, klageBegrunnelse)
     }
 
+    fun hentKlageBehandling(vedtakid: Long): KlageBehandling? {
+        val sql = "SELECT * FROM $KLAGE_TABLE WHERE $VEDTAK_ID = ?"
+        return try {
+            db.queryForObject(sql, { rs, _ ->
+                KlageBehandling(
+                    vedtakId = rs.getLong(VEDTAK_ID),
+                    veilederIdent = rs.getString(VEILEDER_IDENT),
+                    norskIdent = rs.getString(NORSK_IDENT),
+                    klageDato = rs.getDate(BRUKER_KLAGE_DATO)?.toLocalDate(),
+                    klageBegrunnelse = rs.getString(BRUKER_KLAGE_BEGRUNNELSE)
+                )
+            }, vedtakid)
+        } catch (ex: Exception) {
+            secureLog.error(
+                "Kunne ikke hente klagebehandling for vedtakId: $vedtakid",
+            )
+            null
+        }
+    }
 
     companion object {
         const val KLAGE_TABLE: String = "KLAGE"
@@ -39,7 +59,6 @@ class KlageRepository(private val db: JdbcTemplate) {
         private const val BRUKER_KLAGE_BEGRUNNELSE = "BRUKER_KLAGE_BEGRUNNELSE"
         private const val TIDSPUNKT_START_KLAGEBEHANDLING = "TIDSPUNKT_START_KLAGEBEHANDLING"
         private const val RAD_SIST_ENDRET = "RAD_SIST_ENDRET"
-
     }
 }
 
