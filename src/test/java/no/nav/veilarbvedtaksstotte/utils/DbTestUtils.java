@@ -30,7 +30,8 @@ public class DbTestUtils {
             VEDTAK_TABLE,
             "ARENA_VEDTAK",
             SAK_STATISTIKK_TABLE,
-            RETRY_VEDTAKDISTRIBUSJON_TABELL
+            RETRY_VEDTAKDISTRIBUSJON_TABELL,
+            KILDE_TABLE
     );
 
     public static void testMigrate (DataSource dataSource) {

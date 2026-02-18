@@ -4,6 +4,7 @@ import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 
 @Repository
 class KlageRepository(private val db: JdbcTemplate) {
@@ -12,7 +13,7 @@ class KlageRepository(private val db: JdbcTemplate) {
         vedtakid: Long,
         norskIdent: String,
         veilederIdent: String,
-        klageDato: String?,
+        klageDato: LocalDate?,
         klageBegrunnelse: String?
     ) {
         val sql = """
@@ -27,7 +28,15 @@ class KlageRepository(private val db: JdbcTemplate) {
             BRUKER_KLAGE_BEGRUNNELSE = EXCLUDED.${BRUKER_KLAGE_BEGRUNNELSE},
             RAD_SIST_ENDRET = current_timestamp 
         """.trimIndent()
-        db.update(sql, vedtakid, veilederIdent, norskIdent, klageDato, klageBegrunnelse)
+        try {
+            db.update(sql, vedtakid, veilederIdent, norskIdent, klageDato, klageBegrunnelse)
+        } catch (ex: Exception) {
+            secureLog.error(
+                "Kunne ikke lagre klagebehandling for vedtakId: $vedtakid, feil: {}",
+                ex
+            )
+        }
+
     }
 
     fun hentKlageBehandling(vedtakid: Long): KlageBehandling? {
