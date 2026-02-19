@@ -59,7 +59,6 @@ import javax.sql.DataSource
     BrukerIdenterService::class,
     BrukerIdenterRepository::class,
     SisteOppfolgingPeriodeRepository::class,
-    KlageRepository::class
 )
 class ApplicationTestConfig {
     @Bean

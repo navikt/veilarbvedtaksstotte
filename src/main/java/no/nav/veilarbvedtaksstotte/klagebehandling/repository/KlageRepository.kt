@@ -14,8 +14,7 @@ class KlageRepository(private val db: JdbcTemplate) {
         klageRequest: OpprettKlageRequest
     ) {
         val sql = """
-            INSERT INTO $KLAGE_TABLE ($VEDTAK_ID, $VEILEDER_IDENT, $NORSK_IDENT
-           , $TIDSPUNKT_START_KLAGEBEHANDLING, $RAD_SIST_ENDRET)
+            INSERT INTO $KLAGE_TABLE ($VEDTAK_ID, $VEILEDER_IDENT, $NORSK_IDENT, $TIDSPUNKT_START_KLAGEBEHANDLING, $RAD_SIST_ENDRET)
             VALUES (?,?,?,current_timestamp, current_timestamp)
             ON CONFLICT ($VEDTAK_ID) 
             DO UPDATE SET 
