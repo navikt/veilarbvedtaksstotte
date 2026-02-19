@@ -16,9 +16,9 @@ import java.time.ZonedDateTime
 
 @Service
 class Gjeldende14aVedtakService(
-    @Autowired val siste14aVedtakService: Siste14aVedtakService,
-    @Autowired val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
-    @Autowired val aktorOppslagClient: AktorOppslagClient
+    @param:Autowired val siste14aVedtakService: Siste14aVedtakService,
+    @param:Autowired val sisteOppfolgingPeriodeRepository: SisteOppfolgingPeriodeRepository,
+    @param:Autowired val aktorOppslagClient: AktorOppslagClient
 ) {
     val logger: Logger = LoggerFactory.getLogger(Gjeldende14aVedtakService::class.java)
 

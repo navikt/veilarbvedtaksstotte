@@ -16,6 +16,7 @@ import no.nav.common.metrics.MetricsClient
 import no.nav.common.token_client.client.AzureAdOnBehalfOfTokenClient
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.veilarbvedtaksstotte.kafka.KafkaTestProducer
+import no.nav.veilarbvedtaksstotte.klagebehandling.repository.KlageRepository
 import no.nav.veilarbvedtaksstotte.metrics.DokumentdistribusjonMeterBinder
 import no.nav.veilarbvedtaksstotte.mock.MetricsClientMock
 import no.nav.veilarbvedtaksstotte.mock.PoaoTilgangClientMock
@@ -57,7 +58,7 @@ import javax.sql.DataSource
     DokumentdistribusjonMeterBinder::class,
     BrukerIdenterService::class,
     BrukerIdenterRepository::class,
-    SisteOppfolgingPeriodeRepository::class
+    SisteOppfolgingPeriodeRepository::class,
 )
 class ApplicationTestConfig {
     @Bean
