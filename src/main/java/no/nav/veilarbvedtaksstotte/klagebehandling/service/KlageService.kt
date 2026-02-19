@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.service
 
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.InnsendtKlageFraBrukerRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.repository.KlageRepository
 import org.slf4j.Logger
@@ -18,6 +19,15 @@ class KlageService(
     fun opprettKlageBehandling(opprettKlageRequest: OpprettKlageRequest) {
         logger.info("Oppretter klagebehandling for vedtakId ${opprettKlageRequest.vedtakId} ")
         klageRepository.upsertKlageBakgrunnsdata(opprettKlageRequest)
+    }
+
+    fun oppdaterInnsendtKlageFraBruker(innsendtKlageFraBrukerRequest: InnsendtKlageFraBrukerRequest) {
+        logger.info("Oppdaterer klagebehandling for vedtakId ${innsendtKlageFraBrukerRequest.vedtakId} med data fra innsendt klage fra bruker")
+        klageRepository.upsertKlageBrukerdata(
+            innsendtKlageFraBrukerRequest.vedtakId,
+            innsendtKlageFraBrukerRequest.klagedato,
+            innsendtKlageFraBrukerRequest.klageBegrunnelse
+        )
     }
 
 }
