@@ -9,6 +9,9 @@ CREATE TABLE KLAGE
     KLAGE_JOURNALPOST_ID            VARCHAR(20),
     FORMKRAV_OPPFYLT                VARCHAR(20),
     FORMKRAV_BEGRUNNELSE            TEXT,
+    RESULTAT                        VARCHAR(30),
+    RESULTAT_BEGRUNNELSE            TEXT,
+    TIDSPUNKT_RESULTAT              TIMESTAMP,
     RAD_SIST_ENDRET                 TIMESTAMP   NOT NULL
 );
 

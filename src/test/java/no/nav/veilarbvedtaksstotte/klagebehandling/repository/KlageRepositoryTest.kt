@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
@@ -89,6 +90,22 @@ class KlageRepositoryTest : DatabaseTest() {
         assertEquals(FormkravOppfylt.IKKE_OPPFYLT, lagretKlageIkkeOppfylt.formkravOppfylt)
         assertEquals(formkravBegrunnelse, lagretKlageIkkeOppfylt.formkravBegrunnelse)
 
+    }
+
+    @Test
+    fun `upsertResultat skal oppdatere felt for resultat`() {
+        val vedtakId: Long = 123456789
+        val resultat = Resultat.AVVIST
+        val begrunnelse = "Formkrav for klagefrist er ikke oppfylt."
+
+        val defaultRequest = opprettEnDefaultKlage(vedtakId)
+        klageRepository.upsertOpprettKlagebehandling(defaultRequest)
+        klageRepository.upsertResultat(vedtakId, resultat, begrunnelse)
+
+        val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
+        assertNotNull(lagretKlageOppfylt)
+        assertEquals(Resultat.AVVIST, lagretKlageOppfylt.resultat)
+        assertEquals(begrunnelse, lagretKlageOppfylt.resultatBegrunnelse)
     }
 
 

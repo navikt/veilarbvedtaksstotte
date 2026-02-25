@@ -10,4 +10,6 @@ data class KlageBehandling(
     val klageJournalpostid: String?,
     val formkravOppfylt: FormkravOppfylt?,
     val formkravBegrunnelse: String?,
+    val resultat: Resultat?,
+    val resultatBegrunnelse: String?,
 )
