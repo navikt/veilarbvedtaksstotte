@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
@@ -10,7 +11,7 @@ import java.time.LocalDate
 @Repository
 class KlageRepository(private val db: JdbcTemplate) {
 
-    fun upsertKlageBakgrunnsdata(
+    fun upsertOpprettKlagebehandling(
         klageRequest: OpprettKlageRequest
     ) {
         val sql = """
@@ -34,25 +35,49 @@ class KlageRepository(private val db: JdbcTemplate) {
 
     fun upsertKlageBrukerdata(
         vedtakid: Long,
-        klageDato: LocalDate?,
-        klageBegrunnelse: String?
+        klageDato: LocalDate,
+        klageJournalpostid: String,
     ) {
         val sql = """
                 UPDATE $KLAGE_TABLE SET
-                    $BRUKER_KLAGE_DATO = ?,
-                    $BRUKER_KLAGE_BEGRUNNELSE = ?,
+                    $KLAGE_DATO = ?,
+                    $KLAGE_JOURNALPOST_ID = ?,
                     $RAD_SIST_ENDRET = current_timestamp
                 WHERE $VEDTAK_ID = ?
             """.trimIndent()
 
         try {
-            db.update(sql, klageDato, klageBegrunnelse, vedtakid)
+            db.update(sql, klageDato, klageJournalpostid, vedtakid)
         } catch (ex: Exception) {
             secureLog.error(
                 "Kunne ikke lagre brukerdata for klagebehandling for vedtakId: $vedtakid, feil: {}",
                 ex
             )
         }
+    }
+
+    fun upsertFormkrav(
+        vedtakid: Long,
+        formkravOppfylt: FormkravOppfylt,
+        formkravBegrunnelse: String?
+    ) {
+        val sql = """
+                UPDATE $KLAGE_TABLE SET
+                    $FORMKRAV_OPPFYLT = ?,
+                    $FORMKRAV_BEGRUNNELSE = ?,
+                    $RAD_SIST_ENDRET = current_timestamp
+                WHERE $VEDTAK_ID = ?
+            """.trimIndent()
+
+        try {
+            db.update(sql, formkravOppfylt.toString(), formkravBegrunnelse, vedtakid)
+        } catch (ex: Exception) {
+            secureLog.error(
+                "Kunne ikke lagre formkrav for klagebehandling for vedtakId: $vedtakid, feil: {}",
+                ex
+            )
+        }
+
     }
 
     fun hentKlageBehandling(vedtakid: Long): KlageBehandling? {
@@ -63,13 +88,16 @@ class KlageRepository(private val db: JdbcTemplate) {
                     vedtakId = rs.getLong(VEDTAK_ID),
                     veilederIdent = rs.getString(VEILEDER_IDENT),
                     norskIdent = rs.getString(NORSK_IDENT),
-                    klageDato = rs.getDate(BRUKER_KLAGE_DATO)?.toLocalDate(),
-                    klageBegrunnelse = rs.getString(BRUKER_KLAGE_BEGRUNNELSE)
+                    klageDato = rs.getDate(KLAGE_DATO)?.toLocalDate(),
+                    klageJournalpostid = rs.getString(KLAGE_JOURNALPOST_ID),
+                    formkravOppfylt = rs.getString(FORMKRAV_OPPFYLT)?.let { FormkravOppfylt.valueOf(it) },
+                    formkravBegrunnelse = rs.getString(FORMKRAV_BEGRUNNELSE)
                 )
             }, vedtakid)
         } catch (ex: Exception) {
             secureLog.error(
-                "Kunne ikke hente klagebehandling for vedtakId: $vedtakid",
+                "Kunne ikke hente klagebehandling for vedtakId: $vedtakid, feil: {}",
+                ex
             )
             null
         }
@@ -80,9 +108,11 @@ class KlageRepository(private val db: JdbcTemplate) {
         private const val VEDTAK_ID = "VEDTAK_ID"
         private const val VEILEDER_IDENT = "VEILEDER_IDENT"
         private const val NORSK_IDENT = "NORSK_IDENT"
-        private const val BRUKER_KLAGE_DATO = "BRUKER_KLAGE_DATO"
-        private const val BRUKER_KLAGE_BEGRUNNELSE = "BRUKER_KLAGE_BEGRUNNELSE"
         private const val TIDSPUNKT_START_KLAGEBEHANDLING = "TIDSPUNKT_START_KLAGEBEHANDLING"
+        private const val KLAGE_DATO = "KLAGE_DATO"
+        private const val KLAGE_JOURNALPOST_ID = "KLAGE_JOURNALPOST_ID"
+        private const val FORMKRAV_OPPFYLT = "FORMKRAV_OPPFYLT"
+        private const val FORMKRAV_BEGRUNNELSE = "FORMKRAV_BEGRUNNELSE"
         private const val RAD_SIST_ENDRET = "RAD_SIST_ENDRET"
     }
 }

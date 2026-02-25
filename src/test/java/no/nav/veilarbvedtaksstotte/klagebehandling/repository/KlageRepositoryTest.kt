@@ -1,14 +1,12 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 
 import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNotNull
 import java.time.LocalDate
 
 
@@ -30,7 +28,7 @@ class KlageRepositoryTest : DatabaseTest() {
     }
 
     @Test
-    fun `upsertKlageBakgrunnsdata skal opprette i databasen og kunne oppdatere felt`() {
+    fun `upsertOpprettKlagebehandling skal opprette i databasen og kunne oppdatere felt`() {
         val vedtakId: Long = 123456789
         val norskIdent = "12345678910"
         val veilederIdent = "Z123456"
@@ -38,7 +36,7 @@ class KlageRepositoryTest : DatabaseTest() {
         val request = OpprettKlageRequest(vedtakId, Fnr(norskIdent), veilederIdent)
         val oppdatertRequest = OpprettKlageRequest(vedtakId, Fnr(norskIdent), nyVeilederIdent)
 
-        klageRepository.upsertKlageBakgrunnsdata(request)
+        klageRepository.upsertOpprettKlagebehandling(request)
 
         val lagretKlageUtenBrukerdata = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageUtenBrukerdata)
@@ -46,34 +44,51 @@ class KlageRepositoryTest : DatabaseTest() {
         assertEquals(norskIdent, lagretKlageUtenBrukerdata.norskIdent)
         assertEquals(veilederIdent, lagretKlageUtenBrukerdata.veilederIdent)
 
-        klageRepository.upsertKlageBakgrunnsdata(oppdatertRequest)
+        klageRepository.upsertOpprettKlagebehandling(oppdatertRequest)
 
         val lagretKlage = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlage)
         assertEquals(nyVeilederIdent, lagretKlage.veilederIdent)
-
     }
 
     @Test
-    fun `upsertKlageBrukerdata skal oppdatere felt for dato og begrunnelse`() {
+    fun `upsertKlageBrukerdata skal oppdatere felt for dato og journalpostId`() {
         val vedtakId: Long = 123456789
         val klageDato = LocalDate.of(2026, 2, 14)
-        val klageBegrunnelse = "Jeg er uenig i vedtaket fordi..."
-        val nyKlageBegrunnelse = "Jeg har endret begrunnelsen"
+        val journalpostId = "987654321"
+
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
-        klageRepository.upsertKlageBakgrunnsdata(defaultRequest)
-        klageRepository.upsertKlageBrukerdata(vedtakId, klageDato, klageBegrunnelse)
+        klageRepository.upsertOpprettKlagebehandling(defaultRequest)
+        klageRepository.upsertKlageBrukerdata(vedtakId, klageDato, journalpostId)
 
         val lagretKlage = klageRepository.hentKlageBehandling(vedtakId)
 
         assertNotNull(lagretKlage)
         assertEquals(klageDato, lagretKlage.klageDato)
-        assertEquals(klageBegrunnelse, lagretKlage.klageBegrunnelse)
+        assertEquals(journalpostId, lagretKlage.klageJournalpostid)
+    }
 
-        klageRepository.upsertKlageBrukerdata(vedtakId, klageDato, nyKlageBegrunnelse)
-        val lagretOppdatertKlage = klageRepository.hentKlageBehandling(vedtakId)
-        assertNotNull(lagretOppdatertKlage)
-        assertEquals(nyKlageBegrunnelse, lagretOppdatertKlage.klageBegrunnelse)
+    @Test
+    fun `upsertFormkrav skal oppdatere felt for formkravOppfylt og formkravBegrunnelse`() {
+        val vedtakId: Long = 123456789
+        val formkravBegrunnelse = "Alle formkrav er oppfylt."
+
+        val defaultRequest = opprettEnDefaultKlage(vedtakId)
+        klageRepository.upsertOpprettKlagebehandling(defaultRequest)
+        klageRepository.upsertFormkrav(vedtakId, FormkravOppfylt.OPPFYLT, null)
+
+        val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
+        assertNotNull(lagretKlageOppfylt)
+        assertEquals(FormkravOppfylt.OPPFYLT, lagretKlageOppfylt.formkravOppfylt)
+        assertNull(lagretKlageOppfylt.formkravBegrunnelse)
+
+
+        klageRepository.upsertFormkrav(vedtakId, FormkravOppfylt.IKKE_OPPFYLT, formkravBegrunnelse)
+        val lagretKlageIkkeOppfylt = klageRepository.hentKlageBehandling(vedtakId)
+        assertNotNull(lagretKlageIkkeOppfylt)
+        assertEquals(FormkravOppfylt.IKKE_OPPFYLT, lagretKlageIkkeOppfylt.formkravOppfylt)
+        assertEquals(formkravBegrunnelse, lagretKlageIkkeOppfylt.formkravBegrunnelse)
+
     }
 
 

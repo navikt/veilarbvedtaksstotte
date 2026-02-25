@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.FormkravRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.InnsendtKlageFraBrukerRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
@@ -30,7 +31,12 @@ class KlageController(val klageService: KlageService) {
     @PostMapping("/klagebehandling/innsendt-klage-fra-bruker")
     fun oppdaterInnsendtKlageFraBruker(@Valid @RequestBody innsendtKlageFraBrukerRequest: InnsendtKlageFraBrukerRequest) {
         return klageService.oppdaterInnsendtKlageFraBruker(innsendtKlageFraBrukerRequest)
+    }
 
+
+    @PostMapping("/klagebehandling/formkrav")
+    fun oppdaterFormkrav(@Valid @RequestBody formkravrequest: FormkravRequest) {
+        return klageService.oppdaterFormkrav(formkravrequest)
     }
 
 }

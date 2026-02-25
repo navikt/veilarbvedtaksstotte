@@ -4,6 +4,6 @@ import java.time.LocalDate
 
 data class InnsendtKlageFraBrukerRequest(
     val vedtakId: Long,
-    val klagedato: LocalDate?,
-    val klageBegrunnelse: String?,
+    val klagedato: LocalDate,
+    val klageJournalpostid: String,
 )

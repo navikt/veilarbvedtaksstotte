@@ -7,5 +7,7 @@ data class KlageBehandling(
     val veilederIdent: String,
     val norskIdent: String,
     val klageDato: LocalDate?,
-    val klageBegrunnelse: String?
+    val klageJournalpostid: String?,
+    val formkravOppfylt: FormkravOppfylt?,
+    val formkravBegrunnelse: String?,
 )
