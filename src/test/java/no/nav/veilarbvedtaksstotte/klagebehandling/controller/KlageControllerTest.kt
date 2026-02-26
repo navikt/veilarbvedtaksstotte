@@ -29,14 +29,18 @@ class KlageControllerTest {
             {
                "vedtakId" : 123456789,
                "fnr" : "11111111111",
-               "veilederIdent" : "Z123456"
+               "veilederIdent" : "Z123456",
+               "klagedato" : "2026-02-14",
+               "klageJournalpostid" : "987654321"
             }
             """.trimIndent()
         val badRequest = """
             {
               "vedtakId" : ,
               "fnr" : "11111111111",
-              "veilederIdentFeilNavn" : "Z123456"
+              "veilederIdentFeilNavn" : "Z123456",
+              "klagedato" : "2026-02-14",
+              "klageJournalpostid" : ""
             }
             """.trimIndent()
 

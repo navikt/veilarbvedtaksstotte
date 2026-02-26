@@ -8,8 +8,8 @@ data class KlageBehandling(
     val norskIdent: String,
     val klageDato: LocalDate?,
     val klageJournalpostid: String?,
-    val formkravOppfylt: FormkravOppfylt?,
+    val formkravOppfylt: FormkravOppfylt,
     val formkravBegrunnelse: String?,
-    val resultat: Resultat?,
+    val resultat: Resultat,
     val resultatBegrunnelse: String?,
 )

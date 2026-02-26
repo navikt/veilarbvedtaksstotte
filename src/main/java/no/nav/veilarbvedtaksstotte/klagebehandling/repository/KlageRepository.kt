@@ -7,7 +7,6 @@ import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageReques
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
 
 @Repository
 class KlageRepository(private val db: JdbcTemplate) {
@@ -16,42 +15,40 @@ class KlageRepository(private val db: JdbcTemplate) {
         klageRequest: OpprettKlageRequest
     ) {
         val sql = """
-            INSERT INTO $KLAGE_TABLE ($VEDTAK_ID, $VEILEDER_IDENT, $NORSK_IDENT, $TIDSPUNKT_START_KLAGEBEHANDLING, $RAD_SIST_ENDRET)
-            VALUES (?,?,?,current_timestamp, current_timestamp)
+            INSERT INTO $KLAGE_TABLE (
+                $VEDTAK_ID, 
+                $VEILEDER_IDENT, 
+                $NORSK_IDENT, 
+                $KLAGE_DATO,
+                $KLAGE_JOURNALPOST_ID,
+                $TIDSPUNKT_START_KLAGEBEHANDLING, 
+                $RAD_SIST_ENDRET, 
+                $FORMKRAV_OPPFYLT, 
+                $RESULTAT 
+            )
+            VALUES (?,?,?,?,?,current_timestamp, current_timestamp, ?, ?)
             ON CONFLICT ($VEDTAK_ID) 
             DO UPDATE SET 
-            VEILEDER_IDENT = EXCLUDED.${VEILEDER_IDENT},
-            NORSK_IDENT = EXCLUDED.${NORSK_IDENT},
+            $VEILEDER_IDENT = EXCLUDED.${VEILEDER_IDENT},
+            $NORSK_IDENT = EXCLUDED.${NORSK_IDENT},
+            $KLAGE_DATO = EXCLUDED.${KLAGE_DATO},
+            $KLAGE_JOURNALPOST_ID = EXCLUDED.${KLAGE_JOURNALPOST_ID},
             RAD_SIST_ENDRET = current_timestamp 
         """.trimIndent()
         try {
-            db.update(sql, klageRequest.vedtakId, klageRequest.veilederIdent, klageRequest.fnr.get())
+            db.update(
+                sql,
+                klageRequest.vedtakId,
+                klageRequest.veilederIdent,
+                klageRequest.fnr.get(),
+                klageRequest.klagedato,
+                klageRequest.klageJournalpostid,
+                FormkravOppfylt.IKKE_SATT.toString(),
+                Resultat.IKKE_SATT.toString()
+            )
         } catch (ex: Exception) {
             secureLog.error(
                 "Kunne ikke lagre klagebehandling for vedtakId: ${klageRequest.vedtakId}, feil: {}",
-                ex
-            )
-        }
-    }
-
-    fun upsertKlageBrukerdata(
-        vedtakid: Long,
-        klageDato: LocalDate,
-        klageJournalpostid: String,
-    ) {
-        val sql = """
-                UPDATE $KLAGE_TABLE SET
-                    $KLAGE_DATO = ?,
-                    $KLAGE_JOURNALPOST_ID = ?,
-                    $RAD_SIST_ENDRET = current_timestamp
-                WHERE $VEDTAK_ID = ?
-            """.trimIndent()
-
-        try {
-            db.update(sql, klageDato, klageJournalpostid, vedtakid)
-        } catch (ex: Exception) {
-            secureLog.error(
-                "Kunne ikke lagre brukerdata for klagebehandling for vedtakId: $vedtakid, feil: {}",
                 ex
             )
         }
@@ -115,9 +112,9 @@ class KlageRepository(private val db: JdbcTemplate) {
                     norskIdent = rs.getString(NORSK_IDENT),
                     klageDato = rs.getDate(KLAGE_DATO)?.toLocalDate(),
                     klageJournalpostid = rs.getString(KLAGE_JOURNALPOST_ID),
-                    formkravOppfylt = rs.getString(FORMKRAV_OPPFYLT)?.let { FormkravOppfylt.valueOf(it) },
+                    formkravOppfylt = rs.getString(FORMKRAV_OPPFYLT).let { FormkravOppfylt.valueOf(it) },
                     formkravBegrunnelse = rs.getString(FORMKRAV_BEGRUNNELSE),
-                    resultat = rs.getString(RESULTAT)?.let { Resultat.valueOf(it) },
+                    resultat = rs.getString(RESULTAT).let { Resultat.valueOf(it) },
                     resultatBegrunnelse = rs.getString(RESULTAT_BEGRUNNELSE)
                 )
             }, vedtakid)

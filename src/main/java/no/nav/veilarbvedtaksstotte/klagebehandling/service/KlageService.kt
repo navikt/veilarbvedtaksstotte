@@ -3,7 +3,6 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.service
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.FormkravRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.InnsendtKlageFraBrukerRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.repository.KlageRepository
 import org.slf4j.Logger
@@ -24,14 +23,6 @@ class KlageService(
         klageRepository.upsertOpprettKlagebehandling(opprettKlageRequest)
     }
 
-    fun oppdaterInnsendtKlageFraBruker(innsendtKlageFraBrukerRequest: InnsendtKlageFraBrukerRequest) {
-        logger.info("Oppdaterer klagebehandling for vedtakId ${innsendtKlageFraBrukerRequest.vedtakId} med data fra innsendt klage fra bruker")
-        klageRepository.upsertKlageBrukerdata(
-            innsendtKlageFraBrukerRequest.vedtakId,
-            innsendtKlageFraBrukerRequest.klagedato,
-            innsendtKlageFraBrukerRequest.klageJournalpostid
-        )
-    }
 
     fun oppdaterFormkrav(formkravRequest: FormkravRequest) {
         logger.info("Oppdaterer formkrav for vedtakId ${formkravRequest.vedtakId}")
