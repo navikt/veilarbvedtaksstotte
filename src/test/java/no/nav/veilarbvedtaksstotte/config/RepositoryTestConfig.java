@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config;
 
+import no.nav.veilarbvedtaksstotte.klagebehandling.repository.KlageRepository;
 import no.nav.veilarbvedtaksstotte.repository.*;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Import;
         ArenaVedtakRepository.class,
         SakStatistikkRepository.class,
         SisteOppfolgingPeriodeRepository.class,
-        RetryVedtakdistribusjonRepository.class
+        RetryVedtakdistribusjonRepository.class,
+        KlageRepository.class
 })
 public class RepositoryTestConfig {}
