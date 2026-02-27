@@ -9,7 +9,7 @@ import no.nav.common.utils.AuthUtils
 import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettJournalpostDTO
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.request.OpprettetJournalpostDTO
-import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
+import no.nav.veilarbvedtaksstotte.utils.deserializeJsonAndThrowOnNull
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -40,7 +40,7 @@ class DokarkivClientImpl(
 
         client.newCall(request).execute().use { response ->
             throwIfNotSuccessful(response)
-            return response.deserializeJsonOrThrow()
+            return response.deserializeJsonAndThrowOnNull()
         }
     }
 

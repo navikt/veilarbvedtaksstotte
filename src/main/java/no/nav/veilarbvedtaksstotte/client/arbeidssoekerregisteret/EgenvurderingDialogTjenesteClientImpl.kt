@@ -3,7 +3,6 @@ package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.veilarbvedtaksstotte.utils.deserializeJson
-import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request

@@ -6,7 +6,7 @@ import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.utils.AuthUtils
 import no.nav.common.utils.UrlUtils
-import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
+import no.nav.veilarbvedtaksstotte.utils.deserializeJsonAndThrowOnNull
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -30,7 +30,7 @@ class RegoppslagClientImpl(
 
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
-            return response.deserializeJsonOrThrow()
+            return response.deserializeJsonAndThrowOnNull()
         }
     }
 

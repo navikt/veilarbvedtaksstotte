@@ -10,7 +10,7 @@ import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Egenvurd
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.IdentitetsnummerQueryRequest.Companion.toIdentitetsnummerQueryRequest
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.ProfilertTil
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto
-import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
+import no.nav.veilarbvedtaksstotte.utils.deserializeJsonAndThrowOnNull
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -45,7 +45,7 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
             }
             RestUtils.throwIfNotSuccessful(response)
 
-            return response.deserializeJsonOrThrow()
+            return response.deserializeJsonAndThrowOnNull()
         }
 
         /* Henter siste arbeidssøkerperiode, men trenger ikke bety at den er aktiv. Vi må sjekke om "avsluttet" finnes for å bekrefte det.
