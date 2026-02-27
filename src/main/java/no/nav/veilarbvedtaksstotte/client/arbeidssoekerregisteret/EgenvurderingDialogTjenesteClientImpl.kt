@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret
 
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
+import no.nav.veilarbvedtaksstotte.utils.deserializeJson
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
@@ -14,7 +15,7 @@ import java.util.*
 import java.util.function.Supplier
 
 interface EgenvurderingDialogTjenesteClient {
-    fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse
+    fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse?
 }
 
 class EgenvurderingDialogTjenesteClientImpl (
@@ -24,7 +25,7 @@ class EgenvurderingDialogTjenesteClientImpl (
     private val client: OkHttpClient = RestClient.baseClient()
     private val log = LoggerFactory.getLogger(EgenvurderingDialogTjenesteClientImpl::class.java)
 
-    override fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse {
+    override fun hentDialogId(arbeidssokerperiodeId: UUID): EgenvurderingDialogResponse? {
         val request = Request.Builder()
             .url("$url/api/v1/egenvurdering/dialog")
             .header(HttpHeaders.AUTHORIZATION, "Bearer ${machineToMachineTokenClient.get()}")
@@ -40,11 +41,11 @@ class EgenvurderingDialogTjenesteClientImpl (
                 throw RuntimeException(message)
             }
 
-            return response.deserializeJsonOrThrow()
+            return response.deserializeJson()
         }
     }
 }
 
 data class EgenvurderingDialogRequest(val periodeId: UUID)
 
-data class EgenvurderingDialogResponse(@NotNull val dialogId: Long)
+data class EgenvurderingDialogResponse(@param:NotNull val dialogId: Long)

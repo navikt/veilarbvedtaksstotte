@@ -1,10 +1,12 @@
 package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret
 
+import jakarta.validation.constraints.NotNull
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.types.identer.NorskIdent
 import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AggregertPeriode
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Egenvurdering
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.IdentitetsnummerQueryRequest.Companion.toIdentitetsnummerQueryRequest
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.ProfilertTil
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto
@@ -54,9 +56,7 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
 
     companion object {
         @JvmStatic
-        fun mapToEgenvurderingV2Dto(aggregertPeriode: AggregertPeriode, dialogId: Long?): EgenvurderingV2Dto? {
-            val egenvurdering = aggregertPeriode.egenvurdering?: return null
-
+        fun mapToEgenvurderingV2Dto(@NotNull egenvurdering: Egenvurdering, dialogId: Long?): EgenvurderingV2Dto? {
             val svar = when (egenvurdering.egenvurdering) {
                 ProfilertTil.ANTATT_GODE_MULIGHETER -> "Jeg ønsker å klare meg selv"
                 ProfilertTil.ANTATT_BEHOV_FOR_VEILEDNING -> "Jeg ønsker oppfølging fra NAV"

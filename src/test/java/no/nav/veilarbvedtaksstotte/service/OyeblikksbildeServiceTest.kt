@@ -121,7 +121,7 @@ internal class OyeblikksbildeServiceTest {
     }
 
     @Test
-    fun lagreOyeblikksbilde_medEgenvurderingKilde_skalLagre() {
+    fun lagreOyeblikksbilde_medEgenvurderingKilde_og_dialogId_skalLagre() {
         val fnr = "12345678910"
         val vedtakId = 999L
         val periodeId = UUID.randomUUID()
@@ -161,6 +161,51 @@ internal class OyeblikksbildeServiceTest {
         
         oyeblikksbildeService.lagreOyeblikksbilde(fnr, vedtakId, kilder)
         
+        verify(arbeidssoekerregisteretApiOppslagV2Client).hentEgenvurdering(NorskIdent.of(fnr))
+        verify(egenvurderingDialogTjenesteClient).hentDialogId(periodeId)
+        verify(oyeblikksbildeRepository).upsertEgenvurderingV2Oyeblikksbilde(eq(vedtakId), any())
+    }
+
+    @Test
+    fun lagreOyeblikksbilde_medEgenvurderingKilde_men_utenDialogId_skalLagre() {
+        val fnr = "12345678910"
+        val vedtakId = 999L
+        val periodeId = UUID.randomUUID()
+        val kilder = listOf(KildeEntity(VedtakOpplysningKilder.EGENVURDERING.desc, UUID.randomUUID()))
+
+        val metadata = Metadata(
+            tidspunkt = LocalDateTime.now(),
+            utfoertAv = Bruker(type = BrukerType.SLUTTBRUKER, id = fnr),
+            kilde = "test",
+            aarsak = "test"
+        )
+        val egenvurdering = Egenvurdering(
+            type = Egenvurdering.Type.EGENVURDERING_V1,
+            id = UUID.randomUUID(),
+            profileringId = UUID.randomUUID(),
+            sendtInnAv = metadata,
+            profilertTil = ProfilertTil.ANTATT_BEHOV_FOR_VEILEDNING,
+            egenvurdering = ProfilertTil.ANTATT_BEHOV_FOR_VEILEDNING,
+            tidspunkt = LocalDateTime.now()
+        )
+        val aggregertPeriode = AggregertPeriode(
+            id = periodeId,
+            identitetsnummer = fnr,
+            startet = PeriodeStartet(
+                type = PeriodeStartet.Type.PERIODE_STARTET_V1,
+                sendtInnAv = metadata,
+                tidspunkt = LocalDateTime.now()
+            ),
+            egenvurdering = egenvurdering
+        )
+
+        `when`(arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(NorskIdent.of(fnr)))
+            .thenReturn(aggregertPeriode)
+        `when`(egenvurderingDialogTjenesteClient.hentDialogId(periodeId))
+            .thenReturn(null)
+
+        oyeblikksbildeService.lagreOyeblikksbilde(fnr, vedtakId, kilder)
+
         verify(arbeidssoekerregisteretApiOppslagV2Client).hentEgenvurdering(NorskIdent.of(fnr))
         verify(egenvurderingDialogTjenesteClient).hentDialogId(periodeId)
         verify(oyeblikksbildeRepository).upsertEgenvurderingV2Oyeblikksbilde(eq(vedtakId), any())

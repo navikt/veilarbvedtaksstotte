@@ -7,7 +7,9 @@ import no.nav.common.types.identer.NorskIdent;
 import no.nav.poao_tilgang.client.TilgangType;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogResponse;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient;
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Egenvurdering;
 import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvDto;
@@ -137,13 +139,16 @@ public class OyeblikksbildeService {
         }
         if (kilder.stream().anyMatch(kilde -> kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()) || kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc()))) {
             EgenvurderingV2Dto egenvurderingV2Dto = Optional.ofNullable(arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(NorskIdent.of(fnr)))
+                    .filter(aggregertPeriode -> aggregertPeriode.getEgenvurdering() != null)
                     .map(aggregertPeriode -> {
-                        if (aggregertPeriode.getEgenvurdering() != null) {
-                            Long dialogId = egenvurderingDialogTjenesteClient.hentDialogId(aggregertPeriode.getId()).getDialogId();
-                            return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(aggregertPeriode, dialogId);
-                        } else  {
-                            return null;
+                        Egenvurdering egenvurdering = aggregertPeriode.getEgenvurdering();
+                        EgenvurderingDialogResponse egenvurderingDialogResponse = egenvurderingDialogTjenesteClient.hentDialogId(aggregertPeriode.getId());
+
+                        if (egenvurderingDialogResponse == null) {
+                            return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(egenvurdering, null);
                         }
+
+                        return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(egenvurdering, egenvurderingDialogResponse.getDialogId());
                     })
                     .orElse(null);
             oyeblikksbildeRepository.upsertEgenvurderingV2Oyeblikksbilde(vedtakId, egenvurderingV2Dto);
