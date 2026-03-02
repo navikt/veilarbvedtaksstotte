@@ -75,6 +75,10 @@ spec:
       value: api://prod-gcp.paw.egenvurdering-dialog-tjeneste/.default
     - name: EGENVURDERING_DIALOG_TJENESTE_URL
       value: http://egenvurdering-dialog-tjeneste.paw
+    - name: KABAL_TOKEN_SCOPE
+      value: api://prod-gcp.klage.kabal-api/.default
+    - name: KABAL_URL
+      value: https://kabal-api.intern.dev.nav.no
     - name: NORG2_URL
       value: http://norg2.org/norg2
     - name: PDL_TOKEN_SCOPE
@@ -196,6 +200,9 @@ spec:
           namespace: poao
         - application: veilarbperson
         - application: veilarbveileder
+        - application: kabal-api
+          namespace: klage
+          cluster: prod-gcp
       external:
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: dokdistfordeling.prod-fss-pub.nais.io
