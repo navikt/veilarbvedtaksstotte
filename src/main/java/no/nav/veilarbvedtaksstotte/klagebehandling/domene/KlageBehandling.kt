@@ -10,10 +10,10 @@ data class KlageBehandling(
     val norskIdent: String,
     val klageDato: LocalDate?,
     val klageJournalpostid: String?,
-    val formkravSignert : FormkravSvar,
-    val formkravPart: FormkravSvar,
-    val formkravKonkret: FormkravSvar,
-    val formkravKlagefristOpprettholdt: FormkravSvar,
+    val formkravSignert: FormkravSvar?,
+    val formkravPart: FormkravSvar?,
+    val formkravKonkret: FormkravSvar?,
+    val formkravKlagefristOpprettholdt: FormkravSvar?,
     val formkravKlagefristUnntak: FormkravKlagefristUnntakSvar?,
     val formkravOppfylt: FormkravOppfylt,
     val formkravBegrunnelseIntern: String?,
@@ -21,4 +21,5 @@ data class KlageBehandling(
 
     val resultat: Resultat,
     val resultatBegrunnelse: String?,
+    val status: Status
 )

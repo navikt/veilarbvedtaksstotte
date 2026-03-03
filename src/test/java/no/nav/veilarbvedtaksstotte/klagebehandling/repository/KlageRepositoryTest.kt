@@ -1,9 +1,13 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 
 import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravKlagefristUnntakSvar
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravSvar
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.OpprettKlageRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Status
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
 import org.junit.jupiter.api.*
@@ -50,6 +54,7 @@ class KlageRepositoryTest : DatabaseTest() {
         assertEquals(journalpostId, lagretKlage.klageJournalpostid)
         assertEquals(Resultat.IKKE_SATT, lagretKlage.resultat)
         assertEquals(FormkravOppfylt.IKKE_SATT, lagretKlage.formkravOppfylt)
+        assertEquals(Status.UTKAST, lagretKlage.status)
 
         klageRepository.upsertOpprettKlagebehandling(oppdatertRequest)
         val lagretKlageOppdatert = klageRepository.hentKlageBehandling(vedtakId)
@@ -60,30 +65,52 @@ class KlageRepositoryTest : DatabaseTest() {
 
 
     @Test
-    fun `upsertFormkrav skal oppdatere felt for formkravOppfylt og formkravBegrunnelse`() {
+    fun `updateFormkrav skal oppdatere felt for formkrav`() {
         val vedtakId: Long = 111222333
         val formkravBegrunnelse = "Alle formkrav er oppfylt."
 
+        val formkrav = FormkravRequest(
+            vedtakId = vedtakId,
+            signert = FormkravSvar.JA,
+            part = FormkravSvar.JA,
+            konkret = FormkravSvar.JA,
+            klagefristOpprettholdt = FormkravSvar.NEI,
+            klagefristUnntak = FormkravKlagefristUnntakSvar.JA_SAERLIGE_GRUNNER,
+            formkravBegrunnelseIntern = formkravBegrunnelse,
+            formkravBegrunnelseBrev = null
+        )
+
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
         klageRepository.upsertOpprettKlagebehandling(defaultRequest)
-        klageRepository.updateFormkrav(vedtakId, FormkravOppfylt.OPPFYLT, null)
+        klageRepository.updateFormkrav(formkrav, FormkravOppfylt.OPPFYLT)
 
         val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppfylt)
         assertEquals(FormkravOppfylt.OPPFYLT, lagretKlageOppfylt.formkravOppfylt)
-        assertNull(lagretKlageOppfylt.formkravBegrunnelseIntern)
+        assertEquals(FormkravSvar.JA, lagretKlageOppfylt.formkravSignert)
+        assertEquals(FormkravSvar.JA, lagretKlageOppfylt.formkravPart)
+        assertEquals(FormkravSvar.JA, lagretKlageOppfylt.formkravKonkret)
+        assertEquals(FormkravSvar.NEI, lagretKlageOppfylt.formkravKlagefristOpprettholdt)
+        assertEquals(FormkravKlagefristUnntakSvar.JA_SAERLIGE_GRUNNER, lagretKlageOppfylt.formkravKlagefristUnntak)
+        assertNull(lagretKlageOppfylt.formkravBegrunnelseBrev)
+        assertEquals(formkravBegrunnelse, lagretKlageOppfylt.formkravBegrunnelseIntern)
 
 
-        klageRepository.updateFormkrav(vedtakId, FormkravOppfylt.IKKE_OPPFYLT, formkravBegrunnelse)
+        val endretFormkrav = formkrav.copy(
+            konkret = FormkravSvar.NEI, formkravBegrunnelseIntern = "Det klages ikke på noe konkret i saken.",
+            formkravBegrunnelseBrev = "Det klages ikke på noe konkret i saken."
+        )
+
+        klageRepository.updateFormkrav(endretFormkrav, FormkravOppfylt.IKKE_OPPFYLT)
         val lagretKlageIkkeOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageIkkeOppfylt)
         assertEquals(FormkravOppfylt.IKKE_OPPFYLT, lagretKlageIkkeOppfylt.formkravOppfylt)
-        assertEquals(formkravBegrunnelse, lagretKlageIkkeOppfylt.formkravBegrunnelseIntern)
-
+        assertEquals("Det klages ikke på noe konkret i saken.", lagretKlageIkkeOppfylt.formkravBegrunnelseIntern)
+        assertEquals("Det klages ikke på noe konkret i saken.", lagretKlageIkkeOppfylt.formkravBegrunnelseBrev)
     }
 
     @Test
-    fun `upsertResultat skal oppdatere felt for resultat`() {
+    fun `updateResultat skal oppdatere felt for resultat`() {
         val vedtakId: Long = 111222333
         val resultat = Resultat.AVVIST
         val begrunnelse = "Formkrav for klagefrist er ikke oppfylt."

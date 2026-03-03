@@ -32,7 +32,7 @@ class KlageRepository(private val db: JdbcTemplate) {
                 $RESULTAT ,
                 $STATUS
             )
-            VALUES (?,?,?,?,?,current_timestamp, current_timestamp, ?, ?)
+            VALUES (?,?,?,?,?,current_timestamp, current_timestamp, ?, ?, ?)
             ON CONFLICT ($VEDTAK_ID) 
             DO UPDATE SET 
             $VEILEDER_IDENT = EXCLUDED.${VEILEDER_IDENT},
@@ -82,7 +82,7 @@ class KlageRepository(private val db: JdbcTemplate) {
         try {
             db.update(
                 sql,
-                formkrav.signert,
+                formkrav.signert.toString(),
                 formkrav.part.toString(),
                 formkrav.konkret.toString(),
                 formkrav.klagefristOpprettholdt.toString(),
@@ -135,18 +135,19 @@ class KlageRepository(private val db: JdbcTemplate) {
                     norskIdent = rs.getString(NORSK_IDENT),
                     klageDato = rs.getDate(KLAGE_DATO)?.toLocalDate(),
                     klageJournalpostid = rs.getString(KLAGE_JOURNALPOST_ID),
-                    formkravSignert = rs.getString(FORMKRAV_SIGNERT).let { FormkravSvar.valueOf(it) },
-                    formkravPart = rs.getString(FORMKRAV_PART).let { FormkravSvar.valueOf(it) },
-                    formkravKonkret = rs.getString(FORMKRAV_KONKRET).let { FormkravSvar.valueOf(it) },
+                    formkravSignert = rs.getString(FORMKRAV_SIGNERT)?.let { FormkravSvar.valueOf(it) },
+                    formkravPart = rs.getString(FORMKRAV_PART)?.let { FormkravSvar.valueOf(it) },
+                    formkravKonkret = rs.getString(FORMKRAV_KONKRET)?.let { FormkravSvar.valueOf(it) },
                     formkravKlagefristOpprettholdt = rs.getString(FORMKRAV_KLAGEFRIST_OPPRETTHOLDT)
-                        .let { FormkravSvar.valueOf(it) },
+                        ?.let { FormkravSvar.valueOf(it) },
                     formkravKlagefristUnntak = rs.getString(FORMKRAV_KLAGEFRIST_UNNTAK)
                         ?.let { FormkravKlagefristUnntakSvar.valueOf(it) },
                     formkravOppfylt = rs.getString(FORMKRAV_OPPFYLT).let { FormkravOppfylt.valueOf(it) },
                     formkravBegrunnelseIntern = rs.getString(FORMKRAV_BEGRUNNELSE_INTERN),
                     formkravBegrunnelseBrev = rs.getString(FORMKRAV_BEGRUNNELSE_BREV),
                     resultat = rs.getString(RESULTAT).let { Resultat.valueOf(it) },
-                    resultatBegrunnelse = rs.getString(RESULTAT_BEGRUNNELSE)
+                    resultatBegrunnelse = rs.getString(RESULTAT_BEGRUNNELSE),
+                    status = rs.getString(STATUS)?.let { Status.valueOf(it) } ?: Status.UTKAST
                 )
             }, vedtakid)
         } catch (ex: EmptyResultDataAccessException) {
