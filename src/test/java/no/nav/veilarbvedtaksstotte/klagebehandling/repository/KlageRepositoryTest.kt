@@ -66,19 +66,19 @@ class KlageRepositoryTest : DatabaseTest() {
 
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
         klageRepository.upsertOpprettKlagebehandling(defaultRequest)
-        klageRepository.upsertFormkrav(vedtakId, FormkravOppfylt.OPPFYLT, null)
+        klageRepository.updateFormkrav(vedtakId, FormkravOppfylt.OPPFYLT, null)
 
         val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppfylt)
         assertEquals(FormkravOppfylt.OPPFYLT, lagretKlageOppfylt.formkravOppfylt)
-        assertNull(lagretKlageOppfylt.formkravBegrunnelse)
+        assertNull(lagretKlageOppfylt.formkravBegrunnelseIntern)
 
 
-        klageRepository.upsertFormkrav(vedtakId, FormkravOppfylt.IKKE_OPPFYLT, formkravBegrunnelse)
+        klageRepository.updateFormkrav(vedtakId, FormkravOppfylt.IKKE_OPPFYLT, formkravBegrunnelse)
         val lagretKlageIkkeOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageIkkeOppfylt)
         assertEquals(FormkravOppfylt.IKKE_OPPFYLT, lagretKlageIkkeOppfylt.formkravOppfylt)
-        assertEquals(formkravBegrunnelse, lagretKlageIkkeOppfylt.formkravBegrunnelse)
+        assertEquals(formkravBegrunnelse, lagretKlageIkkeOppfylt.formkravBegrunnelseIntern)
 
     }
 
@@ -90,7 +90,7 @@ class KlageRepositoryTest : DatabaseTest() {
 
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
         klageRepository.upsertOpprettKlagebehandling(defaultRequest)
-        klageRepository.upsertResultat(vedtakId, resultat, begrunnelse)
+        klageRepository.updateResultat(vedtakId, resultat, begrunnelse)
 
         val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppfylt)

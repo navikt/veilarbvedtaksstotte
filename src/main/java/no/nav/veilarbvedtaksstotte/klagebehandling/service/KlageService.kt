@@ -1,11 +1,9 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.service
 
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.*
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.KlageRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.repository.KlageRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -28,17 +26,25 @@ class KlageService(
 
     fun oppdaterFormkrav(formkravRequest: FormkravRequest) {
         logger.info("Oppdaterer formkrav for vedtakId ${formkravRequest.vedtakId}")
-        val formkravOppfyltString =
-            if (formkravRequest.formkravOppfylt) FormkravOppfylt.OPPFYLT else FormkravOppfylt.IKKE_OPPFYLT
+        val formkravKlagefristOppfylt = formkravRequest.klagefristOpprettholdt == FormkravSvar.JA
+                || (formkravRequest.klagefristUnntak != null && formkravRequest.klagefristUnntak != FormkravKlagefristUnntakSvar.NEI)
 
-        klageRepository.upsertFormkrav(
-            formkravRequest.vedtakId,
-            formkravOppfyltString,
-            formkravRequest.formkravBegrunnelseIntern
+        val alleFormkravOppfylt =
+            formkravRequest.signert == FormkravSvar.JA
+                    && formkravRequest.part == FormkravSvar.JA
+                    && formkravRequest.konkret == FormkravSvar.JA
+                    && formkravKlagefristOppfylt
+
+        val formkravOppfyltString =
+            if (alleFormkravOppfylt) FormkravOppfylt.OPPFYLT else FormkravOppfylt.IKKE_OPPFYLT
+
+        klageRepository.updateFormkrav(
+            formkravRequest,
+            formkravOppfyltString
         )
 
-        if (!formkravRequest.formkravOppfylt) {
-            klageRepository.upsertResultat(
+        if (!alleFormkravOppfylt) {
+            klageRepository.updateResultat(
                 formkravRequest.vedtakId,
                 Resultat.AVVIST,
                 formkravRequest.formkravBegrunnelseIntern
