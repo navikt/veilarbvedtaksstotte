@@ -5,6 +5,7 @@ import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
 
@@ -118,12 +119,14 @@ class KlageRepository(private val db: JdbcTemplate) {
                     resultatBegrunnelse = rs.getString(RESULTAT_BEGRUNNELSE)
                 )
             }, vedtakid)
+        } catch (ex: EmptyResultDataAccessException) {
+            null
         } catch (ex: Exception) {
             secureLog.error(
                 "Kunne ikke hente klagebehandling for vedtakId: $vedtakid, feil: {}",
                 ex
             )
-            null
+            throw ex
         }
     }
 
