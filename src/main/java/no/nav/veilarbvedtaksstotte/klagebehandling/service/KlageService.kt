@@ -3,9 +3,9 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.service
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.FormkravRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.KlageRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.KlageRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.repository.KlageRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -34,14 +34,14 @@ class KlageService(
         klageRepository.upsertFormkrav(
             formkravRequest.vedtakId,
             formkravOppfyltString,
-            formkravRequest.formkravBegrunnelse
+            formkravRequest.formkravBegrunnelseIntern
         )
 
         if (!formkravRequest.formkravOppfylt) {
             klageRepository.upsertResultat(
                 formkravRequest.vedtakId,
                 Resultat.AVVIST,
-                formkravRequest.formkravBegrunnelse
+                formkravRequest.formkravBegrunnelseIntern
             )
         }
     }

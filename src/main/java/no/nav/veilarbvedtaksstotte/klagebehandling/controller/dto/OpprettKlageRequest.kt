@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto
+package no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto
 
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull

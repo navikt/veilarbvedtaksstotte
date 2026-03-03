@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
 import org.junit.jupiter.api.*

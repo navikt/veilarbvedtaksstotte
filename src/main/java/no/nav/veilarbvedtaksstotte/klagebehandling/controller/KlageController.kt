@@ -3,9 +3,9 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.controller
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.FormkravRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.KlageRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.KlageRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping

@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.dto.OpprettKlageRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.OpprettKlageRequest
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
