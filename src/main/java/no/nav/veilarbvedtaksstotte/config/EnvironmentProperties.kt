@@ -4,8 +4,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "app.env")
 data class EnvironmentProperties (
-    val aiaBackendScope: String,
-    val aiaBackendUrl: String,
     val arbeidssokerregisteretOppslagApiV2Scope: String,
     val arbeidssokerregisteretOppslagApiV2Url: String,
     val dbUrl: String,

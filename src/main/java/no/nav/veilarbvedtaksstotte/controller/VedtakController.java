@@ -10,12 +10,16 @@ import no.nav.veilarbvedtaksstotte.domain.arkiv.ArkivertVedtak;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.*;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
+import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.service.OyeblikksbildeService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -35,13 +39,21 @@ public class VedtakController {
     private final ArenaVedtakService arenaVedtakService;
     private final OyeblikksbildeService oyeblikksbildeService;
     private final AuditlogService auditlogService;
+    private final AuthService authService;
 
     @Autowired
-    public VedtakController(VedtakService vedtakService, ArenaVedtakService arenaVedtakService, OyeblikksbildeService oyeblikksbildeService, AuditlogService auditlogService) {
+    public VedtakController(
+            VedtakService vedtakService,
+            ArenaVedtakService arenaVedtakService,
+            OyeblikksbildeService oyeblikksbildeService,
+            AuditlogService auditlogService,
+            AuthService authService
+    ) {
         this.vedtakService = vedtakService;
         this.arenaVedtakService = arenaVedtakService;
         this.oyeblikksbildeService = oyeblikksbildeService;
         this.auditlogService = auditlogService;
+        this.authService = authService;
     }
 
     @GetMapping(value = "{vedtakId}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -62,6 +74,10 @@ public class VedtakController {
             }
     )
     public ResponseEntity<byte[]> hentVedtakPdf(@PathVariable("vedtakId") long vedtakId) {
+        if(!authService.erInternBruker()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
         byte[] vedtakPdf = vedtakService.hentVedtakPdf(vedtakId);
         auditlogService.auditlog(
                 "Nav-ansatt hentet pdfversjon av fattet § 14 a-vedtak",
@@ -90,6 +106,10 @@ public class VedtakController {
             }
     )
     public ResponseEntity<byte[]> hentVedtakOyeblikksCVPdf(@PathVariable("vedtakId") long vedtakId, @PathVariable("oyeblikksbildeType") String oyeblikksbildeInputType) {
+        if(!authService.erInternBruker()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
         auditlogService.auditlog(
                 "Nav-ansatt hentet pdfversjon av kildende til et fattet § 14 a-vedtak",
                 auditlogService.finnFodselsnummerFraVedtakId(vedtakId)
@@ -236,7 +256,12 @@ public class VedtakController {
     )
     public ResponseEntity<byte[]> hentVedtakPdfFraArena(
             @RequestParam("dokumentInfoId") String dokumentInfoId,
-            @RequestParam("journalpostId") String journalpostId) {
+            @RequestParam("journalpostId") String journalpostId
+    ) {
+        if(!authService.erInternBruker()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
         byte[] vedtakPdf = arenaVedtakService.hentVedtakPdf(dokumentInfoId, journalpostId);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "filename=vedtaksbrev.pdf")

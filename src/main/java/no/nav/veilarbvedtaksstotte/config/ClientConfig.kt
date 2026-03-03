@@ -16,8 +16,6 @@ import no.nav.common.utils.EnvironmentUtils
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClientImpl
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient
@@ -45,6 +43,7 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
+import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -63,21 +62,6 @@ class ClientConfig {
     @Bean
     fun pdfClient(properties: EnvironmentProperties): PdfClient {
         return PdfClientImpl(properties.ptoPdfgenUrl)
-    }
-
-    @Bean
-    fun egenvurderingClient(
-        properties: EnvironmentProperties,
-        aadOboTokenClient: AzureAdOnBehalfOfTokenClient,
-        authContextHolder: AuthContextHolder
-    ): AiaBackendClient {
-        return AiaBackendClientImpl(properties.aiaBackendUrl) {
-            AuthUtils.bearerToken(
-                aadOboTokenClient.exchangeOnBehalfOfToken(
-                    properties.aiaBackendScope, authContextHolder.requireIdTokenString()
-                )
-            )
-        }
     }
 
     @Bean
@@ -139,9 +123,23 @@ class ClientConfig {
 
     @Bean
     fun safClient(
-        properties: EnvironmentProperties, machineTokenClient: AzureAdMachineToMachineTokenClient
+        properties: EnvironmentProperties,
+        machineTokenClient: AzureAdMachineToMachineTokenClient,
+        onBehalfOfTokenClient: AzureAdOnBehalfOfTokenClient,
+        authContextHolder: AuthContextHolder,
+        authService: AuthService
     ): SafClient {
-        return SafClientImpl(properties.safUrl) { machineTokenClient.createMachineToMachineToken(properties.safScope) }
+        return SafClientImpl(
+            properties.safUrl,
+            { machineTokenClient.createMachineToMachineToken(properties.safScope) },
+            {
+                onBehalfOfTokenClient.exchangeOnBehalfOfToken(
+                    properties.safScope,
+                    authContextHolder.requireIdTokenString()
+                )
+            },
+            authService
+        )
     }
 
     @Bean
@@ -244,7 +242,8 @@ class ClientConfig {
         properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient
     ): PoaoTilgangClient {
         return PoaoTilgangCachedClient(
-            PoaoTilgangHttpClient(properties.poaoTilgangUrl,
+            PoaoTilgangHttpClient(
+                properties.poaoTilgangUrl,
                 { tokenClient.createMachineToMachineToken(properties.poaoTilgangScope) })
         )
     }
