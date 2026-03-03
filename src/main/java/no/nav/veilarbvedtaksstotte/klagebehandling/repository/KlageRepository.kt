@@ -86,7 +86,7 @@ class KlageRepository(private val db: JdbcTemplate) {
                 formkrav.part.toString(),
                 formkrav.konkret.toString(),
                 formkrav.klagefristOpprettholdt.toString(),
-                formkrav.klagefristUnntak.toString(),
+                formkrav.klagefristUnntak?.toString(),
                 formkravOppfylt.toString(),
                 formkrav.formkravBegrunnelseIntern,
                 formkrav.formkravBegrunnelseBrev,
