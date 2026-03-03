@@ -49,9 +49,9 @@ class KlageRepository(private val db: JdbcTemplate) {
                 klageRequest.fnr.get(),
                 klageRequest.klagedato,
                 klageRequest.klageJournalpostid,
-                FormkravOppfylt.IKKE_SATT.toString(),
-                Resultat.IKKE_SATT.toString(),
-                Status.UTKAST.toString()
+                FormkravOppfylt.IKKE_SATT.name,
+                Resultat.IKKE_SATT.name,
+                Status.UTKAST.name
             )
         } catch (ex: Exception) {
             secureLog.error(
@@ -82,12 +82,12 @@ class KlageRepository(private val db: JdbcTemplate) {
         try {
             db.update(
                 sql,
-                formkrav.signert.toString(),
-                formkrav.part.toString(),
-                formkrav.konkret.toString(),
-                formkrav.klagefristOpprettholdt.toString(),
-                formkrav.klagefristUnntak?.toString(),
-                formkravOppfylt.toString(),
+                formkrav.signert.name,
+                formkrav.part.name,
+                formkrav.konkret.name,
+                formkrav.klagefristOpprettholdt.name,
+                formkrav.klagefristUnntak?.name,
+                formkravOppfylt.name,
                 formkrav.formkravBegrunnelseIntern,
                 formkrav.formkravBegrunnelseBrev,
                 formkrav.vedtakId
