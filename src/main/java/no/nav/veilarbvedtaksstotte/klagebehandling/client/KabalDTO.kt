@@ -8,7 +8,7 @@ data class KabalDTO(
     //val klager: Part, // dersom klagen er levert av noen andre enn den det gjelder
     val fagsak: Fagsak,
     val kildeReferanse: String, //Teknisk id brukt i avsendersystemet som Kabal vil bruke når de kommuniserer tilbake. Vi kan bruke vedtaksId her.
-    val dvhReferanse: String? = null,
+    val dvhReferanse: String? = null, // hvor får vi denne fra?
     val hjemler: List<String>, //fagleder i KA lager et forslag til oss. Må så gåes opp med juristene /fagrådet.
     // Etter de er bestemt vil de lage de tekniske implementasjonene som vi trenger.
     val forrigeBehandlendeEnhet: String, // navkontor vedtaket ble fattet
@@ -27,7 +27,7 @@ data class PartId(
     val verdi: String
 )
 
-data class Fagsak( //feltene dere bruker ved journalføring (i Joark) på saken.
+data class Fagsak( //feltene dere bruker ved journalføring (i Joark) på saken. Fra veilarboppfolging?
     val fagsakId: String, // IKKE journalpostid
     val fagsystem: String
 )

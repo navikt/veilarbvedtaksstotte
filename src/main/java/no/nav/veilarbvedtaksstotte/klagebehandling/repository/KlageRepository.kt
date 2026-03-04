@@ -125,6 +125,27 @@ class KlageRepository(private val db: JdbcTemplate) {
         }
     }
 
+    fun updateStatus(
+        vedtakid: Long,
+        status: Status
+    ) {
+        val sql = """
+                UPDATE $KLAGE_TABLE SET
+                    $STATUS = ?,
+                    $TIDSPUNKT_OVERSENDT_TIL_KABAL = current_timestamp,
+                    $RAD_SIST_ENDRET = current_timestamp
+                WHERE $VEDTAK_ID = ?
+            """.trimIndent()
+        try {
+            db.update(sql, status.toString(), vedtakid)
+        } catch (ex: Exception) {
+            secureLog.error(
+                "Kunne ikke oppdatere status for klagebehandling for vedtakId: $vedtakid, feil: {}",
+                ex
+            )
+        }
+    }
+
     fun hentKlageBehandling(vedtakid: Long): KlageBehandling? {
         val sql = "SELECT * FROM $KLAGE_TABLE WHERE $VEDTAK_ID = ?"
         return try {
@@ -181,11 +202,13 @@ class KlageRepository(private val db: JdbcTemplate) {
         private const val TIDSPUNKT_FORMKRAV = "TIDSPUNKT_FORMKRAV"
         private const val BREV_FORMKRAV_AVVIST_JOURNALPOST_ID = "BREV_FORMKRAV_AVVIST_JOURNALPOST_ID"
 
-        private const val RAD_SIST_ENDRET = "RAD_SIST_ENDRET"
         private const val RESULTAT = "RESULTAT"
         private const val RESULTAT_BEGRUNNELSE = "RESULTAT_BEGRUNNELSE"
         private const val TIDSPUNKT_RESULTAT = "TIDSPUNKT_RESULTAT"
+        private const val TIDSPUNKT_OVERSENDT_TIL_KABAL = "TIDSPUNKT_OVERSENDT_TIL_KABAL"
+
         private const val STATUS = "STATUS"
+        private const val RAD_SIST_ENDRET = "RAD_SIST_ENDRET"
 
     }
 }

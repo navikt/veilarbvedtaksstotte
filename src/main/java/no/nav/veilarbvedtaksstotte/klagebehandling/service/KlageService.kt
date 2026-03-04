@@ -1,10 +1,14 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.service
 
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.klagebehandling.client.*
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.*
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Status
 import no.nav.veilarbvedtaksstotte.klagebehandling.repository.KlageRepository
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,16 +17,17 @@ import org.springframework.stereotype.Service
 @Service
 class KlageService(
     @param:Autowired private val klageRepository: KlageRepository,
+    @param:Autowired private val kabalClient: KabalClient,
+    @param:Autowired private val vedtakRepository: VedtaksstotteRepository
+
 ) {
 
     val logger: Logger = LoggerFactory.getLogger(KlageService::class.java)
-
 
     fun opprettKlageBehandling(opprettKlageRequest: OpprettKlageRequest) {
         logger.info("Oppretter klagebehandling for vedtakId ${opprettKlageRequest.vedtakId} ")
         klageRepository.upsertOpprettKlagebehandling(opprettKlageRequest)
     }
-
 
     fun oppdaterFormkrav(formkravRequest: FormkravRequest) {
         logger.info("Oppdaterer formkrav for vedtakId ${formkravRequest.vedtakId}")
@@ -60,13 +65,50 @@ class KlageService(
     fun sendKlageTilKabal(klageRequest: KlageRequest) {
         logger.info("Sender klage til kabal for vedtakId ${klageRequest.vedtakId}")
         val lagretKlage = klageRepository.hentKlageBehandling(klageRequest.vedtakId)
-        val mappetKlage = klageRequest.copy()
-        // lag mapper for å mappe klageRequest og evt opprinnelig vedtak til det formatet kabal forventer
+        val lagretVedtak = vedtakRepository.hentVedtak(klageRequest.vedtakId)
+        val kabalDto = mapTilKabalDTO(lagretKlage!!, lagretVedtak)
 
-        // send klage til api
+        try {
+            kabalClient.sendKlageTilKabal(kabalDto)
+            klageRepository.updateStatus(klageRequest.vedtakId, Status.SENDT_TIL_KABAL)
+            logger.info("Klage sendt til Kabal og status oppdatert for vedtakId ${klageRequest.vedtakId}")
+        } catch (e: Exception) {
+            logger.error("Feil ved sending av klage til Kabal for vedtakId ${klageRequest.vedtakId}", e)
+            throw e
+        }
 
-        // oppdater status i database
+    }
 
+    private fun mapTilKabalDTO(lagretKlage: KlageBehandling, lagretVedtak: Vedtak): KabalDTO {
+
+        return KabalDTO(
+            sakenGjelder = Part(
+                id = PartId(
+                    verdi = lagretKlage.norskIdent
+                )
+            ),
+            fagsak = Fagsak(
+                fagsakId = "1234567890", //mockverdi
+                fagsystem = "FS36" //mockverdi
+            ),
+            kildeReferanse = lagretKlage.vedtakId.toString(),
+            dvhReferanse = null,
+            hjemler = listOf("Hjemmel 1", "Hjemmel 2"), //mockverdi - ikke avklart
+            forrigeBehandlendeEnhet = lagretVedtak.oppfolgingsenhetNavn,
+            tilknyttedeJournalposter = listOf(
+                TilknyttetJournalpost(
+                    type = "OPPRINNELIG_VEDTAK",
+                    journalpostId = lagretVedtak.journalpostId
+                ),
+                TilknyttetJournalpost(
+                    type = "BRUKERS_KLAGE",
+                    journalpostId = lagretKlage.klageJournalpostid!!
+                )
+            ),
+            brukersKlageMottattVedtaksinstans = lagretKlage.klageDato!!,
+            ytelse = "YTELSE_XYZ", //mockverdi
+            kommentar = "Kommentar fra veileder", // mockverdi
+        )
     }
 
 }

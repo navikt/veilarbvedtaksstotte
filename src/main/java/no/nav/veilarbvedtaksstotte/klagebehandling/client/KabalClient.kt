@@ -31,7 +31,7 @@ class KabalClientImpl(
             if (!response.isSuccessful) {
                 val message =
                     "Uventet status ${response.code} ved kall mot Kabal for klageId ${klageDto.kildeReferanse}"
-                log.warn(message)
+                log.error(message)
                 throw RuntimeException(message)
             }
             return response.deserializeJsonOrThrow()
