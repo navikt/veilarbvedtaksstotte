@@ -47,11 +47,6 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
 
             return response.deserializeJsonAndThrowOnNull()
         }
-
-        /* Henter siste arbeidssøkerperiode, men trenger ikke bety at den er aktiv. Vi må sjekke om "avsluttet" finnes for å bekrefte det.
-           Eller må vi heller sjekke om arbeidssøkerperioden er innenfor oppfølgingsperioden?
-           Hvis man har hatt en arbeidssøkerperiode som er avsluttet innenfor en oppfølgingsperiode, så kan vel fortsatt veileder bruke egenvurderingen derfra som en kilde til et (nytt) vedtak?
-         */
     }
 
     companion object {
