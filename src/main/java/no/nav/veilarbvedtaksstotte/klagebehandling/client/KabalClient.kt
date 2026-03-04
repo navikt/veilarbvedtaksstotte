@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.client
 
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
-import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.slf4j.LoggerFactory
@@ -34,7 +33,6 @@ class KabalClientImpl(
                 log.error(message)
                 throw RuntimeException(message)
             }
-            return response.deserializeJsonOrThrow()
         }
     }
 
