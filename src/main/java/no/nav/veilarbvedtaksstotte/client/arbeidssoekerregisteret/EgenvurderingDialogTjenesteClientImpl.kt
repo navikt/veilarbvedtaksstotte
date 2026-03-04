@@ -37,7 +37,12 @@ class EgenvurderingDialogTjenesteClientImpl(
             return when (val statusCode = response.code) {
                 HttpStatus.OK.value() -> response.deserializeJsonAndThrowOnNull()
                 HttpStatus.NO_CONTENT.value() -> response.deserializeJson()
-                else -> throw EgenvurderingDialogTjenesteException("Klarte ikke hente dialogId for arbeidssokerperiodeId=$arbeidssokerperiodeId. Årsak: uventet HTTP-status $statusCode.")
+                else -> {
+                    val melding =
+                        "Klarte ikke hente dialogId for arbeidssokerperiodeId=$arbeidssokerperiodeId. Årsak: uventet HTTP-status $statusCode."
+                    log.warn(melding)
+                    throw EgenvurderingDialogTjenesteException(melding)
+                }
             }
         }
     }
