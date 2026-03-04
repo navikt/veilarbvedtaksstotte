@@ -9,12 +9,12 @@ data class KabalDTO(
     //val klager: Part, // dersom klagen er levert av noen andre enn den det gjelder
     val fagsak: Fagsak,
     val kildeReferanse: String, //Teknisk id brukt i avsendersystemet som Kabal vil bruke når de kommuniserer tilbake. Vi kan bruke vedtaksId her.
-    val dvhReferanse: String? = null, // hvor får vi denne fra?
+    //val dvhReferanse: String? = null, // hvor får vi denne fra?
     val hjemler: List<String>, //fagleder i KA lager et forslag til oss. Må så gåes opp med juristene /fagrådet.
     // Etter de er bestemt vil de lage de tekniske implementasjonene som vi trenger.
     val forrigeBehandlendeEnhet: String, // navkontor vedtaket ble fattet
     val tilknyttedeJournalposter: List<TilknyttetJournalpost>, // to styk, vedtaket og klagen, se under
-    @param:JsonFormat(pattern = "yyyy-MM-dd")
+    @field:JsonFormat(pattern = "yyyy-MM-dd")
     val brukersKlageMottattVedtaksinstans: LocalDate, // datoen veileder fyller inn
     val ytelse: String, //Sakens ytelse. Bruker KA sitt kodeverk. Må avklares hva vi skal sette her.
     val kommentar: String? = null, // Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar.
