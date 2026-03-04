@@ -11,7 +11,7 @@ import no.nav.veilarbvedtaksstotte.client.person.dto.*
 import no.nav.veilarbvedtaksstotte.client.person.request.PersonRequest
 import no.nav.veilarbvedtaksstotte.domain.Malform
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
-import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
+import no.nav.veilarbvedtaksstotte.utils.deserializeJsonAndThrowOnNull
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -43,7 +43,7 @@ class VeilarbpersonClientImpl(
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
-            return response.deserializeJsonOrThrow()
+            return response.deserializeJsonAndThrowOnNull()
         }
     }
 
@@ -67,7 +67,7 @@ class VeilarbpersonClientImpl(
             .build()
         RestClient.baseClient().newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
-            return response.deserializeJsonOrThrow()
+            return response.deserializeJsonAndThrowOnNull()
         }
     }
 
@@ -107,7 +107,7 @@ class VeilarbpersonClientImpl(
             client.newCall(request).execute().use { response ->
                 RestUtils.throwIfNotSuccessful(response)
                 return response
-                    .deserializeJsonOrThrow<MalformRespons>()
+                    .deserializeJsonAndThrowOnNull<MalformRespons>()
                     .tilMalform()
             }
         } catch (e: Exception) {
@@ -133,7 +133,7 @@ class VeilarbpersonClientImpl(
             client.newCall(request).execute().use { response ->
                 RestUtils.throwIfNotSuccessful(response)
                 return response
-                    .deserializeJsonOrThrow<Adressebeskyttelse>()
+                    .deserializeJsonAndThrowOnNull<Adressebeskyttelse>()
             }
         } catch (e: Exception) {
             throw ResponseStatusException(
@@ -157,7 +157,7 @@ class VeilarbpersonClientImpl(
         try {
             client.newCall(request).execute().use { response ->
                 RestUtils.throwIfNotSuccessful(response)
-                return response.deserializeJsonOrThrow<FodselsdatoOgAr>()
+                return response.deserializeJsonAndThrowOnNull<FodselsdatoOgAr>()
             }
         } catch (e: Exception) {
             throw ResponseStatusException(
@@ -185,7 +185,7 @@ class VeilarbpersonClientImpl(
                     return null
                 }
 
-                return response.deserializeJsonOrThrow()
+                return response.deserializeJsonAndThrowOnNull()
             }
         } catch (e: Exception){
             throw ResponseStatusException(
