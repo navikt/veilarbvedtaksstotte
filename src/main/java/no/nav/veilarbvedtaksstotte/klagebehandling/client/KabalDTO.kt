@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.client
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import java.time.LocalDate
 
 data class KabalDTO(
@@ -13,6 +14,7 @@ data class KabalDTO(
     // Etter de er bestemt vil de lage de tekniske implementasjonene som vi trenger.
     val forrigeBehandlendeEnhet: String, // navkontor vedtaket ble fattet
     val tilknyttedeJournalposter: List<TilknyttetJournalpost>, // to styk, vedtaket og klagen, se under
+    @param:JsonFormat(pattern = "yyyy-MM-dd")
     val brukersKlageMottattVedtaksinstans: LocalDate, // datoen veileder fyller inn
     val ytelse: String, //Sakens ytelse. Bruker KA sitt kodeverk. Må avklares hva vi skal sette her.
     val kommentar: String? = null, // Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar.

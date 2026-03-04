@@ -88,12 +88,12 @@ class KlageService(
                 )
             ),
             fagsak = Fagsak(
-                fagsakId = "1234567890", //mockverdi
-                fagsystem = "FS36" //mockverdi
+                fagsakId = "134132412", //mockverdi
+                fagsystem = "ARBEIDSOPPFOLGING" //mockverdi
             ),
             kildeReferanse = lagretKlage.vedtakId.toString(),
             dvhReferanse = null,
-            hjemler = listOf("Hjemmel 1", "Hjemmel 2"), //mockverdi - ikke avklart
+            hjemler = listOf("FVL_11"), //mockverdi - ikke avklart
             forrigeBehandlendeEnhet = lagretVedtak.oppfolgingsenhetId.toString(),
             tilknyttedeJournalposter = listOf(
                 TilknyttetJournalpost(
@@ -106,7 +106,7 @@ class KlageService(
                 )
             ),
             brukersKlageMottattVedtaksinstans = lagretKlage.klageDato!!,
-            ytelse = "YTELSE_XYZ", //mockverdi
+            ytelse = "OMS_OMP", //mockverdi
             kommentar = "Kommentar fra veileder", // mockverdi
         )
     }
