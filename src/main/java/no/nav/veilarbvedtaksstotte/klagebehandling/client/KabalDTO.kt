@@ -15,7 +15,7 @@ data class KabalDTO(
     val forrigeBehandlendeEnhet: String, // navkontor vedtaket ble fattet
     val tilknyttedeJournalposter: List<TilknyttetJournalpost>, // to styk, vedtaket og klagen, se under
     @field:JsonFormat(pattern = "yyyy-MM-dd")
-    val brukersKlageMottattVedtaksinstans: LocalDate, // datoen veileder fyller inn
+    val brukersKlageMottattVedtaksinstans: String, // datoen veileder fyller inn
     val ytelse: String, //Sakens ytelse. Bruker KA sitt kodeverk. Må avklares hva vi skal sette her.
     val kommentar: String? = null, // Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar.
 )

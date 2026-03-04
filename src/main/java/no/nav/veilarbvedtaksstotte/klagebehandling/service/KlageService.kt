@@ -104,7 +104,7 @@ class KlageService(
                     journalpostId = lagretKlage.klageJournalpostid!!
                 )
             ),
-            brukersKlageMottattVedtaksinstans = lagretKlage.klageDato!!,
+            brukersKlageMottattVedtaksinstans = "2026-02-11",//lagretKlage.klageDato!!,
             ytelse = "OMS_OMP", //mockverdi
             kommentar = "Kommentar fra veileder", // mockverdi
         )
