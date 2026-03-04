@@ -10,7 +10,7 @@ import no.nav.common.utils.AuthUtils
 import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.client.dokdistkanal.dto.BestemDistribusjonskanalDTO
 import no.nav.veilarbvedtaksstotte.client.dokdistkanal.dto.BestemDistribusjonskanalResponseDTO
-import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
+import no.nav.veilarbvedtaksstotte.utils.deserializeJsonAndThrowOnNull
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -40,7 +40,7 @@ class DokdistkanalClientImpl(
 
         client.newCall(request).execute().use { response ->
             RestUtils.throwIfNotSuccessful(response)
-            return response.deserializeJsonOrThrow()
+            return response.deserializeJsonAndThrowOnNull()
         }
     }
 }

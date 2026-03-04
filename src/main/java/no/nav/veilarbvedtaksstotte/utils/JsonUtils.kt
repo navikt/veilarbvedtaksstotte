@@ -42,7 +42,7 @@ inline fun <reified T> Response.deserializeJson(): T? {
         .orElse(null)
 }
 
-inline fun <reified T> Response.deserializeJsonOrThrow(): T {
+inline fun <reified T> Response.deserializeJsonAndThrowOnNull(): T {
     return this.deserializeJson() ?: throw IllegalStateException("Unable to parse JSON object from response body")
 }
 
