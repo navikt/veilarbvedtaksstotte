@@ -58,7 +58,7 @@ class KabalClientImpl(
             if (!response.isSuccessful) {
                 val message =
                     "Uventet status ${response.code} ved kall mot Kabal for klageId ${klageDto.kildeReferanse} " +
-                            "med melding ${response.message} og json $jsonBody"
+                            "med melding ${response.message} og json $jsonString"
                 log.error(message)
                 throw RuntimeException(message)
             }
