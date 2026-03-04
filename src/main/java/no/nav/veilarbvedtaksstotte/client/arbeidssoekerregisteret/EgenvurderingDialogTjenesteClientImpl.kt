@@ -34,16 +34,10 @@ class EgenvurderingDialogTjenesteClientImpl(
             .build()
 
         client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw EgenvurderingDialogTjenesteException(
-                    "Klarte ikke hente dialogId for arbeidssokerperiodeId=$arbeidssokerperiodeId. Årsak: uventet HTTP-status ${response.code}."
-                )
-            }
-
-            return when (response.code) {
+            return when (val statusCode = response.code) {
                 HttpStatus.OK.value() -> response.deserializeJsonAndThrowOnNull()
                 HttpStatus.NO_CONTENT.value() -> response.deserializeJson()
-                else -> throw EgenvurderingDialogTjenesteException("Klarte ikke hente dialogId for arbeidssokerperiodeId=$arbeidssokerperiodeId. Årsak: uventet HTTP-status ${response.code}.")
+                else -> throw EgenvurderingDialogTjenesteException("Klarte ikke hente dialogId for arbeidssokerperiodeId=$arbeidssokerperiodeId. Årsak: uventet HTTP-status $statusCode.")
             }
         }
     }
