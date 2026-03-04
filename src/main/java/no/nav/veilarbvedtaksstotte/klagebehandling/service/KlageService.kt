@@ -92,7 +92,7 @@ class KlageService(
                 fagsystem = "ARBEIDSOPPFOLGING" //mockverdi
             ),
             kildeReferanse = lagretKlage.vedtakId.toString(),
-            hjemler = listOf("FVL_11"), //mockverdi - ikke avklart
+            hjemler = listOf("FTRL_9_2"), //mockverdi - ikke avklart
             forrigeBehandlendeEnhet = lagretVedtak.oppfolgingsenhetId.toString(),
             tilknyttedeJournalposter = listOf(
                 TilknyttetJournalpost(
