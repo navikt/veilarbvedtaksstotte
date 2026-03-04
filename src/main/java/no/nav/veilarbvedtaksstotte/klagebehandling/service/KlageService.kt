@@ -94,7 +94,7 @@ class KlageService(
             kildeReferanse = lagretKlage.vedtakId.toString(),
             dvhReferanse = null,
             hjemler = listOf("Hjemmel 1", "Hjemmel 2"), //mockverdi - ikke avklart
-            forrigeBehandlendeEnhet = lagretVedtak.oppfolgingsenhetNavn,
+            forrigeBehandlendeEnhet = lagretVedtak.oppfolgingsenhetId.toString(),
             tilknyttedeJournalposter = listOf(
                 TilknyttetJournalpost(
                     type = "OPPRINNELIG_VEDTAK",
