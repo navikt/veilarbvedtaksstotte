@@ -142,13 +142,12 @@ public class OyeblikksbildeService {
                     .filter(aggregertPeriode -> aggregertPeriode.getEgenvurdering() != null)
                     .map(aggregertPeriode -> {
                         Egenvurdering egenvurdering = aggregertPeriode.getEgenvurdering();
-                        EgenvurderingDialogResponse egenvurderingDialogResponse = egenvurderingDialogTjenesteClient.hentDialogId(aggregertPeriode.getId());
+                        Long maybeEgenvurderingDialogId = Optional
+                                .ofNullable(egenvurderingDialogTjenesteClient.hentDialogId(aggregertPeriode.getId()))
+                                .map(EgenvurderingDialogResponse::getDialogId)
+                                .orElse(null);
 
-                        if (egenvurderingDialogResponse == null) {
-                            return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(egenvurdering, null);
-                        }
-
-                        return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(egenvurdering, egenvurderingDialogResponse.getDialogId());
+                        return ArbeidssoekerregisteretApiOppslagV2ClientImpl.mapToEgenvurderingV2Dto(egenvurdering, maybeEgenvurderingDialogId);
                     })
                     .orElse(null);
             oyeblikksbildeRepository.upsertEgenvurderingV2Oyeblikksbilde(vedtakId, egenvurderingV2Dto);
