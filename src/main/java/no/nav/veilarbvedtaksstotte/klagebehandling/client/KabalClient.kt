@@ -29,7 +29,7 @@ class KabalClientImpl(
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 val message =
-                    "Uventet status ${response.code} ved kall mot Kabal for klageId ${klageDto.kildeReferanse}"
+                    "Uventet status ${response.code} ved kall mot Kabal for klageId ${klageDto.kildeReferanse} med melding ${response.message}"
                 log.error(message)
                 throw RuntimeException(message)
             }
