@@ -139,7 +139,6 @@ class KlageRepositoryTest : DatabaseTest() {
         assertEquals(Status.SENDT_TIL_KABAL, lagretKlageOppfylt.status)
     }
 
-
     private fun opprettEnDefaultKlage(vedtakId: Long): OpprettKlageRequest {
         val norskIdent = "12345678910"
         val veilederIdent = "Z123456"

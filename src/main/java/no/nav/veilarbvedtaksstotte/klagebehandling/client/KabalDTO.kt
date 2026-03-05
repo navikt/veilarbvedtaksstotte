@@ -11,7 +11,7 @@ data class KabalDTO(
     // Etter de er bestemt vil de lage de tekniske implementasjonene som vi trenger.
     val forrigeBehandlendeEnhet: String, // navkontor vedtaket ble fattet
     val tilknyttedeJournalposter: List<TilknyttetJournalpost>,
-    val brukersKlageMottattVedtaksinstans: LocalDate,
+    val brukersKlageMottattVedtaksinstans: String,
     val ytelse: String, //Sakens ytelse. Bruker klageinstansen sitt kodeverk. Må avklares hva vi skal sette her.
     val hjemler: List<String>, //fagleder i KA lager et forslag til oss. Må så gåes opp med juristene /fagrådet.
     val kommentar: String? = null, // Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar.

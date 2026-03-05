@@ -98,7 +98,7 @@ class KlageService(
                     journalpostId = lagretKlage.klageJournalpostid
                 )
             ),
-            brukersKlageMottattVedtaksinstans = lagretKlage.klageDato,
+            brukersKlageMottattVedtaksinstans = lagretKlage.klageDato.toString(),
             ytelse = "OMS_OMP", //mockverdi - må avklares
             hjemler = listOf("FTRL_9_2"), //mockverdi - må avklares
             kommentar = "Kommentar fra veileder", // mockverdi - vurder å lage inputfelt ved resultat MEDHOLD
