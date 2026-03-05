@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController
 )
 class KlageController(val klageService: KlageService) {
 
-    //TODO: Tilgangskontroll ? hva skal vi ha?
+    //TODO: Tilgangskontroll - hva skal vi ha?
 
     @PostMapping("/klagebehandling/opprett-klage")
     fun opprettKlagePa14aVedtak(@Valid @RequestBody opprettKlageRequest: OpprettKlageRequest) {
@@ -45,7 +45,7 @@ class KlageController(val klageService: KlageService) {
     }
 
     // Lager et endepunkt for å sende en klage til kabal så vi lettere kan teste.
-    // Kan fjernes når vi har fått på plass backend-logikken for å sende klagen til kabal når bruker ikke får medhold.
+    // Kan fjernes når vi har fått på plass backend-logikken for å sende klagen til kabal når bruker ikke får medhold og saken går til KA.
     @PostMapping("/klagebehandling/send-klage-til-kabal")
     fun sendKlageTilKabal(@Valid @RequestBody klageRequest: KlageRequest) {
         return klageService.sendKlageTilKabal(klageRequest)

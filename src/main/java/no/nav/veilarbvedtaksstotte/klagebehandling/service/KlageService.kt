@@ -19,18 +19,15 @@ class KlageService(
     @param:Autowired private val klageRepository: KlageRepository,
     @param:Autowired private val kabalClient: KabalClient,
     @param:Autowired private val vedtakRepository: VedtaksstotteRepository
-
 ) {
 
     val logger: Logger = LoggerFactory.getLogger(KlageService::class.java)
 
     fun opprettKlageBehandling(opprettKlageRequest: OpprettKlageRequest) {
-        logger.info("Oppretter klagebehandling for vedtakId ${opprettKlageRequest.vedtakId} ")
         klageRepository.upsertOpprettKlagebehandling(opprettKlageRequest)
     }
 
     fun oppdaterFormkrav(formkravRequest: FormkravRequest) {
-        logger.info("Oppdaterer formkrav for vedtakId ${formkravRequest.vedtakId}")
         val formkravKlagefristOppfylt = formkravRequest.klagefristOpprettholdt == FormkravSvar.JA
                 || (formkravRequest.klagefristUnntak != null && formkravRequest.klagefristUnntak != FormkravKlagefristUnntakSvar.NEI)
 
@@ -58,15 +55,14 @@ class KlageService(
     }
 
     fun hentKlage(klageRequest: KlageRequest): KlageBehandling? {
-        logger.info("Henter klage for vedtakId ${klageRequest.vedtakId}")
         return klageRepository.hentKlageBehandling(klageRequest.vedtakId)
     }
 
     fun sendKlageTilKabal(klageRequest: KlageRequest) {
-        logger.info("Sender klage til kabal for vedtakId ${klageRequest.vedtakId}")
         val lagretKlage = klageRepository.hentKlageBehandling(klageRequest.vedtakId)
+            ?: throw KlageIkkeFunnetException(klageRequest.vedtakId)
         val lagretVedtak = vedtakRepository.hentVedtak(klageRequest.vedtakId)
-        val kabalDto = mapTilKabalDTO(lagretKlage!!, lagretVedtak)
+        val kabalDto = mapTilKabalDTO(lagretKlage, lagretVedtak)
 
         try {
             kabalClient.sendKlageTilKabal(kabalDto)
@@ -80,7 +76,6 @@ class KlageService(
     }
 
     private fun mapTilKabalDTO(lagretKlage: KlageBehandling, lagretVedtak: Vedtak): KabalDTO {
-
         return KabalDTO(
             sakenGjelder = Part(
                 id = PartId(
@@ -88,11 +83,10 @@ class KlageService(
                 )
             ),
             fagsak = Fagsak(
-                fagsakId = "134132412", //mockverdi
-                fagsystem = "ARBEIDSOPPFOLGING" //mockverdi
+                fagsakId = "134132412", //mockverdi - må avklares
+                fagsystem = "ARBEIDSOPPFOLGING" //mockverdi - må avklares
             ),
             kildeReferanse = lagretKlage.vedtakId.toString(),
-            hjemler = listOf("FTRL_9_2"), //mockverdi - ikke avklart
             forrigeBehandlendeEnhet = lagretVedtak.oppfolgingsenhetId.toString(),
             tilknyttedeJournalposter = listOf(
                 TilknyttetJournalpost(
@@ -101,13 +95,17 @@ class KlageService(
                 ),
                 TilknyttetJournalpost(
                     type = "BRUKERS_KLAGE",
-                    journalpostId = lagretKlage.klageJournalpostid!!
+                    journalpostId = lagretKlage.klageJournalpostid
                 )
             ),
-            brukersKlageMottattVedtaksinstans = "2026-02-11",//lagretKlage.klageDato!!,
-            ytelse = "OMS_OMP", //mockverdi
-            kommentar = "Kommentar fra veileder", // mockverdi
+            brukersKlageMottattVedtaksinstans = lagretKlage.klageDato,
+            ytelse = "OMS_OMP", //mockverdi - må avklares
+            hjemler = listOf("FTRL_9_2"), //mockverdi - må avklares
+            kommentar = "Kommentar fra veileder", // mockverdi - vurder å lage inputfelt ved resultat MEDHOLD
         )
     }
 
 }
+
+class KlageIkkeFunnetException(vedtakId: Long) :
+    RuntimeException("Fant ingen klage for vedtakId $vedtakId")

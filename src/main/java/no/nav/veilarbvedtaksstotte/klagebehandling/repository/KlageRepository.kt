@@ -154,7 +154,7 @@ class KlageRepository(private val db: JdbcTemplate) {
                     vedtakId = rs.getLong(VEDTAK_ID),
                     veilederIdent = rs.getString(VEILEDER_IDENT),
                     norskIdent = rs.getString(NORSK_IDENT),
-                    klageDato = rs.getDate(KLAGE_DATO)?.toLocalDate(),
+                    klageDato = rs.getDate(KLAGE_DATO).toLocalDate(),
                     klageJournalpostid = rs.getString(KLAGE_JOURNALPOST_ID),
                     formkravSignert = rs.getString(FORMKRAV_SIGNERT)?.let { FormkravSvar.valueOf(it) },
                     formkravPart = rs.getString(FORMKRAV_PART)?.let { FormkravSvar.valueOf(it) },
