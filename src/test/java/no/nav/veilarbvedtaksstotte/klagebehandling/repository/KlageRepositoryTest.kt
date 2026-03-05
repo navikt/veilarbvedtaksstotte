@@ -125,6 +125,20 @@ class KlageRepositoryTest : DatabaseTest() {
         assertEquals(begrunnelse, lagretKlageOppfylt.resultatBegrunnelse)
     }
 
+    @Test
+    fun `updateStatus skal oppdatere felt for status`() {
+        val vedtakId: Long = 111222333
+        val status = Status.SENDT_TIL_KABAL
+
+        val defaultRequest = opprettEnDefaultKlage(vedtakId)
+        klageRepository.upsertOpprettKlagebehandling(defaultRequest)
+        klageRepository.updateStatus(vedtakId, status)
+
+        val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
+        assertNotNull(lagretKlageOppfylt)
+        assertEquals(Status.SENDT_TIL_KABAL, lagretKlageOppfylt.status)
+    }
+
 
     private fun opprettEnDefaultKlage(vedtakId: Long): OpprettKlageRequest {
         val norskIdent = "12345678910"
