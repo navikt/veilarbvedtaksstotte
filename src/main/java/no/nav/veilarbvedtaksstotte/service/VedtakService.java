@@ -238,7 +238,9 @@ public class VedtakService {
             JournalpostGraphqlResponse journalpost = safClient.hentJournalpost(journalpostId);
 
             if (journalpost.getData().getJournalpost().dokumenter != null) {
-                Arrays.stream(journalpost.getData().getJournalpost().dokumenter).filter(journalfortDokument -> OyeblikksbildeType.contains(journalfortDokument.brevkode)).forEach(journalfortDokument -> oyeblikksbildeService.lagreJournalfortDokumentId(vedtakId, journalfortDokument.dokumentInfoId, OyeblikksbildeType.from(BrevKode.valueOf(journalfortDokument.brevkode))));
+                Arrays.stream(journalpost.getData().getJournalpost().dokumenter)
+                        .filter(journalfortDokument -> OyeblikksbildeType.contains(journalfortDokument.brevkode))
+                        .forEach(journalfortDokument -> oyeblikksbildeService.lagreJournalfortDokumentId(vedtakId, journalfortDokument.dokumentInfoId, OyeblikksbildeType.from(BrevKode.valueOf(journalfortDokument.brevkode))));
                 log.info("Oppdatert dokumentId for oyeblikksbilde for vedtakId: {}", vedtakId);
             }
         } catch (Exception e) {

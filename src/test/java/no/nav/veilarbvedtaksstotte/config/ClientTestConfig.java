@@ -9,9 +9,6 @@ import no.nav.common.types.identer.EksternBrukerId;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.Fnr;
 import no.nav.common.types.identer.NorskIdent;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.AiaBackendClient;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.dto.EgenvurderingResponseDTO;
-import no.nav.veilarbvedtaksstotte.client.aiaBackend.request.EgenvurderingForPersonRequest;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogResponse;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient;
@@ -75,7 +72,6 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.domain.Malform;
 import org.jetbrains.annotations.NotNull;
-import org.joda.time.Instant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -83,7 +79,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -218,23 +213,6 @@ public class ClientTestConfig {
             @Override
             public byte[] genererPdf(@NotNull BrevdataDto brevdata) {
                 return new byte[0];
-            }
-
-            @Override
-            public HealthCheckResult checkHealth() {
-                return HealthCheckResult.healthy();
-            }
-        };
-    }
-
-    @Bean
-    public AiaBackendClient egenvurderingClient() {
-        return new AiaBackendClient() {
-            @Override
-            public EgenvurderingResponseDTO hentEgenvurdering(EgenvurderingForPersonRequest egenvurderingForPersonRequest) {
-                Map<String, String> egenvurderingstekster = new HashMap<>();
-                egenvurderingstekster.put("STANDARD_INNSATS", "Svar jeg klarer meg");
-                return new EgenvurderingResponseDTO("STANDARD_INNSATS", new Instant().toString(), "123456", new EgenvurderingResponseDTO.Tekster("testspm", egenvurderingstekster));
             }
 
             @Override
