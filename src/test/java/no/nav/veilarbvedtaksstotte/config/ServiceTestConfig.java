@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config;
 
 import no.nav.veilarbvedtaksstotte.controller.AuditlogService;
+import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService;
 import no.nav.veilarbvedtaksstotte.service.ArenaVedtakService;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.service.BeslutterService;
@@ -59,7 +60,8 @@ import org.springframework.context.annotation.Import;
         SakStatistikkResendingService.class,
         PdfService.class,
         Gjeldende14aVedtakService.class,
-        AuditlogService.class
+        AuditlogService.class,
+        KlageService.class
 })
 public class ServiceTestConfig {
 }

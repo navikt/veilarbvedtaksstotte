@@ -15,6 +15,8 @@ data class EnvironmentProperties (
     val dokdistkanalUrl: String,
     val egenvurderingDialogTjenesteScope: String,
     val egenvurderingDialogTjenesteUrl: String,
+    val kabalScope: String,
+    val kabalUrl: String,
     val naisAadClientId: String,
     val naisAadDiscoveryUrl: String,
     val naisAadIssuer: String,

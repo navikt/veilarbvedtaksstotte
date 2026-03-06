@@ -43,6 +43,8 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
+import no.nav.veilarbvedtaksstotte.klagebehandling.client.KabalClient
+import no.nav.veilarbvedtaksstotte.klagebehandling.client.KabalClientImpl
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -247,6 +249,17 @@ class ClientConfig {
                 { tokenClient.createMachineToMachineToken(properties.poaoTilgangScope) })
         )
     }
+
+    @Bean
+    fun kabalKlageClient(
+        properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient
+    ): KabalClient {
+        return KabalClientImpl(
+            properties.kabalUrl,
+            { tokenClient.createMachineToMachineToken(properties.kabalScope) }
+        )
+    }
+
 
     companion object {
         private val isProduction: Boolean
