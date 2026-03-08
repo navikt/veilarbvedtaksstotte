@@ -23,3 +23,15 @@ data class KlageBehandling(
     val resultatBegrunnelse: String?,
     val status: Status
 )
+
+enum class FormkravOppfylt {
+    OPPFYLT, IKKE_OPPFYLT, IKKE_SATT
+}
+
+enum class Resultat {
+    AVVIST, IKKE_SATT
+}
+
+enum class Status {
+    UTKAST, SENDT_TIL_KABAL, FERDIGSTILT // todo finne ut hva hvilke statuser vi trenger
+}
