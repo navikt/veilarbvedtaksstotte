@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.KlageRequest
@@ -26,16 +27,19 @@ class KlageController(val klageService: KlageService) {
 
     @PostMapping("/klagebehandling/opprett-klage")
     fun opprettKlagePa14aVedtak(@Valid @RequestBody opprettKlageRequest: OpprettKlageRequest) {
+        validerMiljo()
         return klageService.opprettKlageBehandling(opprettKlageRequest)
     }
 
     @PostMapping("/klagebehandling/formkrav")
     fun oppdaterFormkrav(@Valid @RequestBody formkravrequest: FormkravRequest) {
+        validerMiljo()
         return klageService.oppdaterFormkrav(formkravrequest)
     }
 
     @PostMapping("/klagebehandling/hent-klage")
     fun hentKlage(@Valid @RequestBody klageRequest: KlageRequest): ResponseEntity<KlageBehandling?>? {
+        validerMiljo()
         val klage = klageService.hentKlage(klageRequest)
         return if (klage != null) {
             ResponseEntity.ok(klage)
@@ -48,7 +52,16 @@ class KlageController(val klageService: KlageService) {
     // Kan fjernes når vi har fått på plass backend-logikken for å sende klagen til kabal når bruker ikke får medhold og saken går til KA.
     @PostMapping("/klagebehandling/send-klage-til-kabal")
     fun sendKlageTilKabal(@Valid @RequestBody klageRequest: KlageRequest) {
+        validerMiljo()
         return klageService.sendKlageTilKabal(klageRequest)
     }
 
+    companion object {
+        @JvmStatic
+        internal fun validerMiljo() {
+            require(isDevelopment().orElse(false)) {
+                "Funksjonaliteten er ikke tilgjengelig i dette miljøet."
+            }
+        }
+    }
 }

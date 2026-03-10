@@ -4,8 +4,16 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
+import io.mockk.mockkObject
+import io.mockk.mockkStatic
+import io.mockk.unmockkObject
+import no.nav.common.utils.EnvironmentUtils
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.mockStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
@@ -21,6 +29,17 @@ class KlageControllerTest {
 
     @Autowired
     lateinit var mockMvc: MockMvc
+
+    @BeforeEach
+    fun setUp() {
+        mockkObject(KlageController.Companion)
+        every { KlageController.validerMiljo() } returns Unit
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkObject(KlageController.Companion)
+    }
 
     @Test
     fun `start klagebehandling skal kun godta riktig request body`() {
