@@ -1,19 +1,13 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.controller
 
 import com.ninjasquad.springmockk.MockkBean
-import io.mockk.Runs
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockkObject
-import io.mockk.mockkStatic
-import io.mockk.unmockkObject
-import no.nav.common.utils.EnvironmentUtils
+import io.mockk.*
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
+import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mockStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
@@ -27,6 +21,12 @@ class KlageControllerTest {
     @MockkBean
     lateinit var klageService: KlageService
 
+    @MockkBean
+    lateinit var authService: AuthService
+
+    @MockkBean
+    lateinit var vedtakRepository: VedtaksstotteRepository
+
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -34,6 +34,8 @@ class KlageControllerTest {
     fun setUp() {
         mockkObject(KlageController.Companion)
         every { KlageController.validerMiljo() } returns Unit
+        every { KlageController.hentAktorId(any(), any()) } returns mockk()
+        every { KlageController.validerTilganger(any(), any(), any()) } returns Unit
     }
 
     @AfterEach
