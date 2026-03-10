@@ -56,9 +56,12 @@ class KlageController(val klageService: KlageService) {
         return klageService.sendKlageTilKabal(klageRequest)
     }
 
-    private fun validerMiljo() {
-        require(isDevelopment().orElse(false)) {
-            "Funksjonaliteten er ikke tilgjengelig i dette miljøet."
+    companion object {
+        @JvmStatic
+        internal fun validerMiljo() {
+            require(isDevelopment().orElse(false)) {
+                "Funksjonaliteten er ikke tilgjengelig i dette miljøet."
+            }
         }
     }
 }
