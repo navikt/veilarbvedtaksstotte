@@ -14,11 +14,13 @@ import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.AuthService
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 
 
 @RestController
@@ -95,14 +97,10 @@ class KlageController(
             authService: AuthService,
             eksternBrukerId: EksternBrukerId
         ) {
-            if (eksternBrukerId is Fnr) {
-                authService.sjekkTilgangTilBrukerOgEnhet(tilgangType, fnr = eksternBrukerId)
-                return
-            }
-
-            if (eksternBrukerId is AktorId) {
-                authService.sjekkTilgangTilBrukerOgEnhet(tilgangType, aktorId = eksternBrukerId)
-                return
+            when (eksternBrukerId) {
+                is Fnr -> authService.sjekkTilgangTilBrukerOgEnhet(tilgangType, fnr = eksternBrukerId)
+                is AktorId -> authService.sjekkTilgangTilBrukerOgEnhet(tilgangType, aktorId = eksternBrukerId)
+                else -> throw ResponseStatusException(HttpStatus.FORBIDDEN)
             }
         }
 
