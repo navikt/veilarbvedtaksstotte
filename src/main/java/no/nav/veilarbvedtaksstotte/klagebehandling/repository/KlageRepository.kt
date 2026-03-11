@@ -1,13 +1,8 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravKlagefristUnntakSvar
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravSvar
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.OpprettKlageRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Status
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravKlagefristUnntakSvar
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravSvar
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.*
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
@@ -16,9 +11,11 @@ import org.springframework.stereotype.Repository
 @Repository
 class KlageRepository(private val db: JdbcTemplate) {
 
-    fun upsertOpprettKlagebehandling(
-        klageRequest: OpprettKlageRequest
+    fun upsertKlagebehandling(
+        klagebehandling: KlageBehandling
     ) {
+        val (generellData) = klagebehandling;
+
         val sql = """
             INSERT INTO $KLAGE_TABLE (
                 $VEDTAK_ID, 
@@ -44,25 +41,26 @@ class KlageRepository(private val db: JdbcTemplate) {
         try {
             db.update(
                 sql,
-                klageRequest.vedtakId,
-                klageRequest.veilederIdent,
-                klageRequest.fnr.get(),
-                klageRequest.klagedato,
-                klageRequest.klageJournalpostid,
+                generellData.vedtakId,
+                generellData.veilederIdent,
+                generellData.norskIdent,
+                generellData.klageDato,
+                generellData.klageJournalpostid,
                 FormkravOppfylt.IKKE_SATT.name,
                 Resultat.IKKE_SATT.name,
                 Status.UTKAST.name
             )
         } catch (ex: Exception) {
             secureLog.error(
-                "Kunne ikke lagre klagebehandling for vedtakId: ${klageRequest.vedtakId}, feil: {}",
+                "Kunne ikke lagre klagebehandling for vedtakId: ${generellData.vedtakId}, feil: {}",
                 ex
             )
         }
     }
 
     fun updateFormkrav(
-        formkrav: FormkravRequest,
+        vedtakId: Long,
+        formkrav: FormkravData,
         formkravOppfylt: FormkravOppfylt,
     ) {
         val sql = """
@@ -82,19 +80,19 @@ class KlageRepository(private val db: JdbcTemplate) {
         try {
             db.update(
                 sql,
-                formkrav.signert.name,
-                formkrav.part.name,
-                formkrav.konkret.name,
-                formkrav.klagefristOpprettholdt.name,
-                formkrav.klagefristUnntak?.name,
+                formkrav.formkravSignert?.name,
+                formkrav.formkravPart?.name,
+                formkrav.formkravKonkret?.name,
+                formkrav.formkravKlagefristOpprettholdt?.name,
+                formkrav.formkravKlagefristUnntak?.name,
                 formkravOppfylt.name,
                 formkrav.formkravBegrunnelseIntern,
                 formkrav.formkravBegrunnelseBrev,
-                formkrav.vedtakId
+                vedtakId
             )
         } catch (ex: Exception) {
             secureLog.error(
-                "Kunne ikke lagre formkrav for klagebehandling for vedtakId: ${formkrav.vedtakId}, feil: {}",
+                "Kunne ikke lagre formkrav for klagebehandling for vedtakId: ${vedtakId}, feil: {}",
                 ex
             )
         }
@@ -151,27 +149,35 @@ class KlageRepository(private val db: JdbcTemplate) {
         return try {
             db.queryForObject(sql, { rs, _ ->
                 KlageBehandling(
-                    vedtakId = rs.getLong(VEDTAK_ID),
-                    veilederIdent = rs.getString(VEILEDER_IDENT),
-                    norskIdent = rs.getString(NORSK_IDENT),
-                    klageDato = rs.getDate(KLAGE_DATO).toLocalDate(),
-                    klageJournalpostid = rs.getString(KLAGE_JOURNALPOST_ID),
-                    formkravSignert = rs.getString(FORMKRAV_SIGNERT)?.let { FormkravSvar.valueOf(it) },
-                    formkravPart = rs.getString(FORMKRAV_PART)?.let { FormkravSvar.valueOf(it) },
-                    formkravKonkret = rs.getString(FORMKRAV_KONKRET)?.let { FormkravSvar.valueOf(it) },
-                    formkravKlagefristOpprettholdt = rs.getString(FORMKRAV_KLAGEFRIST_OPPRETTHOLDT)
-                        ?.let { FormkravSvar.valueOf(it) },
-                    formkravKlagefristUnntak = rs.getString(FORMKRAV_KLAGEFRIST_UNNTAK)
-                        ?.let { FormkravKlagefristUnntakSvar.valueOf(it) },
-                    formkravOppfylt = rs.getString(FORMKRAV_OPPFYLT).let { FormkravOppfylt.valueOf(it) },
-                    formkravBegrunnelseIntern = rs.getString(FORMKRAV_BEGRUNNELSE_INTERN),
-                    formkravBegrunnelseBrev = rs.getString(FORMKRAV_BEGRUNNELSE_BREV),
-                    resultat = rs.getString(RESULTAT).let { Resultat.valueOf(it) },
-                    resultatBegrunnelse = rs.getString(RESULTAT_BEGRUNNELSE),
-                    status = rs.getString(STATUS)?.let { Status.valueOf(it) } ?: Status.UTKAST
+                    generellData = GenerellData(
+                        vedtakId = rs.getLong(VEDTAK_ID),
+                        veilederIdent = rs.getString(VEILEDER_IDENT),
+                        norskIdent = rs.getString(NORSK_IDENT),
+                        klageDato = rs.getDate(KLAGE_DATO).toLocalDate(),
+                        klageJournalpostid = rs.getString(KLAGE_JOURNALPOST_ID),
+                    ),
+
+                    formkravData = FormkravData(
+                        formkravSignert = rs.getString(FORMKRAV_SIGNERT)?.let { FormkravSvar.valueOf(it) },
+                        formkravPart = rs.getString(FORMKRAV_PART)?.let { FormkravSvar.valueOf(it) },
+                        formkravKonkret = rs.getString(FORMKRAV_KONKRET)?.let { FormkravSvar.valueOf(it) },
+                        formkravKlagefristOpprettholdt = rs.getString(FORMKRAV_KLAGEFRIST_OPPRETTHOLDT)
+                            ?.let { FormkravSvar.valueOf(it) },
+                        formkravKlagefristUnntak = rs.getString(FORMKRAV_KLAGEFRIST_UNNTAK)
+                            ?.let { FormkravKlagefristUnntakSvar.valueOf(it) },
+                        formkravOppfylt = rs.getString(FORMKRAV_OPPFYLT).let { FormkravOppfylt.valueOf(it) },
+                        formkravBegrunnelseIntern = rs.getString(FORMKRAV_BEGRUNNELSE_INTERN),
+                        formkravBegrunnelseBrev = rs.getString(FORMKRAV_BEGRUNNELSE_BREV),
+                    ),
+
+                    resultatData = ResultatData(
+                        resultat = rs.getString(RESULTAT).let { Resultat.valueOf(it) },
+                        resultatBegrunnelse = rs.getString(RESULTAT_BEGRUNNELSE),
+                        status = rs.getString(STATUS)?.let { Status.valueOf(it) } ?: Status.UTKAST
+                    ),
                 )
             }, vedtakid)
-        } catch (ex: EmptyResultDataAccessException) {
+        } catch (_: EmptyResultDataAccessException) {
             null
         } catch (ex: Exception) {
             secureLog.error(

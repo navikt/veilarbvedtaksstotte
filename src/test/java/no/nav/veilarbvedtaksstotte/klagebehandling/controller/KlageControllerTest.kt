@@ -45,7 +45,7 @@ class KlageControllerTest {
 
     @Test
     fun `start klagebehandling skal kun godta riktig request body`() {
-        every { klageService.opprettKlageBehandling(any()) } just Runs
+        every { klageService.startNyKlagebehandling(any()) } just Runs
         val goodRequest = """
             {
                "vedtakId" : 123456789,
