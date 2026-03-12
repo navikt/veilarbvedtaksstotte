@@ -5,12 +5,12 @@ import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravSvar
 import java.time.LocalDate
 
 data class KlageBehandling(
-    val generellData: GenerellData,
-    val formkravData: FormkravData? = null,
-    val resultatData: ResultatData? = null
+    val klageInitiellData: KlageInitiellData,
+    val klageFormkravData: KlageFormkravData? = null,
+    val klageResultatData: KlageResultatData? = null
 )
 
-data class GenerellData(
+data class KlageInitiellData(
     val vedtakId: Long,
     val veilederIdent: String,
     val norskIdent: String,
@@ -18,7 +18,7 @@ data class GenerellData(
     val klageJournalpostid: String,
 )
 
-data class FormkravData(
+data class KlageFormkravData(
     val formkravSignert: FormkravSvar?,
     val formkravPart: FormkravSvar?,
     val formkravKonkret: FormkravSvar?,
@@ -29,7 +29,7 @@ data class FormkravData(
     val formkravOppfylt: FormkravOppfylt? = null
 )
 
-data class ResultatData(
+data class KlageResultatData(
     val resultat: Resultat,
     val resultatBegrunnelse: String?,
     val status: Status
