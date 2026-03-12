@@ -14,7 +14,7 @@ class KlageRepository(private val db: JdbcTemplate) {
     fun upsertKlagebehandling(
         klagebehandling: KlageBehandling
     ) {
-        val (generellData) = klagebehandling;
+        val generellData = klagebehandling.generellData
 
         val sql = """
             INSERT INTO $KLAGE_TABLE (
