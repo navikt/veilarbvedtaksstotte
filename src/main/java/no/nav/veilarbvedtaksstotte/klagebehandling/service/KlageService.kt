@@ -2,11 +2,10 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.service
 
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.klagebehandling.client.*
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.*
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Status
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravKlagefristUnntakSvar
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravSvar
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.HentKlageRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.*
 import no.nav.veilarbvedtaksstotte.klagebehandling.repository.KlageRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import org.slf4j.Logger
@@ -23,53 +22,54 @@ class KlageService(
 
     val logger: Logger = LoggerFactory.getLogger(KlageService::class.java)
 
-    fun opprettKlageBehandling(opprettKlageRequest: OpprettKlageRequest) {
-        klageRepository.upsertOpprettKlagebehandling(opprettKlageRequest)
+    fun startNyKlagebehandling(klagebehandlingGenerellData: GenerellData) {
+        klageRepository.upsertKlagebehandling(KlageBehandling(generellData = klagebehandlingGenerellData))
     }
 
-    fun oppdaterFormkrav(formkravRequest: FormkravRequest) {
-        val formkravKlagefristOppfylt = formkravRequest.klagefristOpprettholdt == FormkravSvar.JA
-                || (formkravRequest.klagefristUnntak != null && formkravRequest.klagefristUnntak != FormkravKlagefristUnntakSvar.NEI)
+    fun oppdaterFormkrav(vedtakId: Long, klagebehandlingFormkravData: FormkravData) {
+        val formkravKlagefristOppfylt = klagebehandlingFormkravData.formkravKlagefristOpprettholdt == FormkravSvar.JA
+                || (klagebehandlingFormkravData.formkravKlagefristUnntak != null && klagebehandlingFormkravData.formkravKlagefristUnntak != FormkravKlagefristUnntakSvar.NEI)
 
         val alleFormkravOppfylt =
-            formkravRequest.signert == FormkravSvar.JA
-                    && formkravRequest.part == FormkravSvar.JA
-                    && formkravRequest.konkret == FormkravSvar.JA
+            klagebehandlingFormkravData.formkravSignert == FormkravSvar.JA
+                    && klagebehandlingFormkravData.formkravPart == FormkravSvar.JA
+                    && klagebehandlingFormkravData.formkravKonkret == FormkravSvar.JA
                     && formkravKlagefristOppfylt
 
         val formkravOppfyltString =
             if (alleFormkravOppfylt) FormkravOppfylt.OPPFYLT else FormkravOppfylt.IKKE_OPPFYLT
 
         klageRepository.updateFormkrav(
-            formkravRequest,
+            vedtakId,
+            klagebehandlingFormkravData,
             formkravOppfyltString
         )
 
         if (!alleFormkravOppfylt) {
             klageRepository.updateResultat(
-                formkravRequest.vedtakId,
+                vedtakId,
                 Resultat.AVVIST,
-                formkravRequest.formkravBegrunnelseIntern
+                klagebehandlingFormkravData.formkravBegrunnelseIntern
             )
         }
     }
 
-    fun hentKlage(klageRequest: KlageRequest): KlageBehandling? {
-        return klageRepository.hentKlageBehandling(klageRequest.vedtakId)
+    fun hentKlage(vedtakId: Long): KlageBehandling? {
+        return klageRepository.hentKlageBehandling(vedtakId)
     }
 
-    fun sendKlageTilKabal(klageRequest: KlageRequest) {
-        val lagretKlage = klageRepository.hentKlageBehandling(klageRequest.vedtakId)
-            ?: throw KlageIkkeFunnetException(klageRequest.vedtakId)
-        val lagretVedtak = vedtakRepository.hentVedtak(klageRequest.vedtakId)
+    fun sendKlageTilKabal(hentKlageRequest: HentKlageRequest) {
+        val lagretKlage = klageRepository.hentKlageBehandling(hentKlageRequest.vedtakId)
+            ?: throw KlageIkkeFunnetException(hentKlageRequest.vedtakId)
+        val lagretVedtak = vedtakRepository.hentVedtak(hentKlageRequest.vedtakId)
         val kabalDto = mapTilKabalDTO(lagretKlage, lagretVedtak)
 
         try {
             kabalClient.sendKlageTilKabal(kabalDto)
-            klageRepository.updateStatus(klageRequest.vedtakId, Status.SENDT_TIL_KABAL)
-            logger.info("Klage sendt til Kabal og status oppdatert for vedtakId ${klageRequest.vedtakId}")
+            klageRepository.updateStatus(hentKlageRequest.vedtakId, Status.SENDT_TIL_KABAL)
+            logger.info("Klage sendt til Kabal og status oppdatert for vedtakId ${hentKlageRequest.vedtakId}")
         } catch (e: Exception) {
-            logger.error("Feil ved sending av klage til Kabal for vedtakId ${klageRequest.vedtakId}", e)
+            logger.error("Feil ved sending av klage til Kabal for vedtakId ${hentKlageRequest.vedtakId}", e)
             throw e
         }
 
@@ -79,14 +79,14 @@ class KlageService(
         return KabalDTO(
             sakenGjelder = Part(
                 id = PartId(
-                    verdi = lagretKlage.norskIdent
+                    verdi = lagretKlage.generellData.norskIdent
                 )
             ),
             fagsak = Fagsak(
                 fagsakId = "134132412", //mockverdi - må avklares
                 fagsystem = "ARBEIDSOPPFOLGING" //mockverdi - må avklares
             ),
-            kildeReferanse = lagretKlage.vedtakId.toString(),
+            kildeReferanse = lagretKlage.generellData.vedtakId.toString(),
             forrigeBehandlendeEnhet = lagretVedtak.oppfolgingsenhetId.toString(),
             tilknyttedeJournalposter = listOf(
                 TilknyttetJournalpost(
@@ -95,10 +95,10 @@ class KlageService(
                 ),
                 TilknyttetJournalpost(
                     type = "BRUKERS_KLAGE",
-                    journalpostId = lagretKlage.klageJournalpostid
+                    journalpostId = lagretKlage.generellData.klageJournalpostid
                 )
             ),
-            brukersKlageMottattVedtaksinstans = lagretKlage.klageDato.toString(),
+            brukersKlageMottattVedtaksinstans = lagretKlage.generellData.klageDato.toString(),
             ytelse = "OMS_OMP", //mockverdi - må avklares
             hjemler = listOf("FTRL_9_2"), //mockverdi - må avklares
             kommentar = "Kommentar fra veileder", // mockverdi - vurder å lage inputfelt ved resultat MEDHOLD

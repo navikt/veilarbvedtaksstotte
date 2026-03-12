@@ -7,9 +7,10 @@ import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.poao_tilgang.client.TilgangType
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.KlageRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.OpprettKlageRequest
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilFormkravData
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilGenerellData
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravData
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.GenerellData
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -41,29 +42,29 @@ class KlageController(
     fun opprettKlagePa14aVedtak(@Valid @RequestBody opprettKlageRequest: OpprettKlageRequest) {
         validerMiljo()
         validerTilganger(TilgangType.SKRIVE, authService, opprettKlageRequest.fnr)
-        return klageService.opprettKlageBehandling(opprettKlageRequest)
+        return klageService.startNyKlagebehandling(tilGenerellData(opprettKlageRequest))
     }
 
     @PostMapping("/klagebehandling/formkrav")
-    fun oppdaterFormkrav(@Valid @RequestBody formkravrequest: FormkravRequest) {
+    fun oppdaterFormkrav(@Valid @RequestBody formkravrequest: OppdaterFormkravRequest) {
         validerMiljo()
         validerTilganger(
             TilgangType.SKRIVE,
             authService,
             hentAktorId(formkravrequest.vedtakId, vedtakRepository)
         )
-        return klageService.oppdaterFormkrav(formkravrequest)
+        return klageService.oppdaterFormkrav(formkravrequest.vedtakId, tilFormkravData(formkravrequest))
     }
 
     @PostMapping("/klagebehandling/hent-klage")
-    fun hentKlage(@Valid @RequestBody klageRequest: KlageRequest): ResponseEntity<KlageBehandling?>? {
+    fun hentKlage(@Valid @RequestBody hentKlageRequest: HentKlageRequest): ResponseEntity<KlageBehandling?>? {
         validerMiljo()
         validerTilganger(
             TilgangType.SKRIVE,
             authService,
-            hentAktorId(klageRequest.vedtakId, vedtakRepository)
+            hentAktorId(hentKlageRequest.vedtakId, vedtakRepository)
         )
-        val klage = klageService.hentKlage(klageRequest)
+        val klage = klageService.hentKlage(hentKlageRequest.vedtakId)
         return if (klage != null) {
             ResponseEntity.ok(klage)
         } else {
@@ -74,14 +75,38 @@ class KlageController(
     // Lager et endepunkt for å sende en klage til kabal så vi lettere kan teste.
     // Kan fjernes når vi har fått på plass backend-logikken for å sende klagen til kabal når bruker ikke får medhold og saken går til KA.
     @PostMapping("/klagebehandling/send-klage-til-kabal")
-    fun sendKlageTilKabal(@Valid @RequestBody klageRequest: KlageRequest) {
+    fun sendKlageTilKabal(@Valid @RequestBody hentKlageRequest: HentKlageRequest) {
         validerMiljo()
         validerTilganger(
             tilgangType = TilgangType.SKRIVE,
             authService,
-            hentAktorId(klageRequest.vedtakId, vedtakRepository)
+            hentAktorId(hentKlageRequest.vedtakId, vedtakRepository)
         )
-        return klageService.sendKlageTilKabal(klageRequest)
+        return klageService.sendKlageTilKabal(hentKlageRequest)
+    }
+
+    object Mapper {
+        fun tilGenerellData(opprettKlageRequest: OpprettKlageRequest): GenerellData {
+            return GenerellData(
+                vedtakId = opprettKlageRequest.vedtakId,
+                veilederIdent = opprettKlageRequest.veilederIdent,
+                norskIdent = opprettKlageRequest.fnr.get(),
+                klageDato = opprettKlageRequest.klagedato,
+                klageJournalpostid = opprettKlageRequest.klageJournalpostid,
+            )
+        }
+
+        fun tilFormkravData(oppdaterFormkravRequest: OppdaterFormkravRequest): FormkravData {
+            return FormkravData(
+                formkravSignert = oppdaterFormkravRequest.signert,
+                formkravPart = oppdaterFormkravRequest.part,
+                formkravKonkret = oppdaterFormkravRequest.konkret,
+                formkravKlagefristOpprettholdt = oppdaterFormkravRequest.klagefristOpprettholdt,
+                formkravKlagefristUnntak = oppdaterFormkravRequest.klagefristUnntak,
+                formkravBegrunnelseIntern = oppdaterFormkravRequest.formkravBegrunnelseIntern,
+                formkravBegrunnelseBrev = oppdaterFormkravRequest.formkravBegrunnelseBrev
+            )
+        }
     }
 
     companion object {

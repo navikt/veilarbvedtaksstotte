@@ -1,13 +1,8 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 
-import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravKlagefristUnntakSvar
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.FormkravSvar
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.dto.OpprettKlageRequest
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravOppfylt
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Resultat
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.Status
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravKlagefristUnntakSvar
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravSvar
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.*
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
 import org.junit.jupiter.api.*
@@ -40,27 +35,43 @@ class KlageRepositoryTest : DatabaseTest() {
         val nyVeilederIdent = "Z654321"
         val klageDato = LocalDate.of(2026, 2, 14)
         val journalpostId = "987654321"
-        val request = OpprettKlageRequest(vedtakId, Fnr(norskIdent), veilederIdent, klageDato, journalpostId)
+        val request = KlageBehandling(
+            generellData = GenerellData(
+                vedtakId = vedtakId,
+                norskIdent = norskIdent,
+                veilederIdent = veilederIdent,
+                klageDato = klageDato,
+                klageJournalpostid = journalpostId
+            )
+        )
         val oppdatertRequest =
-            OpprettKlageRequest(vedtakId, Fnr(norskIdent), nyVeilederIdent, klageDato.minusDays(1), journalpostId)
+            KlageBehandling(
+                generellData = GenerellData(
+                    vedtakId = vedtakId,
+                    norskIdent = norskIdent,
+                    veilederIdent = nyVeilederIdent,
+                    klageDato = klageDato.minusDays(1),
+                    klageJournalpostid = journalpostId
+                )
+            )
 
-        klageRepository.upsertOpprettKlagebehandling(request)
+        klageRepository.upsertKlagebehandling(request)
         val lagretKlage = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlage)
-        assertEquals(vedtakId, lagretKlage.vedtakId)
-        assertEquals(norskIdent, lagretKlage.norskIdent)
-        assertEquals(veilederIdent, lagretKlage.veilederIdent)
-        assertEquals(klageDato, lagretKlage.klageDato)
-        assertEquals(journalpostId, lagretKlage.klageJournalpostid)
-        assertEquals(Resultat.IKKE_SATT, lagretKlage.resultat)
-        assertEquals(FormkravOppfylt.IKKE_SATT, lagretKlage.formkravOppfylt)
-        assertEquals(Status.UTKAST, lagretKlage.status)
+        assertEquals(vedtakId, lagretKlage.generellData.vedtakId)
+        assertEquals(norskIdent, lagretKlage.generellData.norskIdent)
+        assertEquals(veilederIdent, lagretKlage.generellData.veilederIdent)
+        assertEquals(klageDato, lagretKlage.generellData.klageDato)
+        assertEquals(journalpostId, lagretKlage.generellData.klageJournalpostid)
+        assertEquals(Resultat.IKKE_SATT, lagretKlage.resultatData?.resultat)
+        assertEquals(FormkravOppfylt.IKKE_SATT, lagretKlage.formkravData?.formkravOppfylt)
+        assertEquals(Status.UTKAST, lagretKlage.resultatData?.status)
 
-        klageRepository.upsertOpprettKlagebehandling(oppdatertRequest)
+        klageRepository.upsertKlagebehandling(oppdatertRequest)
         val lagretKlageOppdatert = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppdatert)
-        assertEquals(nyVeilederIdent, lagretKlageOppdatert.veilederIdent)
-        assertEquals(klageDato.minusDays(1), lagretKlageOppdatert.klageDato)
+        assertEquals(nyVeilederIdent, lagretKlageOppdatert.generellData.veilederIdent)
+        assertEquals(klageDato.minusDays(1), lagretKlageOppdatert.generellData.klageDato)
     }
 
 
@@ -69,44 +80,53 @@ class KlageRepositoryTest : DatabaseTest() {
         val vedtakId: Long = 111222333
         val formkravBegrunnelse = "Alle formkrav er oppfylt."
 
-        val formkrav = FormkravRequest(
-            vedtakId = vedtakId,
-            signert = FormkravSvar.JA,
-            part = FormkravSvar.JA,
-            konkret = FormkravSvar.JA,
-            klagefristOpprettholdt = FormkravSvar.NEI,
-            klagefristUnntak = FormkravKlagefristUnntakSvar.JA_SAERLIGE_GRUNNER,
+        val formkrav = FormkravData(
+            formkravSignert = FormkravSvar.JA,
+            formkravPart = FormkravSvar.JA,
+            formkravKonkret = FormkravSvar.JA,
+            formkravKlagefristOpprettholdt = FormkravSvar.NEI,
+            formkravKlagefristUnntak = FormkravKlagefristUnntakSvar.JA_SAERLIGE_GRUNNER,
             formkravBegrunnelseIntern = formkravBegrunnelse,
             formkravBegrunnelseBrev = null
         )
 
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
-        klageRepository.upsertOpprettKlagebehandling(defaultRequest)
-        klageRepository.updateFormkrav(formkrav, FormkravOppfylt.OPPFYLT)
+        klageRepository.upsertKlagebehandling(defaultRequest)
+        klageRepository.updateFormkrav(vedtakId, formkrav, FormkravOppfylt.OPPFYLT)
 
         val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppfylt)
-        assertEquals(FormkravOppfylt.OPPFYLT, lagretKlageOppfylt.formkravOppfylt)
-        assertEquals(FormkravSvar.JA, lagretKlageOppfylt.formkravSignert)
-        assertEquals(FormkravSvar.JA, lagretKlageOppfylt.formkravPart)
-        assertEquals(FormkravSvar.JA, lagretKlageOppfylt.formkravKonkret)
-        assertEquals(FormkravSvar.NEI, lagretKlageOppfylt.formkravKlagefristOpprettholdt)
-        assertEquals(FormkravKlagefristUnntakSvar.JA_SAERLIGE_GRUNNER, lagretKlageOppfylt.formkravKlagefristUnntak)
-        assertNull(lagretKlageOppfylt.formkravBegrunnelseBrev)
-        assertEquals(formkravBegrunnelse, lagretKlageOppfylt.formkravBegrunnelseIntern)
+        assertEquals(FormkravOppfylt.OPPFYLT, lagretKlageOppfylt.formkravData?.formkravOppfylt)
+        assertEquals(FormkravSvar.JA, lagretKlageOppfylt.formkravData?.formkravSignert)
+        assertEquals(FormkravSvar.JA, lagretKlageOppfylt.formkravData?.formkravPart)
+        assertEquals(FormkravSvar.JA, lagretKlageOppfylt.formkravData?.formkravKonkret)
+        assertEquals(FormkravSvar.NEI, lagretKlageOppfylt.formkravData?.formkravKlagefristOpprettholdt)
+        assertEquals(
+            FormkravKlagefristUnntakSvar.JA_SAERLIGE_GRUNNER,
+            lagretKlageOppfylt.formkravData?.formkravKlagefristUnntak
+        )
+        assertNull(lagretKlageOppfylt.formkravData?.formkravBegrunnelseBrev)
+        assertEquals(formkravBegrunnelse, lagretKlageOppfylt.formkravData?.formkravBegrunnelseIntern)
 
 
         val endretFormkrav = formkrav.copy(
-            konkret = FormkravSvar.NEI, formkravBegrunnelseIntern = "Det klages ikke på noe konkret i saken.",
+            formkravKonkret = FormkravSvar.NEI,
+            formkravBegrunnelseIntern = "Det klages ikke på noe konkret i saken.",
             formkravBegrunnelseBrev = "Det klages ikke på noe konkret i saken."
         )
 
-        klageRepository.updateFormkrav(endretFormkrav, FormkravOppfylt.IKKE_OPPFYLT)
+        klageRepository.updateFormkrav(vedtakId, endretFormkrav, FormkravOppfylt.IKKE_OPPFYLT)
         val lagretKlageIkkeOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageIkkeOppfylt)
-        assertEquals(FormkravOppfylt.IKKE_OPPFYLT, lagretKlageIkkeOppfylt.formkravOppfylt)
-        assertEquals("Det klages ikke på noe konkret i saken.", lagretKlageIkkeOppfylt.formkravBegrunnelseIntern)
-        assertEquals("Det klages ikke på noe konkret i saken.", lagretKlageIkkeOppfylt.formkravBegrunnelseBrev)
+        assertEquals(FormkravOppfylt.IKKE_OPPFYLT, lagretKlageIkkeOppfylt.formkravData?.formkravOppfylt)
+        assertEquals(
+            "Det klages ikke på noe konkret i saken.",
+            lagretKlageIkkeOppfylt.formkravData?.formkravBegrunnelseIntern
+        )
+        assertEquals(
+            "Det klages ikke på noe konkret i saken.",
+            lagretKlageIkkeOppfylt.formkravData?.formkravBegrunnelseBrev
+        )
     }
 
     @Test
@@ -116,13 +136,13 @@ class KlageRepositoryTest : DatabaseTest() {
         val begrunnelse = "Formkrav for klagefrist er ikke oppfylt."
 
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
-        klageRepository.upsertOpprettKlagebehandling(defaultRequest)
+        klageRepository.upsertKlagebehandling(defaultRequest)
         klageRepository.updateResultat(vedtakId, resultat, begrunnelse)
 
         val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppfylt)
-        assertEquals(Resultat.AVVIST, lagretKlageOppfylt.resultat)
-        assertEquals(begrunnelse, lagretKlageOppfylt.resultatBegrunnelse)
+        assertEquals(Resultat.AVVIST, lagretKlageOppfylt.resultatData?.resultat)
+        assertEquals(begrunnelse, lagretKlageOppfylt.resultatData?.resultatBegrunnelse)
     }
 
     @Test
@@ -131,20 +151,28 @@ class KlageRepositoryTest : DatabaseTest() {
         val status = Status.SENDT_TIL_KABAL
 
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
-        klageRepository.upsertOpprettKlagebehandling(defaultRequest)
+        klageRepository.upsertKlagebehandling(defaultRequest)
         klageRepository.updateStatus(vedtakId, status)
 
-        val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
+        val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)?.resultatData
         assertNotNull(lagretKlageOppfylt)
         assertEquals(Status.SENDT_TIL_KABAL, lagretKlageOppfylt.status)
     }
 
-    private fun opprettEnDefaultKlage(vedtakId: Long): OpprettKlageRequest {
+    private fun opprettEnDefaultKlage(vedtakId: Long): KlageBehandling {
         val norskIdent = "12345678910"
         val veilederIdent = "Z123456"
         val klageDato = LocalDate.of(2026, 2, 14)
         val journalpostId = "987654321"
-        return OpprettKlageRequest(vedtakId, Fnr(norskIdent), veilederIdent, klageDato, journalpostId)
+        return KlageBehandling(
+            generellData = GenerellData(
+                vedtakId,
+                norskIdent,
+                veilederIdent,
+                klageDato,
+                journalpostId
+            )
+        )
     }
 
 }
