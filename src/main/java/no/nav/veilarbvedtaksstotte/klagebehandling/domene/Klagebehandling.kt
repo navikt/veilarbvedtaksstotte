@@ -3,12 +3,15 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.domene
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravKlagefristUnntakSvar
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravSvar
 import java.time.LocalDate
+import java.util.UUID
 
-data class KlageBehandling(
+data class Klagebehandling(
     val klageInitiellData: KlageInitiellData,
     val klageFormkravData: KlageFormkravData? = null,
-    val klageResultatData: KlageResultatData? = null
+    val klageResultatData: KlageResultatData? = null,
+    val klageStatus: Status
 )
+typealias KlagebehandlingId = UUID
 
 data class KlageInitiellData(
     val vedtakId: Long,
@@ -26,13 +29,15 @@ data class KlageFormkravData(
     val formkravKlagefristUnntak: FormkravKlagefristUnntakSvar?,
     val formkravBegrunnelseIntern: String?,
     val formkravBegrunnelseBrev: String?,
-    val formkravOppfylt: FormkravOppfylt? = null
 )
 
 data class KlageResultatData(
     val resultat: Resultat,
-    val resultatBegrunnelse: String?,
-    val status: Status
+    val resultatBegrunnelse: String?
+)
+
+data class KlageAvvisningData(
+    val avvisningsbrevJournalpostId: String
 )
 
 enum class FormkravOppfylt {
@@ -44,5 +49,8 @@ enum class Resultat {
 }
 
 enum class Status {
-    UTKAST, SENDT_TIL_KABAL, FERDIGSTILT // todo finne ut hva hvilke statuser vi trenger
+    UTKAST,
+    AVVIST,
+    FERDIGSTILT,
+    SENDT_TIL_KABAL
 }

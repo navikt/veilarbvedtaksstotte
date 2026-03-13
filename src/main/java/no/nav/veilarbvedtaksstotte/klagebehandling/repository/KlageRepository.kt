@@ -7,13 +7,14 @@ import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
+import java.util.*
 
 @Repository
 class KlageRepository(private val db: JdbcTemplate) {
 
     fun upsertKlagebehandling(
-        klagebehandling: KlageBehandling
-    ) {
+        klagebehandling: Klagebehandling
+    ): KlagebehandlingId {
         val klageInitiellData = klagebehandling.klageInitiellData
 
         val sql = """
@@ -36,11 +37,13 @@ class KlageRepository(private val db: JdbcTemplate) {
             $NORSK_IDENT = EXCLUDED.${NORSK_IDENT},
             $KLAGE_DATO = EXCLUDED.${KLAGE_DATO},
             $KLAGE_JOURNALPOST_ID = EXCLUDED.${KLAGE_JOURNALPOST_ID},
-            RAD_SIST_ENDRET = current_timestamp 
+            RAD_SIST_ENDRET = current_timestamp
+            RETURNING $KLAGEBEHANDLING_ID
         """.trimIndent()
-        try {
-            db.update(
+        return try {
+            db.queryForObject(
                 sql,
+                UUID::class.java,
                 klageInitiellData.vedtakId,
                 klageInitiellData.veilederIdent,
                 klageInitiellData.norskIdent,
@@ -52,9 +55,9 @@ class KlageRepository(private val db: JdbcTemplate) {
             )
         } catch (ex: Exception) {
             secureLog.error(
-                "Kunne ikke lagre klagebehandling for vedtakId: ${klageInitiellData.vedtakId}, feil: {}",
-                ex
+                "Kunne ikke lagre klagebehandling for vedtakId: ${klageInitiellData.vedtakId}."
             )
+            throw ex
         }
     }
 
@@ -102,7 +105,7 @@ class KlageRepository(private val db: JdbcTemplate) {
     fun updateResultat(
         vedtakid: Long,
         resultat: Resultat,
-        resultatBegrunnelse: String?
+        resultatBegrunnelse: String? = null
     ) {
         val sql = """
                 UPDATE $KLAGE_TABLE SET
@@ -144,11 +147,11 @@ class KlageRepository(private val db: JdbcTemplate) {
         }
     }
 
-    fun hentKlageBehandling(vedtakid: Long): KlageBehandling? {
+    fun hentKlageBehandling(vedtakid: Long): Klagebehandling? {
         val sql = "SELECT * FROM $KLAGE_TABLE WHERE $VEDTAK_ID = ?"
         return try {
             db.queryForObject(sql, { rs, _ ->
-                KlageBehandling(
+                Klagebehandling(
                     klageInitiellData = KlageInitiellData(
                         vedtakId = rs.getLong(VEDTAK_ID),
                         veilederIdent = rs.getString(VEILEDER_IDENT),
@@ -165,7 +168,6 @@ class KlageRepository(private val db: JdbcTemplate) {
                             ?.let { FormkravSvar.valueOf(it) },
                         formkravKlagefristUnntak = rs.getString(FORMKRAV_KLAGEFRIST_UNNTAK)
                             ?.let { FormkravKlagefristUnntakSvar.valueOf(it) },
-                        formkravOppfylt = rs.getString(FORMKRAV_OPPFYLT).let { FormkravOppfylt.valueOf(it) },
                         formkravBegrunnelseIntern = rs.getString(FORMKRAV_BEGRUNNELSE_INTERN),
                         formkravBegrunnelseBrev = rs.getString(FORMKRAV_BEGRUNNELSE_BREV),
                     ),
@@ -173,8 +175,9 @@ class KlageRepository(private val db: JdbcTemplate) {
                     klageResultatData = KlageResultatData(
                         resultat = rs.getString(RESULTAT).let { Resultat.valueOf(it) },
                         resultatBegrunnelse = rs.getString(RESULTAT_BEGRUNNELSE),
-                        status = rs.getString(STATUS)?.let { Status.valueOf(it) } ?: Status.UTKAST
                     ),
+
+                    klageStatus = rs.getString(STATUS)?.let { Status.valueOf(it) } ?: Status.UTKAST
                 )
             }, vedtakid)
         } catch (_: EmptyResultDataAccessException) {
@@ -190,6 +193,7 @@ class KlageRepository(private val db: JdbcTemplate) {
 
     companion object {
         const val KLAGE_TABLE: String = "KLAGE"
+        private const val KLAGEBEHANDLING_ID = "KLAGEBEHANDLING_ID"
         private const val VEDTAK_ID = "VEDTAK_ID"
         private const val VEILEDER_IDENT = "VEILEDER_IDENT"
         private const val NORSK_IDENT = "NORSK_IDENT"

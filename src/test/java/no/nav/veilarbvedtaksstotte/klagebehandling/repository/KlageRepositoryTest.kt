@@ -28,31 +28,33 @@ class KlageRepositoryTest : DatabaseTest() {
     }
 
     @Test
-    fun `upsertOpprettKlagebehandling skal opprette i databasen og kunne oppdatere felt`() {
+    fun `upsertKlagebehandling skal opprette i databasen og kunne oppdatere felt`() {
         val vedtakId: Long = 123456789
         val norskIdent = "12345678910"
         val veilederIdent = "Z123456"
         val nyVeilederIdent = "Z654321"
         val klageDato = LocalDate.of(2026, 2, 14)
         val journalpostId = "987654321"
-        val request = KlageBehandling(
+        val request = Klagebehandling(
             klageInitiellData = KlageInitiellData(
                 vedtakId = vedtakId,
                 norskIdent = norskIdent,
                 veilederIdent = veilederIdent,
                 klageDato = klageDato,
                 klageJournalpostid = journalpostId
-            )
+            ),
+            klageStatus = Status.UTKAST
         )
         val oppdatertRequest =
-            KlageBehandling(
+            Klagebehandling(
                 klageInitiellData = KlageInitiellData(
                     vedtakId = vedtakId,
                     norskIdent = norskIdent,
                     veilederIdent = nyVeilederIdent,
                     klageDato = klageDato.minusDays(1),
                     klageJournalpostid = journalpostId
-                )
+                ),
+                klageStatus = Status.UTKAST
             )
 
         klageRepository.upsertKlagebehandling(request)
@@ -64,8 +66,7 @@ class KlageRepositoryTest : DatabaseTest() {
         assertEquals(klageDato, lagretKlage.klageInitiellData.klageDato)
         assertEquals(journalpostId, lagretKlage.klageInitiellData.klageJournalpostid)
         assertEquals(Resultat.IKKE_SATT, lagretKlage.klageResultatData?.resultat)
-        assertEquals(FormkravOppfylt.IKKE_SATT, lagretKlage.klageFormkravData?.formkravOppfylt)
-        assertEquals(Status.UTKAST, lagretKlage.klageResultatData?.status)
+        assertEquals(Status.UTKAST, lagretKlage.klageStatus)
 
         klageRepository.upsertKlagebehandling(oppdatertRequest)
         val lagretKlageOppdatert = klageRepository.hentKlageBehandling(vedtakId)
@@ -96,7 +97,6 @@ class KlageRepositoryTest : DatabaseTest() {
 
         val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppfylt)
-        assertEquals(FormkravOppfylt.OPPFYLT, lagretKlageOppfylt.klageFormkravData?.formkravOppfylt)
         assertEquals(FormkravSvar.JA, lagretKlageOppfylt.klageFormkravData?.formkravSignert)
         assertEquals(FormkravSvar.JA, lagretKlageOppfylt.klageFormkravData?.formkravPart)
         assertEquals(FormkravSvar.JA, lagretKlageOppfylt.klageFormkravData?.formkravKonkret)
@@ -118,7 +118,6 @@ class KlageRepositoryTest : DatabaseTest() {
         klageRepository.updateFormkrav(vedtakId, endretFormkrav, FormkravOppfylt.IKKE_OPPFYLT)
         val lagretKlageIkkeOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageIkkeOppfylt)
-        assertEquals(FormkravOppfylt.IKKE_OPPFYLT, lagretKlageIkkeOppfylt.klageFormkravData?.formkravOppfylt)
         assertEquals(
             "Det klages ikke på noe konkret i saken.",
             lagretKlageIkkeOppfylt.klageFormkravData?.formkravBegrunnelseIntern
@@ -154,24 +153,26 @@ class KlageRepositoryTest : DatabaseTest() {
         klageRepository.upsertKlagebehandling(defaultRequest)
         klageRepository.updateStatus(vedtakId, status)
 
-        val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)?.klageResultatData
-        assertNotNull(lagretKlageOppfylt)
-        assertEquals(Status.SENDT_TIL_KABAL, lagretKlageOppfylt.status)
+        val klagebehandling = klageRepository.hentKlageBehandling(vedtakId)
+        val klageResultatData = klagebehandling?.klageResultatData
+        assertNotNull(klageResultatData)
+        assertEquals(Status.SENDT_TIL_KABAL, klagebehandling.klageStatus)
     }
 
-    private fun opprettEnDefaultKlage(vedtakId: Long): KlageBehandling {
+    private fun opprettEnDefaultKlage(vedtakId: Long): Klagebehandling {
         val norskIdent = "12345678910"
         val veilederIdent = "Z123456"
         val klageDato = LocalDate.of(2026, 2, 14)
         val journalpostId = "987654321"
-        return KlageBehandling(
+        return Klagebehandling(
             klageInitiellData = KlageInitiellData(
                 vedtakId,
                 norskIdent,
                 veilederIdent,
                 klageDato,
                 journalpostId
-            )
+            ),
+            klageStatus = Status.UTKAST
         )
     }
 
