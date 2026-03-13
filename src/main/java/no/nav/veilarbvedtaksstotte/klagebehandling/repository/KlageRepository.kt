@@ -14,7 +14,7 @@ class KlageRepository(private val db: JdbcTemplate) {
     fun upsertKlagebehandling(
         klagebehandling: KlageBehandling
     ) {
-        val generellData = klagebehandling.generellData
+        val klageInitiellData = klagebehandling.klageInitiellData
 
         val sql = """
             INSERT INTO $KLAGE_TABLE (
@@ -41,18 +41,18 @@ class KlageRepository(private val db: JdbcTemplate) {
         try {
             db.update(
                 sql,
-                generellData.vedtakId,
-                generellData.veilederIdent,
-                generellData.norskIdent,
-                generellData.klageDato,
-                generellData.klageJournalpostid,
+                klageInitiellData.vedtakId,
+                klageInitiellData.veilederIdent,
+                klageInitiellData.norskIdent,
+                klageInitiellData.klageDato,
+                klageInitiellData.klageJournalpostid,
                 FormkravOppfylt.IKKE_SATT.name,
                 Resultat.IKKE_SATT.name,
                 Status.UTKAST.name
             )
         } catch (ex: Exception) {
             secureLog.error(
-                "Kunne ikke lagre klagebehandling for vedtakId: ${generellData.vedtakId}, feil: {}",
+                "Kunne ikke lagre klagebehandling for vedtakId: ${klageInitiellData.vedtakId}, feil: {}",
                 ex
             )
         }
@@ -60,7 +60,7 @@ class KlageRepository(private val db: JdbcTemplate) {
 
     fun updateFormkrav(
         vedtakId: Long,
-        formkrav: FormkravData,
+        formkrav: KlageFormkravData,
         formkravOppfylt: FormkravOppfylt,
     ) {
         val sql = """
@@ -149,7 +149,7 @@ class KlageRepository(private val db: JdbcTemplate) {
         return try {
             db.queryForObject(sql, { rs, _ ->
                 KlageBehandling(
-                    generellData = GenerellData(
+                    klageInitiellData = KlageInitiellData(
                         vedtakId = rs.getLong(VEDTAK_ID),
                         veilederIdent = rs.getString(VEILEDER_IDENT),
                         norskIdent = rs.getString(NORSK_IDENT),
@@ -157,7 +157,7 @@ class KlageRepository(private val db: JdbcTemplate) {
                         klageJournalpostid = rs.getString(KLAGE_JOURNALPOST_ID),
                     ),
 
-                    formkravData = FormkravData(
+                    klageFormkravData = KlageFormkravData(
                         formkravSignert = rs.getString(FORMKRAV_SIGNERT)?.let { FormkravSvar.valueOf(it) },
                         formkravPart = rs.getString(FORMKRAV_PART)?.let { FormkravSvar.valueOf(it) },
                         formkravKonkret = rs.getString(FORMKRAV_KONKRET)?.let { FormkravSvar.valueOf(it) },
@@ -170,7 +170,7 @@ class KlageRepository(private val db: JdbcTemplate) {
                         formkravBegrunnelseBrev = rs.getString(FORMKRAV_BEGRUNNELSE_BREV),
                     ),
 
-                    resultatData = ResultatData(
+                    klageResultatData = KlageResultatData(
                         resultat = rs.getString(RESULTAT).let { Resultat.valueOf(it) },
                         resultatBegrunnelse = rs.getString(RESULTAT_BEGRUNNELSE),
                         status = rs.getString(STATUS)?.let { Status.valueOf(it) } ?: Status.UTKAST

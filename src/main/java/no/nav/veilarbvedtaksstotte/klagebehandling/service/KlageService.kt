@@ -22,18 +22,18 @@ class KlageService(
 
     val logger: Logger = LoggerFactory.getLogger(KlageService::class.java)
 
-    fun startNyKlagebehandling(klagebehandlingGenerellData: GenerellData) {
-        klageRepository.upsertKlagebehandling(KlageBehandling(generellData = klagebehandlingGenerellData))
+    fun startNyKlagebehandling(klagebehandlingKlageInitiellData: KlageInitiellData) {
+        klageRepository.upsertKlagebehandling(KlageBehandling(klageInitiellData = klagebehandlingKlageInitiellData))
     }
 
-    fun oppdaterFormkrav(vedtakId: Long, klagebehandlingFormkravData: FormkravData) {
-        val formkravKlagefristOppfylt = klagebehandlingFormkravData.formkravKlagefristOpprettholdt == FormkravSvar.JA
-                || (klagebehandlingFormkravData.formkravKlagefristUnntak != null && klagebehandlingFormkravData.formkravKlagefristUnntak != FormkravKlagefristUnntakSvar.NEI)
+    fun oppdaterFormkrav(vedtakId: Long, klagebehandlingKlageFormkravData: KlageFormkravData) {
+        val formkravKlagefristOppfylt = klagebehandlingKlageFormkravData.formkravKlagefristOpprettholdt == FormkravSvar.JA
+                || (klagebehandlingKlageFormkravData.formkravKlagefristUnntak != null && klagebehandlingKlageFormkravData.formkravKlagefristUnntak != FormkravKlagefristUnntakSvar.NEI)
 
         val alleFormkravOppfylt =
-            klagebehandlingFormkravData.formkravSignert == FormkravSvar.JA
-                    && klagebehandlingFormkravData.formkravPart == FormkravSvar.JA
-                    && klagebehandlingFormkravData.formkravKonkret == FormkravSvar.JA
+            klagebehandlingKlageFormkravData.formkravSignert == FormkravSvar.JA
+                    && klagebehandlingKlageFormkravData.formkravPart == FormkravSvar.JA
+                    && klagebehandlingKlageFormkravData.formkravKonkret == FormkravSvar.JA
                     && formkravKlagefristOppfylt
 
         val formkravOppfyltString =
@@ -41,7 +41,7 @@ class KlageService(
 
         klageRepository.updateFormkrav(
             vedtakId,
-            klagebehandlingFormkravData,
+            klagebehandlingKlageFormkravData,
             formkravOppfyltString
         )
 
@@ -49,7 +49,7 @@ class KlageService(
             klageRepository.updateResultat(
                 vedtakId,
                 Resultat.AVVIST,
-                klagebehandlingFormkravData.formkravBegrunnelseIntern
+                klagebehandlingKlageFormkravData.formkravBegrunnelseIntern
             )
         }
     }
@@ -79,14 +79,14 @@ class KlageService(
         return KabalDTO(
             sakenGjelder = Part(
                 id = PartId(
-                    verdi = lagretKlage.generellData.norskIdent
+                    verdi = lagretKlage.klageInitiellData.norskIdent
                 )
             ),
             fagsak = Fagsak(
                 fagsakId = "134132412", //mockverdi - må avklares
                 fagsystem = "ARBEIDSOPPFOLGING" //mockverdi - må avklares
             ),
-            kildeReferanse = lagretKlage.generellData.vedtakId.toString(),
+            kildeReferanse = lagretKlage.klageInitiellData.vedtakId.toString(),
             forrigeBehandlendeEnhet = lagretVedtak.oppfolgingsenhetId.toString(),
             tilknyttedeJournalposter = listOf(
                 TilknyttetJournalpost(
@@ -95,10 +95,10 @@ class KlageService(
                 ),
                 TilknyttetJournalpost(
                     type = "BRUKERS_KLAGE",
-                    journalpostId = lagretKlage.generellData.klageJournalpostid
+                    journalpostId = lagretKlage.klageInitiellData.klageJournalpostid
                 )
             ),
-            brukersKlageMottattVedtaksinstans = lagretKlage.generellData.klageDato.toString(),
+            brukersKlageMottattVedtaksinstans = lagretKlage.klageInitiellData.klageDato.toString(),
             ytelse = "OMS_OMP", //mockverdi - må avklares
             hjemler = listOf("FTRL_9_2"), //mockverdi - må avklares
             kommentar = "Kommentar fra veileder", // mockverdi - vurder å lage inputfelt ved resultat MEDHOLD

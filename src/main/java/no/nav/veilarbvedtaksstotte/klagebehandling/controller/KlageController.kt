@@ -7,10 +7,10 @@ import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.EnvironmentUtils.isDevelopment
 import no.nav.poao_tilgang.client.TilgangType
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilFormkravData
-import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilGenerellData
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.FormkravData
-import no.nav.veilarbvedtaksstotte.klagebehandling.domene.GenerellData
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilKlageFormkravData
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilKlageInitiellData
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageFormkravData
+import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageInitiellData
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.KlageBehandling
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -42,7 +42,7 @@ class KlageController(
     fun opprettKlagePa14aVedtak(@Valid @RequestBody opprettKlageRequest: OpprettKlageRequest) {
         validerMiljo()
         validerTilganger(TilgangType.SKRIVE, authService, opprettKlageRequest.fnr)
-        return klageService.startNyKlagebehandling(tilGenerellData(opprettKlageRequest))
+        return klageService.startNyKlagebehandling(tilKlageInitiellData(opprettKlageRequest))
     }
 
     @PostMapping("/klagebehandling/formkrav")
@@ -53,7 +53,7 @@ class KlageController(
             authService,
             hentAktorId(formkravrequest.vedtakId, vedtakRepository)
         )
-        return klageService.oppdaterFormkrav(formkravrequest.vedtakId, tilFormkravData(formkravrequest))
+        return klageService.oppdaterFormkrav(formkravrequest.vedtakId, tilKlageFormkravData(formkravrequest))
     }
 
     @PostMapping("/klagebehandling/hent-klage")
@@ -86,8 +86,8 @@ class KlageController(
     }
 
     object Mapper {
-        fun tilGenerellData(opprettKlageRequest: OpprettKlageRequest): GenerellData {
-            return GenerellData(
+        fun tilKlageInitiellData(opprettKlageRequest: OpprettKlageRequest): KlageInitiellData {
+            return KlageInitiellData(
                 vedtakId = opprettKlageRequest.vedtakId,
                 veilederIdent = opprettKlageRequest.veilederIdent,
                 norskIdent = opprettKlageRequest.fnr.get(),
@@ -96,8 +96,8 @@ class KlageController(
             )
         }
 
-        fun tilFormkravData(oppdaterFormkravRequest: OppdaterFormkravRequest): FormkravData {
-            return FormkravData(
+        fun tilKlageFormkravData(oppdaterFormkravRequest: OppdaterFormkravRequest): KlageFormkravData {
+            return KlageFormkravData(
                 formkravSignert = oppdaterFormkravRequest.signert,
                 formkravPart = oppdaterFormkravRequest.part,
                 formkravKonkret = oppdaterFormkravRequest.konkret,
