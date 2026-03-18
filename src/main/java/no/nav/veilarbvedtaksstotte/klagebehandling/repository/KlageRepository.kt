@@ -60,8 +60,7 @@ class KlageRepository(private val db: JdbcTemplate) {
 
     fun updateFormkrav(
         vedtakId: Long,
-        formkrav: KlageFormkravData,
-        formkravOppfylt: FormkravOppfylt,
+        formkrav: KlageFormkravData
     ) {
         val sql = """
                 UPDATE $KLAGE_TABLE SET
@@ -85,7 +84,7 @@ class KlageRepository(private val db: JdbcTemplate) {
                 formkrav.formkravKonkret?.name,
                 formkrav.formkravKlagefristOpprettholdt?.name,
                 formkrav.formkravKlagefristUnntak?.name,
-                formkravOppfylt.name,
+                FormkravOppfylt.IKKE_SATT.name,
                 formkrav.formkravBegrunnelseIntern,
                 formkrav.formkravBegrunnelseBrev,
                 vedtakId
@@ -165,7 +164,6 @@ class KlageRepository(private val db: JdbcTemplate) {
                             ?.let { FormkravSvar.valueOf(it) },
                         formkravKlagefristUnntak = rs.getString(FORMKRAV_KLAGEFRIST_UNNTAK)
                             ?.let { FormkravKlagefristUnntakSvar.valueOf(it) },
-                        formkravOppfylt = rs.getString(FORMKRAV_OPPFYLT).let { FormkravOppfylt.valueOf(it) },
                         formkravBegrunnelseIntern = rs.getString(FORMKRAV_BEGRUNNELSE_INTERN),
                         formkravBegrunnelseBrev = rs.getString(FORMKRAV_BEGRUNNELSE_BREV),
                     ),

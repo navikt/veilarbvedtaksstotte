@@ -27,8 +27,9 @@ class KlageService(
     }
 
     fun oppdaterFormkrav(vedtakId: Long, klagebehandlingKlageFormkravData: KlageFormkravData) {
-        val formkravKlagefristOppfylt = klagebehandlingKlageFormkravData.formkravKlagefristOpprettholdt == FormkravSvar.JA
-                || (klagebehandlingKlageFormkravData.formkravKlagefristUnntak != null && klagebehandlingKlageFormkravData.formkravKlagefristUnntak != FormkravKlagefristUnntakSvar.NEI)
+        val formkravKlagefristOppfylt =
+            klagebehandlingKlageFormkravData.formkravKlagefristOpprettholdt == FormkravSvar.JA
+                    || (klagebehandlingKlageFormkravData.formkravKlagefristUnntak != null && klagebehandlingKlageFormkravData.formkravKlagefristUnntak != FormkravKlagefristUnntakSvar.NEI)
 
         val alleFormkravOppfylt =
             klagebehandlingKlageFormkravData.formkravSignert == FormkravSvar.JA
@@ -36,13 +37,9 @@ class KlageService(
                     && klagebehandlingKlageFormkravData.formkravKonkret == FormkravSvar.JA
                     && formkravKlagefristOppfylt
 
-        val formkravOppfyltString =
-            if (alleFormkravOppfylt) FormkravOppfylt.OPPFYLT else FormkravOppfylt.IKKE_OPPFYLT
-
         klageRepository.updateFormkrav(
             vedtakId,
-            klagebehandlingKlageFormkravData,
-            formkravOppfyltString
+            klagebehandlingKlageFormkravData
         )
 
         if (!alleFormkravOppfylt) {

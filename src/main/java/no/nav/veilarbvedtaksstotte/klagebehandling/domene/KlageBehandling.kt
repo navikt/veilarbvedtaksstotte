@@ -25,8 +25,7 @@ data class KlageFormkravData(
     val formkravKlagefristOpprettholdt: FormkravSvar?,
     val formkravKlagefristUnntak: FormkravKlagefristUnntakSvar?,
     val formkravBegrunnelseIntern: String?,
-    val formkravBegrunnelseBrev: String?,
-    val formkravOppfylt: FormkravOppfylt? = null
+    val formkravBegrunnelseBrev: String?
 )
 
 data class KlageResultatData(

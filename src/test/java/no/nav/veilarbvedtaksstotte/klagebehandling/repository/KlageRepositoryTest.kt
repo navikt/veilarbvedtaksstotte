@@ -9,7 +9,6 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.time.LocalDate
 
-
 class KlageRepositoryTest : DatabaseTest() {
     companion object {
         lateinit var klageRepository: KlageRepository
@@ -20,7 +19,6 @@ class KlageRepositoryTest : DatabaseTest() {
             klageRepository = KlageRepository(jdbcTemplate)
         }
     }
-
 
     @BeforeEach
     fun setup() {
@@ -64,7 +62,6 @@ class KlageRepositoryTest : DatabaseTest() {
         assertEquals(klageDato, lagretKlage.klageInitiellData.klageDato)
         assertEquals(journalpostId, lagretKlage.klageInitiellData.klageJournalpostid)
         assertEquals(Resultat.IKKE_SATT, lagretKlage.klageResultatData?.resultat)
-        assertEquals(FormkravOppfylt.IKKE_SATT, lagretKlage.klageFormkravData?.formkravOppfylt)
         assertEquals(Status.UTKAST, lagretKlage.klageResultatData?.status)
 
         klageRepository.upsertKlagebehandling(oppdatertRequest)
@@ -92,11 +89,10 @@ class KlageRepositoryTest : DatabaseTest() {
 
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
         klageRepository.upsertKlagebehandling(defaultRequest)
-        klageRepository.updateFormkrav(vedtakId, formkrav, FormkravOppfylt.OPPFYLT)
+        klageRepository.updateFormkrav(vedtakId, formkrav)
 
         val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppfylt)
-        assertEquals(FormkravOppfylt.OPPFYLT, lagretKlageOppfylt.klageFormkravData?.formkravOppfylt)
         assertEquals(FormkravSvar.JA, lagretKlageOppfylt.klageFormkravData?.formkravSignert)
         assertEquals(FormkravSvar.JA, lagretKlageOppfylt.klageFormkravData?.formkravPart)
         assertEquals(FormkravSvar.JA, lagretKlageOppfylt.klageFormkravData?.formkravKonkret)
@@ -115,10 +111,9 @@ class KlageRepositoryTest : DatabaseTest() {
             formkravBegrunnelseBrev = "Det klages ikke på noe konkret i saken."
         )
 
-        klageRepository.updateFormkrav(vedtakId, endretFormkrav, FormkravOppfylt.IKKE_OPPFYLT)
+        klageRepository.updateFormkrav(vedtakId, endretFormkrav)
         val lagretKlageIkkeOppfylt = klageRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageIkkeOppfylt)
-        assertEquals(FormkravOppfylt.IKKE_OPPFYLT, lagretKlageIkkeOppfylt.klageFormkravData?.formkravOppfylt)
         assertEquals(
             "Det klages ikke på noe konkret i saken.",
             lagretKlageIkkeOppfylt.klageFormkravData?.formkravBegrunnelseIntern
@@ -174,5 +169,4 @@ class KlageRepositoryTest : DatabaseTest() {
             )
         )
     }
-
 }
