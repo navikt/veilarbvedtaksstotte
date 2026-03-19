@@ -9,7 +9,14 @@ public class Journalpost {
 
     public String tittel;
 
+    public Bruker bruker;
+
     public JournalpostDokument[] dokumenter;
+
+    public static class Bruker {
+        public String id;
+        public String type;
+    }
 
     public static class JournalpostDokument {
         public String datoFerdigstilt;

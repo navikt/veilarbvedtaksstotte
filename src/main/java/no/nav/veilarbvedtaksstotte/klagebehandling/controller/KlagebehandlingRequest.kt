@@ -30,22 +30,6 @@ data class FullførKlageAvvisningRequest(
     val avvisningsbrevJournalpostId: String
 )
 
-data class AvvisKlageRequest(
-    val vedtakId: Long,
-    val signert: FormkravSvar,
-    val part: FormkravSvar,
-    val konkret: FormkravSvar,
-    val klagefristOpprettholdt: FormkravSvar,
-    val klagefristUnntak: FormkravKlagefristUnntakSvar?,
-    val formkravBegrunnelseIntern: String?,
-    val formkravBegrunnelseBrev: String
-)
-
-data class FullførKlageAvvisningRequest(
-    val vedtakId: Long,
-    val avvisningsbrevJournalpostId: String
-)
-
 data class OpprettKlageRequest(
     val vedtakId: Long,
     val fnr: Fnr,

@@ -214,7 +214,7 @@ class KlageService(
             ?: return Feil(årsak = PÅKLAGET_VEDTAK_IKKE_FUNNET)
         if (påklagetVedtak.vedtakFnr.get() != data.norskIdent) return Feil(årsak = PÅKLAGET_VEDTAK_TILHØRER_IKKE_BRUKER)
         if (grunnlag.journalpost == null) return Feil(årsak = KLAGEBREV_JOURNALPOST_IKKE_FUNNET)
-
+        if (grunnlag.journalpost.bruker.id != data.norskIdent) return Feil(årsak = KLAGEBREV_JOURNALPOST_TILHØRER_IKKE_BRUKER)
         if (data.klageDato.isAfter(grunnlag.idag)) return Feil(årsak = KLAGEDATO_ER_FREM_I_TID)
         if (data.klageDato.isBefore(påklagetVedtak.vedtak.vedtakFattet.toLocalDate())) return Feil(årsak = KLAGEDATO_ER_FØR_VEDTAK_FATTET_DATO)
 
@@ -345,6 +345,7 @@ data class Feil(val årsak: Årsak = UKJENT_FEIL) : KlagebehandlingHendelseResul
         PÅKLAGET_VEDTAK_IKKE_FUNNET,
         PÅKLAGET_VEDTAK_TILHØRER_IKKE_BRUKER,
         KLAGEBREV_JOURNALPOST_IKKE_FUNNET,
+        KLAGEBREV_JOURNALPOST_TILHØRER_IKKE_BRUKER,
         KLAGEDATO_ER_FREM_I_TID,
         KLAGEDATO_ER_FØR_VEDTAK_FATTET_DATO,
         FORMKRAV_BEGRUNNELSE_SATT_UTEN_RIKTIGE_KRITERIER,

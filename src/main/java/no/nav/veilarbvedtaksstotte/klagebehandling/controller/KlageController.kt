@@ -424,6 +424,12 @@ class KlageController(
                     "Fant ikke journalposten for klagebrevet."
                 )
 
+                Feil.Årsak.KLAGEBREV_JOURNALPOST_TILHØRER_IKKE_BRUKER -> tilProblemDetailResponse(
+                    HttpStatus.CONFLICT,
+                    "Journalpost gjelder feil person",
+                    "Journalposten gjelder annen personbruker."
+                )
+
                 Feil.Årsak.UKJENT_FEIL -> tilProblemDetailResponse(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Ukjent feil",
