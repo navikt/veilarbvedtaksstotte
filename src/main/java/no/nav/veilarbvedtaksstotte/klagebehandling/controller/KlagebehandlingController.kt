@@ -1,6 +1,9 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import no.nav.common.types.identer.AktorId
@@ -12,6 +15,7 @@ import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Ma
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilKlageFormkravData
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilKlageInitiellData
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilProblemDetailResponse
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlagebehandlingProblemDetailResponse.KlagebehandlingProblemDetailÅrsak
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.*
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.Feil
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
@@ -43,10 +47,15 @@ class KlageController(
     @PostMapping("/opprett-klage")
     @Operation(
         summary = "Opprett ny klagebehandling",
-        description = "Starter en ny klagebehandling for et vedtak. Returnerer klagebehandlingId ved suksess."
+        description = "Starter en ny klagebehandling for et vedtak. Returnerer klagebehandlingId ved suksess.",
+        responses = [
+            ApiResponse(
+                responseCode = "200",
+                content = [Content(schema = Schema(implementation = OpprettKlagebehandlingResponse::class))]
+            )
+        ]
     )
-    @ApiResponsesStartKlagebehandlingSuksess
-    @ApiResponsesKlagebehandlingFeil
+    @KlagebehandlingFeilApiResponse
     fun opprettKlagePa14aVedtak(@Valid @RequestBody opprettKlageRequest: OpprettKlageRequest): ResponseEntity<*> {
         validerMiljo()
         validerTilganger(TilgangType.SKRIVE, authService, opprettKlageRequest.fnr)
@@ -60,10 +69,10 @@ class KlageController(
     @PostMapping("/formkrav")
     @Operation(
         summary = "Oppdater formkrav",
-        description = "Oppdaterer formkrav- og begrunnelsesdata for en klagebehandling."
+        description = "Oppdaterer formkrav- og begrunnelsesdata for en klagebehandling.",
+        responses = [ApiResponse(responseCode = "204")]
     )
-    @ApiResponsesOppdaterFormkravSuksess
-    @ApiResponsesKlagebehandlingFeil
+    @KlagebehandlingFeilApiResponse
     fun oppdaterFormkrav(@Valid @RequestBody formkravrequest: OppdaterFormkravRequest): ResponseEntity<*> {
         validerMiljo()
         validerTilganger(
@@ -81,10 +90,10 @@ class KlageController(
     @PostMapping("/avvis")
     @Operation(
         summary = "Avvis klage",
-        description = "Avviser en klage basert på formkrav og begrunnelse."
+        description = "Avviser en klage basert på formkrav og begrunnelse.",
+        responses = [ApiResponse(responseCode = "204")]
     )
-    @ApiResponsesAvvisKlageSuksess
-    @ApiResponsesKlagebehandlingFeil
+    @KlagebehandlingFeilApiResponse
     fun avvisKlage(@RequestBody avvisKlageRequest: AvvisKlageRequest): ResponseEntity<*> {
         validerMiljo()
         validerTilganger(
@@ -104,10 +113,10 @@ class KlageController(
     @PostMapping("/fullfor-avvisning")
     @Operation(
         summary = "Fullfør avvisning",
-        description = "Fullfører en avvisning ved å registrere avvisningsbrev og ferdigstille klagebehandlingen."
+        description = "Fullfører en avvisning ved å registrere avvisningsbrev og ferdigstille klagebehandlingen.",
+        responses = [ApiResponse(responseCode = "204")]
     )
-    @ApiResponsesFullførKlageavvisningSuksess
-    @ApiResponsesKlagebehandlingFeil
+    @KlagebehandlingFeilApiResponse
     fun fullførAvvisning(@RequestBody fullførKlageAvvisningRequest: FullførKlageAvvisningRequest): ResponseEntity<*> {
         validerMiljo()
         validerTilganger(
@@ -129,10 +138,15 @@ class KlageController(
     @PostMapping("/hent-klage")
     @Operation(
         summary = "Hent klagebehandling",
-        description = "Henter klagebehandling for et vedtakId."
+        description = "Henter klagebehandling for et vedtakId.",
+        responses = [
+            ApiResponse(
+                responseCode = "200",
+                content = [Content(schema = Schema(implementation = HentKlagebehandlingResponse::class))]
+            )
+        ]
     )
-    @ApiResponsesHentKlagebehandlingSuksess
-    @ApiResponsesKlagebehandlingFeil
+    @KlagebehandlingFeilApiResponse
     fun hentKlage(@Valid @RequestBody hentKlageRequest: HentKlageRequest): ResponseEntity<*> {
         validerMiljo()
         validerTilganger(
@@ -209,102 +223,102 @@ class KlageController(
                 Feil.Årsak.ULOVLIG_NÅVÆRENDE_KLAGEBEHANDLING_TILSTAND ->
                     tilProblemDetailResponse(
                         HttpStatus.CONFLICT,
-                        "Ulovlig tilstand",
+                        KlagebehandlingProblemDetailÅrsak.ULOVLIG_NÅVÆRENDE_KLAGEBEHANDLING_TILSTAND.name,
                         "Klagebehandlingen er i en tilstand som ikke tillater denne operasjonen."
                     )
 
                 Feil.Årsak.PÅKLAGET_VEDTAK_IKKE_FUNNET ->
                     tilProblemDetailResponse(
                         HttpStatus.NOT_FOUND,
-                        "Vedtak ikke funnet",
+                        KlagebehandlingProblemDetailÅrsak.PÅKLAGET_VEDTAK_IKKE_FUNNET.name,
                         "Fant ikke vedtaket det klages på."
                     )
 
                 Feil.Årsak.PÅKLAGET_VEDTAK_TILHØRER_IKKE_BRUKER ->
                     tilProblemDetailResponse(
                         HttpStatus.FORBIDDEN,
-                        "Ingen tilgang",
+                        KlagebehandlingProblemDetailÅrsak.PÅKLAGET_VEDTAK_TILHØRER_IKKE_BRUKER.name,
                         "Vedtaket det klages på tilhører ikke innlogget bruker."
                     )
 
                 Feil.Årsak.KLAGEDATO_ER_FREM_I_TID ->
                     tilProblemDetailResponse(
                         HttpStatus.BAD_REQUEST,
-                        "Ugyldig klagedato",
+                        KlagebehandlingProblemDetailÅrsak.KLAGEDATO_ER_FREM_I_TID.name,
                         "Klagedato kan ikke være frem i tid."
                     )
 
                 Feil.Årsak.KLAGEDATO_ER_FØR_VEDTAK_FATTET_DATO ->
                     tilProblemDetailResponse(
                         HttpStatus.BAD_REQUEST,
-                        "Ugyldig klagedato",
+                        KlagebehandlingProblemDetailÅrsak.KLAGEDATO_ER_FØR_VEDTAK_FATTET_DATO.name,
                         "Klagedato kan ikke være før datoen vedtaket ble fattet."
                     )
 
                 Feil.Årsak.FORMKRAV_BEGRUNNELSE_SATT_UTEN_RIKTIGE_KRITERIER ->
                     tilProblemDetailResponse(
                         HttpStatus.BAD_REQUEST,
-                        "Ugyldig begrunnelse",
+                        KlagebehandlingProblemDetailÅrsak.FORMKRAV_BEGRUNNELSE_SATT_UTEN_RIKTIGE_KRITERIER.name,
                         "Begrunnelse er satt uten at riktige kriterier er oppfylt."
                     )
 
                 Feil.Årsak.FORMKRAV_BEGRUNNELSE_MANGLER ->
                     tilProblemDetailResponse(
                         HttpStatus.BAD_REQUEST,
-                        "Begrunnelse mangler",
+                        KlagebehandlingProblemDetailÅrsak.FORMKRAV_BEGRUNNELSE_MANGLER.name,
                         "Begrunnelse må være satt for å oppfylle formkravene."
                     )
 
                 Feil.Årsak.ALLE_FORMKRAV_MÅ_VÆRE_SATT ->
                     tilProblemDetailResponse(
                         HttpStatus.BAD_REQUEST,
-                        "Formkrav mangler",
+                        KlagebehandlingProblemDetailÅrsak.ALLE_FORMKRAV_MÅ_VÆRE_SATT.name,
                         "Alle formkrav må være satt før klagen kan behandles."
                     )
 
                 Feil.Årsak.FRIST_IKKE_OPPRETTHOLDT_KREVER_UNNTAK_SATT ->
                     tilProblemDetailResponse(
                         HttpStatus.BAD_REQUEST,
-                        "Klagefrist ikke opprettholdt",
+                        KlagebehandlingProblemDetailÅrsak.FRIST_IKKE_OPPRETTHOLDT_KREVER_UNNTAK_SATT.name,
                         "Når klagefristen ikke er opprettholdt må unntak være satt."
                     )
 
                 Feil.Årsak.KAN_IKKE_AVVISE_KLAGE_NÅR_FORMKRAV_OPPFYLT ->
                     tilProblemDetailResponse(
                         HttpStatus.CONFLICT,
-                        "Kan ikke avvise klage",
+                        KlagebehandlingProblemDetailÅrsak.KAN_IKKE_AVVISE_KLAGE_NÅR_FORMKRAV_OPPFYLT.name,
                         "Klagen kan ikke avvises når alle formkrav er oppfylt."
                     )
 
                 Feil.Årsak.AVVISNINGSBREV_JOURNALPOST_IKKE_FUNNET ->
                     tilProblemDetailResponse(
                         HttpStatus.NOT_FOUND,
-                        "Journalpost ikke funnet",
+                        KlagebehandlingProblemDetailÅrsak.AVVISNINGSBREV_JOURNALPOST_IKKE_FUNNET.name,
                         "Fant ikke journalposten for avvisningsbrevet."
                     )
 
                 Feil.Årsak.KLAGEBREV_JOURNALPOST_IKKE_FUNNET -> tilProblemDetailResponse(
                     HttpStatus.NOT_FOUND,
-                    "Journalpost ikke funnet",
+                    KlagebehandlingProblemDetailÅrsak.KLAGEBREV_JOURNALPOST_IKKE_FUNNET.name,
                     "Fant ikke journalposten for klagebrevet."
                 )
 
                 Feil.Årsak.KLAGEBREV_JOURNALPOST_TILHØRER_IKKE_BRUKER -> tilProblemDetailResponse(
                     HttpStatus.CONFLICT,
-                    "Journalpost gjelder feil person",
+                    KlagebehandlingProblemDetailÅrsak.KLAGEBREV_JOURNALPOST_TILHØRER_IKKE_BRUKER.name,
                     "Journalposten gjelder annen personbruker."
-                )
-
-                Feil.Årsak.UKJENT_FEIL -> tilProblemDetailResponse(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Ukjent feil",
-                    "Det oppstod en ukjent feil."
                 )
 
                 Feil.Årsak.KLAGE_IKKE_FUNNET -> tilProblemDetailResponse(
                     HttpStatus.NOT_FOUND,
-                    "Klage ikke funnet",
+                    KlagebehandlingProblemDetailÅrsak.KLAGE_IKKE_FUNNET.name,
                     "Fant ikke klagen det refereres til."
+                )
+
+                Feil.Årsak.UKJENT_FEIL -> tilProblemDetailResponse(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    KlagebehandlingProblemDetailÅrsak.UKJENT_FEIL.name,
+                    "Det oppstod en ukjent feil."
                 )
             }.let { ResponseEntity.status(it.status).body(it) }
         }
