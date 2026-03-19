@@ -11,7 +11,7 @@ import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravKlagefrist
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravSvar
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.HentKlageRequest
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.*
-import no.nav.veilarbvedtaksstotte.klagebehandling.repository.KlageRepository
+import no.nav.veilarbvedtaksstotte.klagebehandling.repository.KlagebehandlingRepository
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.Feil.Årsak.*
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService.Mapper.tilKabalDTO
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -26,7 +26,7 @@ import kotlin.jvm.optionals.getOrNull
 
 @Service
 class KlageService(
-    @param:Autowired private val klageRepository: KlageRepository,
+    @param:Autowired private val klagebehandlingRepository: KlagebehandlingRepository,
     @param:Autowired private val vedtakRepository: VedtaksstotteRepository,
     @param:Autowired private val safClient: SafClient,
     @param:Autowired private val aktorOppslagClient: AktorOppslagClient,
@@ -37,7 +37,7 @@ class KlageService(
 
     fun hentKlage(vedtakId: Long): KlagebehandlingHendelseResultat<Klagebehandling> {
         return try {
-            klageRepository.hentKlageBehandling(vedtakId)
+            klagebehandlingRepository.hentKlageBehandling(vedtakId)
                 ?.let { Ok(data = it) }
                 ?: Feil(årsak = KLAGE_IKKE_FUNNET)
         } catch (_: RuntimeException) {
@@ -46,14 +46,14 @@ class KlageService(
     }
 
     fun sendKlageTilKabal(hentKlageRequest: HentKlageRequest): KlagebehandlingHendelseResultat<Unit> {
-        val lagretKlage = klageRepository.hentKlageBehandling(hentKlageRequest.vedtakId)
+        val lagretKlage = klagebehandlingRepository.hentKlageBehandling(hentKlageRequest.vedtakId)
             ?: return Feil(årsak = KLAGE_IKKE_FUNNET)
         val lagretVedtak = vedtakRepository.hentVedtak(hentKlageRequest.vedtakId)
         val kabalDto = tilKabalDTO(lagretKlage, lagretVedtak)
 
         return try {
             kabalClient.sendKlageTilKabal(kabalDto)
-            klageRepository.updateStatus(hentKlageRequest.vedtakId, Status.SENDT_TIL_KABAL)
+            klagebehandlingRepository.updateStatus(hentKlageRequest.vedtakId, Status.SENDT_TIL_KABAL)
             logger.info("Klage sendt til Kabal og status oppdatert for vedtakId ${hentKlageRequest.vedtakId}")
             Ok(Unit)
         } catch (e: Exception) {
@@ -84,7 +84,7 @@ class KlageService(
         return when (resultat) {
             // TODO Ikkje bruke upsert her då det bryt med validering?
             is Ok -> {
-                val klagebehandlingId = klageRepository.upsertKlagebehandling(
+                val klagebehandlingId = klagebehandlingRepository.upsertKlagebehandling(
                     Klagebehandling(
                         klageInitiellData = data,
                         klageStatus = Status.UTKAST
@@ -104,7 +104,7 @@ class KlageService(
         )
 
         if (resultat is Ok<Unit>) {
-            klageRepository.updateFormkrav(
+            klagebehandlingRepository.updateFormkrav(
                 vedtakId,
                 KlageFormkravData(
                     formkravSignert = data.formkravSignert,
@@ -129,7 +129,7 @@ class KlageService(
         )
 
         if (resultat is Ok<Unit>) {
-            klageRepository.updateFormkrav(
+            klagebehandlingRepository.updateFormkrav(
                 vedtakId = vedtakId,
                 formkravOppfylt = FormkravOppfylt.IKKE_OPPFYLT,
                 formkrav = KlageFormkravData(
@@ -142,7 +142,7 @@ class KlageService(
                     formkravBegrunnelseIntern = null
                 )
             )
-            klageRepository.updateStatus(vedtakId, Status.AVVIST)
+            klagebehandlingRepository.updateStatus(vedtakId, Status.AVVIST)
         }
 
         return resultat
@@ -160,15 +160,15 @@ class KlageService(
         )
 
         if (resultat is Ok<Unit>) {
-            klageRepository.updateResultat(vedtakId, Resultat.AVVIST)
-            klageRepository.updateStatus(vedtakId, Status.FERDIGSTILT)
+            klagebehandlingRepository.updateResultat(vedtakId, Resultat.AVVIST)
+            klagebehandlingRepository.updateStatus(vedtakId, Status.FERDIGSTILT)
         }
 
         return resultat
     }
 
     private fun hentNåværendeKlagebehandlingTilstand(vedtakId: Long): KlagebehandlingTilstand {
-        val eksisterendeTilstand = klageRepository.hentKlageBehandling(vedtakId) ?: return KlagebehandlingTilstandIngen
+        val eksisterendeTilstand = klagebehandlingRepository.hentKlageBehandling(vedtakId) ?: return KlagebehandlingTilstandIngen
 
         return when (eksisterendeTilstand.klageStatus) {
             Status.UTKAST -> KlagebehandlingTilstandStartet(data = eksisterendeTilstand)

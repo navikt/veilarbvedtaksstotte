@@ -10,14 +10,14 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import java.time.LocalDate
 
 
-class KlageRepositoryTest : DatabaseTest() {
+class KlagebehandlingRepositoryTest : DatabaseTest() {
     companion object {
-        lateinit var klageRepository: KlageRepository
+        lateinit var klagebehandlingRepository: KlagebehandlingRepository
 
         @BeforeAll
         @JvmStatic
         fun setupOnce() {
-            klageRepository = KlageRepository(jdbcTemplate)
+            klagebehandlingRepository = KlagebehandlingRepository(jdbcTemplate)
         }
     }
 
@@ -57,8 +57,8 @@ class KlageRepositoryTest : DatabaseTest() {
                 klageStatus = Status.UTKAST
             )
 
-        klageRepository.upsertKlagebehandling(request)
-        val lagretKlage = klageRepository.hentKlageBehandling(vedtakId)
+        klagebehandlingRepository.upsertKlagebehandling(request)
+        val lagretKlage = klagebehandlingRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlage)
         assertEquals(vedtakId, lagretKlage.klageInitiellData.vedtakId)
         assertEquals(norskIdent, lagretKlage.klageInitiellData.norskIdent)
@@ -68,8 +68,8 @@ class KlageRepositoryTest : DatabaseTest() {
         assertEquals(Resultat.IKKE_SATT, lagretKlage.klageResultatData?.resultat)
         assertEquals(Status.UTKAST, lagretKlage.klageStatus)
 
-        klageRepository.upsertKlagebehandling(oppdatertRequest)
-        val lagretKlageOppdatert = klageRepository.hentKlageBehandling(vedtakId)
+        klagebehandlingRepository.upsertKlagebehandling(oppdatertRequest)
+        val lagretKlageOppdatert = klagebehandlingRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppdatert)
         assertEquals(nyVeilederIdent, lagretKlageOppdatert.klageInitiellData.veilederIdent)
         assertEquals(klageDato.minusDays(1), lagretKlageOppdatert.klageInitiellData.klageDato)
@@ -92,10 +92,10 @@ class KlageRepositoryTest : DatabaseTest() {
         )
 
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
-        klageRepository.upsertKlagebehandling(defaultRequest)
-        klageRepository.updateFormkrav(vedtakId, formkrav, FormkravOppfylt.OPPFYLT)
+        klagebehandlingRepository.upsertKlagebehandling(defaultRequest)
+        klagebehandlingRepository.updateFormkrav(vedtakId, formkrav, FormkravOppfylt.OPPFYLT)
 
-        val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
+        val lagretKlageOppfylt = klagebehandlingRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppfylt)
         assertEquals(FormkravSvar.JA, lagretKlageOppfylt.klageFormkravData?.formkravSignert)
         assertEquals(FormkravSvar.JA, lagretKlageOppfylt.klageFormkravData?.formkravPart)
@@ -115,8 +115,8 @@ class KlageRepositoryTest : DatabaseTest() {
             formkravBegrunnelseBrev = "Det klages ikke på noe konkret i saken."
         )
 
-        klageRepository.updateFormkrav(vedtakId, endretFormkrav, FormkravOppfylt.IKKE_OPPFYLT)
-        val lagretKlageIkkeOppfylt = klageRepository.hentKlageBehandling(vedtakId)
+        klagebehandlingRepository.updateFormkrav(vedtakId, endretFormkrav, FormkravOppfylt.IKKE_OPPFYLT)
+        val lagretKlageIkkeOppfylt = klagebehandlingRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageIkkeOppfylt)
         assertEquals(
             "Det klages ikke på noe konkret i saken.",
@@ -135,10 +135,10 @@ class KlageRepositoryTest : DatabaseTest() {
         val begrunnelse = "Formkrav for klagefrist er ikke oppfylt."
 
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
-        klageRepository.upsertKlagebehandling(defaultRequest)
-        klageRepository.updateResultat(vedtakId, resultat, begrunnelse)
+        klagebehandlingRepository.upsertKlagebehandling(defaultRequest)
+        klagebehandlingRepository.updateResultat(vedtakId, resultat, begrunnelse)
 
-        val lagretKlageOppfylt = klageRepository.hentKlageBehandling(vedtakId)
+        val lagretKlageOppfylt = klagebehandlingRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlageOppfylt)
         assertEquals(Resultat.AVVIST, lagretKlageOppfylt.klageResultatData?.resultat)
         assertEquals(begrunnelse, lagretKlageOppfylt.klageResultatData?.resultatBegrunnelse)
@@ -150,10 +150,10 @@ class KlageRepositoryTest : DatabaseTest() {
         val status = Status.SENDT_TIL_KABAL
 
         val defaultRequest = opprettEnDefaultKlage(vedtakId)
-        klageRepository.upsertKlagebehandling(defaultRequest)
-        klageRepository.updateStatus(vedtakId, status)
+        klagebehandlingRepository.upsertKlagebehandling(defaultRequest)
+        klagebehandlingRepository.updateStatus(vedtakId, status)
 
-        val klagebehandling = klageRepository.hentKlageBehandling(vedtakId)
+        val klagebehandling = klagebehandlingRepository.hentKlageBehandling(vedtakId)
         val klageResultatData = klagebehandling?.klageResultatData
         assertNotNull(klageResultatData)
         assertEquals(Status.SENDT_TIL_KABAL, klagebehandling.klageStatus)

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-class KlageRepository(private val db: JdbcTemplate) {
+class KlagebehandlingRepository(private val db: JdbcTemplate) {
 
     fun upsertKlagebehandling(
         klagebehandling: Klagebehandling

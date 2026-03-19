@@ -1,10 +1,6 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.controller
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import no.nav.common.types.identer.AktorId
@@ -17,7 +13,9 @@ import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Ma
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilKlageInitiellData
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilProblemDetailResponse
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.*
-import no.nav.veilarbvedtaksstotte.klagebehandling.service.*
+import no.nav.veilarbvedtaksstotte.klagebehandling.service.Feil
+import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
+import no.nav.veilarbvedtaksstotte.klagebehandling.service.Ok
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.springframework.http.HttpStatus
@@ -47,40 +45,8 @@ class KlageController(
         summary = "Opprett ny klagebehandling",
         description = "Starter en ny klagebehandling for et vedtak. Returnerer klagebehandlingId ved suksess."
     )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Klagebehandling opprettet",
-                content = [Content(schema = Schema(implementation = OpprettKlagebehandlingResponse::class))]
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "Ugyldig input",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "403",
-                description = "Ingen tilgang",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "Vedtak eller journalpost ikke funnet",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "409",
-                description = "Ulovlig tilstand",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "Ukjent feil",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            )
-        ]
-    )
+    @ApiResponsesStartKlagebehandlingSuksess
+    @ApiResponsesKlagebehandlingFeil
     fun opprettKlagePa14aVedtak(@Valid @RequestBody opprettKlageRequest: OpprettKlageRequest): ResponseEntity<*> {
         validerMiljo()
         validerTilganger(TilgangType.SKRIVE, authService, opprettKlageRequest.fnr)
@@ -91,41 +57,13 @@ class KlageController(
         }
     }
 
+    @PostMapping("/formkrav")
     @Operation(
         summary = "Oppdater formkrav",
         description = "Oppdaterer formkrav- og begrunnelsesdata for en klagebehandling."
     )
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "204", description = "Oppdatert"),
-            ApiResponse(
-                responseCode = "400",
-                description = "Ugyldig input",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "403",
-                description = "Ingen tilgang",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "Klage ikke funnet",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "409",
-                description = "Ulovlig tilstand",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "Ukjent feil",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            )
-        ]
-    )
-    @PostMapping("/formkrav")
+    @ApiResponsesOppdaterFormkravSuksess
+    @ApiResponsesKlagebehandlingFeil
     fun oppdaterFormkrav(@Valid @RequestBody formkravrequest: OppdaterFormkravRequest): ResponseEntity<*> {
         validerMiljo()
         validerTilganger(
@@ -140,41 +78,13 @@ class KlageController(
         }
     }
 
+    @PostMapping("/avvis")
     @Operation(
         summary = "Avvis klage",
         description = "Avviser en klage basert på formkrav og begrunnelse."
     )
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "204", description = "Avvist"),
-            ApiResponse(
-                responseCode = "400",
-                description = "Ugyldig input",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "403",
-                description = "Ingen tilgang",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "Klage ikke funnet",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "409",
-                description = "Ulovlig tilstand",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "Ukjent feil",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            )
-        ]
-    )
-    @PostMapping("/avvis")
+    @ApiResponsesAvvisKlageSuksess
+    @ApiResponsesKlagebehandlingFeil
     fun avvisKlage(@RequestBody avvisKlageRequest: AvvisKlageRequest): ResponseEntity<*> {
         validerMiljo()
         validerTilganger(
@@ -191,36 +101,13 @@ class KlageController(
         }
     }
 
+    @PostMapping("/fullfor-avvisning")
     @Operation(
         summary = "Fullfør avvisning",
         description = "Fullfører en avvisning ved å registrere avvisningsbrev og ferdigstille klagebehandlingen."
     )
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "204", description = "Fullført"),
-            ApiResponse(
-                responseCode = "403",
-                description = "Ingen tilgang",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "Klage eller journalpost ikke funnet",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "409",
-                description = "Ulovlig tilstand",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "Ukjent feil",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            )
-        ]
-    )
-    @PostMapping("/fullfor-avvisning")
+    @ApiResponsesFullførKlageavvisningSuksess
+    @ApiResponsesKlagebehandlingFeil
     fun fullførAvvisning(@RequestBody fullførKlageAvvisningRequest: FullførKlageAvvisningRequest): ResponseEntity<*> {
         validerMiljo()
         validerTilganger(
@@ -239,35 +126,13 @@ class KlageController(
         }
     }
 
+    @PostMapping("/hent-klage")
     @Operation(
         summary = "Hent klagebehandling",
         description = "Henter klagebehandling for et vedtakId."
     )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Klagebehandling funnet",
-                content = [Content(schema = Schema(implementation = HentKlagebehandlingResponse::class))]
-            ),
-            ApiResponse(
-                responseCode = "403",
-                description = "Ingen tilgang",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "Klage ikke funnet",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "Ukjent feil",
-                content = [Content(schema = Schema(implementation = ProblemDetail::class))]
-            )
-        ]
-    )
-    @PostMapping("/hent-klage")
+    @ApiResponsesHentKlagebehandlingSuksess
+    @ApiResponsesKlagebehandlingFeil
     fun hentKlage(@Valid @RequestBody hentKlageRequest: HentKlageRequest): ResponseEntity<*> {
         validerMiljo()
         validerTilganger(
