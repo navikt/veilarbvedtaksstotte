@@ -1,7 +1,5 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.client
 
-import java.time.LocalDate
-
 data class KabalDTO(
     val type: String = "KLAGE",
     val sakenGjelder: Part,

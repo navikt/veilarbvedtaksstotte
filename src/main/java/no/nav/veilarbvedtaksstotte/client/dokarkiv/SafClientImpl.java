@@ -151,6 +151,10 @@ public class SafClientImpl implements SafClient {
         return """
                 query journalpost($journalPostId: String!)  {
                     journalpost(journalpostId: $journalPostId) {
+                        bruker {
+                            id
+                            type
+                        }
                         dokumenter {
                             dokumentInfoId
                             tittel

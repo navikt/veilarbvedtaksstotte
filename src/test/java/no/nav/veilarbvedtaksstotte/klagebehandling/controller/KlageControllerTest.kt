@@ -2,7 +2,9 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.controller
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.*
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
+import no.nav.veilarbvedtaksstotte.klagebehandling.service.Ok
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.junit.jupiter.api.AfterEach
@@ -27,6 +29,9 @@ class KlageControllerTest {
     @MockkBean
     lateinit var vedtakRepository: VedtaksstotteRepository
 
+    @MockkBean
+    lateinit var aktorOppslagClient: AktorOppslagClient
+
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -36,6 +41,7 @@ class KlageControllerTest {
         every { KlageController.validerMiljo() } returns Unit
         every { KlageController.hentAktorId(any(), any()) } returns mockk()
         every { KlageController.validerTilganger(any(), any(), any()) } returns Unit
+        every { aktorOppslagClient.hentIdenter(any()) } returns mockk(relaxed = true)
     }
 
     @AfterEach
@@ -45,7 +51,7 @@ class KlageControllerTest {
 
     @Test
     fun `start klagebehandling skal kun godta riktig request body`() {
-        every { klageService.startNyKlagebehandling(any()) } just Runs
+        every { klageService.startNyKlagebehandling(any()) } returns Ok(data = mockk(relaxed = true))
         val goodRequest = """
             {
                "vedtakId" : 123456789,
@@ -64,6 +70,7 @@ class KlageControllerTest {
               "klageJournalpostid" : ""
             }
             """.trimIndent()
+
 
 
         mockMvc.perform(
