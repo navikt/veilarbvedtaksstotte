@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.klagebehandling.controller
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.*
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.Ok
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -28,6 +29,9 @@ class KlageControllerTest {
     @MockkBean
     lateinit var vedtakRepository: VedtaksstotteRepository
 
+    @MockkBean
+    lateinit var aktorOppslagClient: AktorOppslagClient
+
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -37,6 +41,7 @@ class KlageControllerTest {
         every { KlageController.validerMiljo() } returns Unit
         every { KlageController.hentAktorId(any(), any()) } returns mockk()
         every { KlageController.validerTilganger(any(), any(), any()) } returns Unit
+        every { aktorOppslagClient.hentIdenter(any()) } returns mockk(relaxed = true)
     }
 
     @AfterEach

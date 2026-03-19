@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 
+import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravKlagefristUnntakSvar
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravSvar
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.*
@@ -46,7 +47,7 @@ class KlagebehandlingRepository(private val db: JdbcTemplate) {
                 UUID::class.java,
                 klageInitiellData.vedtakId,
                 klageInitiellData.veilederIdent,
-                klageInitiellData.norskIdent,
+                klageInitiellData.personIdenter.fnr.get(),
                 klageInitiellData.klageDato,
                 klageInitiellData.klageJournalpostid,
                 FormkravOppfylt.IKKE_SATT.name,
@@ -155,7 +156,7 @@ class KlagebehandlingRepository(private val db: JdbcTemplate) {
                     klageInitiellData = KlageInitiellData(
                         vedtakId = rs.getLong(VEDTAK_ID),
                         veilederIdent = rs.getString(VEILEDER_IDENT),
-                        norskIdent = rs.getString(NORSK_IDENT),
+                        personIdenter = KlageInitiellData.PersonIdenter(fnr = Fnr.of(rs.getString(NORSK_IDENT))),
                         klageDato = rs.getDate(KLAGE_DATO).toLocalDate(),
                         klageJournalpostid = rs.getString(KLAGE_JOURNALPOST_ID),
                     ),

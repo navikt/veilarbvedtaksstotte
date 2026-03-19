@@ -168,7 +168,8 @@ class KlageService(
     }
 
     private fun hentNåværendeKlagebehandlingTilstand(vedtakId: Long): KlagebehandlingTilstand {
-        val eksisterendeTilstand = klagebehandlingRepository.hentKlageBehandling(vedtakId) ?: return KlagebehandlingTilstandIngen
+        val eksisterendeTilstand =
+            klagebehandlingRepository.hentKlageBehandling(vedtakId) ?: return KlagebehandlingTilstandIngen
 
         return when (eksisterendeTilstand.klageStatus) {
             Status.UTKAST -> KlagebehandlingTilstandStartet(data = eksisterendeTilstand)
@@ -212,9 +213,12 @@ class KlageService(
 
         val påklagetVedtak = grunnlag.påklagetVedtak
             ?: return Feil(årsak = PÅKLAGET_VEDTAK_IKKE_FUNNET)
-        if (påklagetVedtak.vedtakFnr.get() != data.norskIdent) return Feil(årsak = PÅKLAGET_VEDTAK_TILHØRER_IKKE_BRUKER)
+        if (påklagetVedtak.vedtakFnr.get() != data.personIdenter.fnr.get()) return Feil(årsak = PÅKLAGET_VEDTAK_TILHØRER_IKKE_BRUKER)
         if (grunnlag.journalpost == null) return Feil(årsak = KLAGEBREV_JOURNALPOST_IKKE_FUNNET)
-        if (grunnlag.journalpost.bruker.id != data.norskIdent) return Feil(årsak = KLAGEBREV_JOURNALPOST_TILHØRER_IKKE_BRUKER)
+        if ((Journalpost.Type.FNR == grunnlag.journalpost.bruker.type && grunnlag.journalpost.bruker.id != data.personIdenter.fnr.get())
+            || (Journalpost.Type.AKTOERID == grunnlag.journalpost.bruker.type && grunnlag.journalpost.bruker.id != data.personIdenter.aktorId?.get())
+            || Journalpost.Type.ORGNR == grunnlag.journalpost.bruker.type
+        ) return Feil(årsak = KLAGEBREV_JOURNALPOST_TILHØRER_IKKE_BRUKER)
         if (data.klageDato.isAfter(grunnlag.idag)) return Feil(årsak = KLAGEDATO_ER_FREM_I_TID)
         if (data.klageDato.isBefore(påklagetVedtak.vedtak.vedtakFattet.toLocalDate())) return Feil(årsak = KLAGEDATO_ER_FØR_VEDTAK_FATTET_DATO)
 
@@ -309,7 +313,7 @@ class KlageService(
             return KabalDTO(
                 sakenGjelder = Part(
                     id = PartId(
-                        verdi = lagretKlage.klageInitiellData.norskIdent
+                        verdi = lagretKlage.klageInitiellData.personIdenter.fnr.get()
                     )
                 ),
                 fagsak = Fagsak(

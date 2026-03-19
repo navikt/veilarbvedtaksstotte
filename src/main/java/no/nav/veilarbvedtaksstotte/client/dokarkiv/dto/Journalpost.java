@@ -15,8 +15,15 @@ public class Journalpost {
 
     public static class Bruker {
         public String id;
-        public String type;
+        public Type type;
     }
+
+    public enum Type {
+        ORGNR,
+        AKTOERID,
+        FNR
+    }
+
 
     public static class JournalpostDokument {
         public String datoFerdigstilt;

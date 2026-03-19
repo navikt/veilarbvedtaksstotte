@@ -36,6 +36,7 @@ data class KlagebehandlingProblemDetailResponse(
         KLAGEBREV_JOURNALPOST_IKKE_FUNNET,
         KLAGE_IKKE_FUNNET,
         PÅKLAGET_VEDTAK_IKKE_FUNNET,
+        AKTOR_ID_IKKE_FUNNET,
 
         // Internal Server Error
         UKJENT_FEIL

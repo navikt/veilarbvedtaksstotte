@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.repository
 
+import no.nav.common.types.identer.AktorId
+import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravKlagefristUnntakSvar
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.FormkravSvar
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.*
@@ -30,7 +32,8 @@ class KlagebehandlingRepositoryTest : DatabaseTest() {
     @Test
     fun `upsertKlagebehandling skal opprette i databasen og kunne oppdatere felt`() {
         val vedtakId: Long = 123456789
-        val norskIdent = "12345678910"
+        val personIdenter =
+            KlageInitiellData.PersonIdenter(fnr = Fnr.of("12345678910"))
         val veilederIdent = "Z123456"
         val nyVeilederIdent = "Z654321"
         val klageDato = LocalDate.of(2026, 2, 14)
@@ -38,7 +41,7 @@ class KlagebehandlingRepositoryTest : DatabaseTest() {
         val request = Klagebehandling(
             klageInitiellData = KlageInitiellData(
                 vedtakId = vedtakId,
-                norskIdent = norskIdent,
+                personIdenter = personIdenter,
                 veilederIdent = veilederIdent,
                 klageDato = klageDato,
                 klageJournalpostid = journalpostId
@@ -49,7 +52,7 @@ class KlagebehandlingRepositoryTest : DatabaseTest() {
             Klagebehandling(
                 klageInitiellData = KlageInitiellData(
                     vedtakId = vedtakId,
-                    norskIdent = norskIdent,
+                    personIdenter = personIdenter,
                     veilederIdent = nyVeilederIdent,
                     klageDato = klageDato.minusDays(1),
                     klageJournalpostid = journalpostId
@@ -61,7 +64,7 @@ class KlagebehandlingRepositoryTest : DatabaseTest() {
         val lagretKlage = klagebehandlingRepository.hentKlageBehandling(vedtakId)
         assertNotNull(lagretKlage)
         assertEquals(vedtakId, lagretKlage.klageInitiellData.vedtakId)
-        assertEquals(norskIdent, lagretKlage.klageInitiellData.norskIdent)
+        assertEquals(personIdenter, lagretKlage.klageInitiellData.personIdenter)
         assertEquals(veilederIdent, lagretKlage.klageInitiellData.veilederIdent)
         assertEquals(klageDato, lagretKlage.klageInitiellData.klageDato)
         assertEquals(journalpostId, lagretKlage.klageInitiellData.klageJournalpostid)
@@ -160,17 +163,18 @@ class KlagebehandlingRepositoryTest : DatabaseTest() {
     }
 
     private fun opprettEnDefaultKlage(vedtakId: Long): Klagebehandling {
-        val norskIdent = "12345678910"
+        val personIdenter =
+            KlageInitiellData.PersonIdenter(fnr = Fnr.of("12345678910"), aktorId = AktorId.of("11111111111"))
         val veilederIdent = "Z123456"
         val klageDato = LocalDate.of(2026, 2, 14)
         val journalpostId = "987654321"
         return Klagebehandling(
             klageInitiellData = KlageInitiellData(
-                vedtakId,
-                norskIdent,
-                veilederIdent,
-                klageDato,
-                journalpostId
+                vedtakId = vedtakId,
+                veilederIdent = veilederIdent,
+                personIdenter = personIdenter,
+                klageDato = klageDato,
+                klageJournalpostid = journalpostId
             ),
             klageStatus = Status.UTKAST
         )

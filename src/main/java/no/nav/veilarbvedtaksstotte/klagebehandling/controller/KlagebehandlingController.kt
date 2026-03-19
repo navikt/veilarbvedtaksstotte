@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EksternBrukerId
 import no.nav.common.types.identer.Fnr
@@ -16,6 +17,7 @@ import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Ma
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilKlageInitiellData
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController.Mapper.tilProblemDetailResponse
 import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlagebehandlingProblemDetailResponse.KlagebehandlingProblemDetailÅrsak
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlagebehandlingProblemDetailResponse.KlagebehandlingProblemDetailÅrsak.AKTOR_ID_IKKE_FUNNET
 import no.nav.veilarbvedtaksstotte.klagebehandling.domene.*
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.Feil
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
@@ -41,7 +43,8 @@ import org.springframework.web.server.ResponseStatusException
 class KlageController(
     val klageService: KlageService,
     val authService: AuthService,
-    val vedtakRepository: VedtaksstotteRepository
+    val vedtakRepository: VedtaksstotteRepository,
+    val aktorOppslagClient: AktorOppslagClient
 ) {
 
     @PostMapping("/opprett-klage")
@@ -60,7 +63,14 @@ class KlageController(
         validerMiljo()
         validerTilganger(TilgangType.SKRIVE, authService, opprettKlageRequest.fnr)
 
-        return when (val resultat = klageService.startNyKlagebehandling(tilKlageInitiellData(opprettKlageRequest))) {
+        val brukerIdenter = aktorOppslagClient.hentIdenter(opprettKlageRequest.fnr)?.let {
+            KlageInitiellData.PersonIdenter(fnr = it.fnr, aktorId = it.aktorId)
+        } ?: return tilProblemDetailResponse(
+            HttpStatus.NOT_FOUND, AKTOR_ID_IKKE_FUNNET.name, "Fant ikke Aktør-ID for personen."
+        ).let { ResponseEntity.status(it.status).body(it) }
+
+        return when (val resultat =
+            klageService.startNyKlagebehandling(tilKlageInitiellData(opprettKlageRequest, brukerIdenter))) {
             is Feil -> tilProblemDetailResponse(resultat.årsak)
             is Ok -> ResponseEntity.ok(OpprettKlagebehandlingResponse(resultat.data))
         }
@@ -178,11 +188,14 @@ class KlageController(
     }
 
     object Mapper {
-        fun tilKlageInitiellData(opprettKlageRequest: OpprettKlageRequest): KlageInitiellData {
+        fun tilKlageInitiellData(
+            opprettKlageRequest: OpprettKlageRequest,
+            personIdenter: KlageInitiellData.PersonIdenter
+        ): KlageInitiellData {
             return KlageInitiellData(
                 vedtakId = opprettKlageRequest.vedtakId,
                 veilederIdent = opprettKlageRequest.veilederIdent,
-                norskIdent = opprettKlageRequest.fnr.get(),
+                personIdenter = personIdenter,
                 klageDato = opprettKlageRequest.klagedato,
                 klageJournalpostid = opprettKlageRequest.klageJournalpostid,
             )
