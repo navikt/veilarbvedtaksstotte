@@ -57,7 +57,7 @@ import javax.sql.DataSource
     DokumentdistribusjonMeterBinder::class,
     BrukerIdenterService::class,
     BrukerIdenterRepository::class,
-    SisteOppfolgingPeriodeRepository::class
+    SisteOppfolgingPeriodeRepository::class,
 )
 class ApplicationTestConfig {
     @Bean
