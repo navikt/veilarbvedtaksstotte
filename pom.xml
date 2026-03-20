@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <common.version>3.2026.03.03_12.13-dba14a59e6ae-beta</common.version>
+        <common.version>3.2026.03.04_12.35-b34c347c6239</common.version>
         <kotlin.version>2.2.21</kotlin.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <unleash.version>12.1.1</unleash.version>
@@ -57,7 +57,7 @@
             <plugin>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro-maven-plugin</artifactId>
-                <version>1.12.0</version>
+                <version>1.12.1</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
@@ -338,7 +338,7 @@
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
-            <version>1.12.0</version>
+            <version>1.12.1</version>
         </dependency>
 
         <!-- test -->
