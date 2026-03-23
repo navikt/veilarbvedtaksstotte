@@ -1,17 +1,17 @@
 package no.nav.veilarbvedtaksstotte.utils
 
 import no.nav.veilarbvedtaksstotte.config.ApplicationTestConfig
-import org.testcontainers.containers.KafkaContainer
+import org.testcontainers.kafka.ConfluentKafkaContainer
 import org.testcontainers.utility.DockerImageName
 
 class SingletonKafkaContainer {
 
     companion object {
-        var kafkaContainer: KafkaContainer? = null
+        var kafkaContainer: ConfluentKafkaContainer? = null
 
-        fun init(): KafkaContainer {
+        fun init(): ConfluentKafkaContainer {
             if (kafkaContainer == null) {
-                kafkaContainer = KafkaContainer(DockerImageName.parse(ApplicationTestConfig.KAFKA_IMAGE))
+                kafkaContainer = ConfluentKafkaContainer(DockerImageName.parse(ApplicationTestConfig.KAFKA_IMAGE))
                 kafkaContainer?.start()
                 setupShutdownHook()
             }
