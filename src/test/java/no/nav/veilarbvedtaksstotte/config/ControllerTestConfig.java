@@ -4,6 +4,7 @@ import no.nav.veilarbvedtaksstotte.controller.*;
 import no.nav.veilarbvedtaksstotte.controller.v2.Siste14aVedtakV2Controller;
 import no.nav.veilarbvedtaksstotte.controller.v2.UtkastV2Controller;
 import no.nav.veilarbvedtaksstotte.controller.v2.VedtakV2Controller;
+import no.nav.veilarbvedtaksstotte.klagebehandling.controller.KlageController;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Import;
         Siste14aVedtakV2Controller.class,
         UtkastV2Controller.class,
         VedtakV2Controller.class,
-        Gjeldende14aVedtakController.class
+        Gjeldende14aVedtakController.class,
+        KlageController.class
 })
 public class ControllerTestConfig {}

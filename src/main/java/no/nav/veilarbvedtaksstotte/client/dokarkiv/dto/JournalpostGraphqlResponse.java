@@ -8,6 +8,11 @@ public class JournalpostGraphqlResponse extends GraphqlResponse<JournalpostGraph
     @Data
     @Accessors(chain = true)
     public static class JournalpostReponseData {
+        // Get-er for Kotlin
+        public Journalpost getJournalpost() {
+            return journalpost;
+        }
+
         private Journalpost journalpost;
     }
 }

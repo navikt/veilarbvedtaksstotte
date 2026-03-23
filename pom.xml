@@ -19,10 +19,11 @@
 
     <properties>
         <java.version>21</java.version>
-        <common.version>3.2024.10.25_13.44-9db48a0dbe67</common.version>
+        <common.version>3.2026.03.04_12.35-b34c347c6239</common.version>
         <kotlin.version>2.2.21</kotlin.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <unleash.version>12.1.1</unleash.version>
+        <confluent.version>8.1.0</confluent.version>
 
         <!--   Used by SonarCloud     -->
         <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
@@ -44,6 +45,10 @@
             <id>github</id>
             <url>https://github-package-registry-mirror.gc.nav.no/cached/maven-release</url>
         </repository>
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
     </repositories>
 
     <build>
@@ -52,7 +57,7 @@
             <plugin>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro-maven-plugin</artifactId>
-                <version>1.12.0</version>
+                <version>1.12.1</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
@@ -103,8 +108,31 @@
                 </dependencies>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <useIncrementalCompilation>false</useIncrementalCompilation>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <!-- Colima VZ driver does not support mounting Docker sockets, which Ryuk requires -->
+                        <TESTCONTAINERS_RYUK_DISABLED>true</TESTCONTAINERS_RYUK_DISABLED>
+                    </environmentVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -320,7 +348,7 @@
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
-            <version>1.12.0</version>
+            <version>1.12.1</version>
         </dependency>
 
         <!-- test -->
@@ -340,6 +368,13 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>kafka</artifactId>
             <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- commons-compress 1.28.0 (from avro) requires commons-io >= 2.16.1 for FileTimes.toUnixTime -->
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.16.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -386,6 +421,16 @@
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>1.21.2</version>
+        </dependency>
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-schema-registry-client</artifactId>
+            <version>${confluent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-avro-serializer</artifactId>
+            <version>${confluent.version}</version>
         </dependency>
     </dependencies>
 

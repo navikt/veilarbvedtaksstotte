@@ -75,6 +75,10 @@ spec:
       value: api://dev-gcp.paw.egenvurdering-dialog-tjeneste/.default
     - name: EGENVURDERING_DIALOG_TJENESTE_URL
       value: http://egenvurdering-dialog-tjeneste.paw
+    - name: KABAL_TOKEN_SCOPE
+      value: api://dev-gcp.klage.kabal-api/.default
+    - name: KABAL_URL
+      value: https://kabal-api.intern.dev.nav.no
     - name: NORG2_URL
       value: https://norg2.intern.dev.nav.no/norg2
     - name: PDL_TOKEN_SCOPE
@@ -174,6 +178,11 @@ spec:
           permissions:
             roles:
               - "gjeldende-14a-vedtak"
+        - application: arbeidssokerregistrering-for-veileder
+          namespace: paw
+          permissions:
+            roles:
+              - "gjeldende-14a-vedtak"
     outbound:
       rules:
         - application: egenvurdering-dialog-tjeneste
@@ -189,6 +198,9 @@ spec:
           namespace: poao
         - application: veilarbperson
         - application: veilarbveileder
+        - application: kabal-api
+          namespace: klage
+          cluster: dev-gcp
       external:
         - host: dokarkiv-q2.dev-fss-pub.nais.io
         - host: dokdistkanal-q2.dev-fss-pub.nais.io
