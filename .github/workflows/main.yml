@@ -88,7 +88,7 @@ jobs:
           VAR: image=${{ needs.test-build-and-push.outputs.image }}
 
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Create release
           tag_name: release/prod@${{ env.IMAGE_TAG }}
