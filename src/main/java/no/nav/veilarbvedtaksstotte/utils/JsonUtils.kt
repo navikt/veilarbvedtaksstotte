@@ -1,38 +1,36 @@
 package no.nav.veilarbvedtaksstotte.utils
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import no.nav.common.rest.client.RestUtils
 import okhttp3.Response
 
 object JsonUtils {
 
     @JvmStatic
-    val objectMapper: ObjectMapper =
-        no.nav.common.json.JsonUtils.getMapper()
-            .registerModule(KotlinModule.Builder().build())
+    val objectMapper: JsonMapper = JsonMapper.builder()
+        .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .disable(DateTimeFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .addModule(KotlinModule.Builder().build())
+        .build()
 
     @JvmStatic
     fun init() {
-        // noop, trigger evaluering av objectMapper og registrering av KotlinModule
-    }
-
-    @JvmStatic
-    fun createNoDataStr(noDataMsg: String?): String {
-
-        return createJsonStr("ingenData", noDataMsg)
-    }
-
-    fun createJsonStr(fieldName: String?, value: String?): String {
-        val error = JsonNodeFactory.instance.objectNode()
-        error.put(fieldName, value)
-        return error.toString()
+        // noop, trigger evaluering av objectMapper og registrering av moduler
     }
 
     @JvmStatic
     fun <T> fromJson(json: String, valueClass: Class<T>): T {
         return objectMapper.readValue(json, valueClass)
+    }
+
+    @JvmStatic
+    fun <T> fromJsonArray(json: String, valueClass: Class<T>): List<T> {
+        val listType = objectMapper.typeFactory.constructCollectionType(List::class.java, valueClass)
+        return objectMapper.readValue(json, listType)
     }
 }
 

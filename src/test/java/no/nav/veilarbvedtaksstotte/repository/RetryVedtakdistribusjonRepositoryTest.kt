@@ -38,7 +38,7 @@ class RetryVedtakdistribusjonRepositoryTest : DatabaseTest() {
             "SELECT COALESCE(MAX(DISTRIBUSJONSFORSOK), 0) FROM RETRY_VEDTAKDISTRIBUSJON WHERE JOURNALPOST_ID = ?",
             Int::class.java,
             journalpostId
-        )
+        )!!
     }
 
     @Test
