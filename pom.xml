@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <common.version>3.2026.03.04_12.35-b34c347c6239</common.version>
+        <common.version>4.2026.04.22_09.00-e64ebaa5d251-beta</common.version>
         <kotlin.version>2.2.21</kotlin.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <unleash.version>12.1.1</unleash.version>
@@ -274,11 +274,6 @@
         <dependency>
             <groupId>no.nav.common</groupId>
             <artifactId>auth</artifactId>
-            <version>${common.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>no.nav.common</groupId>
-            <artifactId>log</artifactId>
             <version>${common.version}</version>
         </dependency>
         <dependency>

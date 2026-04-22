@@ -82,7 +82,7 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseOrThrow(response, SakDTO.class);
+            return JsonUtils.fromJson(RestUtils.getBodyStr(response).orElseThrow(), SakDTO.class);
         }
     }
 
