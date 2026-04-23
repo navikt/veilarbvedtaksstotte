@@ -16,13 +16,15 @@ import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.LocalDateTime
 
 class DvhRapporteringServiceTest : AbstractVedtakIntegrationTest() {
@@ -36,11 +38,16 @@ class DvhRapporteringServiceTest : AbstractVedtakIntegrationTest() {
     @Autowired
     lateinit var kafkaProperties: KafkaProperties
 
-    @MockBean
+    @MockitoBean
     lateinit var producerRecordStorage: KafkaProducerRecordStorage
 
     @Captor
     lateinit var argumentCaptor: ArgumentCaptor<ProducerRecord<ByteArray, ByteArray>>
+
+    @BeforeEach
+    fun initMocks() {
+        MockitoAnnotations.openMocks(this)
+    }
 
     @Test
     fun `lagrer forventet record verdi for sending av vedtak til dvh basert på statusendring vedtak sendt`() {

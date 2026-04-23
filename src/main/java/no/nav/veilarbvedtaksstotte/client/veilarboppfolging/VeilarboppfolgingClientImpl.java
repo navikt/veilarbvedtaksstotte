@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.client.veilarboppfolging;
 import lombok.SneakyThrows;
 import no.nav.common.health.HealthCheckResult;
 import no.nav.common.health.HealthCheckUtils;
-import no.nav.common.json.JsonUtils;
+import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
@@ -82,7 +82,7 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.parseJsonResponseOrThrow(response, SakDTO.class);
+            return JsonUtils.fromJson(RestUtils.getBodyStr(response).orElseThrow(), SakDTO.class);
         }
     }
 
