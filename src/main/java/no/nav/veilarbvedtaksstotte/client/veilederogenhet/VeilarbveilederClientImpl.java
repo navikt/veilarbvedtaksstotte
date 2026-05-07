@@ -7,7 +7,6 @@ import no.nav.common.health.HealthCheckUtils;
 import no.nav.common.rest.client.RestClient;
 import no.nav.common.rest.client.RestUtils;
 import no.nav.common.utils.UrlUtils;
-import no.nav.veilarbvedtaksstotte.utils.JsonUtils;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
@@ -66,7 +65,7 @@ public class VeilarbveilederClientImpl implements VeilarbveilederClient {
 
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return JsonUtils.fromJson(RestUtils.getBodyStr(response).orElseThrow(), Veileder.class);
+            return RestUtils.parseJsonResponseOrThrow(response, Veileder.class);
         }
     }
 
