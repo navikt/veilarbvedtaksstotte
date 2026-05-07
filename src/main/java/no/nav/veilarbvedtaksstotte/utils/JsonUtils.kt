@@ -1,21 +1,13 @@
 package no.nav.veilarbvedtaksstotte.utils
 
-import tools.jackson.databind.DeserializationFeature
-import tools.jackson.databind.cfg.DateTimeFeature
-import tools.jackson.databind.json.JsonMapper
-import tools.jackson.module.kotlin.KotlinModule
 import no.nav.common.rest.client.RestUtils
 import okhttp3.Response
+import tools.jackson.databind.ObjectMapper
 
 object JsonUtils {
 
     @JvmStatic
-    val objectMapper: JsonMapper = JsonMapper.builder()
-        .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .disable(DateTimeFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .addModule(KotlinModule.Builder().build())
-        .build()
+    val objectMapper: ObjectMapper = no.nav.common.json.JsonUtils.getMapper()
 
     @JvmStatic
     fun init() {
