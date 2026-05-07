@@ -1,4 +1,4 @@
-package no.nav.veilarbvedtaksstotte.controller;
+package no.nav.veilarbvedtaksstotte.controller
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -12,7 +12,7 @@ import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -24,7 +24,7 @@ class AdminControllerTest {
     lateinit var authService: AuthService
 
     @MockkBean
-    lateinit var kafkaRepubliseringService : KafkaRepubliseringService
+    lateinit var kafkaRepubliseringService: KafkaRepubliseringService
 
     @MockkBean
     lateinit var vedtakService : VedtakService

@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import com.fasterxml.jackson.databind.exc.MismatchedInputException
+import tools.jackson.databind.exc.MismatchedInputException
 import io.getunleash.DefaultUnleash
 import io.getunleash.UnleashContext
 import no.nav.common.client.norg2.Enhet

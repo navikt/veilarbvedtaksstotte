@@ -20,23 +20,30 @@ import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 class KafkaProducerServiceTest : IntegrationTestBase() {
-    @MockBean
+    @MockitoBean
     lateinit var producerRecordStorage: KafkaProducerRecordStorage
 
     @Captor
     lateinit var argumentCaptor: ArgumentCaptor<ProducerRecord<ByteArray, ByteArray>>
+
+    @BeforeEach
+    fun initMocks() {
+        MockitoAnnotations.openMocks(this)
+    }
 
     @Autowired
     lateinit var kafkaProducerService: KafkaProducerService
