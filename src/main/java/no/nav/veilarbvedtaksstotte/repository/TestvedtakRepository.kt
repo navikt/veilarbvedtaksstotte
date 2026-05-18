@@ -6,6 +6,8 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.*
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.sql.ResultSet
@@ -20,30 +22,36 @@ import java.time.ZoneId
 class TestvedtakRepository(
     private val jdbcTemplate: JdbcTemplate
 ) {
+    private val namedJdbcTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
     @Transactional
     fun lagreTestvedtak(vedtak: Vedtak, navConsumerId: String) {
         val begrunnelse = vedtak.begrunnelse ?: "Testvedtak opprettet for å teste vedtaksløsningen og videre flyt i preprod-miljøet."
-        val sql =
-            """
-                INSERT INTO $VEDTAK_TABLE ($AKTOR_ID, $HOVEDMAL, $INNSATSGRUPPE, $OPPFOLGINGSENHET_ID, $UTKAST_SIST_OPPDATERT, $BEGRUNNELSE, $STATUS, $GJELDENDE, $UTKAST_OPPRETTET, $VEDTAK_FATTET, $VEILEDER_IDENT, $OPPRETTET_AV_SYSTEM)
-                VALUES (?, ?, ?, ?, ?, ?, ?, true, ?, ?, ?, ?)
-            """
+        val sql = """
+            INSERT INTO $VEDTAK_TABLE (
+                $AKTOR_ID, $HOVEDMAL, $INNSATSGRUPPE, $OPPFOLGINGSENHET_ID,
+                $UTKAST_SIST_OPPDATERT, $BEGRUNNELSE, $STATUS, $GJELDENDE,
+                $UTKAST_OPPRETTET, $VEDTAK_FATTET, $VEILEDER_IDENT, $OPPRETTET_AV_SYSTEM
+            ) VALUES (
+                :aktorId, :hovedmal, :innsatsgruppe, :oppfolgingsenhetId,
+                :utkastSistOppdatert, :begrunnelse, :status, true,
+                :utkastOpprettet, :vedtakFattet, :veilederIdent, :opprettetAvSystem
+            )
+        """
+        val params = MapSqlParameterSource()
+            .addValue("aktorId", vedtak.aktorId)
+            .addValue("hovedmal", vedtak.hovedmal.name)
+            .addValue("innsatsgruppe", vedtak.innsatsgruppe.name)
+            .addValue("oppfolgingsenhetId", vedtak.oppfolgingsenhetId)
+            .addValue("utkastSistOppdatert", TimeUtils.toTimestampOrNull(vedtak.utkastSistOppdatert.atZone(ZoneId.systemDefault()).toInstant()))
+            .addValue("begrunnelse", begrunnelse)
+            .addValue("status", VedtakStatus.SENDT.name)
+            .addValue("utkastOpprettet", TimeUtils.toTimestampOrNull(vedtak.utkastOpprettet.atZone(ZoneId.systemDefault()).toInstant()))
+            .addValue("vedtakFattet", TimeUtils.toTimestampOrNull(vedtak.vedtakFattet.atZone(ZoneId.systemDefault()).toInstant()))
+            .addValue("veilederIdent", vedtak.veilederIdent)
+            .addValue("opprettetAvSystem", navConsumerId)
 
-        jdbcTemplate.update(
-            sql,
-            vedtak.aktorId,
-            vedtak.hovedmal.name,
-            vedtak.innsatsgruppe.name,
-            vedtak.oppfolgingsenhetId,
-            TimeUtils.toTimestampOrNull(vedtak.utkastSistOppdatert.atZone(ZoneId.of("Europe/Oslo")).toInstant()),
-            begrunnelse,
-            VedtakStatus.SENDT.name,
-            TimeUtils.toTimestampOrNull(vedtak.utkastOpprettet.atZone(ZoneId.of("Europe/Oslo")).toInstant()),
-            TimeUtils.toTimestampOrNull(vedtak.vedtakFattet.atZone(ZoneId.of("Europe/Oslo")).toInstant()),
-            vedtak.veilederIdent,
-            navConsumerId
-        )
+        namedJdbcTemplate.update(sql, params)
     }
 
     fun settTidligereVedtakIkkeGjeldende(aktorId: AktorId): Int {
