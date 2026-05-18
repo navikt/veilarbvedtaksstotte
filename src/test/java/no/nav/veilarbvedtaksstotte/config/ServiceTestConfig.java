@@ -36,7 +36,8 @@ import org.springframework.context.annotation.Import;
         PdfService.class,
         Gjeldende14aVedtakService.class,
         AuditlogService.class,
-        KlageService.class
+        KlageService.class,
+        TestvedtakService.class
 })
 public class ServiceTestConfig {
 }

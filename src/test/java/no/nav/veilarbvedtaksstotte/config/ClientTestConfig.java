@@ -37,6 +37,8 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.ArenaRegistreringResultat;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.RegistrerIkkeArbeidssokerDto;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
@@ -308,6 +310,11 @@ public class ClientTestConfig {
             @Override
             public SakDTO hentOppfolgingsperiodeSak(UUID oppfolgingsperiodeId) {
                 return new SakDTO(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), 123456789012L, "ARBEIDSOPPFOLGING", "OPP");
+            }
+
+            @Override
+            public RegistrerIkkeArbeidssokerDto startOppfolgingsperiode(Fnr fnr) {
+                return new RegistrerIkkeArbeidssokerDto("ok", ArenaRegistreringResultat.OK_REGISTRERT_I_ARENA);
             }
 
             @Override

@@ -16,6 +16,7 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.VEDTAK_ID_THAT_DOES_NOT_EXIST;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_APP_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -48,7 +49,7 @@ public class KilderRepositoryTest extends DatabaseTest {
     @Test
     public void skal_lage_og_hente_kilder() {
 
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
 
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
@@ -63,8 +64,8 @@ public class KilderRepositoryTest extends DatabaseTest {
 
     @Test
     public void hentKilderForAlleVedtak__skal_hente_alle_kilder() {
-        vedtaksstotteRepository.opprettUtkast("aktor1", TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-        vedtaksstotteRepository.opprettUtkast("aktor2", TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast("aktor1", TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast("aktor2", TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
 
         Vedtak vedtak1 = vedtaksstotteRepository.hentUtkast("aktor1");
         Vedtak vedtak2 = vedtaksstotteRepository.hentUtkast("aktor2");

@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Import;
         UtkastV2Controller.class,
         VedtakV2Controller.class,
         Gjeldende14aVedtakController.class,
-        KlageController.class
+        KlageController.class,
+        TestvedtakController.class
 })
 public class ControllerTestConfig {}
