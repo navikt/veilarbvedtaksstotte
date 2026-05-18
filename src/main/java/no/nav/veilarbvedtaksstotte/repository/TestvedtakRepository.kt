@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.AktorId
-import no.nav.common.utils.EnvironmentUtils
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.*
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
@@ -24,9 +23,6 @@ class TestvedtakRepository(
 
     @Transactional
     fun lagreTestvedtak(vedtak: Vedtak, navConsumerId: String) {
-        if (!EnvironmentUtils.isDevelopment().orElse(false)) {
-            throw UnsupportedOperationException("Lagring av vedtak er kun støttet i preprod-miljøer for testing av ny vedtaksløsning.")
-        }
         val begrunnelse = vedtak.begrunnelse ?: "Testvedtak opprettet for å teste vedtaksløsningen og videre flyt i preprod-miljøet."
         val sql =
             """
@@ -51,13 +47,8 @@ class TestvedtakRepository(
     }
 
     fun settTidligereVedtakIkkeGjeldende(aktorId: AktorId): Int {
-        if (!EnvironmentUtils.isDevelopment().orElse(false)) {
-            throw UnsupportedOperationException("Oppdatering av tidligere vedtak er kun støttet i preprod-miljøer for testing av ny vedtaksløsning.")
-        }
-
         val sql = """UPDATE $VEDTAK_TABLE SET $GJELDENDE = false WHERE $AKTOR_ID = ? AND $GJELDENDE = true"""
         return jdbcTemplate.update(sql, aktorId.get())
-
     }
 
     fun hentTestvedtak(aktorId: AktorId): Vedtak? {
