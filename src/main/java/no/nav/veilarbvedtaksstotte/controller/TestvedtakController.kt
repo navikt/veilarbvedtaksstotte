@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.utils.EnvironmentUtils
@@ -46,7 +47,7 @@ class TestvedtakController(
         ]
     )
     fun fattTestVedtak(
-        @RequestBody opprettTestvedtakRequest: OpprettTestvedtakRequest,
+        @RequestBody @Valid opprettTestvedtakRequest: OpprettTestvedtakRequest,
         @RequestHeader("nav-consumer-id") navConsumerId: String
     ) {
         // if (!authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")) {
@@ -82,7 +83,7 @@ class TestvedtakController(
             )
         ]
     )
-    fun hentTestVedtak(@RequestBody testvedtakRequest: TestvedtakRequest): Vedtak? {
+    fun hentTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest): Vedtak? {
         // if (!authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")) {
         //     throw ResponseStatusException(HttpStatus.FORBIDDEN)
         // }
@@ -110,7 +111,7 @@ class TestvedtakController(
             )
         ]
     )
-    fun slettTestVedtak(@RequestBody testvedtakRequest: TestvedtakRequest) {
+    fun slettTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest,
         // if (!authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")) {
         //     throw ResponseStatusException(HttpStatus.FORBIDDEN)
         // }

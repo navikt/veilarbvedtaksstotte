@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.controller.dto
 
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*
@@ -7,16 +9,20 @@ import java.time.LocalDateTime
 import java.util.*
 
 data class OpprettTestvedtakRequest(
+    @field:NotNull
     val fnr: Fnr,
+    @field:NotNull
     val innsatsgruppe: InnsatsgruppeV2,
     val hovedmal: Hovedmal? = null,
     val vedtakFattet: LocalDateTime? = null,
+    @field:NotBlank
     val oppfolgingsEnhet: String,
     val begrunnelse: String? = null,
     val veilederIdent: String? = "Ztestveileder"
 )
 
 data class TestvedtakRequest(
+    @field:NotNull
     val fnr: Fnr,
 )
 fun OpprettTestvedtakRequest.toVedtak(aktorId: AktorId): Vedtak = Vedtak()
