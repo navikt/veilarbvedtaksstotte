@@ -54,7 +54,7 @@ class TestvedtakRepositoryTest: DatabaseTest() {
 
         testvedtakRepository.lagreTestvedtak(testVedtak, Fnr.of("12345678910").get())
 
-        val hentetVedtak = testvedtakRepository.hentTestvedtak(aktorId)
+        val hentetVedtak = testvedtakRepository.hentGjeldendeTestvedtak(aktorId)
         assertNotNull(hentetVedtak)
         assertEquals(testVedtak.aktorId, hentetVedtak?.aktorId)
         assertEquals(testVedtak.innsatsgruppe, hentetVedtak?.innsatsgruppe)

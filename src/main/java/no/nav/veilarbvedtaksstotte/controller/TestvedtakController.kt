@@ -89,7 +89,7 @@ class TestvedtakController(
         // }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
             val aktorId: AktorId = aktorOppslagClient.hentAktorId(testvedtakRequest.fnr)
-            return testvedtakService.hentTestvedtak(aktorId)
+            return testvedtakService.hentGjeldendeTestvedtak(aktorId)
         }
         throw ResponseStatusException(
             HttpStatus.FORBIDDEN,
@@ -112,12 +112,13 @@ class TestvedtakController(
         ]
     )
     fun slettTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest,
+                       @RequestHeader("nav-consumer-id") navConsumerId: String) {
         // if (!authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")) {
         //     throw ResponseStatusException(HttpStatus.FORBIDDEN)
         // }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
             val aktorId: AktorId = aktorOppslagClient.hentAktorId(testvedtakRequest.fnr)
-            testvedtakService.slettTestvedtak(aktorId)
+            testvedtakService.slettGjeldendeTestvedtak(aktorId, navConsumerId)
             return
         }
         throw ResponseStatusException(

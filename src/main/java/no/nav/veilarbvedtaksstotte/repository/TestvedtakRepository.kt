@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Transactional
 import java.sql.ResultSet
 import java.time.ZoneId
 
@@ -24,7 +23,6 @@ class TestvedtakRepository(
 ) {
     private val namedJdbcTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
-    @Transactional
     fun lagreTestvedtak(vedtak: Vedtak, navConsumerId: String) {
         val begrunnelse = vedtak.begrunnelse ?: "Testvedtak opprettet for å teste vedtaksløsningen og videre flyt i preprod-miljøet."
         val sql = """
@@ -59,25 +57,16 @@ class TestvedtakRepository(
         return jdbcTemplate.update(sql, aktorId.get())
     }
 
-    fun hentTestvedtak(aktorId: AktorId): Vedtak? {
-        try {
-            val sql = """SELECT * FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ?"""
-            return jdbcTemplate.query(sql, this::vedtakMapper, aktorId.get()).firstOrNull()
-        } catch (e: Exception) {
-            return null
-        }
+    fun hentGjeldendeTestvedtak(aktorId: AktorId): Vedtak? {
+        val sql = """SELECT * FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ? AND $GJELDENDE = true"""
+        return jdbcTemplate.query(sql, this::vedtakMapper, aktorId.get()).firstOrNull()
     }
 
-    fun slettTestvedtak(aktorId: AktorId) {
-        if (!EnvironmentUtils.isDevelopment().orElse(false)) {
-            throw UnsupportedOperationException("Sletting av vedtak er kun støttet i preprod-miljøer.")
-        }
-        try {
-            val sql = """DELETE FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ?"""
-            jdbcTemplate.update(sql, aktorId.get())
-        } catch (e: Exception) {
-            secureLog.error("Kunne ikke slette testvedtak for aktorId: ${aktorId.get()}. Feil: ${e.message}", e)
-            throw RuntimeException("Kunne ikke slette testvedtak")
+    fun slettGjeldendeTestvedtak(aktorId: AktorId, navConsumerId: String) {
+        val sql = """DELETE FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ? AND $GJELDENDE = true AND $OPPRETTET_AV_SYSTEM = ?"""
+        val rowsDeleted = jdbcTemplate.update(sql, aktorId.get(), navConsumerId)
+        if (rowsDeleted == 0) {
+            secureLog.warn("Ingen testvedtak funnet å slette for aktorId: ${aktorId.get()} med opprettetAvSystem: $navConsumerId")
         }
     }
 

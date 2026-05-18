@@ -76,11 +76,13 @@ public class UtkastController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing fnr");
         }
 
+        // Kall fra vedtaksløsningen i frontend går gjennom veilarbpersonflate, og vil dermed ha navConsumerId "veilarbpersonflate".
+        // Men vi vil lagre det med riktig kildesystem, så sender derfor "veilarbvedtaksstotte" videre til service-laget.
         if (!Objects.equals(navConsumerId, "veilarbpersonflate")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ugyldig nav-consumer-id");
         }
 
-        vedtakService.lagUtkast(lagUtkastDTO.getFnr(), "veilarbvedtaksstottefs");
+        vedtakService.lagUtkast(lagUtkastDTO.getFnr(), "veilarbvedtaksstotte");
     }
 
 

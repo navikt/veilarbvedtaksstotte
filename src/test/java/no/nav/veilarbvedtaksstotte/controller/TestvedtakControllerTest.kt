@@ -132,7 +132,7 @@ class TestvedtakControllerTest {
         } returns aktorId
 
         every {
-            testvedtakService.hentTestvedtak(aktorId)
+            testvedtakService.hentGjeldendeTestvedtak(aktorId)
         } returns vedtak
 
         val response = mockMvc.perform(
@@ -159,12 +159,13 @@ class TestvedtakControllerTest {
         } returns aktorId
 
         every {
-            testvedtakService.slettTestvedtak(any())
+            testvedtakService.slettGjeldendeTestvedtak(any(), any())
         } returns Unit
 
         val response = mockMvc.perform(
             delete("/api/v1/test/vedtak")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .header("nav-consumer-id", "dolly")
                 .content(objectMapper.writeValueAsString(TestvedtakRequest(fnr = fnr)))
         )
             .andReturn().response
