@@ -1,34 +1,17 @@
 package no.nav.veilarbvedtaksstotte.utils
 
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
-import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.types.identer.AktorId
-import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.IntegrationTestBase
-import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
-import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.ARENA_VEDTAK_TABLE
-import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.FNR
-import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.FRA_DATO
-import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.HENDELSE_ID
-import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.HOVEDMAL
-import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.INNSATSGRUPPE
-import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.OPERATION_TIMESTAMP
-import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.REG_USER
-import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.VEDTAK_ID
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
-import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.jdbc.core.JdbcTemplate
-import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.random.Random
 
 abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
 
@@ -41,7 +24,7 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
     @Autowired
     lateinit var arenaVedtakRepository: ArenaVedtakRepository
 
-    @MockBean
+    @MockitoBean
     lateinit var aktorOppslagClient: AktorOppslagClient
 
     fun lagreFattetVedtak(
@@ -52,8 +35,7 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
         gjeldende: Boolean = true,
         enhetId: String = "1234",
         veilederIdent: String = "VIDENT",
-        beslutterIdent: String? = null,
-        gammelVedtakId: Long = 1234
+        beslutterIdent: String? = null
     ): Vedtak {
         vedtakRepository.opprettUtkast(
             aktorId.get(), TestData.TEST_VEILEDER_IDENT, TestData.TEST_OPPFOLGINGSENHET_ID
@@ -74,102 +56,5 @@ abstract class AbstractVedtakIntegrationTest : IntegrationTestBase() {
         )
 
         return vedtakRepository.hentVedtak(vedtak.id)
-    }
-
-
-    private val defaultArenaVedtakFraDato = LocalDate.now()
-    private val defaultArenaVedtakRegUser = "REG USER"
-    private val defaultArenaVedtakInnsatsgruppe = ArenaVedtak.ArenaInnsatsgruppe.BFORM
-    private val defaultArenaVedtakHovedmal = ArenaVedtak.ArenaHovedmal.SKAFFEA
-    private fun defaultArenaVedtakOperationTimestamp() = LocalDateTime.now()
-    private fun defaultArenaVedtakHendelseId() = Random.nextLong()
-
-
-    fun arenaVedtak(
-        fnr: Fnr,
-        fraDato: LocalDate = defaultArenaVedtakFraDato,
-        regUser: String = defaultArenaVedtakRegUser,
-        innsatsgruppe: ArenaVedtak.ArenaInnsatsgruppe = defaultArenaVedtakInnsatsgruppe,
-        hovedmal: ArenaVedtak.ArenaHovedmal = defaultArenaVedtakHovedmal,
-        operationTimestamp: LocalDateTime = defaultArenaVedtakOperationTimestamp(),
-        hendelseId: Long = defaultArenaVedtakHendelseId()
-    ): ArenaVedtak {
-        return ArenaVedtak(
-            fnr = fnr,
-            innsatsgruppe = innsatsgruppe,
-            hovedmal = hovedmal,
-            fraDato = fraDato,
-            regUser = regUser,
-            operationTimestamp = operationTimestamp,
-            hendelseId = hendelseId,
-            vedtakId = 1
-        )
-    }
-
-    fun lagreArenaVedtak(
-        fnr: Fnr,
-        fraDato: LocalDate = defaultArenaVedtakFraDato,
-        regUser: String = defaultArenaVedtakRegUser,
-        innsatsgruppe: ArenaVedtak.ArenaInnsatsgruppe = defaultArenaVedtakInnsatsgruppe,
-        hovedmal: ArenaVedtak.ArenaHovedmal = defaultArenaVedtakHovedmal,
-        operationTimestamp: LocalDateTime = defaultArenaVedtakOperationTimestamp(),
-        hendelseId: Long = defaultArenaVedtakHendelseId()
-    ): ArenaVedtak {
-
-        val arenaVedtak = ArenaVedtak(
-            fnr = fnr,
-            innsatsgruppe = innsatsgruppe,
-            hovedmal = hovedmal,
-            fraDato = fraDato,
-            regUser = regUser,
-            operationTimestamp = operationTimestamp,
-            hendelseId = hendelseId,
-            vedtakId = 1
-        )
-
-        val sql =
-            """
-                INSERT INTO $ARENA_VEDTAK_TABLE ($FNR, $INNSATSGRUPPE, $HOVEDMAL, $FRA_DATO, $REG_USER, $OPERATION_TIMESTAMP, $HENDELSE_ID, $VEDTAK_ID)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT ($FNR) DO UPDATE
-                SET $INNSATSGRUPPE        = EXCLUDED.$INNSATSGRUPPE,
-                    $HOVEDMAL             = EXCLUDED.$HOVEDMAL,
-                    $FRA_DATO             = EXCLUDED.$FRA_DATO,
-                    $REG_USER             = EXCLUDED.$REG_USER,
-                    $OPERATION_TIMESTAMP  = EXCLUDED.$OPERATION_TIMESTAMP,
-                    $HENDELSE_ID          = EXCLUDED.$HENDELSE_ID,
-                    $VEDTAK_ID            = EXCLUDED.$VEDTAK_ID
-            """
-
-        DatabaseTest.Companion.jdbcTemplate.update(
-            sql,
-            arenaVedtak.fnr.get(),
-            arenaVedtak.innsatsgruppe.name,
-            arenaVedtak.hovedmal?.name,
-            arenaVedtak.fraDato,
-            arenaVedtak.regUser,
-            arenaVedtak.operationTimestamp,
-            arenaVedtak.hendelseId,
-            arenaVedtak.vedtakId
-        )
-
-        return arenaVedtak
-    }
-
-    fun gittBrukerIdenter(
-        antallHistoriskeFnr: Int = 1, antallHistoriskeAktorId: Int = 1
-    ): BrukerIdenter {
-        val brukerIdenter = BrukerIdenter(
-            Fnr(randomNumeric(11)),
-            AktorId(randomNumeric(13)),
-            (1..antallHistoriskeFnr).map { Fnr(randomNumeric(11)) },
-            (1..antallHistoriskeAktorId).map { AktorId(randomNumeric(11)) })
-
-        `when`(aktorOppslagClient.hentIdenter(ArgumentMatchers.argThat { arg ->
-            brukerIdenter.historiskeFnr.plus(brukerIdenter.historiskeAktorId).plus(brukerIdenter.fnr)
-                .plus(brukerIdenter.aktorId).contains(arg)
-        })).thenReturn(brukerIdenter)
-
-        return brukerIdenter
     }
 }
