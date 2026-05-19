@@ -40,7 +40,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
-import org.testcontainers.containers.KafkaContainer
+import org.testcontainers.kafka.ConfluentKafkaContainer
 import javax.sql.DataSource
 
 @Configuration
@@ -57,7 +57,7 @@ import javax.sql.DataSource
     DokumentdistribusjonMeterBinder::class,
     BrukerIdenterService::class,
     BrukerIdenterRepository::class,
-    SisteOppfolgingPeriodeRepository::class
+    SisteOppfolgingPeriodeRepository::class,
 )
 class ApplicationTestConfig {
     @Bean
@@ -113,12 +113,12 @@ class ApplicationTestConfig {
     // destroyMethod satt til "" hindrer at KafkaContainer, som er AutoCloseable,
     // stoppes når ApplicationContext for en test lukkes:
     @Bean(destroyMethod = "")
-    fun kafkaContainer(): KafkaContainer {
+    fun kafkaContainer(): ConfluentKafkaContainer {
         return SingletonKafkaContainer.init()
     }
 
     @Bean
-    fun kafkaConfigEnvContext(kafkaContainer: KafkaContainer): KafkaEnvironmentContext {
+    fun kafkaConfigEnvContext(kafkaContainer: ConfluentKafkaContainer): KafkaEnvironmentContext {
         val consumerProperties = KafkaPropertiesBuilder.consumerBuilder()
             .withBaseProperties(1000)
             .withConsumerGroupId(KafkaConsumerConfig.CONSUMER_GROUP_ID)
@@ -155,7 +155,7 @@ class ApplicationTestConfig {
     }
 
     @Bean
-    fun kafkaTestProducer(kafkaContainer: KafkaContainer): KafkaTestProducer {
+    fun kafkaTestProducer(kafkaContainer: ConfluentKafkaContainer): KafkaTestProducer {
         return KafkaTestProducer(
             mapOf(
                 Pair(BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.bootstrapServers),
@@ -181,6 +181,6 @@ class ApplicationTestConfig {
     }
 
     companion object {
-        const val KAFKA_IMAGE = "confluentinc/cp-kafka:5.4.3"
+        const val KAFKA_IMAGE = "confluentinc/cp-kafka:7.5.1"
     }
 }

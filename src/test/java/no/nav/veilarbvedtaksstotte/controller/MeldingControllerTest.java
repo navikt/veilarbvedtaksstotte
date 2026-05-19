@@ -1,12 +1,12 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import no.nav.veilarbvedtaksstotte.controller.dto.OpprettDialogMeldingDTO;
 import no.nav.veilarbvedtaksstotte.service.MeldingService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;

@@ -1,6 +1,6 @@
 package no.nav.veilarbvedtaksstotte.config
 
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG
 import io.getunleash.DefaultUnleash
 import io.micrometer.core.instrument.MeterRegistry

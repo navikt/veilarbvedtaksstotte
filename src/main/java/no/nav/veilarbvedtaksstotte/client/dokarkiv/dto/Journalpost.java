@@ -9,7 +9,21 @@ public class Journalpost {
 
     public String tittel;
 
+    public Bruker bruker;
+
     public JournalpostDokument[] dokumenter;
+
+    public static class Bruker {
+        public String id;
+        public Type type;
+    }
+
+    public enum Type {
+        ORGNR,
+        AKTOERID,
+        FNR
+    }
+
 
     public static class JournalpostDokument {
         public String datoFerdigstilt;

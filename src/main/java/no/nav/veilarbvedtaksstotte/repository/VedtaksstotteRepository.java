@@ -105,6 +105,11 @@ public class VedtaksstotteRepository {
         return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, vedtakId));
     }
 
+    public Optional<Vedtak> hentSendtVedtak(long vedtakId) {
+        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s = ?", VEDTAK_TABLE, VEDTAK_ID, STATUS);
+        return Optional.ofNullable(queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, vedtakId, VedtakStatus.SENDT.name())));
+    }
+
     public void setBeslutterProsessStatus(long vedtakId, BeslutterProsessStatus beslutterProsessStatus) {
         String sql = "UPDATE VEDTAK SET BESLUTTER_PROSESS_STATUS = ?::BESLUTTER_PROSESS_STATUS_TYPE WHERE ID = ?";
         long itemsUpdated = db.update(sql, getName(beslutterProsessStatus), vedtakId);

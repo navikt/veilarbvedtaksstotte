@@ -14,9 +14,9 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Status;
-import org.springframework.boot.actuate.jdbc.DataSourceHealthIndicator;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
+import org.springframework.boot.jdbc.health.DataSourceHealthIndicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -69,7 +69,7 @@ public class HealthConfig {
         if (Status.UP.equals(health.getStatus())) {
             return HealthCheckResult.healthy();
         } else {
-            return HealthCheckResult.unhealthy("Fikk ikke kontakt med databasen" + health.getDetails().toString());
+            return HealthCheckResult.unhealthy("Fikk ikke kontakt med databasen" + health.getDetails());
         }
     }
 

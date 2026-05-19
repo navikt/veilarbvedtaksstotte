@@ -1,14 +1,16 @@
 package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret
 
+import jakarta.validation.constraints.NotNull
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
 import no.nav.common.types.identer.NorskIdent
 import no.nav.common.utils.UrlUtils.joinPaths
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.AggregertPeriode
+import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.Egenvurdering
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.IdentitetsnummerQueryRequest.Companion.toIdentitetsnummerQueryRequest
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.model.ProfilertTil
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto
-import no.nav.veilarbvedtaksstotte.utils.deserializeJsonOrThrow
+import no.nav.veilarbvedtaksstotte.utils.deserializeJsonAndThrowOnNull
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -43,20 +45,13 @@ class ArbeidssoekerregisteretApiOppslagV2ClientImpl(
             }
             RestUtils.throwIfNotSuccessful(response)
 
-            return response.deserializeJsonOrThrow()
+            return response.deserializeJsonAndThrowOnNull()
         }
-
-        /* Henter siste arbeidssøkerperiode, men trenger ikke bety at den er aktiv. Vi må sjekke om "avsluttet" finnes for å bekrefte det.
-           Eller må vi heller sjekke om arbeidssøkerperioden er innenfor oppfølgingsperioden?
-           Hvis man har hatt en arbeidssøkerperiode som er avsluttet innenfor en oppfølgingsperiode, så kan vel fortsatt veileder bruke egenvurderingen derfra som en kilde til et (nytt) vedtak?
-         */
     }
 
     companion object {
         @JvmStatic
-        fun mapToEgenvurderingV2Dto(aggregertPeriode: AggregertPeriode, dialogId: Long?): EgenvurderingV2Dto? {
-            val egenvurdering = aggregertPeriode.egenvurdering?: return null
-
+        fun mapToEgenvurderingV2Dto(@NotNull egenvurdering: Egenvurdering, dialogId: Long?): EgenvurderingV2Dto? {
             val svar = when (egenvurdering.egenvurdering) {
                 ProfilertTil.ANTATT_GODE_MULIGHETER -> "Jeg ønsker å klare meg selv"
                 ProfilertTil.ANTATT_BEHOV_FOR_VEILEDNING -> "Jeg ønsker oppfølging fra NAV"
