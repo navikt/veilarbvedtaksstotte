@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
+import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_APP_NAME
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -27,7 +28,7 @@ class RetryVedtakdistribusjonRepositoryTest : DatabaseTest() {
         DbTestUtils.cleanupDb(jdbcTemplate)
 
         val aktorId = "1234567890"
-        vedtaksstotteRepository.opprettUtkast(aktorId, "Z123456", "007")
+        vedtaksstotteRepository.opprettUtkast(aktorId, "Z123456", "007", TEST_APP_NAME)
         val vedtak = vedtaksstotteRepository.hentUtkast(aktorId)
         vedtaksstotteRepository.lagreJournalforingVedtak(vedtak.id, journalpostId1, "dok123")
     }

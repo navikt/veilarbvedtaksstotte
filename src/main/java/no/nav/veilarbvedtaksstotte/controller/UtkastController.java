@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/api/utkast")
 @Tag(
@@ -69,12 +71,18 @@ public class UtkastController {
                     @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))
             }
     )
-    public void lagUtkast(@RequestBody LagUtkastDTO lagUtkastDTO) {
+    public void lagUtkast(@RequestBody LagUtkastDTO lagUtkastDTO, @RequestHeader("nav-consumer-id") String navConsumerId) {
         if (lagUtkastDTO == null || lagUtkastDTO.getFnr() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing fnr");
         }
 
-        vedtakService.lagUtkast(lagUtkastDTO.getFnr());
+        // Kall fra vedtaksløsningen i frontend går gjennom veilarbpersonflate, og vil dermed ha navConsumerId "veilarbpersonflate".
+        // Men vi vil lagre det med riktig kildesystem, så sender derfor "veilarbvedtaksstotte" videre til service-laget.
+        if (!Objects.equals(navConsumerId, "veilarbpersonflate")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ugyldig nav-consumer-id");
+        }
+
+        vedtakService.lagUtkast(lagUtkastDTO.getFnr(), "veilarbvedtaksstotte");
     }
 
 

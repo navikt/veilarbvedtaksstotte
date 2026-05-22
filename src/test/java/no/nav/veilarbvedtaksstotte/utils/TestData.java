@@ -35,4 +35,6 @@ public class TestData {
     public static final String TEST_BESLUTTER_NAVN = "Beslutter Besluttersen";
     public static final String TEST_BESLUTTER_IDENT = "Z748932";
     public static final String TEST_BESLUTTER_IDENT_2 = "Z239847";
+
+    public static final String TEST_APP_NAME  = "veilarbvedtaksstotte";
 }

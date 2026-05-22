@@ -11,6 +11,8 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriod
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.OppfolgingRequest;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.StartOppfolgingDto;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.RegistrerIkkeArbeidssokerDto;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -100,6 +102,20 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
             return RestUtils.getBodyStr(response)
                     .map((bodyStr) -> JsonUtils.fromJsonArray(bodyStr, OppfolgingPeriodeDTO.class))
                     .orElseThrow(() -> new IllegalStateException("Unable to parse json"));
+        }
+    }
+
+    @SneakyThrows
+    public RegistrerIkkeArbeidssokerDto startOppfolgingsperiode(Fnr fnr) {
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarboppfolgingUrl, "/api/v3/oppfolging/startOppfolgingsperiode"))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+                .post(toJsonRequestBody(new StartOppfolgingDto(fnr, "VEILARBVEDTAKSSTOTTE")))
+                .build();
+
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestUtils.throwIfNotSuccessful(response);
+            return RestUtils.parseJsonResponseOrThrow(response, RegistrerIkkeArbeidssokerDto.class);
         }
     }
 

@@ -22,6 +22,7 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.VEDTAK_ID_THAT_DOES_NOT_EXIST;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_APP_NAME;
 import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
@@ -51,7 +52,7 @@ public class OyeblikksbildeRepositoryTest extends DatabaseTest {
 
     @Test
     public void testLagOgHentOyeblikksbilde() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
         String cvJobbprofilJson = TestUtils.readTestResourceFile("testdata/cv-jobbprofil.json");
@@ -69,7 +70,7 @@ public class OyeblikksbildeRepositoryTest extends DatabaseTest {
 
     @Test
     public void testOppdateringOyblikksbilde() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
         OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfileringResponseDto = JsonUtils.fromJson(getOpplysningerOmArbeidssoekerMedProfileringData(), OpplysningerOmArbeidssoekerMedProfilering.class);
@@ -105,7 +106,7 @@ public class OyeblikksbildeRepositoryTest extends DatabaseTest {
 
     @Test
     public void testSlettOyeblikksbilde() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
         oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, new CvDto.CvMedError(CvErrorStatus.IKKE_DELT));
 
