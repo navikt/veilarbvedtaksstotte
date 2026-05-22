@@ -53,7 +53,7 @@ class KlagebehandlingRepository(private val db: JdbcTemplate) {
                 FormkravOppfylt.IKKE_SATT.name,
                 Resultat.IKKE_SATT.name,
                 Status.UTKAST.name
-            )
+            )!!
         } catch (ex: Exception) {
             secureLog.error(
                 "Kunne ikke lagre klagebehandling for vedtakId: ${klageInitiellData.vedtakId}."
