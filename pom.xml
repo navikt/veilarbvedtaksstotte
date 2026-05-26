@@ -137,6 +137,18 @@
         </plugins>
     </build>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- Overrides av Spring Boot managed dependencies -->
+            <!-- Se: https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html -->
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>11.0.22</version> <!-- TODO: 2026-05-26, midlertidig override for å fikse sårbarhet. Fjernes når Spring Boot har oppdatert versjon internt. -->
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
