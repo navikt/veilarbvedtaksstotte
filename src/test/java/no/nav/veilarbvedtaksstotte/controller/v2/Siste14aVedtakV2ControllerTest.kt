@@ -1,8 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller.v2
 
 import tools.jackson.databind.ObjectMapper
-import com.ninjasquad.springmockk.MockkBean
-import io.mockk.every
 import no.nav.common.types.identer.Fnr
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.controller.AuditlogService
@@ -10,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.controller.v2.dto.Siste14aVedtakRequest
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.Siste14aVedtakService
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
+import org.mockito.Mockito
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,6 +17,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.web.server.ResponseStatusException
@@ -27,13 +27,13 @@ import org.springframework.web.server.ResponseStatusException
 @Import(AuthService::class)
 class Siste14aVedtakV2ControllerTest {
 
-    @MockkBean
+    @MockitoBean
     lateinit var authService: AuthService
 
-    @MockkBean
+    @MockitoBean
     lateinit var siste14aVedtakService: Siste14aVedtakService
 
-    @MockkBean
+    @MockitoBean
     lateinit var auditlogService: AuditlogService
 
     @Autowired
@@ -46,23 +46,14 @@ class Siste14aVedtakV2ControllerTest {
 
     @BeforeEach
     fun beforeEach() {
-        every {
-            siste14aVedtakService.hentSiste14aVedtak(fnr)
-        } returns null
-
-        every { auditlogService.auditlog(any(), any()) } answers { }
+        Mockito.`when`(siste14aVedtakService.hentSiste14aVedtak(fnr)).thenReturn(null)
     }
 
     @Test
     fun `gir tilgang til systembruker med rolle siste-14a-vedtak`() {
 
-        every {
-            authService.erSystemBruker()
-        } returns true
-
-        every {
-            authService.harSystemTilSystemTilgangMedEkstraRolle("siste-14a-vedtak")
-        } returns true
+        Mockito.`when`(authService.erSystemBruker()).thenReturn(true)
+        Mockito.`when`(authService.harSystemTilSystemTilgangMedEkstraRolle("siste-14a-vedtak")).thenReturn(true)
 
         val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -75,13 +66,8 @@ class Siste14aVedtakV2ControllerTest {
     @Test
     fun `gir ikke tilgang til systembruker uten rolle siste-14a-vedtak`() {
 
-        every {
-            authService.erSystemBruker()
-        } returns true
-
-        every {
-            authService.harSystemTilSystemTilgangMedEkstraRolle("siste-14a-vedtak")
-        } returns false
+        Mockito.`when`(authService.erSystemBruker()).thenReturn(true)
+        Mockito.`when`(authService.harSystemTilSystemTilgangMedEkstraRolle("siste-14a-vedtak")).thenReturn(false)
 
         val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -94,17 +80,8 @@ class Siste14aVedtakV2ControllerTest {
     @Test
     fun `gir tilgang hvis ikke systembruker og tilgang til bruker`() {
 
-        every {
-            authService.erSystemBruker()
-        } returns false
-
-        every {
-            authService.erEksternBruker()
-        } returns false
-
-        every {
-            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.LESE, fnr = fnr)
-        } answers { }
+        Mockito.`when`(authService.erSystemBruker()).thenReturn(false)
+        Mockito.`when`(authService.erEksternBruker()).thenReturn(false)
 
         val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -117,17 +94,9 @@ class Siste14aVedtakV2ControllerTest {
     @Test
     fun `gir ikke tilgang hvis ikke systembruker og ikke tilgang til bruker`() {
 
-        every {
-            authService.erSystemBruker()
-        } returns false
-
-        every {
-            authService.erEksternBruker()
-        } returns false
-
-        every {
-            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.LESE, fnr = fnr)
-        } throws ResponseStatusException(HttpStatus.FORBIDDEN)
+        Mockito.`when`(authService.erSystemBruker()).thenReturn(false)
+        Mockito.`when`(authService.erEksternBruker()).thenReturn(false)
+        Mockito.`when`(authService.sjekkVeilederTilgangTilBruker(TilgangType.LESE, fnr)).thenThrow(ResponseStatusException(HttpStatus.FORBIDDEN))
 
         val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
             .contentType(MediaType.APPLICATION_JSON_VALUE)

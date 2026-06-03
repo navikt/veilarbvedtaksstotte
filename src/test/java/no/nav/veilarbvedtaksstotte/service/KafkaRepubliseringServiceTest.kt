@@ -1,8 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import org.mockito.Mockito
+import org.mockito.kotlin.any
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
@@ -32,8 +31,8 @@ import kotlin.random.Random.Default.nextLong
 
 class KafkaRepubliseringServiceTest : DatabaseTest() {
 
-    val siste14aVedtakService = mockk<Siste14aVedtakService>()
-    val dvhRapporteringService = mockk<DvhRapporteringService>()
+    val siste14aVedtakService = Mockito.mock(Siste14aVedtakService::class.java)
+    val dvhRapporteringService = Mockito.mock(DvhRapporteringService::class.java)
 
     lateinit var vedtaksstotteRepository: VedtaksstotteRepository
     lateinit var kafkaRepubliseringService: KafkaRepubliseringService
@@ -61,26 +60,17 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
         val brukereMedVedtakFraArena = lagTilfeldingeFnr(tilfeldigAntall())
         brukereMedVedtakFraArena.map { lagreVedtakFraArena(it) }
 
-        every {
-            siste14aVedtakService.republiserKafkaSiste14aVedtak(any())
-        } answers {}
-
         kafkaRepubliseringService.republiserSiste14aVedtak()
 
-        verify(exactly = brukereMedFattetVedtakFraDenneLøsningen.size + brukereMedVedtakFraArena.size) {
-            siste14aVedtakService.republiserKafkaSiste14aVedtak(any())
-        }
+        Mockito.verify(siste14aVedtakService, Mockito.times(brukereMedFattetVedtakFraDenneLøsningen.size + brukereMedVedtakFraArena.size))
+            .republiserKafkaSiste14aVedtak(any())
 
         brukereMedFattetVedtakFraDenneLøsningen.forEach {
-            verify {
-                siste14aVedtakService.republiserKafkaSiste14aVedtak(it)
-            }
+            Mockito.verify(siste14aVedtakService).republiserKafkaSiste14aVedtak(it)
         }
 
         brukereMedVedtakFraArena.forEach {
-            verify {
-                siste14aVedtakService.republiserKafkaSiste14aVedtak(it)
-            }
+            Mockito.verify(siste14aVedtakService).republiserKafkaSiste14aVedtak(it)
         }
     }
 
@@ -91,15 +81,15 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
 
         val fattedeVedtak = brukereMedDuplikat.map { lagreVedtak(it, true) }
 
-        val captureList = mutableListOf<Vedtak>()
-
-        every {
-            dvhRapporteringService.produserVedtakFattetDvhMelding(vedtak = capture(captureList))
-        } answers {}
+        val capturedVedtaks = mutableListOf<Vedtak>()
+        Mockito.doAnswer { invocation ->
+            capturedVedtaks.add(invocation.getArgument(0))
+            null
+        }.`when`(dvhRapporteringService).produserVedtakFattetDvhMelding(any())
 
         kafkaRepubliseringService.republiserVedtak14aFattetDvh(3)
 
-        assertThat(captureList.map { it.id }).containsExactlyElementsOf(fattedeVedtak.map { it.id }.sorted())
+        assertThat(capturedVedtaks.map { it.id }).containsExactlyElementsOf(fattedeVedtak.map { it.id }.sorted())
     }
 
     private fun lagTilfeldingeAktorIder(antall: Int): List<AktorId> {
