@@ -119,7 +119,7 @@ spec:
     - name: ARENA_VEDTAK_TOPIC
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-p
     - name: ENDRING_PA_OPPFOLGINGSBRUKER_TOPIC
-      value: pto.siste-oppfolgingsperiode-v3
+      value: poao.siste-oppfolgingsperiode-v3
     # BigQuery
     - name: BQ_DATASET_NAME
       value: 14a_vedtak_statistikk
