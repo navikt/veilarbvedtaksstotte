@@ -83,7 +83,7 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
 
         val capturedVedtaks = mutableListOf<Vedtak>()
         Mockito.doAnswer { invocation ->
-            capturedVedtaks.add(invocation.getArgument(0))
+            capturedVedtaks.add(invocation.getArgument<Vedtak>(0))
             null
         }.`when`(dvhRapporteringService).produserVedtakFattetDvhMelding(any())
 
