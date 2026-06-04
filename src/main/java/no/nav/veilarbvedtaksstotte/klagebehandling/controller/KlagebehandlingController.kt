@@ -351,7 +351,6 @@ class KlageController(
             }
         }
 
-        @JvmStatic
         internal fun validerTilganger(
             tilgangType: TilgangType,
             authService: AuthService,
