@@ -12,7 +12,6 @@ import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,20 +41,16 @@ class KlageControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
-    private lateinit var mockedKlageController: MockedStatic<KlageController>
-
     @BeforeEach
     fun setUp() {
         EnvironmentUtils.setProperty("NAIS_CLUSTER_NAME", "dev-gcp", EnvironmentUtils.Type.PUBLIC)
-        mockedKlageController = Mockito.mockStatic(KlageController::class.java, Mockito.CALLS_REAL_METHODS)
         Mockito.`when`(aktorOppslagClient.hentIdenter(any())).thenReturn(
             BrukerIdenter(Fnr.of("11111111111"), AktorId.of("1234567890123"), emptyList(), emptyList())
         )
     }
 
     @AfterEach
-    fun tearDown() {
-        mockedKlageController.close()
+    fun clearMiljo() {
         System.clearProperty("NAIS_CLUSTER_NAME")
     }
 
