@@ -1,14 +1,13 @@
 package no.nav.veilarbvedtaksstotte.controller.v2
 
-import com.ninjasquad.springmockk.MockkBean
-import io.mockk.every
 import no.nav.common.types.identer.Fnr
-import no.nav.poao_tilgang.client.TilgangType
 import no.nav.veilarbvedtaksstotte.controller.AuditlogService
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.http.MediaType
@@ -19,13 +18,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(controllers = [UtkastV2Controller::class])
 class UtkastV2ControllerTest {
-    @MockkBean
+    @MockitoBean
     lateinit var authService: AuthService
 
-    @MockkBean
+    @MockitoBean
     lateinit var vedtakService: VedtakService
 
-    @MockkBean
+    @MockitoBean
     lateinit var auditlogService: AuditlogService
 
     @Autowired
@@ -35,23 +34,9 @@ class UtkastV2ControllerTest {
 
     @Test
     fun `hent vedtaksutkast for bruker`() {
-        every {
-            authService.erSystemBruker()
-        } returns false
-
-        every {
-            authService.erEksternBruker()
-        } returns false
-
-        every {
-            authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.SKRIVE, fnr = fnr)
-        } answers { }
-
-        every {
-            vedtakService.hentUtkast(fnr)
-        } returns Vedtak()
-
-        every { auditlogService.auditlog(any(), any()) } answers { }
+        Mockito.`when`(authService.erSystemBruker()).thenReturn(false)
+        Mockito.`when`(authService.erEksternBruker()).thenReturn(false)
+        Mockito.`when`(vedtakService.hentUtkast(fnr)).thenReturn(Vedtak())
 
         val request = """
             {

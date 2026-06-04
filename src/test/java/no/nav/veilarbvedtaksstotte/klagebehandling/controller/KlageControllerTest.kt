@@ -1,8 +1,10 @@
 package no.nav.veilarbvedtaksstotte.klagebehandling.controller
 
-import com.ninjasquad.springmockk.MockkBean
-import io.mockk.*
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.common.client.aktoroppslag.BrukerIdenter
+import no.nav.common.types.identer.AktorId
+import no.nav.common.types.identer.Fnr
+import no.nav.common.utils.EnvironmentUtils
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.KlageService
 import no.nav.veilarbvedtaksstotte.klagebehandling.service.Ok
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
@@ -10,26 +12,30 @@ import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.http.MediaType
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.util.UUID
 
 @WebMvcTest(KlageController::class)
 class KlageControllerTest {
 
-    @MockkBean
+    @MockitoBean
     lateinit var klageService: KlageService
 
-    @MockkBean
+    @MockitoBean
     lateinit var authService: AuthService
 
-    @MockkBean
+    @MockitoBean
     lateinit var vedtakRepository: VedtaksstotteRepository
 
-    @MockkBean
+    @MockitoBean
     lateinit var aktorOppslagClient: AktorOppslagClient
 
     @Autowired
@@ -37,21 +43,20 @@ class KlageControllerTest {
 
     @BeforeEach
     fun setUp() {
-        mockkObject(KlageController.Companion)
-        every { KlageController.validerMiljo() } returns Unit
-        every { KlageController.hentAktorId(any(), any()) } returns mockk()
-        every { KlageController.validerTilganger(any(), any(), any()) } returns Unit
-        every { aktorOppslagClient.hentIdenter(any()) } returns mockk(relaxed = true)
+        EnvironmentUtils.setProperty("NAIS_CLUSTER_NAME", "dev-gcp", EnvironmentUtils.Type.PUBLIC)
+        Mockito.`when`(aktorOppslagClient.hentIdenter(any())).thenReturn(
+            BrukerIdenter(Fnr.of("11111111111"), AktorId.of("1234567890123"), emptyList(), emptyList())
+        )
     }
 
     @AfterEach
-    fun tearDown() {
-        unmockkObject(KlageController.Companion)
+    fun clearMiljo() {
+        System.clearProperty("NAIS_CLUSTER_NAME")
     }
 
     @Test
     fun `start klagebehandling skal kun godta riktig request body`() {
-        every { klageService.startNyKlagebehandling(any()) } returns Ok(data = mockk(relaxed = true))
+        Mockito.`when`(klageService.startNyKlagebehandling(any())).thenReturn(Ok(data = UUID.randomUUID()))
         val goodRequest = """
             {
                "vedtakId" : 123456789,
