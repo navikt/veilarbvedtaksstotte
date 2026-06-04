@@ -47,7 +47,7 @@ class KlageControllerTest {
     @BeforeEach
     fun setUp() {
         EnvironmentUtils.setProperty("NAIS_CLUSTER_NAME", "dev-gcp", EnvironmentUtils.Type.PUBLIC)
-        mockedKlageController = Mockito.mockStatic(KlageController::class.java)
+        mockedKlageController = Mockito.mockStatic(KlageController::class.java, Mockito.CALLS_REAL_METHODS)
         Mockito.`when`(aktorOppslagClient.hentIdenter(any())).thenReturn(
             BrukerIdenter(Fnr.of("11111111111"), AktorId.of("1234567890123"), emptyList(), emptyList())
         )
