@@ -363,7 +363,6 @@ class KlageController(
             }
         }
 
-        @JvmStatic
         internal fun hentAktorId(vedtakId: Long, vedtakRepository: VedtaksstotteRepository): AktorId {
             return requireNotNull(vedtakRepository.hentVedtak(vedtakId)) {
                 "Fant ingen vedtak med id $vedtakId."
