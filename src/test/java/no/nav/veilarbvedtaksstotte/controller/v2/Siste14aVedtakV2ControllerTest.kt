@@ -96,8 +96,8 @@ class Siste14aVedtakV2ControllerTest {
 
         Mockito.`when`(authService.erSystemBruker()).thenReturn(false)
         Mockito.`when`(authService.erEksternBruker()).thenReturn(false)
-        Mockito.`when`(authService.sjekkVeilederTilgangTilBruker(TilgangType.LESE, fnr)).thenThrow(ResponseStatusException(HttpStatus.FORBIDDEN))
-
+        Mockito.doThrow(ResponseStatusException(HttpStatus.FORBIDDEN)).`when`(authService)
+            .sjekkVeilederTilgangTilBruker(TilgangType.LESE, fnr)
         val response = mockMvc.perform(post("/api/v2/hent-siste-14a-vedtak")
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(objectMapper.writeValueAsString(Siste14aVedtakRequest(fnr))))
