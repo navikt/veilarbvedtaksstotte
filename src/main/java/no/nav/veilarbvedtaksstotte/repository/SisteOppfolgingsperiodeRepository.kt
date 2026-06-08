@@ -8,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.stereotype.Repository
+import java.time.ZonedDateTime
 import java.util.*
 
 @Repository
@@ -37,7 +38,8 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
         }
     }
 
-    fun upsertSisteOppfolgingPeriode(sisteOppfolgingPeriode: KafkaSisteOppfolgingsperiode) {
+    fun upsertSisteOppfolgingPeriode(oppfolgingsperiodeUuid: UUID, aktorId: String, startTidspunkt: ZonedDateTime,
+               sluttTidspunkt: ZonedDateTime?) {
         val sql =
             """
                 INSERT INTO $SISTE_OPPFOLGING_PERIODE_TABELL ($OPPFOLGINGSPERIODE_ID, $AKTORID, $STARTDATO, $SLUTTDATO)
@@ -50,13 +52,13 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
         try {
             jdbcTemplate.update(
                 sql,
-                sisteOppfolgingPeriode.uuid,
-                sisteOppfolgingPeriode.aktorId,
-                TimeUtils.toTimestampOrNull(sisteOppfolgingPeriode.startDato?.toInstant()),
-                TimeUtils.toTimestampOrNull(sisteOppfolgingPeriode.sluttDato?.toInstant())
+                oppfolgingsperiodeUuid,
+                aktorId,
+                TimeUtils.toTimestampOrNull(startTidspunkt.toInstant()),
+                TimeUtils.toTimestampOrNull(sluttTidspunkt?.toInstant())
             )
         } catch (e: Exception) {
-            secureLog.error("Kunne ikke lagre sisteOppfolgingPeriode, feil: {} , sisteOppfolgingPeriode: {}", e, sisteOppfolgingPeriode)
+            secureLog.error("Kunne ikke lagre sisteOppfolgingPeriode, feil: {} , oppfolgingsperiodeUuid {}, aktorId {}, startTidspunkt {}, sluttTidspunkt {}", e, oppfolgingsperiodeUuid, aktorId, startTidspunkt, sluttTidspunkt.toString())
         }
     }
 

@@ -18,6 +18,7 @@ import no.nav.person.pdl.aktor.v2.Aktor
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiodeV3
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
 import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_GCP_SKRUDD_AV
@@ -201,45 +202,27 @@ class KafkaConsumerConfig {
                             )
                         })
 
-            val oppfolgingsbrukerEndringClientConfigBuilder =
-                KafkaConsumerClientBuilder.TopicConfig<String, KafkaOppfolgingsbrukerEndringV2>()
+            val sisteOppfolgingsperiodeV3ClientConfigBuilder =
+               KafkaConsumerClientBuilder.TopicConfig<Long, KafkaSisteOppfolgingsperiodeV3>()
                     .withLogging()
                     .withMetrics(meterRegistry)
                     .withStoreOnFailure(consumerRepository)
                     .withConsumerConfig(
-                        kafkaProperties.endringPaOppfolgingsBrukerTopic,
-                        Deserializers.stringDeserializer(),
-                        Deserializers.jsonDeserializer(
-                            KafkaOppfolgingsbrukerEndringV2::class.java
-                        ),
+                        kafkaProperties.sisteOppfolgingsperiodeV3Topic,
+                        Deserializers.longDeserializer(),
+                        Deserializers.jsonDeserializer(KafkaSisteOppfolgingsperiodeV3::class.java),
                         Consumer {
                             kafkaConsumerService.behandleKafkaMelding(
                                 it,
-                                kafkaConsumerService::flyttingAvOppfolgingsbrukerTilNyEnhet
-                            )
-                        })
-
-            val sisteOppfolgingsperiodeClientConfigBuilder =
-                KafkaConsumerClientBuilder.TopicConfig<String, KafkaSisteOppfolgingsperiode>()
-                    .withLogging()
-                    .withMetrics(meterRegistry)
-                    .withStoreOnFailure(consumerRepository)
-                    .withConsumerConfig(
-                        kafkaProperties.sisteOppfolgingsperiodeTopic,
-                        Deserializers.stringDeserializer(),
-                        Deserializers.jsonDeserializer(KafkaSisteOppfolgingsperiode::class.java),
-                        Consumer {
-                            kafkaConsumerService.behandleKafkaMelding(
-                                it,
-                                kafkaConsumerService::behandleSisteOppfolgingsperiode
+                                kafkaConsumerService::behandleSisteOppfolgingsperiodeV3,
                             )
                         }
                     )
 
             return listOf(
                 vedtakStatusEndringClientConfigBuilder,
-                oppfolgingsbrukerEndringClientConfigBuilder,
-                sisteOppfolgingsperiodeClientConfigBuilder
+                sisteOppfolgingsperiodeV3ClientConfigBuilder
+
             )
         }
     }
