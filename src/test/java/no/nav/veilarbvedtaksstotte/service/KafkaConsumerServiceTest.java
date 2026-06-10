@@ -1,13 +1,12 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
-import no.nav.common.client.norg2.Enhet;
-import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClientImpl;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiodeV3;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KontorDto;
+import no.nav.veilarbvedtaksstotte.domain.kafka.SisteEndringsType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
@@ -24,6 +23,8 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static org.mockito.Mockito.*;
 
 public class KafkaConsumerServiceTest {
+
+    private static final String TEST_TOPIC = "test-topic";
 
     private final VedtaksstotteRepository vedtaksstotteRepository = mock(VedtaksstotteRepository.class);
 
@@ -53,13 +54,22 @@ public class KafkaConsumerServiceTest {
     );
 
     @Test
-    public void skal_sette_gjeldende_til_historisk_hvis_fattet_foer_oppfolging_avsluttet() {
+    public void skal_sette_gjeldende_til_historisk_for_v3_melding_hvis_fattet_foer_oppfolging_avsluttet() {
         LocalDateTime nowMinus10Days = LocalDateTime.now().minusDays(10);
-        ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
+        ZonedDateTime sluttTidspunkt = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
         when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(nowMinus10Days).setAktorId(TEST_AKTOR_ID));
 
-        kafkaConsumerService.behandleSisteOppfolgingsperiode(
-                new ConsumerRecord<>("", 0, 0, TEST_AKTOR_ID, new KafkaSisteOppfolgingsperiode(UUID.randomUUID(), TEST_AKTOR_ID, ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault()), oppfolgingAvsluttetDato))
+        kafkaConsumerService.behandleSisteOppfolgingsperiodeV3(
+            lagV3Record(new KafkaSisteOppfolgingsperiodeV3(
+                UUID.randomUUID(),
+                SisteEndringsType.OPPFOLGING_AVSLUTTET,
+                TEST_AKTOR_ID,
+                TEST_FNR.get(),
+                ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault()),
+                sluttTidspunkt,
+                null,
+                ZonedDateTime.now()
+            ))
         );
 
         verify(vedtaksstotteRepository, times(1)).settGjeldendeVedtakTilHistorisk(anyLong());
@@ -70,47 +80,71 @@ public class KafkaConsumerServiceTest {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nowMinus10Days = now.minusDays(10);
         LocalDateTime nowMinus20Days = now.minusDays(20);
-        ZonedDateTime oppfolgingAvsluttetDato = ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault());
+        ZonedDateTime sluttTidspunkt = ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault());
         when(vedtaksstotteRepository.hentGjeldendeVedtak(anyString())).thenReturn(new Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(now));
 
-        kafkaConsumerService.behandleSisteOppfolgingsperiode(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaSisteOppfolgingsperiode(UUID.randomUUID(), TEST_AKTOR_ID, ZonedDateTime.of(nowMinus20Days, ZoneId.systemDefault()), oppfolgingAvsluttetDato))
+        kafkaConsumerService.behandleSisteOppfolgingsperiodeV3(
+            lagV3Record(new KafkaSisteOppfolgingsperiodeV3(
+                UUID.randomUUID(),
+                SisteEndringsType.OPPFOLGING_AVSLUTTET,
+                TEST_AKTOR_ID,
+                TEST_FNR.get(),
+                ZonedDateTime.of(nowMinus20Days, ZoneId.systemDefault()),
+                sluttTidspunkt,
+                null,
+                ZonedDateTime.now()
+            ))
         );
 
         verify(vedtaksstotteRepository, never()).settGjeldendeVedtakTilHistorisk(anyLong());
     }
 
     @Test
-    public void skal_ikke_oppdatere_enhet_hvis_enhet_er_lik_for_endring_pa_oppfolgingsbruker() {
+    public void skal_ikke_oppdatere_enhet_hvis_kontor_er_uendret() {
         String enhet = "4562";
 
         when(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(new Vedtak().setOppfolgingsenhetId(enhet));
-        when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
 
-        kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndringV2(TEST_FNR, enhet)));
+        kafkaConsumerService.behandleSisteOppfolgingsperiodeV3(
+            lagV3Record(new KafkaSisteOppfolgingsperiodeV3(
+                UUID.randomUUID(),
+                SisteEndringsType.ARBEIDSOPPFOLGINGSKONTOR_ENDRET,
+                TEST_AKTOR_ID,
+                TEST_FNR.get(),
+                ZonedDateTime.now().minusDays(1),
+                null,
+                new KontorDto("TEST", enhet),
+                ZonedDateTime.now()
+            )));
 
-        verify(norg2Client, never()).hentEnhet(enhet);
         verify(vedtaksstotteRepository, never()).oppdaterUtkastEnhet(anyLong(), anyString());
         verify(beslutteroversiktRepository, never()).oppdaterBrukerEnhet(anyLong(), anyString(), anyString());
     }
 
     @Test
-    public void skal_oppdatere_enhet_hvis_enhet_er_ulik_for_endring_pa_oppfolgingsbruker() {
+    public void skal_oppdatere_enhet_hvis_kontor_er_endret() {
         String nyEnhet = "4562";
 
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, nyEnhet);
-
         when(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(new Vedtak().setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID));
-        when(norg2Client.hentEnhet(nyEnhet)).thenReturn(new Enhet().setNavn("TEST"));
-        when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
 
-        kafkaConsumerService.flyttingAvOppfolgingsbrukerTilNyEnhet(
-                new ConsumerRecord<>("", 0, 0, "", new KafkaOppfolgingsbrukerEndringV2(TEST_FNR, nyEnhet)));
+        kafkaConsumerService.behandleSisteOppfolgingsperiodeV3(
+            lagV3Record(new KafkaSisteOppfolgingsperiodeV3(
+                UUID.randomUUID(),
+                SisteEndringsType.ARBEIDSOPPFOLGINGSKONTOR_ENDRET,
+                TEST_AKTOR_ID,
+                TEST_FNR.get(),
+                ZonedDateTime.now().minusDays(1),
+                null,
+                new KontorDto("TEST", nyEnhet),
+                ZonedDateTime.now()
+            )));
 
-        verify(norg2Client, times(1)).hentEnhet(nyEnhet);
         verify(vedtaksstotteRepository, times(1)).oppdaterUtkastEnhet(anyLong(), eq(nyEnhet));
-        verify(beslutteroversiktRepository, times(1)).oppdaterBrukerEnhet(anyLong(), eq(nyEnhet), anyString());
+        verify(beslutteroversiktRepository, times(1)).oppdaterBrukerEnhet(anyLong(), eq(nyEnhet), eq("TEST"));
+    }
+
+    private ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> lagV3Record(KafkaSisteOppfolgingsperiodeV3 melding) {
+        return new ConsumerRecord<>(TEST_TOPIC, 0, 0, 0L, melding);
     }
 
 }

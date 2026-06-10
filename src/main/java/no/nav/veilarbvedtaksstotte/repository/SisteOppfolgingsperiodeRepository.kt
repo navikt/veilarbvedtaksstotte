@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.AktorId
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.domain.oppfolgingsperiode.SisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
@@ -38,8 +37,10 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
         }
     }
 
-    fun upsertSisteOppfolgingPeriode(oppfolgingsperiodeUuid: UUID, aktorId: String, startTidspunkt: ZonedDateTime,
-               sluttTidspunkt: ZonedDateTime?) {
+    fun upsertSisteOppfolgingPeriode(
+        oppfolgingsperiodeUuid: UUID, aktorId: String, startTidspunkt: ZonedDateTime,
+        sluttTidspunkt: ZonedDateTime?
+    ) {
         val sql =
             """
                 INSERT INTO $SISTE_OPPFOLGING_PERIODE_TABELL ($OPPFOLGINGSPERIODE_ID, $AKTORID, $STARTDATO, $SLUTTDATO)
