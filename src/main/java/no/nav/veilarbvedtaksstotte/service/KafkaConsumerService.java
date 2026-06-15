@@ -11,6 +11,7 @@ import no.nav.person.pdl.aktor.v2.Aktor;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiodeV3;
+import no.nav.veilarbvedtaksstotte.domain.oppfolgingsperiode.SisteOppfolgingsperiode;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository;
@@ -79,16 +80,38 @@ public class KafkaConsumerService {
         }
     }
 
-    public void behandleOppfolgingsPeriodeStartet(KafkaSisteOppfolgingsperiodeV3 melding) {
+    public void behandleOppfolgingsPeriodeStartet(ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> record) {
+        KafkaSisteOppfolgingsperiodeV3 melding = record.value();
+        SisteOppfolgingsperiode lagretPeriode = sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(melding.getAktorId()));
+
+        if (lagretPeriode != null && melding.getStartTidspunkt().isBefore(lagretPeriode.getStartdato())) {
+            log.info("Mottok utdatert OPPFOLGING_STARTET-melding (startTidspunkt {} er før lagret startdato {}). Topic: {}, partisjon: {}, offset: {} - ignorerer.",
+                    melding.getStartTidspunkt(), lagretPeriode.getStartdato(), record.topic(), record.partition(), record.offset());
+            return;
+        }
+
         sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(melding.getOppfolgingsperiodeUuid(), melding.getAktorId(), melding.getStartTidspunkt(), null);
         log.info("Siste oppfølgingsperiode har blitt upsertet");
-
     }
 
-    public void behandleOppfolgingsPeriodeAvsluttet(KafkaSisteOppfolgingsperiodeV3 melding) {
+    public void behandleOppfolgingsPeriodeAvsluttet(ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> record) {
+        KafkaSisteOppfolgingsperiodeV3 melding = record.value();
         ZonedDateTime sluttTidspunkt = melding.getSluttTidspunkt();
 
-        sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(melding.getOppfolgingsperiodeUuid(), melding.getAktorId(), melding.getStartTidspunkt(), melding.getSluttTidspunkt());
+        if (sluttTidspunkt == null) {
+            log.warn("Mottok OPPFOLGING_AVSLUTTET-melding uten sluttTidspunkt - ignorerer melding.");
+            return;
+        }
+
+        SisteOppfolgingsperiode lagretPeriode = sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(melding.getAktorId()));
+
+        if (lagretPeriode != null && sluttTidspunkt.isBefore(lagretPeriode.getStartdato())) {
+            log.info("Mottok utdatert OPPFOLGING_AVSLUTTET-melding (sluttTidspunkt {} er før lagret startdato {}). Topic: {}, partisjon: {}, offset: {} - ignorerer.",
+                    sluttTidspunkt, lagretPeriode.getStartdato(), record.topic(), record.partition(), record.offset());
+            return;
+        }
+
+        sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(melding.getOppfolgingsperiodeUuid(), melding.getAktorId(), melding.getStartTidspunkt(), sluttTidspunkt);
         log.info("Siste oppfølgingsperiode har blitt upsertet");
 
         Vedtak gjeldendeVedtak = vedtaksstotteRepository.hentGjeldendeVedtak(melding.getAktorId());
@@ -114,7 +137,22 @@ public class KafkaConsumerService {
         kafkaProducerService.sendGjeldende14aVedtak(new AktorId(gjeldendeVedtak.getAktorId()), null);
     }
 
-    public void flyttingAvBrukerTilNyEnhet(KafkaSisteOppfolgingsperiodeV3 melding) {
+    public void flyttingAvBrukerTilNyEnhet(ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> record) {
+        KafkaSisteOppfolgingsperiodeV3 melding = record.value();
+        if (melding.getKontor() == null) {
+            log.warn("Mottok ARBEIDSOPPFOLGINGSKONTOR_ENDRET-melding uten kontor. Topic: {}, partisjon: {}, offset: {} - ignorerer melding.",
+                    record.topic(), record.partition(), record.offset());
+            return;
+        }
+
+        SisteOppfolgingsperiode lagretPeriode = sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(melding.getAktorId()));
+
+        if (lagretPeriode != null && melding.getStartTidspunkt().isBefore(lagretPeriode.getStartdato())) {
+            log.info("Mottok utdatert ARBEIDSOPPFOLGINGSKONTOR_ENDRET-melding (startTidspunkt {} er før lagret startdato {}). Topic: {}, partisjon: {}, offset: {} - ignorerer.",
+                    melding.getStartTidspunkt(), lagretPeriode.getStartdato(), record.topic(), record.partition(), record.offset());
+            return;
+        }
+
         String kontorId = melding.getKontor().getKontorId();
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(melding.getAktorId());
@@ -138,11 +176,11 @@ public class KafkaConsumerService {
     public void behandleSisteOppfolgingsperiodeV3(ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> sisteOppfolgingsperiodeRecord) {
         switch (sisteOppfolgingsperiodeRecord.value().getSisteEndringsType()) {
             case ARBEIDSOPPFOLGINGSKONTOR_ENDRET ->
-                    flyttingAvBrukerTilNyEnhet(sisteOppfolgingsperiodeRecord.value());
+                    flyttingAvBrukerTilNyEnhet(sisteOppfolgingsperiodeRecord);
             case OPPFOLGING_STARTET ->
-                    behandleOppfolgingsPeriodeStartet(sisteOppfolgingsperiodeRecord.value());
+                    behandleOppfolgingsPeriodeStartet(sisteOppfolgingsperiodeRecord);
             case OPPFOLGING_AVSLUTTET ->
-                    behandleOppfolgingsPeriodeAvsluttet(sisteOppfolgingsperiodeRecord.value());
+                    behandleOppfolgingsPeriodeAvsluttet(sisteOppfolgingsperiodeRecord);
             default -> {
                 // Ingen handling
             }

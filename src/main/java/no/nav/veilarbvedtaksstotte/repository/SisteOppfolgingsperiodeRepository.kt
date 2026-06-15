@@ -37,6 +37,20 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
         }
     }
 
+    fun hentSisteOppfolgingsperiode(aktorId: AktorId): SisteOppfolgingsperiode? {
+        val sql =
+            """
+                SELECT * FROM $SISTE_OPPFOLGING_PERIODE_TABELL 
+                WHERE $AKTORID = ?;
+            """.trimIndent()
+
+        try {
+            return jdbcTemplate.queryForObject(sql, sisteOppfolgingsperiodeRowMapper, aktorId.get())
+        } catch (e: Exception) {
+            return null
+        }
+    }
+
     fun upsertSisteOppfolgingPeriode(
         oppfolgingsperiodeUuid: UUID, aktorId: String, startTidspunkt: ZonedDateTime,
         sluttTidspunkt: ZonedDateTime?
