@@ -120,7 +120,7 @@ spec:
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-q2
     - name: ENDRING_PA_OPPFOLGINGSBRUKER_TOPIC
       value: pto.endring-paa-oppfolgingsbruker-v2
-    - name: SISTE_OPPFOLGINGSPERIODE_TOPIC
+    - name: SISTE_OPPFOLGINGSPERIODE_V3_TOPIC
       value: poao.siste-oppfolgingsperiode-v3
     # BigQuery
     - name: BQ_DATASET_NAME

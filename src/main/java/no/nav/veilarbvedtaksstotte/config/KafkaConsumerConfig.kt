@@ -220,7 +220,6 @@ class KafkaConsumerConfig {
             return listOf(
                 vedtakStatusEndringClientConfigBuilder,
                 sisteOppfolgingsperiodeV3ClientConfigBuilder
-
             )
         }
     }
