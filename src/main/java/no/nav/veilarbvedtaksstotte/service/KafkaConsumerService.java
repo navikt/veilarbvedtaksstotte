@@ -80,13 +80,13 @@ public class KafkaConsumerService {
         }
     }
 
-    public void behandleOppfolgingsPeriodeStartet(ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> record) {
-        KafkaSisteOppfolgingsperiodeV3 melding = record.value();
+    public void behandleOppfolgingsPeriodeStartet(ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> kafkaRecord) {
+        KafkaSisteOppfolgingsperiodeV3 melding = kafkaRecord.value();
         SisteOppfolgingsperiode lagretPeriode = sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(melding.getAktorId()));
 
         if (lagretPeriode != null && melding.getStartTidspunkt().isBefore(lagretPeriode.getStartdato())) {
             log.info("Mottok utdatert OPPFOLGING_STARTET-melding (startTidspunkt {} er før lagret startdato {}). Topic: {}, partisjon: {}, offset: {} - ignorerer.",
-                    melding.getStartTidspunkt(), lagretPeriode.getStartdato(), record.topic(), record.partition(), record.offset());
+                    melding.getStartTidspunkt(), lagretPeriode.getStartdato(), kafkaRecord.topic(), kafkaRecord.partition(), kafkaRecord.offset());
             return;
         }
 
@@ -94,8 +94,8 @@ public class KafkaConsumerService {
         log.info("Siste oppfølgingsperiode har blitt upsertet");
     }
 
-    public void behandleOppfolgingsPeriodeAvsluttet(ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> record) {
-        KafkaSisteOppfolgingsperiodeV3 melding = record.value();
+    public void behandleOppfolgingsPeriodeAvsluttet(ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> kafkaRecord) {
+        KafkaSisteOppfolgingsperiodeV3 melding = kafkaRecord.value();
         ZonedDateTime sluttTidspunkt = melding.getSluttTidspunkt();
 
         if (sluttTidspunkt == null) {
@@ -107,7 +107,7 @@ public class KafkaConsumerService {
 
         if (lagretPeriode != null && sluttTidspunkt.isBefore(lagretPeriode.getStartdato())) {
             log.info("Mottok utdatert OPPFOLGING_AVSLUTTET-melding (sluttTidspunkt {} er før lagret startdato {}). Topic: {}, partisjon: {}, offset: {} - ignorerer.",
-                    sluttTidspunkt, lagretPeriode.getStartdato(), record.topic(), record.partition(), record.offset());
+                    sluttTidspunkt, lagretPeriode.getStartdato(), kafkaRecord.topic(), kafkaRecord.partition(), kafkaRecord.offset());
             return;
         }
 
@@ -137,11 +137,11 @@ public class KafkaConsumerService {
         kafkaProducerService.sendGjeldende14aVedtak(new AktorId(gjeldendeVedtak.getAktorId()), null);
     }
 
-    public void flyttingAvBrukerTilNyEnhet(ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> record) {
-        KafkaSisteOppfolgingsperiodeV3 melding = record.value();
+    public void flyttingAvBrukerTilNyEnhet(ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> kafkaRecord) {
+        KafkaSisteOppfolgingsperiodeV3 melding = kafkaRecord.value();
         if (melding.getKontor() == null) {
             log.warn("Mottok ARBEIDSOPPFOLGINGSKONTOR_ENDRET-melding uten kontor. Topic: {}, partisjon: {}, offset: {} - ignorerer melding.",
-                    record.topic(), record.partition(), record.offset());
+                    kafkaRecord.topic(), kafkaRecord.partition(), kafkaRecord.offset());
             return;
         }
 
@@ -149,7 +149,7 @@ public class KafkaConsumerService {
 
         if (lagretPeriode != null && melding.getStartTidspunkt().isBefore(lagretPeriode.getStartdato())) {
             log.info("Mottok utdatert ARBEIDSOPPFOLGINGSKONTOR_ENDRET-melding (startTidspunkt {} er før lagret startdato {}). Topic: {}, partisjon: {}, offset: {} - ignorerer.",
-                    melding.getStartTidspunkt(), lagretPeriode.getStartdato(), record.topic(), record.partition(), record.offset());
+                    melding.getStartTidspunkt(), lagretPeriode.getStartdato(), kafkaRecord.topic(), kafkaRecord.partition(), kafkaRecord.offset());
             return;
         }
 
@@ -189,16 +189,5 @@ public class KafkaConsumerService {
 
     public void behandlePdlAktorV2Melding(ConsumerRecord<String, Aktor> aktorRecord) {
         brukerIdenterService.behandlePdlAktorV2Melding(aktorRecord);
-    }
-
-    private AktorId hentAktorIdMedDevSjekk(Fnr fnr) {
-        try {
-            return aktorOppslagClient.hentAktorId(fnr);
-        } catch (GraphqlErrorException | IngenGjeldendeIdentException e) {
-            if (isDevelopment().orElse(false)) {
-                log.info("Prøvde å hente prodlik bruker i dev. Returnerer null");
-                return null;
-            } else throw e;
-        }
     }
 }
