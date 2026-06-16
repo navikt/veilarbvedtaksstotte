@@ -2,10 +2,7 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
-import no.nav.common.client.aktorregister.IngenGjeldendeIdentException;
-import no.nav.common.client.utils.graphql.GraphqlErrorException;
 import no.nav.common.types.identer.AktorId;
-import no.nav.common.types.identer.Fnr;
 import no.nav.common.utils.IdUtils;
 import no.nav.person.pdl.aktor.v2.Aktor;
 import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
@@ -24,7 +21,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
-import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
 
 @Service
@@ -34,12 +30,6 @@ public class KafkaConsumerService {
     private final VedtaksstotteRepository vedtaksstotteRepository;
 
     private final BeslutteroversiktRepository beslutteroversiktRepository;
-
-    private final Norg2Client norg2Client;
-
-    private final AktorOppslagClient aktorOppslagClient;
-
-    private final VeilarbarenaClient veilarbarenaClient;
 
     private final SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository;
 
@@ -54,18 +44,12 @@ public class KafkaConsumerService {
             VedtaksstotteRepository vedtaksstotteRepository,
             BeslutteroversiktRepository beslutteroversiktRepository,
             SisteOppfolgingPeriodeRepository sisteOppfolgingPeriodeRepository,
-            Norg2Client norg2Client,
-            AktorOppslagClient aktorOppslagClient,
-            VeilarbarenaClient veilarbarenaClient,
             BrukerIdenterService brukerIdenterService,
             KafkaProducerService kafkaProducerService
     ) {
         this.vedtaksstotteRepository = vedtaksstotteRepository;
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.sisteOppfolgingPeriodeRepository = sisteOppfolgingPeriodeRepository;
-        this.norg2Client = norg2Client;
-        this.aktorOppslagClient = aktorOppslagClient;
-        this.veilarbarenaClient = veilarbarenaClient;
         this.brukerIdenterService = brukerIdenterService;
         this.kafkaProducerService = kafkaProducerService;
     }

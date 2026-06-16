@@ -46,9 +46,6 @@ public class KafkaConsumerServiceTest {
             vedtaksstotteRepository,
             beslutteroversiktRepository,
             sisteOppfolgingPeriodeRepository,
-            norg2Client,
-            aktorOppslagClient,
-            veilarbarenaClient,
             brukerIdenterService,
             kafkaProducerService
     );
