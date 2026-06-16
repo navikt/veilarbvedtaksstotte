@@ -4,6 +4,7 @@ import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.domain.oppfolgingsperiode.SisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.stereotype.Repository
@@ -46,7 +47,7 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
 
         try {
             return jdbcTemplate.queryForObject(sql, sisteOppfolgingsperiodeRowMapper, aktorId.get())
-        } catch (e: Exception) {
+        } catch (e: EmptyResultDataAccessException) {
             return null
         }
     }
