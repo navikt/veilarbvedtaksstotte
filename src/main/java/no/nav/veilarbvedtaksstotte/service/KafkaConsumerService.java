@@ -165,9 +165,9 @@ public class KafkaConsumerService {
                     behandleOppfolgingsPeriodeStartet(sisteOppfolgingsperiodeRecord);
             case OPPFOLGING_AVSLUTTET ->
                     behandleOppfolgingsPeriodeAvsluttet(sisteOppfolgingsperiodeRecord);
-            default -> {
-                // Ingen handling
-            }
+            default -> log.warn("Mottok ukjent SisteEndringsType: {}. Topic: {}, partisjon: {}, offset: {}.",
+                    sisteOppfolgingsperiodeRecord.value().getSisteEndringsType(),
+                    sisteOppfolgingsperiodeRecord.topic(), sisteOppfolgingsperiodeRecord.partition(), sisteOppfolgingsperiodeRecord.offset());
         }
     }
 
