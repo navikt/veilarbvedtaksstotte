@@ -18,6 +18,7 @@ import no.nav.person.pdl.aktor.v2.Aktor
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiodeV3
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
+import no.nav.veilarbvedtaksstotte.service.KafkaSisteOppfolgingsperiodeV3Consumer
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
 import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_GCP_SKRUDD_AV
 import no.nav.veilarbvedtaksstotte.utils.LES_FRA_PDL_AKTOR_V2_TOPIC_SKRUDD_PAA
@@ -39,6 +40,7 @@ class KafkaConsumerConfig {
     fun consumerAivenConfig(
         kafkaConsumerService: KafkaConsumerService,
         kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer,
+        kafkaSisteOppfolgingsperiodeV3Consumer: KafkaSisteOppfolgingsperiodeV3Consumer,
         kafkaProperties: KafkaProperties,
         meterRegistry: MeterRegistry,
         kafkaConsumerRepository: KafkaConsumerRepository
@@ -47,6 +49,7 @@ class KafkaConsumerConfig {
             getAivenConsumerTopicConfigs(
                 kafkaConsumerService,
                 kafkaVedtakStatusEndringConsumer,
+                kafkaSisteOppfolgingsperiodeV3Consumer,
                 kafkaProperties,
                 meterRegistry,
                 kafkaConsumerRepository
@@ -180,6 +183,7 @@ class KafkaConsumerConfig {
         private fun getAivenConsumerTopicConfigs(
             kafkaConsumerService: KafkaConsumerService,
             kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer,
+            kafkaSisteOppfolgingsperiodeV3Consumer: KafkaSisteOppfolgingsperiodeV3Consumer,
             kafkaProperties: KafkaProperties,
             meterRegistry: MeterRegistry,
             consumerRepository: KafkaConsumerRepository
@@ -212,7 +216,7 @@ class KafkaConsumerConfig {
                         Consumer {
                             kafkaConsumerService.behandleKafkaMelding(
                                 it,
-                                kafkaConsumerService::behandleSisteOppfolgingsperiodeV3,
+                                kafkaSisteOppfolgingsperiodeV3Consumer::behandleSisteOppfolgingsperiodeV3,
                             )
                         }
                     )
