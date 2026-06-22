@@ -1,8 +1,25 @@
 package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.AktorId
-import no.nav.veilarbvedtaksstotte.domain.vedtak.*
-import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.*
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus
+import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakType
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.AKTOR_ID
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.BEGRUNNELSE
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.GJELDENDE
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.HOVEDMAL
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.INNSATSGRUPPE
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.OPPFOLGINGSENHET_ID
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.STATUS
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.UTKAST_OPPRETTET
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.UTKAST_SIST_OPPDATERT
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.VEDTAK_FATTET
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.VEDTAK_ID
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.VEDTAK_TABLE
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.VEDTAK_TYPE
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository.VEILEDER_IDENT
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.springframework.jdbc.core.JdbcTemplate
@@ -47,7 +64,7 @@ class TestvedtakRepository(
             .addValue("utkastOpprettet", TimeUtils.toTimestampOrNull(vedtak.utkastOpprettet.atZone(ZoneId.systemDefault()).toInstant()))
             .addValue("vedtakFattet", TimeUtils.toTimestampOrNull(vedtak.vedtakFattet.atZone(ZoneId.systemDefault()).toInstant()))
             .addValue("veilederIdent", vedtak.veilederIdent)
-            .addValue("vedtakType", VedtakType.TEST_VEDTAK)
+            .addValue("vedtakType", VedtakType.TEST_VEDTAK.name)
 
         namedJdbcTemplate.update(sql, params)
     }
@@ -75,7 +92,7 @@ class TestvedtakRepository(
         }
     }
 
-    private fun vedtakMapper(rs: ResultSet, row: Int): Vedtak {
+    private fun vedtakMapper(rs: ResultSet, _row: Int): Vedtak {
         return Vedtak()
             .settId(rs.getLong(VEDTAK_ID))
             .settHovedmal(Hovedmal.valueOf(rs.getString(HOVEDMAL)))

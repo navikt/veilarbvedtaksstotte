@@ -28,7 +28,6 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_APP_NAME
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -305,7 +304,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
             val vedtaket = hentVedtak()
             sakStatistikkService!!.fattetVedtak(vedtaket, TestData.TEST_FNR)
             val nestSisteRad = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID).last()
-            vedtakService!!.lagUtkast(TestData.TEST_FNR, TEST_APP_NAME)
+            vedtakService!!.lagUtkast(TestData.TEST_FNR)
             sakStatistikkService!!.opprettetUtkast(
                 vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID), TestData.TEST_FNR
             )
@@ -574,7 +573,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
 
     private fun gittUtkastKlarForUtsendelse() {
         withContext {
-            vedtakService!!.lagUtkast(TestData.TEST_FNR, TEST_APP_NAME)
+            vedtakService!!.lagUtkast(TestData.TEST_FNR)
             val utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
 
             val oppdaterDto = OppdaterUtkastDTO().setHovedmal(Hovedmal.SKAFFE_ARBEID).setBegrunnelse("En begrunnelse")

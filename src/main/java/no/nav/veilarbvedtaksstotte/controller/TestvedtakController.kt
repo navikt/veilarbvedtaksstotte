@@ -17,7 +17,11 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.TestvedtakService
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 
 @RestController
@@ -31,6 +35,10 @@ class TestvedtakController(
     private val authService: AuthService,
     private val aktorOppslagClient: AktorOppslagClient
 ) {
+
+    companion object {
+        private const val TESTDATA_ROLLE = "testdata-14a-vedtak"
+    }
 
     @PostMapping
     @Operation(
@@ -49,7 +57,7 @@ class TestvedtakController(
     fun fattTestVedtak(
         @RequestBody @Valid opprettTestvedtakRequest: OpprettTestvedtakRequest
     ) {
-        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")) {
+        if (!authService.harSystemTilSystemTilgangMedEkstraRolle(TESTDATA_ROLLE)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
@@ -82,7 +90,7 @@ class TestvedtakController(
         ]
     )
     fun hentTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest): List<Vedtak> {
-        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")) { 
+        if (!authService.harSystemTilSystemTilgangMedEkstraRolle(TESTDATA_ROLLE)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
@@ -110,7 +118,7 @@ class TestvedtakController(
         ]
     )
     fun slettTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest) {
-        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")) {
+        if (!authService.harSystemTilSystemTilgangMedEkstraRolle(TESTDATA_ROLLE)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {

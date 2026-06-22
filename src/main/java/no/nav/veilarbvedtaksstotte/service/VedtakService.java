@@ -182,7 +182,7 @@ public class VedtakService {
         return utkast;
     }
 
-    public void lagUtkast(Fnr fnr, String navConsumerId) {
+    public void lagUtkast(Fnr fnr) {
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr);
         String aktorId = authKontekst.getAktorId();
 
@@ -193,7 +193,7 @@ public class VedtakService {
         String innloggetVeilederIdent = authService.getInnloggetVeilederIdent();
         String oppfolgingsenhetId = authKontekst.getOppfolgingsenhet();
 
-        vedtaksstotteRepository.opprettUtkast(aktorId, innloggetVeilederIdent, oppfolgingsenhetId, navConsumerId);
+        vedtaksstotteRepository.opprettUtkast(aktorId, innloggetVeilederIdent, oppfolgingsenhetId);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(aktorId);
 

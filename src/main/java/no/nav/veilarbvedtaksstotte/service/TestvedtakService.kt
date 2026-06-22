@@ -23,7 +23,7 @@ class TestvedtakService(
     fun lagreTestvedtak(vedtak: Vedtak, fnr: Fnr) {
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
         if (oppfolgingsperiode.isEmpty) {
-            // noe sånt? Vi trenger oppfølgingsperiode for å journalføre vedtaket, se DokumentService.kt@L54
+            // Noe sånt? Vi trenger oppfølgingsperiode for å journalføre vedtaket, se DokumentService.kt linje 54
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingen oppfølgingsperiode funnet for personen")
         }
         // Skal Dolly kunne overstyre det som gjøres i Modia? Hvis man gjør et vedtak på en person i Modia og så legger til et i Dolly, hva skal skje?

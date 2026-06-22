@@ -28,7 +28,6 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_JOURNALPOST_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_KILDER;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_APP_NAME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -53,7 +52,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void hentUtkastEldreEnn_skal_hente_riktig_utkast() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         assertTrue(vedtaksstotteRepository.hentUtkastEldreEnn(LocalDateTime.now().minusSeconds(5)).isEmpty());
         assertEquals(1, vedtaksstotteRepository.hentUtkastEldreEnn(LocalDateTime.now().plusSeconds(1)).size());
@@ -61,7 +60,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void setGodkjentAvBeslutter_skal_sette_godkjent() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -74,7 +73,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void skal_starteBeslutterProsess() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -87,7 +86,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void skal_sette_beslutter() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -100,7 +99,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void setBeslutterProsessStatus__skal_sette_status() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -113,7 +112,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void testSlettUtkast() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -124,7 +123,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void testOpprettOgHentUtkast() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -141,7 +140,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
     @Test
     public void testSettGjeldendeTilHistorisk() {
 
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
         utkast.setBegrunnelse(TEST_BEGRUNNELSE);
@@ -165,7 +164,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void lagrer_journalforing_av_vedtak() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -179,7 +178,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void lagrer_dokumentbestillings_id() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -192,7 +191,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void oppretter_referanse_bare_en_gang() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -204,7 +203,7 @@ public class VedtaksstotteRepositoryTest extends DatabaseTest {
 
     @Test
     public void setter_vedtak_fattet_dato_ved_ferdigstilling() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
         assertNotNull(utkast.getUtkastSistOppdatert());

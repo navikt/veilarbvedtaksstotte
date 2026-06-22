@@ -20,7 +20,6 @@ import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository.Companion.VE
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_APP_NAME
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -116,7 +115,7 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
     }
 
     private fun lagreVedtak(aktorId: AktorId, ferdigstill: Boolean): Vedtak {
-        vedtaksstotteRepository.opprettUtkast(aktorId.get(), "veileder", "1234", TEST_APP_NAME)
+        vedtaksstotteRepository.opprettUtkast(aktorId.get(), "veileder", "1234")
         val utkast = vedtaksstotteRepository.hentUtkast(aktorId.get())
         if (ferdigstill) {
             vedtaksstotteRepository.ferdigstillVedtak(utkast.id)

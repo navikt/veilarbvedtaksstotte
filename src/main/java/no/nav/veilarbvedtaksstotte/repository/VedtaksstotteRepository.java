@@ -170,13 +170,13 @@ public class VedtaksstotteRepository {
         db.update(sql, enhetId, vedtakId, getName(VedtakStatus.UTKAST));
     }
 
-    public void opprettUtkast(String aktorId, String veilederIdent, String oppfolgingsenhetId, String navConsumerId) {
+    public void opprettUtkast(String aktorId, String veilederIdent, String oppfolgingsenhetId) {
         String sql = format(
-                "INSERT INTO %s(%s, %s, %s, %s, %s, %s) values(?, ?, ?, ?, CURRENT_TIMESTAMP, ?)",
-                VEDTAK_TABLE, AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, UTKAST_SIST_OPPDATERT, OPPRETTET_AV_SYSTEM
+                "INSERT INTO %s(%s, %s, %s, %s, %s) values(?, ?, ?, ?, CURRENT_TIMESTAMP)",
+                VEDTAK_TABLE, AKTOR_ID, VEILEDER_IDENT, OPPFOLGINGSENHET_ID, STATUS, UTKAST_SIST_OPPDATERT
         );
 
-        db.update(sql, aktorId, veilederIdent, oppfolgingsenhetId, getName(VedtakStatus.UTKAST), navConsumerId);
+        db.update(sql, aktorId, veilederIdent, oppfolgingsenhetId, getName(VedtakStatus.UTKAST));
     }
 
     public void oppdaterSender(long vedtakId, boolean sender) {

@@ -73,7 +73,7 @@ class TestvedtakControllerTest {
         val aktorId = AktorId.of("1234567890123")
 
         every {
-            authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")
+            authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")
         } returns true
 
         every {
@@ -81,7 +81,7 @@ class TestvedtakControllerTest {
         } returns aktorId
 
         every {
-            testvedtakService.lagreTestvedtak(any(), any(), any())
+            testvedtakService.lagreTestvedtak(any(), any())
         } returns Unit
 
         val response = mockMvc.perform(
@@ -124,7 +124,7 @@ class TestvedtakControllerTest {
             .settBegrunnelse("Testvedtak for § 14 a")
 
         every {
-            authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")
+            authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")
         } returns true
 
         every {
@@ -151,7 +151,7 @@ class TestvedtakControllerTest {
         val aktorId = AktorId.of("1234567890123")
 
         every {
-            authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")
+            authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")
         } returns true
 
         every {
@@ -159,7 +159,7 @@ class TestvedtakControllerTest {
         } returns aktorId
 
         every {
-            testvedtakService.slettGjeldendeTestvedtak(any(), any())
+            testvedtakService.slettGjeldendeTestvedtak(any())
         } returns Unit
 
         val response = mockMvc.perform(

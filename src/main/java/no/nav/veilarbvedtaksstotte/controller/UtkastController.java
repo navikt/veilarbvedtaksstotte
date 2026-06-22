@@ -16,10 +16,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/utkast")
@@ -71,18 +77,12 @@ public class UtkastController {
                     @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(hidden = true)))
             }
     )
-    public void lagUtkast(@RequestBody LagUtkastDTO lagUtkastDTO, @RequestHeader("nav-consumer-id") String navConsumerId) {
+    public void lagUtkast(@RequestBody LagUtkastDTO lagUtkastDTO) {
         if (lagUtkastDTO == null || lagUtkastDTO.getFnr() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing fnr");
         }
 
-        // Kall fra vedtaksløsningen i frontend går gjennom veilarbpersonflate, og vil dermed ha navConsumerId "veilarbpersonflate".
-        // Men vi vil lagre det med riktig kildesystem, så sender derfor "veilarbvedtaksstotte" videre til service-laget.
-        if (!Objects.equals(navConsumerId, "veilarbpersonflate")) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ugyldig nav-consumer-id");
-        }
-
-        vedtakService.lagUtkast(lagUtkastDTO.getFnr(), "veilarbvedtaksstotte");
+        vedtakService.lagUtkast(lagUtkastDTO.getFnr());
     }
 
 

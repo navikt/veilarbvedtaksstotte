@@ -9,7 +9,8 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -52,7 +53,7 @@ class TestvedtakRepositoryTest: DatabaseTest() {
             .settVeilederIdent("Z123456")
 
 
-        testvedtakRepository.lagreTestvedtak(testVedtak, Fnr.of("12345678910").get())
+        testvedtakRepository.lagreTestvedtak(testVedtak)
 
         val hentetVedtak = testvedtakRepository.hentGjeldendeTestvedtak(aktorId)
         assertNotNull(hentetVedtak)

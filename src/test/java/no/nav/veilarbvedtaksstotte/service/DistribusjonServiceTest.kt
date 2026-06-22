@@ -20,7 +20,6 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.RetryVedtakdistribusjonRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_APP_NAME
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomAlphabetic
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
@@ -325,8 +324,7 @@ class DistribusjonServiceTest : DatabaseTest() {
         vedtakRepository.opprettUtkast(
             aktorId.get(),
             veilederIdent,
-            oppfolgingsenhet,
-            TEST_APP_NAME
+            oppfolgingsenhet
         )
         val vedtak = vedtakRepository.hentUtkast(aktorId.get())
         vedtakRepository.lagreJournalforingVedtak(vedtak.id, journalpostId, dokumentId)

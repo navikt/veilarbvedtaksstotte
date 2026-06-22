@@ -93,7 +93,6 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_I
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_APP_NAME;
 import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -253,7 +252,7 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             gittTilgang();
 
-            vedtakService.lagUtkast(TEST_FNR, TEST_APP_NAME);
+            vedtakService.lagUtkast(TEST_FNR);
             assertNyttUtkast();
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -289,7 +288,7 @@ public class VedtakServiceTest extends DatabaseTest {
     public void lagUtkast__skal_opprette_system_melding() {
         withContext(() -> {
             gittTilgang();
-            vedtakService.lagUtkast(TEST_FNR, TEST_APP_NAME);
+            vedtakService.lagUtkast(TEST_FNR);
 
             verify(meldingRepository, times(1))
                     .opprettSystemMelding(anyLong(), eq(SystemMeldingType.UTKAST_OPPRETTET), eq(TEST_VEILEDER_IDENT));
@@ -301,7 +300,7 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             gittTilgang();
 
-            vedtakService.lagUtkast(TEST_FNR, TEST_APP_NAME);
+            vedtakService.lagUtkast(TEST_FNR);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             List<String> kilder = List.of(VedtakOpplysningKilder.REGISTRERING.getDesc(), VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc(), VedtakOpplysningKilder.CV.getDesc());
@@ -325,7 +324,7 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             gittTilgang();
 
-            vedtakService.lagUtkast(TEST_FNR, TEST_APP_NAME);
+            vedtakService.lagUtkast(TEST_FNR);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             List<String> gamleKilder = List.of(VedtakOpplysningKilder.REGISTRERING.getDesc(), VedtakOpplysningKilder.EGENVURDERING.getDesc());
@@ -350,7 +349,7 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             gittTilgang();
 
-            vedtakService.lagUtkast(TEST_FNR, TEST_APP_NAME);
+            vedtakService.lagUtkast(TEST_FNR);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT + "annen");
@@ -365,7 +364,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @Test
     public void slettUtkast__skal_slette_utkast_med_data() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
         Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -383,7 +382,7 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             gittTilgang();
 
-            vedtakService.lagUtkast(TEST_FNR, TEST_APP_NAME);
+            vedtakService.lagUtkast(TEST_FNR);
 
             when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
@@ -415,7 +414,7 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             gittTilgang();
 
-            vedtakService.lagUtkast(TEST_FNR, TEST_APP_NAME);
+            vedtakService.lagUtkast(TEST_FNR);
 
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
@@ -439,7 +438,7 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
             gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
@@ -454,7 +453,7 @@ public class VedtakServiceTest extends DatabaseTest {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
             gittTilgang();
 
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             reset(meldingRepository);
@@ -484,7 +483,7 @@ public class VedtakServiceTest extends DatabaseTest {
     public void taOverUtkast__feiler_dersom_samme_veileder() {
         withContext(() -> {
             gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             assertThatThrownBy(() ->
@@ -517,7 +516,7 @@ public class VedtakServiceTest extends DatabaseTest {
     void ikke_vedtak_naar_personen_ikke_er_under_oppfolging() {
         withContext(() -> {
             gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID, TEST_APP_NAME);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
@@ -548,7 +547,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private void gittUtkastKlarForUtsendelse() {
         withContext(() -> {
             gittTilgang();
-            vedtakService.lagUtkast(TEST_FNR, TEST_APP_NAME);
+            vedtakService.lagUtkast(TEST_FNR);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
 
             OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
