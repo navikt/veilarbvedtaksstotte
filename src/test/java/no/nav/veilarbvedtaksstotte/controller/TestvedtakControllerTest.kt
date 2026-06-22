@@ -132,8 +132,8 @@ class TestvedtakControllerTest {
         } returns aktorId
 
         every {
-            testvedtakService.hentGjeldendeTestvedtak(aktorId)
-        } returns vedtak
+            testvedtakService.hentAlleTestvedtak(aktorId)
+        } returns listOf(vedtak)
 
         val response = mockMvc.perform(
             post("/api/v1/test/vedtak/hent-vedtak")

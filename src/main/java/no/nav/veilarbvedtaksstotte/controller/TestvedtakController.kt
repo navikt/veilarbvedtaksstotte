@@ -35,7 +35,7 @@ class TestvedtakController(
     @PostMapping
     @Operation(
         summary = "Fatt § 14 a-vedtak",
-        description = "Fatt § 14 a-vedtak på person. Gjelder kun i preprodmiljøer og er ikke tiltenk bruk for produksjon",
+        description = "Fatt § 14 a-vedtak på testperson. Gjelder kun i testmiljøet og er ikke tiltenkt bruk i produksjon",
         responses = [
             ApiResponse(
                 responseCode = "200",
@@ -47,31 +47,29 @@ class TestvedtakController(
         ]
     )
     fun fattTestVedtak(
-        @RequestBody @Valid opprettTestvedtakRequest: OpprettTestvedtakRequest,
-        @RequestHeader("nav-consumer-id") navConsumerId: String
+        @RequestBody @Valid opprettTestvedtakRequest: OpprettTestvedtakRequest
     ) {
-        // if (!authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")) {
-        //     throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        // }
+        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
             val aktorId: AktorId = aktorOppslagClient.hentAktorId(opprettTestvedtakRequest.fnr)
             testvedtakService.lagreTestvedtak(
                 opprettTestvedtakRequest.toVedtak(aktorId),
-                opprettTestvedtakRequest.fnr,
-                navConsumerId
+                opprettTestvedtakRequest.fnr
             )
             return
         }
         throw ResponseStatusException(
             HttpStatus.FORBIDDEN,
-            "Fatt vedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i preprod-miljøer for testing av ny vedtaksløsning. Hvis du ønsker å teste dette, må du kjøre applikasjonen i preprod-miljøet."
+            "Fatt vedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i testmiljøet for testing av ny vedtaksløsning."
         )
     }
 
     @PostMapping("/hent-vedtak")
     @Operation(
-        summary = "Hent § 14 a-vedtak på person",
-        description = "Hent § 14 a-vedtak på person. Gjelder kun i preprodmiljøer og er ikke tiltenk bruk for produksjon",
+        summary = "Hent alle § 14 a-vedtak",
+        description = "Hent alle § 14 a-vedtak på testperson. Gjelder kun i testmiljøet og er ikke tiltenkt bruk i produksjon",
         responses = [
             ApiResponse(
                 responseCode = "200",
@@ -83,24 +81,24 @@ class TestvedtakController(
             )
         ]
     )
-    fun hentTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest): Vedtak? {
-        // if (!authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")) {
-        //     throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        // }
+    fun hentTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest): List<Vedtak> {
+        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")) { 
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
             val aktorId: AktorId = aktorOppslagClient.hentAktorId(testvedtakRequest.fnr)
-            return testvedtakService.hentGjeldendeTestvedtak(aktorId)
+            return testvedtakService.hentAlleTestvedtak(aktorId)
         }
         throw ResponseStatusException(
             HttpStatus.FORBIDDEN,
-            "Henting av vedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i preprod-miljøer for testing av ny vedtaksløsning."
+            "Henting av testvedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i testmiljøet for testing av ny vedtaksløsning."
         )
     }
 
     @DeleteMapping
     @Operation(
         summary = "Slett § 14 a-vedtak på person",
-        description = "Slett alle § 14 a-vedtak på person. Gjelder kun i preprodmiljøer og er ikke tiltenk bruk for produksjon",
+        description = "Slett alle § 14 a-vedtak på testperson. Gjelder kun i testmiljøet og er ikke tiltenkt bruk i produksjon",
         responses = [
             ApiResponse(
                 responseCode = "200",
@@ -111,19 +109,18 @@ class TestvedtakController(
             )
         ]
     )
-    fun slettTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest,
-                       @RequestHeader("nav-consumer-id") navConsumerId: String) {
-        // if (!authService.harSystemTilSystemTilgangMedEkstraRolle("fatt-14a-vedtak")) {
-        //     throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        // }
+    fun slettTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest) {
+        if (!authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
             val aktorId: AktorId = aktorOppslagClient.hentAktorId(testvedtakRequest.fnr)
-            testvedtakService.slettGjeldendeTestvedtak(aktorId, navConsumerId)
+            testvedtakService.slettGjeldendeTestvedtak(aktorId)
             return
         }
         throw ResponseStatusException(
             HttpStatus.FORBIDDEN,
-            "Sletting av vedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i preprod-miljøer for testing av ny vedtaksløsning."
+            "Sletting av testvedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i testmiljøet for testing av ny vedtaksløsning."
         )
     }
 }

@@ -20,26 +20,28 @@ class TestvedtakService(
 ) {
 
     @Transactional
-    fun lagreTestvedtak(vedtak: Vedtak, fnr: Fnr, navConsumerId: String) {
+    fun lagreTestvedtak(vedtak: Vedtak, fnr: Fnr) {
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
         if (oppfolgingsperiode.isEmpty) {
-            veilarboppfolgingClient.startOppfolgingsperiode(fnr)
+            // noe sånt? Vi trenger oppfølgingsperiode for å journalføre vedtaket, se DokumentService.kt@L54
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingen oppfølgingsperiode funnet for personen")
         }
-        testvedtakRepository.settTidligereVedtakIkkeGjeldende(AktorId.of(vedtak.aktorId))
-        testvedtakRepository.lagreTestvedtak(vedtak, navConsumerId)
+        // Skal Dolly kunne overstyre det som gjøres i Modia? Hvis man gjør et vedtak på en person i Modia og så legger til et i Dolly, hva skal skje?
+        testvedtakRepository.settTidligereTestvedtakIkkeGjeldende(AktorId.of(vedtak.aktorId))
+        testvedtakRepository.lagreTestvedtak(vedtak)
         kafkaProducerService.sendSiste14aVedtak(vedtak.toSiste14aVedtak())
         kafkaProducerService.sendGjeldende14aVedtak(AktorId.of(vedtak.aktorId), vedtak.toGjeldende14aVedtakKafkaDTO())
     }
 
-    fun hentGjeldendeTestvedtak(aktorId: AktorId): Vedtak? {
-        return testvedtakRepository.hentGjeldendeTestvedtak(aktorId)
+    fun hentAlleTestvedtak(aktorId: AktorId): List<Vedtak> {
+        return testvedtakRepository.hentAlleTestvedtak(aktorId)
     }
 
     @Transactional
-    fun slettGjeldendeTestvedtak(aktorId: AktorId, navConsumerId: String) {
+    fun slettGjeldendeTestvedtak(aktorId: AktorId) {
         testvedtakRepository.hentGjeldendeTestvedtak(aktorId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Ingen gjeldende testvedtak funnet for aktøren ved sletting")
-        testvedtakRepository.slettGjeldendeTestvedtak(aktorId, navConsumerId)
+        testvedtakRepository.slettGjeldendeTestvedtak(aktorId)
         kafkaProducerService.sendGjeldende14aVedtak(aktorId, null)
     }
 }

@@ -23,17 +23,17 @@ class TestvedtakRepository(
 ) {
     private val namedJdbcTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
-    fun lagreTestvedtak(vedtak: Vedtak, navConsumerId: String) {
+    fun lagreTestvedtak(vedtak: Vedtak) {
         val begrunnelse = vedtak.begrunnelse ?: "Testvedtak opprettet for å teste vedtaksløsningen og videre flyt i preprod-miljøet."
         val sql = """
             INSERT INTO $VEDTAK_TABLE (
                 $AKTOR_ID, $HOVEDMAL, $INNSATSGRUPPE, $OPPFOLGINGSENHET_ID,
                 $UTKAST_SIST_OPPDATERT, $BEGRUNNELSE, $STATUS, $GJELDENDE,
-                $UTKAST_OPPRETTET, $VEDTAK_FATTET, $VEILEDER_IDENT, $OPPRETTET_AV_SYSTEM
+                $UTKAST_OPPRETTET, $VEDTAK_FATTET, $VEILEDER_IDENT, $VEDTAK_TYPE
             ) VALUES (
                 :aktorId, :hovedmal, :innsatsgruppe, :oppfolgingsenhetId,
                 :utkastSistOppdatert, :begrunnelse, :status, true,
-                :utkastOpprettet, :vedtakFattet, :veilederIdent, :opprettetAvSystem
+                :utkastOpprettet, :vedtakFattet, :veilederIdent, :vedtakType
             )
         """
         val params = MapSqlParameterSource()
@@ -47,26 +47,31 @@ class TestvedtakRepository(
             .addValue("utkastOpprettet", TimeUtils.toTimestampOrNull(vedtak.utkastOpprettet.atZone(ZoneId.systemDefault()).toInstant()))
             .addValue("vedtakFattet", TimeUtils.toTimestampOrNull(vedtak.vedtakFattet.atZone(ZoneId.systemDefault()).toInstant()))
             .addValue("veilederIdent", vedtak.veilederIdent)
-            .addValue("opprettetAvSystem", navConsumerId)
+            .addValue("vedtakType", VedtakType.TEST_VEDTAK)
 
         namedJdbcTemplate.update(sql, params)
     }
 
-    fun settTidligereVedtakIkkeGjeldende(aktorId: AktorId): Int {
-        val sql = """UPDATE $VEDTAK_TABLE SET $GJELDENDE = false WHERE $AKTOR_ID = ? AND $GJELDENDE = true"""
-        return jdbcTemplate.update(sql, aktorId.get())
+    fun settTidligereTestvedtakIkkeGjeldende(aktorId: AktorId): Int {
+        val sql = """UPDATE $VEDTAK_TABLE SET $GJELDENDE = false WHERE $AKTOR_ID = ? AND $GJELDENDE = true AND $VEDTAK_TYPE = ?"""
+        return jdbcTemplate.update(sql, aktorId.get(), VedtakType.TEST_VEDTAK.name)
     }
 
     fun hentGjeldendeTestvedtak(aktorId: AktorId): Vedtak? {
-        val sql = """SELECT * FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ? AND $GJELDENDE = true"""
-        return jdbcTemplate.query(sql, this::vedtakMapper, aktorId.get()).firstOrNull()
+        val sql = """SELECT * FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ? AND $GJELDENDE = true AND $VEDTAK_TYPE = ?"""
+        return jdbcTemplate.query(sql, this::vedtakMapper, aktorId.get(), VedtakType.TEST_VEDTAK.name).firstOrNull()
     }
 
-    fun slettGjeldendeTestvedtak(aktorId: AktorId, navConsumerId: String) {
-        val sql = """DELETE FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ? AND $GJELDENDE = true AND $OPPRETTET_AV_SYSTEM = ?"""
-        val rowsDeleted = jdbcTemplate.update(sql, aktorId.get(), navConsumerId)
+    fun hentAlleTestvedtak(aktorId: AktorId): List<Vedtak> {
+        val sql = """SELECT * FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ? AND $VEDTAK_TYPE = ?"""
+        return jdbcTemplate.query(sql, this::vedtakMapper, aktorId.get(), VedtakType.TEST_VEDTAK.name)
+    }
+
+    fun slettGjeldendeTestvedtak(aktorId: AktorId) {
+        val sql = """DELETE FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ? AND $GJELDENDE = true AND $VEDTAK_TYPE = ?"""
+        val rowsDeleted = jdbcTemplate.update(sql, aktorId.get(), VedtakType.TEST_VEDTAK.name)
         if (rowsDeleted == 0) {
-            secureLog.warn("Ingen testvedtak funnet å slette for aktorId: ${aktorId.get()} med opprettetAvSystem: $navConsumerId")
+            secureLog.warn("Ingen testvedtak funnet å slette for aktorId: ${aktorId.get()} med vedtakType: ${VedtakType.TEST_VEDTAK.name}")
         }
     }
 
