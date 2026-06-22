@@ -183,6 +183,18 @@ spec:
           permissions:
             roles:
               - "gjeldende-14a-vedtak"
+        - application: testnav-dolly-proxy
+          namespace: dolly
+          cluster: dev-fss
+          permissions:
+            roles:
+              - "testdata-14a-vedtak"
+        - application: testnav-dolly-proxy-trygdeetaten
+          namespace: dolly
+          cluster: dev-fss
+          permissions:
+            roles:
+              - "testdata-14a-vedtak"
     outbound:
       rules:
         - application: egenvurdering-dialog-tjeneste
