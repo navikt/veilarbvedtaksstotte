@@ -92,7 +92,7 @@ class TestvedtakRepository(
         }
     }
 
-    private fun vedtakMapper(rs: ResultSet, _row: Int): Vedtak {
+    private fun vedtakMapper(rs: ResultSet, @Suppress("unused") row: Int): Vedtak {
         return Vedtak()
             .settId(rs.getLong(VEDTAK_ID))
             .settHovedmal(Hovedmal.valueOf(rs.getString(HOVEDMAL)))
