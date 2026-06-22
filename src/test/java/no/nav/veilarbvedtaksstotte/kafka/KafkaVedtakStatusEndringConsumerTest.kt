@@ -1,7 +1,8 @@
 package no.nav.veilarbvedtaksstotte.kafka
 
-import com.ninjasquad.springmockk.SpykBean
-import io.mockk.verify
+import org.mockito.Mockito
+import org.mockito.kotlin.argThat
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
@@ -24,7 +25,7 @@ class KafkaVedtakStatusEndringConsumerTest : AbstractVedtakIntegrationTest() {
     @Autowired
     lateinit var testProducer: KafkaTestProducer
     
-    @SpykBean
+    @MockitoSpyBean
     lateinit var kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer
 
     @Test
@@ -50,15 +51,13 @@ class KafkaVedtakStatusEndringConsumerTest : AbstractVedtakIntegrationTest() {
         TestUtils.verifiserAsynkront(
             10, TimeUnit.SECONDS
         ) {
-            verify {
-                kafkaVedtakStatusEndringConsumer.konsumer(match {
-                    it.value() == KafkaVedtakStatusEndring()
+            Mockito.verify(kafkaVedtakStatusEndringConsumer).konsumer(argThat {
+                    value() == KafkaVedtakStatusEndring()
                         .setVedtakId(statusEndring.vedtakId)
                         .setAktorId(statusEndring.aktorId)
                         .setVedtakStatusEndring(statusEndring.vedtakStatusEndring)
                         .setTimestamp(statusEndring.timestamp)
                 })
-            }
         }
     }
 }
