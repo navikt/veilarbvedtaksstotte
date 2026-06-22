@@ -5,7 +5,6 @@ import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.RegistrerIkkeArbeidssokerDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +18,4 @@ public interface VeilarboppfolgingClient extends HealthCheck {
     List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr);
 
     SakDTO hentOppfolgingsperiodeSak(UUID oppfolgingsperiodeId);
-
-    RegistrerIkkeArbeidssokerDto startOppfolgingsperiode(Fnr fnr);
 }
