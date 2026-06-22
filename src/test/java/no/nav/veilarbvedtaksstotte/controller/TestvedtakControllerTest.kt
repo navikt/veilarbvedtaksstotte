@@ -1,8 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller
 
 import tools.jackson.databind.ObjectMapper
-import com.ninjasquad.springmockk.MockkBean
-import io.mockk.every
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
@@ -24,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -34,13 +33,13 @@ import java.util.*
 @Import(AuthService::class)
 class TestvedtakControllerTest {
 
-    @MockkBean
+    @MockitoBean
     lateinit var authService: AuthService
 
-    @MockkBean
+    @MockitoBean
     lateinit var aktorOppslagClient: AktorOppslagClient
 
-    @MockkBean
+    @MockitoBean
     lateinit var testvedtakService: TestvedtakService
 
     @Autowired
@@ -72,17 +71,8 @@ class TestvedtakControllerTest {
         val fnr = Fnr.of("12345678901")
         val aktorId = AktorId.of("1234567890123")
 
-        every {
-            authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")
-        } returns true
-
-        every {
-            aktorOppslagClient.hentAktorId(fnr)
-        } returns aktorId
-
-        every {
-            testvedtakService.lagreTestvedtak(any(), any())
-        } returns Unit
+        Mockito.`when`(authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")).thenReturn(true)
+        Mockito.`when`(aktorOppslagClient.hentAktorId(fnr)).thenReturn(aktorId)
 
         val response = mockMvc.perform(
             post("/api/v1/test/vedtak")
@@ -123,17 +113,9 @@ class TestvedtakControllerTest {
             .settVeilederIdent("Z123456")
             .settBegrunnelse("Testvedtak for § 14 a")
 
-        every {
-            authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")
-        } returns true
-
-        every {
-            aktorOppslagClient.hentAktorId(fnr)
-        } returns aktorId
-
-        every {
-            testvedtakService.hentAlleTestvedtak(aktorId)
-        } returns listOf(vedtak)
+        Mockito.`when`(authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")).thenReturn(true)
+        Mockito.`when`(aktorOppslagClient.hentAktorId(fnr)).thenReturn(aktorId)
+        Mockito.`when`(testvedtakService.hentAlleTestvedtak(aktorId)).thenReturn(listOf(vedtak))
 
         val response = mockMvc.perform(
             post("/api/v1/test/vedtak/hent-vedtak")
@@ -150,17 +132,8 @@ class TestvedtakControllerTest {
         val fnr = Fnr.of("12345678901")
         val aktorId = AktorId.of("1234567890123")
 
-        every {
-            authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")
-        } returns true
-
-        every {
-            aktorOppslagClient.hentAktorId(fnr)
-        } returns aktorId
-
-        every {
-            testvedtakService.slettGjeldendeTestvedtak(any())
-        } returns Unit
+        Mockito.`when`(authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")).thenReturn(true)
+        Mockito.`when`(aktorOppslagClient.hentAktorId(fnr)).thenReturn(aktorId)
 
         val response = mockMvc.perform(
             delete("/api/v1/test/vedtak")
