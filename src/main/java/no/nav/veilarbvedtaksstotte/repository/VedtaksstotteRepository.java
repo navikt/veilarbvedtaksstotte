@@ -54,7 +54,7 @@ public class VedtaksstotteRepository {
     private static final String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
     private static final String REFERANSE = "REFERANSE";
     private static final String FEILRETTING_BEGRUNNELSE = "FEILRETTING_BEGRUNNELSE";
-    public static final String OPPRETTET_AV_SYSTEM = "OPPRETTET_AV_SYSTEM";
+    public static final String VEDTAK_TYPE = "VEDTAK_TYPE";
     private static final Integer INITIAL_DISTRIBUSJONSFORSOK_LIMIT = 12; // Prøver først 12 ganger, det tar ca. 2 timer, deretter går det over til døgnlige forsøk
 
     private final JdbcTemplate db;
