@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository
 
 import no.nav.common.types.identer.AktorId
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.domain.oppfolgingsperiode.SisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import org.junit.jupiter.api.Assertions.*
@@ -26,15 +25,14 @@ class SisteOppfolgingPeriodeRepositoryTest : DatabaseTest() {
 
     @Test
     fun `lagre siste oppfolgingsperiode`() {
-
-        val oppfolgingsperiodeFraKafka = KafkaSisteOppfolgingsperiode(
-            uuid = UUID.fromString("955b2735-e824-4f2a-b703-76658760a4cc"),
-            aktorId = "2228184718032",
-            ZonedDateTime.now(),
-            null,
-        )
-
-        assertDoesNotThrow { sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(oppfolgingsperiodeFraKafka) }
+        assertDoesNotThrow {
+            sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(
+                UUID.fromString("955b2735-e824-4f2a-b703-76658760a4cc"),
+                "2228184718032",
+                ZonedDateTime.now(),
+                null,
+            )
+        }
 
     }
 
@@ -43,17 +41,15 @@ class SisteOppfolgingPeriodeRepositoryTest : DatabaseTest() {
         // given
         val uuid = UUID.fromString("955b2735-e824-4f2a-b703-76658760a4cc")
         val aktorId = AktorId.of("2228184718032")
-        val startdato = ZonedDateTime.of(2025, 3, 14, 15, 9, 26, 0, ZoneId.systemDefault())
-        val sluttdato = null
+        val startTidspunkt = ZonedDateTime.of(2025, 3, 14, 15, 9, 26, 0, ZoneId.systemDefault())
+        val sluttTidspunkt = null
 
-        val oppfolgingsperiodeFraKafka = KafkaSisteOppfolgingsperiode(
-            uuid = uuid,
-            aktorId = aktorId.toString(),
-            startDato = startdato,
-            sluttDato = sluttdato,
+        sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(
+            uuid,
+            aktorId.toString(),
+            startTidspunkt,
+            sluttTidspunkt,
         )
-
-        sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(oppfolgingsperiodeFraKafka)
 
         // when
         val innevarendeOppfolgingsperiode = sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(aktorId)
@@ -62,8 +58,8 @@ class SisteOppfolgingPeriodeRepositoryTest : DatabaseTest() {
         val forventetOppfolgingsperiode = SisteOppfolgingsperiode(
             oppfolgingsperiodeId = uuid,
             aktorId = aktorId,
-            startdato = startdato,
-            sluttdato = sluttdato
+            startdato = startTidspunkt,
+            sluttdato = sluttTidspunkt
         )
 
         assertNotNull(innevarendeOppfolgingsperiode)
@@ -75,16 +71,15 @@ class SisteOppfolgingPeriodeRepositoryTest : DatabaseTest() {
         // given
         val uuid = UUID.fromString("955b2735-e824-4f2a-b703-76658760a4cc")
         val aktorId = AktorId.of("2228184718032")
-        val startdato = ZonedDateTime.now().minusDays(1)
-        val sluttdato = ZonedDateTime.now()
+        val startTidspunkt = ZonedDateTime.now().minusDays(1)
+        val sluttTidspunkt = ZonedDateTime.now()
 
-        val oppfolgingsperiodeFraKafka = KafkaSisteOppfolgingsperiode(
-            uuid = uuid,
-            aktorId = aktorId.toString(),
-            startDato = startdato,
-            sluttDato = sluttdato,
+        sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(
+            uuid,
+            aktorId.toString(),
+            startTidspunkt,
+            sluttTidspunkt,
         )
-        sisteOppfolgingPeriodeRepository.upsertSisteOppfolgingPeriode(oppfolgingsperiodeFraKafka)
 
         // when
         val innevarendeOppfolgingsperiode = sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(aktorId)

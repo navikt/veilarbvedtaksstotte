@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Import;
         Siste14aVedtakService.class,
         KafkaProducerService.class,
         KafkaConsumerService.class,
+        KafkaSisteOppfolgingsperiodeV3Consumer.class,
         KafkaRepubliseringService.class,
         DvhRapporteringService.class,
         DvhRapporteringService.class,
