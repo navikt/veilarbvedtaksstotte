@@ -6,12 +6,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class KafkaProperties(
     val brokersUrl: String,
     val arenaVedtakTopic: String,
-    val endringPaOppfolgingsBrukerTopic: String,
     val siste14aVedtakTopic: String,
-    val sisteOppfolgingsperiodeTopic: String,
     val vedtakFattetDvhTopic: String,
     val vedtakSendtTopic: String,
     val vedtakStatusEndringTopic: String,
     val pdlAktorV2Topic: String,
-    val gjeldende14aVedtakTopic: String
+    val gjeldende14aVedtakTopic: String,
+    val sisteOppfolgingsperiodeV3Topic: String
 )

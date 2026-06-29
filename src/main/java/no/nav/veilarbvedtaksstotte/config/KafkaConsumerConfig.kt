@@ -15,10 +15,10 @@ import no.nav.common.kafka.consumer.util.deserializer.Deserializers
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
 import no.nav.common.utils.EnvironmentUtils
 import no.nav.person.pdl.aktor.v2.Aktor
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaOppfolgingsbrukerEndringV2
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiode
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaSisteOppfolgingsperiodeV3
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring
 import no.nav.veilarbvedtaksstotte.service.KafkaConsumerService
+import no.nav.veilarbvedtaksstotte.service.KafkaSisteOppfolgingsperiodeV3Consumer
 import no.nav.veilarbvedtaksstotte.service.KafkaVedtakStatusEndringConsumer
 import no.nav.veilarbvedtaksstotte.utils.KAFKA_KONSUMERING_GCP_SKRUDD_AV
 import no.nav.veilarbvedtaksstotte.utils.LES_FRA_PDL_AKTOR_V2_TOPIC_SKRUDD_PAA
@@ -40,6 +40,7 @@ class KafkaConsumerConfig {
     fun consumerAivenConfig(
         kafkaConsumerService: KafkaConsumerService,
         kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer,
+        kafkaSisteOppfolgingsperiodeV3Consumer: KafkaSisteOppfolgingsperiodeV3Consumer,
         kafkaProperties: KafkaProperties,
         meterRegistry: MeterRegistry,
         kafkaConsumerRepository: KafkaConsumerRepository
@@ -48,6 +49,7 @@ class KafkaConsumerConfig {
             getAivenConsumerTopicConfigs(
                 kafkaConsumerService,
                 kafkaVedtakStatusEndringConsumer,
+                kafkaSisteOppfolgingsperiodeV3Consumer,
                 kafkaProperties,
                 meterRegistry,
                 kafkaConsumerRepository
@@ -181,6 +183,7 @@ class KafkaConsumerConfig {
         private fun getAivenConsumerTopicConfigs(
             kafkaConsumerService: KafkaConsumerService,
             kafkaVedtakStatusEndringConsumer: KafkaVedtakStatusEndringConsumer,
+            kafkaSisteOppfolgingsperiodeV3Consumer: KafkaSisteOppfolgingsperiodeV3Consumer,
             kafkaProperties: KafkaProperties,
             meterRegistry: MeterRegistry,
             consumerRepository: KafkaConsumerRepository
@@ -201,45 +204,26 @@ class KafkaConsumerConfig {
                             )
                         })
 
-            val oppfolgingsbrukerEndringClientConfigBuilder =
-                KafkaConsumerClientBuilder.TopicConfig<String, KafkaOppfolgingsbrukerEndringV2>()
+            val sisteOppfolgingsperiodeV3ClientConfigBuilder =
+               KafkaConsumerClientBuilder.TopicConfig<Long, KafkaSisteOppfolgingsperiodeV3>()
                     .withLogging()
                     .withMetrics(meterRegistry)
                     .withStoreOnFailure(consumerRepository)
                     .withConsumerConfig(
-                        kafkaProperties.endringPaOppfolgingsBrukerTopic,
-                        Deserializers.stringDeserializer(),
-                        Deserializers.jsonDeserializer(
-                            KafkaOppfolgingsbrukerEndringV2::class.java
-                        ),
+                        kafkaProperties.sisteOppfolgingsperiodeV3Topic,
+                        Deserializers.longDeserializer(),
+                        Deserializers.jsonDeserializer(KafkaSisteOppfolgingsperiodeV3::class.java),
                         Consumer {
                             kafkaConsumerService.behandleKafkaMelding(
                                 it,
-                                kafkaConsumerService::flyttingAvOppfolgingsbrukerTilNyEnhet
-                            )
-                        })
-
-            val sisteOppfolgingsperiodeClientConfigBuilder =
-                KafkaConsumerClientBuilder.TopicConfig<String, KafkaSisteOppfolgingsperiode>()
-                    .withLogging()
-                    .withMetrics(meterRegistry)
-                    .withStoreOnFailure(consumerRepository)
-                    .withConsumerConfig(
-                        kafkaProperties.sisteOppfolgingsperiodeTopic,
-                        Deserializers.stringDeserializer(),
-                        Deserializers.jsonDeserializer(KafkaSisteOppfolgingsperiode::class.java),
-                        Consumer {
-                            kafkaConsumerService.behandleKafkaMelding(
-                                it,
-                                kafkaConsumerService::behandleSisteOppfolgingsperiode
+                                kafkaSisteOppfolgingsperiodeV3Consumer::behandleSisteOppfolgingsperiodeV3,
                             )
                         }
                     )
 
             return listOf(
                 vedtakStatusEndringClientConfigBuilder,
-                oppfolgingsbrukerEndringClientConfigBuilder,
-                sisteOppfolgingsperiodeClientConfigBuilder
+                sisteOppfolgingsperiodeV3ClientConfigBuilder
             )
         }
     }
