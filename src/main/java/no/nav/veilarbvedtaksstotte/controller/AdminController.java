@@ -1,8 +1,11 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import no.nav.common.job.JobRunner;
 import no.nav.common.types.identer.NavIdent;
+import no.nav.veilarbvedtaksstotte.controller.dto.AktorIdRequestDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
+import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.service.KafkaRepubliseringService;
 import no.nav.veilarbvedtaksstotte.service.VedtakService;
@@ -10,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
 
 import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 
@@ -24,15 +26,17 @@ public class AdminController {
     private final KafkaRepubliseringService kafkaRepubliseringService;
 
     private final VedtakService vedtakService;
+    private final VedtaksstotteRepository vedtaksstotteRepository;
 
     @Autowired
     public AdminController(AuthService authService,
                            KafkaRepubliseringService kafkaRepubliseringService,
-                           VedtakService vedtakService
+                           VedtakService vedtakService, VedtaksstotteRepository vedtaksstotteRepository
     ) {
         this.authService = authService;
         this.kafkaRepubliseringService = kafkaRepubliseringService;
         this.vedtakService = vedtakService;
+        this.vedtaksstotteRepository = vedtaksstotteRepository;
     }
 
     @PostMapping("/republiser/siste-14a-vedtak")
@@ -78,6 +82,18 @@ public class AdminController {
             return;
         }
         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+    }
+
+
+    @PostMapping("/aktoridSjekk")
+    @Operation(
+            summary = "Sjekk om vi har en aktørid i vedtakstabellen",
+            description = "Sjekker om vi har en aktørid i vedtakstabellen." +
+                    "Dette er i tilfeller ved merge/split og for å sjekke om vi er berørt."
+    )
+    public Boolean sjekkOmViHarAktorId(@RequestBody AktorIdRequestDTO aktorIdRequestDTO) {
+        sjekkTilgangTilAdmin();
+        return vedtaksstotteRepository.aktorIdFinnesIVedtakTabell(aktorIdRequestDTO.getAktorId().get());
     }
 
 }
