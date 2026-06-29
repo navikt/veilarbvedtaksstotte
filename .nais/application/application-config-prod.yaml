@@ -118,8 +118,6 @@ spec:
     # Topics
     - name: ARENA_VEDTAK_TOPIC
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-p
-    - name: ENDRING_PA_OPPFOLGINGSBRUKER_TOPIC
-      value: pto.endring-paa-oppfolgingsbruker-v2
     # BigQuery
     - name: BQ_DATASET_NAME
       value: 14a_vedtak_statistikk
