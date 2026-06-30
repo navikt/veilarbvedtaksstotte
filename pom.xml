@@ -22,7 +22,7 @@
         <common.version>4.2026.06.25_10.50-baa9d54e3cd8</common.version>
         <kotlin.version>2.2.21</kotlin.version>
         <testcontainers.version>1.21.4</testcontainers.version>
-        <unleash.version>12.1.1</unleash.version>
+        <unleash.version>12.2.2</unleash.version>
         <confluent.version>8.2.1</confluent.version>
 
         <!--   Used by SonarCloud     -->
