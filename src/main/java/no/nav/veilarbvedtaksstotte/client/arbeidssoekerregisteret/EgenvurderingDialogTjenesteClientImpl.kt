@@ -2,7 +2,6 @@ package no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret
 
 import no.nav.common.rest.client.RestClient
 import no.nav.common.rest.client.RestUtils
-import no.nav.veilarbvedtaksstotte.utils.deserializeJson
 import no.nav.veilarbvedtaksstotte.utils.deserializeJsonAndThrowOnNull
 import no.nav.veilarbvedtaksstotte.utils.toJson
 import okhttp3.OkHttpClient
@@ -36,12 +35,10 @@ class EgenvurderingDialogTjenesteClientImpl(
         client.newCall(request).execute().use { response ->
             return when (val statusCode = response.code) {
                 HttpStatus.OK.value() -> response.deserializeJsonAndThrowOnNull()
-                HttpStatus.NO_CONTENT.value() -> response.deserializeJson()
+                HttpStatus.NO_CONTENT.value(), HttpStatus.NOT_FOUND.value() -> null
                 else -> {
-                    val melding =
-                        "Klarte ikke hente dialogId for arbeidssokerperiodeId=$arbeidssokerperiodeId. Årsak: uventet HTTP-status $statusCode."
-                    log.warn(melding)
-                    throw EgenvurderingDialogTjenesteException(melding)
+                    log.warn("Klarte ikke hente dialogId for arbeidssokerperiodeId=$arbeidssokerperiodeId. Årsak: uventet HTTP-status $statusCode. Fortsetter uten dialogId.")
+                    null
                 }
             }
         }
@@ -52,4 +49,3 @@ data class EgenvurderingDialogRequest(val periodeId: UUID)
 
 data class EgenvurderingDialogResponse(@param:NotNull val dialogId: Long)
 
-data class EgenvurderingDialogTjenesteException(override val message: String) : RuntimeException(message)

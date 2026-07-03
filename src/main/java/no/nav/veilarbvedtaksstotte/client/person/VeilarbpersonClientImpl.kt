@@ -179,12 +179,11 @@ class VeilarbpersonClientImpl(
 
         try {
             client.newCall(request).execute().use { response ->
-                RestUtils.throwIfNotSuccessful(response)
-
                 if (response.code == 404 || response.code == 204) {
                     return null
                 }
 
+                RestUtils.throwIfNotSuccessful(response)
                 return response.deserializeJsonAndThrowOnNull()
             }
         } catch (e: Exception){
