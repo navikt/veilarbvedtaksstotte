@@ -165,7 +165,7 @@ spec:
         # Lenke til behandling i Behandlingskatalogen: https://behandlingskatalog.ansatt.nav.no/process/team/0150fd7c-df30-43ee-944e-b152d74c64d6/780e3168-cf58-46ec-9764-a6cdd3da3b8f
         - application: tiltaksgjennomforing-api
           namespace: arbeidsgiver
-          cluster: dev-fss
+          cluster: prod-fss
           permissions:
             roles:
               - "gjeldende-14a-vedtak"
