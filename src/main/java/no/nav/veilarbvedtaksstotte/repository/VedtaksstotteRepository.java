@@ -76,6 +76,11 @@ public class VedtaksstotteRepository {
         return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.SENDT));
     }
 
+    public boolean aktorIdFinnesIVedtakTabell(String aktorId) {
+        String sql = format("SELECT EXISTS(SELECT 1 FROM %s WHERE %s = ?)", VEDTAK_TABLE, AKTOR_ID);
+        return Boolean.TRUE.equals(db.queryForObject(sql, Boolean.class, aktorId));
+    }
+
     public List<Vedtak> hentFattedeVedtakInkludertSlettede(String aktorId) {
         String sql = format("SELECT * FROM %s WHERE %s = ? AND %s != ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
         return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.UTKAST));
