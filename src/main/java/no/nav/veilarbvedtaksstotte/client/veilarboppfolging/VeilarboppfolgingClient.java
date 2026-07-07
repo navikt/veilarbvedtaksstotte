@@ -18,5 +18,4 @@ public interface VeilarboppfolgingClient extends HealthCheck {
     List<OppfolgingPeriodeDTO> hentOppfolgingsperioder(Fnr fnr);
 
     SakDTO hentOppfolgingsperiodeSak(UUID oppfolgingsperiodeId);
-
 }

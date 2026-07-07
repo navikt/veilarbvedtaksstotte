@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
         SakStatistikkRepository.class,
         SisteOppfolgingPeriodeRepository.class,
         RetryVedtakdistribusjonRepository.class,
-        KlagebehandlingRepository.class
+        KlagebehandlingRepository.class,
+        TestvedtakRepository.class
 })
 public class RepositoryTestConfig {}
