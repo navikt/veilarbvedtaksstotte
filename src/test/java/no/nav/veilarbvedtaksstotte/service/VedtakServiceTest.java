@@ -46,6 +46,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SladdVedtakRequest;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.Malform;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
@@ -527,7 +528,7 @@ public class VedtakServiceTest extends DatabaseTest {
         assertJournalfortOgFerdigstiltVedtak();
         assertNotNull(vedtaksstotteRepository.hentFattedeVedtak(TEST_AKTOR_ID).getFirst().getBegrunnelse());
 
-        SlettVedtakRequest sladdVedtakRequest = new SlettVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
+        SladdVedtakRequest sladdVedtakRequest = new SladdVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
         vedtakService.sladdVedtak(sladdVedtakRequest, NavIdent.of("Z123456"));
         var sladdetVedtak = vedtaksstotteRepository.hentFattedeVedtak(TEST_AKTOR_ID).getFirst();
 
