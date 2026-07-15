@@ -383,6 +383,20 @@ public class VedtakService {
 
     }
 
+    public void sladdVedtak(SlettVedtakRequest sladdVedtakRequest, NavIdent utfortAv) {
+        try {
+            AktorId aktorId = aktorOppslagClient.hentAktorId(sladdVedtakRequest.getFnr());
+            Optional<Vedtak> vedtak = vedtaksstotteRepository.hentVedtakByJournalpostIdOgAktorId(sladdVedtakRequest.getJournalpostId(), aktorId);
+            if (vedtak.isEmpty()) {
+                return;
+            }
+            vedtaksstotteRepository.sladdVedtak(vedtak.get().getId(), utfortAv, sladdVedtakRequest);
+        } catch (RuntimeException e) {
+            secureLog.error("Klarte ikke å fullføre alle stegene for å sladde vedtak for person: {}", sladdVedtakRequest.getFnr(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Klarte ikke å sladde vedtak");
+        }
+    }
+
     private void flettInnKilder(Vedtak vedtak) {
         List<KildeEntity> kilder = kilderRepository.hentKilderForVedtak(vedtak.getId())
                 .stream()

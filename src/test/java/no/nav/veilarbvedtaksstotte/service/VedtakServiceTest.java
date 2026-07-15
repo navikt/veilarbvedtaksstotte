@@ -513,6 +513,28 @@ public class VedtakServiceTest extends DatabaseTest {
     }
 
     @Test
+    void sladd_begrunnelse_i_vedtak_ved_feil_i_beskrivelsen() {
+        gittUtkastKlarForUtsendelse();
+
+        when(dokarkivClient.opprettJournalpost(any()))
+                .thenReturn(new OpprettetJournalpostDTO(
+                        TEST_JOURNALPOST_ID,
+                        false,
+                        List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
+
+        fattVedtak();
+
+        assertJournalfortOgFerdigstiltVedtak();
+        assertNotNull(vedtaksstotteRepository.hentFattedeVedtak(TEST_AKTOR_ID).getFirst().getBegrunnelse());
+
+        SlettVedtakRequest sladdVedtakRequest = new SlettVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
+        vedtakService.sladdVedtak(sladdVedtakRequest, NavIdent.of("Z123456"));
+        var sladdetVedtak = vedtaksstotteRepository.hentFattedeVedtak(TEST_AKTOR_ID).getFirst();
+
+        assertEquals("Deler av vedtaket har blitt slettet/sladdet. Se dokument i Gosys.", sladdetVedtak.getBegrunnelse());
+    }
+
+    @Test
     void ikke_vedtak_naar_personen_ikke_er_under_oppfolging() {
         withContext(() -> {
             gittTilgang();
