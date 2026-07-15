@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.repository;
 import lombok.SneakyThrows;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.NavIdent;
+import no.nav.veilarbvedtaksstotte.controller.dto.SladdVedtakRequest;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.sladdVedtak.SladdVedtakFeiletException;
@@ -297,10 +298,10 @@ public class VedtaksstotteRepository {
      * @param utfortAv           identen til den som utfører sladdingen
      * @param sladdVedtakRequest request som inneholder informasjon om sladdingen.
      */
-    public void sladdVedtak(long vedtakId, NavIdent utfortAv, SlettVedtakRequest sladdVedtakRequest) throws SladdVedtakFeiletException {
+    public void sladdVedtak(long vedtakId, NavIdent utfortAv, SladdVedtakRequest sladdVedtakRequest) throws SladdVedtakFeiletException {
         try {
             String feilrettingBegrunnelse = format("Vedtaket ble sladded %s av %s fordi %s bestilte sladding i %s på bakgrunn av at vedtaket hadde feil informasjon i beskrivelsen",
-                    LocalDateTime.now(), utfortAv.get(), sladdVedtakRequest.getAnsvarligVeileder(), sladdVedtakRequest.getSlettVedtakBestillingId());
+                    LocalDateTime.now(), utfortAv.get(), sladdVedtakRequest.getAnsvarligVeileder(), sladdVedtakRequest.getSladdVedtakBestillingId());
             String sladdetBegrunnelse = "Deler av vedtaket har blitt slettet/sladdet. Se dokument i Gosys.";
             String sql = format(
                     "UPDATE %s SET %s = CURRENT_TIMESTAMP, %s = ?,  %s = ? WHERE %s = ?",

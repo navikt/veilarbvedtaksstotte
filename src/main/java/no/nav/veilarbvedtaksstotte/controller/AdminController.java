@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import no.nav.common.job.JobRunner;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.veilarbvedtaksstotte.controller.dto.AktorIdRequestDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SladdVedtakRequest;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
@@ -79,7 +80,7 @@ public class AdminController {
      * OBS: Denne sladding skal kun brukes ved feil informasjon i beskrivelsen, og ved eksplisitt beskjed via en jira-sak.
      */
     @PutMapping("/sladd-vedtak")
-    public void sladdVedtak(@RequestBody SlettVedtakRequest sladdVedtakRequest) {
+    public void sladdVedtak(@RequestBody SladdVedtakRequest sladdVedtakRequest) {
         sjekkTilgangTilAdmin();
         if (!isDevelopment().orElse(false)) {
             authService.erInnloggetBrukerModiaAdmin();
