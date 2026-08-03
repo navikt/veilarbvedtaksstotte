@@ -354,10 +354,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <!-- commons-compress 1.28.0 (from avro) requires commons-io >= 2.16.1 for FileTimes.toUnixTime -->
+            <!-- commons-compress 1.28.0 (from avro) requires commons-io >= 2.22.0 for FileTimes.toUnixTime -->
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.16.1</version>
+            <version>2.22.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
