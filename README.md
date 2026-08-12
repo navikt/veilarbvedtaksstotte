@@ -33,7 +33,7 @@ mvn test
 
 ## Journalføring detaljer
 
-Sjekk dokumentasjon [her](Journalforing.md)
+Sjekk dokumentasjon [her](docs/journalforing.md)
 
 ## Kode generert av GitHub Copilot
 
