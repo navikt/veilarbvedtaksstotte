@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import no.nav.common.job.JobRunner;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.veilarbvedtaksstotte.controller.dto.AktorIdRequestDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SladdVedtakRequest;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
@@ -74,6 +75,24 @@ public class AdminController {
         vedtakService.slettVedtak(slettVedtakRequest, NavIdent.of(authService.getInnloggetVeilederIdent()));
     }
 
+
+    /**
+     * OBS: Denne sladding skal kun brukes ved feil informasjon i beskrivelsen, og ved eksplisitt beskjed via en jira-sak.
+     */
+    @PutMapping("/sladd-vedtak")
+    public void sladdVedtak(@RequestBody SladdVedtakRequest sladdVedtakRequest) {
+        sjekkTilgangTilAdmin();
+        if (!isDevelopment().orElse(false)) {
+            authService.erInnloggetBrukerModiaAdmin();
+        }
+        String regex = "[A-Za-z]\\d{6}";
+
+        if (!sladdVedtakRequest.getAnsvarligVeileder().get().matches(regex)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ansvarlig veileder må ha formatet X123456");
+        }
+        vedtakService.sladdVedtak(sladdVedtakRequest, NavIdent.of(authService.getInnloggetVeilederIdent()));
+    }
+
     private void sjekkTilgangTilAdmin() {
         boolean erInternBruker = authService.erInternBruker();
         boolean erPoaoAdmin = POAO_ADMIN.equals(authService.hentApplikasjonFraContex());
@@ -83,7 +102,6 @@ public class AdminController {
         }
         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
     }
-
 
     @PostMapping("/aktoridSjekk")
     @Operation(
