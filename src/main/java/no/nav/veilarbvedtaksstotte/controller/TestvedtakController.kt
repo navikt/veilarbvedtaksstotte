@@ -59,17 +59,16 @@ class TestvedtakController(
         if (!authService.harSystemTilSystemTilgangMedEkstraRolle(TESTDATA_ROLLE)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-        if (EnvironmentUtils.isDevelopment().orElse(false)) {
-            val aktorId: AktorId = aktorOppslagClient.hentAktorId(opprettTestvedtakRequest.fnr)
-            testvedtakService.lagreTestvedtak(
-                opprettTestvedtakRequest.toVedtak(aktorId),
-                opprettTestvedtakRequest.fnr
+        if (!EnvironmentUtils.isDevelopment().orElse(false)) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Fatt vedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i testmiljøet for testing av ny vedtaksløsning."
             )
-            return
         }
-        throw ResponseStatusException(
-            HttpStatus.FORBIDDEN,
-            "Fatt vedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i testmiljøet for testing av ny vedtaksløsning."
+        val aktorId: AktorId = aktorOppslagClient.hentAktorId(opprettTestvedtakRequest.fnr)
+        testvedtakService.lagreTestvedtak(
+            opprettTestvedtakRequest.toVedtak(aktorId),
+            opprettTestvedtakRequest.fnr
         )
     }
 
@@ -92,14 +91,14 @@ class TestvedtakController(
         if (!authService.harSystemTilSystemTilgangMedEkstraRolle(TESTDATA_ROLLE)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-        if (EnvironmentUtils.isDevelopment().orElse(false)) {
-            val aktorId: AktorId = aktorOppslagClient.hentAktorId(testvedtakRequest.fnr)
-            return testvedtakService.hentGjeldendeVedtak(aktorId)
+        if (!EnvironmentUtils.isDevelopment().orElse(false)) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Henting av testvedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i testmiljøet for testing av ny vedtaksløsning."
+            )
         }
-        throw ResponseStatusException(
-            HttpStatus.FORBIDDEN,
-            "Henting av testvedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i testmiljøet for testing av ny vedtaksløsning."
-        )
+        val aktorId: AktorId = aktorOppslagClient.hentAktorId(testvedtakRequest.fnr)
+        return testvedtakService.hentGjeldendeVedtak(aktorId)
     }
 
     @DeleteMapping
@@ -120,14 +119,13 @@ class TestvedtakController(
         if (!authService.harSystemTilSystemTilgangMedEkstraRolle(TESTDATA_ROLLE)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-        if (EnvironmentUtils.isDevelopment().orElse(false)) {
-            val aktorId: AktorId = aktorOppslagClient.hentAktorId(testvedtakRequest.fnr)
-            testvedtakService.slettGjeldendeTestvedtak(aktorId)
-            return
+        if (!EnvironmentUtils.isDevelopment().orElse(false)) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Sletting av testvedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i testmiljøet for testing av ny vedtaksløsning."
+            )
         }
-        throw ResponseStatusException(
-            HttpStatus.FORBIDDEN,
-            "Sletting av testvedtak er ikke støttet i produksjon. Denne funksjonaliteten er kun tilgjengelig i testmiljøet for testing av ny vedtaksløsning."
-        )
+        val aktorId: AktorId = aktorOppslagClient.hentAktorId(testvedtakRequest.fnr)
+        testvedtakService.slettGjeldendeTestvedtak(aktorId)
     }
 }
