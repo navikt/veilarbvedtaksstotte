@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -76,12 +75,12 @@ class TestvedtakController(
 
     @PostMapping("/hent-vedtak")
     @Operation(
-        summary = "Hent alle § 14 a-vedtak",
-        description = "Hent alle § 14 a-vedtak på testperson. Gjelder kun i testmiljøet og er ikke tiltenkt bruk i produksjon",
+        summary = "Hent gjeldende § 14 a-vedtak",
+        description = "Hent gjeldende § 14 a-vedtak på testperson. Gjelder kun i testmiljøet og er ikke tiltenkt bruk i produksjon",
         responses = [
             ApiResponse(
                 responseCode = "200",
-                content = [Content(array = ArraySchema(schema = Schema(implementation = Vedtak::class)))]
+                content = [Content(schema = Schema(implementation = Vedtak::class))]
             ),
             ApiResponse(
                 responseCode = "403",
@@ -89,13 +88,13 @@ class TestvedtakController(
             )
         ]
     )
-    fun hentTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest): List<Vedtak> {
+    fun hentTestVedtak(@RequestBody @Valid testvedtakRequest: TestvedtakRequest): Vedtak? {
         if (!authService.harSystemTilSystemTilgangMedEkstraRolle(TESTDATA_ROLLE)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
         if (EnvironmentUtils.isDevelopment().orElse(false)) {
             val aktorId: AktorId = aktorOppslagClient.hentAktorId(testvedtakRequest.fnr)
-            return testvedtakService.hentAlleTestvedtak(aktorId)
+            return testvedtakService.hentGjeldendeVedtak(aktorId)
         }
         throw ResponseStatusException(
             HttpStatus.FORBIDDEN,

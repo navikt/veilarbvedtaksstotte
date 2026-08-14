@@ -83,9 +83,9 @@ class TestvedtakRepository(
         return jdbcTemplate.query(sql, this::vedtakMapper, aktorId.get(), VedtakType.TEST_VEDTAK.name).firstOrNull()
     }
 
-    fun hentAlleTestvedtak(aktorId: AktorId): List<Vedtak> {
-        val sql = """SELECT * FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ? AND $VEDTAK_TYPE = ?"""
-        return jdbcTemplate.query(sql, this::vedtakMapper, aktorId.get(), VedtakType.TEST_VEDTAK.name)
+    fun hentGjeldendeVedtak(aktorId: AktorId): Vedtak? {
+        val sql = """SELECT * FROM $VEDTAK_TABLE WHERE $AKTOR_ID = ? AND $GJELDENDE = true"""
+        return jdbcTemplate.query(sql, this::vedtakMapper, aktorId.get()).firstOrNull()
     }
 
     fun slettGjeldendeTestvedtak(aktorId: AktorId) {

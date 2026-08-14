@@ -98,7 +98,7 @@ class TestvedtakControllerTest {
     }
 
     @Test
-    fun `Skal kunne hent et § 14 a-vedtak pa testperson`() {
+    fun `Skal kunne hente gjeldende § 14 a-vedtak pa testperson`() {
         val fnr = Fnr.of("12345678901")
         val aktorId = AktorId.of("1234567890123")
         val vedtakFattet = LocalDateTime.now().minusDays(1)
@@ -115,7 +115,7 @@ class TestvedtakControllerTest {
 
         Mockito.`when`(authService.harSystemTilSystemTilgangMedEkstraRolle("testdata-14a-vedtak")).thenReturn(true)
         Mockito.`when`(aktorOppslagClient.hentAktorId(fnr)).thenReturn(aktorId)
-        Mockito.`when`(testvedtakService.hentAlleTestvedtak(aktorId)).thenReturn(listOf(vedtak))
+        Mockito.`when`(testvedtakService.hentGjeldendeVedtak(aktorId)).thenReturn(vedtak)
 
         val response = mockMvc.perform(
             post("/api/v1/test/vedtak/hent-vedtak")

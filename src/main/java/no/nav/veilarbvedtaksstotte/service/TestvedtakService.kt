@@ -38,8 +38,8 @@ class TestvedtakService(
         kafkaProducerService.sendGjeldende14aVedtak(aktorId, vedtak.toGjeldende14aVedtakKafkaDTO())
     }
 
-    fun hentAlleTestvedtak(aktorId: AktorId): List<Vedtak> {
-        return testvedtakRepository.hentAlleTestvedtak(aktorId)
+    fun hentGjeldendeVedtak(aktorId: AktorId): Vedtak? {
+        return testvedtakRepository.hentGjeldendeVedtak(aktorId)
     }
 
     @Transactional
