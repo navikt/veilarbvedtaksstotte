@@ -38,10 +38,14 @@ import java.time.ZoneId
 class TestvedtakRepository(
     private val jdbcTemplate: JdbcTemplate
 ) {
+    companion object {
+        const val DEFAULT_BEGRUNNELSE = "Testvedtak opprettet for å teste vedtaksløsningen og videre flyt i test-miljøet."
+    }
+
     private val namedJdbcTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
     fun lagreTestvedtak(vedtak: Vedtak) {
-        val begrunnelse = vedtak.begrunnelse ?: "Testvedtak opprettet for å teste vedtaksløsningen og videre flyt i preprod-miljøet."
+        val begrunnelse = vedtak.begrunnelse ?: DEFAULT_BEGRUNNELSE
         val sql = """
             INSERT INTO $VEDTAK_TABLE (
                 $AKTOR_ID, $HOVEDMAL, $INNSATSGRUPPE, $OPPFOLGINGSENHET_ID,
@@ -102,6 +106,7 @@ class TestvedtakRepository(
             .settOppfolgingsenhetId(rs.getString(OPPFOLGINGSENHET_ID))
             .settVeilederIdent(rs.getString(VEILEDER_IDENT))
             .settAktorId(rs.getString(AKTOR_ID))
+            .settBegrunnelse(rs.getString(BEGRUNNELSE))
             .settGjeldende(rs.getBoolean(GJELDENDE))
     }
 }
