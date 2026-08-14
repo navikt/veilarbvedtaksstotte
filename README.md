@@ -10,7 +10,7 @@ Funksjonalitet:
 - API for meldinger relatert til et utkast
 - API for konsumering av data fra 14a vedtak (innsatsgruppe og hovedmål)
 
-Swagger: /veilarbvedtaksstotte/internal/swagger-ui/index.html
+Swagger: [/veilarbvedtaksstotte/internal/swagger-ui/index.html](https://veilarbvedtaksstotte.intern.dev.nav.no/veilarbvedtaksstotte/internal/swagger-ui/index.html)
 
 Dev-miljøet har ikke lenger noen tilknytning til q1, kun q2.
 
