@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.config
 
 import io.getunleash.DefaultUnleash
+import io.getunleash.UnleashContext
 import io.getunleash.util.UnleashConfig
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
@@ -63,7 +64,7 @@ class ClientConfig {
 
     @Bean
     fun pdfClient(properties: EnvironmentProperties): PdfClient {
-        return PdfClientImpl(properties.ptoPdfgenUrl)
+        return PdfClientImpl(properties.oboPdfgenUrl)
     }
 
     @Bean
@@ -219,9 +220,17 @@ class ClientConfig {
 
     @Bean
     fun unleashClient(properties: EnvironmentProperties): DefaultUnleash = DefaultUnleash(
-        UnleashConfig.builder().appName(ApplicationConfig.APPLICATION_NAME)
-            .instanceId(ApplicationConfig.APPLICATION_NAME).unleashAPI(properties.unleashUrl)
-            .apiKey(properties.unleashApiToken).environment(if (isProduction) "production" else "development").build()
+        UnleashConfig.builder()
+            .appName(ApplicationConfig.APPLICATION_NAME)
+            .instanceId("${ApplicationConfig.APPLICATION_NAME}-${runCatching { java.net.InetAddress.getLocalHost().hostName }.getOrDefault("unknown")}")
+            .unleashAPI(properties.unleashUrl)
+            .apiKey(properties.unleashApiToken)
+            .unleashContextProvider {
+                UnleashContext.builder()
+                    .environment(if (isProduction) "production" else "development")
+                    .build()
+            }
+            .build()
     )
 
 //    @Bean
@@ -263,6 +272,6 @@ class ClientConfig {
 
     companion object {
         private val isProduction: Boolean
-            get() = EnvironmentUtils.isProduction().orElseThrow()
+            get() = EnvironmentUtils.isProduction().orElse(false)
     }
 }

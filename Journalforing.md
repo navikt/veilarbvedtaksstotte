@@ -18,8 +18,8 @@ Vedtak service ->> Vedtak repository: Sett gjeldende vedtak til historisk
 critical Prøv å journalføre vedtak og oyeblikksbilde
 Vedtak service ->>Vedtak service: Lagre Oyeblikksbilde
 Vedtak service ->> Dokument Service: Produser og journalfor dokument
-Dokument Service ->> Pto-PdfGen: Produser PDF for vedtak og oyeblikksbilde
-Pto-PdfGen -->> Dokument Service: PDFs
+Dokument Service ->> Obo-PdfGen: Produser PDF for vedtak og oyeblikksbilde
+Obo-PdfGen -->> Dokument Service: PDFs
 Dokument Service ->>Dokarkiv: Journalfor vedtak og oyeblikksbilde for valgt kilder
 Dokarkiv -->>Dokument Service: journalpostId
 Dokument Service -->>Vedtak service: journalpostId
