@@ -49,7 +49,6 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientI
 import no.nav.veilarbvedtaksstotte.klagebehandling.client.KabalClient
 import no.nav.veilarbvedtaksstotte.klagebehandling.client.KabalClientImpl
 import no.nav.veilarbvedtaksstotte.service.AuthService
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -65,22 +64,10 @@ class ClientConfig {
         ) { machineTokenClient.createMachineToMachineToken(properties.veilarbarenaScope) }
     }
 
-    @Bean("oboPdfClient")
-    fun oboPdfClient(properties: EnvironmentProperties): PdfClient {
-        return PdfClientImpl(properties.oboPdfgenUrl)
-    }
-
-    @Bean("ptoPdfClient")
-    fun ptoPdfClient(properties: EnvironmentProperties): PdfClient {
-        return PdfClientImpl(properties.ptoPdfgenUrl)
-    }
-
     @Bean
-    fun pdfClient(
-        @Qualifier("oboPdfClient") oboPdfClient: PdfClient,
-        @Qualifier("ptoPdfClient") ptoPdfClient: PdfClient,
-        unleashClient: DefaultUnleash,
-    ): PdfClient {
+    fun pdfClient(properties: EnvironmentProperties, unleashClient: DefaultUnleash): PdfClient {
+        val oboPdfClient = PdfClientImpl(properties.oboPdfgenUrl)
+        val ptoPdfClient = PdfClientImpl(properties.ptoPdfgenUrl)
         return TogglePdfClient(oboPdfClient, ptoPdfClient, unleashClient)
     }
 

@@ -14,7 +14,6 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.boot.jdbc.health.DataSourceHealthIndicator;
@@ -37,8 +36,7 @@ public class HealthConfig {
     public SelfTestChecks selfTestChecks(VeilarbarenaClient arenaClient,
                                          VeilarboppfolgingClient oppfolgingClient,
                                          VeilarbpersonClient veilarbpersonClient,
-                                         @Qualifier("oboPdfClient") PdfClient oboPdfClient,
-                                         @Qualifier("ptoPdfClient") PdfClient ptoPdfClient,
+                                         PdfClient pdfClient,
                                          SafClient safClient,
                                          Norg2Client norg2Client,
                                          VeilarbveilederClient veilarbveilederClient,
@@ -50,8 +48,7 @@ public class HealthConfig {
 
         ArrayList<SelfTestCheck> selfTestChecks = new ArrayList<>(Arrays.asList(
                 new SelfTestCheck("ArenaClient", false, arenaClient),
-                new SelfTestCheck("obo-pdfgen", false, oboPdfClient),
-                new SelfTestCheck("pto-pdfgen", false, ptoPdfClient),
+                new SelfTestCheck("pdfgen", false, pdfClient),
                 new SelfTestCheck("Norg2", true, norg2Client),
                 new SelfTestCheck("OppfolgingClient", false, oppfolgingClient),
                 new SelfTestCheck("PersonClient", false, veilarbpersonClient),
