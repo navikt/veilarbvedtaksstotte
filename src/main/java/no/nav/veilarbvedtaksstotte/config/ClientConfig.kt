@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.config
 import io.getunleash.DefaultUnleash
 import io.getunleash.UnleashContext
 import io.getunleash.util.UnleashConfig
+
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.CachedAktorOppslagClient
@@ -35,6 +36,7 @@ import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
+import no.nav.veilarbvedtaksstotte.client.pdf.TogglePdfClient
 import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
@@ -47,6 +49,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientI
 import no.nav.veilarbvedtaksstotte.klagebehandling.client.KabalClient
 import no.nav.veilarbvedtaksstotte.klagebehandling.client.KabalClientImpl
 import no.nav.veilarbvedtaksstotte.service.AuthService
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -62,9 +65,23 @@ class ClientConfig {
         ) { machineTokenClient.createMachineToMachineToken(properties.veilarbarenaScope) }
     }
 
-    @Bean
-    fun pdfClient(properties: EnvironmentProperties): PdfClient {
+    @Bean("oboPdfClient")
+    fun oboPdfClient(properties: EnvironmentProperties): PdfClient {
         return PdfClientImpl(properties.oboPdfgenUrl)
+    }
+
+    @Bean("ptoPdfClient")
+    fun ptoPdfClient(properties: EnvironmentProperties): PdfClient {
+        return PdfClientImpl(properties.ptoPdfgenUrl)
+    }
+
+    @Bean
+    fun pdfClient(
+        @Qualifier("oboPdfClient") oboPdfClient: PdfClient,
+        @Qualifier("ptoPdfClient") ptoPdfClient: PdfClient,
+        unleashClient: DefaultUnleash,
+    ): PdfClient {
+        return TogglePdfClient(oboPdfClient, ptoPdfClient, unleashClient)
     }
 
     @Bean

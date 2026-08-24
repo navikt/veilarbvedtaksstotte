@@ -27,6 +27,7 @@ data class EnvironmentProperties (
     val poaoTilgangScope: String,
     val poaoTilgangUrl: String,
     val oboPdfgenUrl: String,
+    val ptoPdfgenUrl: String,
     val regoppslagScope: String,
     val regoppslagUrl: String,
     val safScope: String,
