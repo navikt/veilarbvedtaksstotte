@@ -188,6 +188,16 @@ public class ClientTestConfig {
         };
     }
 
+    @Bean("oboPdfClient")
+    public PdfClient oboPdfClient() {
+        return pdfClient();
+    }
+
+    @Bean("ptoPdfClient")
+    public PdfClient ptoPdfClient() {
+        return pdfClient();
+    }
+
     @Bean
     public PdfClient pdfClient() {
         return new PdfClient() {
