@@ -4,6 +4,12 @@
 > Eier: Team OBO  
 > Kontakt: [#team-obo-arbeidsoppfølging (Slack)](https://nav-it.slack.com/archives/C02G0292ULW)
 
+## Erklæring om bruk av generativ KI
+
+Dette dokumentet er utarbeidet ved hjelp av GitHub Copilot. Under [Referanser/kilder](#referanserkilder) listes kildene
+som KI har benyttet i utarbeidelsen. Dokumentet er videre bearbeidet og verifisert av utviklingsteamet som forvalter
+applikasjonen, men feil _kan_ forekomme.
+
 ## Omfang og avgrensning
 
 Oppfølgingsvedtak § 14 a og Kvalitetssikring § 14 a er et system for NAV-veiledere som brukes til å opprette utkast til
@@ -41,7 +47,8 @@ I tillegg er følgende støttekomponenter relevante:
 
 - **Nais nettverkspolicy (`accessPolicy`):** Kun eksplisitt listede applikasjoner har nettverkstilgang inn og ut.
   Håndheves på plattformnivå med Kubernetes NetworkPolicy og mTLS.
-- **`no.nav.common.auth` (OidcAuthenticationFilter):** Alle kall mot `/api/*` får token-signatur og -utløp validert av et
+- **`no.nav.common.auth` (OidcAuthenticationFilter):** Alle kall mot `/api/*` får token-signatur og -utløp validert av
+  et
   OIDC-filter fra Navs felles `common-java-modules`. Filteret setter autentiseringskonteksten som applikasjonskoden
   bygger videre på.
 - **Azure AD og TokenX (Nais):** Nais provisjonerer og roterer applikasjonshemmeligheter automatisk, og injiserer dem
@@ -180,7 +187,7 @@ anbefalte patterns (se: https://doc.nav.cloud.nais.io/auth/).
 | Tap av Azure AD-tilganger        | Gjenoppretting via Azure AD-administrasjon                                                                                                                        | IT-support                     |
 | Feil i saksstatistikk (BigQuery) | Resending via `SakStatistikkResendingService`. Varsle Team Sak og Team Oppfølging for verifisering                                                                | Team OBO (innenfor arbeidstid) |
 
-## Referanser
+## Referanser/kilder
 
 * [Nais-dokumentasjon](https://doc.nais.io)
 * [sikkerhet.nav.no](https://sikkerhet.nav.no)
