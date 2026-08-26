@@ -1,6 +1,6 @@
 # Systembeskrivelse: Oppfølgingsvedtak § 14 a og Kvalitetssikring § 14 a
 
-> Sist oppdatert: 2026-08-19  
+> Sist oppdatert: 2026-08-26  
 > Eier: Team OBO  
 > Kontakt: [#team-obo-arbeidsoppfølging (Slack)](https://nav-it.slack.com/archives/C02G0292ULW)
 
@@ -14,14 +14,15 @@ historiske vedtak.
 Systemet består av følgende hovedkomponenter:
 
 * `veilarbvedtaksstotte`: backend som eier forretningslogikken
-* `veilarbvedtaksstotte`: PostgreSQL database for `veilarbvedtaksstotte`, Google Cloud SQL instans provisjonert
-  og managed av Nais
-* `14a_vedtak_statistikk`: BigQuery datasett for `veilarbvedtaksstotte`, Google Cloud BigQuery
-  instans provisjonert og managed av Nais
+* `veilarbvedtaksstotte (database)`: PostgreSQL database for `veilarbvedtaksstotte`, Google Cloud SQL instans
+  provisjonert og managed av Nais
+* `14a_vedtak_statistikk`: BigQuery datasett for `veilarbvedtaksstotte`, Google Cloud BigQuery instans provisjonert og
+  managed av Nais
 * `gjeldende-14a-vedtak-v1`, `siste-14a-vedtak-v1`, `vedtak-14a-fattet-dvh-v1`, `vedtak-14a-statusendring-v1`,
   `vedtak-sendt-v1`: Aiven Kafka topics som `veilarbvedtaksstotte` produserer til, provisjonert og managed av Nais
 * `veilarbvedtaksstottefs`: brukerflate/-grensesnitt som brukes for oppretting av utkast og fatting av oppfølgingsvedtak
-* `beslutteroversikt`: brukerflate/-grensesnitt som brukes for å gi oversikt over vedtak som krever kvalitetssikring
+* `beslutteroversikt`: brukerflate/-grensesnitt som brukes for å gi oversikt over vedtak som krever kvalitetssikring og
+  status for vedtak med pågående kvalitetssikring
 
 I tillegg er følgende støttekomponenter relevante:
 
@@ -40,8 +41,8 @@ I tillegg er følgende støttekomponenter relevante:
 
 - **Nais nettverkspolicy (`accessPolicy`):** Kun eksplisitt listede applikasjoner har nettverkstilgang inn og ut.
   Håndheves på plattformnivå med Kubernetes NetworkPolicy og mTLS.
-- **`no.nav.common.auth` (OidcAuthenticationFilter):** Alle kall mot `/api/*` får token-signatur og -utløp validert av
-  et OIDC-filter fra Navs felles `common-java-modules`. Filteret setter autentiseringskonteksten som applikasjonskoden
+- **`no.nav.common.auth` (OidcAuthenticationFilter):** Alle kall mot `/api/*` får token-signatur og -utløp validert av et
+  OIDC-filter fra Navs felles `common-java-modules`. Filteret setter autentiseringskonteksten som applikasjonskoden
   bygger videre på.
 - **Azure AD og TokenX (Nais):** Nais provisjonerer og roterer applikasjonshemmeligheter automatisk, og injiserer dem
   som miljøvariabler i containeren (`AZURE_APP_CLIENT_ID`, `AZURE_APP_CLIENT_SECRET`,
@@ -55,9 +56,9 @@ I tillegg er følgende støttekomponenter relevante:
     - Systembruker (M2M): `erSystemBruker()` + krav om `access_as_application` i `roles`-claim; spesifikke roller som
       `gjeldende-14a-vedtak` eller `siste-14a-vedtak` kreves for visse endepunkter
     - Innbygger: `UserRole.EKSTERN` via TokenX; `pid`-claim brukes som fødselsnummer; `acr`-claim valideres til `Level4`
-- **Ansvarlig veileder-sjekk:** Kun veilederen som er registrert som ansvarlig for et vedtak kan utføre visse handlinger
-  på det.
-- **Enhetstilgangskontroll:** For vedtakshandlinger sjekkes det at veileder har tilgang til brukerens oppfølgingsenhet
+    - Ansvarlig veileder-sjekk: Kun veilederen som er registrert som ansvarlig for et vedtak kan utføre visse handlinger
+      på det.
+- **Enhetstilgangskontroll:** For vedtakshandlinger sjekkes det at veileder har tilgang til brukerens oppfølgingsenhet.
 
 ## Brukerkontotyper og tilgangskontroll
 
@@ -70,9 +71,9 @@ I tillegg er følgende støttekomponenter relevante:
 
 ## Avhengigheter
 
-Primært er det intern kommunikasjon vha. service discovery (GCP). Noen systemer nås via ingresserer - dette er
-hovedsaklig snakk om Nav on-prem tjenester. I alle tilfeller brukes on-behalf-of eller machine-to-machine token flow
-ihht. til Nais anbefalte patterns (se: https://doc.nav.cloud.nais.io/auth/).
+Primært er det intern kommunikasjon vha. service discovery (GCP). Noen systemer nås via ingresser - dette er hovedsaklig
+snakk om Nav on-prem tjenester. I alle tilfeller brukes on-behalf-of eller machine-to-machine token flow ihht. til Nais
+anbefalte patterns (se: https://doc.nav.cloud.nais.io/auth/).
 
 ### Innkommende (service discovery)
 
@@ -129,7 +130,9 @@ ihht. til Nais anbefalte patterns (se: https://doc.nav.cloud.nais.io/auth/).
 ## Logging og monitorering
 
 - **Auditlogg:** Logges i CEF-format via `no.nav.common.audit-log` til en dedikert auditlog-appender. Logger veilederens
-  NAV-ident som aktør og brukerens fødselsnummer som ressurs. Auditlogging skjer ved følgende hendelser:
+  NAV-ident som aktør og brukerens fødselsnummer som ressurs. Logges kun for interne brukere (NAV-ansatte).
+  Fødselsnummer inngår som tiltenkt i auditloggen — CEF-formatet er beregnet på dette — men logges ikke i den ordinære
+  applikasjonsloggen. Auditlogging skjer ved følgende hendelser:
     - Henting av vedtaksutkast for en person
     - Henting av fattede vedtak for en person
     - Henting av gjeldende § 14 a-vedtak
@@ -137,12 +140,7 @@ ihht. til Nais anbefalte patterns (se: https://doc.nav.cloud.nais.io/auth/).
     - Henting av PDF-versjon av fattet vedtak
     - Henting av øyeblikksbilder (CV, arbeidssøkerregistrering, egenvurdering) knyttet til et vedtak
     - Henting av PDF-versjon av øyeblikksbilder
-
-  Logges kun for interne brukere (NAV-ansatte). Fødselsnummer inngår som tiltenkt i auditloggen — CEF-formatet er
-  beregnet på dette — men logges ikke i den ordinære applikasjonsloggen.
-
 - **Applikasjonslogg:** JSON-format via Logback til stdout, videresendt til Elastic og Loki av Nais.
-
 - **Metrikker og varsling:** Prometheus-metrikker eksponert på `/internal/prometheus`. Egne forretningsmetrikker
   overvåkes av PrometheusRule-varsler:
     - Applikasjon nede (0 tilgjengelige replicas) → kritisk
@@ -151,51 +149,44 @@ ihht. til Nais anbefalte patterns (se: https://doc.nav.cloud.nais.io/auth/).
     - Journalførte dokumenter ikke distribuert → kritisk
     - Distribusjon av journalpost feilet → kritisk
     - Høy andel HTTP 4XX (> 10 % over 5 min) → advarsel
-
 - **Tracing:** OpenTelemetry auto-instrumentering aktivert av Nais.
-
 - **Oppbevaringstid logger:** Ukjent (ikke spesifisert av Nais)
 
 ## Datasikring
 
 - **Kryptering under transport:** All kommunikasjon bruker HTTPS og mTLS. Se [doc.nais.io](https://doc.nais.io) for
   gjeldende detaljer om nettverkssikkerhet, ingress-kontrollere og cluster-infrastruktur.
-
 - **Kryptering i ro:** PostgreSQL og BigQuery krypteres av GCP. Se [doc.nais.io](https://doc.nais.io) for gjeldende
   oppsett.
-
 - **Tilgangskontroll til datalagrene:**
     - Database: Kun applikasjonen selv (via Cloud SQL Auth Proxy) og en dedikert BigQuery-eksportbruker har
       databasetilgang. Styres av GCP IAM og Nais Workload Identity.
-    - BigQuery: Applikasjonen har lese- og skrivetilgang til eget datasett (`14a_vedtak_statistikk`). Team Sak og Team
-      Oppfølging har tilgang via egne views.
-
+    - BigQuery: Applikasjonen har lese- og skrivetilgang til eget datasett (`14a_vedtak_statistikk`). Tilgang til views
+      for andre team styres vha. egne tilganger.
 - **HA og backup:**
     - 2–4 replicas i produksjon sikrer tilgjengelighet ved pod-feil
     - GCP CloudSQL tar automatisk backup nattlig kl. 03:00 (standard Nais-oppsett). 7 sikkerhetskopier beholdes som
       standard. I tillegg kjøres daglig fullstendig sikkerhetskopi til on-prem kl. 05:00 som katastrofeberedskap.
-      Se [doc.nais.io](https://doc.nais.io/persistence/cloudsql/reference/#automated-backup) for gjeldende detaljer.
+      Se [doc.nais.io](https://doc.nais.io) for gjeldende detaljer.
 
 ## Gjenoppretting
 
-| Scenario                         | Prosedyre                                                                                                                                     | Ansvarlig                      |
-|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
-| Kodefeil i prod                  | Som regel «roll-forward» med ny deploy. Revert benyttes kun ved kritiske feil eller omfattende fikser                                         | Team OBO (innenfor arbeidstid) |
-| Vedtak ikke journalført          | Automatisk ny forsøk hvert 10. minutt. Ved vedvarende feil: undersøk scheduler og Dokarkiv-tilgang                                            | Team OBO (innenfor arbeidstid) |
-| Datatap i database               | Gjenopprett fra GCP CloudSQL-backup. Se [doc.nais.io](https://doc.nais.io/persistence/cloudsql/reference/#automated-backup) for fremgangsmåte | Team OBO + Nais-plattform      |
-| Kompromittert hemmelighet        | Roter hemmelighet i Nais/Azure AD, re-deploy                                                                                                  | Team OBO + sikkerhetskontakt   |
-| Tap av Azure AD-tilganger        | Gjenoppretting via Azure AD-administrasjon                                                                                                    | IT-support                     |
-| Feil i saksstatistikk (BigQuery) | Resending via `SakStatistikkResendingService`. Varsle Team Sak og Team Oppfølging for verifisering                                            | Team OBO (innenfor arbeidstid) |
+| Scenario                         | Prosedyre                                                                                                                                                         | Ansvarlig                      |
+|----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
+| Kodefeil i prod                  | Som regel forsøkes det å fikse feil og ta ut ny deploy. Revert benyttes kun ved kritiske feil eller omfattende fikser som ikke lar seg løse innenfor rimelig tid. | Team OBO (innenfor arbeidstid) |
+| Vedtak ikke journalført          | Automatisk nytt forsøk hvert 10. minutt. Ved vedvarende feil: undersøk scheduler og Dokarkiv-tilgang                                                              | Team OBO (innenfor arbeidstid) |
+| Datatap i database               | Gjenopprett fra GCP CloudSQL-backup. Se [doc.nais.io](https://doc.nais.io) for fremgangsmåte                                                                      | Team OBO + Nais-plattform      |
+| Kompromittert hemmelighet        | Roter hemmelighet i Nais/Azure AD, re-deploy                                                                                                                      | Team OBO + sikkerhetskontakt   |
+| Tap av Azure AD-tilganger        | Gjenoppretting via Azure AD-administrasjon                                                                                                                        | IT-support                     |
+| Feil i saksstatistikk (BigQuery) | Resending via `SakStatistikkResendingService`. Varsle Team Sak og Team Oppfølging for verifisering                                                                | Team OBO (innenfor arbeidstid) |
 
 ## Referanser
 
-- [Nais-dokumentasjon](https://doc.nais.io)
-- [sikkerhet.nav.no](https://sikkerhet.nav.no)
-- [Journalføringsbeskrivelse](journalforing.md)
-- [Saksstatistikk-beskrivelse](saksstatistikk.md)
-- [veilarbvedtaksstotte (koderepository) - GitHub](https://github.com/navikt/veilarbvedtaksstotte)
-- [veilarbvedtaksstottefs (koderepository) - GitHub](https://github.com/navikt/veilarbvedtaksstottefs)
-- [beslutteroversikt (koderepository) - GitHub](https://github.com/navikt/beslutteroversikt)
-- [veilarbpersonflatefs (koderepository) - GitHub](https://github.com/navikt/veilarbpersonflatefs)
-- [poao-tilgang (koderepository) - GitHub](https://github.com/navikt/poao-tilgang)
-- [common-java-modules (koderepository) - GitHub](https://github.com/navikt/common-java-modules)
+* [Nais-dokumentasjon](https://doc.nais.io)
+* [sikkerhet.nav.no](https://sikkerhet.nav.no)
+* [veilarbvedtaksstotte (koderepository) - GitHub](https://github.com/navikt/veilarbvedtaksstotte)
+* [veilarbvedtaksstottefs (koderepository) - GitHub](https://github.com/navikt/veilarbvedtaksstottefs)
+* [beslutteroversikt (koderepository) - GitHub](https://github.com/navikt/beslutteroversikt)
+* [veilarbpersonflatefs (koderepository) - GitHub](https://github.com/navikt/veilarbpersonflatefs)
+* [poao-tilgang (koderepository) - GitHub](https://github.com/navikt/poao-tilgang)
+* [common-java-modules (koderepository) - GitHub](https://github.com/navikt/common-java-modules)
