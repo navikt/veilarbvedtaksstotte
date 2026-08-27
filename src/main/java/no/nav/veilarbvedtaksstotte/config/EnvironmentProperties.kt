@@ -21,6 +21,7 @@ data class EnvironmentProperties (
     val naisAadDiscoveryUrl: String,
     val naisAadIssuer: String,
     val naisAppImage: String,
+    val naisPodName: String,
     val norg2Url: String,
     val pdlScope: String,
     val pdlUrl: String,
