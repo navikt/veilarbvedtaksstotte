@@ -226,7 +226,7 @@ class ClientConfig {
     fun unleashClient(properties: EnvironmentProperties): DefaultUnleash = DefaultUnleash(
         UnleashConfig.builder()
             .appName(ApplicationConfig.APPLICATION_NAME)
-            .instanceId("${ApplicationConfig.APPLICATION_NAME}-${runCatching { java.net.InetAddress.getLocalHost().hostName }.getOrDefault("unknown")}")
+            .instanceId(properties.naisPodName)
             .unleashAPI(properties.unleashUrl)
             .apiKey(properties.unleashApiToken)
             .unleashContextProvider {
