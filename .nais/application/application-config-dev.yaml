@@ -89,6 +89,8 @@ spec:
       value: api://dev-gcp.poao.poao-tilgang/.default
     - name: POAO_TILGANG_URL
       value: http://poao-tilgang.poao
+    - name: OBO_PDFGEN_URL
+      value: http://obo-pdfgen.obo
     - name: PTO_PDFGEN_URL
       value: http://pto-pdfgen.obo
     - name: REGOPPSLAG_TOKEN_SCOPE
@@ -203,6 +205,7 @@ spec:
           namespace: paw
         - application: poao-tilgang
           namespace: poao
+        - application: obo-pdfgen
         - application: pto-pdfgen
         - application: veilarboppfolging
           namespace: poao
