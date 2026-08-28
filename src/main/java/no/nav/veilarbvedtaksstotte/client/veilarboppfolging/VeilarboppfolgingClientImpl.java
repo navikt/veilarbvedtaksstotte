@@ -9,6 +9,7 @@ import no.nav.common.rest.client.RestUtils;
 import no.nav.common.types.identer.Fnr;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingsenhetDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.request.OppfolgingRequest;
 import no.nav.veilarbvedtaksstotte.config.CacheConfig;
@@ -20,6 +21,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -52,6 +54,37 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
             RestUtils.throwIfNotSuccessful(response);
             return RestUtils.getBodyStr(response)
                     .map((bodyStr) -> JsonUtils.fromJson(bodyStr, OppfolgingStatusDTO.class));
+        }
+    }
+
+    @Cacheable(CacheConfig.OPPFOLGINGSSTATUS_CACHE_NAME)
+    @SneakyThrows
+    public Optional<OppfolgingsenhetDTO> hentOppfolgingsenhet(Fnr fnr) {
+        String query = "{ oppfolgingsEnhet(fnr: \"" + fnr.get() + "\") { enhetId navn } }";
+        Request request = new Request.Builder()
+                .url(joinPaths(veilarboppfolgingUrl, "/graphql"))
+                .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
+                .post(toJsonRequestBody(Map.of("query", query)))
+                .build();
+        try (Response response = RestClient.baseClient().newCall(request).execute()) {
+            RestUtils.throwIfNotSuccessful(response);
+            return RestUtils.getBodyStr(response)
+                    .map(bodyStr -> JsonUtils.fromJson(bodyStr, GraphqlOppfolgingsenhetResponse.class))
+                    .flatMap(GraphqlOppfolgingsenhetResponse::getOppfolgingsenhet);
+        }
+    }
+
+    @lombok.Data
+    private static class GraphqlOppfolgingsenhetResponse {
+        GraphqlData data;
+
+        Optional<OppfolgingsenhetDTO> getOppfolgingsenhet() {
+            return Optional.ofNullable(data).map(d -> d.oppfolgingsEnhet);
+        }
+
+        @lombok.Data
+        private static class GraphqlData {
+            OppfolgingsenhetDTO oppfolgingsEnhet;
         }
     }
 
