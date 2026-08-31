@@ -225,7 +225,7 @@ class ClientConfig {
     @Bean
     fun unleashClient(properties: EnvironmentProperties): DefaultUnleash = DefaultUnleash(
         UnleashConfig.builder()
-            .appName(ApplicationConfig.APPLICATION_NAME)
+            .appName(properties.naisAppName)
             .instanceId(properties.naisPodName)
             .unleashAPI(properties.unleashUrl)
             .apiKey(properties.unleashApiToken)
@@ -276,6 +276,6 @@ class ClientConfig {
 
     companion object {
         private val isProduction: Boolean
-            get() = EnvironmentUtils.isProduction().orElse(false)
+            get() = EnvironmentUtils.isProduction().orElse(false) ?: false
     }
 }
