@@ -62,7 +62,7 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
     public Optional<OppfolgingsenhetDTO> hentOppfolgingsenhet(Fnr fnr) {
         String query = "{ oppfolgingsEnhet(fnr: \"" + fnr.get() + "\") { enhetId navn } }";
         Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/graphql"))
+                .url(joinPaths(veilarboppfolgingUrl, "/api/graphql"))
                 .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
                 .post(toJsonRequestBody(Map.of("query", query)))
                 .build();
