@@ -90,7 +90,7 @@ spec:
     - name: POAO_TILGANG_URL
       value: http://poao-tilgang.poao
     - name: OBO_PDFGEN_URL
-      value: http://obo-pdfgen.obo
+      value: http://obo-pdfgen
     - name: PTO_PDFGEN_URL
       value: http://pto-pdfgen.obo
     - name: REGOPPSLAG_TOKEN_SCOPE
