@@ -21,6 +21,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -56,29 +57,44 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
         }
     }
 
+    private static final String HENT_OPPFOLGINGSENHET_QUERY =
+            "query HentOppfolgingsenhet($fnr: String!) { oppfolgingsEnhet(fnr: $fnr) { enhetId navn } }";
+
     @Cacheable(CacheConfig.OPPFOLGINGSSTATUS_CACHE_NAME)
     @SneakyThrows
     public Optional<OppfolgingsenhetDTO> hentOppfolgingsenhet(Fnr fnr) {
+        var body = Map.of(
+                "query", HENT_OPPFOLGINGSENHET_QUERY,
+                "variables", Map.of("fnr", fnr.get())
+        );
         Request request = new Request.Builder()
-                .url(joinPaths(veilarboppfolgingUrl, "/api/v2/person/system/hent-oppfolgingsstatus"))
+                .url(joinPaths(veilarboppfolgingUrl, "/api/graphql"))
                 .header(HttpHeaders.AUTHORIZATION, bearerToken(machineToMachineTokenSupplier.get()))
-                .post(toJsonRequestBody(new OppfolgingRequest(fnr)))
+                .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                .post(toJsonRequestBody(body))
                 .build();
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
             return RestUtils.getBodyStr(response)
-                    .map(bodyStr -> JsonUtils.fromJson(bodyStr, OppfolgingsstatusRestDTO.class))
-                    .flatMap(OppfolgingsstatusRestDTO::getOppfolgingsenhet);
+                    .map(bodyStr -> JsonUtils.fromJson(bodyStr, GraphqlOppfolgingsenhetResponse.class))
+                    .flatMap(GraphqlOppfolgingsenhetResponse::getOppfolgingsenhet);
         }
     }
 
     @lombok.Data
-    private static class OppfolgingsstatusRestDTO {
-        OppfolgingsenhetDTO oppfolgingsenhet;
+    private static class GraphqlOppfolgingsenhetResponse {
+        GraphqlData data;
 
         Optional<OppfolgingsenhetDTO> getOppfolgingsenhet() {
-            return Optional.ofNullable(oppfolgingsenhet)
-                    .filter(e -> e.getEnhetId() != null && !e.getEnhetId().isBlank());
+            if (data == null || data.oppfolgingsEnhet == null) return Optional.empty();
+            var enhet = data.oppfolgingsEnhet;
+            if (enhet.getEnhetId() == null || enhet.getEnhetId().isBlank()) return Optional.empty();
+            return Optional.of(enhet);
+        }
+
+        @lombok.Data
+        static class GraphqlData {
+            OppfolgingsenhetDTO oppfolgingsEnhet;
         }
     }
 
