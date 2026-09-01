@@ -35,6 +35,15 @@ spec:
     sqlInstances:
       - type: POSTGRES_15
         tier: db-custom-1-6656 # 1 vCPU, 6.5 GiB (6.5*1024 MB) RAM
+        flags:
+          - name: "cloudsql.enable_pgaudit"
+            value: "on"
+          - name: "pgaudit.log"
+            value: "write,ddl,role"
+          - name: "pgaudit.log_parameter"
+            value: "on"
+          - name: "pgaudit.log_relation"
+            value: "on"
         databases:
           - name: veilarbvedtaksstotte
             envVarPrefix: DB
@@ -89,6 +98,8 @@ spec:
       value: api://prod-gcp.poao.poao-tilgang/.default
     - name: POAO_TILGANG_URL
       value: http://poao-tilgang.poao
+    - name: OBO_PDFGEN_URL
+      value: http://obo-pdfgen
     - name: PTO_PDFGEN_URL
       value: http://pto-pdfgen.obo
     - name: REGOPPSLAG_TOKEN_SCOPE
@@ -165,7 +176,7 @@ spec:
         # Lenke til behandling i Behandlingskatalogen: https://behandlingskatalog.ansatt.nav.no/process/team/0150fd7c-df30-43ee-944e-b152d74c64d6/780e3168-cf58-46ec-9764-a6cdd3da3b8f
         - application: tiltaksgjennomforing-api
           namespace: arbeidsgiver
-          cluster: dev-fss
+          cluster: prod-fss
           permissions:
             roles:
               - "gjeldende-14a-vedtak"
@@ -193,6 +204,7 @@ spec:
           namespace: paw
         - application: poao-tilgang
           namespace: poao
+        - application: obo-pdfgen
         - application: pto-pdfgen
         - application: veilarboppfolging
           namespace: poao

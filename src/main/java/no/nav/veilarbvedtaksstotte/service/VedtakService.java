@@ -17,6 +17,7 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SladdVedtakRequest;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
@@ -381,6 +382,20 @@ public class VedtakService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Klarte ikke å slette vedtak");
         }
 
+    }
+
+    public void sladdVedtak(SladdVedtakRequest sladdVedtakRequest, NavIdent utfortAv) {
+        try {
+            AktorId aktorId = aktorOppslagClient.hentAktorId(sladdVedtakRequest.getFnr());
+            Optional<Vedtak> vedtak = vedtaksstotteRepository.hentVedtakByJournalpostIdOgAktorId(sladdVedtakRequest.getJournalpostId(), aktorId);
+            if (vedtak.isEmpty()) {
+                return;
+            }
+            vedtaksstotteRepository.sladdVedtak(vedtak.get().getId(), utfortAv, sladdVedtakRequest);
+        } catch (RuntimeException e) {
+            secureLog.error("Klarte ikke å fullføre alle stegene for å sladde vedtak for person: {}", sladdVedtakRequest.getFnr(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Klarte ikke å sladde vedtak");
+        }
     }
 
     private void flettInnKilder(Vedtak vedtak) {

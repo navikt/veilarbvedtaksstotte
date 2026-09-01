@@ -3,8 +3,10 @@ package no.nav.veilarbvedtaksstotte.repository;
 import lombok.SneakyThrows;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.NavIdent;
+import no.nav.veilarbvedtaksstotte.controller.dto.SladdVedtakRequest;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
+import no.nav.veilarbvedtaksstotte.domain.sladdVedtak.SladdVedtakFeiletException;
 import no.nav.veilarbvedtaksstotte.domain.slettVedtak.SlettVedtakFeiletException;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
@@ -34,26 +36,27 @@ import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
 public class VedtaksstotteRepository {
 
     public static final String VEDTAK_TABLE = "VEDTAK";
-    private static final String VEDTAK_ID = "ID";
+    public static final String VEDTAK_ID = "ID";
     private static final String SENDER = "SENDER";
-    private static final String AKTOR_ID = "AKTOR_ID";
-    private static final String HOVEDMAL = "HOVEDMAL";
-    private static final String INNSATSGRUPPE = "INNSATSGRUPPE";
-    private static final String VEILEDER_IDENT = "VEILEDER_IDENT";
-    private static final String OPPFOLGINGSENHET_ID = "OPPFOLGINGSENHET_ID";
-    private static final String UTKAST_SIST_OPPDATERT = "UTKAST_SIST_OPPDATERT";
-    private static final String VEDTAK_FATTET = "VEDTAK_FATTET";
+    public static final String AKTOR_ID = "AKTOR_ID";
+    public static final String HOVEDMAL = "HOVEDMAL";
+    public static final String INNSATSGRUPPE = "INNSATSGRUPPE";
+    public static final String VEILEDER_IDENT = "VEILEDER_IDENT";
+    public static final String OPPFOLGINGSENHET_ID = "OPPFOLGINGSENHET_ID";
+    public static final String UTKAST_SIST_OPPDATERT = "UTKAST_SIST_OPPDATERT";
+    public static final String VEDTAK_FATTET = "VEDTAK_FATTET";
     private static final String BESLUTTER_IDENT = "BESLUTTER_IDENT";
-    private static final String UTKAST_OPPRETTET = "UTKAST_OPPRETTET";
-    private static final String BEGRUNNELSE = "BEGRUNNELSE";
-    private static final String STATUS = "STATUS";
+    public static final String UTKAST_OPPRETTET = "UTKAST_OPPRETTET";
+    public static final String BEGRUNNELSE = "BEGRUNNELSE";
+    public static final String STATUS = "STATUS";
     private static final String DOKUMENT_ID = "DOKUMENT_ID";
     private static final String JOURNALPOST_ID = "JOURNALPOST_ID";
     private static final String DOKUMENT_BESTILLING_ID = "DOKUMENT_BESTILLING_ID";
-    private static final String GJELDENDE = "GJELDENDE";
+    public static final String GJELDENDE = "GJELDENDE";
     private static final String BESLUTTER_PROSESS_STATUS = "BESLUTTER_PROSESS_STATUS";
     private static final String REFERANSE = "REFERANSE";
     private static final String FEILRETTING_BEGRUNNELSE = "FEILRETTING_BEGRUNNELSE";
+    public static final String VEDTAK_TYPE = "VEDTAK_TYPE";
     private static final Integer INITIAL_DISTRIBUSJONSFORSOK_LIMIT = 12; // Prøver først 12 ganger, det tar ca. 2 timer, deretter går det over til døgnlige forsøk
 
     private final JdbcTemplate db;
@@ -272,8 +275,8 @@ public class VedtaksstotteRepository {
     /**
      * Sletter vedtak. OBS: Denne skal kun brukes dersom vi har hatt et personvernsbrudd og må 'slette' vedtaket.
      * Vi sletter aldri et vedtak i sin helhet, må alltid beholde metadata
-     * @param vedtakId id til vedtaket som skal slettes
-     * @param utfortAv identen til den som utfører slettingen
+     * @param vedtakId           id til vedtaket som skal slettes
+     * @param utfortAv           identen til den som utfører slettingen
      * @param slettVedtakRequest request som inneholder informasjon om slettingen
      */
     public void slettVedtakVedPersonvernbrudd(long vedtakId, NavIdent utfortAv, SlettVedtakRequest slettVedtakRequest) throws SlettVedtakFeiletException {
@@ -288,7 +291,28 @@ public class VedtaksstotteRepository {
             secureLog.error("Klarte ikke å slette vedtak med id: {}", vedtakId, e);
             throw new SlettVedtakFeiletException("Klarte ikke å slette vedtak med id: " + vedtakId);
         }
+    }
 
+    /**
+     * Sladder begrunnelsen i et vedtak. OBS skal kun utføres ved eksplitt beskjed via en jira-sak, og kun dersom det er feil informasjon i beskrivelsen.
+     * @param vedtakId           id til vedtaket som skal sladdes
+     * @param utfortAv           identen til den som utfører sladdingen
+     * @param sladdVedtakRequest request som inneholder informasjon om sladdingen.
+     */
+    public void sladdVedtak(long vedtakId, NavIdent utfortAv, SladdVedtakRequest sladdVedtakRequest) throws SladdVedtakFeiletException {
+        try {
+            String feilrettingBegrunnelse = format("Vedtaket ble sladded %s av %s fordi %s bestilte sladding i %s på bakgrunn av at vedtaket hadde feil informasjon i beskrivelsen",
+                    LocalDateTime.now(), utfortAv.get(), sladdVedtakRequest.getAnsvarligVeileder(), sladdVedtakRequest.getSladdVedtakBestillingId());
+            String sladdetBegrunnelse = "Deler av vedtaket har blitt slettet/sladdet. Se dokument i Gosys.";
+            String sql = format(
+                    "UPDATE %s SET %s = CURRENT_TIMESTAMP, %s = ?,  %s = ? WHERE %s = ?",
+                    VEDTAK_TABLE, UTKAST_SIST_OPPDATERT, FEILRETTING_BEGRUNNELSE, BEGRUNNELSE, JOURNALPOST_ID
+            );
+            db.update(sql, feilrettingBegrunnelse, sladdetBegrunnelse, sladdVedtakRequest.getJournalpostId());
+        } catch (Exception e) {
+            secureLog.error("Klarte ikke å sladde vedtak med id: {}", vedtakId, e);
+            throw new SladdVedtakFeiletException("Klarte ikke å sladde vedtak med id: " + vedtakId);
+        }
     }
 
     public Optional<Vedtak> hentVedtakByJournalpostIdOgAktorId(String journalpostId, AktorId aktorId) {
