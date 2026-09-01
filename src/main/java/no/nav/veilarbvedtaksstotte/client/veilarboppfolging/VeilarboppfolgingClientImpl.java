@@ -17,6 +17,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 
@@ -31,6 +33,8 @@ import static no.nav.common.utils.AuthUtils.bearerToken;
 import static no.nav.common.utils.UrlUtils.joinPaths;
 
 public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
+
+    private static final Logger log = LoggerFactory.getLogger(VeilarboppfolgingClientImpl.class);
 
     private final String veilarboppfolgingUrl;
 
@@ -75,15 +79,23 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
                 .build();
         try (Response response = RestClient.baseClient().newCall(request).execute()) {
             RestUtils.throwIfNotSuccessful(response);
-            return RestUtils.getBodyStr(response)
-                    .map(bodyStr -> JsonUtils.fromJson(bodyStr, GraphqlOppfolgingsenhetResponse.class))
-                    .flatMap(GraphqlOppfolgingsenhetResponse::getOppfolgingsenhet);
+            String bodyStr = RestUtils.getBodyStr(response).orElse(null);
+            if (bodyStr == null) {
+                log.warn("hentOppfolgingsenhet: tom responskropp fra veilarboppfolging GraphQL");
+                return Optional.empty();
+            }
+            GraphqlOppfolgingsenhetResponse graphqlResponse = JsonUtils.fromJson(bodyStr, GraphqlOppfolgingsenhetResponse.class);
+            if (graphqlResponse.errors != null && !graphqlResponse.errors.isEmpty()) {
+                log.warn("hentOppfolgingsenhet: GraphQL-feil fra veilarboppfolging: {}", graphqlResponse.errors);
+            }
+            return graphqlResponse.getOppfolgingsenhet();
         }
     }
 
     @lombok.Data
     private static class GraphqlOppfolgingsenhetResponse {
         GraphqlData data;
+        List<Map<String, Object>> errors;
 
         Optional<OppfolgingsenhetDTO> getOppfolgingsenhet() {
             if (data == null || data.oppfolgingsEnhet == null) return Optional.empty();
