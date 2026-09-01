@@ -62,7 +62,7 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
     }
 
     private static final String HENT_OPPFOLGINGSENHET_QUERY =
-            "query HentOppfolgingsenhet($fnr: String!) { oppfolgingsEnhet(fnr: $fnr) { enhetId navn } }";
+            "query HentOppfolgingsenhet($fnr: String!) { oppfolgingsEnhet(fnr: $fnr) { enhet { id navn } } }";
 
     @Cacheable(CacheConfig.OPPFOLGINGSSTATUS_CACHE_NAME)
     @SneakyThrows
@@ -99,14 +99,25 @@ public class VeilarboppfolgingClientImpl implements VeilarboppfolgingClient {
 
         Optional<OppfolgingsenhetDTO> getOppfolgingsenhet() {
             if (data == null || data.oppfolgingsEnhet == null) return Optional.empty();
-            var enhet = data.oppfolgingsEnhet;
-            if (enhet.getEnhetId() == null || enhet.getEnhetId().isBlank()) return Optional.empty();
-            return Optional.of(enhet);
+            EnhetDto enhet = data.oppfolgingsEnhet.enhet;
+            if (enhet == null || enhet.id == null || enhet.id.isBlank()) return Optional.empty();
+            return Optional.of(new OppfolgingsenhetDTO(enhet.id, enhet.navn));
         }
 
         @lombok.Data
         static class GraphqlData {
-            OppfolgingsenhetDTO oppfolgingsEnhet;
+            OppfolgingsEnhetsInfo oppfolgingsEnhet;
+        }
+
+        @lombok.Data
+        static class OppfolgingsEnhetsInfo {
+            EnhetDto enhet;
+        }
+
+        @lombok.Data
+        static class EnhetDto {
+            String id;
+            String navn;
         }
     }
 
