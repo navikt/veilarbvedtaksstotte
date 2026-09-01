@@ -22,7 +22,7 @@ spec:
     path: veilarbvedtaksstotte/internal/health/liveness
     initialDelay: 30
   replicas:
-    min: 1
+    min: 2
     max: 2
     cpuThresholdPercentage: 75
   resources:
@@ -89,6 +89,8 @@ spec:
       value: api://dev-gcp.poao.poao-tilgang/.default
     - name: POAO_TILGANG_URL
       value: http://poao-tilgang.poao
+    - name: OBO_PDFGEN_URL
+      value: http://obo-pdfgen
     - name: PTO_PDFGEN_URL
       value: http://pto-pdfgen.obo
     - name: REGOPPSLAG_TOKEN_SCOPE
@@ -181,6 +183,18 @@ spec:
           permissions:
             roles:
               - "gjeldende-14a-vedtak"
+        - application: testnav-dolly-proxy
+          namespace: dolly
+          cluster: dev-fss
+          permissions:
+            roles:
+              - "testdata-14a-vedtak"
+        - application: testnav-dolly-proxy-trygdeetaten
+          namespace: dolly
+          cluster: dev-fss
+          permissions:
+            roles:
+              - "testdata-14a-vedtak"
     outbound:
       rules:
         - application: egenvurdering-dialog-tjeneste
@@ -191,6 +205,7 @@ spec:
           namespace: paw
         - application: poao-tilgang
           namespace: poao
+        - application: obo-pdfgen
         - application: pto-pdfgen
         - application: veilarboppfolging
           namespace: poao
