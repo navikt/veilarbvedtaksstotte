@@ -27,7 +27,7 @@ class BrukerIdenterRepository(
     ) {
 
         val identifikatorerArguments = identifikatorer.map {
-            arrayOf(personNokkel, it.ident.toString(), it.historisk, it.gruppe.toString())
+            arrayOf<Any?>(personNokkel, it.ident.toString(), it.historisk, it.gruppe.toString())
         }
 
         val insertSql = "INSERT INTO bruker_identer(person, ident, historisk, gruppe) VALUES (?, ?, ?, ?)"
