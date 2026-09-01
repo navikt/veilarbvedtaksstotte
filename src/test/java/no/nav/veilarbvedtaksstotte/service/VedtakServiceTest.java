@@ -46,6 +46,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties;
 import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
+import no.nav.veilarbvedtaksstotte.controller.dto.SladdVedtakRequest;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.Malform;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
@@ -510,6 +511,28 @@ public class VedtakServiceTest extends DatabaseTest {
         SlettVedtakRequest slettVedtakRequest = new SlettVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
         vedtakService.slettVedtak(slettVedtakRequest, NavIdent.of("Z123456"));
         assertNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID).getFirst().getBegrunnelse());
+    }
+
+    @Test
+    void sladd_begrunnelse_i_vedtak_ved_feil_i_beskrivelsen() {
+        gittUtkastKlarForUtsendelse();
+
+        when(dokarkivClient.opprettJournalpost(any()))
+                .thenReturn(new OpprettetJournalpostDTO(
+                        TEST_JOURNALPOST_ID,
+                        false,
+                        List.of(new OpprettetJournalpostDTO.DokumentInfoId(TEST_DOKUMENT_ID))));
+
+        fattVedtak();
+
+        assertJournalfortOgFerdigstiltVedtak();
+        assertNotNull(vedtaksstotteRepository.hentFattedeVedtak(TEST_AKTOR_ID).getFirst().getBegrunnelse());
+
+        SladdVedtakRequest sladdVedtakRequest = new SladdVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
+        vedtakService.sladdVedtak(sladdVedtakRequest, NavIdent.of("Z123456"));
+        var sladdetVedtak = vedtaksstotteRepository.hentFattedeVedtak(TEST_AKTOR_ID).getFirst();
+
+        assertEquals("Deler av vedtaket har blitt slettet/sladdet. Se dokument i Gosys.", sladdetVedtak.getBegrunnelse());
     }
 
     @Test

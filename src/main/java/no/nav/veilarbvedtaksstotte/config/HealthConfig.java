@@ -48,7 +48,7 @@ public class HealthConfig {
 
         ArrayList<SelfTestCheck> selfTestChecks = new ArrayList<>(Arrays.asList(
                 new SelfTestCheck("ArenaClient", false, arenaClient),
-                new SelfTestCheck("pto-pdfgen", false, pdfClient),
+                new SelfTestCheck("pdfgen", false, pdfClient),
                 new SelfTestCheck("Norg2", true, norg2Client),
                 new SelfTestCheck("OppfolgingClient", false, oppfolgingClient),
                 new SelfTestCheck("PersonClient", false, veilarbpersonClient),
