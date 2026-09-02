@@ -148,7 +148,7 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
                 sakStatistikkRader.joinToString(", ") { "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" } +
                 "RETURNING *"
 
-        return jdbcTemplate.query(sql, sakStatistikkRowMapper, *params.toTypedArray())
+        return jdbcTemplate.query(sql, sakStatistikkRowMapper, *params.toTypedArray<Any?>())
     }
 
     fun hentForrigeVedtakFraSammeOppfolgingsperiode(startOppfolgingsperiodeDato: ZonedDateTime, aktorId: AktorId, fnr: Fnr, gjeldendeVedtakId: BigInteger): Siste14aSaksstatistikk? {

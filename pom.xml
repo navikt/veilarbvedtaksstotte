@@ -20,9 +20,9 @@
     <properties>
         <java.version>21</java.version>
         <common.version>4.2026.06.25_10.50-baa9d54e3cd8</common.version>
-        <kotlin.version>2.2.21</kotlin.version>
+        <kotlin.version>2.4.0</kotlin.version>
         <testcontainers.version>1.21.4</testcontainers.version>
-        <unleash.version>12.1.1</unleash.version>
+        <unleash.version>12.3.0</unleash.version>
         <confluent.version>8.3.0</confluent.version>
 
         <!--   Used by SonarCloud     -->
@@ -172,26 +172,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.5.20</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>1.5.20</version>
         </dependency>
         <dependency>
             <groupId>net.logstash.logback</groupId>
@@ -242,7 +222,7 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
-            <version>7.5.0</version>
+            <version>7.7.0</version>
         </dependency>
 
         <!-- Common Dependencies -->
