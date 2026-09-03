@@ -18,9 +18,7 @@ data class BrevdataDto(
     val navKontor: String,
     val dato: String,
     val malform: Malform,
-    // String (ny PDF-generator, obo-pdfgen) eller List<String> (gammal PDF-generator med avsnittoppdeling, pto-pdfgen)
-    // Endre denne til å vere String når vi er heilt over på å bruke obo-pdfgen
-    val begrunnelse: Any,
+    val begrunnelse: List<String>,
     val kilder: List<String>,
     val mottaker: Mottaker,
     val utkast: Boolean,

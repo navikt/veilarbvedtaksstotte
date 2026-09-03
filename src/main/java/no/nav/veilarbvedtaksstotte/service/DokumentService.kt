@@ -227,11 +227,7 @@ class DokumentService(
 
     companion object {
 
-        fun mapBrevdata(
-            dto: ProduserDokumentDTO,
-            brevdataOppslag: BrevdataOppslag,
-            nyPdfgenerator: Boolean = false
-        ): BrevdataDto {
+        fun mapBrevdata(dto: ProduserDokumentDTO, brevdataOppslag: BrevdataOppslag): BrevdataDto {
             val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
             val erIAlderForUngdomsgaranti = erIAlderForUngdomsgaranti(brevdataOppslag.fodselsdatoOgAr)
             val harUngdomsgaranti = erIAlderForUngdomsgaranti &&
@@ -249,13 +245,8 @@ class DokumentService(
                 "Manglende navn for enhet ${brevdataOppslag.enhet.enhetNr}"
             )
 
-            val begrunnelse: Any = if (nyPdfgenerator) {
-                dto.begrunnelse ?: ""
-            } else {
-                dto.begrunnelse?.let {
-                    splitNewline(it)
-                }?.filterNot { it.isEmpty() } ?: emptyList<String>()
-            }
+            val begrunnelseAvsnitt =
+                dto.begrunnelse?.let { splitNewline(it) }?.filterNot { it.isEmpty() } ?: emptyList()
 
             return BrevdataDto(
                 malType = dto.malType,
@@ -264,7 +255,7 @@ class DokumentService(
                 dato = dato,
                 malform = brevdataOppslag.malform,
                 mottaker = mottaker,
-                begrunnelse = begrunnelse,
+                begrunnelse = begrunnelseAvsnitt,
                 kilder = dto.kilder,
                 utkast = dto.utkast,
                 ungdomsgaranti = harUngdomsgaranti
