@@ -22,6 +22,7 @@ import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.IngenDataDto
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
+import no.nav.veilarbvedtaksstotte.utils.NY_PDFGENERATOR_SKRUDD_PAA
 import no.nav.veilarbvedtaksstotte.utils.SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -55,7 +56,7 @@ class PdfService(
                 brevdataOppslag
             }
 
-        val brevdataDto = DokumentService.mapBrevdata(vasketDto, brevdataOppslagUtenNavn)
+        val brevdataDto = DokumentService.mapBrevdata(vasketDto, brevdataOppslagUtenNavn, unleashService.isEnabled(NY_PDFGENERATOR_SKRUDD_PAA))
 
         return pdfClient.genererPdf(brevdataDto)
     }
