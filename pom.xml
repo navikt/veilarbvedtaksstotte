@@ -24,7 +24,8 @@
         <testcontainers.version>1.21.4</testcontainers.version>
         <unleash.version>12.3.0</unleash.version>
         <confluent.version>8.3.0</confluent.version>
-
+        <!-- Midlertidig override pga Tomcat-CVE-er. Fjernes når Spring Boot henter ny versjon -->
+        <tomcat.version>11.0.25</tomcat.version>
         <!--   Used by SonarCloud     -->
         <sonar.projectKey>navikt_veilarbvedtaksstotte</sonar.projectKey>
         <sonar.organization>navikt</sonar.organization>
