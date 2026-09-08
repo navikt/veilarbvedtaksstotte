@@ -21,7 +21,7 @@ import java.util.function.Supplier
 @Service
 class AuthService(
     private val aktorOppslagClient: AktorOppslagClient,
-    private val veilarbarenaService: VeilarbarenaService,
+    private val oppfolgingsenhetService: OppfolgingsenhetService,
     private val authContextHolder: AuthContextHolder,
     private val poaoTilgangClient: PoaoTilgangClient,
 ) {
@@ -141,7 +141,7 @@ class AuthService(
     }
 
     fun harInnloggetVeilederTilgangTilBrukere(brukerFnrs: List<String>): Map<String, Boolean> {
-        val tilgangTilBrukere: MutableMap<String, Boolean> = HashMap();
+        val tilgangTilBrukere: MutableMap<String, Boolean> = HashMap()
         brukerFnrs.forEach {
             val permitTilgang = poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
@@ -173,7 +173,7 @@ class AuthService(
     }
 
     private fun sjekkTilgangTilEnhet(fnr: String): String {
-        val enhet = veilarbarenaService.hentOppfolgingsenhet(Fnr.of(fnr))
+        val enhet = oppfolgingsenhetService.hentOppfolgingsenhet(Fnr.of(fnr))
             .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
 
         val veilederTilgangTilEnhet = poaoTilgangClient.evaluatePolicy(
@@ -225,7 +225,7 @@ class AuthService(
             .flatMap { claims: JWTClaimsSet ->
                 try {
                     return@flatMap Optional.ofNullable(claims.getStringListClaim("roles"))
-                } catch (e: ParseException) {
+                } catch (_: ParseException) {
                     return@flatMap Optional.empty<List<String>>()
                 }
             }
@@ -250,11 +250,13 @@ class AuthService(
         }
     }
 
+
+
     companion object {
         private fun getStringClaimOrEmpty(claims: JWTClaimsSet, claimName: String): Optional<String> {
             return try {
                 Optional.ofNullable(claims.getStringClaim(claimName))
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Optional.empty()
             }
         }
