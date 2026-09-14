@@ -11,9 +11,15 @@ import okhttp3.Request
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 
-class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
+class PdfClientImpl(
+    val pdfGenUrl: String,
+    private val useNewOyeblikksbildeTemplates: Boolean = false,
+) : PdfClient {
 
     val client: OkHttpClient = RestClient.baseClient()
+
+    private fun templateName(template: OyeblikksbildePdfTemplate): String =
+        if (useNewOyeblikksbildeTemplates) template.newTemplateName else template.templateName
 
     override fun genererPdf(brevdata: BrevdataDto): ByteArray {
 
@@ -42,7 +48,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
         cvOyeblikksbildeData: CvInnholdMedMottakerDto,
     ): ByteArray {
         val request = Request.Builder()
-            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.CV_OG_JOBBPROFIL.templateName))
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + templateName(OyeblikksbildePdfTemplate.CV_OG_JOBBPROFIL)))
             .post(RestUtils.toJsonRequestBody(cvOyeblikksbildeData))
             .build()
 
@@ -64,7 +70,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
 
     override fun genererOyeblikksbildeEgenVurderingPdf(egenvurderingOyeblikksbildeData: EgenvurderingMedMottakerDto): ByteArray {
         val request = Request.Builder()
-            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.EGENVURDERING.templateName))
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + templateName(OyeblikksbildePdfTemplate.EGENVURDERING)))
             .post(RestUtils.toJsonRequestBody(egenvurderingOyeblikksbildeData))
             .build()
 
@@ -86,7 +92,7 @@ class PdfClientImpl(val pdfGenUrl: String) : PdfClient {
 
     override fun genererOyeblikksbildeArbeidssokerRegistretPdf(registreringOyeblikksbildeData: OpplysningerOmArbeidssoekerMedProfileringMedMottakerDto): ByteArray {
         val request = Request.Builder()
-            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + OyeblikksbildePdfTemplate.ARBEIDSSOKERREGISTRET.templateName))
+            .url(joinPaths(pdfGenUrl, "api/v1/genpdf/vedtak14a/" + templateName(OyeblikksbildePdfTemplate.ARBEIDSSOKERREGISTRET)))
             .post(RestUtils.toJsonRequestBody(registreringOyeblikksbildeData))
             .build()
 

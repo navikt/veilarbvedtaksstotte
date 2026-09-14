@@ -66,7 +66,7 @@ class ClientConfig {
 
     @Bean
     fun pdfClient(properties: EnvironmentProperties, unleashClient: DefaultUnleash): PdfClient {
-        val oboPdfClient = PdfClientImpl(properties.oboPdfgenUrl)
+        val oboPdfClient = PdfClientImpl(properties.oboPdfgenUrl, useNewOyeblikksbildeTemplates = true)
         val ptoPdfClient = PdfClientImpl(properties.ptoPdfgenUrl)
         return TogglePdfClient(oboPdfClient, ptoPdfClient, unleashClient)
     }
