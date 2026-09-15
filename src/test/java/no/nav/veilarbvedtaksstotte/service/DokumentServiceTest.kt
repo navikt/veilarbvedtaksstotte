@@ -225,7 +225,7 @@ class DokumentServiceTest {
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, { "" }, { "" })
         veilarbveilederClient =
             VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), { "" }, { "" })
-        pdfClient = PdfClientImpl(wiremockUrl)
+        pdfClient = PdfClientImpl(wiremockUrl, useNewOyeblikksbildeTemplates = true)
         norg2Client = Norg2ClientImpl(wiremockUrl)
         enhetInfoService = EnhetInfoService(norg2Client)
         malTypeService = MalTypeService(veilarbpersonClient)
@@ -310,13 +310,13 @@ class DokumentServiceTest {
         )
 
         givenThat(
-            post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikkbilde-behovsvurdering")).willReturn(
+            post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikksbilde-behovsvurdering")).willReturn(
                 aResponse().withStatus(201).withBody(behovsvurderingPdf)
             )
         )
 
         givenThat(
-            post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikkbilde-cv")).willReturn(
+            post(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikksbilde-cv")).willReturn(
                 aResponse().withStatus(201).withBody(cvPdf)
             )
         )
