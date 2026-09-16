@@ -65,6 +65,7 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingsenhetDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
@@ -336,6 +337,14 @@ public class ClientTestConfig {
                 OppfolgingStatusDTO status = new OppfolgingStatusDTO();
                 status.setErUnderOppfolging(true);
                 return Optional.of(status);
+            }
+
+            @Override
+            public Optional<OppfolgingsenhetDTO> hentOppfolgingsenhet(Fnr fnr) {
+                OppfolgingsenhetDTO enhet = new OppfolgingsenhetDTO();
+                enhet.setEnhetId(TEST_OPPFOLGINGSENHET_ID);
+                enhet.setNavn(TEST_OPPFOLGINGSENHET_NAVN);
+                return Optional.of(enhet);
             }
 
             @Override

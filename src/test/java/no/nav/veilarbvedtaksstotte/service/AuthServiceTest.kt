@@ -26,16 +26,16 @@ import java.util.*
 class AuthServiceTest {
     var authContextHolder = AuthContextHolderThreadLocal.instance()
     var aktorOppslagClient = mock(AktorOppslagClient::class.java)
-    var veilarbarenaService = mock(VeilarbarenaService::class.java)
+    var oppfolgingsenhetService = mock(OppfolgingsenhetService::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
     var authService =
-        AuthService(aktorOppslagClient, veilarbarenaService, authContextHolder, poaoTilgangClient)
+        AuthService(aktorOppslagClient, oppfolgingsenhetService, authContextHolder, poaoTilgangClient)
 
     @BeforeEach
     fun setup() {
         `when`(aktorOppslagClient.hentAktorId(TestData.TEST_FNR)).thenReturn(AktorId.of(TestData.TEST_AKTOR_ID))
         `when`(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(TestData.TEST_FNR)
-        `when`(veilarbarenaService.hentOppfolgingsenhet(TestData.TEST_FNR)).thenReturn(Optional.of(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID)))
+        `when`(oppfolgingsenhetService.hentOppfolgingsenhet(TestData.TEST_FNR)).thenReturn(Optional.of(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID)))
     }
 
     @Test
@@ -53,7 +53,7 @@ class AuthServiceTest {
 
     @Test
     fun sjekkTilgangTilBruker__kaster_exception_for_andre_enn_ekstern_bruker() {
-        UserRole.values().filter { userRole: UserRole -> userRole != UserRole.INTERN }.forEach { userRole: UserRole ->
+        UserRole.entries.filter { userRole: UserRole -> userRole != UserRole.INTERN }.forEach { userRole: UserRole ->
             withContext(userRole) {
                 assertThrowsWithMessage<ResponseStatusException>("""403 FORBIDDEN "Ikke intern bruker"""") {
                     authService.sjekkVeilederTilgangTilBruker(tilgangType = TilgangType.SKRIVE, fnr = TestData.TEST_FNR)
@@ -165,13 +165,13 @@ class AuthServiceTest {
 
     @Test
     fun testHarInnloggetVeilederTilgangTilBrukere() {
-        val brukere = listOf("1111", "2222", "33333", "44444");
+        val brukere = listOf("1111", "2222", "33333", "44444")
 
         whenever(
             poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())
         ).thenReturn(ApiResult.success(Decision.Permit))
         withContext(UserRole.INTERN) {
-            val harInnloggetVeilederTilgangTilBrukere = authService.harInnloggetVeilederTilgangTilBrukere(brukere);
+            val harInnloggetVeilederTilgangTilBrukere = authService.harInnloggetVeilederTilgangTilBrukere(brukere)
             assertEquals(harInnloggetVeilederTilgangTilBrukere.size, brukere.size)
             assertTrue(
                 harInnloggetVeilederTilgangTilBrukere.keys.stream()

@@ -16,9 +16,11 @@ import no.nav.poao_tilgang.client.PoaoTilgangClient;
 import no.nav.poao_tilgang.client.api.ApiResult;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.ArbeidssoekerregisteretApiOppslagV2Client;
 import no.nav.veilarbvedtaksstotte.client.arbeidssoekerregisteret.EgenvurderingDialogTjenesteClient;
-import no.nav.veilarbvedtaksstotte.client.arena.VeilarbarenaClient;
-import no.nav.veilarbvedtaksstotte.client.arena.dto.VeilarbArenaOppfolging;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.DokarkivClient;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingsenhetDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.SafClient;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.Journalpost;
 import no.nav.veilarbvedtaksstotte.client.dokarkiv.dto.JournalpostGraphqlResponse;
@@ -39,9 +41,6 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.Adresse;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriodeDTO;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.config.EnvironmentProperties;
@@ -135,7 +134,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private static final RegoppslagClient regoppslagClient = mock(RegoppslagClient.class);
     private static final AktorOppslagClient aktorOppslagClient = mock(AktorOppslagClient.class);
-    private static final VeilarbarenaClient veilarbarenaClient = mock(VeilarbarenaClient.class);
     private static final DokarkivClient dokarkivClient = mock(DokarkivClient.class);
     private static final DokdistribusjonClient dokdistribusjonClient = mock(DokdistribusjonClient.class);
     private static final DokdistkanalClient dokdistkanalClient = mock(DokdistkanalClient.class);
@@ -154,7 +152,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @BeforeAll
     public static void setupOnce() {
-        VeilarbarenaService veilarbarenaService = new VeilarbarenaService(veilarbarenaClient);
+        OppfolgingsenhetService oppfolgingsenhetService = new OppfolgingsenhetService(veilarboppfolgingClient);
         kilderRepository = spy(new KilderRepository(jdbcTemplate));
         meldingRepository = spy(new MeldingRepository(jdbcTemplate));
         vedtaksstotteRepository = new VedtaksstotteRepository(jdbcTemplate, transactor);
@@ -162,7 +160,7 @@ public class VedtakServiceTest extends DatabaseTest {
         RetryVedtakdistribusjonRepository retryVedtakdistribusjonRepository = new RetryVedtakdistribusjonRepository(jdbcTemplate);
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
-        authService = spy(new AuthService(aktorOppslagClient, veilarbarenaService, AuthContextHolderThreadLocal.instance(), poaoTilgangClient));
+        authService = spy(new AuthService(aktorOppslagClient, oppfolgingsenhetService, AuthContextHolderThreadLocal.instance(), poaoTilgangClient));
         SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, environmentProperties, veilarbpersonClient);
 
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, arbeidssoekerregisteretApiOppslagV2Client, egenvurderingDialogTjenesteClient);
@@ -227,7 +225,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentFodselsdato(TEST_FNR)).thenReturn(new FodselsdatoOgAr(LocalDate.of(1990, 3, 12), 1990));
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
-        when(veilarbarenaClient.hentOppfolgingsbruker(TEST_FNR)).thenReturn(Optional.of(new VeilarbArenaOppfolging(TEST_OPPFOLGINGSENHET_ID, "ARBS", "IKVAL")));
+        when(veilarboppfolgingClient.hentOppfolgingsenhet(TEST_FNR)).thenReturn(Optional.of(new OppfolgingsenhetDTO(TEST_OPPFOLGINGSENHET_ID, "NAV Test")));
         when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.of(new OppfolgingPeriodeDTO(UUID.randomUUID(), ZonedDateTime.now(), null)));
         when(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(new SakDTO(UUID.randomUUID(), 12345, "ARBEIDSOPPFOLGING", "OPP"));
         when(veilarboppfolgingClient.erUnderOppfolging(any())).thenReturn(Optional.of(new OppfolgingStatusDTO(true)));
@@ -654,10 +652,6 @@ public class VedtakServiceTest extends DatabaseTest {
 
     private String getOppdatertRegistreringsdata() {
         return readTestResourceFile("testdata/opplysningerOmArbeidssoekerMedProfilering.json");
-    }
-
-    private String testEgenvurderingData() {
-        return readTestResourceFile("testdata/egenvurdering-response.json");
     }
 
     private String testOyeblikkbildeEgenvurderingData() {

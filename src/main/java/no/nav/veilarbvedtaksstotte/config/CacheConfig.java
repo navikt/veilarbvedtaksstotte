@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class CacheConfig {
 
     public static final String ARENA_BRUKER_CACHE_NAME = "arena-bruker";
+    public static final String OPPFOLGINGSSTATUS_CACHE_NAME = "oppfolgingsstatus";
     public static final String VEILEDER_ENHETER_CACHE_NAME = "veileder-enheter";
     public static final String VEILEDER_CACHE_NAME = "veileder";
     public static final String VEILEDER_NAVN_CACHE_NAME = "veileder-navn";
@@ -23,6 +24,14 @@ public class CacheConfig {
     public static final String OPPFOLGINGPERIODER_CACHE_NAME = "oppfolgingperioder";
     public static final String NORG2_ENHET_KONTAKTINFO_CACHE_NAME = "enhet-kontaktinfo";
     public static final String NORG2_ENHET_ORGANISERING_CACHE_NAME = "enhet-organisering";
+
+    @Bean
+    public Cache oppfolgingsstatusCache() {
+        return new CaffeineCache(OPPFOLGINGSSTATUS_CACHE_NAME, Caffeine.newBuilder()
+                .expireAfterWrite(30, TimeUnit.SECONDS)
+                .maximumSize(5000)
+                .build());
+    }
 
     @Bean
     public Cache arenaBrukerCache() {

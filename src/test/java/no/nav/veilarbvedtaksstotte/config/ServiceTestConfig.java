@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Import;
         OyeblikksbildeService.class,
         VedtakService.class,
         VedtakHendelserService.class,
-        VeilarbarenaService.class,
+        OppfolgingsenhetService.class,
         VeilederService.class,
         DokumentService.class,
         DistribusjonService.class,

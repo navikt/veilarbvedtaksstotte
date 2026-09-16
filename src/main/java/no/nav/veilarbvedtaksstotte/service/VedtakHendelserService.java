@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.types.identer.AktorId;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
-import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
+import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendtKt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.kafka.VedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtakKafkaDTOKt;
@@ -110,7 +110,7 @@ public class VedtakHendelserService {
         setStatusEndringData(statusEndring, vedtak);
 
         kafkaProducerService.sendVedtakStatusEndring(statusEndring);
-        kafkaProducerService.sendVedtakSendt(lagKafkaVedtakSendt(vedtak));
+        kafkaProducerService.sendVedtakSendt(KafkaVedtakSendtKt.toKafkaVedtakSendt(vedtak));
 
         kafkaProducerService.sendSiste14aVedtak(
                 new Siste14aVedtak(
@@ -121,16 +121,6 @@ public class VedtakHendelserService {
                         false));
 
         kafkaProducerService.sendGjeldende14aVedtak(new AktorId(vedtak.getAktorId()), Gjeldende14aVedtakKafkaDTOKt.toGjeldende14aVedtakKafkaDTO(vedtak));
-    }
-
-    private KafkaVedtakSendt lagKafkaVedtakSendt(Vedtak vedtak) {
-        return new KafkaVedtakSendt()
-                .setId(vedtak.getId())
-                .setAktorId(vedtak.getAktorId())
-                .setHovedmal(vedtak.getHovedmal())
-                .setInnsatsgruppe(vedtak.getInnsatsgruppe())
-                .setVedtakSendt(vedtak.getVedtakFattet())
-                .setEnhetId(vedtak.getOppfolgingsenhetId());
     }
 
     private KafkaVedtakStatusEndring lagVedtakStatusEndring(Vedtak vedtak, VedtakStatusEndring endring) {
