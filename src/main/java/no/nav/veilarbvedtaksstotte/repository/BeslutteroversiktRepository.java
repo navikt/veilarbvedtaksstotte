@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
-import lombok.Value;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
@@ -16,14 +15,11 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.DbUtils.toPostgresArray;
 import static no.nav.veilarbvedtaksstotte.utils.EnumUtils.getName;
 import static no.nav.veilarbvedtaksstotte.utils.ValidationUtils.isNullOrEmpty;
-import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 @Repository
 public class BeslutteroversiktRepository {
@@ -106,7 +102,9 @@ public class BeslutteroversiktRepository {
         db.update(sql, enhetId, enhetNavn, vedtakId);
     }
 
-    public BrukereMedAntall sokEtterBrukere(BeslutteroversiktSok sok, String innloggetVeilederIdent) {
+    public BrukereMedAntall
+
+    sokEtterBrukere(BeslutteroversiktSok sok, String innloggetVeilederIdent) {
         Object[] parameters = NO_PARAMETERS;
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);
 
@@ -116,7 +114,7 @@ public class BeslutteroversiktRepository {
 
         if (maybeFilterSqlWithParams.isPresent()) {
             SqlWithParameters filterSqlWithParams = maybeFilterSqlWithParams.get();
-            parameters = filterSqlWithParams.parameters;
+            parameters = filterSqlWithParams.parameters().toArray();
             sqlBuilder.append(" ").append(filterSqlWithParams.sql);
         }
 
@@ -139,7 +137,7 @@ public class BeslutteroversiktRepository {
 
         List<BeslutteroversiktBruker> bruker =
                 db.query(sql, BeslutteroversiktRepository::mapBeslutteroversiktBruker, vedtakId);
-        return bruker.isEmpty() ? null : bruker.get(0);
+        return bruker.isEmpty() ? null : bruker.getFirst();
     }
 
     public void slettBruker(long vedtakId) {
@@ -154,7 +152,7 @@ public class BeslutteroversiktRepository {
 
         if (maybeFilterSqlWithParams.isPresent()) {
             SqlWithParameters filterSqlWithParams = maybeFilterSqlWithParams.get();
-            parameters = filterSqlWithParams.parameters;
+            parameters = filterSqlWithParams.parameters().toArray();
             sqlBuilder.append(" ").append(filterSqlWithParams.sql);
         }
 
@@ -166,8 +164,7 @@ public class BeslutteroversiktRepository {
         return filter != null
                 && (!isNullOrEmpty(filter.getEnheter())
                 || filter.getStatus() != null
-                || filter.isVisMineBrukere()
-                || !isNullOrEmpty(filter.getNavnEllerFnr()));
+                || filter.isVisMineBrukere());
     }
 
     private Optional<String> lagOrderBySql(BeslutteroversiktSok.OrderByField field, BeslutteroversiktSok.OrderByDirection direction) {
@@ -197,20 +194,6 @@ public class BeslutteroversiktRepository {
             parameters.add(toPostgresArray(filter.getEnheter()));
         }
 
-        if (!isNullOrEmpty(filter.getNavnEllerFnr())) {
-            boolean erSokPaFnr = isNumeric(filter.getNavnEllerFnr());
-
-            if (erSokPaFnr) {
-                filterStrs.add(format("%s LIKE ?", BRUKER_FNR));
-                parameters.add(filter.getNavnEllerFnr() + "%");
-            } else {
-                String nameSearchTerms = createNameSearchTerms(filter.getNavnEllerFnr());
-                filterStrs.add(format("%s ILIKE ANY(?::varchar[]) OR %s ILIKE ANY(?::varchar[])", BRUKER_FORNAVN, BRUKER_ETTERNAVN));
-                parameters.add(nameSearchTerms);
-                parameters.add(nameSearchTerms);
-            }
-        }
-
         if (filter.isVisMineBrukere()) {
             filterStrs.add(format("%s = ?", BESLUTTER_IDENT));
             parameters.add(innloggetVeilederIdent);
@@ -222,19 +205,10 @@ public class BeslutteroversiktRepository {
         }
 
         String sqlStr = "WHERE " + String.join(" AND ", filterStrs);
-        return Optional.of(new SqlWithParameters(sqlStr, parameters.toArray()));
+        return Optional.of(new SqlWithParameters(sqlStr, List.of(parameters.toArray())));
     }
 
-    private String createNameSearchTerms(String nameSearch) {
-        String[] words = nameSearch.split(" ");
-        String searchWords = Stream.of(words).map(w -> "%" + w + "%").collect(Collectors.joining(","));
-        return "{" + searchWords + "}";
-    }
-
-    @Value
-    public class SqlWithParameters {
-        String sql;
-        Object[] parameters;
+    public record SqlWithParameters(String sql, List<Object> parameters) {
     }
 
     @SneakyThrows
