@@ -114,7 +114,7 @@ public class BeslutteroversiktRepository {
 
         if (maybeFilterSqlWithParams.isPresent()) {
             SqlWithParameters filterSqlWithParams = maybeFilterSqlWithParams.get();
-            parameters = filterSqlWithParams.parameters;
+            parameters = filterSqlWithParams.parameters().toArray();
             sqlBuilder.append(" ").append(filterSqlWithParams.sql);
         }
 
@@ -152,7 +152,7 @@ public class BeslutteroversiktRepository {
 
         if (maybeFilterSqlWithParams.isPresent()) {
             SqlWithParameters filterSqlWithParams = maybeFilterSqlWithParams.get();
-            parameters = filterSqlWithParams.parameters;
+            parameters = filterSqlWithParams.parameters().toArray();
             sqlBuilder.append(" ").append(filterSqlWithParams.sql);
         }
 
@@ -205,10 +205,10 @@ public class BeslutteroversiktRepository {
         }
 
         String sqlStr = "WHERE " + String.join(" AND ", filterStrs);
-        return Optional.of(new SqlWithParameters(sqlStr, parameters.toArray()));
+        return Optional.of(new SqlWithParameters(sqlStr, List.of(parameters.toArray())));
     }
 
-    public record SqlWithParameters(String sql, Object[] parameters) {
+    public record SqlWithParameters(String sql, List<Object> parameters) {
     }
 
     @SneakyThrows
