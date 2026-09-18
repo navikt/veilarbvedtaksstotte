@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller
 
+import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.controller.AdminController.POAO_ADMIN
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.AuthService
@@ -29,6 +30,9 @@ class AdminControllerTest {
 
     @MockitoBean
     lateinit var vedtaksstotteRepository: VedtaksstotteRepository
+
+    @MockitoBean
+    lateinit var kafkaProperties: KafkaProperties
 
     @Autowired
     lateinit var mockMvc: MockMvc
