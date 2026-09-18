@@ -9,7 +9,7 @@ data class KafkaVedtakSendt(
     val id: Long,
     val vedtakSendt: LocalDateTime,
     val innsatsgruppe: Innsatsgruppe,
-    val hovedmal: Hovedmal,
+    val hovedmal: Hovedmal?,
     val aktorId: String,
     val enhetId: String
 )
