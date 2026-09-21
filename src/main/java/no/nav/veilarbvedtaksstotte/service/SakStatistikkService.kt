@@ -65,7 +65,7 @@ class SakStatistikkService @Autowired constructor(
 
         // for each field in overstyrteFelter that is not null, override the corresponding field in ferdigpopulertStatistikkRad
         val ferdigpopulertStatistikkRadMedOverstyrteFelter = ferdigpopulertStatistikkRad.copy(
-            endretTid = ferdigpopulertStatistikkRad.ferdigbehandletTid
+            endretTid = vedtak.vedtakFattet?.atZone(ZoneId.of("Europe/Oslo"))?.toInstant()
         )
 
         lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRadMedOverstyrteFelter))
