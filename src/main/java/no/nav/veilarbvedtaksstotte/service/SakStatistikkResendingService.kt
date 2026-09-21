@@ -15,7 +15,7 @@ class SakStatistikkResendingService(
     /**
      * Eksempel på resending ligger nederst i filen
      *
-     * Steg 0: Endre eller lag test i SakStatistikkResendingServiceTest.kt
+//     * Steg 0: Endre eller lag test i SakStatistikkResendingServiceTest.kt
      * Steg 4: Sett et tidspunkt for når dette skal kjøre og fjern utkommentering av @Scheduled
      */
 

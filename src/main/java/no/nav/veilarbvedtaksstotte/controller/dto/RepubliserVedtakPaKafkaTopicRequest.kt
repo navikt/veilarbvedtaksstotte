@@ -4,3 +4,7 @@ data class RepubliserVedtakPaKafkaTopicRequest(
     val vedtaksIDer: List<String>,
     val kafkaTopic: String
 )
+
+data class RepubliserVedtakPaBigQueryRequest(
+    val vedtaksIDer: List<String>
+)
