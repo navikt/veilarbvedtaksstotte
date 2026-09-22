@@ -12,6 +12,8 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mockito.*
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -186,6 +188,33 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
         verify(vedtaksstotteRepository, never()).oppdaterUtkastEnhet(anyLong(), anyString())
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["2023-10-31T10:18:24.768347+01:00[Europe/Oslo]", "2023-07-31T10:18:24.768347+02:00[Europe/Oslo]"])
+    fun `skal oppdatere enhet for samme periode selv om lagret start har tidssoneforskyvning`(startTidspunktTekst: String) {
+        val periodeUuid = UUID.randomUUID()
+        val startTidspunkt = ZonedDateTime.parse(startTidspunktTekst)
+        val lagretStart = startTidspunkt.plusSeconds(startTidspunkt.offset.totalSeconds.toLong())
+
+        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(Vedtak().setId(1234L).setOppfolgingsenhetId("1111"))
+        `when`(sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID)))
+            .thenReturn(SisteOppfolgingsperiode(periodeUuid, AktorId.of(TEST_AKTOR_ID), lagretStart, null))
+
+        consumer.behandleSisteOppfolgingsperiodeV3(
+            lagV3Record(KafkaSisteOppfolgingsperiodeV3(
+                periodeUuid,
+                SisteEndringsType.ARBEIDSOPPFOLGINGSKONTOR_ENDRET,
+                TEST_AKTOR_ID,
+                TEST_FNR.get(),
+                startTidspunkt,
+                null,
+                KontorDto("TEST", "4562"),
+                ZonedDateTime.now()
+            ))
+        )
+
+        verify(vedtaksstotteRepository).oppdaterUtkastEnhet(1234L, "4562")
+    }
+
     @Test
     fun `skal upserte oppfolgingsperiode ved oppfolging startet`() {
         val periodeUuid = UUID.randomUUID()
@@ -230,6 +259,33 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
 
         verify(sisteOppfolgingPeriodeRepository).hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID))
         verifyNoMoreInteractions(sisteOppfolgingPeriodeRepository)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["2023-10-31T10:18:24.768347+01:00[Europe/Oslo]", "2023-07-31T10:18:24.768347+02:00[Europe/Oslo]"])
+    fun `skal korrigere lagret start for samme periode ved tidssoneforskyvning`(startTidspunktTekst: String) {
+        val periodeUuid = UUID.randomUUID()
+        val startTidspunkt = ZonedDateTime.parse(startTidspunktTekst)
+        val lagretStart = startTidspunkt.plusSeconds(startTidspunkt.offset.totalSeconds.toLong())
+
+        `when`(sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID)))
+            .thenReturn(SisteOppfolgingsperiode(periodeUuid, AktorId.of(TEST_AKTOR_ID), lagretStart, null))
+
+        consumer.behandleSisteOppfolgingsperiodeV3(
+            lagV3Record(KafkaSisteOppfolgingsperiodeV3(
+                periodeUuid,
+                SisteEndringsType.OPPFOLGING_STARTET,
+                TEST_AKTOR_ID,
+                TEST_FNR.get(),
+                startTidspunkt,
+                null,
+                KontorDto("TEST", "4562"),
+                ZonedDateTime.now()
+            ))
+        )
+
+        verify(sisteOppfolgingPeriodeRepository)
+            .upsertSisteOppfolgingPeriode(periodeUuid, TEST_AKTOR_ID, startTidspunkt, null)
     }
 
     private fun lagV3Record(melding: KafkaSisteOppfolgingsperiodeV3): ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> {
