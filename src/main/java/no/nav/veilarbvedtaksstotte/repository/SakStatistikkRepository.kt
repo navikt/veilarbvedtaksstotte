@@ -3,18 +3,12 @@ package no.nav.veilarbvedtaksstotte.repository
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingMetode
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingResultat
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingStatus
-import no.nav.veilarbvedtaksstotte.domain.statistikk.BehandlingType
-import no.nav.veilarbvedtaksstotte.domain.statistikk.Fagsystem
-import no.nav.veilarbvedtaksstotte.domain.statistikk.HovedmalNy
-import no.nav.veilarbvedtaksstotte.domain.statistikk.SakStatistikk
-import no.nav.veilarbvedtaksstotte.domain.statistikk.Siste14aSaksstatistikk
+import no.nav.veilarbvedtaksstotte.domain.statistikk.*
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
@@ -151,7 +145,12 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         return jdbcTemplate.query(sql, sakStatistikkRowMapper, *params.toTypedArray<Any?>())
     }
 
-    fun hentForrigeVedtakFraSammeOppfolgingsperiode(startOppfolgingsperiodeDato: ZonedDateTime, aktorId: AktorId, fnr: Fnr, gjeldendeVedtakId: BigInteger): Siste14aSaksstatistikk? {
+    fun hentForrigeVedtakFraSammeOppfolgingsperiode(
+        startOppfolgingsperiodeDato: ZonedDateTime,
+        aktorId: AktorId,
+        fnr: Fnr,
+        gjeldendeVedtakId: BigInteger
+    ): Siste14aSaksstatistikk? {
         val sql = """
             SELECT vedtak_id as id, fra_dato as fattet_dato, 'ARENA' AS kilde
             FROM ARENA_VEDTAK
@@ -181,11 +180,15 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
     }
 
     fun hentOpprettetAvFraVedtak(vedtak: Vedtak): String? {
-        val sql = "SELECT $OPPRETTET_AV FROM $SAK_STATISTIKK_TABLE WHERE $BEHANDLING_ID = ? ORDER BY $SEKVENSNUMMER LIMIT 1"
+        val sql =
+            "SELECT $OPPRETTET_AV FROM $SAK_STATISTIKK_TABLE WHERE $BEHANDLING_ID = ? ORDER BY $SEKVENSNUMMER LIMIT 1"
         return try {
             jdbcTemplate.queryForObject(sql, String::class.java, vedtak.id)
         } catch (e: Exception) {
-            log.info("Kunne ikke hente opprettetAv for vedtakId: ${vedtak.id}, bruker veileder som gjorde siste handling", e)
+            log.info(
+                "Kunne ikke hente opprettetAv for vedtakId: ${vedtak.id}, bruker veileder som gjorde siste handling",
+                e
+            )
             vedtak.veilederIdent
         }
     }
@@ -233,6 +236,17 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         } catch (e: Exception) {
             log.error("Kunne ikke hente sakStatistikkListe til resending", e)
             return emptyList()
+        }
+    }
+
+    fun hentSakStatistikk(sekvensnummer: Long): SakStatistikk? {
+        return try {
+            val parametre = MapSqlParameterSource("sekvensnummer", sekvensnummer)
+            val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $SEKVENSNUMMER = :sekvensnummer"
+
+            namedParameterJdbcTemplate.queryForObject(sql, parametre, sakStatistikkRowMapper)
+        } catch (_: EmptyResultDataAccessException) {
+            null
         }
     }
 

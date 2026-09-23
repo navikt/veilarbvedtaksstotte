@@ -8,3 +8,7 @@ data class RepubliserVedtakPaKafkaTopicRequest(
 data class RepubliserVedtakPaBigQueryRequest(
     val vedtaksIDer: List<String>
 )
+
+data class RepubliserSakStatistikkRadPaBigQueryRequest(
+    val sekvensnummer: Long
+)

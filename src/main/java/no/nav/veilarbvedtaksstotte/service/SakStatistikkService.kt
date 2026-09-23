@@ -260,6 +260,21 @@ class SakStatistikkService @Autowired constructor(
         lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
     }
 
+    fun hentOgSendStatistikkRadTilBQ(sekvensnummer: Long) {
+        try {
+            val sakStatistikk = sakStatistikkRepository.hentSakStatistikk(sekvensnummer)
+
+            if (sakStatistikk == null) {
+                secureLog.info("Fant ikke sak statistikk med sekvensnummer $sekvensnummer")
+                return
+            }
+
+            bigQueryService.logEvent(sakStatistikk)
+        } catch (e: Exception) {
+            secureLog.error("Kunne ikke sende lagret sakStatistikkRad, feil: {} , sekvensnummer: {}", e, sekvensnummer)
+        }
+    }
+
     private fun lagreStatistikkRadIdbOgSendTilBQ(statistikkRad: SakStatistikk) {
         try {
             statistikkRad.validate()
@@ -304,7 +319,8 @@ class SakStatistikkService @Autowired constructor(
     private fun populerSakStatistikkMedOppfolgingsperiodeData(sakStatistikk: SakStatistikk, fnr: Fnr): SakStatistikk {
         val sisteHendelsePaaVedtak = sakStatistikkRepository.hentSisteHendelsePaaVedtak(sakStatistikk.behandlingId!!)
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
-        val sakId = if (oppfolgingsperiode.isPresent) veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId else null
+        val sakId =
+            if (oppfolgingsperiode.isPresent) veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId else null
 
         if (sisteHendelsePaaVedtak != null) {
             return sakStatistikk.copy(
