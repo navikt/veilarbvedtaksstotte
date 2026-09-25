@@ -32,7 +32,7 @@ class PdfClientImplTest {
             navKontor = "Nav kontor",
             dato = "20. januar 2020",
             malform = Malform.NB,
-            begrunnelse = listOf("Avsnitt 1", "Avsnitt 2"),
+            begrunnelse = "Avsnitt 1, del a\nAvsnitt 1, del b\n\nAvsnitt 2",
             kilder = listOf("Kilde 1", "Kilde 2"),
             mottaker = Mottaker(
                 navn = "Mottaker Navn",
@@ -52,7 +52,7 @@ class PdfClientImplTest {
                       "navKontor": "Nav kontor",
                       "dato": "20. januar 2020",
                       "malform": "NB",
-                      "begrunnelse": ["Avsnitt 1", "Avsnitt 2"],
+                      "begrunnelse": "Avsnitt 1, del a\nAvsnitt 1, del b\n\nAvsnitt 2",
                       "kilder": ["Kilde 1", "Kilde 2"],
                       "mottaker": {
                         "navn": "Mottaker Navn",
@@ -74,7 +74,6 @@ class PdfClientImplTest {
                         .withHeader("Content-Type", "application/pdf")
                 )
         )
-
 
         val response = pdfClient.genererPdf(brevdata)
 

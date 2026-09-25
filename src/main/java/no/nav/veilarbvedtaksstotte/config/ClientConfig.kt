@@ -3,7 +3,6 @@ package no.nav.veilarbvedtaksstotte.config
 import io.getunleash.DefaultUnleash
 import io.getunleash.UnleashContext
 import io.getunleash.util.UnleashConfig
-
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.client.aktoroppslag.CachedAktorOppslagClient
@@ -36,7 +35,6 @@ import no.nav.veilarbvedtaksstotte.client.norg2.Norg2Client
 import no.nav.veilarbvedtaksstotte.client.norg2.Norg2ClientImpl
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
 import no.nav.veilarbvedtaksstotte.client.pdf.PdfClientImpl
-import no.nav.veilarbvedtaksstotte.client.pdf.TogglePdfClient
 import no.nav.veilarbvedtaksstotte.client.person.BehandlingsNummer
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
@@ -65,10 +63,8 @@ class ClientConfig {
     }
 
     @Bean
-    fun pdfClient(properties: EnvironmentProperties, unleashClient: DefaultUnleash): PdfClient {
-        val oboPdfClient = PdfClientImpl(properties.oboPdfgenUrl, useNewOyeblikksbildeTemplates = true)
-        val ptoPdfClient = PdfClientImpl(properties.ptoPdfgenUrl)
-        return TogglePdfClient(oboPdfClient, ptoPdfClient, unleashClient)
+    fun pdfClient(properties: EnvironmentProperties): PdfClient {
+        return PdfClientImpl(properties.oboPdfgenUrl)
     }
 
     @Bean

@@ -100,8 +100,6 @@ spec:
       value: http://poao-tilgang.poao
     - name: OBO_PDFGEN_URL
       value: http://obo-pdfgen
-    - name: PTO_PDFGEN_URL
-      value: http://pto-pdfgen.obo
     - name: REGOPPSLAG_TOKEN_SCOPE
       value: api://prod-fss.teamdokumenthandtering.regoppslag/.default
     - name: REGOPPSLAG_URL
@@ -205,7 +203,6 @@ spec:
         - application: poao-tilgang
           namespace: poao
         - application: obo-pdfgen
-        - application: pto-pdfgen
         - application: veilarboppfolging
           namespace: poao
         - application: veilarbperson

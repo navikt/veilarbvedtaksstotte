@@ -21,7 +21,6 @@ import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildePdfTempla
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.DateFormatters
-import no.nav.veilarbvedtaksstotte.utils.StringUtils.splitNewline
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -229,8 +228,7 @@ class DokumentService(
 
         fun mapBrevdata(
             dto: ProduserDokumentDTO,
-            brevdataOppslag: BrevdataOppslag,
-            nyPdfgenerator: Boolean = false
+            brevdataOppslag: BrevdataOppslag
         ): BrevdataDto {
             val dato = LocalDate.now().format(DateFormatters.NORSK_DATE)
             val erIAlderForUngdomsgaranti = erIAlderForUngdomsgaranti(brevdataOppslag.fodselsdatoOgAr)
@@ -249,14 +247,6 @@ class DokumentService(
                 "Manglende navn for enhet ${brevdataOppslag.enhet.enhetNr}"
             )
 
-            val begrunnelse: Any = if (nyPdfgenerator) {
-                dto.begrunnelse ?: ""
-            } else {
-                dto.begrunnelse?.let {
-                    splitNewline(it)
-                }?.filterNot { it.isEmpty() } ?: emptyList<String>()
-            }
-
             return BrevdataDto(
                 malType = dto.malType,
                 veilederNavn = brevdataOppslag.veilederNavn,
@@ -264,7 +254,7 @@ class DokumentService(
                 dato = dato,
                 malform = brevdataOppslag.malform,
                 mottaker = mottaker,
-                begrunnelse = begrunnelse,
+                begrunnelse = dto.begrunnelse ?: "",
                 kilder = dto.kilder,
                 utkast = dto.utkast,
                 ungdomsgaranti = harUngdomsgaranti

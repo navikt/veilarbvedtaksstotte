@@ -1,6 +1,5 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import tools.jackson.databind.exc.MismatchedInputException
 import io.getunleash.DefaultUnleash
 import io.getunleash.UnleashContext
 import no.nav.common.client.norg2.Enhet
@@ -8,12 +7,7 @@ import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.dokument.ProduserDokumentDTO
 import no.nav.veilarbvedtaksstotte.client.norg2.EnhetKontaktinformasjon
-import no.nav.veilarbvedtaksstotte.client.pdf.CvInnholdMedMottakerDto
-import no.nav.veilarbvedtaksstotte.client.pdf.EgenvurderingMedMottakerDto
-import no.nav.veilarbvedtaksstotte.client.pdf.Mottaker
-import no.nav.veilarbvedtaksstotte.client.pdf.OpplysningerOmArbeidssoekerMedProfileringMedMottakerDto
-import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient
-import no.nav.veilarbvedtaksstotte.client.pdf.vaskStringForUgyldigeTegn
+import no.nav.veilarbvedtaksstotte.client.pdf.*
 import no.nav.veilarbvedtaksstotte.client.person.OpplysningerOmArbeidssoekerMedProfilering
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.dto.CvInnhold
@@ -22,10 +16,10 @@ import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingV2Dto
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.IngenDataDto
 import no.nav.veilarbvedtaksstotte.utils.JsonUtils
-import no.nav.veilarbvedtaksstotte.utils.NY_PDFGENERATOR_SKRUDD_PAA
 import no.nav.veilarbvedtaksstotte.utils.SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import tools.jackson.databind.exc.MismatchedInputException
 import java.util.*
 
 @Service
@@ -34,7 +28,7 @@ class PdfService(
     val veilarbveilederClient: VeilarbveilederClient,
     val enhetInfoService: EnhetInfoService,
     val veilarbpersonClient: VeilarbpersonClient,
-    val unleashService: DefaultUnleash,
+    val unleashService: DefaultUnleash
 ) {
     val log = LoggerFactory.getLogger(PdfService::class.java)
 
@@ -56,9 +50,7 @@ class PdfService(
                 brevdataOppslag
             }
 
-        val brevdataDto = DokumentService.mapBrevdata(vasketDto, brevdataOppslagUtenNavn, unleashService.isEnabled(NY_PDFGENERATOR_SKRUDD_PAA))
-
-        return pdfClient.genererPdf(brevdataDto)
+        return pdfClient.genererPdf(DokumentService.mapBrevdata(vasketDto, brevdataOppslagUtenNavn))
     }
 
     fun produserBehovsvurderingPdf(data: String?, mottaker: Mottaker): Optional<ByteArray> {
