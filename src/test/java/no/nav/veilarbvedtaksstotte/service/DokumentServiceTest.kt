@@ -225,7 +225,7 @@ class DokumentServiceTest {
         veilarbpersonClient = VeilarbpersonClientImpl(wiremockUrl, { "" }, { "" })
         veilarbveilederClient =
             VeilarbveilederClientImpl(wiremockUrl, AuthContextHolderThreadLocal.instance(), { "" }, { "" })
-        pdfClient = PdfClientImpl(wiremockUrl, useNewOyeblikksbildeTemplates = true)
+        pdfClient = PdfClientImpl(wiremockUrl)
         norg2Client = Norg2ClientImpl(wiremockUrl)
         enhetInfoService = EnhetInfoService(norg2Client)
         malTypeService = MalTypeService(veilarbpersonClient)
