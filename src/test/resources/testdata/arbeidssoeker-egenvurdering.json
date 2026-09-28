@@ -1,0 +1,28 @@
+{
+  "id": "4676c384-3725-4fac-b541-ba36056efea2",
+  "identitetsnummer": "12345678910",
+  "startet": {
+    "type": "PERIODE_STARTET_V1",
+    "sendtInnAv": {
+      "tidspunkt": "2025-11-26T14:57:39",
+      "utfoertAv": {"type": "SLUTTBRUKER", "id": "12345678910"},
+      "kilde": "arbeidssokerregisteret",
+      "aarsak": "registrering"
+    },
+    "tidspunkt": "2025-11-26T14:57:39"
+  },
+  "egenvurdering": {
+    "type": "EGENVURDERING_V1",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "profileringId": "00000000-0000-0000-0000-000000000002",
+    "sendtInnAv": {
+      "tidspunkt": "2025-11-26T14:57:39",
+      "utfoertAv": {"type": "SLUTTBRUKER", "id": "12345678910"},
+      "kilde": "arbeidssokerregisteret",
+      "aarsak": "egenvurdering"
+    },
+    "profilertTil": "ANTATT_BEHOV_FOR_VEILEDNING",
+    "egenvurdering": "ANTATT_BEHOV_FOR_VEILEDNING",
+    "tidspunkt": "2025-11-26T14:57:39"
+  }
+}
