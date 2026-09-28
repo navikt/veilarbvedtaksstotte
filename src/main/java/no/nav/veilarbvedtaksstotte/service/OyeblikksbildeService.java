@@ -125,19 +125,22 @@ public class OyeblikksbildeService {
 
         List<String> kildeTekster = kilder.stream().map(KildeEntity::getTekst).toList();
 
-        if (kilder.stream().anyMatch(kilde -> kildeTekster.contains(VedtakOpplysningKilder.CV.getDesc()) || kildeTekster.contains(VedtakOpplysningKilder.CV_NN.getDesc()))) {
+        boolean harCvKilde = kildeTekster.contains(VedtakOpplysningKilder.CV.getDesc())
+                || kildeTekster.contains(VedtakOpplysningKilder.CV_NN.getDesc());
+        if (harCvKilde) {
             final CvDto cvOgJobbprofilData = veilarbpersonClient.hentCVOgJobbprofil(fnr);
             oyeblikksbildeRepository.upsertCVOyeblikksbilde(vedtakId, cvOgJobbprofilData);
         }
-        if (kilder.stream().anyMatch(kilde ->
-                kildeTekster.contains(VedtakOpplysningKilder.REGISTRERING.getDesc())
-                        || kildeTekster.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc())
-                        || kildeTekster.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET_NN.getDesc()))
-        ) {
+        boolean harArbeidssokerRegistrertKilde = kildeTekster.contains(VedtakOpplysningKilder.REGISTRERING.getDesc())
+                || kildeTekster.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc())
+                || kildeTekster.contains(VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET_NN.getDesc());
+        if (harArbeidssokerRegistrertKilde) {
             OpplysningerOmArbeidssoekerMedProfilering opplysningerOmArbeidssoekerMedProfilering = veilarbpersonClient.hentSisteOpplysningerOmArbeidssoekerMedProfilering(Fnr.of(fnr));
             oyeblikksbildeRepository.upsertArbeidssokerRegistretOyeblikksbilde(vedtakId, opplysningerOmArbeidssoekerMedProfilering);
         }
-        if (kilder.stream().anyMatch(kilde -> kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc()) || kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc()))) {
+        boolean harEgenvurderingKilde = kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc())
+                || kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc());
+        if (harEgenvurderingKilde) {
             EgenvurderingV2Dto egenvurderingV2Dto = Optional.ofNullable(arbeidssoekerregisteretApiOppslagV2Client.hentEgenvurdering(NorskIdent.of(fnr)))
                     .filter(aggregertPeriode -> aggregertPeriode.getEgenvurdering() != null)
                     .map(aggregertPeriode -> {
