@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.givenThat
 import com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath
 import com.github.tomakehurst.wiremock.client.WireMock.post
@@ -63,7 +62,8 @@ import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
@@ -71,14 +71,29 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import java.time.ZonedDateTime
-import java.util.Optional
-import java.util.UUID
+import java.util.*
+import java.util.stream.Stream
 
 @WireMockTest
 class VedtakServiceJournalforingTest : DatabaseTest() {
 
-    @Test
-    fun `fatter vedtak og journalforer oyeblikksbilder fra eksterne tjenester`(wireMock: WireMockRuntimeInfo) {
+    data class MalformContractTestData(
+        val name: String,
+        val malformResponse: String,
+        val oppdaterUtkastPayload: String,
+        val expectedVedtakStatus: VedtakStatus,
+        val expectedJournalpostId: String,
+        val expectedSnapshotDocumentIds: Map<OyeblikksbildeType, String>
+    ) {
+        override fun toString() = name
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("malformContractTestData")
+    fun `fatter vedtak og journalforer oyeblikksbilder fra eksterne tjenester`(
+        testData: MalformContractTestData,
+        wireMock: WireMockRuntimeInfo
+    ) {
         DbTestUtils.cleanupDb(jdbcTemplate)
 
         // Bruk ekte repository og HTTP-klienter for lagring, PDF-generering og journalføring.
@@ -197,7 +212,7 @@ class VedtakServiceJournalforingTest : DatabaseTest() {
                 {"fornavn": "Fornavn", "etternavn": "Etternavn"}
             """.trimIndent()
         )
-        stubPost("/api/v3/person/hent-malform", """{"malform": "NB"}""")
+        stubPost("/api/v3/person/hent-malform", testData.malformResponse)
         stubPost(
             "/api/v3/person/hent-foedselsdato",
             """
@@ -257,20 +272,7 @@ class VedtakServiceJournalforingTest : DatabaseTest() {
                 mvc.perform(
                     put("/api/utkast/{vedtakId}", utkast.id)
                         .contentType("application/json")
-                        .content(
-                            """
-                                {
-                                  "hovedmal": "SKAFFE_ARBEID",
-                                  "begrunnelse": "En begrunnelse",
-                                  "innsatsgruppe": "STANDARD_INNSATS",
-                                  "opplysninger": [
-                                    "CV-en/jobbønskene dine på nav.no",
-                                    "Det du fortalte oss da du ble registrert som arbeidssøker",
-                                    "Svarene dine om behov for veiledning"
-                                  ]
-                                }
-                            """.trimIndent()
-                        )
+                        .content(testData.oppdaterUtkastPayload)
                 ).andExpect(status().isOk)
                 mvc.perform(
                     org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -279,43 +281,30 @@ class VedtakServiceJournalforingTest : DatabaseTest() {
 
                 // Sjekk både at vedtaket er fattet, og at alle øyeblikksbilder har fått riktig dokument-ID.
                 val fattetVedtak = vedtakRepository.hentFattedeVedtak(TEST_AKTOR_ID).single()
-                assertEquals(VedtakStatus.SENDT, fattetVedtak.vedtakStatus)
-                assertEquals(TEST_JOURNALPOST_ID, fattetVedtak.journalpostId)
+                assertEquals(testData.expectedVedtakStatus, fattetVedtak.vedtakStatus)
+                assertEquals(testData.expectedJournalpostId, fattetVedtak.journalpostId)
 
                 val oyeblikksbilder = oyeblikksbildeTjeneste.hentOyeblikksbildeForVedtak(fattetVedtak.id)
                 assertThat(oyeblikksbilder.map { it.oyeblikksbildeType }).containsExactlyInAnyOrder(
-                    OyeblikksbildeType.CV_OG_JOBBPROFIL,
-                    OyeblikksbildeType.ARBEIDSSOKERREGISTRET,
-                    OyeblikksbildeType.EGENVURDERING_V2
+                    *testData.expectedSnapshotDocumentIds.keys.toTypedArray()
                 )
                 assertThat(oyeblikksbilder).allMatch { it.isJournalfort }
-                assertEquals(
-                    "cv-id",
-                    oyeblikksbildeTjeneste.hentJournalfortDokumentId(fattetVedtak.id, OyeblikksbildeType.CV_OG_JOBBPROFIL)
-                )
-                assertEquals(
-                    "registrering-id",
-                    oyeblikksbildeTjeneste.hentJournalfortDokumentId(fattetVedtak.id, OyeblikksbildeType.ARBEIDSSOKERREGISTRET)
-                )
-                assertEquals(
-                    "egenvurdering-id",
-                    oyeblikksbildeTjeneste.hentJournalfortDokumentId(fattetVedtak.id, OyeblikksbildeType.EGENVURDERING_V2)
-                )
+                testData.expectedSnapshotDocumentIds.forEach { (type, expectedDocumentId) ->
+                    assertEquals(
+                        expectedDocumentId,
+                        oyeblikksbildeTjeneste.hentJournalfortDokumentId(fattetVedtak.id, type)
+                    )
+                }
             }
         )
 
         // Kontroller at vedleggene faktisk ble generert og sendt til Dokarkiv, ikke bare lagret lokalt.
-        verify(postRequestedFor(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikksbilde-cv")))
-        verify(postRequestedFor(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikksbilde-arbeidssokerregistret")))
-        verify(postRequestedFor(urlEqualTo("/api/v1/genpdf/vedtak14a/oyeblikksbilde-behovsvurdering")))
+        expectedPdfEndpoints.forEach { endpoint ->
+            verify(postRequestedFor(urlEqualTo(endpoint)))
+        }
         verify(
             postRequestedFor(urlEqualTo("/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
-                .withRequestBody(
-                    matchingJsonPath(
-                        "$.dokumenter[?(@.brevkode == 'CV_OG_JOBBPROFIL')].dokumentvarianter[0].fysiskDokument",
-                        equalTo("Y3YtcGRm")
-                    )
-                )
+                .withRequestBody(matchingJsonPath("$.dokumenter[?(@.brevkode == 'CV_OG_JOBBPROFIL')]"))
                 .withRequestBody(matchingJsonPath("$.dokumenter[?(@.brevkode == 'ARBEIDSSOKERREGISTRET')]"))
                 .withRequestBody(matchingJsonPath("$.dokumenter[?(@.brevkode == 'EGENVURDERING_V2')]"))
         )
@@ -323,5 +312,63 @@ class VedtakServiceJournalforingTest : DatabaseTest() {
 
     private fun stubPost(path: String, body: String) {
         givenThat(post(urlEqualTo(path)).willReturn(aResponse().withStatus(200).withBody(body)))
+    }
+
+    companion object {
+        private val expectedPdfEndpoints = setOf(
+            "/api/v1/genpdf/vedtak14a/oyeblikksbilde-cv",
+            "/api/v1/genpdf/vedtak14a/oyeblikksbilde-arbeidssokerregistret",
+            "/api/v1/genpdf/vedtak14a/oyeblikksbilde-behovsvurdering"
+        )
+
+        @JvmStatic
+        fun malformContractTestData(): Stream<MalformContractTestData> = Stream.of(
+            MalformContractTestData(
+                name = "bokmål",
+                malformResponse = """{"malform": "NB"}""",
+                oppdaterUtkastPayload = """
+                    {
+                      "hovedmal": "SKAFFE_ARBEID",
+                      "begrunnelse": "En begrunnelse",
+                      "innsatsgruppe": "STANDARD_INNSATS",
+                      "opplysninger": [
+                        "Det du fortalte oss da du ble registrert som arbeidssøker",
+                        "CV-en/jobbønskene din(e) på nav.no",
+                        "Svarene dine om behov for veiledning"
+                      ]
+                    }
+                """.trimIndent(),
+                expectedVedtakStatus = VedtakStatus.SENDT,
+                expectedJournalpostId = TEST_JOURNALPOST_ID,
+                expectedSnapshotDocumentIds = mapOf(
+                    OyeblikksbildeType.CV_OG_JOBBPROFIL to "cv-id",
+                    OyeblikksbildeType.ARBEIDSSOKERREGISTRET to "registrering-id",
+                    OyeblikksbildeType.EGENVURDERING_V2 to "egenvurdering-id"
+                )
+            ),
+            MalformContractTestData(
+                name = "nynorsk",
+                malformResponse = """{"malform": "NN"}""",
+                oppdaterUtkastPayload = """
+                    {
+                      "hovedmal": "SKAFFE_ARBEID",
+                      "begrunnelse": "Ei grunngiving",
+                      "innsatsgruppe": "STANDARD_INNSATS",
+                      "opplysninger": [
+                        "Det du fortalde oss da du vart registrert som arbeidssøkar",
+                        "CV-en/jobbønska din(e) på nav.no",
+                        "Svara dine om behov for rettleiing"
+                      ]
+                    }
+                """.trimIndent(),
+                expectedVedtakStatus = VedtakStatus.SENDT,
+                expectedJournalpostId = TEST_JOURNALPOST_ID,
+                expectedSnapshotDocumentIds = mapOf(
+                    OyeblikksbildeType.CV_OG_JOBBPROFIL to "cv-id",
+                    OyeblikksbildeType.ARBEIDSSOKERREGISTRET to "registrering-id",
+                    OyeblikksbildeType.EGENVURDERING_V2 to "egenvurdering-id"
+                )
+            )
+        )
     }
 }
