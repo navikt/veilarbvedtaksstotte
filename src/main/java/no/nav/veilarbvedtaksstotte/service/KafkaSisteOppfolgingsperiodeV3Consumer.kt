@@ -54,7 +54,10 @@ class KafkaSisteOppfolgingsperiodeV3Consumer(
 
         val lagretPeriode = sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(melding.aktorId))
 
-        if (lagretPeriode != null && melding.startTidspunkt.isBefore(lagretPeriode.startdato)) {
+        if (lagretPeriode != null &&
+            melding.oppfolgingsperiodeUuid != lagretPeriode.oppfolgingsperiodeId &&
+            melding.startTidspunkt.isBefore(lagretPeriode.startdato)
+        ) {
             log.info("Mottok utdatert ARBEIDSOPPFOLGINGSKONTOR_ENDRET-melding (startTidspunkt {} er før lagret startdato {}). Topic: {}, partisjon: {}, offset: {} - ignorerer.",
                 melding.startTidspunkt, lagretPeriode.startdato, kafkaRecord.topic(), kafkaRecord.partition(), kafkaRecord.offset())
             return
@@ -71,7 +74,10 @@ class KafkaSisteOppfolgingsperiodeV3Consumer(
         val melding = kafkaRecord.value()
         val lagretPeriode = sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(melding.aktorId))
 
-        if (lagretPeriode != null && melding.startTidspunkt.isBefore(lagretPeriode.startdato)) {
+        if (lagretPeriode != null &&
+            melding.oppfolgingsperiodeUuid != lagretPeriode.oppfolgingsperiodeId &&
+            melding.startTidspunkt.isBefore(lagretPeriode.startdato)
+        ) {
             log.info("Mottok utdatert OPPFOLGING_STARTET-melding (startTidspunkt {} er før lagret startdato {}). Topic: {}, partisjon: {}, offset: {} - ignorerer.",
                 melding.startTidspunkt, lagretPeriode.startdato, kafkaRecord.topic(), kafkaRecord.partition(), kafkaRecord.offset())
             return
@@ -92,7 +98,10 @@ class KafkaSisteOppfolgingsperiodeV3Consumer(
 
         val lagretPeriode = sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(melding.aktorId))
 
-        if (lagretPeriode != null && sluttTidspunkt.isBefore(lagretPeriode.startdato)) {
+        if (lagretPeriode != null &&
+            melding.oppfolgingsperiodeUuid != lagretPeriode.oppfolgingsperiodeId &&
+            sluttTidspunkt.isBefore(lagretPeriode.startdato)
+        ) {
             log.info("Mottok utdatert OPPFOLGING_AVSLUTTET-melding (sluttTidspunkt {} er før lagret startdato {}). Topic: {}, partisjon: {}, offset: {} - ignorerer.",
                 sluttTidspunkt, lagretPeriode.startdato, kafkaRecord.topic(), kafkaRecord.partition(), kafkaRecord.offset())
             return

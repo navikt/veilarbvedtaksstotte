@@ -32,7 +32,7 @@ class PdfClientImplTest {
             navKontor = "Nav kontor",
             dato = "20. januar 2020",
             malform = Malform.NB,
-            begrunnelse = listOf("Avsnitt 1", "Avsnitt 2"),
+            begrunnelse = "Avsnitt 1, del a\nAvsnitt 1, del b\n\nAvsnitt 2",
             kilder = listOf("Kilde 1", "Kilde 2"),
             mottaker = Mottaker(
                 navn = "Mottaker Navn",
@@ -52,7 +52,7 @@ class PdfClientImplTest {
                       "navKontor": "Nav kontor",
                       "dato": "20. januar 2020",
                       "malform": "NB",
-                      "begrunnelse": ["Avsnitt 1", "Avsnitt 2"],
+                      "begrunnelse": "Avsnitt 1, del a\nAvsnitt 1, del b\n\nAvsnitt 2",
                       "kilder": ["Kilde 1", "Kilde 2"],
                       "mottaker": {
                         "navn": "Mottaker Navn",
@@ -75,7 +75,6 @@ class PdfClientImplTest {
                 )
         )
 
-
         val response = pdfClient.genererPdf(brevdata)
 
         assertEquals(documentResponse, response.decodeToString())
@@ -92,6 +91,10 @@ class PdfClientImplTest {
         val forventetVasketFEFF = "HelloWorld Line2 test"
         val vasketFEFF = vaskStringForUgyldigeTegn(ugyldigFEFF)
         assertEquals(forventetVasketFEFF, vasketFEFF)
+
+        val inputMedPrivateUse = "Start\uF0B7\uDB80\uDC00\u0002\n\t•"
+        assertEquals("Start□□\n\t•", vaskStringForUgyldigeTegn(inputMedPrivateUse))
+
     }
 }
 

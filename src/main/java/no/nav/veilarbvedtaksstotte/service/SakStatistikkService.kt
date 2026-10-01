@@ -14,6 +14,7 @@ import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -29,10 +30,10 @@ class SakStatistikkService @Autowired constructor(
     private val veilarbpersonClient: VeilarbpersonClient
 ) {
     fun fattetVedtak(vedtak: Vedtak, fnr: Fnr) {
-
         val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
         val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-        val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
         val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
             ferdigbehandletTid = Instant.now().truncatedTo(ChronoUnit.SECONDS),
@@ -44,13 +45,41 @@ class SakStatistikkService @Autowired constructor(
         lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
     }
 
+    fun sendFattetVedtak(
+        vedtakId: Long,
+        vedtakSupplier: (Long) -> Vedtak,
+        fnrSupplier: (AktorId) -> Fnr
+    ) {
+        val vedtak = vedtakSupplier(vedtakId)
+        val fnr = fnrSupplier(AktorId.of(vedtak.aktorId))
+
+        val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
+        val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+
+        val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
+            behandlingStatus = BehandlingStatus.FATTET,
+            behandlingMetode = if (vedtak.beslutterIdent != null) BehandlingMetode.TOTRINNS else BehandlingMetode.MANUELL,
+            ansvarligBeslutter = vedtak.beslutterIdent
+        )
+
+        // for each field in overstyrteFelter that is not null, override the corresponding field in ferdigpopulertStatistikkRad
+        val ferdigpopulertStatistikkRadMedOverstyrteFelter = ferdigpopulertStatistikkRad.copy(
+            endretTid = vedtak.vedtakFattet?.atZone(ZoneId.of("Europe/Oslo"))?.toInstant()
+        )
+
+        lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRadMedOverstyrteFelter))
+    }
+
     fun opprettetUtkast(
         vedtak: Vedtak, fnr: Fnr
     ) {
 
         val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
         val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-        val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
         val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
             behandlingStatus = BehandlingStatus.UNDER_BEHANDLING,
@@ -90,7 +119,8 @@ class SakStatistikkService @Autowired constructor(
 
         val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
         val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-        val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
         val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
             behandlingStatus = BehandlingStatus.SENDT_TIL_KVALITETSSIKRING,
@@ -106,7 +136,8 @@ class SakStatistikkService @Autowired constructor(
 
         val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
         val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-        val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
         val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
             behandlingStatus = BehandlingStatus.SENDT_TIL_KVALITETSSIKRING,
@@ -123,7 +154,8 @@ class SakStatistikkService @Autowired constructor(
 
         val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
         val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-        val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
         val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
             behandlingStatus = BehandlingStatus.SENDT_TIL_KVALITETSSIKRING,
@@ -140,7 +172,8 @@ class SakStatistikkService @Autowired constructor(
 
         val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
         val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-        val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
         val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
             behandlingStatus = BehandlingStatus.UNDER_BEHANDLING,
@@ -157,7 +190,8 @@ class SakStatistikkService @Autowired constructor(
 
         val populertMedStatiskeData = populerSakstatistikkMedStatiskeData(SakStatistikk())
         val populertMedVedtaksdata = populerSakstatistikkMedVedtakData(populertMedStatiskeData, vedtak)
-        val populertMedOppfolgingsperiodeData = populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
+        val populertMedOppfolgingsperiodeData =
+            populerSakStatistikkMedOppfolgingsperiodeData(populertMedVedtaksdata, fnr)
 
         val ferdigpopulertStatistikkRad = populertMedOppfolgingsperiodeData.copy(
             behandlingStatus = BehandlingStatus.KVALITETSSIKRING_GODKJENT,
@@ -227,6 +261,24 @@ class SakStatistikkService @Autowired constructor(
         lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
     }
 
+    @Transactional
+    fun hentOgSendStatistikkRadTilBQ(sekvensnumre: List<Long>) {
+        try {
+            val sakStatistikk = sakStatistikkRepository.hentSakStatistikkListe(sekvensnumre)
+
+            if (sakStatistikk.isEmpty()) {
+                secureLog.warn("Fant ikke sak statistikk for sekvensnumre $sekvensnumre")
+                return
+            }
+
+            val nyeSakStatistikkRaderMedSammeData = sakStatistikkRepository.insertSakStatistikkRadBatch(sakStatistikk)
+
+            bigQueryService.logEvent(nyeSakStatistikkRaderMedSammeData)
+        } catch (e: Exception) {
+            secureLog.warn("Kunne ikke sende lagret sakStatistikkRad, feil: {} , sekvensnumre: {}", e, sekvensnumre)
+        }
+    }
+
     private fun lagreStatistikkRadIdbOgSendTilBQ(statistikkRad: SakStatistikk) {
         try {
             statistikkRad.validate()
@@ -250,14 +302,16 @@ class SakStatistikkService @Autowired constructor(
         return sakStatistikk.copy(
             aktorId = AktorId.of(vedtak.aktorId),
             behandlingId = vedtak.id.toBigInteger(),
-            registrertTid = vedtak.utkastOpprettet.atZone(ZoneId.of("Europe/Oslo")).toInstant().truncatedTo(ChronoUnit.SECONDS),
+            registrertTid = vedtak.utkastOpprettet.atZone(ZoneId.of("Europe/Oslo")).toInstant()
+                .truncatedTo(ChronoUnit.SECONDS),
             behandlingResultat = vedtak.innsatsgruppe?.toBehandlingResultat(),
             innsatsgruppe = vedtak.innsatsgruppe?.toBehandlingResultat(),
             hovedmal = vedtak.hovedmal?.let { HovedmalNy.valueOf(it.toString()) },
             opprettetAv = sakStatistikkRepository.hentOpprettetAvFraVedtak(vedtak) ?: vedtak.veilederIdent,
             saksbehandler = vedtak.veilederIdent,
             ansvarligEnhet = vedtak.oppfolgingsenhetId?.let { EnhetId.of(it) },
-            ferdigbehandletTid = vedtak.vedtakFattet?.atZone(ZoneId.of("Europe/Oslo"))?.toInstant()?.truncatedTo(ChronoUnit.SECONDS),
+            ferdigbehandletTid = vedtak.vedtakFattet?.atZone(ZoneId.of("Europe/Oslo"))?.toInstant()
+                ?.truncatedTo(ChronoUnit.SECONDS),
             ansvarligBeslutter = vedtak.beslutterIdent,
         )
     }
@@ -269,7 +323,8 @@ class SakStatistikkService @Autowired constructor(
     private fun populerSakStatistikkMedOppfolgingsperiodeData(sakStatistikk: SakStatistikk, fnr: Fnr): SakStatistikk {
         val sisteHendelsePaaVedtak = sakStatistikkRepository.hentSisteHendelsePaaVedtak(sakStatistikk.behandlingId!!)
         val oppfolgingsperiode = veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr)
-        val sakId = if (oppfolgingsperiode.isPresent) veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId else null
+        val sakId =
+            if (oppfolgingsperiode.isPresent) veilarboppfolgingClient.hentOppfolgingsperiodeSak(oppfolgingsperiode.get().uuid).sakId else null
 
         if (sisteHendelsePaaVedtak != null) {
             return sakStatistikk.copy(

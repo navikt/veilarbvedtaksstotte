@@ -18,7 +18,7 @@ data class BrevdataDto(
     val navKontor: String,
     val dato: String,
     val malform: Malform,
-    val begrunnelse: List<String>,
+    val begrunnelse: String,
     val kilder: List<String>,
     val mottaker: Mottaker,
     val utkast: Boolean,

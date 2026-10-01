@@ -20,8 +20,8 @@ import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA
 import no.nav.veilarbvedtaksstotte.utils.TestData.*
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
@@ -80,13 +80,14 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
 
     @Test
     fun `lagrer forventet record verdi for sending av vedtak`() {
-        val kafkaVedtakSendt = KafkaVedtakSendt()
-        kafkaVedtakSendt.setId(123)
-        kafkaVedtakSendt.setVedtakSendt(LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234))
-        kafkaVedtakSendt.setInnsatsgruppe(SPESIELT_TILPASSET_INNSATS)
-        kafkaVedtakSendt.setHovedmal(BEHOLDE_ARBEID)
-        kafkaVedtakSendt.setAktorId(TEST_AKTOR_ID)
-        kafkaVedtakSendt.setEnhetId(TEST_OPPFOLGINGSENHET_ID)
+        val kafkaVedtakSendt = KafkaVedtakSendt(
+            123,
+            LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234),
+            SPESIELT_TILPASSET_INNSATS,
+            BEHOLDE_ARBEID,
+            TEST_AKTOR_ID,
+            TEST_OPPFOLGINGSENHET_ID,
+        )
 
         kafkaProducerService.sendVedtakSendt(kafkaVedtakSendt)
 

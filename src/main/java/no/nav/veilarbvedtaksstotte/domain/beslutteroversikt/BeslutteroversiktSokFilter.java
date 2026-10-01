@@ -15,6 +15,4 @@ public class BeslutteroversiktSokFilter {
 
     boolean visMineBrukere;
 
-    String navnEllerFnr;
-
 }

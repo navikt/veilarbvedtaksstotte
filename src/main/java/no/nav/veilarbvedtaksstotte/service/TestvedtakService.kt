@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
+import no.nav.veilarbvedtaksstotte.domain.kafka.toKafkaVedtakSendt
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.toGjeldende14aVedtakKafkaDTO
 import no.nav.veilarbvedtaksstotte.domain.vedtak.toSiste14aVedtak
@@ -36,6 +37,7 @@ class TestvedtakService(
         testvedtakRepository.lagreTestvedtak(vedtak)
         kafkaProducerService.sendSiste14aVedtak(vedtak.toSiste14aVedtak())
         kafkaProducerService.sendGjeldende14aVedtak(aktorId, vedtak.toGjeldende14aVedtakKafkaDTO())
+        kafkaProducerService.sendVedtakSendt(vedtak.toKafkaVedtakSendt())
     }
 
     fun hentGjeldendeVedtak(aktorId: AktorId): Vedtak? {
