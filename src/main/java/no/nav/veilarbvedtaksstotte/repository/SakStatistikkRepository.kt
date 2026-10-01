@@ -239,6 +239,20 @@ class SakStatistikkRepository(val jdbcTemplate: JdbcTemplate) {
         }
     }
 
+    fun hentSakStatistikkListe(sekvensnumre: List<Long>): List<SakStatistikk> {
+        try {
+            val sekvensnummerPostgresqlArray = sekvensnumre.joinToString(",", "{", "}")
+            val parameters = MapSqlParameterSource("sekvensnummerArray", sekvensnummerPostgresqlArray)
+
+            val sql = "SELECT * FROM $SAK_STATISTIKK_TABLE WHERE $SEKVENSNUMMER = ANY (:sekvensnummerArray::BIGINT[])"
+
+            return namedParameterJdbcTemplate.query(sql, parameters, sakStatistikkRowMapper)
+        } catch (e: Exception) {
+            log.error("Kunne ikke hente sakStatistikkListe", e)
+            return emptyList()
+        }
+    }
+
     fun hentSakStatistikk(sekvensnummer: Long): SakStatistikk? {
         return try {
             val parametre = MapSqlParameterSource("sekvensnummer", sekvensnummer)

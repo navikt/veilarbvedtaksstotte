@@ -56,17 +56,25 @@ fun SertifikatDtoV2.sanitize(): SertifikatDtoV2 = copy(
 )
 
 fun vaskStringForUgyldigeTegn(input: String): String {
-    val regex = Regex("""[\p{Cc}\p{Cf}&&[^\r\n\t]]""")
-    val output = regex.replace(input, "")
+    val privateUseTegnRegex = Regex("""\p{Co}""")
+    val privateUseKodepunkter = privateUseTegnRegex.findAll(input).map { it.value.codePointAt(0) }.toList()
+    val inputMedErstattedePrivateUseTegn = privateUseTegnRegex.replace(input, "□")
 
-    val fjernetTegnILesbarTekst = regex.findAll(input).map { it.value[0].code }
-        .joinToString(", ") { "\\u" + it.toString(16).padStart(4, '0') }
-
-    // en unicode representerer en UTF-16 code unit, og vil derfor telle som ett tegn (lengde 1) i Kotlin-strenger
-    val antallTegnFjernet = input.length - output.length
-
-    if (antallTegnFjernet > 0) {
-        secureLog.info("Vasket inputstring for pdf og fjernet følgende: $fjernetTegnILesbarTekst (fjernet $antallTegnFjernet tegn)")
+    if (privateUseKodepunkter.isNotEmpty()) {
+        val privateUseKodepunkterForLogg = privateUseKodepunkter.joinToString(", ") { "U+" + it.toString(16).uppercase().padStart(4, '0') }
+        secureLog.info("Vasket inputstring for pdf og erstattet følgende private-use-tegn med □: $privateUseKodepunkterForLogg (erstattet ${privateUseKodepunkter.size} tegn)")
     }
-    return output
+
+    val kontrollOgFormatTegnRegex = Regex("""[\p{Cc}\p{Cf}&&[^\r\n\t]]""")
+    val vasketInput = kontrollOgFormatTegnRegex.replace(inputMedErstattedePrivateUseTegn, "")
+
+    val fjernedeKodepunkterForLogg = kontrollOgFormatTegnRegex.findAll(inputMedErstattedePrivateUseTegn).map { it.value.codePointAt(0) }
+        .joinToString(", ") { "U+" + it.toString(16).uppercase().padStart(4, '0') }
+
+    val antallUtf16KodeenheterFjernet = inputMedErstattedePrivateUseTegn.length - vasketInput.length
+
+    if (antallUtf16KodeenheterFjernet > 0) {
+        secureLog.info("Vasket inputstring for pdf og fjernet følgende: $fjernedeKodepunkterForLogg (fjernet $antallUtf16KodeenheterFjernet tegn)")
+    }
+    return vasketInput
 }

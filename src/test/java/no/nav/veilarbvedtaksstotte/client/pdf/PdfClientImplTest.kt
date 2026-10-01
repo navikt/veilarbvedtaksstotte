@@ -91,6 +91,10 @@ class PdfClientImplTest {
         val forventetVasketFEFF = "HelloWorld Line2 test"
         val vasketFEFF = vaskStringForUgyldigeTegn(ugyldigFEFF)
         assertEquals(forventetVasketFEFF, vasketFEFF)
+
+        val inputMedPrivateUse = "Start\uF0B7\uDB80\uDC00\u0002\n\t•"
+        assertEquals("Start□□\n\t•", vaskStringForUgyldigeTegn(inputMedPrivateUse))
+
     }
 }
 
