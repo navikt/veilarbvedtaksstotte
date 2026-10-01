@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Deploy unleash-apitoken
-        uses: nais/deploy/actions/deploy@v2
+        uses: nais/deploy/actions/deploy@v3
         env:
           CLUSTER: dev-gcp
           RESOURCE: .nais/application/unleash-apitoken-dev.yaml
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Deploy unleash-apitoken
-        uses: nais/deploy/actions/deploy@v2
+        uses: nais/deploy/actions/deploy@v3
         env:
           CLUSTER: prod-gcp
           RESOURCE: .nais/application/unleash-apitoken-prod.yaml
