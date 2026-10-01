@@ -1,9 +1,12 @@
 package no.nav.veilarbvedtaksstotte.controller
 
+import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.controller.AdminController.POAO_ADMIN
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.KafkaRepubliseringService
+import no.nav.veilarbvedtaksstotte.service.SakStatistikkService
 import no.nav.veilarbvedtaksstotte.service.VedtakService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -29,6 +32,15 @@ class AdminControllerTest {
 
     @MockitoBean
     lateinit var vedtaksstotteRepository: VedtaksstotteRepository
+
+    @MockitoBean
+    lateinit var kafkaProperties: KafkaProperties
+
+    @MockitoBean
+    lateinit var aktorOppslagClient: AktorOppslagClient
+
+    @MockitoBean
+    lateinit var sakStatistikkService: SakStatistikkService
 
     @Autowired
     lateinit var mockMvc: MockMvc

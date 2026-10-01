@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "app.env")
-data class EnvironmentProperties (
+data class EnvironmentProperties(
     val arbeidssokerregisteretOppslagApiV2Scope: String,
     val arbeidssokerregisteretOppslagApiV2Url: String,
     val dbUrl: String,
@@ -29,7 +29,6 @@ data class EnvironmentProperties (
     val poaoTilgangScope: String,
     val poaoTilgangUrl: String,
     val oboPdfgenUrl: String,
-    val ptoPdfgenUrl: String,
     val regoppslagScope: String,
     val regoppslagUrl: String,
     val safScope: String,

@@ -1,5 +1,9 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import no.nav.veilarbvedtaksstotte.config.KafkaProperties
+import no.nav.veilarbvedtaksstotte.controller.dto.RepubliserVedtakPaKafkaTopicRequest
+import no.nav.veilarbvedtaksstotte.domain.kafka.toKafkaVedtakSendt
+import no.nav.veilarbvedtaksstotte.domain.vedtak.toSiste14aVedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import org.slf4j.Logger
@@ -11,7 +15,9 @@ class KafkaRepubliseringService(
     val vedtaksstotteRepository: VedtaksstotteRepository,
     val arenaVedtakRepository: ArenaVedtakRepository,
     val siste14aVedtakService: Siste14aVedtakService,
-    val dvhRapporteringService: DvhRapporteringService
+    val dvhRapporteringService: DvhRapporteringService,
+    val kafkaProducerService: KafkaProducerService,
+    val kafkaProperties: KafkaProperties
 ) {
 
     val log: Logger = LoggerFactory.getLogger(KafkaRepubliseringService::class.java)
@@ -42,5 +48,21 @@ class KafkaRepubliseringService(
             offset += batch.size
         } while (batch.size == batchSize)
 
+    }
+
+    fun republiserVedtakPaKafkaTopic(request: RepubliserVedtakPaKafkaTopicRequest) {
+        log.info("Republiserer vedtak med ider ${request.vedtaksIDer} på kafka topics ${request.kafkaTopic}")
+        request.vedtaksIDer.forEach { vedtakId ->
+            val vedtak = vedtaksstotteRepository.hentVedtak(vedtakId.toLong())
+            if (vedtak != null) {
+                when (request.kafkaTopic) {
+                    kafkaProperties.siste14aVedtakTopic -> kafkaProducerService.sendSiste14aVedtak(vedtak.toSiste14aVedtak())
+                    kafkaProperties.vedtakSendtTopic -> kafkaProducerService.sendVedtakSendt(vedtak.toKafkaVedtakSendt())
+                    else -> return
+                }
+            } else {
+                log.warn("Fant ikke vedtak med id $vedtakId")
+            }
+        }
     }
 }

@@ -1,9 +1,8 @@
 package no.nav.veilarbvedtaksstotte.service
 
-import org.mockito.Mockito
-import org.mockito.kotlin.any
 import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.Fnr
+import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
@@ -23,6 +22,8 @@ import no.nav.veilarbvedtaksstotte.utils.TestUtils.randomNumeric
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.kotlin.any
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.random.Random.Default.nextInt
@@ -33,6 +34,8 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
 
     val siste14aVedtakService = Mockito.mock(Siste14aVedtakService::class.java)
     val dvhRapporteringService = Mockito.mock(DvhRapporteringService::class.java)
+    val kafkaProducerService = Mockito.mock(KafkaProducerService::class.java)
+    val kafkaProperties = Mockito.mock(KafkaProperties::class.java)
 
     lateinit var vedtaksstotteRepository: VedtaksstotteRepository
     lateinit var kafkaRepubliseringService: KafkaRepubliseringService
@@ -45,7 +48,12 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
         vedtaksstotteRepository = VedtaksstotteRepository(jdbcTemplate, transactor)
         arenaVedtakRepository = ArenaVedtakRepository(jdbcTemplate)
         kafkaRepubliseringService = KafkaRepubliseringService(
-            vedtaksstotteRepository, arenaVedtakRepository, siste14aVedtakService, dvhRapporteringService
+            vedtaksstotteRepository,
+            arenaVedtakRepository,
+            siste14aVedtakService,
+            dvhRapporteringService,
+            kafkaProducerService,
+            kafkaProperties
         )
     }
 
@@ -62,7 +70,10 @@ class KafkaRepubliseringServiceTest : DatabaseTest() {
 
         kafkaRepubliseringService.republiserSiste14aVedtak()
 
-        Mockito.verify(siste14aVedtakService, Mockito.times(brukereMedFattetVedtakFraDenneLøsningen.size + brukereMedVedtakFraArena.size))
+        Mockito.verify(
+            siste14aVedtakService,
+            Mockito.times(brukereMedFattetVedtakFraDenneLøsningen.size + brukereMedVedtakFraArena.size)
+        )
             .republiserKafkaSiste14aVedtak(any())
 
         brukereMedFattetVedtakFraDenneLøsningen.forEach {

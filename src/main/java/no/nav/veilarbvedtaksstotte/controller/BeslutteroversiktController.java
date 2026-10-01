@@ -35,7 +35,7 @@ public class BeslutteroversiktController {
     @Operation(
             summary = "Søk",
             description = """
-                    Søker etter utkast til § 14 a-vedtak som krever kvalitetssikring. " +
+                    Søker etter utkast til § 14 a-vedtak som krever kvalitetssikring.
                     Søket støtter paginering, sortering og følgende filtreringsmuligheter:
                     
                     * filtrering på en liste med Nav-enheter
@@ -44,8 +44,6 @@ public class BeslutteroversiktController {
                       * default oppførsel er å inkludere alle utkast uavhengig av status
                     * filtrering på autentisert kvalitetssikrer egne brukere
                       * default oppførsel er å inkludere alle utkast for alle brukere på alle Nav-enhetene som autentisert kvalitetssikrer har tilgang til
-                    * filtrering på navn eller fødselsnummer på bruker som utkastet er knyttet til
-                      * default oppførsel er å ikke filtrere på navn eller fødselsnummer
                     
                     Se `BeslutteroversiktSok`-modellen for detaljert beskrivelse av de ulike parametrene.
                     """,
@@ -66,5 +64,4 @@ public class BeslutteroversiktController {
     public BrukereMedAntall startBeslutterProsess(@RequestBody BeslutteroversiktSok sokData) {
         return beslutteroversiktService.sokEtterBruker(sokData);
     }
-
 }
