@@ -55,26 +55,50 @@ fun SertifikatDtoV2.sanitize(): SertifikatDtoV2 = copy(
     utsteder = utsteder?.let { vaskStringForUgyldigeTegn(it) }
 )
 
-fun vaskStringForUgyldigeTegn(input: String): String {
-    val privateUseTegnRegex = Regex("""\p{Co}""")
-    val privateUseKodepunkter = privateUseTegnRegex.findAll(input).map { it.value.codePointAt(0) }.toList()
-    val inputMedErstattedePrivateUseTegn = privateUseTegnRegex.replace(input, "□")
-
-    if (privateUseKodepunkter.isNotEmpty()) {
-        val privateUseKodepunkterForLogg = privateUseKodepunkter.joinToString(", ") { "U+" + it.toString(16).uppercase().padStart(4, '0') }
-        secureLog.info("Vasket inputstring for pdf og erstattet følgende private-use-tegn med □: $privateUseKodepunkterForLogg (erstattet ${privateUseKodepunkter.size} tegn)")
+fun vaskStringForUgyldigeTegn(input: String, fjernEmoji: Boolean = false): String {
+    val erstattedeKodepunkter = mutableListOf<Int>()
+    val fjernedeKodepunkter = mutableListOf<Int>()
+    val vasketInput = buildString(input.length) {
+        // Behandle ett utvidet grafem om gangen, slik at sammensatte emojier erstattes samlet.
+        Regex("""\X""").findAll(input).forEach { treff ->
+            // Lagre lengden så delresultatet kan erstattes med én rute hvis grafemet inneholder emoji.
+            val start = length
+            var inneholderEmoji = false
+            treff.value.codePoints().forEach { kodepunkt ->
+                val tegntype = Character.getType(kodepunkt)
+                when {
+                    fjernEmoji && (Character.isEmojiPresentation(kodepunkt) || Character.isExtendedPictographic(kodepunkt) || kodepunkt == 0x20E3) -> {
+                        inneholderEmoji = true
+                        erstattedeKodepunkter.add(kodepunkt)
+                    }
+                    tegntype == Character.PRIVATE_USE.toInt() -> {
+                        append("□")
+                        erstattedeKodepunkter.add(kodepunkt)
+                    }
+                    (tegntype == Character.CONTROL.toInt() || tegntype == Character.FORMAT.toInt()) &&
+                        kodepunkt != '\r'.code && kodepunkt != '\n'.code && kodepunkt != '\t'.code -> {
+                        // Behold linjeskift og tabulator, men fjern øvrige kontroll- og formateringstegn.
+                        fjernedeKodepunkter.add(kodepunkt)
+                    }
+                    else -> appendCodePoint(kodepunkt)
+                }
+            }
+            if (inneholderEmoji) {
+                setLength(start)
+                append("□")
+            }
+        }
     }
 
-    val kontrollOgFormatTegnRegex = Regex("""[\p{Cc}\p{Cf}&&[^\r\n\t]]""")
-    val vasketInput = kontrollOgFormatTegnRegex.replace(inputMedErstattedePrivateUseTegn, "")
+    if (erstattedeKodepunkter.isNotEmpty()) {
+        // Logg kodepunktene, ikke tekstinnholdet som ble vasket.
+        val erstattedeKodepunkterForLogg = erstattedeKodepunkter.joinToString(", ") { "U+" + it.toString(16).uppercase().padStart(4, '0') }
+        secureLog.info("Vasket inputstring for pdf og erstattet følgende private-use- og emoji-kodepunkter med □: $erstattedeKodepunkterForLogg (erstattet ${erstattedeKodepunkter.size} kodepunkter)")
+    }
 
-    val fjernedeKodepunkterForLogg = kontrollOgFormatTegnRegex.findAll(inputMedErstattedePrivateUseTegn).map { it.value.codePointAt(0) }
-        .joinToString(", ") { "U+" + it.toString(16).uppercase().padStart(4, '0') }
-
-    val antallUtf16KodeenheterFjernet = inputMedErstattedePrivateUseTegn.length - vasketInput.length
-
-    if (antallUtf16KodeenheterFjernet > 0) {
-        secureLog.info("Vasket inputstring for pdf og fjernet følgende: $fjernedeKodepunkterForLogg (fjernet $antallUtf16KodeenheterFjernet tegn)")
+    if (fjernedeKodepunkter.isNotEmpty()) {
+        val fjernedeKodepunkterForLogg = fjernedeKodepunkter.joinToString(", ") { "U+" + it.toString(16).uppercase().padStart(4, '0') }
+        secureLog.info("Vasket inputstring for pdf og fjernet følgende: $fjernedeKodepunkterForLogg (fjernet ${fjernedeKodepunkter.size} kodepunkter)")
     }
     return vasketInput
 }
