@@ -107,6 +107,16 @@ public class AdminController {
         );
     }
 
+    @PostMapping("/publiser/sakstatistikkrad-pa-bigquery")
+    public String publiserSakStatistikkRadPaBigQuery(@RequestBody PubliserSakStatistikkRadPaBigQueryRequest request) {
+        sjekkTilgangTilAdmin();
+
+        return JobRunner.runAsync(
+                "republiser-sakstatistikkrad-pa-bigquery",
+                () -> sakStatistikkService.sendStatistikkRadTilBQ(request.getSekvensnumre())
+        );
+    }
+
     /**
      * OBS: Denne slettingen skal kun brukes ved personvernsbrudd.
      */
