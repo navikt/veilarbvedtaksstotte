@@ -112,7 +112,7 @@ public class AdminController {
         sjekkTilgangTilAdmin();
 
         return JobRunner.runAsync(
-                "republiser-sakstatistikkrad-pa-bigquery",
+                "publiser-sakstatistikkrad-pa-bigquery",
                 () -> sakStatistikkService.sendStatistikkRadTilBQ(request.getSekvensnumre())
         );
     }
