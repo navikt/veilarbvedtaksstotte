@@ -279,6 +279,21 @@ class SakStatistikkService @Autowired constructor(
         }
     }
 
+    fun sendStatistikkRadTilBQ(sekvensnumre: List<Long>) {
+        try {
+            val sakStatistikk = sakStatistikkRepository.hentSakStatistikkListe(sekvensnumre)
+
+            if (sakStatistikk.isEmpty()) {
+                secureLog.warn("Fant ikke sak statistikk for sekvensnumre $sekvensnumre")
+                return
+            }
+
+            bigQueryService.logEvent(sakStatistikk)
+        } catch (e: Exception) {
+            secureLog.warn("Kunne ikke sende lagret sakStatistikkRad, feil: {} , sekvensnumre: {}", e, sekvensnumre)
+        }
+    }
+
     private fun lagreStatistikkRadIdbOgSendTilBQ(statistikkRad: SakStatistikk) {
         try {
             statistikkRad.validate()
