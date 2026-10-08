@@ -7,6 +7,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.toGjeldende14aVedtak
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -92,7 +93,11 @@ class Gjeldende14aVedtakService(
         private fun erVedtakFraVeilarbvedtaksstotteGjeldende(
             siste14aVedtakForBruker: Siste14aVedtak, startDatoInnevarendeOppfolgingsperiode: ZonedDateTime
         ): Boolean {
-            return siste14aVedtakForBruker.fattetDato.isAfter(startDatoInnevarendeOppfolgingsperiode)
+            // Det er noe tidssone-forskjeller (utc/oslo) for disse to datoene. Om et vedtak blir fattet innen 1-2 timer innen oppfølgingstartet,
+            // ble denne funksjonen false. Legger til en "grace periode" så vi heller sjekker om vedtak fattet er på samme dag eller senere.
+            val fattetDato = TimeUtils.toLocalDate(siste14aVedtakForBruker.fattetDato)
+            val startdato = TimeUtils.toLocalDate(startDatoInnevarendeOppfolgingsperiode)
+            return !fattetDato.isBefore(startdato)
         }
     }
 }
