@@ -12,3 +12,7 @@ data class RepubliserVedtakPaBigQueryRequest(
 data class RepubliserSakStatistikkRadPaBigQueryRequest(
     val sekvensnumre: List<Long>
 )
+
+data class PubliserSakStatistikkRadPaBigQueryRequest(
+    val sekvensnumre: List<Long>
+)
