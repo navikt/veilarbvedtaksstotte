@@ -59,7 +59,7 @@ class TestvedtakRepository(
         """
         val params = MapSqlParameterSource()
             .addValue("aktorId", vedtak.aktorId)
-            .addValue("hovedmal", vedtak.hovedmal.name)
+            .addValue("hovedmal", vedtak.hovedmal?.name)
             .addValue("innsatsgruppe", vedtak.innsatsgruppe.name)
             .addValue("oppfolgingsenhetId", vedtak.oppfolgingsenhetId)
             .addValue("utkastSistOppdatert", TimeUtils.toTimestampOrNull(vedtak.utkastSistOppdatert.atZone(ZoneId.systemDefault()).toInstant()))
