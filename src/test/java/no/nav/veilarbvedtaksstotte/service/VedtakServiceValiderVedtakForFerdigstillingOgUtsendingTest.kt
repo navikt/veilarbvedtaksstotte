@@ -54,6 +54,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         val vedtak = Vedtak()
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.innsatsgruppe = Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS
+        vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
         vedtak.beslutterProsessStatus = BeslutterProsessStatus.KLAR_TIL_BESLUTTER
         vedtak.beslutterIdent = TestData.TEST_BESLUTTER_IDENT
 
@@ -85,7 +86,7 @@ class VedtakServiceValiderVedtakForFerdigstillingOgUtsendingTest {
         vedtak.vedtakStatus = VedtakStatus.UTKAST
         vedtak.innsatsgruppe = Innsatsgruppe.VARIG_TILPASSET_INNSATS
         vedtak.begrunnelse = "Begrunnelse"
-        vedtak.hovedmal = Hovedmal.SKAFFE_ARBEID
+        vedtak.hovedmal = null
         vedtak.kilder = listOf(
             KildeEntity("opplysning 1", UUID.randomUUID()),
             KildeEntity("opplysning 2", UUID.randomUUID())
