@@ -40,6 +40,8 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
+import no.nav.veilarbvedtaksstotte.client.tilgangsmaskin.TilgangsmaskinClient
+import no.nav.veilarbvedtaksstotte.client.tilgangsmaskin.TilgangsmaskinClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
@@ -49,6 +51,7 @@ import no.nav.veilarbvedtaksstotte.klagebehandling.client.KabalClientImpl
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 
 @Configuration
 class ClientConfig {
@@ -257,6 +260,18 @@ class ClientConfig {
                 properties.poaoTilgangUrl,
                 { tokenClient.createMachineToMachineToken(properties.poaoTilgangScope) })
         )
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = "app.env",
+        name = ["tilgangsmaskinEnkelttilgangEnabled"],
+        havingValue = "true"
+    )
+    fun tilgangsmaskinClient(
+        properties: EnvironmentProperties
+    ): TilgangsmaskinClient {
+        return TilgangsmaskinClientImpl(properties.tilgangsmaskinUrl)
     }
 
     @Bean

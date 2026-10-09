@@ -165,6 +165,18 @@ class AuthService(
         }
     }
 
+    fun sjekkTilgangTilModia() {
+        sjekkInternBruker()
+
+        val tilgangTilModia = poaoTilgangClient.evaluatePolicy(
+            NavAnsattTilgangTilModiaPolicyInput(hentInnloggetVeilederUUID())
+        ).getOrThrow()
+
+        if (tilgangTilModia.isDeny) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
+    }
+
     private fun sjekkInternBruker() {
         authContextHolder
             .role

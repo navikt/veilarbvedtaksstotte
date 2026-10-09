@@ -9,6 +9,7 @@ import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.utils.fn.UnsafeRunnable
 import no.nav.poao_tilgang.client.Decision
+import no.nav.poao_tilgang.client.NavAnsattTilgangTilModiaPolicyInput
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.TilgangType
@@ -96,6 +97,33 @@ class AuthServiceTest {
             }
         }
         org.mockito.kotlin.verify(poaoTilgangClient, times(1)).evaluatePolicy(org.mockito.kotlin.any())
+    }
+
+    @Test
+    fun sjekkTilgangTilModia__gir_tilgang_for_intern_bruker_med_modia_tilgang() {
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilModiaPolicyInput>())
+        ).thenReturn(ApiResult.success(Decision.Permit))
+
+        withContext(UserRole.INTERN) {
+            authService.sjekkTilgangTilModia()
+        }
+
+        org.mockito.kotlin.verify(poaoTilgangClient)
+            .evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilModiaPolicyInput>())
+    }
+
+    @Test
+    fun sjekkTilgangTilModia__avviser_intern_bruker_uten_modia_tilgang() {
+        whenever(
+            poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilModiaPolicyInput>())
+        ).thenReturn(ApiResult.success(Decision.Deny("", "")))
+
+        withContext(UserRole.INTERN) {
+            assertThrowsWithMessage<ResponseStatusException>("403 FORBIDDEN") {
+                authService.sjekkTilgangTilModia()
+            }
+        }
     }
 
     @Test

@@ -35,6 +35,8 @@ data class EnvironmentProperties(
     val safUrl: String,
     val tokenxClientId: String,
     val tokenxDiscoveryUrl: String,
+    val tilgangsmaskinEnkelttilgangEnabled: Boolean = false,
+    val tilgangsmaskinUrl: String = "",
     val unleashApiToken: String,
     val unleashUrl: String,
     val veilarbarenaScope: String,
