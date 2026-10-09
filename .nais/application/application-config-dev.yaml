@@ -99,6 +99,10 @@ spec:
       value: api://dev-fss.teamdokumenthandtering.saf/.default
     - name: SAF_URL
       value: https://saf-q2.dev-fss-pub.nais.io
+    - name: TILGANGSMASKIN_ENKELTTILGANG_ENABLED
+      value: "true"
+    - name: TILGANGSMASKIN_URL
+      value: http://populasjonstilgangskontroll.tilgangsmaskin
     - name: VEILARBARENA_TOKEN_SCOPE
       value: api://dev-fss.pto.veilarbarena/.default
     - name: VEILARBARENA_URL
@@ -203,6 +207,8 @@ spec:
           namespace: paw
         - application: poao-tilgang
           namespace: poao
+        - application: populasjonstilgangskontroll
+          namespace: tilgangsmaskin
         - application: obo-pdfgen
         - application: veilarboppfolging
           namespace: poao
