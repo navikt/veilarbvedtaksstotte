@@ -39,7 +39,8 @@ class TestvedtakRepository(
     private val jdbcTemplate: JdbcTemplate
 ) {
     companion object {
-        const val DEFAULT_BEGRUNNELSE = "Testvedtak opprettet for å teste vedtaksløsningen og videre flyt i test-miljøet."
+        const val DEFAULT_BEGRUNNELSE =
+            "Testvedtak opprettet for å teste vedtaksløsningen og videre flyt i test-miljøet."
     }
 
     private val namedJdbcTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
@@ -62,11 +63,20 @@ class TestvedtakRepository(
             .addValue("hovedmal", vedtak.hovedmal?.name)
             .addValue("innsatsgruppe", vedtak.innsatsgruppe.name)
             .addValue("oppfolgingsenhetId", vedtak.oppfolgingsenhetId)
-            .addValue("utkastSistOppdatert", TimeUtils.toTimestampOrNull(vedtak.utkastSistOppdatert.atZone(ZoneId.systemDefault()).toInstant()))
+            .addValue(
+                "utkastSistOppdatert",
+                TimeUtils.toTimestampOrNull(vedtak.utkastSistOppdatert.atZone(ZoneId.systemDefault()).toInstant())
+            )
             .addValue("begrunnelse", begrunnelse)
             .addValue("status", VedtakStatus.SENDT.name)
-            .addValue("utkastOpprettet", TimeUtils.toTimestampOrNull(vedtak.utkastOpprettet.atZone(ZoneId.systemDefault()).toInstant()))
-            .addValue("vedtakFattet", TimeUtils.toTimestampOrNull(vedtak.vedtakFattet.atZone(ZoneId.systemDefault()).toInstant()))
+            .addValue(
+                "utkastOpprettet",
+                TimeUtils.toTimestampOrNull(vedtak.utkastOpprettet.atZone(ZoneId.systemDefault()).toInstant())
+            )
+            .addValue(
+                "vedtakFattet",
+                TimeUtils.toTimestampOrNull(vedtak.vedtakFattet.atZone(ZoneId.systemDefault()).toInstant())
+            )
             .addValue("veilederIdent", vedtak.veilederIdent)
             .addValue("vedtakType", VedtakType.TEST_VEDTAK.name)
 
@@ -74,7 +84,8 @@ class TestvedtakRepository(
     }
 
     fun settTidligereTestvedtakIkkeGjeldende(aktorId: AktorId): Int {
-        val sql = """UPDATE $VEDTAK_TABLE SET $GJELDENDE = false WHERE $AKTOR_ID = ? AND $GJELDENDE = true AND $VEDTAK_TYPE = ?"""
+        val sql =
+            """UPDATE $VEDTAK_TABLE SET $GJELDENDE = false WHERE $AKTOR_ID = ? AND $GJELDENDE = true AND $VEDTAK_TYPE = ?"""
         return jdbcTemplate.update(sql, aktorId.get(), VedtakType.TEST_VEDTAK.name)
     }
 
@@ -99,7 +110,7 @@ class TestvedtakRepository(
     private fun vedtakMapper(rs: ResultSet, @Suppress("unused") row: Int): Vedtak {
         return Vedtak()
             .settId(rs.getLong(VEDTAK_ID))
-            .settHovedmal(Hovedmal.valueOf(rs.getString(HOVEDMAL)))
+            .settHovedmal(rs.getString(HOVEDMAL)?.let(Hovedmal::valueOf))
             .settInnsatsgruppe(Innsatsgruppe.valueOf(rs.getString(INNSATSGRUPPE)))
             .settUtkastSistOppdatert(rs.getTimestamp(UTKAST_SIST_OPPDATERT).toLocalDateTime())
             .settVedtakFattet(rs.getTimestamp(VEDTAK_FATTET).toLocalDateTime())
