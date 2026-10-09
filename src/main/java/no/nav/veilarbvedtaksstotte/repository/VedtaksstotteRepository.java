@@ -210,10 +210,11 @@ public class VedtaksstotteRepository {
                 " WHERE DOKUMENT_BESTILLING_ID IS NULL" +
                 " AND VEDTAK_FATTET IS NOT NULL" +
                 " AND VEDTAK.JOURNALPOST_ID IS NOT NULL" +
+                " AND VEDTAK.STATUS != ?" +
                 " AND (RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK < ?" +
                 " OR RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK IS NULL)" + // Trenger null-sjekken for å få med vedtak som aldri har hatt et mislykket forsøk
                 " ORDER BY VEDTAK_FATTET ASC LIMIT ?";
-        return db.queryForList(sql, Long.class, INITIAL_DISTRIBUSJONSFORSOK_LIMIT, antall);
+        return db.queryForList(sql, Long.class, getName(VedtakStatus.SLETTET), INITIAL_DISTRIBUSJONSFORSOK_LIMIT, antall);
     }
 
     public List<Long> hentFeilendeVedtakForDistribusjon(int antall) {
@@ -222,9 +223,10 @@ public class VedtaksstotteRepository {
                 " WHERE DOKUMENT_BESTILLING_ID IS NULL" +
                 " AND VEDTAK_FATTET IS NOT NULL" +
                 " AND VEDTAK.JOURNALPOST_ID IS NOT NULL" +
+                " AND VEDTAK.STATUS != ?" +
                 " AND RETRY_VEDTAKDISTRIBUSJON.DISTRIBUSJONSFORSOK >= ?" +
                 " ORDER BY VEDTAK_FATTET ASC LIMIT ?";
-        return db.queryForList(sql, Long.class, INITIAL_DISTRIBUSJONSFORSOK_LIMIT, antall);
+        return db.queryForList(sql, Long.class, getName(VedtakStatus.SLETTET), INITIAL_DISTRIBUSJONSFORSOK_LIMIT, antall);
     }
 
     public List<Long> hentVedtakForJournalforing(int antall) {
