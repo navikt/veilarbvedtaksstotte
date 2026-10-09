@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.domain.vedtak;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.annotation.Nullable;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -13,6 +14,7 @@ import java.util.UUID;
 public class Vedtak {
     long id;
     String aktorId;
+    @Nullable
     Hovedmal hovedmal;
     Innsatsgruppe innsatsgruppe;
     VedtakStatus vedtakStatus;
@@ -46,7 +48,7 @@ public class Vedtak {
         return this.aktorId;
     }
 
-    public Hovedmal getHovedmal() {
+    public @Nullable Hovedmal getHovedmal() {
         return this.hovedmal;
     }
 

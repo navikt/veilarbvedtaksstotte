@@ -8,13 +8,16 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.repository.TestvedtakRepository
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.any
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
+import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
 import java.util.Optional
 import java.util.UUID
@@ -54,6 +57,24 @@ class TestvedtakServiceTest {
         verify(testvedtakRepository, never()).settTidligereTestvedtakIkkeGjeldende(aktorId)
         verify(testvedtakRepository, never()).lagreTestvedtak(vedtak)
         verifyNoInteractions(kafkaProducerService, veilarboppfolgingClient)
+    }
+
+    @Test
+    fun `skal avvise testvedtak med liten mulighet til a jobbe og hovedmal`() {
+        val aktorId = AktorId.of("1234567890123")
+        val fnr = Fnr.of("12345678901")
+        val vedtak = testvedtak(aktorId, begrunnelse = "Begrunnelse")
+            .settInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
+            .settHovedmal(Hovedmal.SKAFFE_ARBEID)
+        `when`(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(fnr))
+            .thenReturn(Optional.of(OppfolgingPeriodeDTO()))
+
+        val exception = assertThrows<ResponseStatusException> {
+            testvedtakService.lagreTestvedtak(vedtak, fnr)
+        }
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.statusCode)
+        verifyNoInteractions(testvedtakRepository, kafkaProducerService, veilarboppfolgingClient)
     }
 
     private fun testvedtak(aktorId: AktorId, begrunnelse: String?): Vedtak {
