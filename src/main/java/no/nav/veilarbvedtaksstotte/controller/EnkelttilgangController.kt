@@ -34,7 +34,7 @@ class EnkelttilgangController(
     private val authService: AuthService
 ) {
     companion object {
-        private const val BEGRUNNELSE = "Arbeidsrettet oppfølging i veilarbvedtaksstotte"
+        private const val BEGRUNNELSE = "Kvalitetssikring av oppfølgingsvedtak § 14 a."
     }
 
     @PostMapping
@@ -55,7 +55,7 @@ class EnkelttilgangController(
             authService.innloggetVeilederIdent,
             NorskIdent.of(request.brukerId.get()),
             BEGRUNNELSE,
-            LocalDate.now()
+            LocalDate.now().plusDays(1)
         )
     }
 }
