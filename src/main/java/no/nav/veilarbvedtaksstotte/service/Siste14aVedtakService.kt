@@ -85,6 +85,11 @@ class Siste14aVedtakService(
         )
     }
 
+    fun hentOppfolgingsenhetId(brukerId: EksternBrukerId) = hentIdenterMedDevSjekk(brukerId)?.aktorId?.let { aktorId ->
+        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(brukerId)
+        vedtakRepository.hentOppfolgingsenhetId(identer.aktorId)
+    }
+
     private fun finnNyeste(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {
         return arenaVedtakListe.stream().max(Comparator.comparing(ArenaVedtak::fraDato)).orElse(null)
     }
