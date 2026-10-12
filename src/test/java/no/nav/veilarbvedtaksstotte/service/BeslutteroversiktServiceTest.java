@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 public class BeslutteroversiktServiceTest {
@@ -41,6 +43,66 @@ public class BeslutteroversiktServiceTest {
     private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService);
 
     private final static BrukereMedAntall INGEN_BRUKERE = new BrukereMedAntall(Collections.emptyList(), 0);
+
+    @Test
+    public void hentEnheterMedUtkast__skal_koble_navn_og_dele_enheter_etter_tilgang() {
+        when(beslutteroversiktRepository.hentEnheterMedUtkast()).thenReturn(List.of("0001", "1234", "4321"));
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(
+                        new PortefoljeEnhet("1234", "Gammelt navn"),
+                        new PortefoljeEnhet("9999", "Enhet uten utkast")
+                ))
+        );
+        when(veiledereOgEnhetClient.hentEnhetNavn("0001")).thenReturn("Nav En");
+        when(veiledereOgEnhetClient.hentEnhetNavn("1234")).thenReturn("Nav To");
+        when(veiledereOgEnhetClient.hentEnhetNavn("4321")).thenReturn("Nav Tre");
+
+        var enheter = beslutteroversiktService.hentEnheterMedUtkast();
+
+        assertEquals(List.of(new EnhetNavn("1234", "Nav To")), enheter.medTilgang());
+        assertEquals(List.of(new EnhetNavn("0001", "Nav En"), new EnhetNavn("4321", "Nav Tre")),
+                enheter.utenTilgang());
+        verify(veiledereOgEnhetClient, never()).hentEnhetNavn("9999");
+    }
+
+    @Test
+    public void hentEnheterMedUtkast__skal_returnere_tomme_lister_uten_utkast() {
+        when(beslutteroversiktRepository.hentEnheterMedUtkast()).thenReturn(List.of());
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet("1234", "Nav To")))
+        );
+
+        var enheter = beslutteroversiktService.hentEnheterMedUtkast();
+
+        assertEquals(List.of(), enheter.medTilgang());
+        assertEquals(List.of(), enheter.utenTilgang());
+        verify(veiledereOgEnhetClient, never()).hentEnhetNavn(anyString());
+    }
+
+    @Test
+    public void hentEnheterMedUtkast__skal_returnere_alle_uten_tilgang_hvis_veileder_ikke_har_enheter() {
+        when(beslutteroversiktRepository.hentEnheterMedUtkast()).thenReturn(List.of("1234"));
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of())
+        );
+        when(veiledereOgEnhetClient.hentEnhetNavn("1234")).thenReturn("Nav To");
+
+        var enheter = beslutteroversiktService.hentEnheterMedUtkast();
+
+        assertEquals(List.of(), enheter.medTilgang());
+        assertEquals(List.of(new EnhetNavn("1234", "Nav To")), enheter.utenTilgang());
+    }
+
+    @Test
+    public void hentEnheterMedUtkast__skal_feile_hvis_enhetsnavn_ikke_kan_hentes() {
+        when(beslutteroversiktRepository.hentEnheterMedUtkast()).thenReturn(List.of("1234"));
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of())
+        );
+        when(veiledereOgEnhetClient.hentEnhetNavn("1234")).thenThrow(new IllegalStateException("Oppslag feilet"));
+
+        assertThrows(IllegalStateException.class, beslutteroversiktService::hentEnheterMedUtkast);
+    }
 
     @Test
     public void sokEtterBruker__skal_sette_alle_veileder_enheter_hvis_enhet_filter_mangler() {

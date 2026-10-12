@@ -9,7 +9,6 @@ import no.nav.common.types.identer.Fnr
 import no.nav.common.types.identer.NorskIdent
 import no.nav.common.utils.EnvironmentUtils
 import no.nav.veilarbvedtaksstotte.client.tilgangsmaskin.TilgangsmaskinClient
-import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.OppfolgingsenhetService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -29,7 +28,7 @@ import java.time.LocalDate
     name = "Enkelttilgang",
     description = "Registrering av enkelttilgang i testmiljøet."
 )
-class EnkelttilgangController(
+class TilgangController(
     private val tilgangsmaskinClient: TilgangsmaskinClient,
     private val authService: AuthService,
     private val oppfolgingsenhetService: OppfolgingsenhetService

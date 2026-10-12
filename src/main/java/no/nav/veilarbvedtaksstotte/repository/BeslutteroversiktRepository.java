@@ -144,6 +144,20 @@ public class BeslutteroversiktRepository {
         db.update(format("DELETE FROM %s WHERE %s = ?", BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID), vedtakId);
     }
 
+    public List<String> hentEnheterMedUtkast() {
+        String sql = format(
+                "SELECT DISTINCT %s FROM %s WHERE %s IN " +
+                        "(?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?::BESLUTTER_OVERSIKT_STATUS_TYPE) " +
+                        "ORDER BY %s",
+                BRUKER_OPPFOLGINGSENHET_ID, BESLUTTEROVERSIKT_BRUKER_TABLE, STATUS, BRUKER_OPPFOLGINGSENHET_ID
+        );
+
+        return db.queryForList(sql, String.class,
+                getName(BeslutteroversiktStatus.TRENGER_BESLUTTER),
+                getName(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER),
+                getName(BeslutteroversiktStatus.KLAR_TIL_VEILEDER));
+    }
+
     private long totaltAntallBrukereForSok(BeslutteroversiktSok sok, String innloggetVeilederIdent) {
         Object[] parameters = NO_PARAMETERS;
         StringBuilder sqlBuilder = new StringBuilder("SELECT count(*) FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);

@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_NAVN;
@@ -36,6 +38,32 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
     public void cleanup() {
         DbTestUtils.cleanupDb(jdbcTemplate);
         vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+    }
+
+    @Test
+    public void hentEnheterMedUtkast__skal_returnere_tom_liste_uten_kvalitetssikringsutkast() {
+        assertEquals(List.of(), beslutteroversiktRepository.hentEnheterMedUtkast());
+    }
+
+    @Test
+    public void hentEnheterMedUtkast__skal_returnere_unike_sorterte_enheter_for_relevante_statuser() {
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+
+        beslutteroversiktRepository.lagBruker(lagBruker(vedtakId)
+                .setBrukerOppfolgingsenhetId("1234").setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER));
+        beslutteroversiktRepository.lagBruker(lagBruker(vedtakId)
+                .setBrukerOppfolgingsenhetId("0001").setStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER));
+        beslutteroversiktRepository.lagBruker(lagBruker(vedtakId)
+                .setBrukerOppfolgingsenhetId("4321").setStatus(BeslutteroversiktStatus.KLAR_TIL_VEILEDER));
+        beslutteroversiktRepository.lagBruker(lagBruker(vedtakId)
+                .setBrukerOppfolgingsenhetId("1234").setBrukerOppfolgingsenhetNavn("Et annet navn"));
+        beslutteroversiktRepository.lagBruker(lagBruker(vedtakId)
+                .setBrukerOppfolgingsenhetId("9999").setStatus(BeslutteroversiktStatus.GODKJENT_AV_BESLUTTER));
+
+        assertEquals(List.of("0001", "1234", "4321"), beslutteroversiktRepository.hentEnheterMedUtkast());
+
+        beslutteroversiktRepository.slettBruker(vedtakId);
+        assertEquals(List.of(), beslutteroversiktRepository.hentEnheterMedUtkast());
     }
 
     @Test

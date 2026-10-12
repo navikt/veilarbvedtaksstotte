@@ -2,12 +2,14 @@ package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
+import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnheterMedUtkast;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -63,6 +66,27 @@ public class BeslutteroversiktService {
         sensurerBrukere(brukereMedAntall.getBrukere());
 
         return brukereMedAntall;
+    }
+
+    public EnheterMedUtkast hentEnheterMedUtkast() {
+        var veilederEnheter = veiledereOgEnhetClient.hentInnloggetVeilederEnheter().getEnhetliste()
+                .stream()
+                .map(PortefoljeEnhet::getEnhetId)
+                .collect(Collectors.toSet());
+
+        List<EnhetNavn> medTilgang = new ArrayList<>();
+        List<EnhetNavn> utenTilgang = new ArrayList<>();
+
+        for (String enhetId : beslutteroversiktRepository.hentEnheterMedUtkast()) {
+            EnhetNavn enhet = new EnhetNavn(enhetId, veiledereOgEnhetClient.hentEnhetNavn(enhetId));
+            if (veilederEnheter.contains(enhetId)) {
+                medTilgang.add(enhet);
+            } else {
+                utenTilgang.add(enhet);
+            }
+        }
+
+        return new EnheterMedUtkast(medTilgang, utenTilgang);
     }
 
     private void sjekkTilgangTilAlleEnheter(List<String> sokteEnheter, List<String> veilederEnheter) {
