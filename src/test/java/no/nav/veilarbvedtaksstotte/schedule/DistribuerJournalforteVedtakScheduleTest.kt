@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNull
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
@@ -135,6 +136,38 @@ class DistribuerJournalforteVedtakScheduleTest : DatabaseTest() {
         // Kun de tre vedtakene med 12 eller flere feilede forsøk skal forsøkes på nytt
         verify(dokdistribusjonClient, times(3))
             .distribuerJournalpost(any())
+    }
+
+    @Test
+    fun `henter ikke slettede vedtak ved distribusjon eller retry av feilende vedtak`() {
+        `when`(leaderElection.isLeader).thenReturn(true)
+        `when`(dokdistribusjonClient.distribuerJournalpost(any()))
+            .then { DistribuerJournalpostResponsDTO(randomAlphabetic(10)) }
+
+        val slettetVedtak = gittVedtakDer(
+            vedtakFattetDato = now().minusDays(1),
+            dokumentBestillingId = null,
+            journalpostId = randomNumeric(10)
+        )
+        val slettetFeilendeVedtak = gittFeilendeVedtakDer(
+            vedtakFattetDato = now().minusMonths(1),
+            dokumentBestillingId = null,
+            distribusjonsforsok = 12
+        )
+        jdbcTemplate.update(
+            "UPDATE VEDTAK SET STATUS = 'SLETTET' WHERE ID IN (?, ?)",
+            slettetVedtak,
+            slettetFeilendeVedtak
+        )
+
+        DistribuerJournalforteVedtakSchedule.batchSize = 10
+        reset(dokdistribusjonClient)
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteVedtak()
+        distribuerJournalforteVedtakSchedule.distribuerJournalforteFeilendeVedtak()
+
+        verify(dokdistribusjonClient, never()).distribuerJournalpost(any())
+        assertNull(vedtakRepository.hentVedtak(slettetVedtak).dokumentbestillingId)
+        assertNull(vedtakRepository.hentVedtak(slettetFeilendeVedtak).dokumentbestillingId)
     }
 
     fun gittFlereVedtakSomIkkeSkalDistribueres() {
