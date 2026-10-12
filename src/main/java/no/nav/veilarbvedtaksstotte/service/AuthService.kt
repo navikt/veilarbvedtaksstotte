@@ -175,8 +175,6 @@ class AuthService(
     }
 
     fun sjekkTilgangTilModia() {
-        sjekkInternBruker()
-
         val tilgangTilModia = poaoTilgangClient.evaluatePolicy(
             NavAnsattTilgangTilModiaPolicyInput(hentInnloggetVeilederUUID())
         ).getOrThrow()
@@ -186,14 +184,14 @@ class AuthService(
         }
     }
 
-    private fun sjekkInternBruker() {
+    fun sjekkInternBruker() {
         authContextHolder
             .role
             .filter { role: UserRole -> role == UserRole.INTERN }
             .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke intern bruker") }
     }
 
-    private fun sjekkTilgangTilEnhet(enhet: EnhetId) {
+    fun sjekkTilgangTilEnhet(enhet: EnhetId) {
         val veilederTilgangTilEnhet = poaoTilgangClient.evaluatePolicy(
             NavAnsattTilgangTilNavEnhetPolicyInput(
                 hentInnloggetVeilederUUID(), enhet.get()

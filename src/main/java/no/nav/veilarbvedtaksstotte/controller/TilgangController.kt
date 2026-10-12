@@ -7,19 +7,19 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 import no.nav.common.types.identer.Fnr
 import no.nav.common.types.identer.NorskIdent
+import no.nav.common.utils.EnvironmentUtils
 import no.nav.veilarbvedtaksstotte.client.tilgangsmaskin.TilgangsmaskinClient
+import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.service.AuthService
+import no.nav.veilarbvedtaksstotte.service.OppfolgingsenhetService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDate
 
 @RestController
-@RequestMapping("/api/v1/enkelttilganger")
+@RequestMapping("/api/v1/tilgang")
 @ConditionalOnProperty(
     prefix = "app.env",
     name = ["tilgangsmaskinEnkelttilgangEnabled"],
@@ -31,13 +31,14 @@ import java.time.LocalDate
 )
 class EnkelttilgangController(
     private val tilgangsmaskinClient: TilgangsmaskinClient,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val oppfolgingsenhetService: OppfolgingsenhetService
 ) {
     companion object {
         private const val BEGRUNNELSE = "Kvalitetssikring av oppfølgingsvedtak § 14 a."
     }
 
-    @PostMapping
+    @PostMapping("/enkelttilgang")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
         summary = "Registrer enkelttilgang",
@@ -49,6 +50,7 @@ class EnkelttilgangController(
         ]
     )
     fun opprettEnkelttilgang(@Valid @RequestBody request: OpprettEnkelttilgangRequest) {
+        authService.sjekkInternBruker()
         authService.sjekkTilgangTilModia()
 
         tilgangsmaskinClient.opprettEnkelttilgang(
@@ -58,9 +60,29 @@ class EnkelttilgangController(
             LocalDate.now().plusDays(1)
         )
     }
+
+    @PostMapping("/hent-tilgang")
+    fun hentVeilederTilgang(@Valid @RequestBody hentTilgangRequest: HentTilgangRequest): Boolean {
+        authService.sjekkInternBruker()
+        authService.sjekkTilgangTilModia()
+
+        // TODO: Midlertidig disabling av enhetstilgangssjekk i dev
+        return if (EnvironmentUtils.isProduction().orElse(true) ?: true) {
+            try {
+                val enhet = oppfolgingsenhetService.hentOppfolgingsenhet(hentTilgangRequest.brukerId)
+                    .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
+                authService.sjekkTilgangTilEnhet(enhet)
+                true
+            } catch (_: ResponseStatusException) {
+                false
+            }
+        } else true
+    }
 }
 
-data class OpprettEnkelttilgangRequest(
+data class BrukerIdRequest(
     @field:NotNull
     val brukerId: Fnr
 )
+typealias OpprettEnkelttilgangRequest = BrukerIdRequest
+typealias HentTilgangRequest = BrukerIdRequest
