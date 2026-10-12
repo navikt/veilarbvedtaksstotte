@@ -5,7 +5,9 @@ import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
 import no.nav.common.types.identer.AktorId
+import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.Fnr
+import no.nav.common.utils.EnvironmentUtils
 import no.nav.common.utils.Pair
 import no.nav.poao_tilgang.client.*
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
@@ -27,7 +29,7 @@ class AuthService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun sjekkVeilederUtenModiarolleTilgangTilBruker (
+    fun sjekkVeilederUtenModiarolleTilgangTilBruker(
         fnr: Fnr
     ) {
         sjekkInternBruker()
@@ -113,8 +115,15 @@ class AuthService(
         )
         val fnr = fnrAktorIdPair.first
         val aktorId = fnrAktorIdPair.second
-        val enhet = sjekkTilgangTilEnhet(fnr.get())
-        return AuthKontekst(fnr = fnr.get(), aktorId = aktorId.get(), oppfolgingsenhet = enhet)
+        val enhet = oppfolgingsenhetService.hentOppfolgingsenhet(fnr)
+            .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
+
+        // TODO: Midlertidig disabling av enhetstilgangssjekk i dev
+        if (EnvironmentUtils.isProduction().orElse(true) ?: true) {
+            sjekkTilgangTilEnhet(enhet)
+        }
+
+        return AuthKontekst(fnr = fnr.get(), aktorId = aktorId.get(), oppfolgingsenhet = enhet.get())
     }
 
     val innloggetVeilederIdent: String
@@ -184,10 +193,7 @@ class AuthService(
             .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Ikke intern bruker") }
     }
 
-    private fun sjekkTilgangTilEnhet(fnr: String): String {
-        val enhet = oppfolgingsenhetService.hentOppfolgingsenhet(Fnr.of(fnr))
-            .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
-
+    private fun sjekkTilgangTilEnhet(enhet: EnhetId) {
         val veilederTilgangTilEnhet = poaoTilgangClient.evaluatePolicy(
             NavAnsattTilgangTilNavEnhetPolicyInput(
                 hentInnloggetVeilederUUID(), enhet.get()
@@ -197,7 +203,6 @@ class AuthService(
         if (veilederTilgangTilEnhet.isDeny) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-        return enhet.get()
     }
 
     fun erSystemBruker(): Boolean {
@@ -261,7 +266,6 @@ class AuthService(
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Kunne ikke hente acr fra token")
         }
     }
-
 
 
     companion object {
