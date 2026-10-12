@@ -1,11 +1,15 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
+import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnheterMedUtkast;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.service.BeslutteroversiktService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.mockito.MockedStatic;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +22,10 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -41,6 +47,41 @@ class BeslutteroversiktControllerTest {
 
     @MockitoBean
     private AuthService authService;
+
+    private MockedStatic<EnvironmentUtils> environmentUtils;
+
+    @BeforeEach
+    void settDevMiljo() {
+        environmentUtils = mockStatic(EnvironmentUtils.class);
+        environmentUtils.when(EnvironmentUtils::isDevelopment).thenReturn(Optional.of(true));
+    }
+
+    @AfterEach
+    void ryddMiljo() {
+        environmentUtils.close();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void hentEnheterMedUtkast__skal_avvise_utenfor_dev_og_ved_ukjent_miljo(boolean ukjentMiljo) throws Exception {
+        environmentUtils.when(EnvironmentUtils::isDevelopment)
+                .thenReturn(ukjentMiljo ? Optional.empty() : Optional.of(false));
+
+        mockMvc.perform(get("/api/beslutteroversikt/enheter"))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(authService, beslutteroversiktService);
+    }
+
+    @Test
+    void sok__skal_fortsatt_vaere_tilgjengelig_utenfor_dev() throws Exception {
+        environmentUtils.when(EnvironmentUtils::isDevelopment).thenReturn(Optional.of(false));
+        when(beslutteroversiktService.sokEtterBruker(any())).thenReturn(new BrukereMedAntall(List.of(), 0));
+
+        mockMvc.perform(post("/api/beslutteroversikt/sok")
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk());
+    }
 
     @Test
     void hentEnheterMedUtkast__skal_returnere_enhetsid_og_navn_delt_etter_tilgang() throws Exception {

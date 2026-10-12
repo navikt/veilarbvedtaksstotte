@@ -184,6 +184,12 @@ class AuthService(
         }
     }
 
+    fun harTilgangTilKode6Brukere(): Boolean {
+        return poaoTilgangClient.evaluatePolicy(
+            NavAnsattBehandleStrengtFortroligBrukerePolicyInput(hentInnloggetVeilederUUID())
+        ).getOrThrow().isPermit
+    }
+
     fun sjekkInternBruker() {
         authContextHolder
             .role

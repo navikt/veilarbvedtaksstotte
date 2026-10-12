@@ -9,6 +9,7 @@ import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.utils.fn.UnsafeRunnable
 import no.nav.poao_tilgang.client.Decision
+import no.nav.poao_tilgang.client.NavAnsattBehandleStrengtFortroligBrukerePolicyInput
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilModiaPolicyInput
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
 import no.nav.poao_tilgang.client.PoaoTilgangClient
@@ -111,6 +112,28 @@ class AuthServiceTest {
 
         org.mockito.kotlin.verify(poaoTilgangClient)
             .evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilModiaPolicyInput>())
+    }
+
+    @Test
+    fun harTilgangTilKode6Brukere__gir_tilgang_ved_permit() {
+        withContext(UserRole.INTERN) {
+            val policy = NavAnsattBehandleStrengtFortroligBrukerePolicyInput(authService.hentInnloggetVeilederUUID())
+            whenever(poaoTilgangClient.evaluatePolicy(policy)).thenReturn(ApiResult.success(Decision.Permit))
+
+            assertTrue(authService.harTilgangTilKode6Brukere())
+
+            org.mockito.kotlin.verify(poaoTilgangClient).evaluatePolicy(policy)
+        }
+    }
+
+    @Test
+    fun harTilgangTilKode6Brukere__nekter_tilgang_ved_deny() {
+        whenever(poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any<NavAnsattBehandleStrengtFortroligBrukerePolicyInput>()))
+            .thenReturn(ApiResult.success(Decision.Deny("", "")))
+
+        withContext(UserRole.INTERN) {
+            assertFalse(authService.harTilgangTilKode6Brukere())
+        }
     }
 
     @Test

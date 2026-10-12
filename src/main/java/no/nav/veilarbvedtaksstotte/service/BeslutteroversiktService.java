@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BeslutteroversiktService {
 
+    private static final String VIKAFOSSEN_ENHET_ID = "2103";
+
     private final BeslutteroversiktRepository beslutteroversiktRepository;
 
     private final VeilarbveilederClient veiledereOgEnhetClient;
@@ -78,6 +80,9 @@ public class BeslutteroversiktService {
         List<EnhetNavn> utenTilgang = new ArrayList<>();
 
         for (String enhetId : beslutteroversiktRepository.hentEnheterMedUtkast()) {
+            if (VIKAFOSSEN_ENHET_ID.equals(enhetId) && !authService.harTilgangTilKode6Brukere()) {
+                continue;
+            }
             EnhetNavn enhet = new EnhetNavn(enhetId, veiledereOgEnhetClient.hentEnhetNavn(enhetId));
             if (veilederEnheter.contains(enhetId)) {
                 medTilgang.add(enhet);

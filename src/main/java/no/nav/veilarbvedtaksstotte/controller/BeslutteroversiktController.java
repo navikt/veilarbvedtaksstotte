@@ -12,11 +12,15 @@ import no.nav.veilarbvedtaksstotte.service.AuthService;
 import no.nav.veilarbvedtaksstotte.service.BeslutteroversiktService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
 
 @RestController
 @RequestMapping("/api/beslutteroversikt")
@@ -46,7 +50,9 @@ public class BeslutteroversiktController {
                     Hver enhet returneres én gang med enhetId og navn.
                     Enhetene deles i medTilgang og utenTilgang basert på innlogget veileders enhetstilgang.
                     Begge listene er sortert på enhetId.
+                    Nav Vikafossen (2103) inkluderes bare hvis veilederen har tilgang til kode 6-brukere.
                     Krever intern bruker med tilgang til Modia.
+                    Endepunktet er bare tilgjengelig i dev.
                     """,
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(
@@ -58,6 +64,9 @@ public class BeslutteroversiktController {
             }
     )
     public EnheterMedUtkast hentEnheterMedUtkast() {
+        if (!isDevelopment().orElse(false)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Endepunktet er bare tilgjengelig i dev");
+        }
         authService.sjekkInternBruker();
         authService.sjekkTilgangTilModia();
         return beslutteroversiktService.hentEnheterMedUtkast();

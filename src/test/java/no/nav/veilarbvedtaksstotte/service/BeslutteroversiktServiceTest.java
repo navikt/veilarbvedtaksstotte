@@ -10,6 +10,8 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -63,6 +65,46 @@ public class BeslutteroversiktServiceTest {
         assertEquals(List.of(new EnhetNavn("0001", "Nav En"), new EnhetNavn("4321", "Nav Tre")),
                 enheter.utenTilgang());
         verify(veiledereOgEnhetClient, never()).hentEnhetNavn("9999");
+        verify(authService, never()).harTilgangTilKode6Brukere();
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false,false", "false,true", "true,false", "true,true"})
+    void hentEnheterMedUtkast__skal_bare_inkludere_vikafossen_med_kode6_tilgang(
+            boolean harKode6Tilgang, boolean harEnhetTilgang) {
+        when(beslutteroversiktRepository.hentEnheterMedUtkast()).thenReturn(List.of("1234", "2103"));
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, harEnhetTilgang
+                        ? List.of(new PortefoljeEnhet("2103", "Nav Vikafossen"))
+                        : List.of())
+        );
+        when(authService.harTilgangTilKode6Brukere()).thenReturn(harKode6Tilgang);
+        when(veiledereOgEnhetClient.hentEnhetNavn("1234")).thenReturn("Nav To");
+        when(veiledereOgEnhetClient.hentEnhetNavn("2103")).thenReturn("Nav Vikafossen");
+
+        var enheter = beslutteroversiktService.hentEnheterMedUtkast();
+        var vikafossen = new EnhetNavn("2103", "Nav Vikafossen");
+        var annenEnhet = new EnhetNavn("1234", "Nav To");
+
+        assertEquals(harKode6Tilgang && harEnhetTilgang ? List.of(vikafossen) : List.of(), enheter.medTilgang());
+        assertEquals(harKode6Tilgang && !harEnhetTilgang ? List.of(annenEnhet, vikafossen) : List.of(annenEnhet),
+                enheter.utenTilgang());
+        verify(authService).harTilgangTilKode6Brukere();
+        if (!harKode6Tilgang) {
+            verify(veiledereOgEnhetClient, never()).hentEnhetNavn("2103");
+        }
+    }
+
+    @Test
+    void hentEnheterMedUtkast__skal_feile_ved_feil_i_kode6_tilgangssjekk() {
+        when(beslutteroversiktRepository.hentEnheterMedUtkast()).thenReturn(List.of("2103"));
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of())
+        );
+        when(authService.harTilgangTilKode6Brukere()).thenThrow(new IllegalStateException("Tilgangssjekk feilet"));
+
+        assertThrows(IllegalStateException.class, beslutteroversiktService::hentEnheterMedUtkast);
+        verify(veiledereOgEnhetClient, never()).hentEnhetNavn("2103");
     }
 
     @Test
