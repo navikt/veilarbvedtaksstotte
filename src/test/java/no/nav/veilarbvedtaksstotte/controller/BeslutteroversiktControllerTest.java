@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller;
 
+import io.getunleash.DefaultUnleash;
 import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnheterMedUtkast;
@@ -24,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.TILGANGSMASKIN_INTEGRASJON;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.any;
@@ -48,17 +50,42 @@ class BeslutteroversiktControllerTest {
     @MockitoBean
     private AuthService authService;
 
+    @MockitoBean
+    private DefaultUnleash unleashService;
+
     private MockedStatic<EnvironmentUtils> environmentUtils;
 
     @BeforeEach
     void settDevMiljo() {
         environmentUtils = mockStatic(EnvironmentUtils.class);
         environmentUtils.when(EnvironmentUtils::isDevelopment).thenReturn(Optional.of(true));
+        when(unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON)).thenReturn(true);
     }
 
     @AfterEach
     void ryddMiljo() {
         environmentUtils.close();
+    }
+
+    @Test
+    void hentEnheterMedUtkast__skal_vaere_utilgjengelig_med_bryter_av() throws Exception {
+        when(unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON)).thenReturn(false);
+
+        mockMvc.perform(get("/api/beslutteroversikt/enheter")).andExpect(status().isNotFound());
+
+        verifyNoInteractions(authService, beslutteroversiktService);
+    }
+
+    @Test
+    void sok__skal_bruke_gammel_funksjonalitet_med_bryter_av() throws Exception {
+        when(unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON)).thenReturn(false);
+        when(beslutteroversiktService.sokEtterBruker(any())).thenReturn(new BrukereMedAntall(List.of(), 0));
+
+        mockMvc.perform(post("/api/beslutteroversikt/sok")
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk());
+
+        verifyNoInteractions(authService);
     }
 
     @ParameterizedTest

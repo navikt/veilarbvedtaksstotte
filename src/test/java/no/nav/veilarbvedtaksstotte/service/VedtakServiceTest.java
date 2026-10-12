@@ -160,7 +160,7 @@ public class VedtakServiceTest extends DatabaseTest {
         RetryVedtakdistribusjonRepository retryVedtakdistribusjonRepository = new RetryVedtakdistribusjonRepository(jdbcTemplate);
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
         BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
-        authService = spy(new AuthService(aktorOppslagClient, oppfolgingsenhetService, AuthContextHolderThreadLocal.instance(), poaoTilgangClient));
+        authService = spy(new AuthService(aktorOppslagClient, oppfolgingsenhetService, AuthContextHolderThreadLocal.instance(), poaoTilgangClient, unleashService));
         SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, environmentProperties, veilarbpersonClient);
 
         oyeblikksbildeService = new OyeblikksbildeService(authService, oyeblikksbildeRepository, vedtaksstotteRepository, veilarbpersonClient, arbeidssoekerregisteretApiOppslagV2Client, egenvurderingDialogTjenesteClient);

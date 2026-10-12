@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service
 
 import com.nimbusds.jwt.JWTClaimsSet
+import io.getunleash.DefaultUnleash
 import no.nav.common.auth.context.AuthContextHolder
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
@@ -12,6 +13,7 @@ import no.nav.common.utils.Pair
 import no.nav.poao_tilgang.client.*
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.utils.TILGANGSMASKIN_INTEGRASJON
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -26,6 +28,7 @@ class AuthService(
     private val oppfolgingsenhetService: OppfolgingsenhetService,
     private val authContextHolder: AuthContextHolder,
     private val poaoTilgangClient: PoaoTilgangClient,
+    private val unleashService: DefaultUnleash,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -108,6 +111,18 @@ class AuthService(
         fnrSupplier: Supplier<Fnr>,
         aktorIdSupplier: Supplier<AktorId>
     ): AuthKontekst {
+        return if (unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON)) {
+            sjekkTilgangTilBrukerOgEnhetMedTilgangsmaskin(tilgangType, fnrSupplier, aktorIdSupplier)
+        } else {
+            sjekkTilgangTilBrukerOgEnhetGammel(tilgangType, fnrSupplier, aktorIdSupplier)
+        }
+    }
+
+    private fun sjekkTilgangTilBrukerOgEnhetMedTilgangsmaskin(
+        tilgangType: TilgangType,
+        fnrSupplier: Supplier<Fnr>,
+        aktorIdSupplier: Supplier<AktorId>
+    ): AuthKontekst {
         val fnrAktorIdPair = sjekkVeilederTilgangTilBruker(
             tilgangType = tilgangType,
             fnrSupplier = fnrSupplier,
@@ -118,10 +133,29 @@ class AuthService(
         val enhet = oppfolgingsenhetService.hentOppfolgingsenhet(fnr)
             .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
 
-        // TODO: Midlertidig disabling av enhetstilgangssjekk i dev
-        if (EnvironmentUtils.isProduction().orElse(true) ?: true) {
+        if (EnvironmentUtils.isProduction().orElse(true)) {
             sjekkTilgangTilEnhet(enhet)
         }
+
+        return AuthKontekst(fnr = fnr.get(), aktorId = aktorId.get(), oppfolgingsenhet = enhet.get())
+    }
+
+    private fun sjekkTilgangTilBrukerOgEnhetGammel(
+        tilgangType: TilgangType,
+        fnrSupplier: Supplier<Fnr>,
+        aktorIdSupplier: Supplier<AktorId>
+    ): AuthKontekst {
+        val fnrAktorIdPair = sjekkVeilederTilgangTilBruker(
+            tilgangType = tilgangType,
+            fnrSupplier = fnrSupplier,
+            aktorIdSupplier = aktorIdSupplier
+        )
+        val fnr = fnrAktorIdPair.first
+        val aktorId = fnrAktorIdPair.second
+        val enhet = oppfolgingsenhetService.hentOppfolgingsenhet(fnr)
+            .orElseThrow { ResponseStatusException(HttpStatus.FORBIDDEN, "Enhet er ikke satt på bruker") }
+
+        sjekkTilgangTilEnhet(enhet)
 
         return AuthKontekst(fnr = fnr.get(), aktorId = aktorId.get(), oppfolgingsenhet = enhet.get())
     }
@@ -160,6 +194,15 @@ class AuthService(
             tilgangTilBrukere.put(it, permitTilgang)
         }
         return tilgangTilBrukere
+    }
+
+    fun harInnloggetVeilederTilgangTilBrukereMedKjerneregler(brukerFnrs: List<String>): Map<String, Boolean> {
+        val veilederUUID = hentInnloggetVeilederUUID()
+        return brukerFnrs.distinct().associateWith { fnr ->
+            poaoTilgangClient.evaluatePolicy(
+                NavAnsattTilgangTilEksternBrukerKjernereglerPolicyInput(veilederUUID, TilgangType.SKRIVE, fnr)
+            ).getOrThrow().isPermit
+        }
     }
 
     fun erInnloggetBrukerModiaAdmin() {

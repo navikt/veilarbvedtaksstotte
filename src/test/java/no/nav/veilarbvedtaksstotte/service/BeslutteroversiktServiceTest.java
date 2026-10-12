@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
+import no.nav.common.utils.EnvironmentUtils;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
@@ -10,8 +12,11 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,8 +25,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.TILGANGSMASKIN_INTEGRASJON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
@@ -29,6 +36,9 @@ import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
@@ -41,10 +51,57 @@ public class BeslutteroversiktServiceTest {
     private final VeilarbveilederClient veiledereOgEnhetClient = mock(VeilarbveilederClient.class);
 
     private final AuthService authService = mock(AuthService.class);
+    private final DefaultUnleash unleashService = mock(DefaultUnleash.class);
 
-    private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService);
+    private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService, unleashService);
 
     private final static BrukereMedAntall INGEN_BRUKERE = new BrukereMedAntall(Collections.emptyList(), 0);
+
+    @BeforeEach
+    void aktiverNyTilgang() {
+        when(unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON)).thenReturn(true);
+    }
+
+    @Test
+    void sokEtterBruker__skal_kreve_enhetstilgang_i_dev_med_bryter_av() {
+        when(unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON)).thenReturn(false);
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter())
+                .thenReturn(new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet("1234", "Nav To"))));
+        var sok = new BeslutteroversiktSok()
+                .setFilter(new BeslutteroversiktSokFilter().setEnheter(List.of("4321")));
+
+        try (var miljo = mockStatic(EnvironmentUtils.class)) {
+            miljo.when(EnvironmentUtils::isDevelopment).thenReturn(Optional.of(true));
+            assertThrows(ResponseStatusException.class, () -> beslutteroversiktService.sokEtterBruker(sok));
+        }
+        verifyNoInteractions(beslutteroversiktRepository, authService);
+    }
+
+    @Test
+    void sokEtterBruker__skal_bruke_gammel_persontilgang_uten_kode6_sjekk_med_bryter_av() {
+        when(unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON)).thenReturn(false);
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter())
+                .thenReturn(new VeilederEnheterDTO(TEST_VEILEDER_IDENT,
+                        List.of(new PortefoljeEnhet("2103", "Nav Vikafossen"))));
+        var bruker = new BeslutteroversiktBruker()
+                .setBrukerFnr("11111111111").setBrukerFornavn("Fornavn").setBrukerEtternavn("Etternavn");
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString()))
+                .thenReturn(new BrukereMedAntall(List.of(bruker), 1));
+        when(authService.harInnloggetVeilederTilgangTilBrukere(List.of("11111111111")))
+                .thenReturn(Map.of("11111111111", false));
+
+        try (var miljo = mockStatic(EnvironmentUtils.class)) {
+            miljo.when(EnvironmentUtils::isDevelopment).thenReturn(Optional.of(true));
+            beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok());
+        }
+
+        assertEquals("", bruker.getBrukerFnr());
+        assertEquals("", bruker.getBrukerFornavn());
+        assertEquals("", bruker.getBrukerEtternavn());
+        verify(authService).harInnloggetVeilederTilgangTilBrukere(List.of("11111111111"));
+        verify(authService, never()).harInnloggetVeilederTilgangTilBrukereMedKjerneregler(any());
+        verify(authService, never()).harTilgangTilKode6Brukere();
+    }
 
     @Test
     public void hentEnheterMedUtkast__skal_koble_navn_og_dele_enheter_etter_tilgang() {
@@ -179,9 +236,90 @@ public class BeslutteroversiktServiceTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok();
         sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("5431")));
 
-        assertThrows(ResponseStatusException.class, () -> {
-            beslutteroversiktService.sokEtterBruker(sok);
-        });
+        try (var miljo = mockStatic(EnvironmentUtils.class)) {
+            miljo.when(EnvironmentUtils::isDevelopment).thenReturn(Optional.of(false));
+            assertThrows(ResponseStatusException.class, () -> beslutteroversiktService.sokEtterBruker(sok));
+        }
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(booleans = {false, true})
+    void sokEtterBruker__skal_bare_tillate_enheter_uten_enhetstilgang_i_dev(Boolean dev) {
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of())
+        );
+        var bruker = new BeslutteroversiktBruker()
+                .setVedtakId(123L)
+                .setBrukerOppfolgingsenhetId("1234")
+                .setBrukerFnr("11111111111")
+                .setBrukerFornavn("Fornavn")
+                .setBrukerEtternavn("Etternavn");
+        var sok = new BeslutteroversiktSok()
+                .setFilter(new BeslutteroversiktSokFilter().setEnheter(List.of("1234")));
+        when(beslutteroversiktRepository.sokEtterBrukere(same(sok), anyString()))
+                .thenReturn(new BrukereMedAntall(List.of(bruker), 1));
+        when(authService.harInnloggetVeilederTilgangTilBrukere(List.of("11111111111")))
+                .thenReturn(Map.of("11111111111", false));
+
+        try (var miljo = mockStatic(EnvironmentUtils.class)) {
+            miljo.when(EnvironmentUtils::isDevelopment).thenReturn(Optional.ofNullable(dev));
+            if (Boolean.TRUE.equals(dev)) {
+                var resultat = beslutteroversiktService.sokEtterBruker(sok);
+                assertEquals(1L, resultat.getTotaltAntall());
+                assertEquals(123L, resultat.getBrukere().getFirst().getVedtakId());
+                assertEquals("1234", resultat.getBrukere().getFirst().getBrukerOppfolgingsenhetId());
+                assertEquals("", bruker.getBrukerFnr());
+                assertEquals("", bruker.getBrukerFornavn());
+                assertEquals("", bruker.getBrukerEtternavn());
+                assertEquals(List.of("1234"), sok.getFilter().getEnheter());
+            } else {
+                assertThrows(ResponseStatusException.class, () -> beslutteroversiktService.sokEtterBruker(sok));
+                verifyNoInteractions(beslutteroversiktRepository, authService);
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false,false", "false,true", "true,false", "true,true"})
+    void sokEtterBruker__skal_kreve_kode6_tilgang_for_vikafossen_i_dev(
+            boolean harKode6Tilgang, boolean brukStandardEnheter) {
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT,
+                        brukStandardEnheter ? List.of(new PortefoljeEnhet("2103", "Nav Vikafossen")) : List.of())
+        );
+        when(authService.harTilgangTilKode6Brukere()).thenReturn(harKode6Tilgang);
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
+        var sok = new BeslutteroversiktSok();
+        if (!brukStandardEnheter) {
+            sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(List.of("1234", "2103")));
+        }
+
+        try (var miljo = mockStatic(EnvironmentUtils.class)) {
+            miljo.when(EnvironmentUtils::isDevelopment).thenReturn(Optional.of(true));
+            if (harKode6Tilgang) {
+                beslutteroversiktService.sokEtterBruker(sok);
+                verify(beslutteroversiktRepository).sokEtterBrukere(same(sok), anyString());
+            } else {
+                var feil = assertThrows(ResponseStatusException.class,
+                        () -> beslutteroversiktService.sokEtterBruker(sok));
+                assertEquals(403, feil.getStatusCode().value());
+                verifyNoInteractions(beslutteroversiktRepository);
+            }
+            verify(authService).harTilgangTilKode6Brukere();
+        }
+    }
+
+    @Test
+    void sokEtterBruker__skal_gi_tomt_resultat_uten_enheter_og_uten_enhetsfilter() {
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter())
+                .thenReturn(new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of()));
+
+        var resultat = beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok());
+
+        assertEquals(List.of(), resultat.getBrukere());
+        assertEquals(0L, resultat.getTotaltAntall());
+        verifyNoInteractions(beslutteroversiktRepository, authService);
     }
 
     @Test
@@ -204,7 +342,7 @@ public class BeslutteroversiktServiceTest {
     @Test
     public void sokEtterBruker__skal_sensurere_brukere() {
         BeslutteroversiktService beslutteroversiktService =
-                spy(new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService));
+                spy(new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService, unleashService));
 
         when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
@@ -250,6 +388,67 @@ public class BeslutteroversiktServiceTest {
         assertEquals("", brukere.get(1).getBrukerFnr());
         assertEquals("", brukere.get(1).getBrukerFornavn());
         assertEquals("", brukere.get(1).getBrukerEtternavn());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(booleans = {false, true})
+    void sensurerBrukere__skal_bare_bruke_kjerneregler_i_dev(Boolean dev) {
+        var synligBruker = new BeslutteroversiktBruker()
+                .setBrukerFnr("11111111111").setBrukerFornavn("Fornavn").setBrukerEtternavn("Etternavn");
+        var beskyttetBruker = new BeslutteroversiktBruker()
+                .setBrukerFnr("22222222222").setBrukerFornavn("Beskyttet").setBrukerEtternavn("Person");
+        var fnrs = List.of("11111111111", "22222222222");
+        when(authService.harInnloggetVeilederTilgangTilBrukere(fnrs))
+                .thenReturn(Map.of("11111111111", false, "22222222222", false));
+        when(authService.harInnloggetVeilederTilgangTilBrukereMedKjerneregler(fnrs))
+                .thenReturn(Map.of("11111111111", true, "22222222222", false));
+
+        try (var miljo = mockStatic(EnvironmentUtils.class)) {
+            miljo.when(EnvironmentUtils::isDevelopment).thenReturn(Optional.ofNullable(dev));
+            beslutteroversiktService.sensurerBrukere(List.of(synligBruker, beskyttetBruker));
+        }
+
+        if (Boolean.TRUE.equals(dev)) {
+            assertEquals("11111111111", synligBruker.getBrukerFnr());
+            assertEquals("Fornavn", synligBruker.getBrukerFornavn());
+            assertEquals("Etternavn", synligBruker.getBrukerEtternavn());
+            verify(authService).harInnloggetVeilederTilgangTilBrukereMedKjerneregler(fnrs);
+            verify(authService, never()).harInnloggetVeilederTilgangTilBrukere(any());
+        } else {
+            assertEquals("", synligBruker.getBrukerFnr());
+            assertEquals("", synligBruker.getBrukerFornavn());
+            assertEquals("", synligBruker.getBrukerEtternavn());
+            verify(authService).harInnloggetVeilederTilgangTilBrukere(fnrs);
+            verify(authService, never()).harInnloggetVeilederTilgangTilBrukereMedKjerneregler(any());
+        }
+        assertEquals("", beskyttetBruker.getBrukerFnr());
+        assertEquals("", beskyttetBruker.getBrukerFornavn());
+        assertEquals("", beskyttetBruker.getBrukerEtternavn());
+    }
+
+    @Test
+    void sokEtterBruker__skal_vise_personopplysninger_uten_enhetstilgang_i_dev_ved_tilgang_med_kjerneregler() {
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter())
+                .thenReturn(new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of()));
+        var bruker = new BeslutteroversiktBruker()
+                .setVedtakId(123L).setBrukerOppfolgingsenhetId("1234")
+                .setBrukerFnr("11111111111").setBrukerFornavn("Fornavn").setBrukerEtternavn("Etternavn");
+        var sok = new BeslutteroversiktSok()
+                .setFilter(new BeslutteroversiktSokFilter().setEnheter(List.of("1234")));
+        when(beslutteroversiktRepository.sokEtterBrukere(same(sok), anyString()))
+                .thenReturn(new BrukereMedAntall(List.of(bruker), 1));
+        when(authService.harInnloggetVeilederTilgangTilBrukereMedKjerneregler(List.of("11111111111")))
+                .thenReturn(Map.of("11111111111", true));
+
+        try (var miljo = mockStatic(EnvironmentUtils.class)) {
+            miljo.when(EnvironmentUtils::isDevelopment).thenReturn(Optional.of(true));
+            var resultat = beslutteroversiktService.sokEtterBruker(sok);
+            assertEquals(1L, resultat.getTotaltAntall());
+            assertEquals("11111111111", resultat.getBrukere().getFirst().getBrukerFnr());
+            assertEquals("Fornavn", resultat.getBrukere().getFirst().getBrukerFornavn());
+            assertEquals("Etternavn", resultat.getBrukere().getFirst().getBrukerEtternavn());
+        }
     }
 
     @Test

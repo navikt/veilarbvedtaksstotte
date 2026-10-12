@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
+import no.nav.common.utils.EnvironmentUtils
 import no.nav.common.auth.context.AuthContext
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
@@ -12,14 +14,18 @@ import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.NavAnsattBehandleStrengtFortroligBrukerePolicyInput
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilModiaPolicyInput
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
+import no.nav.poao_tilgang.client.NavAnsattTilgangTilEksternBrukerKjernereglerPolicyInput
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.poao_tilgang.client.api.ApiResult
 import no.nav.veilarbvedtaksstotte.utils.TestData
+import no.nav.veilarbvedtaksstotte.utils.TILGANGSMASKIN_INTEGRASJON
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.Mockito.*
 import org.mockito.kotlin.whenever
 import org.springframework.web.server.ResponseStatusException
@@ -30,14 +36,42 @@ class AuthServiceTest {
     var aktorOppslagClient = mock(AktorOppslagClient::class.java)
     var oppfolgingsenhetService = mock(OppfolgingsenhetService::class.java)
     var poaoTilgangClient = org.mockito.kotlin.mock<PoaoTilgangClient>()
+    var unleashService = org.mockito.kotlin.mock<DefaultUnleash>()
     var authService =
-        AuthService(aktorOppslagClient, oppfolgingsenhetService, authContextHolder, poaoTilgangClient)
+        AuthService(aktorOppslagClient, oppfolgingsenhetService, authContextHolder, poaoTilgangClient, unleashService)
 
     @BeforeEach
     fun setup() {
         `when`(aktorOppslagClient.hentAktorId(TestData.TEST_FNR)).thenReturn(AktorId.of(TestData.TEST_AKTOR_ID))
         `when`(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(TestData.TEST_FNR)
         `when`(oppfolgingsenhetService.hentOppfolgingsenhet(TestData.TEST_FNR)).thenReturn(Optional.of(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID)))
+    }
+
+    @ParameterizedTest
+    @CsvSource("false,false", "false,true", "true,false", "true,true")
+    fun enhetstilgang__skal_bare_utelates_utenfor_prod_med_bryter_pa(bryterPa: Boolean, produksjon: Boolean) {
+        whenever(unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON)).thenReturn(bryterPa)
+        whenever(poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any()))
+            .thenReturn(ApiResult.success(Decision.Permit))
+        whenever(poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilNavEnhetPolicyInput>()))
+            .thenReturn(ApiResult.success(Decision.Deny("", "")))
+
+        mockStatic(EnvironmentUtils::class.java).use { miljo ->
+            miljo.`when`<Optional<Boolean>> { EnvironmentUtils.isProduction() }.thenReturn(Optional.of(produksjon))
+            withContext(UserRole.INTERN) {
+                if (bryterPa && !produksjon) {
+                    authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TestData.TEST_FNR)
+                    org.mockito.kotlin.verify(poaoTilgangClient, never())
+                        .evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilNavEnhetPolicyInput>())
+                } else {
+                    assertThrows(ResponseStatusException::class.java) {
+                        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TestData.TEST_FNR)
+                    }
+                    org.mockito.kotlin.verify(poaoTilgangClient)
+                        .evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilNavEnhetPolicyInput>())
+                }
+            }
+        }
     }
 
     @Test
@@ -227,6 +261,43 @@ class AuthServiceTest {
             assertTrue(
                 harInnloggetVeilederTilgangTilBrukere.keys.stream()
                     .allMatch { harInnloggetVeilederTilgangTilBrukere.get(it) == true })
+        }
+    }
+
+    @Test
+    fun harInnloggetVeilederTilgangTilBrukereMedKjerneregler__skal_bruke_skrivetilgang_og_beholde_avslag() {
+        withContext(UserRole.INTERN) {
+            val veilederUUID = authService.hentInnloggetVeilederUUID()
+            val tillatt = NavAnsattTilgangTilEksternBrukerKjernereglerPolicyInput(
+                veilederUUID, TilgangType.SKRIVE, "11111111111"
+            )
+            val avvist = NavAnsattTilgangTilEksternBrukerKjernereglerPolicyInput(
+                veilederUUID, TilgangType.SKRIVE, "22222222222"
+            )
+            whenever(poaoTilgangClient.evaluatePolicy(tillatt)).thenReturn(ApiResult.success(Decision.Permit))
+            whenever(poaoTilgangClient.evaluatePolicy(avvist)).thenReturn(ApiResult.success(Decision.Deny("", "")))
+
+            assertEquals(
+                mapOf("11111111111" to true, "22222222222" to false),
+                authService.harInnloggetVeilederTilgangTilBrukereMedKjerneregler(
+                    listOf("11111111111", "22222222222", "11111111111")
+                )
+            )
+            org.mockito.kotlin.verify(poaoTilgangClient).evaluatePolicy(tillatt)
+            org.mockito.kotlin.verify(poaoTilgangClient).evaluatePolicy(avvist)
+            verifyNoMoreInteractions(poaoTilgangClient)
+        }
+    }
+
+    @Test
+    fun harInnloggetVeilederTilgangTilBrukereMedKjerneregler__skal_ikke_skjule_tekniske_feil() {
+        whenever(poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any<NavAnsattTilgangTilEksternBrukerKjernereglerPolicyInput>()))
+            .thenThrow(IllegalStateException("Tilgangssjekk feilet"))
+
+        withContext(UserRole.INTERN) {
+            assertThrows(IllegalStateException::class.java) {
+                authService.harInnloggetVeilederTilgangTilBrukereMedKjerneregler(listOf("11111111111"))
+            }
         }
     }
 

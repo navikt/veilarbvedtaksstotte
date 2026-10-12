@@ -1,26 +1,26 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.EnhetNavn;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnheterMedUtkast;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.*;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static no.nav.common.utils.EnvironmentUtils.isDevelopment;
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.TILGANGSMASKIN_INTEGRASJON;
 
 @Service
 @Slf4j
@@ -33,19 +33,30 @@ public class BeslutteroversiktService {
     private final VeilarbveilederClient veiledereOgEnhetClient;
 
     private final AuthService authService;
+    private final DefaultUnleash unleashService;
 
     @Autowired
     public BeslutteroversiktService(
             BeslutteroversiktRepository beslutteroversiktRepository,
             VeilarbveilederClient veiledereOgEnhetClient,
-            AuthService authService
+            AuthService authService,
+            DefaultUnleash unleashService
     ) {
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
         this.authService = authService;
+        this.unleashService = unleashService;
     }
 
     public BrukereMedAntall sokEtterBruker(BeslutteroversiktSok sok) {
+        if (unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON)) {
+            return sokEtterBrukerMedTilgangsmaskin(sok);
+        } else {
+            return sokEtterBrukerGammel(sok);
+        }
+    }
+
+    public BrukereMedAntall sokEtterBrukerMedTilgangsmaskin(BeslutteroversiktSok sok) {
         if (sok.getFilter() == null) {
             sok.setFilter(new BeslutteroversiktSokFilter());
         }
@@ -57,7 +68,42 @@ public class BeslutteroversiktService {
                 .collect(Collectors.toList());
 
         List<String> enhetFilter = sok.getFilter().getEnheter();
+        boolean erDev = isDevelopment().orElse(false);
 
+        if (enhetFilter == null || enhetFilter.isEmpty()) {
+            sok.getFilter().setEnheter(veilederEnheter);
+        } else if (!erDev) {
+            sjekkTilgangTilAlleEnheter(enhetFilter, veilederEnheter);
+        }
+
+        if (erDev
+                && sok.getFilter().getEnheter().contains(VIKAFOSSEN_ENHET_ID)
+                && !authService.harTilgangTilKode6Brukere()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Veileder mangler tilgang til kode 6-brukere");
+        }
+
+        if (sok.getFilter().getEnheter().isEmpty()) {
+            return new BrukereMedAntall(List.of(), 0);
+        }
+
+        BrukereMedAntall brukereMedAntall = beslutteroversiktRepository.sokEtterBrukere(sok, veilederEnheterDTO.getIdent());
+        sensurerBrukere(brukereMedAntall.getBrukere());
+
+        return brukereMedAntall;
+    }
+
+    public BrukereMedAntall sokEtterBrukerGammel(BeslutteroversiktSok sok) {
+        if (sok.getFilter() == null) {
+            sok.setFilter(new BeslutteroversiktSokFilter());
+        }
+
+        VeilederEnheterDTO veilederEnheterDTO = veiledereOgEnhetClient.hentInnloggetVeilederEnheter();
+        List<String> veilederEnheter = veilederEnheterDTO.getEnhetliste()
+                .stream()
+                .map(PortefoljeEnhet::getEnhetId)
+                .collect(Collectors.toList());
+
+        List<String> enhetFilter = sok.getFilter().getEnheter();
         if (enhetFilter == null || enhetFilter.isEmpty()) {
             sok.getFilter().setEnheter(veilederEnheter);
         } else {
@@ -65,7 +111,7 @@ public class BeslutteroversiktService {
         }
 
         BrukereMedAntall brukereMedAntall = beslutteroversiktRepository.sokEtterBrukere(sok, veilederEnheterDTO.getIdent());
-        sensurerBrukere(brukereMedAntall.getBrukere());
+        sensurerBrukereGammel(brukereMedAntall.getBrukere());
 
         return brukereMedAntall;
     }
@@ -101,13 +147,34 @@ public class BeslutteroversiktService {
     }
 
     void sensurerBrukere(List<BeslutteroversiktBruker> brukere) {
+        if (unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON) && isDevelopment().orElse(false)) {
+            sensurerBrukereMedKjerneregler(brukere);
+        } else {
+            sensurerBrukereGammel(brukere);
+        }
+    }
+
+    void sensurerBrukereMedKjerneregler(List<BeslutteroversiktBruker> brukere) {
+        if (brukere == null || brukere.isEmpty()) {
+            return;
+        }
+
+        List<String> brukerFnrs = brukere.stream().map(BeslutteroversiktBruker::getBrukerFnr).toList();
+        Map<String, Boolean> tilgangTilBrukere = authService.harInnloggetVeilederTilgangTilBrukereMedKjerneregler(brukerFnrs);
+        maskerUtenTilgang(brukere, tilgangTilBrukere);
+    }
+
+    void sensurerBrukereGammel(List<BeslutteroversiktBruker> brukere) {
         if (brukere == null || brukere.isEmpty()) {
             return;
         }
 
         List<String> brukerFnrs = brukere.stream().map(BeslutteroversiktBruker::getBrukerFnr).toList();
         Map<String, Boolean> tilgangTilBrukere = authService.harInnloggetVeilederTilgangTilBrukere(brukerFnrs);
+        maskerUtenTilgang(brukere, tilgangTilBrukere);
+    }
 
+    private static void maskerUtenTilgang(List<BeslutteroversiktBruker> brukere, Map<String, Boolean> tilgangTilBrukere) {
         brukere.forEach(bruker -> {
             boolean harTilgang = tilgangTilBrukere.getOrDefault(bruker.getBrukerFnr(), Boolean.FALSE);
 

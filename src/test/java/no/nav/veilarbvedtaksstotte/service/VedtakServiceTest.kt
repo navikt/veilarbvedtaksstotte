@@ -108,7 +108,8 @@ class VedtakServiceJournalforingTest : DatabaseTest() {
                 aktorOppslagClient,
                 OppfolgingsenhetService(veilarboppfolgingClient),
                 AuthContextHolderThreadLocal.instance(),
-                poaoTilgangClient
+                poaoTilgangClient,
+                Mockito.mock(DefaultUnleash::class.java)
             )
         )
         val vedtakRepository = VedtaksstotteRepository(jdbcTemplate, transactor)

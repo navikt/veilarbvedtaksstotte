@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.controller
 
+import io.getunleash.DefaultUnleash
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -11,6 +12,7 @@ import no.nav.common.utils.EnvironmentUtils
 import no.nav.veilarbvedtaksstotte.client.tilgangsmaskin.TilgangsmaskinClient
 import no.nav.veilarbvedtaksstotte.service.AuthService
 import no.nav.veilarbvedtaksstotte.service.OppfolgingsenhetService
+import no.nav.veilarbvedtaksstotte.utils.TILGANGSMASKIN_INTEGRASJON
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -26,12 +28,14 @@ import java.time.LocalDate
 )
 @Tag(
     name = "Enkelttilgang",
-    description = "Registrering av enkelttilgang i testmiljøet."
+    description = "Registrering av enkelttilgang i testmiljøet. Krever Unleash-bryteren " +
+        "veilarbvedtaksstotte.tilgangsmaskin_integrasjon; svarer med 404 når bryteren er av."
 )
 class TilgangController(
     private val tilgangsmaskinClient: TilgangsmaskinClient,
     private val authService: AuthService,
-    private val oppfolgingsenhetService: OppfolgingsenhetService
+    private val oppfolgingsenhetService: OppfolgingsenhetService,
+    private val unleashService: DefaultUnleash
 ) {
     companion object {
         private const val BEGRUNNELSE = "Kvalitetssikring av oppfølgingsvedtak § 14 a."
@@ -45,10 +49,12 @@ class TilgangController(
         responses = [
             ApiResponse(responseCode = "204", description = "Enkelttilgang registrert"),
             ApiResponse(responseCode = "400", description = "Ugyldig brukerident"),
-            ApiResponse(responseCode = "403", description = "Innlogget veileder mangler NAV-ident")
+            ApiResponse(responseCode = "403", description = "Innlogget veileder mangler NAV-ident"),
+            ApiResponse(responseCode = "404", description = "Funksjonsbryteren er av")
         ]
     )
     fun opprettEnkelttilgang(@Valid @RequestBody request: OpprettEnkelttilgangRequest) {
+        sjekkFunksjonsbryter()
         authService.sjekkInternBruker()
         authService.sjekkTilgangTilModia()
 
@@ -62,6 +68,7 @@ class TilgangController(
 
     @PostMapping("/hent-tilgang")
     fun hentVeilederTilgang(@Valid @RequestBody hentTilgangRequest: HentTilgangRequest): Boolean {
+        sjekkFunksjonsbryter()
         authService.sjekkInternBruker()
         authService.sjekkTilgangTilModia()
 
@@ -76,6 +83,12 @@ class TilgangController(
                 false
             }
         } else true
+    }
+
+    private fun sjekkFunksjonsbryter() {
+        if (!unleashService.isEnabled(TILGANGSMASKIN_INTEGRASJON)) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        }
     }
 }
 
