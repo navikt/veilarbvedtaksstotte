@@ -8,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.toGjeldende14aVedtakKafkaDTO
 import no.nav.veilarbvedtaksstotte.domain.vedtak.toSiste14aVedtak
 import no.nav.veilarbvedtaksstotte.repository.TestvedtakRepository
+import no.nav.veilarbvedtaksstotte.service.VedtakService.validerInnsatsgruppeOgHovedmal
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,6 +24,13 @@ class TestvedtakService(
     @Transactional
     fun lagreTestvedtak(vedtak: Vedtak, fnr: Fnr) {
         val aktorId = AktorId.of(vedtak.aktorId)
+
+        try {
+            validerInnsatsgruppeOgHovedmal(vedtak)
+        } catch (_: IllegalStateException) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Validering av input-data feilet")
+        }
+
         if (testvedtakRepository.hentGjeldendeTestvedtak(aktorId)?.harSammeInnholdSom(vedtak) == true) {
             return
         }
@@ -47,17 +55,20 @@ class TestvedtakService(
     @Transactional
     fun slettGjeldendeTestvedtak(aktorId: AktorId) {
         testvedtakRepository.hentGjeldendeTestvedtak(aktorId)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Ingen gjeldende testvedtak funnet for aktøren ved sletting")
+            ?: throw ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Ingen gjeldende testvedtak funnet for aktøren ved sletting"
+            )
         testvedtakRepository.slettGjeldendeTestvedtak(aktorId)
         kafkaProducerService.sendGjeldende14aVedtak(aktorId, null)
     }
 
     private fun Vedtak.harSammeInnholdSom(annetVedtak: Vedtak): Boolean {
         return aktorId == annetVedtak.aktorId &&
-            hovedmal == annetVedtak.hovedmal &&
-            innsatsgruppe == annetVedtak.innsatsgruppe &&
-            oppfolgingsenhetId == annetVedtak.oppfolgingsenhetId &&
-            begrunnelse == (annetVedtak.begrunnelse ?: TestvedtakRepository.DEFAULT_BEGRUNNELSE) &&
-            veilederIdent == annetVedtak.veilederIdent
+                hovedmal == annetVedtak.hovedmal &&
+                innsatsgruppe == annetVedtak.innsatsgruppe &&
+                oppfolgingsenhetId == annetVedtak.oppfolgingsenhetId &&
+                begrunnelse == (annetVedtak.begrunnelse ?: TestvedtakRepository.DEFAULT_BEGRUNNELSE) &&
+                veilederIdent == annetVedtak.veilederIdent
     }
 }

@@ -448,40 +448,54 @@ public class VedtakService {
 
 
     static void validerVedtakForFerdigstilling(Vedtak vedtak, Vedtak gjeldendeVedtak) {
+        validerVedtakErUtkast(vedtak);
+        validerInnsatsgruppeOgHovedmal(vedtak);
+        validerBeslutter(vedtak);
+        validerGodkjenningAvBeslutter(vedtak);
+        validerKilder(vedtak);
+        validerBegrunnelse(vedtak, gjeldendeVedtak);
+        validerVedtakIkkeErJournalfort(vedtak);
+    }
 
-
+    static void validerVedtakErUtkast(Vedtak vedtak) {
         if (vedtak.getVedtakStatus() != VedtakStatus.UTKAST) {
             throw new IllegalStateException("Vedtak har feil status, forventet status UTKAST");
         }
+    }
 
+    static void validerInnsatsgruppeOgHovedmal(Vedtak vedtak) {
         Innsatsgruppe innsatsgruppe = vedtak.getInnsatsgruppe();
-
         if (innsatsgruppe == null) {
             throw new IllegalStateException("Vedtak mangler innsatsgruppe");
         }
-
-        boolean isGodkjentAvBeslutter = vedtak.getBeslutterProsessStatus() == GODKJENT_AV_BESLUTTER;
-
-        if (skalHaBeslutter(innsatsgruppe)) {
-            if (vedtak.getBeslutterIdent() == null) {
-                throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
-            } else if (!isGodkjentAvBeslutter) {
-                throw new IllegalStateException("Vedtak er ikke godkjent av beslutter");
-            }
-        }
-
-        if (vedtak.getKilder() == null || vedtak.getKilder().isEmpty()) {
-            throw new IllegalStateException("Vedtak mangler kilder");
-        }
-
         if (vedtak.getHovedmal() == null && innsatsgruppe != Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
             throw new IllegalStateException("Vedtak mangler hovedmål");
         } else if (vedtak.getHovedmal() != null && innsatsgruppe == Innsatsgruppe.VARIG_TILPASSET_INNSATS) {
             throw new IllegalStateException("Vedtak med varig tilpasset innsats skal ikke ha hovedmål");
         }
+    }
 
+    static void validerBeslutter(Vedtak vedtak) {
+        if (skalHaBeslutter(vedtak.getInnsatsgruppe()) && vedtak.getBeslutterIdent() == null) {
+            throw new IllegalStateException("Vedtak kan ikke bli sendt uten beslutter");
+        }
+    }
+
+    static void validerGodkjenningAvBeslutter(Vedtak vedtak) {
+        if (skalHaBeslutter(vedtak.getInnsatsgruppe()) && vedtak.getBeslutterProsessStatus() != GODKJENT_AV_BESLUTTER) {
+            throw new IllegalStateException("Vedtak er ikke godkjent av beslutter");
+        }
+    }
+
+    static void validerKilder(Vedtak vedtak) {
+        if (vedtak.getKilder() == null || vedtak.getKilder().isEmpty()) {
+            throw new IllegalStateException("Vedtak mangler kilder");
+        }
+    }
+
+    static void validerBegrunnelse(Vedtak vedtak, Vedtak gjeldendeVedtak) {
         boolean harIkkeBegrunnelse = vedtak.getBegrunnelse() == null || vedtak.getBegrunnelse().trim().isEmpty();
-        boolean erStandard = innsatsgruppe == Innsatsgruppe.STANDARD_INNSATS;
+        boolean erStandard = vedtak.getInnsatsgruppe() == Innsatsgruppe.STANDARD_INNSATS;
         boolean erGjeldendeVedtakVarig = gjeldendeVedtak != null && (gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.VARIG_TILPASSET_INNSATS || gjeldendeVedtak.getInnsatsgruppe() == Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS);
 
         if (harIkkeBegrunnelse && erStandard && erGjeldendeVedtakVarig) {
@@ -489,10 +503,11 @@ public class VedtakService {
         } else if (harIkkeBegrunnelse && !erStandard) {
             throw new IllegalStateException("Vedtak mangler begrunnelse");
         }
+    }
 
+    static void validerVedtakIkkeErJournalfort(Vedtak vedtak) {
         if (vedtak.getJournalpostId() != null || vedtak.getDokumentInfoId() != null) {
             throw new IllegalStateException("Vedtak er allerede journalført");
         }
     }
-
 }
