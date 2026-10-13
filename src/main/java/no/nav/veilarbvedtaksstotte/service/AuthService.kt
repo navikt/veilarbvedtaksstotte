@@ -11,6 +11,7 @@ import no.nav.common.types.identer.Fnr
 import no.nav.common.utils.EnvironmentUtils
 import no.nav.common.utils.Pair
 import no.nav.poao_tilgang.client.*
+import no.nav.poao_tilgang.client.api.ApiResult
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.utils.TILGANGSMASKIN_INTEGRASJON
@@ -32,6 +33,11 @@ class AuthService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    private fun ApiResult<Decision>.getOrDeny(): Decision = getOrDefault {
+        log.warn("Tilgangssjekk i poao-tilgang feilet. Behandles som manglende tilgang.")
+        Decision.Deny("Tilgangssjekk feilet", "POAO_TILGANG_FEIL")
+    }
+
     fun sjekkVeilederUtenModiarolleTilgangTilBruker(
         fnr: Fnr
     ) {
@@ -41,7 +47,7 @@ class AuthService(
             NavAnsattUtenModiarolleTilgangTilEksternBrukerPolicyInput(
                 hentInnloggetVeilederUUID(), fnr.get()
             )
-        ).getOrThrow()
+        ).getOrDeny()
 
         if (veilederTilgangTilPerson.isDeny) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
@@ -78,7 +84,7 @@ class AuthService(
             EksternBrukerTilgangTilEksternBrukerPolicyInput(
                 hentInnloggetPersonIdent(), fnr.get()
             )
-        ).getOrThrow()
+        ).getOrDeny()
         if (desicion.isDeny) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
@@ -97,7 +103,7 @@ class AuthService(
             NavAnsattTilgangTilEksternBrukerPolicyInput(
                 hentInnloggetVeilederUUID(), tilgangType, fnr.get()
             )
-        ).getOrThrow()
+        ).getOrDeny()
 
         if (veilederTilgangTilPerson.isDeny) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
@@ -190,7 +196,7 @@ class AuthService(
                 NavAnsattTilgangTilEksternBrukerPolicyInput(
                     hentInnloggetVeilederUUID(), TilgangType.SKRIVE, it
                 )
-            ).map { decision -> decision.isPermit }.getOrDefault(false)
+            ).getOrDeny().isPermit
             tilgangTilBrukere.put(it, permitTilgang)
         }
         return tilgangTilBrukere
@@ -201,7 +207,7 @@ class AuthService(
         return brukerFnrs.distinct().associateWith { fnr ->
             poaoTilgangClient.evaluatePolicy(
                 NavAnsattTilgangTilEksternBrukerKjernereglerPolicyInput(veilederUUID, TilgangType.SKRIVE, fnr)
-            ).getOrThrow().isPermit
+            ).getOrDeny().isPermit
         }
     }
 
@@ -210,7 +216,7 @@ class AuthService(
             NavAnsattTilgangTilModiaAdminPolicyInput(
                 hentInnloggetVeilederUUID()
             )
-        ).getOrThrow()
+        ).getOrDeny()
 
         if (veilederHarModiaAdmin.isDeny) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
@@ -220,7 +226,7 @@ class AuthService(
     fun sjekkTilgangTilModia() {
         val tilgangTilModia = poaoTilgangClient.evaluatePolicy(
             NavAnsattTilgangTilModiaPolicyInput(hentInnloggetVeilederUUID())
-        ).getOrThrow()
+        ).getOrDeny()
 
         if (tilgangTilModia.isDeny) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
@@ -230,7 +236,7 @@ class AuthService(
     fun harTilgangTilKode6Brukere(): Boolean {
         return poaoTilgangClient.evaluatePolicy(
             NavAnsattBehandleStrengtFortroligBrukerePolicyInput(hentInnloggetVeilederUUID())
-        ).getOrThrow().isPermit
+        ).getOrDeny().isPermit
     }
 
     fun sjekkInternBruker() {
@@ -245,7 +251,7 @@ class AuthService(
             NavAnsattTilgangTilNavEnhetPolicyInput(
                 hentInnloggetVeilederUUID(), enhet.get()
             )
-        ).getOrThrow()
+        ).getOrDeny()
 
         if (veilederTilgangTilEnhet.isDeny) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
