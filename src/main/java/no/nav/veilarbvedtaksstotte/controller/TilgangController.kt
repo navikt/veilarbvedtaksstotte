@@ -68,7 +68,6 @@ class TilgangController(
 
     @PostMapping("/hent-tilgang")
     fun hentVeilederTilgang(@Valid @RequestBody hentTilgangRequest: HentTilgangRequest): Boolean {
-        sjekkFunksjonsbryter()
         authService.sjekkInternBruker()
         authService.sjekkTilgangTilModia()
 

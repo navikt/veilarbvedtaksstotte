@@ -45,7 +45,7 @@ class TilgangControllerTest {
     lateinit var unleashService: DefaultUnleash
 
     @ParameterizedTest
-    @ValueSource(strings = ["enkelttilgang", "hent-tilgang"])
+    @ValueSource(strings = ["enkelttilgang"])
     fun `nye endepunkter er utilgjengelige med bryteren av`(endepunkt: String) {
         mockMvc.perform(
             post("/api/v1/tilgang/$endepunkt")
