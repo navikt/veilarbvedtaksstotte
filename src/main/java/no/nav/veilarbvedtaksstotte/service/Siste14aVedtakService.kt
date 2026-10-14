@@ -9,6 +9,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.ArenaVedtak.ArenaInnsatsgruppe
 import no.nav.veilarbvedtaksstotte.domain.vedtak.HovedmalMedOkeDeltakelse
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.toSiste14aVedtakKafkaDto
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
@@ -36,7 +37,7 @@ class Siste14aVedtakService(
 
         val (siste14aVedtak) = hentSiste14aVedtakMedGrunnlag(identer)
         val fraArena = siste14aVedtak?.fraArena ?: false
-        kafkaProducerService.sendSiste14aVedtak(siste14aVedtak)
+        kafkaProducerService.sendSiste14aVedtak(siste14aVedtak?.toSiste14aVedtakKafkaDto())
         log.info("Siste 14a vedtak republisert basert på vedtak fra {}.", if (fraArena) "Arena" else "vedtaksstøtte")
     }
 
@@ -60,6 +61,7 @@ class Siste14aVedtakService(
                     hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(nyesteVedtakFraNyLosning.hovedmal),
                     fattetDato = toZonedDateTime(nyesteVedtakFraNyLosning.vedtakFattet),
                     fraArena = false,
+                    oppfolgingsenhetId = nyesteVedtakFraNyLosning.oppfolgingsenhetId,
                 ),
                 arenaVedtak = alleArenaVedtakForPersonen
             )
@@ -74,6 +76,7 @@ class Siste14aVedtakService(
                     hovedmal = HovedmalMedOkeDeltakelse.fraArenaHovedmal(nyesteVedtakFraArena.hovedmal),
                     fattetDato = toZonedDateTime(nyesteVedtakFraArena.fraDato.atStartOfDay()),
                     fraArena = true,
+                    oppfolgingsenhetId = null
                 ),
                 arenaVedtak = alleArenaVedtakForPersonen
             )
@@ -83,11 +86,6 @@ class Siste14aVedtakService(
             siste14aVedtak = null,
             arenaVedtak = emptyList()
         )
-    }
-
-    fun hentOppfolgingsenhetId(brukerId: EksternBrukerId) = hentIdenterMedDevSjekk(brukerId)?.aktorId?.let { aktorId ->
-        val identer: BrukerIdenter = aktorOppslagClient.hentIdenter(brukerId)
-        vedtakRepository.hentOppfolgingsenhetId(identer.aktorId)
     }
 
     private fun finnNyeste(arenaVedtakListe: List<ArenaVedtak>): ArenaVedtak? {

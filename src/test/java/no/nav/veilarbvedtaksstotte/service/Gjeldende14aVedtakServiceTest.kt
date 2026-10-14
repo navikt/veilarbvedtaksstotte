@@ -52,7 +52,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = ZonedDateTime.now(),
-            fraArena = false
+            fraArena = false,
+            oppfolgingsenhetId = null
         ))
 
         val gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(TestData.TEST_FNR)
@@ -69,7 +70,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = ZonedDateTime.now().minusDays(1),
-            fraArena = false
+            fraArena = false,
+            oppfolgingsenhetId = null
         ))
 
         val gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(TestData.TEST_FNR)
@@ -110,7 +112,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = ZonedDateTime.now().minusDays(4),
-            fraArena = true
+            fraArena = true,
+            oppfolgingsenhetId = null
         ))
 
 
@@ -135,7 +138,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = ZonedDateTime.now().minusDays(5),
-            fraArena = false
+            fraArena = false,
+            oppfolgingsenhetId = null
         ))
 
 
@@ -160,7 +164,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = LANSERINGSDATO_VEILARBOPPFOLGING_OPPFOLGINGSPERIODE.minusDays(3),
-            fraArena = true
+            fraArena = true,
+            oppfolgingsenhetId = null
         ))
 
 
@@ -185,7 +190,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = LANSERINGSDATO_VEILARBOPPFOLGING_OPPFOLGINGSPERIODE.minusDays(3),
-            fraArena = true
+            fraArena = true,
+            oppfolgingsenhetId = null
         ))
 
 
@@ -241,9 +247,9 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
                 innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
                 hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
                 fattetDato = fattetDato,
-                fraArena = false
+                fraArena = false,
+                oppfolgingsenhetId = oppfolgingsenhetId
             )
         )
-        `when`(siste14aVedtakService.hentOppfolgingsenhetId(TestData.TEST_FNR)).thenReturn(oppfolgingsenhetId)
     }
 }

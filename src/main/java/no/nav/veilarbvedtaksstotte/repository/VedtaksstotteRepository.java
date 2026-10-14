@@ -142,11 +142,6 @@ public class VedtaksstotteRepository {
         return queryForObjectOrNull(() -> db.queryForObject(sql, VedtaksstotteRepository::mapVedtak, aktorId.get(), VedtakStatus.SENDT.name()));
     }
 
-    public String hentOppfolgingsenhetId(AktorId aktorId) {
-        String sql = format("SELECT oppfolgingsenhet_id FROM %s WHERE %s = ? AND %s = ? ORDER BY %s DESC LIMIT 1", VEDTAK_TABLE, AKTOR_ID, STATUS, VEDTAK_FATTET);
-        return queryForObjectOrNull(() -> db.queryForObject(sql, String.class, aktorId.get(), VedtakStatus.SENDT.name()));
-    }
-
     public void settGjeldendeVedtakTilHistorisk(long vedtakID) {
         db.update("UPDATE VEDTAK SET GJELDENDE = false WHERE ID = ? AND GJELDENDE = true", vedtakID);
     }

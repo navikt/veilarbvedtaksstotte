@@ -41,9 +41,8 @@ class Gjeldende14aVedtakService(
             }
         } ?: return null
 
-        val oppfolgingsenhetId = siste14aVedtakService.hentOppfolgingsenhetId(brukerIdent)
         val erGjeldende: Boolean =
-            sjekkOmVedtakErGjeldende(siste14aVedtak, innevaerendeoppfolgingsperiode.startdato, oppfolgingsenhetId)
+            sjekkOmVedtakErGjeldende(siste14aVedtak, innevaerendeoppfolgingsperiode.startdato)
 
         return if (erGjeldende) {
             siste14aVedtak.toGjeldende14aVedtak()
@@ -65,13 +64,12 @@ class Gjeldende14aVedtakService(
         fun sjekkOmVedtakErGjeldende(
             siste14aVedtakForBruker: Siste14aVedtak,
             startDatoInnevarendeOppfolgingsperiode: ZonedDateTime,
-            oppfolgingsenhetId: String?
         ): Boolean {
             return if (siste14aVedtakForBruker.fraArena) {
                 erVedtakFraArenaGjeldende(siste14aVedtakForBruker, startDatoInnevarendeOppfolgingsperiode)
             } else {
                 erVedtakFraVeilarbvedtaksstotteGjeldende(
-                    siste14aVedtakForBruker, startDatoInnevarendeOppfolgingsperiode, oppfolgingsenhetId
+                    siste14aVedtakForBruker, startDatoInnevarendeOppfolgingsperiode
                 )
             }
         }
@@ -96,12 +94,12 @@ class Gjeldende14aVedtakService(
 
         private fun erVedtakFraVeilarbvedtaksstotteGjeldende(
             siste14aVedtakForBruker: Siste14aVedtak,
-            startDatoInnevarendeOppfolgingsperiode: ZonedDateTime,
-            oppfolgingsenhetId: String?
+            startDatoInnevarendeOppfolgingsperiode: ZonedDateTime
         ): Boolean {
             // Nav-østensjø var pilot for løsningen, og det finnes dermed noen få vedtak som har fattet dato før oppfølingstartet.
             // Disse håndteres her (kun 11 stk per 10.2026) med grace periode på samme dag
-            val erNavOstensjo = oppfolgingsenhetId != null && oppfolgingsenhetId == "0321"
+            val erNavOstensjo =
+                siste14aVedtakForBruker.oppfolgingsenhetId != null && siste14aVedtakForBruker.oppfolgingsenhetId == "0321"
             if (erNavOstensjo) {
                 val fattetDato = TimeUtils.toLocalDate(siste14aVedtakForBruker.fattetDato)
                 val startdato = TimeUtils.toLocalDate(startDatoInnevarendeOppfolgingsperiode)
