@@ -22,12 +22,3 @@ fun Vedtak.toGjeldende14aVedtakKafkaDTO(): Gjeldende14aVedtakKafkaDTO {
     )
 }
 
-fun Siste14aVedtakKafkaDto.toGjeldende14aVedtakKafkaDTO(vedtakId: Long): Gjeldende14aVedtakKafkaDTO {
-    return Gjeldende14aVedtakKafkaDTO(
-        aktorId = aktorId,
-        innsatsgruppe = innsatsgruppe.mapTilInnsatsgruppeV2(),
-        hovedmal = hovedmal,
-        fattetDato = fattetDato,
-        vedtakId = vedtakId.toString()
-    )
-}

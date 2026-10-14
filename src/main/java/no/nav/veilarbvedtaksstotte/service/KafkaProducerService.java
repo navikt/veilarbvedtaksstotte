@@ -8,7 +8,7 @@ import no.nav.veilarbvedtaksstotte.config.KafkaProperties;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakSendt;
 import no.nav.veilarbvedtaksstotte.domain.kafka.KafkaVedtakStatusEndring;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtakKafkaDTO;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtakKafkaDto;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtakKafkaDTO;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Service;
 
@@ -54,7 +54,7 @@ public class KafkaProducerService {
         producerRecordStorage.store(producerRecord);
     }
 
-    public void sendSiste14aVedtak(Siste14aVedtakKafkaDto siste14aVedtak) {
+    public void sendSiste14aVedtak(Siste14aVedtakKafkaDTO siste14aVedtak) {
         ProducerRecord<byte[], byte[]> producerRecord =
                 serializeJsonRecord(
                         new ProducerRecord<>(

@@ -13,8 +13,8 @@ data class Siste14aVedtak(
 )
 
 
-fun Siste14aVedtak.toSiste14aVedtakKafkaDto(): Siste14aVedtakKafkaDto {
-    return Siste14aVedtakKafkaDto(
+fun Siste14aVedtak.toSiste14aVedtakKafkaDto(): Siste14aVedtakKafkaDTO {
+    return Siste14aVedtakKafkaDTO(
         aktorId = aktorId,
         innsatsgruppe = innsatsgruppe,
         hovedmal = hovedmal,
