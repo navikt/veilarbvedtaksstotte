@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.domain.vedtak
 
 import no.nav.common.types.identer.AktorId
-import no.nav.veilarbvedtaksstotte.utils.TimeUtils.toZonedDateTime
 import java.time.ZonedDateTime
 
 data class Siste14aVedtak(
@@ -9,17 +8,17 @@ data class Siste14aVedtak(
     val innsatsgruppe: Innsatsgruppe,
     val hovedmal: HovedmalMedOkeDeltakelse?,
     val fattetDato: ZonedDateTime,
-    val fraArena: Boolean
-) {
+    val fraArena: Boolean,
+    val oppfolgingsenhetId: String?
+)
 
-}
 
-fun Vedtak.toSiste14aVedtak(): Siste14aVedtak {
-    return Siste14aVedtak(
-        aktorId = AktorId(aktorId),
+fun Siste14aVedtak.toSiste14aVedtakKafkaDto(): Siste14aVedtakKafkaDTO {
+    return Siste14aVedtakKafkaDTO(
+        aktorId = aktorId,
         innsatsgruppe = innsatsgruppe,
-        hovedmal = HovedmalMedOkeDeltakelse.fraHovedmal(hovedmal),
-        fattetDato = toZonedDateTime(vedtakFattet),
-        fraArena = false
+        hovedmal = hovedmal,
+        fattetDato = fattetDato,
+        fraArena = fraArena,
     )
 }

@@ -8,11 +8,7 @@ import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.DistribusjonBestillingId;
 import no.nav.veilarbvedtaksstotte.domain.sladdVedtak.SladdVedtakFeiletException;
 import no.nav.veilarbvedtaksstotte.domain.slettVedtak.SlettVedtakFeiletException;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Hovedmal;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak;
-import no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus;
+import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -277,6 +273,7 @@ public class VedtaksstotteRepository {
     /**
      * Sletter vedtak. OBS: Denne skal kun brukes dersom vi har hatt et personvernsbrudd og må 'slette' vedtaket.
      * Vi sletter aldri et vedtak i sin helhet, må alltid beholde metadata
+     *
      * @param vedtakId           id til vedtaket som skal slettes
      * @param utfortAv           identen til den som utfører slettingen
      * @param slettVedtakRequest request som inneholder informasjon om slettingen
@@ -297,6 +294,7 @@ public class VedtaksstotteRepository {
 
     /**
      * Sladder begrunnelsen i et vedtak. OBS skal kun utføres ved eksplitt beskjed via en jira-sak, og kun dersom det er feil informasjon i beskrivelsen.
+     *
      * @param vedtakId           id til vedtaket som skal sladdes
      * @param utfortAv           identen til den som utfører sladdingen
      * @param sladdVedtakRequest request som inneholder informasjon om sladdingen.

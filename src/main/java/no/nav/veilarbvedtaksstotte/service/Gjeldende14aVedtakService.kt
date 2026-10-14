@@ -41,7 +41,8 @@ class Gjeldende14aVedtakService(
             }
         } ?: return null
 
-        val erGjeldende: Boolean = sjekkOmVedtakErGjeldende(siste14aVedtak, innevaerendeoppfolgingsperiode.startdato)
+        val erGjeldende: Boolean =
+            sjekkOmVedtakErGjeldende(siste14aVedtak, innevaerendeoppfolgingsperiode.startdato)
 
         return if (erGjeldende) {
             siste14aVedtak.toGjeldende14aVedtak()
@@ -61,7 +62,8 @@ class Gjeldende14aVedtakService(
             ZonedDateTime.of(2017, 12, 4, 0, 0, 0, 0, ZoneId.systemDefault())
 
         fun sjekkOmVedtakErGjeldende(
-            siste14aVedtakForBruker: Siste14aVedtak, startDatoInnevarendeOppfolgingsperiode: ZonedDateTime
+            siste14aVedtakForBruker: Siste14aVedtak,
+            startDatoInnevarendeOppfolgingsperiode: ZonedDateTime,
         ): Boolean {
             return if (siste14aVedtakForBruker.fraArena) {
                 erVedtakFraArenaGjeldende(siste14aVedtakForBruker, startDatoInnevarendeOppfolgingsperiode)
@@ -91,13 +93,21 @@ class Gjeldende14aVedtakService(
         }
 
         private fun erVedtakFraVeilarbvedtaksstotteGjeldende(
-            siste14aVedtakForBruker: Siste14aVedtak, startDatoInnevarendeOppfolgingsperiode: ZonedDateTime
+            siste14aVedtakForBruker: Siste14aVedtak,
+            startDatoInnevarendeOppfolgingsperiode: ZonedDateTime
         ): Boolean {
-            // Det er noe tidssone-forskjeller (utc/oslo) for disse to datoene. Om et vedtak blir fattet innen 1-2 timer innen oppfølgingstartet,
-            // ble denne funksjonen false. Legger til en "grace periode" så vi heller sjekker om vedtak fattet er på samme dag eller senere.
-            val fattetDato = TimeUtils.toLocalDate(siste14aVedtakForBruker.fattetDato)
-            val startdato = TimeUtils.toLocalDate(startDatoInnevarendeOppfolgingsperiode)
-            return !fattetDato.isBefore(startdato)
+            // Nav-østensjø var pilot for løsningen, og det finnes dermed noen få vedtak som har fattet dato før oppfølingstartet.
+            // Disse håndteres her (kun 11 stk per 10.2026) med grace periode på samme dag
+            val erNavOstensjo =
+                siste14aVedtakForBruker.oppfolgingsenhetId != null && siste14aVedtakForBruker.oppfolgingsenhetId == "0321"
+            if (erNavOstensjo) {
+                val fattetDato = TimeUtils.toLocalDate(siste14aVedtakForBruker.fattetDato)
+                val startdato = TimeUtils.toLocalDate(startDatoInnevarendeOppfolgingsperiode)
+                return !fattetDato.isBefore(startdato)
+            }
+
+            val erGjeldende = siste14aVedtakForBruker.fattetDato.isAfter(startDatoInnevarendeOppfolgingsperiode)
+            return erGjeldende
         }
     }
 }

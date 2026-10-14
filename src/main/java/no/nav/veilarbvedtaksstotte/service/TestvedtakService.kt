@@ -6,7 +6,7 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingCli
 import no.nav.veilarbvedtaksstotte.domain.kafka.toKafkaVedtakSendt
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Vedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.toGjeldende14aVedtakKafkaDTO
-import no.nav.veilarbvedtaksstotte.domain.vedtak.toSiste14aVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.toSiste14aVedtakKafkaDto
 import no.nav.veilarbvedtaksstotte.repository.TestvedtakRepository
 import no.nav.veilarbvedtaksstotte.service.VedtakService.validerInnsatsgruppeOgHovedmal
 import org.springframework.http.HttpStatus
@@ -43,7 +43,7 @@ class TestvedtakService(
         // Skal Dolly kunne overstyre det som gjøres i Modia? Hvis man gjør et vedtak på en person i Modia og så legger til et i Dolly, hva skal skje?
         testvedtakRepository.settTidligereTestvedtakIkkeGjeldende(aktorId)
         testvedtakRepository.lagreTestvedtak(vedtak)
-        kafkaProducerService.sendSiste14aVedtak(vedtak.toSiste14aVedtak())
+        kafkaProducerService.sendSiste14aVedtak(vedtak.toSiste14aVedtakKafkaDto())
         kafkaProducerService.sendGjeldende14aVedtak(aktorId, vedtak.toGjeldende14aVedtakKafkaDTO())
         kafkaProducerService.sendVedtakSendt(vedtak.toKafkaVedtakSendt())
     }
