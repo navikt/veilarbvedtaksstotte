@@ -14,7 +14,7 @@ data class Siste14aVedtakKafkaDto(
 
 }
 
-fun Vedtak.toSiste14aVedtak(): Siste14aVedtakKafkaDto {
+fun Vedtak.toSiste14aVedtakKafkaDto(): Siste14aVedtakKafkaDto {
     return Siste14aVedtakKafkaDto(
         aktorId = AktorId(aktorId),
         innsatsgruppe = innsatsgruppe,

@@ -3,7 +3,7 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.veilarbvedtaksstotte.config.KafkaProperties
 import no.nav.veilarbvedtaksstotte.controller.dto.RepubliserVedtakPaKafkaTopicRequest
 import no.nav.veilarbvedtaksstotte.domain.kafka.toKafkaVedtakSendt
-import no.nav.veilarbvedtaksstotte.domain.vedtak.toSiste14aVedtak
+import no.nav.veilarbvedtaksstotte.domain.vedtak.toSiste14aVedtakKafkaDto
 import no.nav.veilarbvedtaksstotte.repository.ArenaVedtakRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import org.slf4j.Logger
@@ -56,7 +56,7 @@ class KafkaRepubliseringService(
             val vedtak = vedtaksstotteRepository.hentVedtak(vedtakId.toLong())
             if (vedtak != null) {
                 when (request.kafkaTopic) {
-                    kafkaProperties.siste14aVedtakTopic -> kafkaProducerService.sendSiste14aVedtak(vedtak.toSiste14aVedtak())
+                    kafkaProperties.siste14aVedtakTopic -> kafkaProducerService.sendSiste14aVedtak(vedtak.toSiste14aVedtakKafkaDto())
                     kafkaProperties.vedtakSendtTopic -> kafkaProducerService.sendVedtakSendt(vedtak.toKafkaVedtakSendt())
                     else -> return
                 }
