@@ -95,6 +95,13 @@ class PdfClientImplTest {
         val inputMedPrivateUse = "Start\uF0B7\uDB80\uDC00\u0002\n\t•"
         assertEquals("Start□□\n\t•", vaskStringForUgyldigeTegn(inputMedPrivateUse))
 
+        val inputMedEmoji = "Søker jobb 😀 og kan starte nå"
+        val forventetUtenEmoji = "Søker jobb □ og kan starte nå"
+        assertEquals(forventetUtenEmoji, vaskStringForUgyldigeTegn(inputMedEmoji, fjernEmoji = true))
+        assertEquals(inputMedEmoji, vaskStringForUgyldigeTegn(inputMedEmoji))
+
+        val inputMedSammensatteEmojier = "👍🏽 👩‍💻 🇳🇴 1️⃣ ❤️ 123 # * •"
+        assertEquals("□ □ □ □ □ 123 # * •", vaskStringForUgyldigeTegn(inputMedSammensatteEmojier, fjernEmoji = true))
     }
 }
 
