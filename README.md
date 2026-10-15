@@ -14,6 +14,12 @@ Swagger: [/veilarbvedtaksstotte/internal/swagger-ui/index.html](https://veilarbv
 
 Dev-miljøet har ikke lenger noen tilknytning til q1, kun q2.
 
+## Nye konsumenter
+
+Følg [veiledningen for nye konsumenter](docs/tilgang-for-nye-konsumenter.md).
+Den beskriver tilgang til API, Kafka og BigQuery og hva som skal
+føres i [konsumentoversikten](docs/konsument-oversikt.md).
+
 ## DB Creds
 
 
