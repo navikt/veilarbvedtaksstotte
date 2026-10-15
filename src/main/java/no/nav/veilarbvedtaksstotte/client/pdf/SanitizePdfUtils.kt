@@ -55,12 +55,14 @@ fun SertifikatDtoV2.sanitize(): SertifikatDtoV2 = copy(
     utsteder = utsteder?.let { vaskStringForUgyldigeTegn(it) }
 )
 
+private val GRAFEM_REGEX = Regex("""\X""")
+
 fun vaskStringForUgyldigeTegn(input: String, fjernEmoji: Boolean = false): String {
     val erstattedeKodepunkter = mutableListOf<Int>()
     val fjernedeKodepunkter = mutableListOf<Int>()
     val vasketInput = buildString(input.length) {
         // Behandle ett utvidet grafem om gangen, slik at sammensatte emojier erstattes samlet.
-        Regex("""\X""").findAll(input).forEach { treff ->
+        GRAFEM_REGEX.findAll(input).forEach { treff ->
             // Lagre lengden så delresultatet kan erstattes med én rute hvis grafemet inneholder emoji.
             val start = length
             var inneholderEmoji = false
