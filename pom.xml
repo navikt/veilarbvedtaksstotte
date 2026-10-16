@@ -292,13 +292,7 @@
         <dependency>
             <groupId>no.nav.poao-tilgang</groupId>
             <artifactId>client</artifactId>
-            <version>2026.05.05_13.02-76cbce4f654a</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.squareup.okhttp3</groupId>
-                    <artifactId>okhttp</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>4.2026.10.15_12.27-4020c9cefb00</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
