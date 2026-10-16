@@ -7,6 +7,7 @@ import no.nav.veilarbvedtaksstotte.domain.vedtak.Gjeldende14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Siste14aVedtak
 import no.nav.veilarbvedtaksstotte.domain.vedtak.toGjeldende14aVedtak
 import no.nav.veilarbvedtaksstotte.repository.SisteOppfolgingPeriodeRepository
+import no.nav.veilarbvedtaksstotte.utils.TimeUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,7 +41,8 @@ class Gjeldende14aVedtakService(
             }
         } ?: return null
 
-        val erGjeldende: Boolean = sjekkOmVedtakErGjeldende(siste14aVedtak, innevaerendeoppfolgingsperiode.startdato)
+        val erGjeldende: Boolean =
+            sjekkOmVedtakErGjeldende(siste14aVedtak, innevaerendeoppfolgingsperiode.startdato)
 
         return if (erGjeldende) {
             siste14aVedtak.toGjeldende14aVedtak()
@@ -60,7 +62,8 @@ class Gjeldende14aVedtakService(
             ZonedDateTime.of(2017, 12, 4, 0, 0, 0, 0, ZoneId.systemDefault())
 
         fun sjekkOmVedtakErGjeldende(
-            siste14aVedtakForBruker: Siste14aVedtak, startDatoInnevarendeOppfolgingsperiode: ZonedDateTime
+            siste14aVedtakForBruker: Siste14aVedtak,
+            startDatoInnevarendeOppfolgingsperiode: ZonedDateTime,
         ): Boolean {
             return if (siste14aVedtakForBruker.fraArena) {
                 erVedtakFraArenaGjeldende(siste14aVedtakForBruker, startDatoInnevarendeOppfolgingsperiode)
@@ -90,9 +93,21 @@ class Gjeldende14aVedtakService(
         }
 
         private fun erVedtakFraVeilarbvedtaksstotteGjeldende(
-            siste14aVedtakForBruker: Siste14aVedtak, startDatoInnevarendeOppfolgingsperiode: ZonedDateTime
+            siste14aVedtakForBruker: Siste14aVedtak,
+            startDatoInnevarendeOppfolgingsperiode: ZonedDateTime
         ): Boolean {
-            return siste14aVedtakForBruker.fattetDato.isAfter(startDatoInnevarendeOppfolgingsperiode)
+            // Nav-østensjø var pilot for løsningen, og det finnes dermed noen få vedtak som har fattet dato før oppfølingstartet.
+            // Disse håndteres her (kun 11 stk per 10.2026) med grace periode på samme dag
+            val erNavOstensjo =
+                siste14aVedtakForBruker.oppfolgingsenhetId != null && siste14aVedtakForBruker.oppfolgingsenhetId == "0321"
+            if (erNavOstensjo) {
+                val fattetDato = TimeUtils.toLocalDate(siste14aVedtakForBruker.fattetDato)
+                val startdato = TimeUtils.toLocalDate(startDatoInnevarendeOppfolgingsperiode)
+                return !fattetDato.isBefore(startdato)
+            }
+
+            val erGjeldende = siste14aVedtakForBruker.fattetDato.isAfter(startDatoInnevarendeOppfolgingsperiode)
+            return erGjeldende
         }
     }
 }

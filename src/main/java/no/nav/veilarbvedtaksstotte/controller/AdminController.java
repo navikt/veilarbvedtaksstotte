@@ -103,7 +103,17 @@ public class AdminController {
 
         return JobRunner.runAsync(
                 "republiser-sakstatistikkrad-pa-bigquery",
-                () -> sakStatistikkService.hentOgSendStatistikkRadTilBQ(request.getSekvensnummer())
+                () -> sakStatistikkService.hentOgSendStatistikkRadTilBQ(request.getSekvensnumre())
+        );
+    }
+
+    @PostMapping("/publiser/sakstatistikkrad-pa-bigquery")
+    public String publiserSakStatistikkRadPaBigQuery(@RequestBody PubliserSakStatistikkRadPaBigQueryRequest request) {
+        sjekkTilgangTilAdmin();
+
+        return JobRunner.runAsync(
+                "publiser-sakstatistikkrad-pa-bigquery",
+                () -> sakStatistikkService.sendStatistikkRadTilBQ(request.getSekvensnumre())
         );
     }
 

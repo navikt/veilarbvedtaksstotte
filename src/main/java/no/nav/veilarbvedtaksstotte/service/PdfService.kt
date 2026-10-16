@@ -158,7 +158,7 @@ class PdfService(
     }
 
     fun vaskVedtakDto(dto: ProduserDokumentDTO): ProduserDokumentDTO {
-        return dto.copy(begrunnelse = dto.begrunnelse?.let { vaskStringForUgyldigeTegn(it) } ?: "")
+        return dto.copy(begrunnelse = dto.begrunnelse?.let { vaskStringForUgyldigeTegn(it, fjernEmoji = true) } ?: "")
     }
 
 }

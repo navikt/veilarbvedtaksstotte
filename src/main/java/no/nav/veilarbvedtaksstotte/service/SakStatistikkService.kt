@@ -14,6 +14,7 @@ import no.nav.veilarbvedtaksstotte.repository.SakStatistikkRepository
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -260,18 +261,36 @@ class SakStatistikkService @Autowired constructor(
         lagreStatistikkRadIdbOgSendTilBQ(sjekkOmPersonErKode6(fnr, ferdigpopulertStatistikkRad))
     }
 
-    fun hentOgSendStatistikkRadTilBQ(sekvensnummer: Long) {
+    @Transactional
+    fun hentOgSendStatistikkRadTilBQ(sekvensnumre: List<Long>) {
         try {
-            val sakStatistikk = sakStatistikkRepository.hentSakStatistikk(sekvensnummer)
+            val sakStatistikk = sakStatistikkRepository.hentSakStatistikkListe(sekvensnumre)
 
-            if (sakStatistikk == null) {
-                secureLog.info("Fant ikke sak statistikk med sekvensnummer $sekvensnummer")
+            if (sakStatistikk.isEmpty()) {
+                secureLog.warn("Fant ikke sak statistikk for sekvensnumre $sekvensnumre")
+                return
+            }
+
+            val nyeSakStatistikkRaderMedSammeData = sakStatistikkRepository.insertSakStatistikkRadBatch(sakStatistikk)
+
+            bigQueryService.logEvent(nyeSakStatistikkRaderMedSammeData)
+        } catch (e: Exception) {
+            secureLog.warn("Kunne ikke sende lagret sakStatistikkRad, feil: {} , sekvensnumre: {}", e, sekvensnumre)
+        }
+    }
+
+    fun sendStatistikkRadTilBQ(sekvensnumre: List<Long>) {
+        try {
+            val sakStatistikk = sakStatistikkRepository.hentSakStatistikkListe(sekvensnumre)
+
+            if (sakStatistikk.isEmpty()) {
+                secureLog.warn("Fant ikke sak statistikk for sekvensnumre $sekvensnumre")
                 return
             }
 
             bigQueryService.logEvent(sakStatistikk)
         } catch (e: Exception) {
-            secureLog.error("Kunne ikke sende lagret sakStatistikkRad, feil: {} , sekvensnummer: {}", e, sekvensnummer)
+            secureLog.warn("Kunne ikke sende lagret sakStatistikkRad, feil: {} , sekvensnumre: {}", e, sekvensnumre)
         }
     }
 

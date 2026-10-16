@@ -14,9 +14,11 @@ import no.nav.veilarbvedtaksstotte.utils.TestData
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -50,7 +52,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = ZonedDateTime.now(),
-            fraArena = false
+            fraArena = false,
+            oppfolgingsenhetId = null
         ))
 
         val gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(TestData.TEST_FNR)
@@ -67,7 +70,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = ZonedDateTime.now().minusDays(1),
-            fraArena = false
+            fraArena = false,
+            oppfolgingsenhetId = null
         ))
 
         val gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(TestData.TEST_FNR)
@@ -108,7 +112,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = ZonedDateTime.now().minusDays(4),
-            fraArena = true
+            fraArena = true,
+            oppfolgingsenhetId = null
         ))
 
 
@@ -133,7 +138,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = ZonedDateTime.now().minusDays(5),
-            fraArena = false
+            fraArena = false,
+            oppfolgingsenhetId = null
         ))
 
 
@@ -158,7 +164,8 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = LANSERINGSDATO_VEILARBOPPFOLGING_OPPFOLGINGSPERIODE.minusDays(3),
-            fraArena = true
+            fraArena = true,
+            oppfolgingsenhetId = null
         ))
 
 
@@ -183,12 +190,66 @@ class Gjeldende14aVedtakServiceTest  : AbstractVedtakIntegrationTest() {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
             fattetDato = LANSERINGSDATO_VEILARBOPPFOLGING_OPPFOLGINGSPERIODE.minusDays(3),
-            fraArena = true
+            fraArena = true,
+            oppfolgingsenhetId = null
         ))
 
 
         val gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(TestData.TEST_FNR)
 
         assertNull(gjeldende14aVedtak)
+    }
+
+    @Test
+    fun `vedtak fra Nav Østensjø er gjeldende dersom det er fattet tidligere samme dag som oppfolgingsperioden startet`() {
+        val startdato = ZonedDateTime.of(2020, 5, 10, 14, 0, 0, 0, ZoneId.systemDefault())
+        mockOppfolgingsperiodeOgVedtak(
+            startdato = startdato,
+            fattetDato = startdato.minusHours(4),
+            oppfolgingsenhetId = "0321"
+        )
+
+        val gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(TestData.TEST_FNR)
+
+        assertNotNull(gjeldende14aVedtak)
+        assertEquals(TestData.TEST_AKTOR_ID, gjeldende14aVedtak?.aktorId.toString())
+    }
+
+    @Test
+    fun `vedtak fra Nav Østensjø er ikke gjeldende dersom det er fattet dagen før oppfolgingsperioden startet`() {
+        val startdato = ZonedDateTime.of(2020, 5, 10, 1, 0, 0, 0, ZoneId.systemDefault())
+        mockOppfolgingsperiodeOgVedtak(
+            startdato = startdato,
+            fattetDato = startdato.minusHours(2),
+            oppfolgingsenhetId = "0321"
+        )
+
+        val gjeldende14aVedtak = gjeldende14aVedtakService.hentGjeldende14aVedtak(TestData.TEST_FNR)
+        assertNull(gjeldende14aVedtak)
+    }
+
+    private fun mockOppfolgingsperiodeOgVedtak(
+        startdato: ZonedDateTime,
+        fattetDato: ZonedDateTime,
+        oppfolgingsenhetId: String?
+    ) {
+        `when`(sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(
+            SisteOppfolgingsperiode(
+                oppfolgingsperiodeId = UUID.randomUUID(),
+                aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
+                startdato = startdato,
+                sluttdato = null
+            )
+        )
+        `when`(siste14aVedtakService.hentSiste14aVedtak(TestData.TEST_FNR)).thenReturn(
+            Siste14aVedtak(
+                aktorId = AktorId.of(TestData.TEST_AKTOR_ID),
+                innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
+                hovedmal = HovedmalMedOkeDeltakelse.SKAFFE_ARBEID,
+                fattetDato = fattetDato,
+                fraArena = false,
+                oppfolgingsenhetId = oppfolgingsenhetId
+            )
+        )
     }
 }

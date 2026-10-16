@@ -11,6 +11,7 @@ import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -36,6 +37,30 @@ class TestvedtakRepositoryTest: DatabaseTest() {
             DbTestUtils.cleanupDb(jdbcTemplate)
             mock.close()
         }
+    }
+
+    @Test
+    fun `skal lagre og hente testvedtak med liten mulighet til a jobbe uten hovedmal`() {
+        val aktorId = AktorId.of("1234567890123")
+        val tidspunkt = LocalDateTime.now()
+        val vedtak = Vedtak()
+            .settAktorId(aktorId.get())
+            .settInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
+            .settHovedmal(null)
+            .settOppfolgingsenhetId("1234")
+            .settBegrunnelse("Begrunnelse")
+            .settVeilederIdent("Z123456")
+            .settUtkastOpprettet(tidspunkt)
+            .settUtkastSistOppdatert(tidspunkt)
+            .settVedtakFattet(tidspunkt)
+            .settReferanse(UUID.randomUUID())
+
+        testvedtakRepository.lagreTestvedtak(vedtak)
+
+        val hentetVedtak = requireNotNull(testvedtakRepository.hentGjeldendeTestvedtak(aktorId))
+        assertEquals(aktorId.get(), hentetVedtak.aktorId)
+        assertEquals(Innsatsgruppe.VARIG_TILPASSET_INNSATS, hentetVedtak.innsatsgruppe)
+        assertNull(hentetVedtak.hovedmal)
     }
 
     @Test
