@@ -1,5 +1,7 @@
 name: Test, build, push and deploy
-on: push
+on:
+  push:
+    paths-ignore: ['**/*.md']
 env:
   IMAGE_TAG: ${{ github.sha }}
   PRINT_PAYLOAD: true
