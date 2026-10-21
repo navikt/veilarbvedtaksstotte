@@ -37,7 +37,7 @@ class TilgangController(
                 authService.sjekkVeilederTilgangTilBruker(TilgangType.LESE, hentTilgangRequest.brukerId)
                 true
             } else {
-                authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, hentTilgangRequest.brukerId)
+                authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.LESE, hentTilgangRequest.brukerId)
                 true
             }
         } catch (e: ResponseStatusException) {
