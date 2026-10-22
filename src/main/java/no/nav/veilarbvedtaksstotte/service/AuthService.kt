@@ -27,7 +27,7 @@ class AuthService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun sjekkVeilederUtenModiarolleTilgangTilBruker (
+    fun sjekkVeilederUtenModiarolleTilgangTilBruker(
         fnr: Fnr
     ) {
         sjekkInternBruker()
@@ -250,6 +250,11 @@ class AuthService(
         }
     }
 
+    fun harTilgangTilKode6Brukere(): Boolean {
+        return poaoTilgangClient.evaluatePolicy(
+            NavAnsattBehandleStrengtFortroligBrukerePolicyInput(hentInnloggetVeilederUUID())
+        ).getOrDefault(Decision.Deny("Tilgangssjekk feilet", "POAO_TILGANG_FEIL")).isPermit
+    }
 
 
     companion object {

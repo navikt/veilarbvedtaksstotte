@@ -208,6 +208,20 @@ public class BeslutteroversiktRepository {
         return Optional.of(new SqlWithParameters(sqlStr, List.of(parameters.toArray())));
     }
 
+    public List<String> hentEnheterMedUtkast() {
+        String sql = format(
+                "SELECT DISTINCT %s FROM %s WHERE %s IN " +
+                        "(?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?::BESLUTTER_OVERSIKT_STATUS_TYPE) " +
+                        "ORDER BY %s",
+                BRUKER_OPPFOLGINGSENHET_ID, BESLUTTEROVERSIKT_BRUKER_TABLE, STATUS, BRUKER_OPPFOLGINGSENHET_ID
+        );
+
+        return db.queryForList(sql, String.class,
+                getName(BeslutteroversiktStatus.TRENGER_BESLUTTER),
+                getName(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER),
+                getName(BeslutteroversiktStatus.KLAR_TIL_VEILEDER));
+    }
+
     public record SqlWithParameters(String sql, List<Object> parameters) {
     }
 

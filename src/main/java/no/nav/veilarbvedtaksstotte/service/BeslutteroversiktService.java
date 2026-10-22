@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.types.identer.EnhetId;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
@@ -28,6 +29,8 @@ public class BeslutteroversiktService {
     private final VeilarbveilederClient veiledereOgEnhetClient;
 
     private final AuthService authService;
+
+    private static final String VIKAFOSSEN_ENHET_ID = "2103";
 
     @Autowired
     public BeslutteroversiktService(
@@ -94,4 +97,17 @@ public class BeslutteroversiktService {
         bruker.setBrukerEtternavn("");
     }
 
+    public List<EnhetId> hentEnheterMedUtkast() {
+        return beslutteroversiktRepository.hentEnheterMedUtkast()
+                .stream()
+                .filter(enhet -> {
+                    if (!VIKAFOSSEN_ENHET_ID.equals(enhet)) {
+                        return true;
+                    }
+
+                    return authService.harTilgangTilKode6Brukere();
+                })
+                .map(EnhetId::of)
+                .toList();
+    }
 }
