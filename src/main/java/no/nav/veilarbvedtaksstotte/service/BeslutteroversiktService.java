@@ -1,7 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.common.types.identer.EnhetId;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
@@ -9,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBru
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnhetMedNavn;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -97,17 +97,16 @@ public class BeslutteroversiktService {
         bruker.setBrukerEtternavn("");
     }
 
-    public List<EnhetId> hentEnheterMedUtkast() {
+    public List<EnhetMedNavn> hentEnheterMedUtkast() {
         return beslutteroversiktRepository.hentEnheterMedUtkast()
                 .stream()
                 .filter(enhet -> {
-                    if (!VIKAFOSSEN_ENHET_ID.equals(enhet)) {
+                    if (!VIKAFOSSEN_ENHET_ID.equals(enhet.getEnhetId())) {
                         return true;
                     }
 
                     return authService.harTilgangTilKode6Brukere();
                 })
-                .map(EnhetId::of)
                 .toList();
     }
 }
