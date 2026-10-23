@@ -82,9 +82,8 @@ class BeslutteroversiktController @Autowired constructor(
         summary = "Hent enheter med utkast til kvalitetssikring",
         description = """
                     Henter enheter med utkast i status TRENGER_BESLUTTER,
-                    KLAR_TIL_BESLUTTER eller KLAR_TIL_VEILEDER. Godkjente utkast er ikke med.
+                    KLAR_TIL_BESLUTTER eller KLAR_TIL_VEILEDER.
                     Hver enhet vises én gang med enhetId og enhetNavn.
-                    Navnet kommer fra utkastet med nyest VEDTAK_STARTET. Ved likt tidspunkt brukes raden med høyest ID.
                     Enhetene sorteres etter enhetId. Enhet 2103 vises bare ved tilgang til kode 6-brukere.
                     """,
         responses = [
