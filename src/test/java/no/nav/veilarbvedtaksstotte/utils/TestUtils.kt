@@ -2,7 +2,7 @@ package no.nav.veilarbvedtaksstotte.utils
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.matching.StringValuePattern
-import org.junit.Assert
+import org.junit.jupiter.api.Assertions
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -78,11 +78,11 @@ object TestUtils {
             .joinToString("")
 
     inline fun <reified T : Throwable> assertThrowsWithMessage(messsage: String, runnable: Runnable) {
-        val exception = Assert.assertThrows(
+        val exception = Assertions.assertThrows(
             T::class.java
         ) {
             runnable.run()
         }
-        Assert.assertEquals(messsage, exception.message)
+        Assertions.assertEquals(messsage, exception.message)
     }
 }

@@ -6,6 +6,7 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnhetMedNavn;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,6 +27,7 @@ public class BeslutteroversiktRepository {
 
     public final static String BESLUTTEROVERSIKT_BRUKER_TABLE               = "BESLUTTEROVERSIKT_BRUKER";
 
+    private final static String ID                                          = "ID";
     private final static String VEDTAK_ID                                   = "VEDTAK_ID";
     private final static String BRUKER_FORNAVN                              = "BRUKER_FORNAVN";
     private final static String BRUKER_ETTERNAVN                            = "BRUKER_ETTERNAVN";
@@ -206,6 +208,27 @@ public class BeslutteroversiktRepository {
 
         String sqlStr = "WHERE " + String.join(" AND ", filterStrs);
         return Optional.of(new SqlWithParameters(sqlStr, List.of(parameters.toArray())));
+    }
+
+    public List<EnhetMedNavn> hentEnheterMedUtkast() {
+        String sql = format(
+                "WITH ENHETER_MED_SISTE_VEDTAK AS (" +
+                        "SELECT DISTINCT ON (%s) %s, %s FROM %s WHERE %s IN " +
+                        "(?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?::BESLUTTER_OVERSIKT_STATUS_TYPE) " +
+                        "ORDER BY %s, %s DESC, %s DESC) " +
+                        "SELECT %s, %s FROM ENHETER_MED_SISTE_VEDTAK ORDER BY %s",
+                BRUKER_OPPFOLGINGSENHET_ID,
+                BRUKER_OPPFOLGINGSENHET_ID, BRUKER_OPPFOLGINGSENHET_NAVN, BESLUTTEROVERSIKT_BRUKER_TABLE, STATUS,
+                BRUKER_OPPFOLGINGSENHET_ID, VEDTAK_STARTET, ID,
+                BRUKER_OPPFOLGINGSENHET_ID, BRUKER_OPPFOLGINGSENHET_NAVN, BRUKER_OPPFOLGINGSENHET_ID
+        );
+
+        return db.query(sql, (rs, rowNum) -> new EnhetMedNavn(
+                        rs.getString(BRUKER_OPPFOLGINGSENHET_ID),
+                        rs.getString(BRUKER_OPPFOLGINGSENHET_NAVN)),
+                getName(BeslutteroversiktStatus.TRENGER_BESLUTTER),
+                getName(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER),
+                getName(BeslutteroversiktStatus.KLAR_TIL_VEILEDER));
     }
 
     public record SqlWithParameters(String sql, List<Object> parameters) {

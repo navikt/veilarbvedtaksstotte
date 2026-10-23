@@ -2,11 +2,14 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnhetMedNavn;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
@@ -20,6 +23,7 @@ import static no.nav.veilarbvedtaksstotte.utils.TimeUtils.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static java.util.List.of;
 
 public class BeslutteroversiktRepositoryTest extends DatabaseTest {
 
@@ -128,6 +132,61 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
 
         assertEquals(nyEnhetId, oppdatertBruker.getBrukerOppfolgingsenhetId());
         assertEquals(nyEnhetNavn, oppdatertBruker.getBrukerOppfolgingsenhetNavn());
+    }
+
+    @Test
+    public void hentEnheterMedUtkast__skal_returnere_enhet_med_navn() {
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+        String enhetId = "8888";
+        String enhetNavn = "Nav Ny enhet";
+
+        beslutteroversiktRepository.lagBruker(lagBruker(vedtakId)
+                .setBrukerOppfolgingsenhetId(enhetId)
+                .setBrukerOppfolgingsenhetNavn(enhetNavn)
+                .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER));
+
+        assertEquals(of(new EnhetMedNavn(enhetId, enhetNavn)), beslutteroversiktRepository.hentEnheterMedUtkast());
+    }
+
+    @Test
+    public void hentEnheterMedUtkast__skal_velge_nyeste_rad_per_enhet_og_sortere_enheter() {
+        LocalDateTime eldreVedtak = LocalDateTime.of(2024, 1, 1, 12, 0);
+        LocalDateTime nyesteVedtak = LocalDateTime.of(2024, 2, 1, 12, 0);
+        LocalDateTime nyesteIkkeAktiveVedtak = LocalDateTime.of(2024, 3, 1, 12, 0);
+
+        beslutteroversiktRepository.lagBruker(lagBruker(opprettVedtakForTest("eldre"))
+                .setBrukerOppfolgingsenhetId("9902")
+                .setBrukerOppfolgingsenhetNavn("Eldre navn")
+                .setVedtakStartet(eldreVedtak));
+        beslutteroversiktRepository.lagBruker(lagBruker(opprettVedtakForTest("lik-dato-1"))
+                .setBrukerOppfolgingsenhetId("9902")
+                .setBrukerOppfolgingsenhetNavn("Lik dato, lavere rad-ID")
+                .setVedtakStartet(nyesteVedtak)
+                .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER));
+        beslutteroversiktRepository.lagBruker(lagBruker(opprettVedtakForTest("lik-dato-2"))
+                .setBrukerOppfolgingsenhetId("9902")
+                .setBrukerOppfolgingsenhetNavn("Lik dato, høyere rad-ID")
+                .setVedtakStartet(nyesteVedtak)
+                .setStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER));
+        beslutteroversiktRepository.lagBruker(lagBruker(opprettVedtakForTest("godkjent"))
+                .setBrukerOppfolgingsenhetId("9902")
+                .setBrukerOppfolgingsenhetNavn("Nyeste ikke-aktivt utkast")
+                .setVedtakStartet(nyesteIkkeAktiveVedtak)
+                .setStatus(BeslutteroversiktStatus.GODKJENT_AV_BESLUTTER));
+        beslutteroversiktRepository.lagBruker(lagBruker(opprettVedtakForTest("annen-enhet"))
+                .setBrukerOppfolgingsenhetId("9901")
+                .setBrukerOppfolgingsenhetNavn("Enhet først")
+                .setStatus(BeslutteroversiktStatus.KLAR_TIL_VEILEDER));
+
+        assertEquals(of(
+                        new EnhetMedNavn("9901", "Enhet først"),
+                        new EnhetMedNavn("9902", "Lik dato, høyere rad-ID")),
+                beslutteroversiktRepository.hentEnheterMedUtkast());
+    }
+
+    private long opprettVedtakForTest(String aktorId) {
+        vedtaksstotteRepository.opprettUtkast(aktorId, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        return vedtaksstotteRepository.hentUtkast(aktorId).getId();
     }
 
     private BeslutteroversiktBruker lagBruker(long vedtakId) {

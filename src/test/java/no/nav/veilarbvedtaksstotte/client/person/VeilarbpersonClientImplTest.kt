@@ -13,8 +13,8 @@ import no.nav.veilarbvedtaksstotte.utils.JsonUtils
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import no.nav.veilarbvedtaksstotte.utils.TestUtils
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.givenWiremockOkJsonResponseForPost
-import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail

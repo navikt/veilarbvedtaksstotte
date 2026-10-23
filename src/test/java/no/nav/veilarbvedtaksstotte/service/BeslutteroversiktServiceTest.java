@@ -7,6 +7,7 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBru
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnhetMedNavn;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
@@ -41,6 +42,27 @@ public class BeslutteroversiktServiceTest {
     private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService);
 
     private final static BrukereMedAntall INGEN_BRUKERE = new BrukereMedAntall(Collections.emptyList(), 0);
+
+    @Test
+    public void hentEnheterMedUtkast__skjuler_kode6_enhet_uten_tilgang() {
+        EnhetMedNavn vanligEnhet = new EnhetMedNavn("1234", "Nav Eksempel");
+        EnhetMedNavn kode6Enhet = new EnhetMedNavn("2103", "Nav Vikafossen");
+        when(beslutteroversiktRepository.hentEnheterMedUtkast()).thenReturn(List.of(vanligEnhet, kode6Enhet));
+        when(authService.harTilgangTilKode6Brukere()).thenReturn(false);
+
+        assertEquals(List.of(vanligEnhet), beslutteroversiktService.hentEnheterMedUtkast());
+        verify(authService).harTilgangTilKode6Brukere();
+    }
+
+    @Test
+    public void hentEnheterMedUtkast__viser_kode6_enhet_med_tilgang() {
+        EnhetMedNavn kode6Enhet = new EnhetMedNavn("2103", "Nav Vikafossen");
+        when(beslutteroversiktRepository.hentEnheterMedUtkast()).thenReturn(List.of(kode6Enhet));
+        when(authService.harTilgangTilKode6Brukere()).thenReturn(true);
+
+        assertEquals(List.of(kode6Enhet), beslutteroversiktService.hentEnheterMedUtkast());
+        verify(authService).harTilgangTilKode6Brukere();
+    }
 
     @Test
     public void sokEtterBruker__skal_sette_alle_veileder_enheter_hvis_enhet_filter_mangler() {
