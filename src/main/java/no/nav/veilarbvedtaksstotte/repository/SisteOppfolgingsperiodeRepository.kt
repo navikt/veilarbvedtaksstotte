@@ -4,6 +4,7 @@ import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.domain.oppfolgingsperiode.SisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import no.nav.veilarbvedtaksstotte.utils.TimeUtils
+import org.springframework.dao.DataAccessException
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
@@ -30,7 +31,10 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
 
         try {
             return jdbcTemplate.queryForObject(sql, sisteOppfolgingsperiodeRowMapper, aktorId.get())
-        } catch (e: Exception) {
+        } catch (e: DataAccessException) {
+            if (e is EmptyResultDataAccessException) {
+                return null
+            }
             secureLog.error(
                 "Kunne ikke hente siste oppfolgingsperiode for aktorId: $aktorId",
             )
@@ -47,7 +51,7 @@ class SisteOppfolgingPeriodeRepository(val jdbcTemplate: JdbcTemplate) {
 
         try {
             return jdbcTemplate.queryForObject(sql, sisteOppfolgingsperiodeRowMapper, aktorId.get())
-        } catch (e: EmptyResultDataAccessException) {
+        } catch (_: EmptyResultDataAccessException) {
             return null
         }
     }

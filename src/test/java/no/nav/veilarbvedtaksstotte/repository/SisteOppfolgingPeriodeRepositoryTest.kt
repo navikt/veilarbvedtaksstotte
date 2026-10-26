@@ -1,12 +1,18 @@
 package no.nav.veilarbvedtaksstotte.repository
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import no.nav.common.types.identer.AktorId
 import no.nav.veilarbvedtaksstotte.domain.oppfolgingsperiode.SisteOppfolgingsperiode
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
+import no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertNull
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
@@ -33,7 +39,6 @@ class SisteOppfolgingPeriodeRepositoryTest : DatabaseTest() {
                 null,
             )
         }
-
     }
 
     @Test
@@ -87,4 +92,32 @@ class SisteOppfolgingPeriodeRepositoryTest : DatabaseTest() {
         // then
         assertNull(innevarendeOppfolgingsperiode)
     }
+
+    @Test
+    fun `ignorer EmptyResultDataAccessException når oppfølgingsperiode ikke fins`() {
+        // given
+        val aktorId = AktorId.of("2228184718032")
+        jdbcTemplate.update(
+            "DELETE FROM SISTE_OPPFOLGING_PERIODE WHERE AKTORID = ?", aktorId.get()
+        )
+
+        val logger = secureLog.teamLog as Logger
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(appender)
+
+        try {
+            val resultat = sisteOppfolgingPeriodeRepository.hentInnevaerendeOppfolgingsperiode(aktorId)
+            assertNull(resultat)
+
+            val feilmeldinger = appender.list.filter {
+                it.level == Level.ERROR &&
+                        it.formattedMessage.startsWith("Kunne ikke hente siste oppfolgingsperiode for aktorId: ")
+            }
+            assertTrue(feilmeldinger.isEmpty())
+        } finally {
+            logger.detachAppender(appender)
+            appender.stop()
+        }
+    }
 }
+
