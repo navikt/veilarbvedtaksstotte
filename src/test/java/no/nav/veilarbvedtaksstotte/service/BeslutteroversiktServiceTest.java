@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.common.types.identer.NavIdent;
 import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.dto.Etiketter;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
@@ -21,12 +22,12 @@ import java.util.List;
 import java.util.Map;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT_2;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -70,9 +71,10 @@ public class BeslutteroversiktServiceTest {
 
     @Test
     public void sokEtterBruker__skal_sette_alle_veileder_enheter_hvis_enhet_filter_mangler() {
-        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class))).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
-                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, Arrays.asList(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT_2, Arrays.asList(
                         new PortefoljeEnhet("1234", "test1"),
                         new PortefoljeEnhet("4321", "test1")
                 ))
@@ -82,15 +84,17 @@ public class BeslutteroversiktServiceTest {
 
         beslutteroversiktService.sokEtterBruker(sok);
         ArgumentCaptor<BeslutteroversiktSok> argument1 = ArgumentCaptor.forClass(BeslutteroversiktSok.class);
-        ArgumentCaptor<String> argument2 = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<NavIdent> argument2 = ArgumentCaptor.forClass(NavIdent.class);
         verify(beslutteroversiktRepository).sokEtterBrukere(argument1.capture(), argument2.capture());
 
         assertEquals(2, argument1.getValue().getFilter().getEnheter().size());
+        assertEquals(TEST_VEILEDER_IDENT, argument2.getValue().get());
     }
 
     @Test
     public void sokEtterBruker__skal_feile_hvis_ikke_tilgang_til_enhet() {
-        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class))).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, Arrays.asList(
                         new PortefoljeEnhet("1234", "test1"),
@@ -108,7 +112,8 @@ public class BeslutteroversiktServiceTest {
 
     @Test
     public void sokEtterBruker__skal_ikke_feile_hvis_tilgang_til_enheter() {
-        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class))).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, Arrays.asList(
                         new PortefoljeEnhet("1234", "test1"),
@@ -120,15 +125,16 @@ public class BeslutteroversiktServiceTest {
         sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("4321", "1234")));
 
         beslutteroversiktService.sokEtterBruker(sok);
-        verify(beslutteroversiktRepository, atLeastOnce()).sokEtterBrukere(any(), anyString());
+        verify(beslutteroversiktRepository, atLeastOnce()).sokEtterBrukere(any(), any(NavIdent.class));
     }
 
     @Test
     public void sokEtterBruker__skal_sensurere_brukere() {
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         BeslutteroversiktService beslutteroversiktService =
                 spy(new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService, etiketterService));
 
-        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class))).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, Arrays.asList(
                         new PortefoljeEnhet("1234", "test1"),

@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.common.types.identer.NavIdent;
 import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.dto.Etiketter;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
@@ -53,6 +54,8 @@ public class BeslutteroversiktService {
             sok.setFilter(new BeslutteroversiktSokFilter());
         }
 
+        NavIdent veilederId = NavIdent.of(authService.getInnloggetVeilederIdent());
+
         VeilederEnheterDTO veilederEnheterDTO = veiledereOgEnhetClient.hentInnloggetVeilederEnheter();
         List<String> veilederEnheter = veilederEnheterDTO.getEnhetliste()
                 .stream()
@@ -67,7 +70,7 @@ public class BeslutteroversiktService {
             sjekkTilgangTilAlleEnheter(enhetFilter, veilederEnheter);
         }
 
-        BrukereMedAntall brukereMedAntall = beslutteroversiktRepository.sokEtterBrukere(sok, veilederEnheterDTO.getIdent());
+        BrukereMedAntall brukereMedAntall = beslutteroversiktRepository.sokEtterBrukere(sok, veilederId);
         leggTilEtiketter(brukereMedAntall.getBrukere());
         sensurerBrukere(brukereMedAntall.getBrukere());
 
