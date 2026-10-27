@@ -73,7 +73,7 @@ class BeslutteroversiktController @Autowired constructor(
                 content = [Content(schema = Schema(hidden = true))]
             )]
     )
-    fun startBeslutterProsess(@RequestBody sokData: BeslutteroversiktSok): BrukereMedAntall? {
+    fun sokEtterUtkastTilKvalitetssikring(@RequestBody sokData: BeslutteroversiktSok): BrukereMedAntall? {
         return beslutteroversiktService.sokEtterBruker(sokData)
     }
 
