@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
+import no.nav.common.types.identer.NavIdent;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
@@ -106,12 +107,12 @@ public class BeslutteroversiktRepository {
 
     public BrukereMedAntall
 
-    sokEtterBrukere(BeslutteroversiktSok sok, String innloggetVeilederIdent) {
+    sokEtterBrukere(BeslutteroversiktSok sok, NavIdent innloggetVeilederIdent) {
         Object[] parameters = NO_PARAMETERS;
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);
 
         Optional<SqlWithParameters> maybeFilterSqlWithParams =
-                createFilterSqlWithParameters(sok.getFilter(), innloggetVeilederIdent);
+                createFilterSqlWithParameters(sok.getFilter(), innloggetVeilederIdent.get());
         Optional<String> maybeOrderBySql = lagOrderBySql(sok.getOrderByField(), sok.getOrderByDirection());
 
         if (maybeFilterSqlWithParams.isPresent()) {
@@ -124,7 +125,7 @@ public class BeslutteroversiktRepository {
 
         sqlBuilder.append(" ").append(lagPaginationSql(sok.getAntall(), sok.getFra()));
 
-        long totaltAntallSokteBrukere = totaltAntallBrukereForSok(sok, innloggetVeilederIdent);
+        long totaltAntallSokteBrukere = totaltAntallBrukereForSok(sok, innloggetVeilederIdent.get());
         List<BeslutteroversiktBruker> brukere =
                 db.query(sqlBuilder.toString(), BeslutteroversiktRepository::mapBeslutteroversiktBruker, parameters);
 
