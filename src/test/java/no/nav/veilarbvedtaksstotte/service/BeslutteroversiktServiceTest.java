@@ -80,7 +80,7 @@ public class BeslutteroversiktServiceTest {
 
         BeslutteroversiktSok sok = new BeslutteroversiktSok();
 
-        beslutteroversiktService.sokEtterBruker(sok);
+        beslutteroversiktService.hentBeslutteroversikt(sok);
         ArgumentCaptor<BeslutteroversiktSok> argument1 = ArgumentCaptor.forClass(BeslutteroversiktSok.class);
         ArgumentCaptor<NavIdent> argument2 = ArgumentCaptor.forClass(NavIdent.class);
         verify(beslutteroversiktRepository).sokEtterBrukere(argument1.capture(), argument2.capture());
@@ -104,7 +104,7 @@ public class BeslutteroversiktServiceTest {
                 .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("5431")));
 
         assertThrows(ResponseStatusException.class, () -> {
-            beslutteroversiktService.sokEtterBruker(sok);
+            beslutteroversiktService.hentBeslutteroversikt(sok);
         });
     }
 
@@ -122,7 +122,7 @@ public class BeslutteroversiktServiceTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("4321", "1234")));
 
-        beslutteroversiktService.sokEtterBruker(sok);
+        beslutteroversiktService.hentBeslutteroversikt(sok);
         verify(beslutteroversiktRepository, atLeastOnce()).sokEtterBrukere(any(), any(NavIdent.class));
     }
 
@@ -140,7 +140,7 @@ public class BeslutteroversiktServiceTest {
                 ))
         );
 
-        beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok());
+        beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok());
         verify(beslutteroversiktService).sensurerBrukere(anyList());
     }
 
@@ -159,7 +159,7 @@ public class BeslutteroversiktServiceTest {
                 .thenReturn(new BrukereMedAntall(List.of(bruker), 1));
         when(authService.harInnloggetVeilederTilgangTilBrukere(any())).thenReturn(Map.of("11111111111", false));
 
-        BrukereMedAntall resultat = beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok());
+        BrukereMedAntall resultat = beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok());
 
         assertEquals(1, resultat.getTotaltAntall());
         assertEquals(List.of(bruker.withBrukerFnr("").withBrukerFornavn("").withBrukerEtternavn("")), resultat.getBrukere());
@@ -226,7 +226,7 @@ public class BeslutteroversiktServiceTest {
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet(null, "test1")))
         );
 
-        assertThrows(IllegalStateException.class, () -> beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok()));
+        assertThrows(IllegalStateException.class, () -> beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok()));
         verifyNoInteractions(beslutteroversiktRepository);
     }
 
@@ -248,7 +248,7 @@ public class BeslutteroversiktServiceTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("1234", null)));
 
-        ResponseStatusException feil = assertThrows(ResponseStatusException.class, () -> beslutteroversiktService.sokEtterBruker(sok));
+        ResponseStatusException feil = assertThrows(ResponseStatusException.class, () -> beslutteroversiktService.hentBeslutteroversikt(sok));
         assertEquals(HttpStatus.FORBIDDEN, feil.getStatusCode());
         verifyNoInteractions(beslutteroversiktRepository);
     }
