@@ -190,18 +190,20 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
     }
 
     private BeslutteroversiktBruker lagBruker(long vedtakId) {
-        return new BeslutteroversiktBruker()
-                .withVedtakId(vedtakId)
-                .withBrukerFornavn("fornavn")
-                .withBrukerEtternavn("etternavn")
-                .withBrukerOppfolgingsenhetNavn(TEST_OPPFOLGINGSENHET_NAVN)
-                .withBrukerOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
-                .withBrukerFnr(TEST_FNR.get())
-                .withVedtakStartet(now())
-                .withStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER)
-                .withBeslutterNavn(TEST_BESLUTTER_NAVN)
-                .withBeslutterIdent(TEST_BESLUTTER_IDENT)
-                .withVeilederNavn(TEST_VEILEDER_NAVN);
+        return new BeslutteroversiktBruker(
+                vedtakId,
+                "fornavn",
+                "etternavn",
+                TEST_OPPFOLGINGSENHET_NAVN,
+                TEST_OPPFOLGINGSENHET_ID,
+                TEST_FNR.get(),
+                now(),
+                BeslutteroversiktStatus.KLAR_TIL_BESLUTTER,
+                null, // statusEndret settes av databasen
+                TEST_BESLUTTER_NAVN,
+                TEST_BESLUTTER_IDENT,
+                TEST_VEILEDER_NAVN
+        );
     }
 
 }

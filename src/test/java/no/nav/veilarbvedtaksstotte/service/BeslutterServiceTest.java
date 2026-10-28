@@ -21,6 +21,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.KLAR_TIL_VEILEDER;
@@ -93,7 +95,8 @@ public class BeslutterServiceTest {
                 .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
                 .setAktorId(TEST_AKTOR_ID)
                 .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
-                .setVeilederIdent(TEST_VEILEDER_IDENT);
+                .setVeilederIdent(TEST_VEILEDER_IDENT)
+                .setUtkastOpprettet(LocalDateTime.of(2026, 1, 1, 12, 0));
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
@@ -134,7 +137,8 @@ public class BeslutterServiceTest {
                 .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
                 .setAktorId(TEST_AKTOR_ID)
                 .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
-                .setVeilederIdent(TEST_VEILEDER_IDENT);
+                .setVeilederIdent(TEST_VEILEDER_IDENT)
+                .setUtkastOpprettet(LocalDateTime.of(2026, 1, 1, 12, 0));
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
         when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);

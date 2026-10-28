@@ -237,19 +237,20 @@ public class BeslutteroversiktRepository {
 
     @SneakyThrows
     private static @NonNull BeslutteroversiktBruker mapBeslutteroversiktBruker(ResultSet rs, int rowNum) {
-        return new BeslutteroversiktBruker()
-                .withVedtakId(rs.getLong(VEDTAK_ID))
-                .withBrukerFornavn(rs.getString(BRUKER_FORNAVN))
-                .withBrukerEtternavn(rs.getString(BRUKER_ETTERNAVN))
-                .withBrukerOppfolgingsenhetNavn(rs.getString(BRUKER_OPPFOLGINGSENHET_NAVN))
-                .withBrukerOppfolgingsenhetId(rs.getString(BRUKER_OPPFOLGINGSENHET_ID))
-                .withBrukerFnr(rs.getString(BRUKER_FNR))
-                .withVedtakStartet(rs.getTimestamp(VEDTAK_STARTET).toLocalDateTime())
-                .withStatus(EnumUtils.valueOf(BeslutteroversiktStatus.class, rs.getString(STATUS)))
-                .withStatusEndret(rs.getTimestamp(STATUS_ENDRET).toLocalDateTime())
-                .withBeslutterNavn(rs.getString(BESLUTTER_NAVN))
-                .withBeslutterIdent(rs.getString(BESLUTTER_IDENT))
-                .withVeilederNavn(rs.getString(VEILEDER_NAVN));
+        return new BeslutteroversiktBruker(
+                rs.getLong(VEDTAK_ID),
+                rs.getString(BRUKER_FORNAVN),
+                rs.getString(BRUKER_ETTERNAVN),
+                rs.getString(BRUKER_OPPFOLGINGSENHET_NAVN),
+                rs.getString(BRUKER_OPPFOLGINGSENHET_ID),
+                rs.getString(BRUKER_FNR),
+                rs.getTimestamp(VEDTAK_STARTET).toLocalDateTime(),
+                EnumUtils.valueOf(BeslutteroversiktStatus.class, rs.getString(STATUS)),
+                rs.getTimestamp(STATUS_ENDRET).toLocalDateTime(),
+                rs.getString(BESLUTTER_NAVN),
+                rs.getString(BESLUTTER_IDENT),
+                rs.getString(VEILEDER_NAVN)
+        );
     }
 
 }
