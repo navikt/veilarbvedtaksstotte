@@ -44,7 +44,7 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
     @Test
     public void sokEtterBrukere__skal_finne_bruker_med_status() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setFilter(new BeslutteroversiktSokFilter().setStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER));
+                .withFilter(new BeslutteroversiktSokFilter().withStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER));
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere();
 
@@ -54,7 +54,7 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
     @Test
     public void sokEtterBrukere__skal_finne_bruker_med_1_enhet() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setFilter(new BeslutteroversiktSokFilter().setEnheter(Collections.singletonList("1234")));
+                .withFilter(new BeslutteroversiktSokFilter().withEnheter(Collections.singletonList("1234")));
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere();
 
@@ -64,7 +64,7 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
     @Test
     public void sokEtterBrukere__skal_finne_bruker_med_flere_enheter() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("1234", "6755")));
+                .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("1234", "6755")));
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere();
 
@@ -74,7 +74,7 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
     @Test
     public void sokEtterBrukere__skal_finne_mine_brukere() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setFilter(new BeslutteroversiktSokFilter().setVisMineBrukere(true));
+                .withFilter(new BeslutteroversiktSokFilter().withVisMineBrukere(true));
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere();
 
@@ -84,10 +84,10 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
     @Test
     public void sokEtterBrukere__skal_finne_bruker_med_flere_filter() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setFilter(
+                .withFilter(
                         new BeslutteroversiktSokFilter()
-                                .setEnheter(Arrays.asList("1234", "6755"))
-                                .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
+                                .withEnheter(Arrays.asList("1234", "6755"))
+                                .withStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
                 );
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere();
@@ -98,8 +98,8 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
     @Test
     public void sokEtterBrukere__skal_sortere_pa_fnr_asc() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setOrderByDirection(BeslutteroversiktSok.OrderByDirection.ASC)
-                .setOrderByField(BeslutteroversiktSok.OrderByField.BRUKER_FNR);
+                .withOrderByDirection(BeslutteroversiktSok.OrderByDirection.ASC)
+                .withOrderByField(BeslutteroversiktSok.OrderByField.BRUKER_FNR);
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere();
 
         assertEquals("011111111111",  brukere.getFirst().getBrukerFnr());
@@ -108,8 +108,8 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
     @Test
     public void sokEtterBrukere__skal_sortere_pa_fnr_desc() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setOrderByDirection(BeslutteroversiktSok.OrderByDirection.DESC)
-                .setOrderByField(BeslutteroversiktSok.OrderByField.BRUKER_FNR);
+                .withOrderByDirection(BeslutteroversiktSok.OrderByDirection.DESC)
+                .withOrderByField(BeslutteroversiktSok.OrderByField.BRUKER_FNR);
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere();
 
@@ -119,7 +119,7 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
     @Test
     public void sokEtterBrukere__skal_begrense_antall() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setAntall(1);
+                .withAntall(1);
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere();
 
@@ -129,7 +129,7 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
     @Test
     public void sokEtterBrukere__skal_hoppe_over() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setFra(1);
+                .withFra(1);
 
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere();
 
@@ -139,8 +139,8 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
     @Test
     public void sokEtterBrukere__skal_finne_totalt_antall() {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .setAntall(1)
-                .setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("1234", "6755")));
+                .withAntall(1)
+                .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("1234", "6755")));
 
         BrukereMedAntall brukereMedAntall = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT));
 

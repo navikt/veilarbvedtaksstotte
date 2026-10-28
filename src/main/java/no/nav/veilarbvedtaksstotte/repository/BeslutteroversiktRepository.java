@@ -9,6 +9,7 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSta
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnhetMedNavn;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -105,9 +106,7 @@ public class BeslutteroversiktRepository {
         db.update(sql, enhetId, enhetNavn, vedtakId);
     }
 
-    public BrukereMedAntall
-
-    sokEtterBrukere(BeslutteroversiktSok sok, NavIdent innloggetVeilederIdent) {
+    public @NonNull BrukereMedAntall sokEtterBrukere(BeslutteroversiktSok sok, NavIdent innloggetVeilederIdent) {
         Object[] parameters = NO_PARAMETERS;
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);
 
@@ -126,7 +125,7 @@ public class BeslutteroversiktRepository {
         sqlBuilder.append(" ").append(lagPaginationSql(sok.getAntall(), sok.getFra()));
 
         long totaltAntallSokteBrukere = totaltAntallBrukereForSok(sok, innloggetVeilederIdent.get());
-        List<BeslutteroversiktBruker> brukere =
+        List<@NonNull BeslutteroversiktBruker> brukere =
                 db.query(sqlBuilder.toString(), BeslutteroversiktRepository::mapBeslutteroversiktBruker, parameters);
 
         return new BrukereMedAntall(brukere, totaltAntallSokteBrukere);
@@ -167,7 +166,7 @@ public class BeslutteroversiktRepository {
         return filter != null
                 && (!isNullOrEmpty(filter.getEnheter())
                 || filter.getStatus() != null
-                || filter.isVisMineBrukere());
+                || filter.getVisMineBrukere());
     }
 
     private Optional<String> lagOrderBySql(BeslutteroversiktSok.OrderByField field, BeslutteroversiktSok.OrderByDirection direction) {
@@ -197,7 +196,7 @@ public class BeslutteroversiktRepository {
             parameters.add(toPostgresArray(filter.getEnheter()));
         }
 
-        if (filter.isVisMineBrukere()) {
+        if (filter.getVisMineBrukere()) {
             filterStrs.add(format("%s = ?", BESLUTTER_IDENT));
             parameters.add(innloggetVeilederIdent);
         }
@@ -211,7 +210,7 @@ public class BeslutteroversiktRepository {
         return Optional.of(new SqlWithParameters(sqlStr, List.of(parameters.toArray())));
     }
 
-    public List<EnhetMedNavn> hentEnheterMedUtkast() {
+    public @NonNull List<@NonNull EnhetMedNavn> hentEnheterMedUtkast() {
         String sql = format(
                 "WITH ENHETER_MED_SISTE_VEDTAK AS (" +
                         "SELECT DISTINCT ON (%s) %s, %s FROM %s WHERE %s IN " +
@@ -241,20 +240,20 @@ public class BeslutteroversiktRepository {
     }
 
     @SneakyThrows
-    private static BeslutteroversiktBruker mapBeslutteroversiktBruker(ResultSet rs, int rowNum) {
+    private static @NonNull BeslutteroversiktBruker mapBeslutteroversiktBruker(ResultSet rs, int rowNum) {
         return new BeslutteroversiktBruker()
-                .setVedtakId(rs.getLong(VEDTAK_ID))
-                .setBrukerFornavn(rs.getString(BRUKER_FORNAVN))
-                .setBrukerEtternavn(rs.getString(BRUKER_ETTERNAVN))
-                .setBrukerOppfolgingsenhetNavn(rs.getString(BRUKER_OPPFOLGINGSENHET_NAVN))
-                .setBrukerOppfolgingsenhetId(rs.getString(BRUKER_OPPFOLGINGSENHET_ID))
-                .setBrukerFnr(rs.getString(BRUKER_FNR))
-                .setVedtakStartet(rs.getTimestamp(VEDTAK_STARTET).toLocalDateTime())
-                .setStatus(EnumUtils.valueOf(BeslutteroversiktStatus.class, rs.getString(STATUS)))
-                .setStatusEndret(rs.getTimestamp(STATUS_ENDRET).toLocalDateTime())
-                .setBeslutterNavn(rs.getString(BESLUTTER_NAVN))
-                .setBeslutterIdent(rs.getString(BESLUTTER_IDENT))
-                .setVeilederNavn(rs.getString(VEILEDER_NAVN));
+                .withVedtakId(rs.getLong(VEDTAK_ID))
+                .withBrukerFornavn(rs.getString(BRUKER_FORNAVN))
+                .withBrukerEtternavn(rs.getString(BRUKER_ETTERNAVN))
+                .withBrukerOppfolgingsenhetNavn(rs.getString(BRUKER_OPPFOLGINGSENHET_NAVN))
+                .withBrukerOppfolgingsenhetId(rs.getString(BRUKER_OPPFOLGINGSENHET_ID))
+                .withBrukerFnr(rs.getString(BRUKER_FNR))
+                .withVedtakStartet(rs.getTimestamp(VEDTAK_STARTET).toLocalDateTime())
+                .withStatus(EnumUtils.valueOf(BeslutteroversiktStatus.class, rs.getString(STATUS)))
+                .withStatusEndret(rs.getTimestamp(STATUS_ENDRET).toLocalDateTime())
+                .withBeslutterNavn(rs.getString(BESLUTTER_NAVN))
+                .withBeslutterIdent(rs.getString(BESLUTTER_IDENT))
+                .withVeilederNavn(rs.getString(VEILEDER_NAVN));
     }
 
 }
