@@ -49,12 +49,11 @@ class BeslutteroversiktService(
     }
 
     // Returnerer brukerne i samme rekkefølge. Brukere veilederen ikke har bekreftet tilgang til,
-    // får tomt fnr og navn. Elementene kan være null fordi Java-kode kaller funksjonen direkte.
-    fun sensurerBrukere(brukere: List<BeslutteroversiktBruker?>): List<BeslutteroversiktBruker> {
+    // får tomt fnr og navn.
+    fun sensurerBrukere(brukere: List<BeslutteroversiktBruker>): List<BeslutteroversiktBruker> {
         if (brukere.isEmpty()) return emptyList()
 
         val brukereMedFnr = brukere.map { bruker ->
-            checkNotNull(bruker) { "Brukerlisten inneholder en tom bruker" }
             bruker to checkNotNull(bruker.brukerFnr) { "Bruker mangler identifikator" }
         }
         val tilgang = authService.harInnloggetVeilederTilgangTilBrukere(brukereMedFnr.map { (_, fnr) -> fnr })
