@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
@@ -101,7 +102,7 @@ public class BeslutteroversiktServiceTest {
         );
 
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("5431")));
+                .withFilter(new BeslutteroversiktSokFilter().withEnheter(List.of(EnhetId.of("5431"))));
 
         assertThrows(ResponseStatusException.class, () -> {
             beslutteroversiktService.hentBeslutteroversikt(sok);
@@ -120,7 +121,7 @@ public class BeslutteroversiktServiceTest {
         );
 
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("4321", "1234")));
+                .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList(EnhetId.of("4321"), EnhetId.of("1234"))));
 
         beslutteroversiktService.hentBeslutteroversikt(sok);
         verify(beslutteroversiktRepository, atLeastOnce()).sokEtterBrukere(any(), any(NavIdent.class));
