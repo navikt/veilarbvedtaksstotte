@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import io.getunleash.DefaultUnleash;
+import io.getunleash.UnleashContext;
 import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
@@ -24,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.MODIA_KVALITETSSIKRING_OPPFOLGINGSVEDTAK;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT_2;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -45,7 +50,9 @@ public class BeslutteroversiktServiceTest {
 
     private final AuthService authService = mock(AuthService.class);
 
-    private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService);
+    private final DefaultUnleash defaultUnleash = mock(DefaultUnleash.class);
+
+    private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService, defaultUnleash);
 
     private final static BrukereMedAntall INGEN_BRUKERE = new BrukereMedAntall(Collections.emptyList(), 0);
 
@@ -161,7 +168,7 @@ public class BeslutteroversiktServiceTest {
     public void sokEtterBruker__skal_sensurere_brukere() {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         BeslutteroversiktService beslutteroversiktService =
-                spy(new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService));
+                spy(new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService, defaultUnleash));
 
         when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class))).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
@@ -244,6 +251,104 @@ public class BeslutteroversiktServiceTest {
 
         assertThrows(IllegalStateException.class, () -> beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok()));
         verifyNoInteractions(beslutteroversiktRepository);
+    }
+
+    // --- Landsdekkende modus (togglen på). Testene feiler til stubbene merket 🔴 TODO er implementert. ---
+
+    private static final List<EnhetId> VIKAFOSSEN = List.of(EnhetId.of("2103"));
+
+    private void slaPaLandsdekkendeModus() {
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(defaultUnleash.isEnabled(eq(MODIA_KVALITETSSIKRING_OPPFOLGINGSVEDTAK), any(UnleashContext.class))).thenReturn(true);
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class), anyList())).thenReturn(INGEN_BRUKERE);
+    }
+
+    private static BeslutteroversiktSok sokPaEnheter(String... enheter) {
+        return new BeslutteroversiktSok().withFilter(
+                new BeslutteroversiktSokFilter().withEnheter(Arrays.stream(enheter).map(EnhetId::of).toList()));
+    }
+
+    @Test
+    public void landsdekkende__skal_evaluere_toggle_for_innlogget_veileder() {
+        slaPaLandsdekkendeModus();
+
+        beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok());
+
+        ArgumentCaptor<UnleashContext> context = ArgumentCaptor.forClass(UnleashContext.class);
+        verify(defaultUnleash).isEnabled(eq(MODIA_KVALITETSSIKRING_OPPFOLGINGSVEDTAK), context.capture());
+        assertEquals(TEST_VEILEDER_IDENT, context.getValue().getUserId().orElseThrow());
+    }
+
+    @Test
+    public void landsdekkende__skal_gi_403_uten_modia_tilgang() {
+        slaPaLandsdekkendeModus();
+        doThrow(new ResponseStatusException(HttpStatus.FORBIDDEN)).when(authService).sjekkModiaGenerellTilgang();
+
+        ResponseStatusException feil = assertThrows(ResponseStatusException.class,
+                () -> beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok()));
+
+        assertEquals(HttpStatus.FORBIDDEN, feil.getStatusCode());
+        verifyNoInteractions(beslutteroversiktRepository, veiledereOgEnhetClient);
+    }
+
+    @Test
+    public void landsdekkende__skal_ekskludere_vikafossen_uten_kode6_tilgang() {
+        slaPaLandsdekkendeModus();
+        when(authService.harTilgangTilKode6Brukere()).thenReturn(false);
+        BeslutteroversiktSok sok = new BeslutteroversiktSok();
+
+        beslutteroversiktService.hentBeslutteroversikt(sok);
+
+        verify(beslutteroversiktRepository).sokEtterBrukere(sok, NavIdent.of(TEST_VEILEDER_IDENT), VIKAFOSSEN);
+        verifyNoInteractions(veiledereOgEnhetClient);
+    }
+
+    @Test
+    public void landsdekkende__skal_ikke_ekskludere_enheter_med_kode6_tilgang() {
+        slaPaLandsdekkendeModus();
+        when(authService.harTilgangTilKode6Brukere()).thenReturn(true);
+        BeslutteroversiktSok sok = new BeslutteroversiktSok();
+
+        beslutteroversiktService.hentBeslutteroversikt(sok);
+
+        verify(beslutteroversiktRepository).sokEtterBrukere(sok, NavIdent.of(TEST_VEILEDER_IDENT), List.of());
+    }
+
+    @Test
+    public void landsdekkende__skal_gi_403_ved_sok_pa_vikafossen_uten_kode6_tilgang() {
+        slaPaLandsdekkendeModus();
+        when(authService.harTilgangTilKode6Brukere()).thenReturn(false);
+
+        ResponseStatusException feil = assertThrows(ResponseStatusException.class,
+                () -> beslutteroversiktService.hentBeslutteroversikt(sokPaEnheter("1234", "2103")));
+
+        assertEquals(HttpStatus.FORBIDDEN, feil.getStatusCode());
+        verifyNoInteractions(beslutteroversiktRepository);
+    }
+
+    @Test
+    public void landsdekkende__skal_tillate_sok_pa_enhet_utenfor_veileders_enheter() {
+        slaPaLandsdekkendeModus();
+        when(authService.harTilgangTilKode6Brukere()).thenReturn(false);
+        BeslutteroversiktSok sok = sokPaEnheter("9999");
+
+        beslutteroversiktService.hentBeslutteroversikt(sok);
+
+        verify(beslutteroversiktRepository).sokEtterBrukere(sok, NavIdent.of(TEST_VEILEDER_IDENT), VIKAFOSSEN);
+        verifyNoInteractions(veiledereOgEnhetClient);
+    }
+
+    @Test
+    public void landsdekkende__skal_sensurere_brukere() {
+        slaPaLandsdekkendeModus();
+        BeslutteroversiktBruker bruker = lagBruker(42, "11111111111", "Fornavn", "Etternavn");
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class), anyList()))
+                .thenReturn(new BrukereMedAntall(List.of(bruker), 1));
+        when(authService.harInnloggetVeilederTilgangTilBrukere(any())).thenReturn(Map.of("11111111111", false));
+
+        BrukereMedAntall resultat = beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok());
+
+        assertEquals(List.of(bruker.withBrukerFnr("").withBrukerFornavn("").withBrukerEtternavn("")), resultat.getBrukere());
     }
 
     private static BeslutteroversiktBruker lagBruker(long vedtakId, String fnr, String fornavn, String etternavn) {

@@ -23,21 +23,21 @@ import static no.nav.veilarbvedtaksstotte.utils.ValidationUtils.isNullOrEmpty;
 @Repository
 public class BeslutteroversiktRepository {
 
-    public final static String BESLUTTEROVERSIKT_BRUKER_TABLE               = "BESLUTTEROVERSIKT_BRUKER";
+    public final static String BESLUTTEROVERSIKT_BRUKER_TABLE = "BESLUTTEROVERSIKT_BRUKER";
 
-    private final static String ID                                          = "ID";
-    private final static String VEDTAK_ID                                   = "VEDTAK_ID";
-    private final static String BRUKER_FORNAVN                              = "BRUKER_FORNAVN";
-    private final static String BRUKER_ETTERNAVN                            = "BRUKER_ETTERNAVN";
-    private final static String BRUKER_OPPFOLGINGSENHET_NAVN                = "BRUKER_OPPFOLGINGSENHET_NAVN";
-    private final static String BRUKER_OPPFOLGINGSENHET_ID                  = "BRUKER_OPPFOLGINGSENHET_ID";
-    private final static String BRUKER_FNR                                  = "BRUKER_FNR";
-    private final static String VEDTAK_STARTET                              = "VEDTAK_STARTET";
-    private final static String STATUS                                      = "STATUS";
-    private final static String STATUS_ENDRET                               = "STATUS_ENDRET";
-    private final static String BESLUTTER_NAVN                              = "BESLUTTER_NAVN";
-    private final static String BESLUTTER_IDENT                             = "BESLUTTER_IDENT";
-    private final static String VEILEDER_NAVN                               = "VEILEDER_NAVN";
+    private final static String ID = "ID";
+    private final static String VEDTAK_ID = "VEDTAK_ID";
+    private final static String BRUKER_FORNAVN = "BRUKER_FORNAVN";
+    private final static String BRUKER_ETTERNAVN = "BRUKER_ETTERNAVN";
+    private final static String BRUKER_OPPFOLGINGSENHET_NAVN = "BRUKER_OPPFOLGINGSENHET_NAVN";
+    private final static String BRUKER_OPPFOLGINGSENHET_ID = "BRUKER_OPPFOLGINGSENHET_ID";
+    private final static String BRUKER_FNR = "BRUKER_FNR";
+    private final static String VEDTAK_STARTET = "VEDTAK_STARTET";
+    private final static String STATUS = "STATUS";
+    private final static String STATUS_ENDRET = "STATUS_ENDRET";
+    private final static String BESLUTTER_NAVN = "BESLUTTER_NAVN";
+    private final static String BESLUTTER_IDENT = "BESLUTTER_IDENT";
+    private final static String VEILEDER_NAVN = "VEILEDER_NAVN";
 
     private final static Object[] NO_PARAMETERS = new Object[0];
     private final static int DEFAULT_BRUKER_SOK_ANTALL = 20;
@@ -51,18 +51,18 @@ public class BeslutteroversiktRepository {
 
     public void lagBruker(BeslutteroversiktBruker bruker) {
         String sql = format(
-            "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?, ?, ?)",
-            BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID, BRUKER_FORNAVN, BRUKER_ETTERNAVN,
-            BRUKER_OPPFOLGINGSENHET_NAVN, BRUKER_OPPFOLGINGSENHET_ID, BRUKER_FNR,
-            VEDTAK_STARTET, STATUS, BESLUTTER_NAVN, BESLUTTER_IDENT, VEILEDER_NAVN
+                "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?, ?, ?)",
+                BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID, BRUKER_FORNAVN, BRUKER_ETTERNAVN,
+                BRUKER_OPPFOLGINGSENHET_NAVN, BRUKER_OPPFOLGINGSENHET_ID, BRUKER_FNR,
+                VEDTAK_STARTET, STATUS, BESLUTTER_NAVN, BESLUTTER_IDENT, VEILEDER_NAVN
         );
 
         db.update(
-            sql,
-            bruker.getVedtakId(), bruker.getBrukerFornavn(), bruker.getBrukerEtternavn(),
-            bruker.getBrukerOppfolgingsenhetNavn(), bruker.getBrukerOppfolgingsenhetId(),
-            bruker.getBrukerFnr(), bruker.getVedtakStartet(), getName(bruker.getStatus()),
-            bruker.getBeslutterNavn(), bruker.getBeslutterIdent(), bruker.getVeilederNavn()
+                sql,
+                bruker.getVedtakId(), bruker.getBrukerFornavn(), bruker.getBrukerEtternavn(),
+                bruker.getBrukerOppfolgingsenhetNavn(), bruker.getBrukerOppfolgingsenhetId(),
+                bruker.getBrukerFnr(), bruker.getVedtakStartet(), getName(bruker.getStatus()),
+                bruker.getBeslutterNavn(), bruker.getBeslutterIdent(), bruker.getVeilederNavn()
         );
     }
 
@@ -103,11 +103,19 @@ public class BeslutteroversiktRepository {
     }
 
     public @NonNull BrukereMedAntall sokEtterBrukere(BeslutteroversiktSok sok, NavIdent innloggetVeilederIdent) {
+        return sokEtterBrukere(sok, innloggetVeilederIdent, List.of());
+    }
+
+    public @NonNull BrukereMedAntall sokEtterBrukere(
+            BeslutteroversiktSok sok,
+            NavIdent innloggetVeilederIdent,
+            List<EnhetId> ekskluderteEnheter
+    ) {
         Object[] parameters = NO_PARAMETERS;
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);
 
         Optional<SqlWithParameters> maybeFilterSqlWithParams =
-                createFilterSqlWithParameters(sok.getFilter(), innloggetVeilederIdent.get());
+                createFilterSqlWithParameters(sok.getFilter(), innloggetVeilederIdent.get(), ekskluderteEnheter);
         Optional<String> maybeOrderBySql = lagOrderBySql(sok.getOrderByField(), sok.getOrderByDirection());
 
         if (maybeFilterSqlWithParams.isPresent()) {
@@ -120,7 +128,7 @@ public class BeslutteroversiktRepository {
 
         sqlBuilder.append(" ").append(lagPaginationSql(sok.getAntall(), sok.getFra()));
 
-        long totaltAntallSokteBrukere = totaltAntallBrukereForSok(sok, innloggetVeilederIdent.get());
+        long totaltAntallSokteBrukere = totaltAntallBrukereForSok(sok, innloggetVeilederIdent.get(), ekskluderteEnheter);
         List<@NonNull BeslutteroversiktBruker> brukere =
                 db.query(sqlBuilder.toString(), BeslutteroversiktRepository::mapBeslutteroversiktBruker, parameters);
 
@@ -142,11 +150,16 @@ public class BeslutteroversiktRepository {
         db.update(format("DELETE FROM %s WHERE %s = ?", BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID), vedtakId);
     }
 
-    private long totaltAntallBrukereForSok(BeslutteroversiktSok sok, String innloggetVeilederIdent) {
+    private long totaltAntallBrukereForSok(
+            BeslutteroversiktSok sok,
+            String innloggetVeilederIdent,
+            List<EnhetId> ekskluderteEnheter
+    ) {
         Object[] parameters = NO_PARAMETERS;
         StringBuilder sqlBuilder = new StringBuilder("SELECT count(*) FROM ").append(BESLUTTEROVERSIKT_BRUKER_TABLE);
 
-        Optional<SqlWithParameters> maybeFilterSqlWithParams = createFilterSqlWithParameters(sok.getFilter(), innloggetVeilederIdent);
+        Optional<SqlWithParameters> maybeFilterSqlWithParams =
+                createFilterSqlWithParameters(sok.getFilter(), innloggetVeilederIdent, ekskluderteEnheter);
 
         if (maybeFilterSqlWithParams.isPresent()) {
             SqlWithParameters filterSqlWithParams = maybeFilterSqlWithParams.get();
@@ -158,11 +171,11 @@ public class BeslutteroversiktRepository {
         return count == null ? 0 : count;
     }
 
-    private boolean harAktivtFilter(BeslutteroversiktSokFilter filter) {
-        return filter != null
-                && (!isNullOrEmpty(filter.getEnheter())
+    private boolean harAktivtFilter(BeslutteroversiktSokFilter filter, List<EnhetId> ekskluderteEnheter) {
+        return !ekskluderteEnheter.isEmpty()
+                || !isNullOrEmpty(filter.getEnheter())
                 || filter.getStatus() != null
-                || filter.getVisMineBrukere());
+                || filter.getVisMineBrukere();
     }
 
     private Optional<String> lagOrderBySql(BeslutteroversiktSok.OrderByField field, BeslutteroversiktSok.OrderByDirection direction) {
@@ -179,13 +192,22 @@ public class BeslutteroversiktRepository {
         return format("LIMIT %d OFFSET %d", antall, fra);
     }
 
-    private Optional<SqlWithParameters> createFilterSqlWithParameters(BeslutteroversiktSokFilter filter, String innloggetVeilederIdent) {
-        if (!harAktivtFilter(filter)) {
+    private Optional<SqlWithParameters> createFilterSqlWithParameters(
+            BeslutteroversiktSokFilter filter,
+            String innloggetVeilederIdent,
+            List<EnhetId> ekskluderteEnheter
+    ) {
+        if (!harAktivtFilter(filter, ekskluderteEnheter)) {
             return Optional.empty();
         }
 
         List<String> filterStrs = new ArrayList<>();
         List<Object> parameters = new ArrayList<>();
+
+        if (!ekskluderteEnheter.isEmpty()) {
+            filterStrs.add(format("%s <> ALL(?::varchar[])", BRUKER_OPPFOLGINGSENHET_ID));
+            parameters.add(toPostgresArray(ekskluderteEnheter.stream().map(EnhetId::get).toList()));
+        }
 
         if (!isNullOrEmpty(filter.getEnheter())) {
             filterStrs.add(format("%s = SOME(?::varchar[])", BRUKER_OPPFOLGINGSENHET_ID));

@@ -9,10 +9,12 @@ import no.nav.common.types.identer.AktorId
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.utils.fn.UnsafeRunnable
 import no.nav.poao_tilgang.client.Decision
+import no.nav.poao_tilgang.client.NavAnsattTilgangTilModiaPolicyInput
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilNavEnhetPolicyInput
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.TilgangType
 import no.nav.poao_tilgang.client.api.ApiResult
+import no.nav.poao_tilgang.client.api.NetworkApiException
 import no.nav.veilarbvedtaksstotte.utils.TestData
 import no.nav.veilarbvedtaksstotte.utils.TestUtils.assertThrowsWithMessage
 import org.junit.jupiter.api.Assertions.*
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.mockito.kotlin.whenever
+import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
 
@@ -221,6 +224,36 @@ class AuthServiceTest {
             systemMedRoller("ekstra_rolle")
         ) {
             assertFalse(authService.harSystemTilSystemTilgangMedEkstraRolle("ekstra_rolle"))
+        }
+    }
+
+    @Test
+    fun `sjekkModiaGenerellTilgang gir tilgang ved permit for Modia-policyen`() {
+        whenever(poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())).thenReturn(ApiResult.success(Decision.Permit))
+
+        withContext(UserRole.INTERN) { authService.sjekkModiaGenerellTilgang() }
+
+        org.mockito.kotlin.verify(poaoTilgangClient).evaluatePolicy(org.mockito.kotlin.isA<NavAnsattTilgangTilModiaPolicyInput>())
+    }
+
+    @Test
+    fun `sjekkModiaGenerellTilgang gir 403 ved deny`() {
+        whenever(poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any())).thenReturn(ApiResult.success(Decision.Deny("", "")))
+
+        withContext(UserRole.INTERN) {
+            val feil = assertThrows(ResponseStatusException::class.java) { authService.sjekkModiaGenerellTilgang() }
+            assertEquals(HttpStatus.FORBIDDEN, feil.statusCode)
+        }
+    }
+
+    @Test
+    fun `sjekkModiaGenerellTilgang gir 403 når poao-tilgang feiler`() {
+        whenever(poaoTilgangClient.evaluatePolicy(org.mockito.kotlin.any()))
+            .thenReturn(ApiResult.failure(NetworkApiException(RuntimeException("nede"))))
+
+        withContext(UserRole.INTERN) {
+            val feil = assertThrows(ResponseStatusException::class.java) { authService.sjekkModiaGenerellTilgang() }
+            assertEquals(HttpStatus.FORBIDDEN, feil.statusCode)
         }
     }
 
