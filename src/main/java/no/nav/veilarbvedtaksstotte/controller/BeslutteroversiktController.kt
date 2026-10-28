@@ -74,7 +74,7 @@ class BeslutteroversiktController @Autowired constructor(
             )]
     )
     fun sokEtterUtkastTilKvalitetssikring(@RequestBody sokData: BeslutteroversiktSok): BrukereMedAntall? {
-        return beslutteroversiktService.sokEtterBruker(sokData)
+        return beslutteroversiktService.hentBeslutteroversikt(sokData)
     }
 
     @GetMapping("/enheter")
