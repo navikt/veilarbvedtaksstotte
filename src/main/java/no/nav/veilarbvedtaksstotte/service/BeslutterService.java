@@ -183,17 +183,17 @@ public class BeslutterService {
         PersonNavn brukerNavn = veilarbpersonClient.hentPersonNavn(brukerFnr);
 
         BeslutteroversiktBruker bruker = new BeslutteroversiktBruker()
-                .setVedtakId(vedtak.getId())
-                .setBrukerFornavn(brukerNavn.getFornavn())
-                .setBrukerEtternavn(brukerNavn.getEtternavn())
-                .setBrukerFnr(brukerFnr)
-                .setBrukerOppfolgingsenhetNavn(enhetNavn)
-                .setBrukerOppfolgingsenhetId(vedtak.getOppfolgingsenhetId())
-                .setVedtakStartet(vedtak.getUtkastOpprettet())
-                .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
-                .setBeslutterNavn(null)
-                .setBeslutterIdent(null)
-                .setVeilederNavn(veileder.getNavn());
+                .withVedtakId(vedtak.getId())
+                .withBrukerFornavn(brukerNavn.getFornavn())
+                .withBrukerEtternavn(brukerNavn.getEtternavn())
+                .withBrukerFnr(brukerFnr)
+                .withBrukerOppfolgingsenhetNavn(enhetNavn)
+                .withBrukerOppfolgingsenhetId(vedtak.getOppfolgingsenhetId())
+                .withVedtakStartet(vedtak.getUtkastOpprettet())
+                .withStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER)
+                .withBeslutterNavn(null)
+                .withBeslutterIdent(null)
+                .withVeilederNavn(veileder.getNavn());
 
         beslutteroversiktRepository.lagBruker(bruker);
     }

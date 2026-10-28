@@ -12,6 +12,7 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnhetMedNavn;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class BeslutteroversiktServiceTest {
@@ -98,8 +100,8 @@ public class BeslutteroversiktServiceTest {
                 ))
         );
 
-        BeslutteroversiktSok sok = new BeslutteroversiktSok();
-        sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("5431")));
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("5431")));
 
         assertThrows(ResponseStatusException.class, () -> {
             beslutteroversiktService.sokEtterBruker(sok);
@@ -117,8 +119,8 @@ public class BeslutteroversiktServiceTest {
                 ))
         );
 
-        BeslutteroversiktSok sok = new BeslutteroversiktSok();
-        sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("4321", "1234")));
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("4321", "1234")));
 
         beslutteroversiktService.sokEtterBruker(sok);
         verify(beslutteroversiktRepository, atLeastOnce()).sokEtterBrukere(any(), any(NavIdent.class));
@@ -143,6 +145,27 @@ public class BeslutteroversiktServiceTest {
     }
 
     @Test
+    public void sokEtterBruker__skal_returnere_sensurerte_brukere() {
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet("1234", "test1")))
+        );
+        BeslutteroversiktBruker bruker = new BeslutteroversiktBruker()
+                .withVedtakId(42)
+                .withBrukerFnr("11111111111")
+                .withBrukerFornavn("Fornavn")
+                .withBrukerEtternavn("Etternavn");
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class)))
+                .thenReturn(new BrukereMedAntall(List.of(bruker), 1));
+        when(authService.harInnloggetVeilederTilgangTilBrukere(any())).thenReturn(Map.of("11111111111", false));
+
+        BrukereMedAntall resultat = beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok());
+
+        assertEquals(1, resultat.getTotaltAntall());
+        assertEquals(List.of(bruker.withBrukerFnr("").withBrukerFornavn("").withBrukerEtternavn("")), resultat.getBrukere());
+    }
+
+    @Test
     public void sensurerBrukere__skal_fjerne_informasjon_pa_brukere_uten_tilgang() {
         String bruker1Fnr = "11111111111";
         String bruker2Fnr = "22222222222";
@@ -154,26 +177,26 @@ public class BeslutteroversiktServiceTest {
                 .thenReturn(brukerTilganger);
 
         BeslutteroversiktBruker bruker1 = new BeslutteroversiktBruker()
-                .setBrukerFnr(bruker1Fnr)
-                .setBrukerFornavn("Bruker 1")
-                .setBrukerEtternavn("Bruker 1");
+                .withBrukerFnr(bruker1Fnr)
+                .withBrukerFornavn("Bruker 1")
+                .withBrukerEtternavn("Bruker 1");
 
         BeslutteroversiktBruker bruker2 = new BeslutteroversiktBruker()
-                .setBrukerFnr(bruker2Fnr)
-                .setBrukerFornavn("Bruker 2")
-                .setBrukerEtternavn("Bruker 2");
+                .withBrukerFnr(bruker2Fnr)
+                .withBrukerFornavn("Bruker 2")
+                .withBrukerEtternavn("Bruker 2");
 
         List<BeslutteroversiktBruker> brukere = Arrays.asList(bruker1, bruker2);
 
-        beslutteroversiktService.sensurerBrukere(brukere);
+        List<BeslutteroversiktBruker> sensurert = beslutteroversiktService.sensurerBrukere(brukere);
 
-        assertEquals(bruker1.getBrukerFnr(), brukere.get(0).getBrukerFnr());
-        assertEquals(bruker1.getBrukerFornavn(), brukere.get(0).getBrukerFornavn());
-        assertEquals(bruker1.getBrukerEtternavn(), brukere.get(0).getBrukerEtternavn());
+        assertEquals(bruker1.getBrukerFnr(), sensurert.get(0).getBrukerFnr());
+        assertEquals(bruker1.getBrukerFornavn(), sensurert.get(0).getBrukerFornavn());
+        assertEquals(bruker1.getBrukerEtternavn(), sensurert.get(0).getBrukerEtternavn());
 
-        assertEquals("", brukere.get(1).getBrukerFnr());
-        assertEquals("", brukere.get(1).getBrukerFornavn());
-        assertEquals("", brukere.get(1).getBrukerEtternavn());
+        assertEquals("", sensurert.get(1).getBrukerFnr());
+        assertEquals("", sensurert.get(1).getBrukerFornavn());
+        assertEquals("", sensurert.get(1).getBrukerEtternavn());
     }
 
     @Test
@@ -182,18 +205,52 @@ public class BeslutteroversiktServiceTest {
                 .thenReturn(Collections.emptyMap());
 
         BeslutteroversiktBruker bruker1 = new BeslutteroversiktBruker()
-                .setBrukerFnr("11111111111")
-                .setBrukerFornavn("Bruker 1")
-                .setBrukerEtternavn("Bruker 1");
+                .withBrukerFnr("11111111111")
+                .withBrukerFornavn("Bruker 1")
+                .withBrukerEtternavn("Bruker 1");
 
 
         List<BeslutteroversiktBruker> brukere = Arrays.asList(bruker1);
 
-        beslutteroversiktService.sensurerBrukere(brukere);
+        List<BeslutteroversiktBruker> sensurert = beslutteroversiktService.sensurerBrukere(brukere);
 
-        assertEquals("", brukere.get(0).getBrukerFnr());
-        assertEquals("", brukere.get(0).getBrukerFornavn());
-        assertEquals("", brukere.get(0).getBrukerEtternavn());
+        assertEquals("", sensurert.get(0).getBrukerFnr());
+        assertEquals("", sensurert.get(0).getBrukerFornavn());
+        assertEquals("", sensurert.get(0).getBrukerEtternavn());
+    }
+
+    @Test
+    public void sokEtterBruker__skal_feile_for_sok_hvis_veileder_enhet_mangler_id() {
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet(null, "test1")))
+        );
+
+        assertThrows(IllegalStateException.class, () -> beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok()));
+        verifyNoInteractions(beslutteroversiktRepository);
+    }
+
+    @Test
+    public void sensurerBrukere__skal_feile_for_tilgangssjekk_hvis_bruker_mangler_fnr() {
+        List<BeslutteroversiktBruker> brukere = List.of(new BeslutteroversiktBruker().withBrukerFornavn("Bruker 1"));
+
+        assertThrows(IllegalStateException.class, () -> beslutteroversiktService.sensurerBrukere(brukere));
+        verifyNoInteractions(authService);
+    }
+
+    @Test
+    public void sokEtterBruker__skal_gi_403_hvis_sokt_enhet_er_null() {
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet("1234", "test1")))
+        );
+
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("1234", null)));
+
+        ResponseStatusException feil = assertThrows(ResponseStatusException.class, () -> beslutteroversiktService.sokEtterBruker(sok));
+        assertEquals(HttpStatus.FORBIDDEN, feil.getStatusCode());
+        verifyNoInteractions(beslutteroversiktRepository);
     }
 
 }
