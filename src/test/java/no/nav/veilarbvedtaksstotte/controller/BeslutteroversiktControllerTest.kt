@@ -55,6 +55,24 @@ class BeslutteroversiktControllerTest {
         )
     }
 
+    @Test
+    fun `sok med antall over 100 gir 400 uten å kalle tjenesten`() {
+        sok("""{"antall":101}""")
+            .andExpect(status().isBadRequest)
+
+        verifyNoInteractions(beslutteroversiktService)
+    }
+
+    @Test
+    fun `sok med antall 100 sendes videre til tjenesten`() {
+        whenever(beslutteroversiktService.hentBeslutteroversikt(any())).thenReturn(BrukereMedAntall(emptyList(), 0))
+
+        sok("""{"antall":100}""")
+            .andExpect(status().isOk)
+
+        verify(beslutteroversiktService).hentBeslutteroversikt(BeslutteroversiktSok(antall = 100))
+    }
+
     private fun sok(json: String) = mockMvc.perform(
         post("/api/beslutteroversikt/sok")
             .contentType(MediaType.APPLICATION_JSON)

@@ -15,6 +15,7 @@ import java.util.List;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class BeslutterRepositorySokTest extends DatabaseTest {
 
@@ -56,6 +57,17 @@ public class BeslutterRepositorySokTest extends DatabaseTest {
         List<BeslutteroversiktBruker> brukere = beslutteroversiktRepository.sokEtterBrukere(sok, NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere();
 
         assertEquals(1, brukere.size());
+    }
+
+    // 🔴 Feiler til sokEtterBrukere med ekskluderteEnheter er implementert.
+    @Test
+    public void sokEtterBrukere__skal_ekskludere_enheter_fra_rader_og_totalt_antall() {
+        BrukereMedAntall resultat = beslutteroversiktRepository.sokEtterBrukere(
+                new BeslutteroversiktSok(), NavIdent.of(TEST_BESLUTTER_IDENT), List.of(EnhetId.of("1234")));
+
+        assertEquals(2, resultat.getBrukere().size());
+        assertEquals(2, resultat.getTotaltAntall());
+        resultat.getBrukere().forEach(bruker -> assertNotEquals("1234", bruker.getBrukerOppfolgingsenhetId()));
     }
 
     @Test
