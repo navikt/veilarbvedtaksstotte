@@ -21,6 +21,11 @@ class BeslutteroversiktService(
     fun hentBeslutteroversikt(sok: BeslutteroversiktSok): BrukereMedAntall {
         val veilederIdent = NavIdent.of(authService.innloggetVeilederIdent)
         val enheterFilter = bestemEnheter(sok.filter.enheter, hentVeilederEnheter())
+
+        // Repository tolker tom enhetsliste som «ingen enhetsfilter» og ville returnert utkast fra alle enheter.
+        // En veileder uten enheter har ikke tilgang til noen utkast.
+        if (enheterFilter.isEmpty()) return BrukereMedAntall(brukere = emptyList(), totaltAntall = 0)
+
         val sokMedEnheter = sok.copy(filter = sok.filter.copy(enheter = enheterFilter))
 
         val resultat = beslutteroversiktRepository.sokEtterBrukere(sokMedEnheter, veilederIdent)

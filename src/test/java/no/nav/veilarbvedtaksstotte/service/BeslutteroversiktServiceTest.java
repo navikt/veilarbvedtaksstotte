@@ -112,6 +112,34 @@ public class BeslutteroversiktServiceTest {
     }
 
     @Test
+    public void sokEtterBruker__skal_gi_tomt_resultat_uten_a_soke_hvis_veileder_mangler_enheter() {
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of())
+        );
+
+        BrukereMedAntall resultat = beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok());
+
+        assertEquals(new BrukereMedAntall(List.of(), 0), resultat);
+        verifyNoInteractions(beslutteroversiktRepository);
+    }
+
+    @Test
+    public void sokEtterBruker__skal_gi_403_hvis_veileder_mangler_enheter_og_soker_pa_enhet() {
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of())
+        );
+        BeslutteroversiktSok sok = new BeslutteroversiktSok()
+                .withFilter(new BeslutteroversiktSokFilter().withEnheter(List.of(EnhetId.of("1234"))));
+
+        ResponseStatusException feil = assertThrows(ResponseStatusException.class,
+                () -> beslutteroversiktService.hentBeslutteroversikt(sok));
+        assertEquals(HttpStatus.FORBIDDEN, feil.getStatusCode());
+        verifyNoInteractions(beslutteroversiktRepository);
+    }
+
+    @Test
     public void sokEtterBruker__skal_ikke_feile_hvis_tilgang_til_enheter() {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class))).thenReturn(INGEN_BRUKERE);
