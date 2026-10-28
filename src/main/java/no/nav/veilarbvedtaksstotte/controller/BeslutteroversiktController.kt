@@ -74,6 +74,10 @@ class BeslutteroversiktController @Autowired constructor(
             )]
     )
     fun sokEtterUtkastTilKvalitetssikring(@RequestBody sokData: BeslutteroversiktSok): BrukereMedAntall? {
+        if (sokData.antall > MAKS_ANTALL_PER_SIDE) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "antall kan ikke være større enn $MAKS_ANTALL_PER_SIDE")
+        }
+
         return beslutteroversiktService.hentBeslutteroversikt(sokData)
     }
 
@@ -122,5 +126,9 @@ class BeslutteroversiktController @Autowired constructor(
         }
 
         return beslutteroversiktService.hentEnheterMedUtkast()
+    }
+
+    private companion object {
+        const val MAKS_ANTALL_PER_SIDE = 100
     }
 }

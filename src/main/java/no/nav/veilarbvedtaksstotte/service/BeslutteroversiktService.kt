@@ -1,5 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import io.getunleash.DefaultUnleash
+import io.getunleash.UnleashContext.builder
 import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.NavIdent
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
@@ -8,6 +10,7 @@ import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnhetMedNavn
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository
+import no.nav.veilarbvedtaksstotte.utils.MODIA_KVALITETSSIKRING_OPPFOLGINGSVEDTAK
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -17,9 +20,38 @@ class BeslutteroversiktService(
     private val beslutteroversiktRepository: BeslutteroversiktRepository,
     private val veiledereOgEnhetClient: VeilarbveilederClient,
     private val authService: AuthService,
+    private val defaultUnleash: DefaultUnleash
 ) {
     fun hentBeslutteroversikt(sok: BeslutteroversiktSok): BrukereMedAntall {
         val veilederIdent = NavIdent.of(authService.innloggetVeilederIdent)
+
+        val context = builder().userId(veilederIdent.get()).build()
+        return if (defaultUnleash.isEnabled(MODIA_KVALITETSSIKRING_OPPFOLGINGSVEDTAK, context)) {
+            hentForAlleEnheter(sok, veilederIdent)
+        } else {
+            hentForVeiledersEnheter(sok, veilederIdent)
+        }
+    }
+
+    private fun hentForAlleEnheter(sok: BeslutteroversiktSok, veilederIdent: NavIdent): BrukereMedAntall {
+        authService.sjekkModiaGenerellTilgang()
+
+        val ekskluderteEnheter = if (!authService.harTilgangTilKode6Brukere()) {
+            listOf(EnhetId(VIKAFOSSEN_ENHET_ID))
+        } else {
+            emptyList()
+        }
+
+        if (sok.filter.enheter.any { it in ekskluderteEnheter }) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Veileder mangler tilgang til enhet")
+        }
+
+        val resultat = beslutteroversiktRepository.sokEtterBrukere(sok, veilederIdent, ekskluderteEnheter)
+        return resultat.copy(brukere = sensurerBrukere(resultat.brukere))
+    }
+
+    // Søk begrenset til veilederens enheter (togglen er av).
+    private fun hentForVeiledersEnheter(sok: BeslutteroversiktSok, veilederIdent: NavIdent): BrukereMedAntall {
         val enheterFilter = bestemEnheter(sok.filter.enheter, hentVeilederEnheter())
 
         // Repository tolker tom enhetsliste som «ingen enhetsfilter» og ville returnert utkast fra alle enheter.
