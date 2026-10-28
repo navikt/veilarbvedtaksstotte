@@ -51,15 +51,12 @@ class BeslutteroversiktService(
     // Returnerer brukerne i samme rekkefølge. Brukere veilederen ikke har bekreftet tilgang til,
     // får tomt fnr og navn.
     fun sensurerBrukere(brukere: List<BeslutteroversiktBruker>): List<BeslutteroversiktBruker> {
-        if (brukere.isEmpty()) return emptyList()
+        if (brukere.isEmpty()) return brukere
 
-        val brukereMedFnr = brukere.map { bruker ->
-            bruker to checkNotNull(bruker.brukerFnr) { "Bruker mangler identifikator" }
-        }
-        val tilgang = authService.harInnloggetVeilederTilgangTilBrukere(brukereMedFnr.map { (_, fnr) -> fnr })
+        val tilgang = authService.harInnloggetVeilederTilgangTilBrukere(brukere.map { it.brukerFnr })
 
-        return brukereMedFnr.map { (bruker, fnr) ->
-            if (tilgang[fnr] == true) bruker
+        return brukere.map { bruker ->
+            if (tilgang[bruker.brukerFnr] == true) bruker
             else bruker.copy(brukerFnr = "", brukerFornavn = "", brukerEtternavn = "")
         }
     }

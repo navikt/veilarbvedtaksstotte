@@ -8,6 +8,7 @@ import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnhetMedNavn;
 import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
@@ -16,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -151,11 +153,7 @@ public class BeslutteroversiktServiceTest {
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet("1234", "test1")))
         );
-        BeslutteroversiktBruker bruker = new BeslutteroversiktBruker()
-                .withVedtakId(42)
-                .withBrukerFnr("11111111111")
-                .withBrukerFornavn("Fornavn")
-                .withBrukerEtternavn("Etternavn");
+        BeslutteroversiktBruker bruker = lagBruker(42, "11111111111", "Fornavn", "Etternavn");
         when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class)))
                 .thenReturn(new BrukereMedAntall(List.of(bruker), 1));
         when(authService.harInnloggetVeilederTilgangTilBrukere(any())).thenReturn(Map.of("11111111111", false));
@@ -177,15 +175,8 @@ public class BeslutteroversiktServiceTest {
         when(authService.harInnloggetVeilederTilgangTilBrukere(any()))
                 .thenReturn(brukerTilganger);
 
-        BeslutteroversiktBruker bruker1 = new BeslutteroversiktBruker()
-                .withBrukerFnr(bruker1Fnr)
-                .withBrukerFornavn("Bruker 1")
-                .withBrukerEtternavn("Bruker 1");
-
-        BeslutteroversiktBruker bruker2 = new BeslutteroversiktBruker()
-                .withBrukerFnr(bruker2Fnr)
-                .withBrukerFornavn("Bruker 2")
-                .withBrukerEtternavn("Bruker 2");
+        BeslutteroversiktBruker bruker1 = lagBruker(1, bruker1Fnr, "Bruker 1", "Bruker 1");
+        BeslutteroversiktBruker bruker2 = lagBruker(2, bruker2Fnr, "Bruker 2", "Bruker 2");
 
         List<BeslutteroversiktBruker> brukere = Arrays.asList(bruker1, bruker2);
 
@@ -205,11 +196,7 @@ public class BeslutteroversiktServiceTest {
         when(authService.harInnloggetVeilederTilgangTilBrukere(any()))
                 .thenReturn(Collections.emptyMap());
 
-        BeslutteroversiktBruker bruker1 = new BeslutteroversiktBruker()
-                .withBrukerFnr("11111111111")
-                .withBrukerFornavn("Bruker 1")
-                .withBrukerEtternavn("Bruker 1");
-
+        BeslutteroversiktBruker bruker1 = lagBruker(1, "11111111111", "Bruker 1", "Bruker 1");
 
         List<BeslutteroversiktBruker> brukere = Arrays.asList(bruker1);
 
@@ -231,12 +218,21 @@ public class BeslutteroversiktServiceTest {
         verifyNoInteractions(beslutteroversiktRepository);
     }
 
-    @Test
-    public void sensurerBrukere__skal_feile_for_tilgangssjekk_hvis_bruker_mangler_fnr() {
-        List<BeslutteroversiktBruker> brukere = List.of(new BeslutteroversiktBruker().withBrukerFornavn("Bruker 1"));
-
-        assertThrows(IllegalStateException.class, () -> beslutteroversiktService.sensurerBrukere(brukere));
-        verifyNoInteractions(authService);
+    private static BeslutteroversiktBruker lagBruker(long vedtakId, String fnr, String fornavn, String etternavn) {
+        return new BeslutteroversiktBruker(
+                vedtakId,
+                fornavn,
+                etternavn,
+                "Nav Test",
+                "1234",
+                fnr,
+                LocalDateTime.of(2026, 1, 1, 12, 0),
+                BeslutteroversiktStatus.KLAR_TIL_BESLUTTER,
+                LocalDateTime.of(2026, 1, 2, 12, 0),
+                null,
+                null,
+                "Veileder"
+        );
     }
 
 }
