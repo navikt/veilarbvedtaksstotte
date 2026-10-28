@@ -19,10 +19,10 @@ class BeslutteroversiktService(
     private val authService: AuthService,
     private val etiketterService: EtiketterService
 ) {
-    fun sokEtterBruker(sok: BeslutteroversiktSok): BrukereMedAntall {
+    fun hentBeslutteroversikt(sok: BeslutteroversiktSok): BrukereMedAntall {
         val veilederIdent = NavIdent.of(authService.innloggetVeilederIdent)
-        val enheter = bestemEnheter(sok.filter.enheter, hentVeilederEnheter())
-        val sokMedEnheter = sok.copy(filter = sok.filter.copy(enheter = enheter))
+        val enheterFilter = bestemEnheter(sok.filter.enheter, hentVeilederEnheter())
+        val sokMedEnheter = sok.copy(filter = sok.filter.copy(enheter = enheterFilter))
 
         val resultat = beslutteroversiktRepository.sokEtterBrukere(sokMedEnheter, veilederIdent)
         
