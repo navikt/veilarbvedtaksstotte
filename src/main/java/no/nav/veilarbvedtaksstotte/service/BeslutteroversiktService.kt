@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service
 
+import no.nav.common.types.identer.EnhetId
 import no.nav.common.types.identer.NavIdent
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker
@@ -28,20 +29,22 @@ class BeslutteroversiktService(
 
     // Tomt filter betyr alle enhetene veilederen har tilgang til.
     // Søkte enheter utenfor veilederens enheter gir 403.
-    private fun bestemEnheter(sokteEnheter: List<String>, veilederEnheter: List<String>): List<String> {
+    private fun bestemEnheter(sokteEnheter: List<EnhetId>, veilederEnheter: List<EnhetId>): List<EnhetId> {
         if (sokteEnheter.isEmpty()) return veilederEnheter
+
         if (!veilederEnheter.containsAll(sokteEnheter)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Veileder mangler tilgang til enhet")
         }
+
         return sokteEnheter
     }
 
-    private fun hentVeilederEnheter(): List<String> {
+    private fun hentVeilederEnheter(): List<EnhetId> {
         val enheter = checkNotNull(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()?.enhetliste) {
             "Fant ikke veilederens enheter"
         }
         return enheter.mapTo(ArrayList()) { enhet ->
-            checkNotNull(enhet?.enhetId) { "Veilederens enhet mangler identifikator" }
+            EnhetId(checkNotNull(enhet?.enhetId) { "Veilederens enhet mangler identifikator" })
         }
     }
 

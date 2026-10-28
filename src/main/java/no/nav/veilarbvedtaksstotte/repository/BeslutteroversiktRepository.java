@@ -1,13 +1,9 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
+import no.nav.common.types.identer.EnhetId;
 import no.nav.common.types.identer.NavIdent;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall;
-import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnhetMedNavn;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -193,7 +189,7 @@ public class BeslutteroversiktRepository {
 
         if (!isNullOrEmpty(filter.getEnheter())) {
             filterStrs.add(format("%s = SOME(?::varchar[])", BRUKER_OPPFOLGINGSENHET_ID));
-            parameters.add(toPostgresArray(filter.getEnheter()));
+            parameters.add(toPostgresArray(filter.getEnheter().stream().map(EnhetId::get).toList()));
         }
 
         if (filter.getVisMineBrukere()) {

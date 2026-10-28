@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.controller
 
 import io.getunleash.DefaultUnleash
+import no.nav.common.types.identer.EnhetId
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSokFilter
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BrukereMedAntall
@@ -50,7 +51,7 @@ class BeslutteroversiktControllerTest {
             .andExpect(status().isOk)
 
         verify(beslutteroversiktService).hentBeslutteroversikt(
-            BeslutteroversiktSok(filter = BeslutteroversiktSokFilter(enheter = listOf("1234")))
+            BeslutteroversiktSok(filter = BeslutteroversiktSokFilter(enheter = listOf(EnhetId.of("1234"))))
         )
     }
 
