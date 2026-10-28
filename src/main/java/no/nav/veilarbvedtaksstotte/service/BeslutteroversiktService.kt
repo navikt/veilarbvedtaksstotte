@@ -27,8 +27,8 @@ class BeslutteroversiktService(
     }
 
     // Tomt filter betyr alle enhetene veilederen har tilgang til.
-    // Søkte enheter utenfor veilederens enheter, også null, gir 403.
-    private fun bestemEnheter(sokteEnheter: List<String?>, veilederEnheter: List<String>): List<String?> {
+    // Søkte enheter utenfor veilederens enheter gir 403.
+    private fun bestemEnheter(sokteEnheter: List<String>, veilederEnheter: List<String>): List<String> {
         if (sokteEnheter.isEmpty()) return veilederEnheter
         if (!veilederEnheter.containsAll(sokteEnheter)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Veileder mangler tilgang til enhet")

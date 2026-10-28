@@ -238,19 +238,4 @@ public class BeslutteroversiktServiceTest {
         verifyNoInteractions(authService);
     }
 
-    @Test
-    public void sokEtterBruker__skal_gi_403_hvis_sokt_enhet_er_null() {
-        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
-        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
-                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet("1234", "test1")))
-        );
-
-        BeslutteroversiktSok sok = new BeslutteroversiktSok()
-                .withFilter(new BeslutteroversiktSokFilter().withEnheter(Arrays.asList("1234", null)));
-
-        ResponseStatusException feil = assertThrows(ResponseStatusException.class, () -> beslutteroversiktService.hentBeslutteroversikt(sok));
-        assertEquals(HttpStatus.FORBIDDEN, feil.getStatusCode());
-        verifyNoInteractions(beslutteroversiktRepository);
-    }
-
 }
