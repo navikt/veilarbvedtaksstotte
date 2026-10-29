@@ -19,9 +19,9 @@ class KilderRepository @Autowired constructor(private val db: JdbcTemplate) {
         kilder.forEach { opplysning: String -> insertKilde(opplysning, vedtakId) }
     }
 
-    fun hentKilderForVedtak(@NotNull vedtakId: Long): List<KildeForVedtak?> {
+    fun hentKilderForVedtak(@NotNull vedtakId: Long): List<KildeForVedtak> {
         val sql = "SELECT * FROM $KILDE_TABLE WHERE $VEDTAK_ID = ?"
-        return db.query(sql, { rs: ResultSet?, _: Int -> mapKilder(rs!!) }, vedtakId)
+        return db.query(sql, { rs: ResultSet, _: Int -> mapKilder(rs) }, vedtakId)
     }
 
     fun hentKilderForAlleVedtak(@NotNull vedtakListe: List<Vedtak>): List<KildeForVedtak?> {
@@ -58,7 +58,7 @@ class KilderRepository @Autowired constructor(private val db: JdbcTemplate) {
         private fun mapKilder(rs: ResultSet): KildeForVedtak {
             val kildeEntity = KildeEntity(
                 rs.getString(TEKST),
-                rs.getString(KILDE_ID)?.let(UUID::fromString)
+                rs.getString(KILDE_ID).let(UUID::fromString)
             )
 
             return KildeForVedtak(

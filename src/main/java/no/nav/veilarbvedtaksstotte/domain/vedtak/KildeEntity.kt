@@ -4,7 +4,7 @@ import java.util.*
 
 data class KildeEntity(
     val tekst: String,
-    val kildeId: UUID?
+    val kildeId: UUID
 )
 
 data class KildeForVedtak(

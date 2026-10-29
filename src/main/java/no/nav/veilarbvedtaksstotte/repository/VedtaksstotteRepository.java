@@ -10,6 +10,7 @@ import no.nav.veilarbvedtaksstotte.domain.sladdVedtak.SladdVedtakFeiletException
 import no.nav.veilarbvedtaksstotte.domain.slettVedtak.SlettVedtakFeiletException;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -89,7 +90,7 @@ public class VedtaksstotteRepository {
         return db.query(sql, VedtaksstotteRepository::mapVedtak, getName(VedtakStatus.UTKAST), dateTime);
     }
 
-    public Vedtak hentUtkastEllerFeil(long vedtakId) {
+    public @NonNull Vedtak hentUtkastEllerFeil(long vedtakId) {
         Vedtak utkast = hentVedtak(vedtakId);
 
         if (utkast == null || utkast.getVedtakStatus() != VedtakStatus.UTKAST) {
