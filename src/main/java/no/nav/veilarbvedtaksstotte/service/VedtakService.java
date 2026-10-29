@@ -20,6 +20,7 @@ import no.nav.veilarbvedtaksstotte.controller.dto.OppdaterUtkastDTO;
 import no.nav.veilarbvedtaksstotte.controller.dto.SladdVedtakRequest;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
+import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeType;
@@ -43,11 +44,13 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
 import static no.nav.veilarbvedtaksstotte.utils.SecureLog.secureLog;
 import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL;
+import static no.nav.veilarbvedtaksstotte.utils.UnleashUtilsKt.VEILARBVEDTAKSSTOTTEFS_SKRU_AV_EGENVURDERINGSKILDE;
 
 @Slf4j
 @Service
@@ -78,6 +81,16 @@ public class VedtakService {
     @SneakyThrows
     public void fattVedtak(long vedtakId) {
         Vedtak vedtak = vedtaksstotteRepository.hentUtkastEllerFeil(vedtakId);
+
+        if (unleashService.isEnabled(VEILARBVEDTAKSSTOTTEFS_SKRU_AV_EGENVURDERINGSKILDE)) {
+            List<KildeForVedtak> kilder = kilderRepository.hentKilderForVedtak(vedtak.getId());
+            List<String> kildeTekster = kilder.stream().map(kildeForVedtak -> kildeForVedtak.getKilde().getTekst()).toList();
+            boolean harEgenvurderingKilde = kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING.getDesc())
+                    || kildeTekster.contains(VedtakOpplysningKilder.EGENVURDERING_NN.getDesc());
+            if (harEgenvurderingKilde) {
+                throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+            }
+        }
 
         AuthKontekst authKontekst = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, AktorId.of(vedtak.getAktorId()));
         authService.sjekkErAnsvarligVeilederFor(vedtak);

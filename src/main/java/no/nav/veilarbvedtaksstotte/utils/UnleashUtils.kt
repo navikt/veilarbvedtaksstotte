@@ -6,3 +6,4 @@ const val PRODUSER_OBO_GJELDENDE_14A_VEDTAK_MELDINGER_SKRUDD_PAA = "veilarbvedta
 const val SKJULE_VEILEDERS_NAVN_14A_VEDTAKSBREV = "veilarbvedtaksstotte.skjule_veileders_navn_14a_vedtaksbrev"
 const val MERKE_VEDTAK_SOM_MANGLER_DISTRIBUSJONSKANAL = "veilarbvedtaksstotte.merke_vedtak_som_mangler_distribusjonskanal";
 const val MODIA_KVALITETSSIKRING_OPPFOLGINGSVEDTAK = "veilarbvedtaksstotte.modia_kvalitetssikring_oppfolgingsvedtak";
+const val VEILARBVEDTAKSSTOTTEFS_SKRU_AV_EGENVURDERINGSKILDE = "veilarbvedtaksstottefs.skru_av_egenvurderingskilde";
