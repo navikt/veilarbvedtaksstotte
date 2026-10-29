@@ -51,7 +51,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
         beslutteroversiktRepository.lagBruker(nyBruker);
 
         BeslutteroversiktBruker bruker = beslutteroversiktRepository.finnBrukerForVedtak(vedtakId)
-                .setStatusEndret(null);
+                .withStatusEndret(null);
 
         assertEquals(nyBruker, bruker);
     }
@@ -73,7 +73,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
         long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
 
         BeslutteroversiktBruker nyBruker = lagBruker(vedtakId)
-                .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER);
+                .withStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER);
 
         beslutteroversiktRepository.lagBruker(nyBruker);
 
@@ -141,9 +141,9 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
         String enhetNavn = "Nav Ny enhet";
 
         beslutteroversiktRepository.lagBruker(lagBruker(vedtakId)
-                .setBrukerOppfolgingsenhetId(enhetId)
-                .setBrukerOppfolgingsenhetNavn(enhetNavn)
-                .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER));
+                .withBrukerOppfolgingsenhetId(enhetId)
+                .withBrukerOppfolgingsenhetNavn(enhetNavn)
+                .withStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER));
 
         assertEquals(of(new EnhetMedNavn(enhetId, enhetNavn)), beslutteroversiktRepository.hentEnheterMedUtkast());
     }
@@ -155,28 +155,28 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
         LocalDateTime nyesteIkkeAktiveVedtak = LocalDateTime.of(2024, 3, 1, 12, 0);
 
         beslutteroversiktRepository.lagBruker(lagBruker(opprettVedtakForTest("eldre"))
-                .setBrukerOppfolgingsenhetId("9902")
-                .setBrukerOppfolgingsenhetNavn("Eldre navn")
-                .setVedtakStartet(eldreVedtak));
+                .withBrukerOppfolgingsenhetId("9902")
+                .withBrukerOppfolgingsenhetNavn("Eldre navn")
+                .withVedtakStartet(eldreVedtak));
         beslutteroversiktRepository.lagBruker(lagBruker(opprettVedtakForTest("lik-dato-1"))
-                .setBrukerOppfolgingsenhetId("9902")
-                .setBrukerOppfolgingsenhetNavn("Lik dato, lavere rad-ID")
-                .setVedtakStartet(nyesteVedtak)
-                .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER));
+                .withBrukerOppfolgingsenhetId("9902")
+                .withBrukerOppfolgingsenhetNavn("Lik dato, lavere rad-ID")
+                .withVedtakStartet(nyesteVedtak)
+                .withStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER));
         beslutteroversiktRepository.lagBruker(lagBruker(opprettVedtakForTest("lik-dato-2"))
-                .setBrukerOppfolgingsenhetId("9902")
-                .setBrukerOppfolgingsenhetNavn("Lik dato, høyere rad-ID")
-                .setVedtakStartet(nyesteVedtak)
-                .setStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER));
+                .withBrukerOppfolgingsenhetId("9902")
+                .withBrukerOppfolgingsenhetNavn("Lik dato, høyere rad-ID")
+                .withVedtakStartet(nyesteVedtak)
+                .withStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER));
         beslutteroversiktRepository.lagBruker(lagBruker(opprettVedtakForTest("godkjent"))
-                .setBrukerOppfolgingsenhetId("9902")
-                .setBrukerOppfolgingsenhetNavn("Nyeste ikke-aktivt utkast")
-                .setVedtakStartet(nyesteIkkeAktiveVedtak)
-                .setStatus(BeslutteroversiktStatus.GODKJENT_AV_BESLUTTER));
+                .withBrukerOppfolgingsenhetId("9902")
+                .withBrukerOppfolgingsenhetNavn("Nyeste ikke-aktivt utkast")
+                .withVedtakStartet(nyesteIkkeAktiveVedtak)
+                .withStatus(BeslutteroversiktStatus.GODKJENT_AV_BESLUTTER));
         beslutteroversiktRepository.lagBruker(lagBruker(opprettVedtakForTest("annen-enhet"))
-                .setBrukerOppfolgingsenhetId("9901")
-                .setBrukerOppfolgingsenhetNavn("Enhet først")
-                .setStatus(BeslutteroversiktStatus.KLAR_TIL_VEILEDER));
+                .withBrukerOppfolgingsenhetId("9901")
+                .withBrukerOppfolgingsenhetNavn("Enhet først")
+                .withStatus(BeslutteroversiktStatus.KLAR_TIL_VEILEDER));
 
         assertEquals(of(
                         new EnhetMedNavn("9901", "Enhet først"),
@@ -190,18 +190,20 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
     }
 
     private BeslutteroversiktBruker lagBruker(long vedtakId) {
-        return new BeslutteroversiktBruker()
-                .setVedtakId(vedtakId)
-                .setBrukerFornavn("fornavn")
-                .setBrukerEtternavn("etternavn")
-                .setBrukerOppfolgingsenhetNavn(TEST_OPPFOLGINGSENHET_NAVN)
-                .setBrukerOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
-                .setBrukerFnr(TEST_FNR.get())
-                .setVedtakStartet(now())
-                .setStatus(BeslutteroversiktStatus.KLAR_TIL_BESLUTTER)
-                .setBeslutterNavn(TEST_BESLUTTER_NAVN)
-                .setBeslutterIdent(TEST_BESLUTTER_IDENT)
-                .setVeilederNavn(TEST_VEILEDER_NAVN);
+        return new BeslutteroversiktBruker(
+                vedtakId,
+                "fornavn",
+                "etternavn",
+                TEST_OPPFOLGINGSENHET_NAVN,
+                TEST_OPPFOLGINGSENHET_ID,
+                TEST_FNR.get(),
+                now(),
+                BeslutteroversiktStatus.KLAR_TIL_BESLUTTER,
+                null, // statusEndret settes av databasen
+                TEST_BESLUTTER_NAVN,
+                TEST_BESLUTTER_IDENT,
+                TEST_VEILEDER_NAVN
+        );
     }
 
 }
