@@ -74,7 +74,7 @@ public class SafClientImpl implements SafClient {
     @SneakyThrows
     public List<Journalpost> hentJournalposter(Fnr fnr) {
         String journalpostOppfolgingTema = "OPP";
-        int journalpostMaxDokumenter = 50;
+        int journalpostMaxDokumenter = 100;
         GraphqlRequest<DokumentOversiktBrukerVariables> graphqlRequest = new GraphqlRequest<>(createDokumentoversiktBrukerGqlStr(), new DokumentOversiktBrukerVariables(new BrukerId(fnr.get(), BrukerIdType.FNR), journalpostOppfolgingTema, journalpostMaxDokumenter));
 
         Request request = new Request.Builder()
