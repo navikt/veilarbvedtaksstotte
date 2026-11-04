@@ -51,7 +51,7 @@ import no.nav.veilarbvedtaksstotte.repository.RetryVedtakdistribusjonRepository
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils
-import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID
+import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID_STRING
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DOKUMENT_ID
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR
 import no.nav.veilarbvedtaksstotte.utils.TestData.TEST_JOURNALPOST_ID
@@ -169,8 +169,8 @@ class VedtakServiceJournalforingTest : DatabaseTest() {
         // Gi testveilederen tilgang og oppfølgingsdata som kreves for å fatte vedtaket.
         Mockito.doReturn(TEST_VEILEDER_IDENT).`when`(authService).innloggetVeilederIdent
         Mockito.doReturn(UUID.randomUUID()).`when`(authService).hentInnloggetVeilederUUID()
-        whenever(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID))
-        whenever(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR)
+        whenever(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID_STRING))
+        whenever(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID_STRING))).thenReturn(TEST_FNR)
         whenever(poaoTilgangClient.evaluatePolicy(any()))
             .thenReturn(ApiResult.success(Decision.Permit))
         whenever(veilarboppfolgingClient.hentOppfolgingsenhet(TEST_FNR))
@@ -267,7 +267,7 @@ class VedtakServiceJournalforingTest : DatabaseTest() {
             AuthTestUtils.createAuthContext(UserRole.INTERN, TEST_VEILEDER_IDENT),
             UnsafeRunnable {
                 fatting.lagUtkast(TEST_FNR)
-                val utkast = vedtakRepository.hentUtkast(TEST_AKTOR_ID)
+                val utkast = vedtakRepository.hentUtkast(TEST_AKTOR_ID_STRING)
 
                 mvc.perform(
                     put("/api/utkast/{vedtakId}", utkast.id)
@@ -280,7 +280,7 @@ class VedtakServiceJournalforingTest : DatabaseTest() {
                 ).andExpect(status().isOk)
 
                 // Sjekk både at vedtaket er fattet, og at alle øyeblikksbilder har fått riktig dokument-ID.
-                val fattetVedtak = vedtakRepository.hentFattedeVedtak(TEST_AKTOR_ID).single()
+                val fattetVedtak = vedtakRepository.hentFattedeVedtak(TEST_AKTOR_ID_STRING).single()
                 assertEquals(testData.expectedVedtakStatus, fattetVedtak.vedtakStatus)
                 assertEquals(testData.expectedJournalpostId, fattetVedtak.journalpostId)
 

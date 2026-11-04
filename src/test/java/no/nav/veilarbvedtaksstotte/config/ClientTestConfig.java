@@ -88,7 +88,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID_STRING;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DOKUMENT_BESTILLING_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DOKUMENT_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
@@ -110,7 +110,7 @@ public class ClientTestConfig {
 
             @Override
             public AktorId hentAktorId(Fnr fnr) {
-                return AktorId.of(TEST_AKTOR_ID);
+                return AktorId.of(TEST_AKTOR_ID_STRING);
             }
 
             @Override
@@ -130,7 +130,7 @@ public class ClientTestConfig {
 
             @Override
             public BrukerIdenter hentIdenter(EksternBrukerId eksternBrukerId) {
-                return new BrukerIdenter(TEST_FNR, AktorId.of(TEST_AKTOR_ID), emptyList(), emptyList());
+                return new BrukerIdenter(TEST_FNR, AktorId.of(TEST_AKTOR_ID_STRING), emptyList(), emptyList());
             }
 
         };

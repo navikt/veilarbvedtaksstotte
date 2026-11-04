@@ -109,17 +109,17 @@ class SakStatistikkServiceTest : DatabaseTest() {
             )
         )
         whenever(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TestData.TEST_FNR)).thenReturn(
-            AuthKontekst(TestData.TEST_FNR.get(), TestData.TEST_AKTOR_ID, TestData.TEST_OPPFOLGINGSENHET_ID)
+            AuthKontekst(TestData.TEST_FNR.get(), TestData.TEST_AKTOR_ID_STRING, TestData.TEST_OPPFOLGINGSENHET_ID)
         )
         whenever(
             authService.sjekkTilgangTilBrukerOgEnhet(
                 TilgangType.SKRIVE,
-                AktorId.of(TestData.TEST_AKTOR_ID)
+                AktorId.of(TestData.TEST_AKTOR_ID_STRING)
             )
-        ).thenReturn(AuthKontekst(TestData.TEST_FNR.get(), TestData.TEST_AKTOR_ID, TestData.TEST_OPPFOLGINGSENHET_ID))
-        whenever(authService.getFnrOrThrow(TestData.TEST_AKTOR_ID)).thenReturn(TestData.TEST_FNR)
+        ).thenReturn(AuthKontekst(TestData.TEST_FNR.get(), TestData.TEST_AKTOR_ID_STRING, TestData.TEST_OPPFOLGINGSENHET_ID))
+        whenever(authService.getFnrOrThrow(TestData.TEST_AKTOR_ID_STRING)).thenReturn(TestData.TEST_FNR)
 
-        whenever(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(TestData.TEST_FNR)
+        whenever(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID_STRING))).thenReturn(TestData.TEST_FNR)
         whenever(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(TestData.TEST_FNR)).thenReturn(
             mockedOppfolgingsPeriode(null)
         )
@@ -140,7 +140,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
             fattVedtak()
             val vedtaket = hentVedtak()
             sakStatistikkService!!.fattetVedtak(vedtaket, TestData.TEST_FNR)
-            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID_STRING)
             val lagretRad = statistikkListe.last()
             Assertions.assertEquals(
                 BehandlingStatus.FATTET, lagretRad.behandlingStatus, "Behandling status skal være FATTET"
@@ -196,9 +196,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
         withContext {
             gittUtkastKlarForUtsendelse()
             sakStatistikkService!!.opprettetUtkast(
-                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID), TestData.TEST_FNR
+                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING), TestData.TEST_FNR
             )
-            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID_STRING)
             val lagretRad = statistikkListe.last()
             Assertions.assertEquals(
                 BehandlingStatus.UNDER_BEHANDLING,
@@ -247,10 +247,10 @@ class SakStatistikkServiceTest : DatabaseTest() {
         withContext {
             gittUtkastKlarForUtsendelse()
 
-            val utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            val utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING)
             vedtakService!!.slettUtkast(utkastet, BehandlingMetode.AUTOMATISK)
             sakStatistikkService!!.slettetUtkast(utkastet, BehandlingMetode.AUTOMATISK)
-            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID_STRING)
 
             val lagretRad = statistikkListe.last()
             Assertions.assertEquals(
@@ -303,12 +303,12 @@ class SakStatistikkServiceTest : DatabaseTest() {
             fattVedtak()
             val vedtaket = hentVedtak()
             sakStatistikkService!!.fattetVedtak(vedtaket, TestData.TEST_FNR)
-            val nestSisteRad = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID).last()
+            val nestSisteRad = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID_STRING).last()
             vedtakService!!.lagUtkast(TestData.TEST_FNR)
             sakStatistikkService!!.opprettetUtkast(
-                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID), TestData.TEST_FNR
+                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING), TestData.TEST_FNR
             )
-            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID_STRING)
             val lagretRad = statistikkListe.last()
             Assertions.assertEquals(
                 BehandlingStatus.UNDER_BEHANDLING,
@@ -366,9 +366,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
         withContext {
             gittUtkastKlarForUtsendelse()
             sakStatistikkService!!.opprettetUtkast(
-                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID), TestData.TEST_FNR
+                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING), TestData.TEST_FNR
             )
-            var statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            var statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID_STRING)
             val behandlingsId = statistikkListe.last().behandlingId?.toLong()
             val oppdaterDto = OppdaterUtkastDTO().setHovedmal(Hovedmal.SKAFFE_ARBEID).setBegrunnelse("En begrunnelse")
                 .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS).setOpplysninger(
@@ -382,14 +382,14 @@ class SakStatistikkServiceTest : DatabaseTest() {
             vedtakService!!.oppdaterUtkast(
                 behandlingsId!!, oppdaterDto
             )
-            val utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            val utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING)
             utkast.setBeslutterProsessStatus(BeslutterProsessStatus.GODKJENT_AV_BESLUTTER)
             vedtaksstotteRepository!!.oppdaterUtkast(utkast.id, utkast)
             sakStatistikkService!!.startetKvalitetssikring(vedtaksstotteRepository!!.hentVedtak(utkast.id))
             sakStatistikkService!!.bliEllerTaOverSomKvalitetssikrer(
                 vedtaksstotteRepository!!.hentVedtak(utkast.id), TestData.TEST_BESLUTTER_IDENT
             )
-            statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID_STRING)
 
 
             val lagretRad = statistikkListe.last()
@@ -416,14 +416,14 @@ class SakStatistikkServiceTest : DatabaseTest() {
     fun legg_til_statistikkrad_for_a_overta_som_kvalitetssikrer() {
         withContext {
             gittUtkastKlarForUtsendelse()
-            var utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            var utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING)
             vedtaksstotteRepository!!.setBeslutter(utkastet.id, TestData.TEST_BESLUTTER_IDENT_2)
-            utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            utkastet = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING)
             vedtaksstotteRepository!!.oppdaterUtkast(utkastet.id, utkastet)
             sakStatistikkService!!.bliEllerTaOverSomKvalitetssikrer(
                 vedtaksstotteRepository!!.hentVedtak(utkastet.id), TestData.TEST_BESLUTTER_IDENT_2
             )
-            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID_STRING)
             val lagretRad = statistikkListe.last()
             Assertions.assertNull(
                 lagretRad.ferdigbehandletTid, "Ferdigbehandlet tid skal ikke være utfylt"
@@ -448,9 +448,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
     fun legg_til_statistikkrad_for_a_overta_utkast() {
         withContext {
             gittUtkastKlarForUtsendelse()
-            var utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            var utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING)
             vedtaksstotteRepository!!.oppdaterUtkastVeileder(utkast.id, TestData.TEST_VEILEDER_IDENT_2)
-            utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING)
             utkast.setBeslutterProsessStatus(BeslutterProsessStatus.GODKJENT_AV_BESLUTTER)
             vedtaksstotteRepository!!.oppdaterUtkast(utkast.id, utkast)
 
@@ -458,7 +458,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 vedtaksstotteRepository!!.hentVedtak(utkast.id), TestData.TEST_VEILEDER_IDENT_2, false
             )
 
-            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID_STRING)
             val lagretRad = statistikkListe.last()
             Assertions.assertNull(
                 lagretRad.ferdigbehandletTid, "Ferdigbehandlet tid skal ikke være utfylt"
@@ -478,14 +478,14 @@ class SakStatistikkServiceTest : DatabaseTest() {
             fattVedtak()
 
             gittUtkastKlarForUtsendelse()
-            var utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            var utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING)
             vedtaksstotteRepository!!.oppdaterUtkastVeileder(utkast.id, TestData.TEST_VEILEDER_IDENT_2)
-            utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING)
             utkast.setBeslutterProsessStatus(BeslutterProsessStatus.GODKJENT_AV_BESLUTTER)
             vedtaksstotteRepository!!.oppdaterUtkast(utkast.id, utkast)
 
             sakStatistikkService!!.opprettetUtkast(
-                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID), TestData.TEST_FNR
+                vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING), TestData.TEST_FNR
             )
             whenever(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(TestData.TEST_FNR)).thenReturn(
                 mockedOppfolgingsPeriode(UUID.randomUUID())
@@ -498,7 +498,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
                 vedtaksstotteRepository!!.hentVedtak(utkast.id), TestData.TEST_VEILEDER_IDENT_2, false
             )
 
-            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID)
+            val statistikkListe = sakStatistikkRepository!!.hentSakStatistikkListe(TestData.TEST_AKTOR_ID_STRING)
             val lagretRad = statistikkListe.last()
             val nestSiste = statistikkListe[statistikkListe.size - 2]
 
@@ -574,7 +574,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
     private fun gittUtkastKlarForUtsendelse() {
         withContext {
             vedtakService!!.lagUtkast(TestData.TEST_FNR)
-            val utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            val utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING)
 
             val oppdaterDto = OppdaterUtkastDTO().setHovedmal(Hovedmal.SKAFFE_ARBEID).setBegrunnelse("En begrunnelse")
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS).setOpplysninger(
@@ -604,7 +604,7 @@ class SakStatistikkServiceTest : DatabaseTest() {
 
     private fun fattVedtak() {
         withContext {
-            val utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID)
+            val utkast = vedtaksstotteRepository!!.hentUtkast(TestData.TEST_AKTOR_ID_STRING)
             vedtakService!!.fattVedtak(utkast.id)
         }
     }

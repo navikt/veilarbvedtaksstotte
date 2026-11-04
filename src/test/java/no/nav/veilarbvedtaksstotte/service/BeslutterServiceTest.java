@@ -25,7 +25,7 @@ import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.G
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.KLAR_TIL_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.KLAR_TIL_VEILEDER;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.SOME_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID_STRING;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_IKKE_ANSVARLIG_VEILEDER_IDENT;
@@ -74,13 +74,13 @@ public class BeslutterServiceTest {
     );
 
 
-    private AuthKontekst authKontekst = new AuthKontekst("", TEST_AKTOR_ID, "");
+    private AuthKontekst authKontekst = new AuthKontekst("", TEST_AKTOR_ID_STRING, "");
 
     @BeforeEach
     public void setup() {
         doReturn(TEST_VEILEDER_IDENT).when(authService).getInnloggetVeilederIdent();
         doReturn(authKontekst).when(authService).sjekkTilgangTilBrukerOgEnhet(eq(TilgangType.SKRIVE), any(Fnr.class));
-        doReturn(TEST_FNR).when(authService).getFnrOrThrow(TEST_AKTOR_ID);
+        doReturn(TEST_FNR).when(authService).getFnrOrThrow(TEST_AKTOR_ID_STRING);
 
         when(veilederService.hentVeileder(TEST_VEILEDER_IDENT)).thenReturn(new Veileder(TEST_VEILEDER_IDENT, TEST_VEILEDER_NAVN));
         when(veilederService.hentEnhetNavn(anyString())).thenReturn(TEST_OPPFOLGINGSENHET_NAVN);
@@ -91,7 +91,7 @@ public class BeslutterServiceTest {
     public void startBeslutterProsess__skal_starte_beslutter_prosess_hvis_ikke_startet() {
         Vedtak vedtak = new Vedtak()
                 .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .setVeilederIdent(TEST_VEILEDER_IDENT);
 
@@ -106,7 +106,7 @@ public class BeslutterServiceTest {
     @Test
     public void startBeslutterProsess__skal_ikke_starte_beslutter_prosess_hvis_allerede_startet() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setBeslutterProsessStatus(BeslutterProsessStatus.KLAR_TIL_BESLUTTER)
                 .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
@@ -119,7 +119,7 @@ public class BeslutterServiceTest {
     @Test
     public void startBeslutterProsess__skal_kaste_exception_hvis_feil_innsatsgruppe() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
@@ -132,7 +132,7 @@ public class BeslutterServiceTest {
     public void startBeslutterProsess__skal_opprette_system_melding() {
         Vedtak vedtak = new Vedtak()
                 .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .setVeilederIdent(TEST_VEILEDER_IDENT);
 
@@ -148,7 +148,7 @@ public class BeslutterServiceTest {
     @Test
     public void avbrytBeslutterProsess__skal_avbryte_beslutter_prosess_hvis_ikke_allerede_gjort() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
                 .setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
 
@@ -163,7 +163,7 @@ public class BeslutterServiceTest {
     @Test
     public void avbrytBeslutterProsess__skal_kaste_exception_hvis_feil_innsatsgruppe() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
@@ -177,7 +177,7 @@ public class BeslutterServiceTest {
         Vedtak vedtak = new Vedtak()
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
                 .setBeslutterProsessStatus(KLAR_TIL_BESLUTTER)
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
                 .setVeilederIdent(TEST_VEILEDER_IDENT);
 
@@ -193,7 +193,7 @@ public class BeslutterServiceTest {
     @Test
     public void bliBeslutter__skal_ta_over_som_beslutter() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
@@ -208,7 +208,7 @@ public class BeslutterServiceTest {
     @Test
     public void bliBeslutter__skal_kaste_exception_nar_veileder_er_ansvarlig() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setVeilederIdent(TEST_VEILEDER_IDENT)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
@@ -222,7 +222,7 @@ public class BeslutterServiceTest {
     @Test
     public void bliBeslutter__skal_ikke_endres_hvis_allerede_beslutter() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setBeslutterIdent(TEST_VEILEDER_IDENT)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
@@ -236,7 +236,7 @@ public class BeslutterServiceTest {
     @Test
     public void bliBeslutter__skal_opprette_system_melding_bli_beslutter() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
         when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
@@ -252,7 +252,7 @@ public class BeslutterServiceTest {
     @Test
     public void bliBeslutter__skal_opprette_system_melding_overta_for_beslutter() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS)
                 .setBeslutterIdent("TIDLIGERE BESLUTTER IDENT");
 
@@ -269,7 +269,7 @@ public class BeslutterServiceTest {
     @Test
     public void godkjennVedtak__skal_sette_godkjent() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setBeslutterIdent(TEST_VEILEDER_IDENT)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
@@ -285,7 +285,7 @@ public class BeslutterServiceTest {
     @Test
     public void godkjennVedtak__skal_kaste_exception_hvis_ikke_beslutter() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setBeslutterIdent(TEST_BESLUTTER_IDENT)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
@@ -299,7 +299,7 @@ public class BeslutterServiceTest {
     @Test
     public void godkjennVedtak__skal_opprette_system_melding() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setBeslutterIdent(TEST_VEILEDER_IDENT)
                 .setInnsatsgruppe(Innsatsgruppe.STANDARD_INNSATS);
 
@@ -316,7 +316,7 @@ public class BeslutterServiceTest {
     @Test
     public void oppdaterBeslutterProsessStatus__skal_sette_riktig_status_for_veileder() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setBeslutterIdent(TEST_BESLUTTER_IDENT)
                 .setVeilederIdent(TEST_VEILEDER_IDENT)
                 .setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
@@ -333,7 +333,7 @@ public class BeslutterServiceTest {
     @Test
     public void oppdaterBeslutterProsessStatus__skal_sette_riktig_status_for_beslutter() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setBeslutterIdent(TEST_BESLUTTER_IDENT)
                 .setVeilederIdent(TEST_VEILEDER_IDENT)
                 .setBeslutterProsessStatus(KLAR_TIL_BESLUTTER);
@@ -350,7 +350,7 @@ public class BeslutterServiceTest {
     @Test
     public void oppdaterBeslutterProsessStatus__skal_feile_hvis_status_er_lik() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setBeslutterIdent(TEST_BESLUTTER_IDENT)
                 .setBeslutterProsessStatus(KLAR_TIL_VEILEDER);
 
@@ -364,7 +364,7 @@ public class BeslutterServiceTest {
     @Test
     public void oppdaterBeslutterProsessStatus__skal_feile_hvis_bruker_ikke_er_beslutter_eller_veileder() {
         Vedtak vedtak = new Vedtak()
-                .setAktorId(TEST_AKTOR_ID)
+                .setAktorId(TEST_AKTOR_ID_STRING)
                 .setBeslutterIdent(TEST_BESLUTTER_IDENT)
                 .setVeilederIdent(TEST_VEILEDER_IDENT)
                 .setBeslutterProsessStatus(KLAR_TIL_VEILEDER);

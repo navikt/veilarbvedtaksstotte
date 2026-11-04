@@ -12,7 +12,7 @@ public class TestData {
     public static final long SOME_ID = 42;
     public static final long SAK_ID = 10345;
     public static final Fnr TEST_FNR = Fnr.of("12345678912");
-    public static final String TEST_AKTOR_ID = "123";
+    public static final String TEST_AKTOR_ID_STRING = "123";
     public static final String TEST_VEILEDER_IDENT = "Z123456";
     public static final String TEST_VEILEDER_IDENT_2 = "Z654321";
     public static final String TEST_IKKE_ANSVARLIG_VEILEDER_IDENT = "Z987654";

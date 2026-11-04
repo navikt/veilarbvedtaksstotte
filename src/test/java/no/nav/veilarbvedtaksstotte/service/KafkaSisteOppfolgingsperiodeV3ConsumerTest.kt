@@ -39,13 +39,13 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
         val nowMinus10Days = LocalDateTime.now().minusDays(10)
         val sluttTidspunkt = ZonedDateTime.now()
         `when`(vedtaksstotteRepository.hentGjeldendeVedtak(anyString()))
-            .thenReturn(Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(nowMinus10Days).setAktorId(TEST_AKTOR_ID))
+            .thenReturn(Vedtak().setId(1234L).setGjeldende(true).setVedtakFattet(nowMinus10Days).setAktorId(TEST_AKTOR_ID_STRING))
 
         consumer.behandleSisteOppfolgingsperiodeV3(
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 UUID.randomUUID(),
                 SisteEndringsType.OPPFOLGING_AVSLUTTET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 ZonedDateTime.of(nowMinus10Days, ZoneId.systemDefault()),
                 sluttTidspunkt,
@@ -68,7 +68,7 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 UUID.randomUUID(),
                 SisteEndringsType.OPPFOLGING_AVSLUTTET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 ZonedDateTime.of(now.minusDays(20), ZoneId.systemDefault()),
                 sluttTidspunkt,
@@ -83,13 +83,13 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
     @Test
     fun `skal ikke oppdatere enhet hvis kontor er uendret`() {
         val enhet = "4562"
-        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(Vedtak().setOppfolgingsenhetId(enhet))
+        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING)).thenReturn(Vedtak().setOppfolgingsenhetId(enhet))
 
         consumer.behandleSisteOppfolgingsperiodeV3(
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 UUID.randomUUID(),
                 SisteEndringsType.ARBEIDSOPPFOLGINGSKONTOR_ENDRET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 ZonedDateTime.now().minusDays(1),
                 null,
@@ -105,13 +105,13 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
     @Test
     fun `skal oppdatere enhet hvis kontor er endret`() {
         val nyEnhet = "4562"
-        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(Vedtak().setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID))
+        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING)).thenReturn(Vedtak().setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID))
 
         consumer.behandleSisteOppfolgingsperiodeV3(
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 UUID.randomUUID(),
                 SisteEndringsType.ARBEIDSOPPFOLGINGSKONTOR_ENDRET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 ZonedDateTime.now().minusDays(1),
                 null,
@@ -126,13 +126,13 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
 
     @Test
     fun `skal ikke oppdatere enhet hvis ingen utkast finnes`() {
-        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(null)
+        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING)).thenReturn(null)
 
         consumer.behandleSisteOppfolgingsperiodeV3(
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 UUID.randomUUID(),
                 SisteEndringsType.ARBEIDSOPPFOLGINGSKONTOR_ENDRET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 ZonedDateTime.now().minusDays(1),
                 null,
@@ -150,7 +150,7 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 UUID.randomUUID(),
                 SisteEndringsType.ARBEIDSOPPFOLGINGSKONTOR_ENDRET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 ZonedDateTime.now().minusDays(1),
                 null,
@@ -168,15 +168,15 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
         val lagretStart = ZonedDateTime.now()
         val gammelStart = lagretStart.minusDays(30)
 
-        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(Vedtak().setOppfolgingsenhetId("1111"))
-        `when`(sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID)))
-            .thenReturn(SisteOppfolgingsperiode(UUID.randomUUID(), AktorId.of(TEST_AKTOR_ID), lagretStart, null))
+        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING)).thenReturn(Vedtak().setOppfolgingsenhetId("1111"))
+        `when`(sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID_STRING)))
+            .thenReturn(SisteOppfolgingsperiode(UUID.randomUUID(), AktorId.of(TEST_AKTOR_ID_STRING), lagretStart, null))
 
         consumer.behandleSisteOppfolgingsperiodeV3(
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 UUID.randomUUID(),
                 SisteEndringsType.ARBEIDSOPPFOLGINGSKONTOR_ENDRET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 gammelStart,
                 null,
@@ -195,15 +195,15 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
         val startTidspunkt = ZonedDateTime.parse(startTidspunktTekst)
         val lagretStart = startTidspunkt.plusSeconds(startTidspunkt.offset.totalSeconds.toLong())
 
-        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID)).thenReturn(Vedtak().setId(1234L).setOppfolgingsenhetId("1111"))
-        `when`(sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID)))
-            .thenReturn(SisteOppfolgingsperiode(periodeUuid, AktorId.of(TEST_AKTOR_ID), lagretStart, null))
+        `when`(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING)).thenReturn(Vedtak().setId(1234L).setOppfolgingsenhetId("1111"))
+        `when`(sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID_STRING)))
+            .thenReturn(SisteOppfolgingsperiode(periodeUuid, AktorId.of(TEST_AKTOR_ID_STRING), lagretStart, null))
 
         consumer.behandleSisteOppfolgingsperiodeV3(
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 periodeUuid,
                 SisteEndringsType.ARBEIDSOPPFOLGINGSKONTOR_ENDRET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 startTidspunkt,
                 null,
@@ -224,7 +224,7 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 periodeUuid,
                 SisteEndringsType.OPPFOLGING_STARTET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 startTidspunkt,
                 null,
@@ -233,7 +233,7 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
             ))
         )
 
-        verify(sisteOppfolgingPeriodeRepository).upsertSisteOppfolgingPeriode(periodeUuid, TEST_AKTOR_ID, startTidspunkt, null)
+        verify(sisteOppfolgingPeriodeRepository).upsertSisteOppfolgingPeriode(periodeUuid, TEST_AKTOR_ID_STRING, startTidspunkt, null)
     }
 
     @Test
@@ -241,14 +241,14 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
         val lagretStart = ZonedDateTime.now()
         val gammelStart = lagretStart.minusDays(30)
 
-        `when`(sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID)))
-            .thenReturn(SisteOppfolgingsperiode(UUID.randomUUID(), AktorId.of(TEST_AKTOR_ID), lagretStart, null))
+        `when`(sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID_STRING)))
+            .thenReturn(SisteOppfolgingsperiode(UUID.randomUUID(), AktorId.of(TEST_AKTOR_ID_STRING), lagretStart, null))
 
         consumer.behandleSisteOppfolgingsperiodeV3(
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 UUID.randomUUID(),
                 SisteEndringsType.OPPFOLGING_STARTET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 gammelStart,
                 null,
@@ -257,7 +257,7 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
             ))
         )
 
-        verify(sisteOppfolgingPeriodeRepository).hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID))
+        verify(sisteOppfolgingPeriodeRepository).hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID_STRING))
         verifyNoMoreInteractions(sisteOppfolgingPeriodeRepository)
     }
 
@@ -268,14 +268,14 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
         val startTidspunkt = ZonedDateTime.parse(startTidspunktTekst)
         val lagretStart = startTidspunkt.plusSeconds(startTidspunkt.offset.totalSeconds.toLong())
 
-        `when`(sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID)))
-            .thenReturn(SisteOppfolgingsperiode(periodeUuid, AktorId.of(TEST_AKTOR_ID), lagretStart, null))
+        `when`(sisteOppfolgingPeriodeRepository.hentSisteOppfolgingsperiode(AktorId.of(TEST_AKTOR_ID_STRING)))
+            .thenReturn(SisteOppfolgingsperiode(periodeUuid, AktorId.of(TEST_AKTOR_ID_STRING), lagretStart, null))
 
         consumer.behandleSisteOppfolgingsperiodeV3(
             lagV3Record(KafkaSisteOppfolgingsperiodeV3(
                 periodeUuid,
                 SisteEndringsType.OPPFOLGING_STARTET,
-                TEST_AKTOR_ID,
+                TEST_AKTOR_ID_STRING,
                 TEST_FNR.get(),
                 startTidspunkt,
                 null,
@@ -285,7 +285,7 @@ class KafkaSisteOppfolgingsperiodeV3ConsumerTest {
         )
 
         verify(sisteOppfolgingPeriodeRepository)
-            .upsertSisteOppfolgingPeriode(periodeUuid, TEST_AKTOR_ID, startTidspunkt, null)
+            .upsertSisteOppfolgingPeriode(periodeUuid, TEST_AKTOR_ID_STRING, startTidspunkt, null)
     }
 
     private fun lagV3Record(melding: KafkaSisteOppfolgingsperiodeV3): ConsumerRecord<Long, KafkaSisteOppfolgingsperiodeV3> {
