@@ -3,6 +3,7 @@ package no.nav.veilarbvedtaksstotte.service
 import no.nav.common.auth.context.AuthContextHolderThreadLocal
 import no.nav.common.auth.context.UserRole
 import no.nav.common.client.aktoroppslag.AktorOppslagClient
+import no.nav.common.client.aktoroppslag.BrukerIdenter
 import no.nav.common.test.auth.AuthTestUtils
 import no.nav.common.types.identer.AktorId
 import no.nav.common.utils.fn.UnsafeRunnable
@@ -120,6 +121,9 @@ class SakStatistikkServiceTest : DatabaseTest() {
         whenever(authService.getFnrOrThrow(TestData.TEST_AKTOR_ID_STRING)).thenReturn(TestData.TEST_FNR)
 
         whenever(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID_STRING))).thenReturn(TestData.TEST_FNR)
+        whenever(aktorOppslagClient.hentIdenter(TestData.TEST_FNR)).thenReturn(
+            BrukerIdenter(TestData.TEST_FNR, TestData.TEST_AKTOR_ID, emptyList(), emptyList())
+        )
         whenever(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(TestData.TEST_FNR)).thenReturn(
             mockedOppfolgingsPeriode(null)
         )

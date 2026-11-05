@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
+import no.nav.common.client.aktoroppslag.BrukerIdenter;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.types.identer.AktorId;
 import no.nav.common.types.identer.Fnr;
@@ -29,6 +30,7 @@ import no.nav.veilarbvedtaksstotte.repository.BeslutteroversiktRepository;
 import no.nav.veilarbvedtaksstotte.repository.KilderRepository;
 import no.nav.veilarbvedtaksstotte.repository.MeldingRepository;
 import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
+import no.nav.veilarbvedtaksstotte.utils.BrukerIdenterUtilKt;
 import no.nav.veilarbvedtaksstotte.utils.VedtakUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -43,7 +45,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus.GODKJENT_AV_BESLUTTER;
 import static no.nav.veilarbvedtaksstotte.domain.vedtak.VedtakStatus.SENDT;
 import static no.nav.veilarbvedtaksstotte.utils.InnsatsgruppeUtils.skalHaBeslutter;
@@ -280,8 +281,9 @@ public class VedtakService {
     }
 
     public List<Vedtak> hentFattedeVedtak(Fnr fnr) {
-        String aktorId = authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr).getAktorId();
-        List<Vedtak> vedtak = vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(aktorId);
+        authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, fnr);
+        BrukerIdenter brukerIdenter = aktorOppslagClient.hentIdenter(fnr);
+        List<Vedtak> vedtak = vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(BrukerIdenterUtilKt.alleIdenterListe(brukerIdenter));
 
         vedtak.forEach(this::flettInnVedtakInformasjon);
 

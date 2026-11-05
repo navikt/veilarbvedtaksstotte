@@ -4,6 +4,7 @@ import io.getunleash.DefaultUnleash;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
+import no.nav.common.client.aktoroppslag.BrukerIdenter;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.test.auth.AuthTestUtils;
@@ -84,15 +85,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID_STRING;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DOKUMENT_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_JOURNALPOST_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_KILDER;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -224,6 +217,7 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentPersonNavnForJournalforing(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(veilarbpersonClient.hentFodselsdato(TEST_FNR)).thenReturn(new FodselsdatoOgAr(LocalDate.of(1990, 3, 12), 1990));
         when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID_STRING));
+        when(aktorOppslagClient.hentIdenter(TEST_FNR)).thenReturn(new BrukerIdenter(TEST_FNR, TEST_AKTOR_ID, List.of(), List.of()));
         when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID_STRING))).thenReturn(TEST_FNR);
         when(veilarboppfolgingClient.hentOppfolgingsenhet(TEST_FNR)).thenReturn(Optional.of(new OppfolgingsenhetDTO(TEST_OPPFOLGINGSENHET_ID, "NAV Test")));
         when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.of(new OppfolgingPeriodeDTO(UUID.randomUUID(), ZonedDateTime.now(), null)));
@@ -504,11 +498,11 @@ public class VedtakServiceTest extends DatabaseTest {
         fattVedtak();
 
         assertJournalfortOgFerdigstiltVedtak();
-        assertNotNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID_STRING).getFirst().getBegrunnelse());
+        assertNotNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(List.of(TEST_AKTOR_ID)).getFirst().getBegrunnelse());
 
         SlettVedtakRequest slettVedtakRequest = new SlettVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
         vedtakService.slettVedtak(slettVedtakRequest, NavIdent.of("Z123456"));
-        assertNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID_STRING).getFirst().getBegrunnelse());
+        assertNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(List.of(TEST_AKTOR_ID)).getFirst().getBegrunnelse());
     }
 
     @Test
