@@ -2,6 +2,8 @@ package no.nav.veilarbvedtaksstotte.repository;
 
 import lombok.SneakyThrows;
 import no.nav.common.types.identer.AktorId;
+import no.nav.common.types.identer.EksternBrukerId;
+import no.nav.common.types.identer.Id;
 import no.nav.common.types.identer.NavIdent;
 import no.nav.veilarbvedtaksstotte.controller.dto.SladdVedtakRequest;
 import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
@@ -10,6 +12,7 @@ import no.nav.veilarbvedtaksstotte.domain.sladdVedtak.SladdVedtakFeiletException
 import no.nav.veilarbvedtaksstotte.domain.slettVedtak.SlettVedtakFeiletException;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.*;
 import no.nav.veilarbvedtaksstotte.utils.EnumUtils;
+import no.nav.veilarbvedtaksstotte.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static no.nav.veilarbvedtaksstotte.utils.DbUtils.queryForObjectOrNull;
@@ -80,9 +84,10 @@ public class VedtaksstotteRepository {
         return Boolean.TRUE.equals(db.queryForObject(sql, Boolean.class, aktorId));
     }
 
-    public List<Vedtak> hentFattedeVedtakInkludertSlettede(String aktorId) {
-        String sql = format("SELECT * FROM %s WHERE %s = ? AND %s != ?", VEDTAK_TABLE, AKTOR_ID, STATUS);
-        return db.query(sql, VedtaksstotteRepository::mapVedtak, aktorId, getName(VedtakStatus.UTKAST));
+    public List<Vedtak> hentFattedeVedtakInkludertSlettede(List<EksternBrukerId> brukerIdenter) {
+        String sql = format("SELECT * FROM %s WHERE %s = ANY (?::varchar[]) AND %s IN (?, ?)", VEDTAK_TABLE, AKTOR_ID, STATUS);
+        String brukerIdenterSqlParam = brukerIdenter.stream().map(Id::get).collect(Collectors.joining(",", "{", "}"));
+        return db.query(sql, VedtaksstotteRepository::mapVedtak, brukerIdenterSqlParam, getName(VedtakStatus.SENDT), getName(VedtakStatus.SLETTET));
     }
 
     public List<Vedtak> hentUtkastEldreEnn(LocalDateTime dateTime) {

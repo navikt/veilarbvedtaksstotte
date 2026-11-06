@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID_STRING;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_BESLUTTER_NAVN;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
@@ -39,12 +39,12 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
     @BeforeEach
     public void cleanup() {
         DbTestUtils.cleanupDb(jdbcTemplate);
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID_STRING, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
     }
 
     @Test
     public void lagBruker__skal_lage_bruker() {
-        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getId();
 
         BeslutteroversiktBruker nyBruker = lagBruker(vedtakId);
 
@@ -58,7 +58,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
 
     @Test
     public void slettBruke__skal_slette_bruker() {
-        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getId();
 
         BeslutteroversiktBruker bruker = lagBruker(vedtakId);
 
@@ -70,7 +70,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
 
     @Test
     public void oppdaterStatus__skal_oppdatere_status() {
-        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getId();
 
         BeslutteroversiktBruker nyBruker = lagBruker(vedtakId)
                 .setStatus(BeslutteroversiktStatus.TRENGER_BESLUTTER);
@@ -89,7 +89,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
 
     @Test
     public void oppdaterVeileder__skal_oppdatere_veileder() {
-        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getId();
 
         BeslutteroversiktBruker nyBruker = lagBruker(vedtakId);
 
@@ -103,7 +103,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
 
     @Test
     public void oppdaterBeslutter__skal_oppdatere_beslutter() {
-        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getId();
 
         BeslutteroversiktBruker nyBruker = lagBruker(vedtakId);
 
@@ -118,7 +118,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
 
     @Test
     public void oppdaterBrukerEnhet__skal_oppdatere_enhet() {
-        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getId();
 
         String nyEnhetId = "8888";
         String nyEnhetNavn = "Nav Ny enhet";
@@ -136,7 +136,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
 
     @Test
     public void hentEnheterMedUtkast__skal_returnere_enhet_med_navn() {
-        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getId();
         String enhetId = "8888";
         String enhetNavn = "Nav Ny enhet";
 

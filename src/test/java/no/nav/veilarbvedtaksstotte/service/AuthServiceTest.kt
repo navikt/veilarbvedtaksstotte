@@ -33,8 +33,8 @@ class AuthServiceTest {
 
     @BeforeEach
     fun setup() {
-        `when`(aktorOppslagClient.hentAktorId(TestData.TEST_FNR)).thenReturn(AktorId.of(TestData.TEST_AKTOR_ID))
-        `when`(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID))).thenReturn(TestData.TEST_FNR)
+        `when`(aktorOppslagClient.hentAktorId(TestData.TEST_FNR)).thenReturn(AktorId.of(TestData.TEST_AKTOR_ID_STRING))
+        `when`(aktorOppslagClient.hentFnr(AktorId.of(TestData.TEST_AKTOR_ID_STRING))).thenReturn(TestData.TEST_FNR)
         `when`(oppfolgingsenhetService.hentOppfolgingsenhet(TestData.TEST_FNR)).thenReturn(Optional.of(EnhetId.of(TestData.TEST_OPPFOLGINGSENHET_ID)))
     }
 

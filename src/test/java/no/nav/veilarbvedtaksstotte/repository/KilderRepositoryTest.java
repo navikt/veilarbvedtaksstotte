@@ -12,7 +12,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import java.util.Arrays;
 import java.util.List;
 
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID_STRING;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.VEDTAK_ID_THAT_DOES_NOT_EXIST;
@@ -48,9 +48,9 @@ public class KilderRepositoryTest extends DatabaseTest {
     @Test
     public void skal_lage_og_hente_kilder() {
 
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID_STRING, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
-        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getId();
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getId();
 
         List<String> kilder = Arrays.asList("kilde1", "kilde2");
         kilderRepository.lagKilder(kilder, vedtakId);

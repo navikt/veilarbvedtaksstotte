@@ -54,7 +54,7 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
     @Test
     fun `lagrer forventet record verdi for oppdatering av siste vedtak`() {
         val siste14aVedtak = Siste14aVedtakKafkaDTO(
-            aktorId = AktorId(TEST_AKTOR_ID),
+            aktorId = AktorId(TEST_AKTOR_ID_STRING),
             innsatsgruppe = STANDARD_INNSATS,
             hovedmal = SKAFFE_ARBEID,
             fattetDato = ZonedDateTime.parse("2021-09-08T09:29:20.398043+02:00"),
@@ -85,7 +85,7 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
             LocalDateTime.of(2021, 4, 7, 11, 12, 32, 1234),
             SPESIELT_TILPASSET_INNSATS,
             BEHOLDE_ARBEID,
-            TEST_AKTOR_ID,
+            TEST_AKTOR_ID_STRING,
             TEST_OPPFOLGINGSENHET_ID,
         )
 
@@ -111,7 +111,7 @@ class KafkaProducerServiceTest : IntegrationTestBase() {
     fun `lagrer forventet record verdi for statusendring på vedtak`() {
         val utkastOpprettet = KafkaVedtakStatusEndring.UtkastOpprettet()
         utkastOpprettet.setVedtakId(23442)
-        utkastOpprettet.setAktorId(TEST_AKTOR_ID)
+        utkastOpprettet.setAktorId(TEST_AKTOR_ID_STRING)
         utkastOpprettet.setVedtakStatusEndring(VedtakStatusEndring.UTKAST_OPPRETTET)
         utkastOpprettet.setTimestamp(LocalDateTime.of(2021, 4, 5, 9, 16, 44, 345534))
         utkastOpprettet.setVeilederIdent(TEST_VEILEDER_IDENT)

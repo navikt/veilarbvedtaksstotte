@@ -4,6 +4,7 @@ import io.getunleash.DefaultUnleash;
 import no.nav.common.auth.context.AuthContextHolderThreadLocal;
 import no.nav.common.auth.context.UserRole;
 import no.nav.common.client.aktoroppslag.AktorOppslagClient;
+import no.nav.common.client.aktoroppslag.BrukerIdenter;
 import no.nav.common.client.norg2.Enhet;
 import no.nav.common.job.leader_election.LeaderElectionClient;
 import no.nav.common.test.auth.AuthTestUtils;
@@ -84,15 +85,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagResponseDTO.AdresseType.NORSKPOSTADRESSE;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_AKTOR_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_DOKUMENT_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_FNR;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_JOURNALPOST_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_KILDER;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_ID;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_NAVN;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
-import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN;
+import static no.nav.veilarbvedtaksstotte.utils.TestData.*;
 import static no.nav.veilarbvedtaksstotte.utils.TestUtils.readTestResourceFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -223,8 +216,9 @@ public class VedtakServiceTest extends DatabaseTest {
         when(veilarbpersonClient.hentPersonNavn(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(veilarbpersonClient.hentPersonNavnForJournalforing(TEST_FNR.get())).thenReturn(new PersonNavn("Fornavn", null, "Etternavn", null));
         when(veilarbpersonClient.hentFodselsdato(TEST_FNR)).thenReturn(new FodselsdatoOgAr(LocalDate.of(1990, 3, 12), 1990));
-        when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID));
-        when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID))).thenReturn(TEST_FNR);
+        when(aktorOppslagClient.hentAktorId(TEST_FNR)).thenReturn(AktorId.of(TEST_AKTOR_ID_STRING));
+        when(aktorOppslagClient.hentIdenter(TEST_FNR)).thenReturn(new BrukerIdenter(TEST_FNR, TEST_AKTOR_ID, List.of(), List.of()));
+        when(aktorOppslagClient.hentFnr(AktorId.of(TEST_AKTOR_ID_STRING))).thenReturn(TEST_FNR);
         when(veilarboppfolgingClient.hentOppfolgingsenhet(TEST_FNR)).thenReturn(Optional.of(new OppfolgingsenhetDTO(TEST_OPPFOLGINGSENHET_ID, "NAV Test")));
         when(veilarboppfolgingClient.hentGjeldendeOppfolgingsperiode(any())).thenReturn(Optional.of(new OppfolgingPeriodeDTO(UUID.randomUUID(), ZonedDateTime.now(), null)));
         when(veilarboppfolgingClient.hentOppfolgingsperiodeSak(any())).thenReturn(new SakDTO(UUID.randomUUID(), 12345, "ARBEIDSOPPFOLGING", "OPP"));
@@ -253,7 +247,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
             vedtakService.lagUtkast(TEST_FNR);
             assertNyttUtkast();
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
             OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
@@ -300,7 +294,7 @@ public class VedtakServiceTest extends DatabaseTest {
             gittTilgang();
 
             vedtakService.lagUtkast(TEST_FNR);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
             List<String> kilder = List.of(VedtakOpplysningKilder.REGISTRERING.getDesc(), VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc(), VedtakOpplysningKilder.CV.getDesc());
             kilderRepository.lagKilder(kilder, utkast.getId());
@@ -324,7 +318,7 @@ public class VedtakServiceTest extends DatabaseTest {
             gittTilgang();
 
             vedtakService.lagUtkast(TEST_FNR);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
             List<String> gamleKilder = List.of(VedtakOpplysningKilder.REGISTRERING.getDesc(), VedtakOpplysningKilder.EGENVURDERING.getDesc());
             List<String> nyeKilder = List.of(VedtakOpplysningKilder.EGENVURDERING.getDesc(), VedtakOpplysningKilder.CV.getDesc(), VedtakOpplysningKilder.ARBEIDSSOKERREGISTERET.getDesc());
@@ -349,7 +343,7 @@ public class VedtakServiceTest extends DatabaseTest {
             gittTilgang();
 
             vedtakService.lagUtkast(TEST_FNR);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
             when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
@@ -363,9 +357,9 @@ public class VedtakServiceTest extends DatabaseTest {
 
     @Test
     public void slettUtkast__skal_slette_utkast_med_data() {
-        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+        vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID_STRING, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
 
-        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+        Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
         kilderRepository.lagKilder(TEST_KILDER, utkast.getId());
 
@@ -373,7 +367,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
         vedtakService.slettUtkast(utkast, BehandlingMetode.MANUELL);
 
-        assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID));
+        assertNull(vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING));
     }
 
     @Test
@@ -385,7 +379,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
             when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT + "annen");
 
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
             assertThatThrownBy(() ->
                     vedtakService.slettUtkastSomVeileder(utkast.getId())
@@ -415,7 +409,7 @@ public class VedtakServiceTest extends DatabaseTest {
 
             vedtakService.lagUtkast(TEST_FNR);
 
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
             vedtakService.oppdaterUtkast(utkast.getId(),
                     new OppdaterUtkastDTO()
@@ -437,12 +431,12 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
             gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID_STRING, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
-            assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
+            assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getVeilederIdent());
             vedtakService.taOverUtkast(utkast.getId());
-            assertEquals(TEST_VEILEDER_IDENT, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID).getVeilederIdent());
+            assertEquals(TEST_VEILEDER_IDENT, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getVeilederIdent());
         });
     }
 
@@ -452,8 +446,8 @@ public class VedtakServiceTest extends DatabaseTest {
             String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
             gittTilgang();
 
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID_STRING, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
             reset(meldingRepository);
 
@@ -482,8 +476,8 @@ public class VedtakServiceTest extends DatabaseTest {
     public void taOverUtkast__feiler_dersom_samme_veileder() {
         withContext(() -> {
             gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID_STRING, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
             assertThatThrownBy(() ->
                     vedtakService.taOverUtkast(utkast.getId())
@@ -504,11 +498,11 @@ public class VedtakServiceTest extends DatabaseTest {
         fattVedtak();
 
         assertJournalfortOgFerdigstiltVedtak();
-        assertNotNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID).getFirst().getBegrunnelse());
+        assertNotNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(List.of(TEST_AKTOR_ID)).getFirst().getBegrunnelse());
 
         SlettVedtakRequest slettVedtakRequest = new SlettVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
         vedtakService.slettVedtak(slettVedtakRequest, NavIdent.of("Z123456"));
-        assertNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(TEST_AKTOR_ID).getFirst().getBegrunnelse());
+        assertNull(vedtaksstotteRepository.hentFattedeVedtakInkludertSlettede(List.of(TEST_AKTOR_ID)).getFirst().getBegrunnelse());
     }
 
     @Test
@@ -524,11 +518,11 @@ public class VedtakServiceTest extends DatabaseTest {
         fattVedtak();
 
         assertJournalfortOgFerdigstiltVedtak();
-        assertNotNull(vedtaksstotteRepository.hentFattedeVedtak(TEST_AKTOR_ID).getFirst().getBegrunnelse());
+        assertNotNull(vedtaksstotteRepository.hentFattedeVedtak(TEST_AKTOR_ID_STRING).getFirst().getBegrunnelse());
 
         SladdVedtakRequest sladdVedtakRequest = new SladdVedtakRequest(TEST_JOURNALPOST_ID, TEST_FNR, NavIdent.of(TEST_VEILEDER_IDENT), "FAGSYSTEM-12234555");
         vedtakService.sladdVedtak(sladdVedtakRequest, NavIdent.of("Z123456"));
-        var sladdetVedtak = vedtaksstotteRepository.hentFattedeVedtak(TEST_AKTOR_ID).getFirst();
+        var sladdetVedtak = vedtaksstotteRepository.hentFattedeVedtak(TEST_AKTOR_ID_STRING).getFirst();
 
         assertEquals("Deler av vedtaket har blitt slettet/sladdet. Se dokument i Gosys.", sladdetVedtak.getBegrunnelse());
     }
@@ -537,8 +531,8 @@ public class VedtakServiceTest extends DatabaseTest {
     void ikke_vedtak_naar_personen_ikke_er_under_oppfolging() {
         withContext(() -> {
             gittTilgang();
-            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID_STRING, TEST_VEILEDER_IDENT, TEST_OPPFOLGINGSENHET_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
             OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
@@ -569,7 +563,7 @@ public class VedtakServiceTest extends DatabaseTest {
         withContext(() -> {
             gittTilgang();
             vedtakService.lagUtkast(TEST_FNR);
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
 
             OppdaterUtkastDTO oppdaterDto = new OppdaterUtkastDTO()
                     .setHovedmal(Hovedmal.SKAFFE_ARBEID)
@@ -607,7 +601,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private void fattVedtak() {
         withContext(() -> {
             gittTilgang();
-            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
             vedtakService.fattVedtak(utkast.getId());
         });
     }
