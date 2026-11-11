@@ -95,7 +95,9 @@ public class BeslutteroversiktServiceTest {
         );
 
         BeslutteroversiktSok sok = new BeslutteroversiktSok();
-        sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("5431")));
+        BeslutteroversiktSokFilter filter = new BeslutteroversiktSokFilter();
+        filter.setEnheter(Arrays.asList("5431"));
+        sok.setFilter(filter);
 
         assertThrows(ResponseStatusException.class, () -> {
             beslutteroversiktService.sokEtterBruker(sok);
@@ -113,7 +115,9 @@ public class BeslutteroversiktServiceTest {
         );
 
         BeslutteroversiktSok sok = new BeslutteroversiktSok();
-        sok.setFilter(new BeslutteroversiktSokFilter().setEnheter(Arrays.asList("4321", "1234")));
+        BeslutteroversiktSokFilter filter = new BeslutteroversiktSokFilter();
+        filter.setEnheter(Arrays.asList("4321", "1234"));
+        sok.setFilter(filter);
 
         beslutteroversiktService.sokEtterBruker(sok);
         verify(beslutteroversiktRepository, atLeastOnce()).sokEtterBrukere(any(), anyString());
