@@ -166,7 +166,7 @@ public class BeslutteroversiktRepository {
         return filter != null
                 && (!isNullOrEmpty(filter.getEnheter())
                 || filter.getStatus() != null
-                || filter.isVisMineBrukere());
+            || filter.getVisMineBrukere());
     }
 
     private Optional<String> lagOrderBySql(BeslutteroversiktSok.OrderByField field, BeslutteroversiktSok.OrderByDirection direction) {
@@ -196,7 +196,7 @@ public class BeslutteroversiktRepository {
             parameters.add(toPostgresArray(filter.getEnheter()));
         }
 
-        if (filter.isVisMineBrukere()) {
+        if (filter.getVisMineBrukere()) {
             filterStrs.add(format("%s = ?", BESLUTTER_IDENT));
             parameters.add(innloggetVeilederIdent);
         }
