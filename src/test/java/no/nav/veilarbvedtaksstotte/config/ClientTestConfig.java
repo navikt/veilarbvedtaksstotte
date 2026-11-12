@@ -67,6 +67,9 @@ import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingPeriod
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingStatusDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.OppfolgingsenhetDTO;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.dto.SakDTO;
+import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.VeilarbportefoljeClient;
+import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.dto.EtiketterForBrukerDTO;
+import no.nav.common.types.identer.NorskIdent;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
@@ -562,6 +565,21 @@ public class ClientTestConfig {
             public void sendKlageTilKabal(KabalDTO kabalDto) {
             }
 
+        };
+    }
+
+    @Bean
+    public VeilarbportefoljeClient veilarbportefoljeClient() {
+        return new VeilarbportefoljeClient() {
+            @Override
+            public List<EtiketterForBrukerDTO> hentEtiketter(List<? extends NorskIdent> fnrListe) {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public HealthCheckResult checkHealth() {
+                return HealthCheckResult.healthy();
+            }
         };
     }
 

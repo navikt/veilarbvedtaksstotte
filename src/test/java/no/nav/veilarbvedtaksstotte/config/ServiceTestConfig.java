@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Import;
         AuthService.class,
         BeslutterService.class,
         BeslutteroversiktService.class,
+        EtiketterService.class,
         EnhetInfoService.class,
         MalTypeService.class,
         MeldingService.class,
