@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.service;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.dto.Etiketter;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
@@ -30,17 +31,21 @@ public class BeslutteroversiktService {
 
     private final AuthService authService;
 
+    private final EtiketterService etiketterService;
+
     private static final String VIKAFOSSEN_ENHET_ID = "2103";
 
     @Autowired
     public BeslutteroversiktService(
             BeslutteroversiktRepository beslutteroversiktRepository,
             VeilarbveilederClient veiledereOgEnhetClient,
-            AuthService authService
+            AuthService authService,
+            EtiketterService etiketterService
     ) {
         this.beslutteroversiktRepository = beslutteroversiktRepository;
         this.veiledereOgEnhetClient = veiledereOgEnhetClient;
         this.authService = authService;
+        this.etiketterService = etiketterService;
     }
 
     public BrukereMedAntall sokEtterBruker(BeslutteroversiktSok sok) {
@@ -63,9 +68,21 @@ public class BeslutteroversiktService {
         }
 
         BrukereMedAntall brukereMedAntall = beslutteroversiktRepository.sokEtterBrukere(sok, veilederEnheterDTO.getIdent());
+        leggTilEtiketter(brukereMedAntall.getBrukere());
         sensurerBrukere(brukereMedAntall.getBrukere());
 
         return brukereMedAntall;
+    }
+
+    void leggTilEtiketter(List<BeslutteroversiktBruker> brukere) {
+        if (brukere == null || brukere.isEmpty()) {
+            return;
+        }
+
+        List<String> brukerFnrs = brukere.stream().map(BeslutteroversiktBruker::getBrukerFnr).toList();
+        Map<String, Etiketter> etiketterForBrukere = etiketterService.hentEtiketter(brukerFnrs);
+
+        brukere.forEach(bruker -> bruker.setEtiketter(etiketterForBrukere.get(bruker.getBrukerFnr())));
     }
 
     private void sjekkTilgangTilAlleEnheter(List<String> sokteEnheter, List<String> veilederEnheter) {

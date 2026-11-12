@@ -13,6 +13,7 @@ import no.nav.veilarbvedtaksstotte.client.pdf.PdfClient;
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient;
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient;
+import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.VeilarbportefoljeClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
@@ -43,6 +44,7 @@ public class HealthConfig {
                                          DokarkivClient dokarkivClient,
                                          DokdistribusjonClient dokdistribusjonClient,
                                          RegoppslagClient regoppslagClient,
+                                         VeilarbportefoljeClient veilarbportefoljeClient,
                                          DataSourceHealthIndicator dataSourceHealthIndicator) {
 
 
@@ -57,7 +59,8 @@ public class HealthConfig {
                 new SelfTestCheck("Ping database", true, () -> checkDbHealth(dataSourceHealthIndicator)),
                 new SelfTestCheck("DokarkivClient", false, dokarkivClient),
                 new SelfTestCheck("DokdistribusjonClient", false, dokdistribusjonClient),
-                new SelfTestCheck("RegoppslagClient", false, regoppslagClient)
+                new SelfTestCheck("RegoppslagClient", false, regoppslagClient),
+                new SelfTestCheck("veilarbportefolje", false, veilarbportefoljeClient)
         ));
 
 

@@ -2,6 +2,7 @@ package no.nav.veilarbvedtaksstotte.domain.beslutteroversikt;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.dto.Etiketter;
 
 import java.time.LocalDateTime;
 
@@ -20,4 +21,5 @@ public class BeslutteroversiktBruker {
     String beslutterNavn;
     String beslutterIdent;
     String veilederNavn;
+    Etiketter etiketter;
 }

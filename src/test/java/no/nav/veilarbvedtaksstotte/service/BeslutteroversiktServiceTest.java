@@ -1,5 +1,6 @@
 package no.nav.veilarbvedtaksstotte.service;
 
+import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.dto.Etiketter;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.PortefoljeEnhet;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.VeilederEnheterDTO;
@@ -21,6 +22,7 @@ import java.util.Map;
 
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
@@ -39,7 +41,9 @@ public class BeslutteroversiktServiceTest {
 
     private final AuthService authService = mock(AuthService.class);
 
-    private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService);
+    private final EtiketterService etiketterService = mock(EtiketterService.class);
+
+    private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService, etiketterService);
 
     private final static BrukereMedAntall INGEN_BRUKERE = new BrukereMedAntall(Collections.emptyList(), 0);
 
@@ -122,7 +126,7 @@ public class BeslutteroversiktServiceTest {
     @Test
     public void sokEtterBruker__skal_sensurere_brukere() {
         BeslutteroversiktService beslutteroversiktService =
-                spy(new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService));
+                spy(new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService, etiketterService));
 
         when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString())).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
@@ -134,6 +138,43 @@ public class BeslutteroversiktServiceTest {
 
         beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok());
         verify(beslutteroversiktService).sensurerBrukere(anyList());
+    }
+
+    @Test
+    public void sokEtterBruker__skal_legge_til_etiketter_for_alle_brukere_for_sensurering() {
+        String bruker1Fnr = "11111111111";
+        String bruker2Fnr = "22222222222";
+        Etiketter etiketterBruker1 = new Etiketter(false, true, null, false);
+        Etiketter etiketterBruker2 = new Etiketter(false, false, "STRENGT_FORTROLIG", false);
+
+        BeslutteroversiktBruker bruker1 = new BeslutteroversiktBruker().setBrukerFnr(bruker1Fnr);
+        BeslutteroversiktBruker bruker2 = new BeslutteroversiktBruker().setBrukerFnr(bruker2Fnr);
+
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString()))
+                .thenReturn(new BrukereMedAntall(Arrays.asList(bruker1, bruker2), 2));
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet("1234", "test1")))
+        );
+        when(etiketterService.hentEtiketter(List.of(bruker1Fnr, bruker2Fnr)))
+                .thenReturn(Map.of(bruker1Fnr, etiketterBruker1, bruker2Fnr, etiketterBruker2));
+        when(authService.harInnloggetVeilederTilgangTilBrukere(any()))
+                .thenReturn(Map.of(bruker1Fnr, true, bruker2Fnr, false));
+
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok()).getBrukere();
+
+        assertEquals(etiketterBruker1, brukere.get(0).getEtiketter());
+        assertEquals(etiketterBruker2, brukere.get(1).getEtiketter());
+        assertEquals("", brukere.get(1).getBrukerFnr());
+    }
+
+    @Test
+    public void leggTilEtiketter__skal_sette_null_for_brukere_uten_etiketter() {
+        BeslutteroversiktBruker bruker = new BeslutteroversiktBruker().setBrukerFnr("11111111111");
+        when(etiketterService.hentEtiketter(anyList())).thenReturn(Collections.emptyMap());
+
+        beslutteroversiktService.leggTilEtiketter(List.of(bruker));
+
+        assertNull(bruker.getEtiketter());
     }
 
     @Test
