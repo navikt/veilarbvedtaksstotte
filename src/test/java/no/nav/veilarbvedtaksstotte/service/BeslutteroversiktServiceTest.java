@@ -113,9 +113,7 @@ public class BeslutteroversiktServiceTest {
         BeslutteroversiktSok sok = new BeslutteroversiktSok()
                 .withFilter(new BeslutteroversiktSokFilter().withEnheter(List.of(EnhetId.of("5431"))));
 
-        assertThrows(ResponseStatusException.class, () -> {
-            beslutteroversiktService.hentBeslutteroversikt(sok);
-        });
+        assertThrows(ResponseStatusException.class, () -> beslutteroversiktService.hentBeslutteroversikt(sok));
     }
 
     @Test
@@ -217,7 +215,7 @@ public class BeslutteroversiktServiceTest {
 
         List<BeslutteroversiktBruker> sensurert = beslutteroversiktService.sensurerBrukere(brukere);
 
-        assertEquals(bruker1.getBrukerFnr(), sensurert.get(0).getBrukerFnr());
+        assertEquals(bruker1.getBrukerFnr(), sensurert.getFirst().getBrukerFnr());
         assertEquals(bruker1.getBrukerFornavn(), sensurert.get(0).getBrukerFornavn());
         assertEquals(bruker1.getBrukerEtternavn(), sensurert.get(0).getBrukerEtternavn());
 
@@ -233,13 +231,13 @@ public class BeslutteroversiktServiceTest {
 
         BeslutteroversiktBruker bruker1 = lagBruker(1, "11111111111", "Bruker 1", "Bruker 1");
 
-        List<BeslutteroversiktBruker> brukere = Arrays.asList(bruker1);
+        List<BeslutteroversiktBruker> brukere = List.of(bruker1);
 
         List<BeslutteroversiktBruker> sensurert = beslutteroversiktService.sensurerBrukere(brukere);
 
-        assertEquals("", sensurert.get(0).getBrukerFnr());
-        assertEquals("", sensurert.get(0).getBrukerFornavn());
-        assertEquals("", sensurert.get(0).getBrukerEtternavn());
+        assertEquals("", sensurert.getFirst().getBrukerFnr());
+        assertEquals("", sensurert.getFirst().getBrukerFornavn());
+        assertEquals("", sensurert.getFirst().getBrukerEtternavn());
     }
 
     @Test
