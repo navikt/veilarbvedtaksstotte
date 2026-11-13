@@ -248,8 +248,9 @@ public class BeslutteroversiktServiceTest {
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
                 new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet(null, "test1")))
         );
+        BeslutteroversiktSok sok = new BeslutteroversiktSok();
 
-        assertThrows(IllegalStateException.class, () -> beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok()));
+        assertThrows(IllegalStateException.class, () -> beslutteroversiktService.hentBeslutteroversikt(sok));
         verifyNoInteractions(beslutteroversiktRepository);
     }
 
@@ -283,9 +284,10 @@ public class BeslutteroversiktServiceTest {
     public void landsdekkende__skal_gi_403_uten_modia_tilgang() {
         slaPaLandsdekkendeModus();
         doThrow(new ResponseStatusException(HttpStatus.FORBIDDEN)).when(authService).sjekkModiaGenerellTilgang();
+        BeslutteroversiktSok sok = new BeslutteroversiktSok();
 
         ResponseStatusException feil = assertThrows(ResponseStatusException.class,
-                () -> beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok()));
+                () -> beslutteroversiktService.hentBeslutteroversikt(sok));
 
         assertEquals(HttpStatus.FORBIDDEN, feil.getStatusCode());
         verifyNoInteractions(beslutteroversiktRepository, veiledereOgEnhetClient);
@@ -318,9 +320,10 @@ public class BeslutteroversiktServiceTest {
     public void landsdekkende__skal_gi_403_ved_sok_pa_vikafossen_uten_kode6_tilgang() {
         slaPaLandsdekkendeModus();
         when(authService.harTilgangTilKode6Brukere()).thenReturn(false);
+        BeslutteroversiktSok sok = sokPaEnheter("1234", "2103");
 
         ResponseStatusException feil = assertThrows(ResponseStatusException.class,
-                () -> beslutteroversiktService.hentBeslutteroversikt(sokPaEnheter("1234", "2103")));
+                () -> beslutteroversiktService.hentBeslutteroversikt(sok));
 
         assertEquals(HttpStatus.FORBIDDEN, feil.getStatusCode());
         verifyNoInteractions(beslutteroversiktRepository);
