@@ -250,6 +250,16 @@ class AuthService(
         }
     }
 
+    fun sjekkModiaGenerellTilgang() {
+        val decision = poaoTilgangClient.evaluatePolicy(
+            NavAnsattTilgangTilModiaPolicyInput(hentInnloggetVeilederUUID())
+        ).getOrDefault(Decision.Deny("Tilgangssjekk feilet", "POAO_TILGANG_FEIL"))
+
+        if (!decision.isPermit) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Veileder mangler Modia generell tilgang")
+        }
+    }
+
     fun harTilgangTilKode6Brukere(): Boolean {
         return poaoTilgangClient.evaluatePolicy(
             NavAnsattBehandleStrengtFortroligBrukerePolicyInput(hentInnloggetVeilederUUID())

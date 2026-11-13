@@ -1,6 +1,7 @@
 package no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto;
 
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -8,4 +9,8 @@ import java.util.List;
 public class VeilederEnheterDTO {
     String ident;
     List<PortefoljeEnhet> enhetliste;
+
+    public @Nullable List<@Nullable PortefoljeEnhet> getEnhetliste() {
+        return enhetliste;
+    }
 }

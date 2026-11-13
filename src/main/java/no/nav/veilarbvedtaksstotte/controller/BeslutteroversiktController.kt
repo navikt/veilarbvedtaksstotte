@@ -73,8 +73,12 @@ class BeslutteroversiktController @Autowired constructor(
                 content = [Content(schema = Schema(hidden = true))]
             )]
     )
-    fun startBeslutterProsess(@RequestBody sokData: BeslutteroversiktSok): BrukereMedAntall? {
-        return beslutteroversiktService.sokEtterBruker(sokData)
+    fun sokEtterUtkastTilKvalitetssikring(@RequestBody sokData: BeslutteroversiktSok): BrukereMedAntall? {
+        if (sokData.antall > MAKS_ANTALL_PER_SIDE) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "antall kan ikke være større enn $MAKS_ANTALL_PER_SIDE")
+        }
+
+        return beslutteroversiktService.hentBeslutteroversikt(sokData)
     }
 
     @GetMapping("/enheter")
@@ -122,5 +126,9 @@ class BeslutteroversiktController @Autowired constructor(
         }
 
         return beslutteroversiktService.hentEnheterMedUtkast()
+    }
+
+    private companion object {
+        const val MAKS_ANTALL_PER_SIDE = 100
     }
 }
