@@ -9,7 +9,7 @@ data class EtiketterForBrukerDTO(
 
 data class Etiketter(
     val erDoed: Boolean,
-    val egenAnsatt: Boolean,
+    val skjermet: Boolean,
     val adressebeskyttelse: String?,
-    val kandidatForUtmelding: Boolean,
+    val kandidatForAvslutning: Boolean,
 )

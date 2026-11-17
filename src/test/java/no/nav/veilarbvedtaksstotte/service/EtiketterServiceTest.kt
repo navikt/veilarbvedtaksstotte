@@ -18,7 +18,7 @@ class EtiketterServiceTest {
 
     @Test
     fun `hentEtiketter mapper etiketter til fnr`() {
-        val etiketter = Etiketter(erDoed = false, egenAnsatt = true, adressebeskyttelse = null, kandidatForUtmelding = false)
+        val etiketter = Etiketter(erDoed = false, skjermet = true, adressebeskyttelse = null, kandidatForAvslutning = false)
         whenever(veilarbportefoljeClient.hentEtiketter(listOf(NorskIdent.of("11111111111"))))
             .thenReturn(listOf(EtiketterForBrukerDTO(NorskIdent.of("11111111111"), etiketter)))
 
