@@ -123,6 +123,10 @@ spec:
       value: 14a_vedtak_statistikk
     - name: BQ_TABLE_NAME
       value: statistikk_dvh_fellestabell
+    - name: VEILARBPORTEFOLJE_URL
+      value: http://veilarbportefolje.obo/veilarbportefolje
+    - name: VEILARBPORTEFOLJE_TOKEN_SCOPE
+      value: api://dev-gcp.obo.veilarbportefolje/.default
 
   azure:
     application:
@@ -211,6 +215,8 @@ spec:
         - application: kabal-api
           namespace: klage
           cluster: dev-gcp
+        - application: veilarbportefolje
+          namespace: obo
       external:
         - host: dokarkiv-q2.dev-fss-pub.nais.io
         - host: dokdistkanal-q2.dev-fss-pub.nais.io

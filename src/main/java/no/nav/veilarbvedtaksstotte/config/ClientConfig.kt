@@ -42,6 +42,8 @@ import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
+import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.VeilarbportefoljeClient
+import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.VeilarbportefoljeClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClient
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.VeilarbveilederClientImpl
 import no.nav.veilarbvedtaksstotte.klagebehandling.client.KabalClient
@@ -269,6 +271,15 @@ class ClientConfig {
         )
     }
 
+    @Bean
+    fun veilarbportefoljeClient(
+        properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient
+    ) : VeilarbportefoljeClient {
+        return VeilarbportefoljeClientImpl(
+            properties.veilarbportefoljeUrl,
+            { tokenClient.createMachineToMachineToken(properties.veilarbportefoljeScope) }
+        )
+    }
 
     companion object {
         private val isProduction: Boolean
