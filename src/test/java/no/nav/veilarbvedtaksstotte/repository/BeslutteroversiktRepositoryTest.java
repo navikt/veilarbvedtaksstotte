@@ -202,7 +202,8 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
                 null, // statusEndret settes av databasen
                 TEST_BESLUTTER_NAVN,
                 TEST_BESLUTTER_IDENT,
-                TEST_VEILEDER_NAVN
+                TEST_VEILEDER_NAVN,
+                null
         );
     }
 

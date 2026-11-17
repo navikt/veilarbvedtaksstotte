@@ -56,7 +56,7 @@ public class BeslutteroversiktServiceTest {
 
     private final DefaultUnleash defaultUnleash = mock(DefaultUnleash.class);
 
-    private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient,  etiketterService, authService, defaultUnleash);
+    private final BeslutteroversiktService beslutteroversiktService = new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, etiketterService, authService, defaultUnleash);
 
     private final static BrukereMedAntall INGEN_BRUKERE = new BrukereMedAntall(Collections.emptyList(), 0);
 
@@ -170,7 +170,7 @@ public class BeslutteroversiktServiceTest {
     public void sokEtterBruker__skal_sensurere_brukere() {
         when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
         BeslutteroversiktService beslutteroversiktService =
-                spy(new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, authService, etiketterService, defaultUnleash));
+                spy(new BeslutteroversiktService(beslutteroversiktRepository, veiledereOgEnhetClient, etiketterService, authService, defaultUnleash));
 
         when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class))).thenReturn(INGEN_BRUKERE);
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
@@ -208,34 +208,45 @@ public class BeslutteroversiktServiceTest {
         Etiketter etiketterBruker1 = new Etiketter(false, true, null, false);
         Etiketter etiketterBruker2 = new Etiketter(false, false, "STRENGT_FORTROLIG", false);
 
-        BeslutteroversiktBruker bruker1 = new BeslutteroversiktBruker().setBrukerFnr(bruker1Fnr);
-        BeslutteroversiktBruker bruker2 = new BeslutteroversiktBruker().setBrukerFnr(bruker2Fnr);
+        BeslutteroversiktBruker bruker1 = lagBruker(1336, bruker1Fnr, "Fornavn1", "Etternavn1");
+        BeslutteroversiktBruker bruker2 = lagBruker(1337, bruker2Fnr, "Fornavn2", "Etternavn2");
 
-        when(beslutteroversiktRepository.sokEtterBrukere(any(), anyString()))
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class)))
                 .thenReturn(new BrukereMedAntall(Arrays.asList(bruker1, bruker2), 2));
         when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
-                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet("1234", "test1")))
-        );
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet("1234", "test1"))));
         when(etiketterService.hentEtiketter(List.of(bruker1Fnr, bruker2Fnr)))
                 .thenReturn(Map.of(bruker1Fnr, etiketterBruker1, bruker2Fnr, etiketterBruker2));
         when(authService.harInnloggetVeilederTilgangTilBrukere(any()))
                 .thenReturn(Map.of(bruker1Fnr, true, bruker2Fnr, false));
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
 
-        List<BeslutteroversiktBruker> brukere = beslutteroversiktService.sokEtterBruker(new BeslutteroversiktSok()).getBrukere();
+        List<BeslutteroversiktBruker> brukere = beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok()).getBrukere();
 
         assertEquals(etiketterBruker1, brukere.get(0).getEtiketter());
         assertEquals(etiketterBruker2, brukere.get(1).getEtiketter());
         assertEquals("", brukere.get(1).getBrukerFnr());
+        assertEquals("", brukere.get(1).getBrukerFornavn());
+        assertEquals("", brukere.get(1).getBrukerEtternavn());
     }
 
     @Test
     public void leggTilEtiketter__skal_sette_null_for_brukere_uten_etiketter() {
-        BeslutteroversiktBruker bruker = new BeslutteroversiktBruker().setBrukerFnr("11111111111");
+        String fnr = "11111111111";
+        BeslutteroversiktBruker bruker = lagBruker(42, fnr, "Fornavn", "Etternavn");
+        when(authService.getInnloggetVeilederIdent()).thenReturn(TEST_VEILEDER_IDENT);
+        when(veiledereOgEnhetClient.hentInnloggetVeilederEnheter()).thenReturn(
+                new VeilederEnheterDTO(TEST_VEILEDER_IDENT, List.of(new PortefoljeEnhet("1234", "test1")))
+        );
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class)))
+                .thenReturn(new BrukereMedAntall(List.of(bruker), 1));
         when(etiketterService.hentEtiketter(anyList())).thenReturn(Collections.emptyMap());
+        when(authService.harInnloggetVeilederTilgangTilBrukere(any())).thenReturn(Map.of(fnr, true));
 
-        beslutteroversiktService.leggTilEtiketter(List.of(bruker));
+        BrukereMedAntall resultat = beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok());
 
-        assertNull(bruker.getEtiketter());
+        verify(etiketterService).hentEtiketter(List.of(fnr));
+        assertNull(resultat.getBrukere().getFirst().getEtiketter());
     }
 
     @Test
@@ -257,8 +268,8 @@ public class BeslutteroversiktServiceTest {
         List<BeslutteroversiktBruker> sensurert = beslutteroversiktService.sensurerBrukere(brukere);
 
         assertEquals(bruker1.getBrukerFnr(), sensurert.getFirst().getBrukerFnr());
-        assertEquals(bruker1.getBrukerFornavn(), sensurert.get(0).getBrukerFornavn());
-        assertEquals(bruker1.getBrukerEtternavn(), sensurert.get(0).getBrukerEtternavn());
+        assertEquals(bruker1.getBrukerFornavn(), sensurert.getFirst().getBrukerFornavn());
+        assertEquals(bruker1.getBrukerEtternavn(), sensurert.getFirst().getBrukerEtternavn());
 
         assertEquals("", sensurert.get(1).getBrukerFnr());
         assertEquals("", sensurert.get(1).getBrukerFornavn());
@@ -406,7 +417,8 @@ public class BeslutteroversiktServiceTest {
                 LocalDateTime.of(2026, 1, 2, 12, 0),
                 null,
                 null,
-                "Veileder"
+                "Veileder",
+                null
         );
     }
 

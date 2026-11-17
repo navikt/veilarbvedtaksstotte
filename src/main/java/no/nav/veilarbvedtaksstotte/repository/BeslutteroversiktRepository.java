@@ -271,7 +271,8 @@ public class BeslutteroversiktRepository {
                 rs.getTimestamp(STATUS_ENDRET).toLocalDateTime(),
                 rs.getString(BESLUTTER_NAVN),
                 rs.getString(BESLUTTER_IDENT),
-                rs.getString(VEILEDER_NAVN)
+                rs.getString(VEILEDER_NAVN),
+                null
         );
     }
 

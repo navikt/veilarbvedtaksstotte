@@ -194,7 +194,8 @@ public class BeslutterService {
                 null, // statusEndret settes av databasen
                 null, // beslutterNavn
                 null, // beslutterIdent
-                veileder.getNavn()
+                veileder.getNavn(),
+                null
         );
 
         beslutteroversiktRepository.lagBruker(bruker);

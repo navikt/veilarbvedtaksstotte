@@ -63,8 +63,9 @@ class BeslutteroversiktService(
         val sokMedEnheter = sok.copy(filter = sok.filter.copy(enheter = enheterFilter))
 
         val resultat = beslutteroversiktRepository.sokEtterBrukere(sokMedEnheter, veilederIdent)
-        
-        return resultat.copy(brukere = leggTilEtiketter(resultat.brukere)).copy(brukere = sensurerBrukere(resultat.brukere))
+        val brukereMedEtiketter = leggTilEtiketter(resultat.brukere)
+
+        return resultat.copy(brukere = sensurerBrukere(brukereMedEtiketter))
     }
 
     // Tomt filter betyr alle enhetene veilederen har tilgang til.
@@ -91,9 +92,9 @@ class BeslutteroversiktService(
     private fun leggTilEtiketter(brukere: List<BeslutteroversiktBruker>): List<BeslutteroversiktBruker> {
         if (brukere.isEmpty()) return emptyList()
         
-        val etiketterForBrukere: Map<String, Etiketter> = etiketterService.hentEtiketter(brukere.mapNotNull { it.brukerFnr })
+        val etiketterForBrukere: Map<String, Etiketter> = etiketterService.hentEtiketter(brukere.map { it.brukerFnr })
         return brukere.map { bruker ->
-            val etiketter: Etiketter = bruker.brukerFnr?.let { etiketterForBrukere[it] }
+            val etiketter: Etiketter? = etiketterForBrukere[bruker.brukerFnr]
             if (etiketter != null) bruker.copy(etiketter = etiketter) else bruker
         }
     }
