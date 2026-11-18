@@ -46,5 +46,7 @@ data class EnvironmentProperties(
     val veilarbveilederScope: String,
     val veilarbveilederUrl: String,
     val veilarbportefoljeScope: String,
-    val veilarbportefoljeUrl: String
+    val veilarbportefoljeUrl: String,
+    val tilgangsmaskinUrl: String,
+    val tilgangsmaskinTokenScope: String? = null,
 )

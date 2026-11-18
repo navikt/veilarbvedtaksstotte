@@ -127,7 +127,8 @@ spec:
       value: http://veilarbportefolje.obo/veilarbportefolje
     - name: VEILARBPORTEFOLJE_TOKEN_SCOPE
       value: api://dev-gcp.obo.veilarbportefolje/.default
-
+    - name: TILGANGSMASKIN_URL
+      value: http://populasjonstilgangskontroll.tilgangsmaskin
   azure:
     application:
       allowAllUsers: true
@@ -219,6 +220,8 @@ spec:
           cluster: dev-gcp
         - application: veilarbportefolje
           namespace: obo
+        - application: populasjonstilgangskontroll
+          namespace: tilgangsmaskin
       external:
         - host: dokarkiv-q2.dev-fss-pub.nais.io
         - host: dokdistkanal-q2.dev-fss-pub.nais.io
