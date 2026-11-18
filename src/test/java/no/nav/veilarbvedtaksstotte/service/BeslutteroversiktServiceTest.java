@@ -304,8 +304,6 @@ public class BeslutteroversiktServiceTest {
         verifyNoInteractions(beslutteroversiktRepository);
     }
 
-    // --- Landsdekkende modus (togglen på). Testene feiler til stubbene merket 🔴 TODO er implementert. ---
-
     private static final List<EnhetId> VIKAFOSSEN = List.of(EnhetId.of("2103"));
 
     private void slaPaLandsdekkendeModus() {
@@ -402,6 +400,22 @@ public class BeslutteroversiktServiceTest {
         BrukereMedAntall resultat = beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok());
 
         assertEquals(List.of(bruker.withBrukerFnr("").withBrukerFornavn("").withBrukerEtternavn("")), resultat.getBrukere());
+    }
+
+    @Test
+    public void landsdekkende__skal_returnere_etiketter_for_sensurert_bruker() {
+        slaPaLandsdekkendeModus();
+        String fnr = "11111111111";
+        BeslutteroversiktBruker bruker = lagBruker(42, fnr, "Fornavn", "Etternavn");
+        Etiketter etiketter = new Etiketter(false, true, null, false);
+        when(beslutteroversiktRepository.sokEtterBrukere(any(), any(NavIdent.class), anyList()))
+                .thenReturn(new BrukereMedAntall(List.of(bruker), 1));
+        when(etiketterService.hentEtiketter(List.of(fnr))).thenReturn(Map.of(fnr, etiketter));
+        when(authService.harInnloggetVeilederTilgangTilBrukere(any())).thenReturn(Map.of(fnr, false));
+
+        BrukereMedAntall resultat = beslutteroversiktService.hentBeslutteroversikt(new BeslutteroversiktSok());
+
+        assertEquals(etiketter, resultat.getBrukere().getFirst().getEtiketter());
     }
 
     private static BeslutteroversiktBruker lagBruker(long vedtakId, String fnr, String fornavn, String etternavn) {

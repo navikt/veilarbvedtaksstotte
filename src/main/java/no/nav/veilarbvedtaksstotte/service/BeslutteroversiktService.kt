@@ -49,7 +49,9 @@ class BeslutteroversiktService(
         }
 
         val resultat = beslutteroversiktRepository.sokEtterBrukere(sok, veilederIdent, ekskluderteEnheter)
-        return resultat.copy(brukere = sensurerBrukere(resultat.brukere))
+        val brukereMedEtiketter = leggTilEtiketter(resultat.brukere)
+
+        return resultat.copy(brukere = sensurerBrukere(brukereMedEtiketter))
     }
 
     // Søk begrenset til veilederens enheter (togglen er av).
