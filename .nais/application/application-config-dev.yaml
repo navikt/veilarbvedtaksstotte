@@ -148,6 +148,8 @@ spec:
           namespace: poao
         - application: inngar
           namespace: dab
+        - application: veilarbperson
+          namespace: obo
         - application: beslutteroversikt
           namespace: obo
         - application: mulighetsrommet-api
