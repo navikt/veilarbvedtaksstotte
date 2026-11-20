@@ -124,6 +124,10 @@ spec:
       value: api://prod-gcp.obo.veilarbveileder/.default
     - name: VEILARBVEILEDER_URL
       value: http://veilarbveileder.obo/veilarbveileder
+    - name: TILGANGSMASKIN_URL
+      value: http://populasjonstilgangskontroll.tilgangsmaskin
+    - name: TILGANGSMASKIN_TOKEN_SCOPE
+      value: api://prod-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default
     # Topics
     - name: ARENA_VEDTAK_TOPIC
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-p
@@ -213,6 +217,8 @@ spec:
           cluster: prod-gcp
         - application: veilarbportefolje
           namespace: obo
+        - application: populasjonstilgangskontroll
+          namespace: tilgangsmaskin
       external:
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: dokdistfordeling.prod-fss-pub.nais.io

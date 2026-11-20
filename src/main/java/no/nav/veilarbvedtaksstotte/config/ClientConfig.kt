@@ -40,6 +40,9 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient
 import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClientImpl
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClient
 import no.nav.veilarbvedtaksstotte.client.regoppslag.RegoppslagClientImpl
+import no.nav.veilarbvedtaksstotte.client.tilgangsmaskin.TilgangsmaskinClient
+import no.nav.veilarbvedtaksstotte.client.tilgangsmaskin.TilgangsmaskinClientImpl
+import no.nav.veilarbvedtaksstotte.client.tilgangsmaskin.TilgangsmaskinDevClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClient
 import no.nav.veilarbvedtaksstotte.client.veilarboppfolging.VeilarboppfolgingClientImpl
 import no.nav.veilarbvedtaksstotte.client.veilarbportefolje.VeilarbportefoljeClient
@@ -274,11 +277,29 @@ class ClientConfig {
     @Bean
     fun veilarbportefoljeClient(
         properties: EnvironmentProperties, tokenClient: AzureAdMachineToMachineTokenClient
-    ) : VeilarbportefoljeClient {
+    ): VeilarbportefoljeClient {
         return VeilarbportefoljeClientImpl(
             properties.veilarbportefoljeUrl,
             { tokenClient.createMachineToMachineToken(properties.veilarbportefoljeScope) }
         )
+    }
+
+    @Bean
+    fun tilgangsmaskinClient(
+        properties: EnvironmentProperties,
+        tokenClient: AzureAdOnBehalfOfTokenClient,
+        authContextHolder: AuthContextHolder,
+    ): TilgangsmaskinClient {
+        return if (isProduction) {
+            TilgangsmaskinClientImpl(properties.tilgangsmaskinUrl) {
+                tokenClient.exchangeOnBehalfOfToken(
+                    properties.tilgangsmaskinTokenScope,
+                    authContextHolder.requireIdTokenString()
+                )
+            }
+        } else {
+            TilgangsmaskinDevClientImpl(properties.tilgangsmaskinUrl)
+        }
     }
 
     companion object {

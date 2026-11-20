@@ -165,7 +165,7 @@ class AuthService(
         }
     }
 
-    private fun sjekkInternBruker() {
+    fun sjekkInternBruker() {
         authContextHolder
             .role
             .filter { role: UserRole -> role == UserRole.INTERN }
