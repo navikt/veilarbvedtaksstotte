@@ -5,6 +5,7 @@ metadata:
   namespace: pto
   labels:
     team: pto
+    deploy-test: "true"
 spec:
   pool: nav-dev
   config:
