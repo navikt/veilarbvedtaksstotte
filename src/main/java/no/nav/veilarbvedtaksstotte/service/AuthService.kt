@@ -165,7 +165,7 @@ class AuthService(
         }
     }
 
-    private fun sjekkInternBruker() {
+    fun sjekkInternBruker() {
         authContextHolder
             .role
             .filter { role: UserRole -> role == UserRole.INTERN }
@@ -247,6 +247,16 @@ class AuthService(
 
         if (acrClaim.isEmpty || acrClaim.get() != "Level4") {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Kunne ikke hente acr fra token")
+        }
+    }
+
+    fun sjekkModiaGenerellTilgang() {
+        val decision = poaoTilgangClient.evaluatePolicy(
+            NavAnsattTilgangTilModiaPolicyInput(hentInnloggetVeilederUUID())
+        ).getOrDefault(Decision.Deny("Tilgangssjekk feilet", "POAO_TILGANG_FEIL"))
+
+        if (!decision.isPermit) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Veileder mangler Modia generell tilgang")
         }
     }
 

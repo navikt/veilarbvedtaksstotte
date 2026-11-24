@@ -124,6 +124,10 @@ spec:
       value: api://prod-gcp.obo.veilarbveileder/.default
     - name: VEILARBVEILEDER_URL
       value: http://veilarbveileder.obo/veilarbveileder
+    - name: TILGANGSMASKIN_URL
+      value: http://populasjonstilgangskontroll.tilgangsmaskin
+    - name: TILGANGSMASKIN_TOKEN_SCOPE
+      value: api://prod-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default
     # Topics
     - name: ARENA_VEDTAK_TOPIC
       value: teamarenanais.aapen-arena-14avedtakiverksatt-v1-p
@@ -132,6 +136,10 @@ spec:
       value: 14a_vedtak_statistikk
     - name: BQ_TABLE_NAME
       value: statistikk_dvh_fellestabell
+    - name: VEILARBPORTEFOLJE_URL
+      value: http://veilarbportefolje.obo/veilarbportefolje
+    - name: VEILARBPORTEFOLJE_TOKEN_SCOPE
+      value: api://prod-gcp.obo.veilarbportefolje/.default
   azure:
     application:
       allowAllUsers: true
@@ -154,6 +162,8 @@ spec:
           namespace: poao
         - application: inngar
           namespace: dab
+        - application: veilarbperson
+          namespace: obo
         - application: beslutteroversikt
           namespace: obo
         - application: mulighetsrommet-api
@@ -205,6 +215,10 @@ spec:
         - application: kabal-api
           namespace: klage
           cluster: prod-gcp
+        - application: veilarbportefolje
+          namespace: obo
+        - application: populasjonstilgangskontroll
+          namespace: tilgangsmaskin
       external:
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: dokdistfordeling.prod-fss-pub.nais.io
