@@ -1,0 +1,25 @@
+name: Manually deploy kafka topic(s) to dev
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_single_file:
+        description: "Sti til en fil, eks: \".nais/kafka/vedtak-14a-fattet-dvh-v1.yaml\""
+        required: true
+        type: string
+
+jobs:
+  deploy-dev-manual:
+    name: Manually deploy kafka topic(s) to dev
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7.0.1
+      - name: Deploy kafka topics
+        uses: nais/deploy/actions/deploy@d003bddf74ce5b96fa3056ae60bd4b9b3bbc89ef # ratchet:nais/deploy/actions/deploy@v3
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: ${{ inputs.deploy_single_file }}
+          PRINT_PAYLOAD: true
