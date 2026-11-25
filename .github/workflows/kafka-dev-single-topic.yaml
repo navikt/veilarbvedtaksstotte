@@ -8,6 +8,10 @@ on:
         type: choice
         options:
           - ".nais/kafka/dev/vedtak-14a-fattet-dvh-v1.yaml"
+          - ".nais/kafka/dev/gjeldende-14a-vedtak-v1-topic.yaml"
+          - ".nais/kafka/dev/vedtak-sendt-v1-topic.yaml"
+          - ".nais/kafka/dev/vedtak-14a-statusendring-v1-topic.yaml"
+          - ".nais/kafka/dev/siste-14a-vedtak-v1-topic.yaml"
 
 jobs:
   deploy-dev-manual:

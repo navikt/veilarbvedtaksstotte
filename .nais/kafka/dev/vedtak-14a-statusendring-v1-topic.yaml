@@ -1,0 +1,28 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  name: vedtak-14a-statusendring-v1
+  namespace: pto
+  labels:
+    team: pto
+spec:
+  pool: nav-dev
+  config:
+    cleanupPolicy: delete
+    minimumInSyncReplicas: 1
+    partitions: 1
+    replication: 2
+    retentionHours: 336 # 14 days
+  acl:
+    - team: obo
+      application: veilarbvedtaksstotte
+      access: readwrite
+    - team: obo
+      application: veilarbportefolje
+      access: read
+    - team: pto
+      application: pto-kafka-manager
+      access: read
+    - team: obo
+      application: obo-kafka-manager
+      access: read
