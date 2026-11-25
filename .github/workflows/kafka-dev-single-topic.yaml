@@ -1,15 +1,17 @@
-name: Manually deploy kafka topic(s) to dev
+name: Manuell deploy av kafka-topic til dev
 on:
   workflow_dispatch:
     inputs:
       deploy_single_file:
-        description: "Sti til en fil, eks: \".nais/kafka/vedtak-14a-fattet-dvh-v1.yaml\""
+        description: "Sti til en fil, eks: \".nais/kafka/dev/vedtak-14a-fattet-dvh-v1.yaml\""
         required: true
-        type: string
+        type: choice
+        options:
+          - ".nais/kafka/dev/vedtak-14a-fattet-dvh-v1.yaml"
 
 jobs:
   deploy-dev-manual:
-    name: Manually deploy kafka topic(s) to dev
+    name: Manuell deploy av kafka-topic til dev
     permissions:
       contents: read
       id-token: write
