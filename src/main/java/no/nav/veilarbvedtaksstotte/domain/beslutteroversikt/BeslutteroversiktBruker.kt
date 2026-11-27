@@ -19,6 +19,7 @@ data class BeslutteroversiktBruker(
     val beslutterNavn: String?,
     val beslutterIdent: String?,
     val veilederNavn: String,
+    val veilederIdent: String?,
     val etiketter: Etiketter?
 ) {
     // withX returnerer en kopi med endret felt, for Java-kode som mangler navngitte argumenter og copy.

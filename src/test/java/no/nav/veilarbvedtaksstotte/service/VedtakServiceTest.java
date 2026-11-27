@@ -51,6 +51,8 @@ import no.nav.veilarbvedtaksstotte.controller.dto.SlettVedtakRequest;
 import no.nav.veilarbvedtaksstotte.domain.Malform;
 import no.nav.veilarbvedtaksstotte.domain.VedtakOpplysningKilder;
 import no.nav.veilarbvedtaksstotte.domain.arkiv.BrevKode;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.EgenvurderingDto;
 import no.nav.veilarbvedtaksstotte.domain.oyeblikksbilde.OyeblikksbildeDto;
@@ -77,6 +79,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -97,6 +100,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -115,6 +119,7 @@ public class VedtakServiceTest extends DatabaseTest {
     private static VedtakService vedtakService;
     private static OyeblikksbildeService oyeblikksbildeService;
     private static AuthService authService;
+    private static BeslutteroversiktRepository beslutteroversiktRepository;
 
     private static final DefaultUnleash unleashService = mock(DefaultUnleash.class);
 
@@ -152,7 +157,7 @@ public class VedtakServiceTest extends DatabaseTest {
         sakStatistikkRepository = new SakStatistikkRepository(jdbcTemplate);
         RetryVedtakdistribusjonRepository retryVedtakdistribusjonRepository = new RetryVedtakdistribusjonRepository(jdbcTemplate);
         OyeblikksbildeRepository oyeblikksbildeRepository = new OyeblikksbildeRepository(jdbcTemplate);
-        BeslutteroversiktRepository beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
+        beslutteroversiktRepository = new BeslutteroversiktRepository(jdbcTemplate);
         authService = spy(new AuthService(aktorOppslagClient, oppfolgingsenhetService, AuthContextHolderThreadLocal.instance(), poaoTilgangClient));
         SakStatistikkService sakStatistikkService = new SakStatistikkService(sakStatistikkRepository, veilarboppfolgingClient, aktorOppslagClient, bigQueryService, environmentProperties, veilarbpersonClient);
 
@@ -429,15 +434,72 @@ public class VedtakServiceTest extends DatabaseTest {
     @Test
     public void taOverUtkast__setter_ny_veileder() {
         withContext(() -> {
-            String tidligereVeilederId = TEST_VEILEDER_IDENT + "tidligere";
+            String tidligereVeilederId = "Z999998";
+            String oppslagVeilederIdent = "Z999997";
+            String nyttVeilederNavn = "Ny veileder";
             gittTilgang();
             vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID_STRING, tidligereVeilederId, TEST_OPPFOLGINGSENHET_ID);
             Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
+            beslutteroversiktRepository.lagBruker(lagOversiktsrad(utkast, tidligereVeilederId, "Tidligere veileder"));
+            when(veilederService.hentVeileder(TEST_VEILEDER_IDENT))
+                    .thenReturn(new Veileder(oppslagVeilederIdent, nyttVeilederNavn));
 
             assertEquals(tidligereVeilederId, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getVeilederIdent());
             vedtakService.taOverUtkast(utkast.getId());
             assertEquals(TEST_VEILEDER_IDENT, vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getVeilederIdent());
+            BeslutteroversiktBruker oppdatertOversikt = beslutteroversiktRepository.finnBrukerForVedtak(utkast.getId());
+            assertEquals(TEST_VEILEDER_IDENT, oppdatertOversikt.getVeilederIdent());
+            assertEquals(nyttVeilederNavn, oppdatertOversikt.getVeilederNavn());
         });
+    }
+
+    @Test
+    public void taOverUtkast__ruller_tilbake_vedtak_og_oversikt_nar_melding_feiler() {
+        withContext(() -> {
+            String tidligereVeilederIdent = "Z999998";
+            String tidligereVeilederNavn = "Tidligere veileder";
+            String nyttVeilederNavn = "Ny veileder";
+            gittTilgang();
+            vedtaksstotteRepository.opprettUtkast(TEST_AKTOR_ID_STRING, tidligereVeilederIdent, TEST_OPPFOLGINGSENHET_ID);
+            Vedtak utkast = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING);
+            beslutteroversiktRepository.lagBruker(lagOversiktsrad(utkast, tidligereVeilederIdent, tidligereVeilederNavn));
+            when(veilederService.hentVeileder(TEST_VEILEDER_IDENT))
+                    .thenReturn(new Veileder("Z999997", nyttVeilederNavn));
+            doThrow(new RuntimeException("syntetisk meldingsfeil")).when(meldingRepository)
+                    .opprettSystemMelding(anyLong(), eq(SystemMeldingType.TATT_OVER_SOM_VEILEDER), eq(TEST_VEILEDER_IDENT));
+
+            assertThatThrownBy(() -> vedtakService.taOverUtkast(utkast.getId()))
+                    .isExactlyInstanceOf(RuntimeException.class)
+                    .hasMessage("syntetisk meldingsfeil");
+
+            verify(meldingRepository).opprettSystemMelding(
+                    eq(utkast.getId()), eq(SystemMeldingType.TATT_OVER_SOM_VEILEDER), eq(TEST_VEILEDER_IDENT));
+            assertEquals(tidligereVeilederIdent,
+                    vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getVeilederIdent());
+            BeslutteroversiktBruker oversiktEtterFeil = beslutteroversiktRepository.finnBrukerForVedtak(utkast.getId());
+            assertEquals(tidligereVeilederIdent, oversiktEtterFeil.getVeilederIdent());
+            assertEquals(tidligereVeilederNavn, oversiktEtterFeil.getVeilederNavn());
+            verify(vedtakHendelserService, never()).tattOverForVeileder(any(), eq(TEST_VEILEDER_IDENT));
+        });
+    }
+
+    private BeslutteroversiktBruker lagOversiktsrad(Vedtak vedtak, String veilederIdent, String veilederNavn) {
+        return new BeslutteroversiktBruker(
+                vedtak.getId(),
+                "fornavn",
+                "etternavn",
+                TEST_OPPFOLGINGSENHET_NAVN,
+                TEST_OPPFOLGINGSENHET_ID,
+                TEST_FNR.get(),
+                LocalDateTime.now(),
+                BeslutteroversiktStatus.KLAR_TIL_BESLUTTER,
+                null,
+                null,
+                null,
+                veilederNavn,
+                veilederIdent,
+                null
+        );
     }
 
     @Test

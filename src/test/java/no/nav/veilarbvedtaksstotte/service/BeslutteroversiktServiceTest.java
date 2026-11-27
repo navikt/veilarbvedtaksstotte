@@ -432,6 +432,7 @@ public class BeslutteroversiktServiceTest {
                 null,
                 null,
                 "Veileder",
+                "Z123456",
                 null
         );
     }

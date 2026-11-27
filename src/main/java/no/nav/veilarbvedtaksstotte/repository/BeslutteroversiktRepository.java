@@ -38,6 +38,7 @@ public class BeslutteroversiktRepository {
     private final static String BESLUTTER_NAVN = "BESLUTTER_NAVN";
     private final static String BESLUTTER_IDENT = "BESLUTTER_IDENT";
     private final static String VEILEDER_NAVN = "VEILEDER_NAVN";
+    private final static String VEILEDER_IDENT = "VEILEDER_IDENT";
 
     private final static Object[] NO_PARAMETERS = new Object[0];
     private final static int DEFAULT_BRUKER_SOK_ANTALL = 20;
@@ -51,10 +52,10 @@ public class BeslutteroversiktRepository {
 
     public void lagBruker(BeslutteroversiktBruker bruker) {
         String sql = format(
-                "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?, ?, ?)",
+                "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?::BESLUTTER_OVERSIKT_STATUS_TYPE, ?, ?, ?, ?)",
                 BESLUTTEROVERSIKT_BRUKER_TABLE, VEDTAK_ID, BRUKER_FORNAVN, BRUKER_ETTERNAVN,
                 BRUKER_OPPFOLGINGSENHET_NAVN, BRUKER_OPPFOLGINGSENHET_ID, BRUKER_FNR,
-                VEDTAK_STARTET, STATUS, BESLUTTER_NAVN, BESLUTTER_IDENT, VEILEDER_NAVN
+                VEDTAK_STARTET, STATUS, BESLUTTER_NAVN, BESLUTTER_IDENT, VEILEDER_NAVN, VEILEDER_IDENT
         );
 
         db.update(
@@ -62,7 +63,7 @@ public class BeslutteroversiktRepository {
                 bruker.getVedtakId(), bruker.getBrukerFornavn(), bruker.getBrukerEtternavn(),
                 bruker.getBrukerOppfolgingsenhetNavn(), bruker.getBrukerOppfolgingsenhetId(),
                 bruker.getBrukerFnr(), bruker.getVedtakStartet(), getName(bruker.getStatus()),
-                bruker.getBeslutterNavn(), bruker.getBeslutterIdent(), bruker.getVeilederNavn()
+                bruker.getBeslutterNavn(), bruker.getBeslutterIdent(), bruker.getVeilederNavn(), bruker.getVeilederIdent()
         );
     }
 
@@ -75,13 +76,13 @@ public class BeslutteroversiktRepository {
         db.update(sql, getName(status), vedtakId);
     }
 
-    public void oppdaterVeileder(long vedtakId, String veilederNavn) {
+    public void oppdaterVeileder(long vedtakId, String veilederIdent, String veilederNavn) {
         String sql = format(
-                "UPDATE %s SET %s = ? WHERE %s = ?",
-                BESLUTTEROVERSIKT_BRUKER_TABLE, VEILEDER_NAVN, VEDTAK_ID
+                "UPDATE %s SET %s = ?, %s = ? WHERE %s = ?",
+                BESLUTTEROVERSIKT_BRUKER_TABLE, VEILEDER_IDENT, VEILEDER_NAVN, VEDTAK_ID
         );
 
-        db.update(sql, veilederNavn, vedtakId);
+        db.update(sql, veilederIdent, veilederNavn, vedtakId);
     }
 
     public void oppdaterBeslutter(long vedtakId, String beslutterIdent, String beslutterNavn) {
@@ -272,6 +273,7 @@ public class BeslutteroversiktRepository {
                 rs.getString(BESLUTTER_NAVN),
                 rs.getString(BESLUTTER_IDENT),
                 rs.getString(VEILEDER_NAVN),
+                rs.getString(VEILEDER_IDENT),
                 null
         );
     }

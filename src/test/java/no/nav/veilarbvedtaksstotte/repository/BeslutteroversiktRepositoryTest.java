@@ -1,10 +1,12 @@
 package no.nav.veilarbvedtaksstotte.repository;
 
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktSok;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktStatus;
 import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.EnhetMedNavn;
 import no.nav.veilarbvedtaksstotte.utils.DatabaseTest;
 import no.nav.veilarbvedtaksstotte.utils.DbTestUtils;
+import no.nav.common.types.identer.NavIdent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +56,17 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
                 .withStatusEndret(null);
 
         assertEquals(nyBruker, bruker);
+        assertEquals(TEST_VEILEDER_IDENT, bruker.getVeilederIdent());
+    }
+
+    @Test
+    public void nullableVeilederIdent__skal_leses_for_finn_og_sok() {
+        long vedtakId = vedtaksstotteRepository.hentUtkast(TEST_AKTOR_ID_STRING).getId();
+        beslutteroversiktRepository.lagBruker(lagBruker(vedtakId, null));
+
+        assertNull(beslutteroversiktRepository.finnBrukerForVedtak(vedtakId).getVeilederIdent());
+        assertNull(beslutteroversiktRepository.sokEtterBrukere(
+                new BeslutteroversiktSok(), NavIdent.of(TEST_BESLUTTER_IDENT)).getBrukere().getFirst().getVeilederIdent());
     }
 
     @Test
@@ -94,10 +107,11 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
         BeslutteroversiktBruker nyBruker = lagBruker(vedtakId);
 
         beslutteroversiktRepository.lagBruker(nyBruker);
-        beslutteroversiktRepository.oppdaterVeileder(vedtakId, "NY VEILEDER");
+        beslutteroversiktRepository.oppdaterVeileder(vedtakId, "NY_VEILEDER_IDENT", "NY VEILEDER");
 
         BeslutteroversiktBruker oppdatertBruker = beslutteroversiktRepository.finnBrukerForVedtak(vedtakId);
 
+        assertEquals("NY_VEILEDER_IDENT", oppdatertBruker.getVeilederIdent());
         assertEquals("NY VEILEDER", oppdatertBruker.getVeilederNavn());
     }
 
@@ -190,6 +204,10 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
     }
 
     private BeslutteroversiktBruker lagBruker(long vedtakId) {
+        return lagBruker(vedtakId, TEST_VEILEDER_IDENT);
+    }
+
+    private BeslutteroversiktBruker lagBruker(long vedtakId, String veilederIdent) {
         return new BeslutteroversiktBruker(
                 vedtakId,
                 "fornavn",
@@ -203,6 +221,7 @@ public class BeslutteroversiktRepositoryTest extends DatabaseTest {
                 TEST_BESLUTTER_NAVN,
                 TEST_BESLUTTER_IDENT,
                 TEST_VEILEDER_NAVN,
+                veilederIdent,
                 null
         );
     }

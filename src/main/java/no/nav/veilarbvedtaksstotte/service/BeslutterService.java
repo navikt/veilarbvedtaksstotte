@@ -195,6 +195,7 @@ public class BeslutterService {
                 null, // beslutterNavn
                 null, // beslutterIdent
                 veileder.getNavn(),
+                vedtak.getVeilederIdent(),
                 null
         );
 
