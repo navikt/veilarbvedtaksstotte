@@ -6,6 +6,7 @@ import no.nav.veilarbvedtaksstotte.client.person.VeilarbpersonClient;
 import no.nav.veilarbvedtaksstotte.client.person.dto.PersonNavn;
 import no.nav.veilarbvedtaksstotte.client.veilederogenhet.dto.Veileder;
 import no.nav.veilarbvedtaksstotte.domain.AuthKontekst;
+import no.nav.veilarbvedtaksstotte.domain.beslutteroversikt.BeslutteroversiktBruker;
 import no.nav.veilarbvedtaksstotte.domain.dialog.SystemMeldingType;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.BeslutterProsessStatus;
 import no.nav.veilarbvedtaksstotte.domain.vedtak.Innsatsgruppe;
@@ -16,6 +17,7 @@ import no.nav.veilarbvedtaksstotte.repository.VedtaksstotteRepository;
 import no.nav.veilarbvedtaksstotte.utils.SingletonPostgresContainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -36,6 +38,7 @@ import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_OPPFOLGINGSENHET_N
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_IDENT;
 import static no.nav.veilarbvedtaksstotte.utils.TestData.TEST_VEILEDER_NAVN;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
@@ -104,6 +107,31 @@ public class BeslutterServiceTest {
         beslutterService.startBeslutterProsess(SOME_ID);
 
         verify(vedtaksstotteRepository, times(1)).setBeslutterProsessStatus(anyLong(), eq(KLAR_TIL_BESLUTTER));
+    }
+
+    @Test
+    public void startBeslutterProsess__skal_lagre_veilederident_fra_vedtak_og_navn_fra_oppslag() {
+        String vedtakVeilederIdent = "VEDTAK_VEILEDER_IDENT";
+        String oppslagVeilederIdent = "OPPSLAG_VEILEDER_IDENT";
+        String oppslagVeilederNavn = "Oppslag Veileder";
+        Vedtak vedtak = new Vedtak()
+                .setInnsatsgruppe(Innsatsgruppe.VARIG_TILPASSET_INNSATS)
+                .setAktorId(TEST_AKTOR_ID_STRING)
+                .setOppfolgingsenhetId(TEST_OPPFOLGINGSENHET_ID)
+                .setVeilederIdent(vedtakVeilederIdent)
+                .setUtkastOpprettet(LocalDateTime.of(2026, 1, 1, 12, 0));
+
+        when(authService.sjekkTilgangTilBrukerOgEnhet(TilgangType.SKRIVE, TEST_FNR)).thenReturn(authKontekst);
+        when(vedtaksstotteRepository.hentUtkastEllerFeil(SOME_ID)).thenReturn(vedtak);
+        when(veilederService.hentVeileder(vedtakVeilederIdent))
+                .thenReturn(new Veileder(oppslagVeilederIdent, oppslagVeilederNavn));
+
+        beslutterService.startBeslutterProsess(SOME_ID);
+
+        ArgumentCaptor<BeslutteroversiktBruker> captor = ArgumentCaptor.forClass(BeslutteroversiktBruker.class);
+        verify(beslutteroversiktRepository).lagBruker(captor.capture());
+        assertEquals(vedtakVeilederIdent, captor.getValue().getVeilederIdent());
+        assertEquals(oppslagVeilederNavn, captor.getValue().getVeilederNavn());
     }
 
     @Test
